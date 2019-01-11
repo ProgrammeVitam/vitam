@@ -30,7 +30,7 @@ package fr.gouv.vitam.worker.core.plugin;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -168,7 +168,7 @@ public class UnitsRulesComputePluginTest {
             .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
         when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "AccessRule"));
 
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -192,7 +192,7 @@ public class UnitsRulesComputePluginTest {
         action.getInput().clear();
         action.getInput().add(archiveUnit);
         
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialPartial());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialPartial());
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -212,7 +212,7 @@ public class UnitsRulesComputePluginTest {
         action.getInput().clear();
         action.getInput().add(archiveUnit_MGT_only);
         
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -242,12 +242,12 @@ public class UnitsRulesComputePluginTest {
             .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
         when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "AccessRule"));
 
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName("containerName");
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -266,7 +266,7 @@ public class UnitsRulesComputePluginTest {
         JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARBO_MD_RG_COMPLEXE_ROOT));
         action.getInput().clear();
         action.getInput().add(archiveUnit_ARBO_MD_RG_COMPLEXE);
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForArboMdRgComplexe());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForArboMdRgComplexe());
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -292,7 +292,7 @@ public class UnitsRulesComputePluginTest {
         action.getInput().clear();
         action.getInput().add(archiveUnit_ARBO_MD_RG_COMPLEXE);
         
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForNonExistingRule());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForNonExistingRule());
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -325,7 +325,7 @@ public class UnitsRulesComputePluginTest {
         // Should be AccessRule
         when(adminManagementClient.getRuleByID("ID102")).thenReturn(getRulesInReferential("ID102", "StorageRule"));
 
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferential());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -356,7 +356,7 @@ public class UnitsRulesComputePluginTest {
         when(adminManagementClient.getRuleByID("ID103"))
             .thenReturn(getRulesInReferential("ID103", "ClassificationRule"));
 
-        when(adminManagementClient.getRules(anyObject())).thenReturn(getRulesInReferentialForAuMgtMdOk());
+        when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForAuMgtMdOk());
 
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
@@ -382,8 +382,8 @@ public class UnitsRulesComputePluginTest {
                     action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
             java.nio.file.Files.copy(inputStream, file);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.Matchers.anyString(),
-            org.mockito.Matchers.eq(filename), org.mockito.Matchers.any(InputStream.class));
+        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.eq(filename), org.mockito.ArgumentMatchers.any(InputStream.class));
     }
 
     private JsonNode getRulesInReferential(String ruleId, String ruleType) {

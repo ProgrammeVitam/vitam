@@ -28,7 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,8 +90,8 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenSedaNotExistWhenCheckStorageThenReturnResponseFatal() throws Exception {
         final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
-        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenThrow(new ProcessingException(""));
+        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenThrow(new ProcessingException(""));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -105,9 +105,9 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseKO() throws Exception {
         final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
-        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(838860800));
-        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(83886800));
+        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(838860800));
+        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(83886800));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -130,9 +130,9 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseOK() throws Exception {
         final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
-        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
-        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
+        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
+        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(1024));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
@@ -158,9 +158,9 @@ public class CheckStorageAvailabilityActionHandlerTest {
     public void givenProblemWithOfferCheckStorageExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-1);
         final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
-        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
-        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
+        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
+        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(1024));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
@@ -179,10 +179,10 @@ public class CheckStorageAvailabilityActionHandlerTest {
     public void givenProblemWithOffersCheckStorageExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-2);
         final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
-        when(sedaUtils.computeTotalSizeOfObjectsInManifest(anyObject())).thenReturn(new Long(1024));
+        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
+        when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
 
-        when(sedaUtils.getManifestSize(anyObject())).thenReturn(new Long(1024));
+        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(1024));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =

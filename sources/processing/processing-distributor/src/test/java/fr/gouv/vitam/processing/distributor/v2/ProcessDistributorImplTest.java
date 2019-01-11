@@ -91,8 +91,8 @@ import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -146,7 +146,7 @@ public class ProcessDistributorImplTest {
 
         workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(processDataAccess.findOneProcessWorkflow(anyObject(), anyObject())).thenReturn(processWorkflow);
+        when(processDataAccess.findOneProcessWorkflow(any(), any())).thenReturn(processWorkflow);
 
 
         WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
@@ -156,7 +156,7 @@ public class ProcessDistributorImplTest {
         workerClient = mock(WorkerClient.class);
         when(workerClientFactory.getClient()).thenReturn(workerClient);
 
-        when(workerClient.submitStep(anyObject()))
+        when(workerClient.submitStep(any()))
             .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
 
         processDistributor = new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
@@ -369,7 +369,7 @@ public class ProcessDistributorImplTest {
 
         Response response =
             Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
@@ -399,9 +399,9 @@ public class ProcessDistributorImplTest {
 
         Response response =
             Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
 
-        when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgument(0);
             System.err.println("descriptionStep.getWorkParams().getObjectNameList()" +
                 descriptionStep.getWorkParams().getObjectNameList());
@@ -437,9 +437,9 @@ public class ProcessDistributorImplTest {
 
         Response response =
             Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
 
-        when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgument(0);
             if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("aaa1.json")) {
                 //throw new RuntimeException("Exception While Executing aaa1");
@@ -475,9 +475,9 @@ public class ProcessDistributorImplTest {
 
         Response response =
             Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
 
-        when(workerClient.submitStep(anyObject())).thenThrow(new RuntimeException("WorkerException"));
+        when(workerClient.submitStep(any())).thenThrow(new RuntimeException("WorkerException"));
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
@@ -556,7 +556,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
 
-        when(workerClient.submitStep(anyObject()))
+        when(workerClient.submitStep(any()))
             .thenAnswer(invocation -> {
 
                 Map<WorkerParameterName, String> mapParameters =
@@ -588,7 +588,7 @@ public class ProcessDistributorImplTest {
                 operationId,
                 PauseRecover.NO_RECOVER);
 
-        verify(workerClient, times(750)).submitStep(anyObject());
+        verify(workerClient, times(750)).submitStep(any());
 
         assertThat(itemStatus).isNotNull();
 
@@ -780,7 +780,7 @@ public class ProcessDistributorImplTest {
             Response.ok(Files.newInputStream(chainedFile.toPath())).status(Response.Status.OK).build();
         when(workspaceClient.getObject(operationId, CHAINED_FILE_02_JSON)).thenReturn(response);
 
-        when(workerClient.submitStep(anyObject())).thenThrow(new RuntimeException("WorkerException"));
+        when(workerClient.submitStep(any())).thenThrow(new RuntimeException("WorkerException"));
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
@@ -808,7 +808,7 @@ public class ProcessDistributorImplTest {
         when(workspaceClient.getObject(operationId, list_elements)).thenReturn(response);
 
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(2);
-        when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             countDownLatchSubmit.countDown();
             return getMockedItemStatus(StatusCode.OK);
         });
@@ -863,9 +863,9 @@ public class ProcessDistributorImplTest {
 
         Response response =
             Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
-        when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             System.out.println("submit step");
             countDownLatchSubmit.countDown();
             return getMockedItemStatus(StatusCode.OK);
@@ -926,11 +926,11 @@ public class ProcessDistributorImplTest {
 
         Response response =
             Response.ok(Files.newInputStream(resourceFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
 
         final CountDownLatch countDownLatchException = new CountDownLatch(1);
 
-        when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgument(0);
             if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("d.json")) {
                 countDownLatchException.countDown();
@@ -995,10 +995,10 @@ public class ProcessDistributorImplTest {
 
         Response response =
             Response.ok(Files.newInputStream(ingestLevelStack.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyObject(), anyObject())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
 
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
-        when(workerClient.submitStep(anyObject())).thenAnswer(invocation -> {
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             countDownLatchSubmit.countDown();
             return getMockedItemStatus(StatusCode.OK);
         });

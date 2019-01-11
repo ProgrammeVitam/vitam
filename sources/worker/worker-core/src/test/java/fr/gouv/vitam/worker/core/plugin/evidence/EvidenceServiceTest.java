@@ -81,7 +81,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import static org.mockito.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -172,7 +172,7 @@ public class EvidenceServiceTest {
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"));
 
-        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), any()))
             .thenReturn(responseMock);
         when(storageClient.getInformation(anyString(), eq(DataCategory.UNIT), anyString(), any(), eq(true)))
             .thenReturn(OFFERS_INFO);
@@ -285,7 +285,7 @@ public class EvidenceServiceTest {
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"));
-        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
+        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), any()))
             .thenReturn(responseMock);
         assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip",
             "data.txt", ".zip",true))

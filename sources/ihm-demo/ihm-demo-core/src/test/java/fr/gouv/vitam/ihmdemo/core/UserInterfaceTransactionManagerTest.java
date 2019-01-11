@@ -29,9 +29,9 @@ package fr.gouv.vitam.ihmdemo.core;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -140,7 +140,7 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessSearchUnits()
         throws Exception {
-        when(accessClient.selectUnits(anyObject(), anyObject())).thenReturn(searchResult);
+        when(accessClient.selectUnits(any(), any())).thenReturn(searchResult);
         // Test method
         final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
             .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), context);
@@ -169,14 +169,14 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testgetLifecycleUnit()
         throws Exception {
-        when(accessClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject())).thenReturn(searchResult);
+        when(accessClient.selectUnitLifeCycleById(any(), any(), any())).thenReturn(searchResult);
 
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
             .selectUnitLifeCycleById("1", context);
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
-        verify(accessClient).selectUnitLifeCycleById(anyObject(), anyObject(), selectArgument.capture());
+        verify(accessClient).selectUnitLifeCycleById(any(), any(), selectArgument.capture());
         assertFalse(selectArgument.getValue().has("$filter"));
         assertFalse(selectArgument.getValue().has("$query"));
     }
@@ -185,14 +185,14 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testgetLifecycleObjectGroup()
         throws Exception {
-        when(accessClient.selectObjectGroupLifeCycleById(anyObject(), anyObject(), anyObject())).thenReturn(searchResult);
+        when(accessClient.selectObjectGroupLifeCycleById(any(), any(), any())).thenReturn(searchResult);
 
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
             .selectObjectGroupLifeCycleById("1", context);
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
-        verify(accessClient).selectObjectGroupLifeCycleById(anyObject(), anyObject(), selectArgument.capture());
+        verify(accessClient).selectObjectGroupLifeCycleById(any(), any(), selectArgument.capture());
         assertFalse(selectArgument.getValue().has("$filter"));
         assertFalse(selectArgument.getValue().has("$query"));
     }
@@ -202,7 +202,7 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessUpdateUnits()
         throws Exception {
-        when(accessClient.updateUnitbyId(anyObject(), anyObject(), anyObject())).thenReturn(updateResult);
+        when(accessClient.updateUnitbyId(any(), any(), any())).thenReturn(updateResult);
         // Test method
         final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
             .getFromString(UPDATE_UNIT_DSL_QUERY), "1", context);

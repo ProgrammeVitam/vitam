@@ -72,8 +72,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -125,7 +125,7 @@ public class CheckHeaderActionHandlerTest {
         sedaMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, CONTRACT_NAME);
         sedaMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, SedaConstants.TAG_MESSAGE_IDENTIFIER);
         AdminManagementClientFactory.changeMode(null);
-        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
+        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -150,7 +150,7 @@ public class CheckHeaderActionHandlerTest {
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
 
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "");
-        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
+        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
 
 
@@ -161,7 +161,7 @@ public class CheckHeaderActionHandlerTest {
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
 
         sedaMap.remove(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
-        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(anyObject());
+        doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
 
         action.partialClose();
@@ -179,12 +179,12 @@ public class CheckHeaderActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaLocal);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
 
         AdminManagementClientFactory.changeMode(null);
-        //Mockito.doCallRealMethod().when(utils).getMandatoryValues(anyObject());
+        //Mockito.doCallRealMethod().when(utils).getMandatoryValues(any());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -218,9 +218,9 @@ public class CheckHeaderActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(MANIFEST_WITHOUT_ARCHIVAL_PROFILE));
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
-        when(handlerIO.getInputStreamFromWorkspace(anyObject())).thenReturn(sedaLocal);
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
 
         AdminManagementClientFactory.changeMode(null);
         assertNotNull(CheckHeaderActionHandler.getId());

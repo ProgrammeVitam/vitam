@@ -28,7 +28,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -203,7 +203,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
             DataCategory.OBJECTGROUP.name() + "/" + params.getObjectName()))
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
-        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(storageClient.storeFileFromWorkspace(any(), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
@@ -233,7 +233,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
-        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(storageClient.storeFileFromWorkspace(any(), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
@@ -294,7 +294,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
             .getObjectGroupByIdRaw(OG_GUID);
 
-        when(logbookClient.getRawObjectGroupLifeCycleById(anyObject()))
+        when(logbookClient.getRawObjectGroupLifeCycleById(any()))
             .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
@@ -314,7 +314,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
         when(metadataClient.getObjectGroupByIdRaw(OG_GUID)).thenReturn(oGResponse);
 
         Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookClient)
-            .getRawObjectGroupLifeCycleById(anyObject());
+            .getRawObjectGroupLifeCycleById(any());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -342,7 +342,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromWorkspace(any(), any(), any(), any());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 
@@ -370,7 +370,7 @@ public class StoreMetaDataObjectGroupActionPluginTest {
                 .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromWorkspace(any(), any(), any(), any());
 
         plugin = new StoreMetaDataObjectGroupActionPlugin();
 

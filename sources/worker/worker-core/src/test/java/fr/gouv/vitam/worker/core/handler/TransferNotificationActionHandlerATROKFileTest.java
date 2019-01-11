@@ -29,7 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 import java.io.File;
@@ -124,7 +124,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
         handlerIO.setCurrentObjectId(objectId);
 
         PowerMockito.mockStatic(ValidationXsdUtils.class);
-        PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
+        PowerMockito.when(ValidationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
 
         in = new ArrayList<>();
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {

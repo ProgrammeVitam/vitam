@@ -75,8 +75,8 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
+import org.jboss.resteasy.client.core.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.engines.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
 import org.jboss.resteasy.client.jaxrs.internal.ClientRequestHeaders;
 import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
@@ -346,13 +346,18 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 }
 
                 @Override
-                public void releaseConnection(boolean b) throws IOException {
+                public void releaseConnection(boolean consumeInputStream) throws IOException {
                     // Apache Client 4 is stupid, You have to get the InputStream and close it if there is an entity
                     // otherwise the connection is never released. There is, of course, no close() method on response
                     // to make this easier.
                     try {
                         // Another stupid thing...TCK is testing a specific exception from stream.close()
                         // so, we let it propagate up.
+                        if (consumeInputStream) {
+                            while (stream.read() > 0) {
+                            }
+                        }
+
                         stream.close();
                     } finally {
                         // just in case the input stream was entirely replaced and not wrapped, we need

@@ -28,8 +28,8 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -146,19 +146,19 @@ public class CheckConformityActionPluginTest {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objName")))
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName")))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
-        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo1)))
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo1)))
             .thenReturn(
                 Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo1)).build());
 
-        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo2)))
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo2)))
             .thenReturn(
                 Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo2)).build());
-        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo3)))
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo3)))
             .thenReturn(
                 Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo3)).build());
-        when(workspaceClient.getObject(anyObject(), eq("SIP/content/" + bdo4)))
+        when(workspaceClient.getObject(any(), eq("SIP/content/" + bdo4)))
             .thenReturn(
                 Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("BinaryObject/" + bdo4)).build());
 
@@ -192,9 +192,9 @@ public class CheckConformityActionPluginTest {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_BDO_AND_PDO);
-        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objName")))
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objName")))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
-        when(workspaceClient.getObject(anyObject(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
+        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
                 .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
@@ -224,9 +224,9 @@ public class CheckConformityActionPluginTest {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroupEmptyDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_EMPTY);
-        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objectName2")))
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName2")))
             .thenReturn(Response.status(Status.OK).entity(objectGroupEmptyDigest).build());
-        when(workspaceClient.getObject(anyObject(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
+        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
                 .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());
@@ -261,9 +261,9 @@ public class CheckConformityActionPluginTest {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroupInvalideDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_INVALID);
-        when(workspaceClient.getObject(anyObject(), eq("ObjectGroup/objectName3")))
+        when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName3")))
             .thenReturn(Response.status(Status.OK).entity(objectGroupInvalideDigest).build());
-        when(workspaceClient.getObject(anyObject(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
+        when(workspaceClient.getObject(any(), eq("SIP/Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf")))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils
                 .getResourceAsStream("checkConformityActionPlugin/binaryObject/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf"))
                 .build());

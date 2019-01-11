@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,9 +90,9 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findIngestContracts(anyObject()))
+        when(adminClient.findIngestContracts(any()))
             .thenReturn(createIngestContract(ActivationStatus.ACTIVE));
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
 
         final WorkerParameters params =
@@ -120,9 +120,9 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findIngestContracts(anyObject()))
+        when(adminClient.findIngestContracts(any()))
             .thenReturn(createIngestContract(ActivationStatus.ACTIVE));
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
             .thenReturn(createProfile(ProfileStatus.INACTIVE));
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -144,7 +144,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
             .thenReturn(ClientMockResultHelper.createEmptyReponse());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -166,7 +166,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
             .thenReturn(ClientMockResultHelper.createVitamError());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -188,9 +188,9 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findIngestContracts(anyObject()))
+        when(adminClient.findIngestContracts(any()))
             .thenReturn(ClientMockResultHelper.createEmptyReponse());
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -212,9 +212,9 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findIngestContracts(anyObject()))
+        when(adminClient.findIngestContracts(any()))
             .thenReturn(ClientMockResultHelper.createVitamError());
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
@@ -237,9 +237,9 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
         when(handlerIO.getInput(1)).thenReturn(CONTRACT_NAME);
 
-        when(adminClient.findIngestContracts(anyObject()))
+        when(adminClient.findIngestContracts(any()))
             .thenReturn(createIngestContract(ActivationStatus.ACTIVE, null));
-        when(adminClient.findProfiles(anyObject()))
+        when(adminClient.findProfiles(any()))
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)

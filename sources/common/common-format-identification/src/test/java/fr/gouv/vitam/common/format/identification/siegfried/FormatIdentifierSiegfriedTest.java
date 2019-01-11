@@ -30,7 +30,7 @@ package fr.gouv.vitam.common.format.identification.siegfried;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
@@ -115,7 +115,7 @@ public class FormatIdentifierSiegfriedTest {
     @Test
     public void testSiegfriedIdentify() throws Exception {
         reset(client);
-        when(client.analysePath(anyObject())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_OK));
+        when(client.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_OK));
 
         final List<FormatIdentifierResponse> response = siegfried.analysePath(FILE_PATH);
         assertNotNull(response);
@@ -130,7 +130,7 @@ public class FormatIdentifierSiegfriedTest {
     @Test
     public void testSiegfriedIdentifyUnknownFormatFileButWarnWithFMT() throws Exception {
         reset(client);
-        when(client.analysePath(anyObject())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW));
+        when(client.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW));
         List<FormatIdentifierResponse> result = siegfried.analysePath(FILE_PATH);
         assertNotNull(result);
         assertFalse(result.isEmpty());
@@ -140,28 +140,28 @@ public class FormatIdentifierSiegfriedTest {
     @Test(expected = FileFormatNotFoundException.class)
     public void testSiegfriedIdentifyNoFormatFile() throws Exception {
         reset(client);
-        when(client.analysePath(anyObject())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW_NOWARN));
+        when(client.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_UNKNOW_NOWARN));
         siegfried.analysePath(FILE_PATH);
     }
 
     @Test(expected = FormatIdentifierBadRequestException.class)
     public void testSiegfriedIdentifyBadPath() throws Exception {
         reset(client);
-        when(client.analysePath(anyObject())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_BAD));
+        when(client.analysePath(any())).thenReturn(new RequestResponseOK().addResult(JSON_NODE_RESPONSE_BAD));
         siegfried.analysePath(FILE_PATH);
     }
 
     @Test(expected = FormatIdentifierTechnicalException.class)
     public void testSiegfriedIdentifyParseError() throws Exception {
         reset(client);
-        when(client.analysePath(anyObject())).thenThrow(FormatIdentifierTechnicalException.class);
+        when(client.analysePath(any())).thenThrow(FormatIdentifierTechnicalException.class);
         siegfried.analysePath(FILE_PATH);
     }
 
     @Test(expected = FormatIdentifierNotFoundException.class)
     public void testSiegfriedIdentifyNotFound() throws Exception {
         reset(client);
-        when(client.analysePath(anyObject())).thenThrow(FormatIdentifierNotFoundException.class);
+        when(client.analysePath(any())).thenThrow(FormatIdentifierNotFoundException.class);
         siegfried.analysePath(FILE_PATH);
     }
 

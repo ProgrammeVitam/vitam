@@ -49,7 +49,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -64,7 +63,9 @@ import java.util.HashMap;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -105,7 +106,7 @@ public class ProcessManagementResourceTest {
         PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
         processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
         PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
-        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(1), anyString()))
             .thenReturn(new HashMap<>());
         application = new ProcessManagementMain(CONF_FILE_NAME);
         application.start();
@@ -144,7 +145,7 @@ public class ProcessManagementResourceTest {
         when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
@@ -153,7 +154,7 @@ public class ProcessManagementResourceTest {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
 
-        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+        Mockito.when(processDistributorImpl.distribute(any(), any(), any(), any()))
             .thenReturn(itemStatus);
 
 
@@ -189,7 +190,7 @@ public class ProcessManagementResourceTest {
         when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         final GUID processId = GUIDFactory.newGUID();
@@ -217,7 +218,7 @@ public class ProcessManagementResourceTest {
         when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
@@ -227,7 +228,7 @@ public class ProcessManagementResourceTest {
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
 
-        Mockito.when(processDistributorImpl.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+        Mockito.when(processDistributorImpl.distribute(any(), any(), any(), any()))
             .thenReturn(itemStatus);
 
 
@@ -281,7 +282,7 @@ public class ProcessManagementResourceTest {
         when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         given()
@@ -307,7 +308,7 @@ public class ProcessManagementResourceTest {
         when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
 
         given()

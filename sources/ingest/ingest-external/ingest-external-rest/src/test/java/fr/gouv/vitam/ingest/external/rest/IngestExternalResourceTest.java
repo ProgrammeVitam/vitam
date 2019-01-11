@@ -68,7 +68,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -143,7 +143,7 @@ public class IngestExternalResourceTest {
         throws Exception {
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(INGEST_URI)
@@ -159,7 +159,7 @@ public class IngestExternalResourceTest {
         throws Exception {
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
@@ -177,7 +177,7 @@ public class IngestExternalResourceTest {
         throws Exception {
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -192,7 +192,7 @@ public class IngestExternalResourceTest {
         String path = PropertiesUtils.getResourcePath("no-virus.txt").toString();
         LocalFile localFile = new LocalFile(path);
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFile)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -207,7 +207,7 @@ public class IngestExternalResourceTest {
         // this is incorrect, this will be rejected
         LocalFile localFile = new LocalFile("../no-virus.txt");
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFile)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -221,7 +221,7 @@ public class IngestExternalResourceTest {
         throws Exception {
         LocalFile localFileWithNonExistingPath = new LocalFile("NonExistingPath");
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFileWithNonExistingPath)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -236,7 +236,7 @@ public class IngestExternalResourceTest {
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
         final FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
-        when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(siegfried);
+        when(identifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
         return siegfried;
     }
 

@@ -87,9 +87,9 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -731,7 +731,7 @@ public class IngestContractImplTest {
     @RunWithCustomExecutor
     public void givenIngestContractsTestLinkParentIdKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(metaDataClientMock.selectUnitbyId(anyObject(), anyObject()))
+        when(metaDataClientMock.selectUnitbyId(any(), any()))
             .thenReturn(new RequestResponseOK<>().toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
@@ -753,7 +753,7 @@ public class IngestContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         RequestResponseOK ok = new RequestResponseOK<>();
         ok.setHits(1, 0, 1, 1);// simulate returning result when query for filing or holding unit
-        when(metaDataClientMock.selectUnitbyId(anyObject(), anyObject())).thenReturn(ok.toJsonNode());
+        when(metaDataClientMock.selectUnitbyId(any(), any())).thenReturn(ok.toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =

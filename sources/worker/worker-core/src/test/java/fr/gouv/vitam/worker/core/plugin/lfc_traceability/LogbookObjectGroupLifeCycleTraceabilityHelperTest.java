@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -132,7 +132,7 @@ public class LogbookObjectGroupLifeCycleTraceabilityHelperTest {
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
-        when(logbookOperationsClient.selectOperation(anyObject()))
+        when(logbookOperationsClient.selectOperation(any()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
 
         JsonLineIterator entriesIterator = new JsonLineIterator(PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA));

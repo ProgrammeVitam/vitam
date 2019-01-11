@@ -31,7 +31,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 import java.nio.charset.Charset;
@@ -168,15 +168,15 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
         prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME)).when(logbookOperationsClient)
-            .selectOperation(anyObject());
-        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(anyObject());
-        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
-        Mockito.doNothing().when(workspaceClient).uncompressObject(anyObject(), anyObject(), anyObject(), anyObject());
+            .selectOperation(any());
+        Mockito.doReturn(false).when(workspaceClient).isExistingContainer(any());
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
+        Mockito.doNothing().when(workspaceClient).uncompressObject(any(), any(), any(), any());
         Mockito.doReturn(
             new FakeInboundResponse(Status.OK, IOUtils.toInputStream("Fake Content", Charset.defaultCharset()),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null))
             .when(storageClient)
-            .getContainerAsync(anyObject(), anyObject(), anyObject(), anyObject());
+            .getContainerAsync(any(), any(), any(), any());
 
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -190,7 +190,7 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
         prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME_WRONG_TYPE)).when(logbookOperationsClient)
-            .selectOperation(anyObject());
+            .selectOperation(any());
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -203,7 +203,7 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
         prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
         action.addOutIOParameters(out);
         Mockito.doThrow(new LogbookClientException("Error with Logbook")).when(logbookOperationsClient)
-            .selectOperation(anyObject());
+            .selectOperation(any());
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -216,9 +216,9 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
         prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME)).when(logbookOperationsClient)
-            .selectOperation(anyObject());
+            .selectOperation(any());
         Mockito.doThrow(new StorageNotFoundException("Error with Storage")).when(storageClient)
-            .getContainerAsync(anyObject(), anyObject(), anyObject(), anyObject());
+            .getContainerAsync(any(), any(), any(), any());
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -231,13 +231,13 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
         prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME)).when(logbookOperationsClient)
-            .selectOperation(anyObject());
-        Mockito.doReturn(true).when(workspaceClient).isExistingContainer(anyObject());
+            .selectOperation(any());
+        Mockito.doReturn(true).when(workspaceClient).isExistingContainer(any());
         Mockito.doReturn(
             new FakeInboundResponse(Status.OK, IOUtils.toInputStream("Fake Content", Charset.defaultCharset()),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, null))
             .when(storageClient)
-            .getContainerAsync(anyObject(), anyObject(), anyObject(), anyObject());
+            .getContainerAsync(any(), any(), any(), any());
         final ItemStatus response = prepareTraceabilityCheckProcessActionHandler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }

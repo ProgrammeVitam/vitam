@@ -60,8 +60,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -126,7 +126,7 @@ public class CheckClassificationLevelActionPluginTest {
         classificationLevel.setAuthorizeNotDefined(true);
         VitamConfiguration.setClassificationLevel(classificationLevel);
 
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Response.Status.OK).entity(archiveUnit).build());
 
         final ItemStatus response = plugin.execute(params, action);
@@ -142,7 +142,7 @@ public class CheckClassificationLevelActionPluginTest {
         classificationLevel.setAllowList(allowList);
         classificationLevel.setAuthorizeNotDefined(true);
         VitamConfiguration.setClassificationLevel(classificationLevel);
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Response.Status.OK).entity(archiveUnit).build());
 
         final ItemStatus response = plugin.execute(params, action);

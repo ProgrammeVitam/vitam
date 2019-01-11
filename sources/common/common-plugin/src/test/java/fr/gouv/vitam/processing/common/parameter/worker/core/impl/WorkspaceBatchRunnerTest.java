@@ -39,8 +39,8 @@ import org.junit.Test;
 
 import java.util.concurrent.Executor;
 
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -88,7 +88,7 @@ public class WorkspaceBatchRunnerTest {
     public void whenTransferThenOK() throws ProcessingException, WorkerspaceQueueException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
         doAnswer(o -> o)
-            .when(handlerIO).transferInputStreamToWorkspace(anyObject(), anyObject(), anyObject(), anyBoolean());
+            .when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.TRANSFER);
 

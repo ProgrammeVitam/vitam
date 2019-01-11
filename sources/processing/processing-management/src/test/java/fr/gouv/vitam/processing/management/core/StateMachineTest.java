@@ -20,8 +20,8 @@ package fr.gouv.vitam.processing.management.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.mock;
@@ -122,13 +122,13 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).next(anyObject());
+        }).when(stateMachine).next(any());
         stateMachine.next(null);
 
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).resume(anyObject());
+        }).when(stateMachine).resume(any());
         stateMachine.resume(null);
 
         doAnswer(o -> {
@@ -170,7 +170,7 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).next(anyObject());
+        }).when(stateMachine).next(any());
 
         stateMachine.next(null);
     }
@@ -184,7 +184,7 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).resume(anyObject());
+        }).when(stateMachine).resume(any());
 
         stateMachine.resume(null);
     }
@@ -197,7 +197,7 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).next(anyObject());
+        }).when(stateMachine).next(any());
 
         stateMachine.next(null);
     }
@@ -211,7 +211,7 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).resume(anyObject());
+        }).when(stateMachine).resume(any());
 
         stateMachine.resume(null);
     }
@@ -260,7 +260,7 @@ public class StateMachineTest {
         final ProcessEngine processEngine = mock(ProcessEngineImpl.class);
         final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
 
-        doAnswer(invocation -> null).when(processEngine).start(anyObject(), anyObject(), anyObject(), anyObject());
+        doAnswer(invocation -> null).when(processEngine).start(any(), any(), any(), any());
         stateMachine.next(workParams);
         try {
             stateMachine.next(workParams);
@@ -315,7 +315,7 @@ public class StateMachineTest {
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK);
-        when(processDistributorMock.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(processDistributorMock.distribute(any(), any(), any(), any()))
             .thenReturn(itemStatus);
         stateMachine.resume(workParams);
         int nbtry = 50;
@@ -366,7 +366,7 @@ public class StateMachineTest {
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO);
-        when(processDistributorMock.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(processDistributorMock.distribute(any(), any(), any(), any()))
             .thenReturn(itemStatus);
         stateMachine.resume(workParams);
         int nbtry = 50;
@@ -415,7 +415,7 @@ public class StateMachineTest {
         StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
-        when(processDistributorMock.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(processDistributorMock.distribute(any(), any(), any(), any()))
             .thenThrow(new RuntimeException("Fake Exception From Distributor"));
 
         stateMachine.resume(workParams);

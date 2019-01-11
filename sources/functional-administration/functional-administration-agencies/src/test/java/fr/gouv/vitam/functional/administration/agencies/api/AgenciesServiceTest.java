@@ -21,10 +21,10 @@ import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.endsWith;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -178,8 +178,8 @@ public class AgenciesServiceTest {
 
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(anyObject()))
-                .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+        when(logbookOperationsclient.selectOperation(any()))
+            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
         instantiateAgencyService();
 
@@ -290,8 +290,8 @@ public class AgenciesServiceTest {
         Mockito.reset(functionalBackupService);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(anyObject()))
-                .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+        when(logbookOperationsclient.selectOperation(any()))
+            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
         instantiateAgencyService();
 
