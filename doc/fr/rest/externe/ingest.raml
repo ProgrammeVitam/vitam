@@ -35,7 +35,7 @@ documentation:
 
     Créé une transaction d'entrée :
     - une requête unique, avec un 'body' contenant toutes les informations dans un ZIP ou un TAR ou un TAR.GZ ou TAR.BZ2:
-      - Métadonnées dans un format SEDA XML ou Json de nom manifest.xml ou manifest.json (json **UNSUPPORTED**)
+      - Métadonnées dans un format SEDA XML de nom manifest.xml
       - Tous les binaires dans le répertoire "/content"
     - une requête unique, avec un 'body' contenant un chemin vers un fichier binaire présent sur le disque local du dossier spécifié dans la configuration de l'ingest externe. Le format du body est json.
     - d'autres formes pourront être implémentées dans des versions ultérieures (multipart/form-data) avec de multiples requêtes utilisant les sous-collections futures *Units* et *Objects*

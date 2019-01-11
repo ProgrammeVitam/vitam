@@ -11,8 +11,7 @@ uses:
 traits:
 
   IngestListingResponse:
-    description: |
-      **UNSUPPORTED** Request that will return the response model for Ingest listing
+    description: Request that will return the Ingest listing
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader200, StandardTraits.StandardHeader206,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
@@ -40,8 +39,7 @@ traits:
   IngestWorkflowsResponse:
     description: |
       Response model for Workflows definitions
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader200,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     responses:
       200:
@@ -54,8 +52,7 @@ traits:
 
   IngestCreationResponse:
     description: Request for an Ingest creation
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader202,
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
     body:
       application/zip:
@@ -98,8 +95,7 @@ traits:
             example: !include examples/sedaArchiveTransferReplyKO.xml
   IngestCreationResponseAsync:
     description: Request for an Ingest creation
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
     body:
       application/zip:
         description: Body containing the SIP in ZIP format
@@ -114,8 +110,7 @@ traits:
         example: !include examples/localIngest.json
     responses:
       202:
-        description: |
-          **UNSUPPORTED** Returns the status of ingest operation accepted
+        description: Returns the status of ingest operation accepted
         body:
           application/json:
             description: Ingest operation accepted
@@ -127,24 +122,8 @@ traits:
           application/xml:
             description: Final Ingest report
 
-  IngestPoolingResponse:
-    description: |
-      **UNSUPPORTED** Response model for Ingest pooling
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader202, StandardTraits.StandardHeader200,
-      StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
-    responses:
-      202:
-        description: Returns the status of ingest operation accepted
-        body:
-          application/json:
-            description: Ingest operation accepted
-            schema: StandardTypes.AsyncStatus
-            example: !include examples/ingests.json
-
   IngestFinalResponse:
-    description: |
-      **UNSUPPORTED** Request that will return the final response model for Ingest
+    description: Request that will return the final response model for Ingest
     is: [ StandardTraits.StandardOptionalHeader,
       StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader401, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]

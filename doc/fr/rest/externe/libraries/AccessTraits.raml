@@ -122,6 +122,18 @@ traits:
           application/octet-stream:
             description: Objet binaire
 
+  AccessGOTResponse:
+    description: Réponse sur les groupes d'objets
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader400,
+      StandardTraits.StandardHeader401, StandardTraits.StandardHeader403, StandardTraits.StandardHeader404, StandardTraits.StandardHeader412 ]
+    responses:
+      200:
+        description: Renvoie la liste de résultats correspondant à la requête DSL
+        body:
+          application/json:
+            description: Résultats json correspondant à la requête DSL
+
   AccessUniqueObjectResponse:
     description: Response model for Object collection under Units collection in access
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AllowsHeader,
@@ -173,8 +185,7 @@ traits:
 
   DipCreationResponseAsync:
     description: Requête de création d'un DIP
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON.
@@ -197,8 +208,7 @@ traits:
 
   EliminationResponseAsync:
     description: Requête d'élimination
-    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AsynchronousHeader,
-      StandardTraits.StandardHeader202 ]
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
         description: Body contient la requête DSL **multiple** au format JSON ainsi que la date d'élimination.

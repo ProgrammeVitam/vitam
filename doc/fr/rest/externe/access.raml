@@ -38,7 +38,6 @@ documentation:
         - Un seul Object par Unit max
         - Une requête depuis un Unit signifie recherche relative depuis celui-ci (roots = this)
         - Accept: **application/json** signifie les métadonnées au format Json
-        - (**UNSUPPORTED**) Accept: **application/zip** signifie les métadonnées au format Json et le contenu binaire de l'Objet
         - Accept: **application/octet-stream** signifie le retour du contenu binaire de l'Object
 
   - title: Champs d'application sur les Objects
@@ -50,7 +49,6 @@ documentation:
         - GET correspond à la recherche ou l'accès selon la présence d'un body ou non
         - Une requête depuis un object signifie recherche relative depuis celui-ci (roots = this)
         - Accept: **application/json** signifie les métadonnées au format Json
-        - (**UNSUPPORTED**) Accept: **application/zip** signifie les métadonnées au format Json et le contenu binaire de l'Objet
         - Accept: **application/octet-stream** signifie le retour du contenu binaire de l'Object
 
 /units:
@@ -67,10 +65,27 @@ documentation:
     description: |
       Requête qui retourne des résultats contenant des Unités d'archives. La requête utilise POST avec X-Http-Method-Override: GET
       La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+      Sans le Header, le point d'API est utilisé pour mettre à jour en masse les métadonnées descriptives des unités archivistiques. Possibilité de remplacer une chaîne de caractères par une autre vià l'opération $setregex.
     is: [AccessTraits.AccessUnitResponse, StandardTraits.OverrideGet]
     headers:
       X-Http-Method-Override:
         required: true
+    body:
+      application/json:
+        description: Requête permettant de mettre à jour les métadonnées descriptives d'unités d'archives.
+        example: !include libraries/examples/unitsBatchUpdate.json
+    responses:
+      202:
+        description: Renvoie le statut de l'opération de mise à jour
+        body:
+          application/json:
+            description: Operation de mise à jour acceptée
+      500:
+        description: Renvoie le statut final de l'opération en KO
+        body:
+          application/json:
+            description: informations sur l'echec du lancement de l'opération
+
 
   /rules:
     post:
@@ -176,7 +191,7 @@ documentation:
         Requête qui retourne les résultate composés des métadonnées et des objets binaires dans un fichier zip
         'Accept' header est 'application/octet-stream'
       responses:
-        200:
+        202:
           description: Returns the generated zip file
           body:
             application/octet-stream:
@@ -185,6 +200,31 @@ documentation:
           description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
           body:
             application/json:
+
+/objects:
+  displayName: Groupe d'objet
+  description: API qui définit l'ensemble des requêtes sur les groupes d'objets.
+  get:
+    description: |
+      Requête qui retourne des résultats contenant des Groupes d'objets.
+      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam et peut utiliser l'opérateur $subobject (Voir documentation DSL) en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+    is: [AccessTraits.AccessGOTResponse]
+    body:
+      application/json:
+        description: Requête permettant de rechercher un ou plusieurs groupes d'objets
+        example: !include libraries/examples/object-group-search.json
+  post:
+    description: |
+      Requête qui retourne des résultats contenant des Groupes d'objets en utilisant le verbe POST et le header X-Http-Method-Override: GET.
+      La requête utilise le langage de requête DSL de type **recherche multiple (SELECT MULTIPLE)** de Vitam et peut utiliser l'opérateur $subobject (Voir documentation DSL) en entrée et retourne une liste d'Unités d'archives selon le DSL Vitam en cas de succès.
+    is: [AccessTraits.AccessGOTResponse, StandardTraits.OverrideGet]
+    headers:
+      X-Http-Method-Override:
+        required: true
+    body:
+      application/json:
+        description: Requête permettant de rechercher un ou plusieurs groupes d'objets
+        example: !include libraries/examples/object-group-search.json
 
 /elimination:
   displayName: Elimination
@@ -235,83 +275,32 @@ documentation:
           body:
             application/json:
 
-/evidenceaudit/:
-  displayName: LFC traceability audit
-  description: |
-    API qui définit les requêtes pour générer un audit de la traçabilité des journaux de cycles de vie.
-  /unit/{id}:
-    uriParameters:
-        id:
-          required: true
-          description: Identifiant de l'unité archivistique
-    displayName: Opération d'audit de la traçabilité des journaux de cycles de vie d'une unité archivistique.
-    description: |
-      Opération d'audit de la traçabilité des journaux de cycles de vie d'une unité archivistique.
-    post:
-      headers:
-        Accept:
-          required: true
-          enum: [ "application/json" ]
-      description: |
-        Lancer une opération d'audit de la traçabilité des journaux de cycles de vie d'une unité archivistique.
-      responses:
-        200:
-          description: Success
-          body:
-            application/json:
-              description: Success response
-        412:
-          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
-          body:
-            application/json:
-  /objects/{id}:
-    uriParameters:
-        id:
-          required: true
-          description: Identifiant du groupe d'objets
-    displayName: Opération d'audit de la traçabilité des journaux de cycles de vie d'un groupe d'objets.
-    description: |
-      Opération d'audit de la traçabilité des journaux de cycles de vie d'un groupe d'objets.
-    post:
-      headers:
-        Accept:
-          required: true
-          enum: [ "application/json" ]
-      description: |
-        Lancer une opération d'audit de la traçabilité des journaux de cycles de vie d'un groupe d'objets.
-      responses:
-        200:
-          description: Success
-          body:
-            application/json:
-              description: Success response
-        412:
-          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
-          body:
-            application/json:
-
 /storageaccesslog:
-  displayName: Actions relatives aux fichiers journaux d'accès aux objets binaires
-  description: |
-    API qui permet de lancer des actions relatives aux fichiers journaux d'accès aux objets binaires des unités archivistiques.
+  displayName: Journaux d'accès
+  description: API qui permet de lancer des actions relatives aux journaux d'accès aux objets binaires des unités archivistiques.
+  is: [ StandardTraits.StandardOptionalHeader ]
   get:
     headers:
-        Accept:
-            required: true
-            enum: [ "application/octet-stream" ]
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+      Content-Type:
+        required: true
+        enum: [ "application/json" ]
     body:
-        application/json:
-            description: Requête de récupération de fichiers de log d'accès
-            type: object
-            properties:
-              StartDate:
-                description: Date de début des fichiers de log (un fichier de log contenant des logs après et avant cette date est remonté au complet)
-                type: date
-                example: 2018-11-14
-              EndDate:
-                description: Date de fin des fichiers de log (un fichier de log contenant des logs après et avant cette date est remonté au complet)
-                type: date
-                example: 2018-11-14
+      application/json:
+        description: Requête de récupération de fichiers de log d'accès
+        type: object
+        properties:
+          StartDate?:
+            description: Date de début des fichiers de log (un fichier de log contenant des logs après et avant cette date est remonté au complet)
+            type: string
+            example: "2018-11-14"
+          EndDate?:
+            description: Date de fin des fichiers de log (un fichier de log contenant des logs après et avant cette date est remonté au complet)
+            type: string
+            example: "2018-11-14"
+        example: !include libraries/examples/storage-accesslog-query.json
     description:
         Lancer la récupération des journaux sous la forme d'un ZIP contenant des fichiers de log au format Json Lines.
         La requête prend en paramètre un objet Json pouvant contenir une date de début (StartDate) ou de fin (EndDate) pour filtrer les journaux.

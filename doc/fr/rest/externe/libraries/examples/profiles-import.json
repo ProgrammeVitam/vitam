@@ -1,0 +1,22 @@
+[
+  {	"Identifier":"PROFIL_INACTIVE_001",
+    "Name":"PROFIL_INACTIVE_001",
+    "Description":"PROFIL_INACTIVE_001",
+    "Status":"INACTIVE",
+    "Format":"RNG",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016",
+    "ActivationDate":"10/12/2016",
+    "DeactivationDate":"10/12/2016"
+  },
+  {	"Identifier":"PROFIL_002",
+    "Name":"PROFIL_002",
+    "Description":"PROFIL_002",
+    "Status":"ACTIVE",
+    "Format":"XSD",
+    "LastUpdate":"10/12/2016",
+    "CreationDate":"10/12/2016",
+    "ActivationDate":"10/12/2016",
+    "DeactivationDate":"10/12/2016"
+  }
+]

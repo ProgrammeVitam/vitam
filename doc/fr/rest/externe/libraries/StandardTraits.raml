@@ -11,7 +11,7 @@ traits:
     headers:
       Accept:
         description: |
-          Allow to specify if a result must contain only Metadata ('_application/json_'), or a complete DIP (**UNSUPPORTED**) (one ZIP or TAR containing both Metadata and Binary object) ('_application/zip_' or '_application/x-tar_') or only the _Objects_ with a binary content ('_application/octet-stream_').
+          Allow to specify if a result must contain only Metadata ('_application/json_') or only the _Objects_ with a binary content ('_application/octet-stream_').
         type: string
         enum: [ "application/json", "application/zip", "application/octet-stream" ]
 
@@ -26,8 +26,13 @@ traits:
       X-Tenant-Id:
         type: number
         required: true
-        description: Unique Tenant Identifier
+        description: Unique Tenant Identifier.
         example: 0
+      X-Access-Contract-Id:
+        type: string
+        required: true
+        description: Unique Access Contract Identifier. Allow read/write access on specific archive unit.
+        example: Access-Contract-00001
       X-Personal-Certificate:
         type: string
         required: false
@@ -36,30 +41,6 @@ traits:
             If the resource requires personal authentication, and no personal certificate has been provided OR the
             provided personal certificate is unauthorized, the server will return a 401 http status.
         example: MIIGfzCCBGegAwIBAgICAPcwDQYJK...
-
-  StandardHeadHeader:
-    headers:
-      X-Valid:
-        description: |
-          **UNSUPPORTED** Allow to check if the item is valid (exists and digest is correct)
-        type: boolean
-        required: false
-
-  AsynchronousHeader:
-    headers:
-      X-Callback?:
-        description: |
-          **UNSUPPORTED** Callback uri when the operation will be done
-        type: string
-        example: https://callback-host:port/uri/idcallback?status={status}&id={id}
-    responses:
-      202:
-        headers:
-          X-Callback?:
-            description: |
-              **UNSUPPORTED** Callback uri when the operation will be done
-            type: string
-            example: https://callback-host:port/uri/idcallback?status={status}&id={id}
 
   UploadFileOptionalHeader:
     headers: &optionalheader
