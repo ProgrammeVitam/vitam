@@ -46,12 +46,11 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 
 /**
  * Basic implementation of a vitam server using embedded jetty as underlying app server
- *
  */
 public class BasicVitamServer implements VitamServer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicVitamServer.class);
     private static final String A_PROBLEM_OCCURRED_WHILE_ATTEMPTING_TO_START_THE_SERVER =
-            "A problem occurred while attempting to start the server";
+        "A problem occurred while attempting to start the server";
     /**
      * Default TEST ONLY Jetty config file
      */
@@ -63,6 +62,17 @@ public class BasicVitamServer implements VitamServer {
     private boolean configured = false;
     VitamThreadPoolExecutor vitamThreadPoolExecutor = new VitamThreadPoolExecutor();
 
+    protected BasicVitamServer(int port, boolean withConnector) {
+        ParametersChecker.checkValue("You must provide a valid port number", port, 1);
+        this.port = port;
+        server = new Server(vitamThreadPoolExecutor);
+        if (withConnector) {
+            final ServerConnector serverConnector = new ServerConnector(server);
+            serverConnector.setPort(port);
+            server.addConnector(serverConnector);
+        }
+    }
+
     /**
      * A Vitam server can only be instantiated with a given port to listen to
      *
@@ -70,12 +80,7 @@ public class BasicVitamServer implements VitamServer {
      * @throws IllegalArgumentException if port <= 0
      */
     protected BasicVitamServer(int port) {
-        ParametersChecker.checkValue("You must provide a valid port number", port, 1);
-        this.port = port;
-        server = new Server(vitamThreadPoolExecutor);
-        final ServerConnector serverConnector = new ServerConnector(server);
-        serverConnector.setPort(port);
-        server.addConnector(serverConnector);
+        this(port, true);
     }
 
 
@@ -85,7 +90,7 @@ public class BasicVitamServer implements VitamServer {
      *
      * @param jettyConfigPath configuration file of jetty server
      * @throws VitamApplicationServerException if configuration not found, can't be parsed, can't be read or server
-     *         can't started
+     * can't started
      */
     protected BasicVitamServer(final String jettyConfigPath) throws VitamApplicationServerException {
 
@@ -304,7 +309,6 @@ public class BasicVitamServer implements VitamServer {
     }
 
     /**
-     *
      * @return the VitamThreadPoolExecutor used by the server
      */
     public VitamThreadPoolExecutor getVitamThreadPoolExecutor() {
