@@ -117,3 +117,5 @@ RUN chmod 644 /etc/sudoers.d/wheel-nopwd
 
 # System tuning for elasticsearch
 RUN echo "vm.max_map_count = 262144" >> /etc/sysctl.conf
+
+COPY rpm/vitam-build-griffins /usr/bin

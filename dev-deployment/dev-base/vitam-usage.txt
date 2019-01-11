@@ -21,4 +21,6 @@
 *
 * The command to use & authenticate with the mongo cli: vitam-mongo-cli
 * The command to use & authenticate on the local replica set with the mongo cli: vitam-mongo-cli-rs
+*
+* The command to build griffins : vitam-build-griffins
 
