@@ -89,11 +89,13 @@
 	</xsd:simpleType>
 	<xsd:simpleType name="String100">
 		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/><!-- Vitam update : minLength added in order to transform attribute Name to an NonEmptyToken string -->
 			<xsd:maxLength value="100"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:simpleType name="String150">
 		<xsd:restriction base="xsd:string">
+			<xsd:minLength value="1"/><!-- Vitam update : minLength added in order to transform attribute PUID to an NonEmptyToken string -->
 			<xsd:maxLength value="150"/>
 		</xsd:restriction>
 	</xsd:simpleType>
@@ -105,13 +107,14 @@
 	<xsd:complexType name="FileFormatType">
 		<xsd:choice minOccurs="0" maxOccurs="unbounded">
 			<xsd:element name="InternalSignatureID" type="xsd:nonNegativeInteger"/>
+			<!-- Vitam update : Some PRONOM files have empty extension -->
 			<xsd:element name="Extension" type="xsd:string"/>
 			<xsd:element name="HasPriorityOverFileFormatID" type="xsd:nonNegativeInteger"/>
 		</xsd:choice>
 		<xsd:attribute name="ID" type="xsd:nonNegativeInteger" use="required"/>
 		<xsd:attribute name="Name" type="sf:String100" use="required"/>
 		<xsd:attribute name="Version" type="sf:String50" use="optional"/>
-		<xsd:attribute name="PUID" type="sf:String150" use="optional"/>
+		<xsd:attribute name="PUID" type="sf:String150" use="required"/><!-- Vitam update : use="optional" becomes use="required" -->
     <xsd:attribute name="MIMEType" type="xsd:string" use="optional"/>
 	</xsd:complexType>
 	<xsd:complexType name="InternalSignatureType">
@@ -182,6 +185,7 @@
            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
+			<!-- Vitam update : ignore case -->
 			<xsd:pattern value="[0-9A-Fa-f]{2}"/>
 		</xsd:restriction>
 	</xsd:simpleType>
@@ -192,6 +196,7 @@
            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
+			<!-- Vitam update : ignore case -->
 			<xsd:pattern value="([0-9A-Fa-f]{2})+"/>
 		</xsd:restriction>
 	</xsd:simpleType>
@@ -203,6 +208,7 @@
            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
+			<!-- Vitam update : ignore case & support for & in pattern -->
 			<xsd:pattern value="(\[!?&amp;?([0-9A-Fa-f]{2})+(:([0-9A-Fa-f]{2})+)?\]|[0-9A-Fa-f]{2})+"/>
 		</xsd:restriction>
 	</xsd:simpleType>
