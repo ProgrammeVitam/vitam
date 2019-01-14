@@ -148,7 +148,7 @@ public class PreservationActionPlugin extends ActionHandler {
                     EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
                 .collect(Collectors.toList());
         } catch (Exception e) {
-            tryDeleteLocalPreservationFiles(Paths.get(griffinInputFolder, griffinId));
+            tryDeleteLocalPreservationFiles(Paths.get(griffinInputFolder, griffinId, batchId));
             throw new ProcessingException(e);
         }
     }
