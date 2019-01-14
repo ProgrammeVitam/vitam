@@ -41,7 +41,7 @@ public class DbStorageModel {
     private String strategyId;
 
     @JsonProperty("_nbc")
-    private String nbc;
+    private int nbc;
 
     @JsonProperty("offerIds")
     private List<String> offerIds;
@@ -54,11 +54,11 @@ public class DbStorageModel {
         this.strategyId = strategyId;
     }
 
-    public String getNbc() {
+    public int getNbc() {
         return nbc;
     }
 
-    public void setNbc(String nbc) {
+    public void setNbc(int nbc) {
         this.nbc = nbc;
     }
 

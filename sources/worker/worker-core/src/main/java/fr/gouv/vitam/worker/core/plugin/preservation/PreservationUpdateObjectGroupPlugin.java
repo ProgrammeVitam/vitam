@@ -215,7 +215,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
         StoredInfoResult storedInfoResult = outputExtra.getStoredInfo().get();
         DbStorageModel dbStorageModel = new DbStorageModel();
-        dbStorageModel.setNbc(String.valueOf(storedInfoResult.getNbCopy()));
+        dbStorageModel.setNbc(storedInfoResult.getNbCopy());
         dbStorageModel.setOfferIds(storedInfoResult.getOfferIds());
         dbStorageModel.setStrategyId(storedInfoResult.getStrategy());
 
