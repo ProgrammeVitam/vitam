@@ -36,21 +36,21 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonInclude(NON_NULL)
 public class OutputPreservation {
-    @JsonProperty("result")
+    @JsonProperty("Result")
     private String result;
-    @JsonProperty("error")
+    @JsonProperty("Error")
     private String error;
-    @JsonProperty("executed")
+    @JsonProperty("Executed")
     private String executed;
-    @JsonProperty("input")
+    @JsonProperty("Input")
     private InputPreservation input;
-    @JsonProperty("outputName")
+    @JsonProperty("OutputName")
     private String outputName;
-    @JsonProperty("status")
+    @JsonProperty("Status")
     private PreservationStatus status;
-    @JsonProperty("analyseResult")
+    @JsonProperty("AnalyseResult")
     private AnalyseResultPreservation analyseResult;
-    @JsonProperty("action")
+    @JsonProperty("Action")
     private ActionTypePreservation action;
 
     public OutputPreservation() {
