@@ -54,7 +54,7 @@ consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_compon
 vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" ]
 
 # Vitams griffins required to launch preservation scenario
-vitam_griffins: ["vitam-imagemagick-griffin"]
+vitam_griffins: ["vitam-imagemagick-griffin", "vitam-jhove-griffin"]
 
 ### Composants Vitam ###
 
