@@ -1,10 +1,21 @@
 ---
 
 - name: Update yum cache
-  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
+  yum:
+    name: "yum"
+    state: present
+    update_cache: yes
+  tags:
+    - enable_vitam_repo
+    - update_package_vitam
   when: ansible_os_family == "RedHat"
+
 
 - name: run apt-update
   apt:
     update_cache: yes
+  tags:
+    - enable_vitam_repo
+    - update_package_vitam
   when: ansible_os_family == "Debian"
+
