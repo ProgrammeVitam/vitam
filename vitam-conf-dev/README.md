@@ -17,7 +17,8 @@
 127.0.0.1       offer.service.consul
 127.0.0.1       ihm-demo.service.consul
 127.0.0.1		worker.service.consul
-127.0.0.1		security-internal.service.consul' > /etc/hosts`
+127.0.0.1		security-internal.service.consul
+127.0.0.1       offer-fs-1.service.consul' > /etc/hosts`
 5. Run the `dev-deployment/run_cots.sh` file in order to create container with necessary components for vitam (like databases).
     1. Run command `vitam-build-repo` to create/download all components.
     2. Run command `vitam-deploy-cots` to deploy necessary component for vitam.
