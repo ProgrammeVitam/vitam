@@ -28,14 +28,15 @@
  */
 package fr.gouv.vitam.library.config;
 
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.server.application.configuration.DefaultVitamIHMApplicationConfiguration;
 
 /**
  * LibraryConfiguration contains library app configuration
  */
-public class LibraryConfiguration extends DefaultVitamApplicationConfiguration {
+public class LibraryConfiguration extends DefaultVitamIHMApplicationConfiguration {
 
-    private String directoryPath;
+    private String staticContent;
+    private String baseUri;
 
     /**
      * LibraryConfiguration empty constructor for YAMLFactory
@@ -44,21 +45,26 @@ public class LibraryConfiguration extends DefaultVitamApplicationConfiguration {
         // Empty constructor
     }
 
-    /**
-     * Getter : path of the root directory to serve static files from
-     *
-     * @return the path
-     */
-    public String getDirectoryPath() {
-        return directoryPath;
+
+    @Override
+    public String getStaticContent() {
+        return staticContent;
     }
 
-    /**
-     * Setter : path of the root directory to serve static files from
-     *
-     * @param directoryPath Root path
-     */
-    public void setDirectoryPath(String directoryPath) {
-        this.directoryPath = directoryPath;
+    @Override
+    public LibraryConfiguration setStaticContent(String staticContent) {
+        this.staticContent = staticContent;
+        return this;
+    }
+
+    @Override
+    public String getBaseUri() {
+        return baseUri;
+    }
+
+    @Override
+    public LibraryConfiguration setBaseUri(String baseUri) {
+        this.baseUri = baseUri;
+        return this;
     }
 }
