@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,20 +23,28 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-
-package fr.gouv.vitam.common.server.application.configuration;
-
-/**
- * Common interface for all application configuration.
  */
-public interface VitamApplicationConfiguration extends VitamApplicationConfigurationInterface {
-    boolean isEnableXsrFilter();
+package fr.gouv.vitam.library;
 
-    void setEnableXsrFilter(boolean enableXsrFilter);
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import java.util.HashSet;
+import java.util.Set;
 
-    boolean isEnableSession();
 
-    void setEnableSession(boolean enableSession);
-    // Empty
+public class BusinessApplication extends Application {
+
+    public BusinessApplication(@Context ServletConfig servletConfig) {
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        return new HashSet<>();
+    }
+
+    @Override
+    public Set<Object> getSingletons() {
+        return new HashSet<>();
+    }
 }

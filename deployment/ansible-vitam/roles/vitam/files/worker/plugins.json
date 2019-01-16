@@ -255,6 +255,6 @@
   "HELLO_WORLD_PLUGIN": {
     "className": "fr.vitam.plugin.custom.HelloWorldPlugin",
     "propertiesFile": "hello_world_plugin.properties",
-    "jarName": "hell-world-plugin-1.14.0-SNAPSHOT.jar"
+    "jarName": "hello-world-plugin-1.14.0-SNAPSHOT.jar"
   }
 }

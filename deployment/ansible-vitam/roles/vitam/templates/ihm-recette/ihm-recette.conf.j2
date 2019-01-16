@@ -7,6 +7,9 @@ staticContent: "{{ vitam_struct.static_content }}"
 
 jettyConfig: jetty-config.xml
 authentication: true
+enableXsrFilter: true
+enableSession: true
+
 secureMode:
 {% for securemode in vitam_struct.secure_mode %}
 - {{securemode}}
