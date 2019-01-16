@@ -29,12 +29,12 @@ package fr.gouv.vitam.library;
 import org.junit.Assert;
 import org.junit.Test;
 
-public class LibraryApplicationTest {
+public class LibraryMainTest {
 
     @Test
     public void shouldStopServerWhenStopApplicationWithFileExistAndRunOnDefaultPort() throws Exception {
         // Given
-        final LibraryApplication application = new LibraryApplication("src/test/resources/library.conf");
+        final LibraryMain application = new LibraryMain("src/test/resources/library.conf");
         // When
         application.start();
         // Then

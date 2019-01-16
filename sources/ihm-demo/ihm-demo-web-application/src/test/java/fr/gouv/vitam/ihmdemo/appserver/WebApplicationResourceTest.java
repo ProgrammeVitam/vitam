@@ -171,6 +171,8 @@ public class WebApplicationResourceTest {
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
                 .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setJettyConfig(JETTY_CONFIG);
+        webApplicationConfig.setEnableSession(true);
+        webApplicationConfig.setEnableXsrFilter(true);
         VitamConfiguration.setTenants(tenants);
         VitamConfiguration.setAdminTenant(1);
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);

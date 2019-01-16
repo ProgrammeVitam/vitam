@@ -97,6 +97,8 @@ public class WebApplicationResourceTest {
             PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
         realAdminConfig.setSipDirectory(Thread.currentThread().getContextClassLoader().getResource("sip").getPath());
         realAdminConfig.setAuthentication(false);
+        realAdminConfig.setEnableSession(true);
+        realAdminConfig.setEnableXsrFilter(true);
         adminConfigFile = File.createTempFile("test", "ihm-recette.conf", adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 

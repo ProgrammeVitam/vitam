@@ -81,7 +81,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 @RunWith(PowerMockRunner.class)
@@ -118,7 +120,7 @@ public class LogbookOperationsImplTest {
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenCreateOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).createLogbookOperation(any());
 
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -127,7 +129,7 @@ public class LogbookOperationsImplTest {
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenUpdateOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).updateLogbookOperation(any());
 
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -136,7 +138,7 @@ public class LogbookOperationsImplTest {
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
             .getLogbookOperations(JsonHandler.createObjectNode(), true);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -145,7 +147,7 @@ public class LogbookOperationsImplTest {
 
     @Test(expected = LogbookAlreadyExistsException.class)
     public void givenCreateOperationWhenOperationAlreadyExistsThenThrowLogbookException() throws Exception {
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         Mockito.doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess).createLogbookOperation(any());
 
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -154,7 +156,7 @@ public class LogbookOperationsImplTest {
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenUpdateOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).updateLogbookOperation(any());
 
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -163,7 +165,7 @@ public class LogbookOperationsImplTest {
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
             .getLogbookOperations(JsonHandler.createObjectNode(), true);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
@@ -172,10 +174,10 @@ public class LogbookOperationsImplTest {
 
     @Test
     public void getByIdTest() throws Exception {
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         GUID guid = GUIDFactory.newEventGUID(0);
         ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
-        Mockito.doReturn(new LogbookOperation(data)).when(mongoDbAccess).getLogbookOperation(guid.getId());
+        doReturn(new LogbookOperation(data)).when(mongoDbAccess).getLogbookOperation(guid.getId());
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         LogbookOperation lo = logbookOperationsImpl.getById(guid.getId());
         assertNotNull(lo);
@@ -185,7 +187,7 @@ public class LogbookOperationsImplTest {
     @Test
     public void createBulkLogbookOperationTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         when(mongoDbAccess.getLogbookOperation(any())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParametersFactory.newLogbookOperationParameters();
@@ -198,7 +200,7 @@ public class LogbookOperationsImplTest {
     @Test
     public void updateBulkLogbookOperationTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        Mockito.reset(mongoDbAccess);
+        reset(mongoDbAccess);
         when(mongoDbAccess.getLogbookOperation(any())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParametersFactory.newLogbookOperationParameters();
@@ -209,8 +211,8 @@ public class LogbookOperationsImplTest {
 
     @Test
     public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
-        Mockito.reset(mongoDbAccess);
-        Mockito.doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
+        reset(mongoDbAccess);
+        doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         MongoCursor cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(LocalDateTime.now(),
             LocalDateUtil.now());
@@ -221,8 +223,8 @@ public class LogbookOperationsImplTest {
 
     @Test
     public void selectOperationsTest() throws Exception {
-        Mockito.reset(mongoDbAccess);
-        Mockito.doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), any());
+        reset(mongoDbAccess);
+        doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         Select select = new Select();
         RequestResponse<LogbookOperation> response = logbookOperationsImpl.selectOperations(select.getFinalSelect());
@@ -233,8 +235,8 @@ public class LogbookOperationsImplTest {
 
     @Test
     public void findFirstTraceabilityOperationOKAfterDateTest() throws Exception {
-        Mockito.reset(mongoDbAccess);
-        Mockito.doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
+        reset(mongoDbAccess);
+        doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         LogbookOperation lo = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateTime.now());
         assertNotNull(lo);

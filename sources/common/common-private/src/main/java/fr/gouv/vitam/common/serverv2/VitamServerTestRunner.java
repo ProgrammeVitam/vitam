@@ -419,6 +419,11 @@ public class VitamServerTestRunner {
                 portAlreadyUsed.add(port);
                 return port.intValue();
             }
+            try {
+                Thread.sleep(10);
+            } catch (final InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         } while (true);
     }
 
