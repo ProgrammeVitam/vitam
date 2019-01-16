@@ -27,19 +27,6 @@
 
 package fr.gouv.vitam.workspace.common;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -57,6 +44,19 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
 
 public class WorkspaceFileSystemTest {
 
@@ -306,7 +306,7 @@ public class WorkspaceFileSystemTest {
     public void givenTarGzSIPAndArchiveTypeWhenUncompressObjectThenExtractOK()
         throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.GZIP, getInputStream(SIP_TAR_GZ));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.XGZIP, getInputStream(SIP_TAR_GZ));
         Assert.assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));
     }
 
@@ -329,7 +329,7 @@ public class WorkspaceFileSystemTest {
     public void givenTarGzSIPArchiveTypeWhenUncompressObjectAndSearchManifestThenReturnExist()
         throws Exception {
         storage.createContainer(CONTAINER_NAME);
-        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.GZIP, getInputStream(SIP_TAR_GZ));
+        storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.XGZIP, getInputStream(SIP_TAR_GZ));
         Assert.assertTrue(storage.isExistingContainer(CONTAINER_NAME));
         Assert.assertTrue(storage.isExistingFolder(CONTAINER_NAME, SIP_FOLDER));
     }

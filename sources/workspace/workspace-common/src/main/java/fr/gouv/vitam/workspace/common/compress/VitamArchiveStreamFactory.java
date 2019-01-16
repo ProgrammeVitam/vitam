@@ -26,11 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.common.compress;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.ws.rs.core.MediaType;
-
+import fr.gouv.vitam.common.CommonMediaType;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -38,7 +34,9 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
-import fr.gouv.vitam.common.CommonMediaType;
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Factory to create ArchiveInputStreams from names
@@ -72,6 +70,7 @@ public class VitamArchiveStreamFactory {
                 return new ZipArchiveInputStream(in);
             case CommonMediaType.TAR:
                 return new TarArchiveInputStream(in);
+            case CommonMediaType.XGZIP:
             case CommonMediaType.GZIP:
                 return new TarArchiveInputStream(
                     new GzipCompressorInputStream(in));
