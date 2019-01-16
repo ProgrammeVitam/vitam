@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -482,11 +483,10 @@ public class LogbookResource extends ApplicationStatusResource {
     public Response selectOperation(JsonNode query) {
         Status status;
         try {
-            final List<LogbookOperation> result = logbookOperation.select(query);
+            final RequestResponse<LogbookOperation> result = logbookOperation.selectOperations(query);
 
             return Response.status(Status.OK)
-                .entity(new RequestResponseOK<LogbookOperation>(query)
-                    .addAllResults(result)
+                .entity(result
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final VitamDBException ve) {
