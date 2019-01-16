@@ -137,17 +137,24 @@ public class Messages {
             locale = Locale.FRENCH;
         }
         // First check if this file is in config directory
+        VitamResourceBundle vitamResourceBundle = null;
         final File bundleFile =
             PropertiesUtils.fileFromConfigFolder(bundleName + "_" + locale.toLanguageTag() + ".properties");
         if (bundleFile.canRead()) {
             try (FileInputStream inputStream = new FileInputStream(bundleFile)) {
-                return new PropertyResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
+                vitamResourceBundle = new VitamResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
             } catch (final IOException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
-        // If necessary update Static enum of VitamCode
-        return ResourceBundle.getBundle(bundleName, locale, new UTF8Control());
+
+        if (null == vitamResourceBundle) {
+            return ResourceBundle.getBundle(bundleName, locale, new UTF8Control());
+        }
+
+        vitamResourceBundle.setParent(ResourceBundle.getBundle(bundleName, locale, new UTF8Control()));
+
+        return vitamResourceBundle;
     }
 
 
@@ -166,7 +173,6 @@ public class Messages {
     }
 
     /**
-     *
      * @param key the key of the message
      * @return the associated message
      */
@@ -180,7 +186,6 @@ public class Messages {
     }
 
     /**
-     *
      * @param key the key of the message
      * @param args the arguments to use as MessageFormat.format(mesg, args)
      * @return the associated message
@@ -213,7 +218,6 @@ public class Messages {
     }
 
     /**
-     *
      * @param key the key of the message
      * @param args the arguments to use as MessageFormat.format(mesg, args)
      * @return the associated message, !key! if value is null or empty
@@ -245,7 +249,6 @@ public class Messages {
     }
 
     /**
-     *
      * @return the current Locale
      */
     public Locale getLocale() {
@@ -258,8 +261,8 @@ public class Messages {
      *
      * @param key the resource <code>key</code>
      * @return <code>true</code> if the given <code>key</code> is contained in this <code>ResourceBundle</code> or its
-     *         parent bundles; <code>false</code> otherwise.
-     * @exception NullPointerException if <code>key</code> is <code>null</code>
+     * parent bundles; <code>false</code> otherwise.
+     * @throws NullPointerException if <code>key</code> is <code>null</code>
      */
     public boolean containsKey(String key) {
         return resourceBundle.containsKey(key);
