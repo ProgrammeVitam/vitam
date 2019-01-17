@@ -67,6 +67,8 @@ import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 
@@ -1097,21 +1099,17 @@ public class DbRequest {
 
             String ogId = unit.getString(MetadataDocument.OG);
             if (StringUtils.isNotEmpty(ogId)) {
+                ObjectGroupGraphUpdates objectGroupGraphUpdates = new ObjectGroupGraphUpdates();
+                objectGroupGraphUpdates.buildParentGraph(unit);
+                Bson updates = objectGroupGraphUpdates.toBsonUpdate();
 
-                final ObjectGroup objectGroup =
-                        (ObjectGroup) MongoDbMetadataHelper.findOne(MetadataCollections.OBJECTGROUP, ogId);
-                if (objectGroup == null) {
-                    throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
-                            " from " + unitId);
-                }
-
-                objectGroup.buildParentGraph(unit);
-                MetadataCollections.OBJECTGROUP.getCollection().findOneAndReplace(
-                        eq(VitamDocument.ID, ogId), objectGroup);
-
+                ObjectGroup objectGroup =
+                    (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().findOneAndUpdate(
+                        eq(VitamDocument.ID, ogId), updates,
+                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
                 MetadataCollections.OBJECTGROUP.getEsClient()
-                        .updateFullDocument(MetadataCollections.OBJECTGROUP, tenantId, ogId,
-                                objectGroup);
+                    .updateFullDocument(MetadataCollections.OBJECTGROUP, tenantId, ogId,
+                        objectGroup);
             }
 
         } catch (final MongoWriteException e) {
