@@ -52,6 +52,56 @@ types:
            "httpCode" : 202
         }
 
+  PreservationRequest:
+      displayName: Requête DSL multiple de traitement de masse pour la préservation
+      description: Requête DSL multiple de traitement de masse pour la préservation
+      type: object
+      properties:
+        dslQuery:
+          description: Contient la requête de recherche
+          type: DslTypes.DslBatchProcessionQuery
+        scenarioId:
+          description: L'identifiant du scénario de préservation
+          type: string
+        usage:
+          description: usage du binaire cible et du binaire générer
+          type: string
+        version:
+          description: La version du binaire sur lequel on veux opérer une action de préservation
+          type: string
+      example:
+        {
+          "dslQuery" : {
+            "$roots": [],
+            "$query": [
+              {
+                "$eq": {
+                  "#id": "aeaqaaaaaaezyoa6abacealifcom6xyaaaaq"
+                }
+              }
+            ],
+            "$threshold": 40,
+            "$filter": {},
+            "$projection": {}
+           },
+          "scenarioId" : "PSC-000001",
+          "usage": "BinaryMaster",
+          "version": "FIRST"
+        }
+
+  PreservationResponse:
+      displayName: Requête DSL multiple de traitement de masse pour la préservation
+      description: Requête DSL multiple de traitement de masse pour la préservation
+      type: object
+      properties:
+        httpCode:
+          description: Http status code la reponse
+          type: integer
+      example:
+        {
+        "httpCode" : 202
+        }
+
   UnitBatchUpdateRequest:
     displayName: Requête de lancement du traitement de masse pour mise à jour des métadonnées de gestion des AU
     description: Requête de lancement du traitement de masse pour mise à jour des métadonnées de gestion des AU

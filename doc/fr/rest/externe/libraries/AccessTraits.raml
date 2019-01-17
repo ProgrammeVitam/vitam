@@ -229,6 +229,33 @@ traits:
           application/json:
             description: Rapport final de l'opération d'élimination
 
+  PreservationResponseAsync:
+    description: Requête de préservation
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
+    body:
+      application/json:
+        description: |
+          Body contient la requête DSL au format JSON.
+          l'Identifiant du scénario de préservation.
+          l'usage du binaire à traité
+          La version (FIRST ou LAST)
+        schema: AccessTypes.PreservationRequest
+        example: !include examples/preservationRequest.json
+    responses:
+      202:
+        description: |
+          Renvoie le statut de l'opération de préservation
+        body:
+          application/json:
+            description: Operation de préservation acceptée
+            schema: AccessTypes.PreservationResponse
+            example: !include examples/preservationResponse.json
+      500:
+        description: Renvoie le statut final de l'opération de préservation en KO
+        body:
+          application/json:
+            description: Rapport final de l'opération de préservation
+
   UnitBatchUpdateResponse:
       description: Requête de mise à jour de masse des métadonnées de gestion des unitiés archivistiques
       is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]

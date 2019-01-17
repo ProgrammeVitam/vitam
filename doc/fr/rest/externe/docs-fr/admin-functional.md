@@ -8,6 +8,8 @@
 - Référentiel des Profiles de Sécurité
 - Registre des Fonds
 - Référentiel des Services Agents
+- Référentiel des griffons
+- Référentiel des scénarios de préservation
 - Opérations
 
 ## Tenant d'administration
@@ -59,6 +61,20 @@ Actuellement ce référentiel pour le contrôle d'accès aux API.
 # Référentiel des Services Agents
 
 Actuellement ce référentiel est utilisé lors du processus d'entrées.
+
+# Référentiel des griffons
+
+Il est possible de mettre à jour ce référentiel via les API, sur le tenant d'administration.
+
+Ce référentiel est disponible sur tous les tenants.
+
+Actuellement ce référentiel est utilisé lors du processus de préservation
+
+# Référentiel des scénarios de préservation
+
+ Il est possible de mettre à jour ce référentiel via les API. Il est par tenant.
+
+ Actuellement ce référentiel est utilisé lors du processus de préservation.
 
 # Registre des Fonds
 
