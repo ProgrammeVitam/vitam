@@ -26,13 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
+import com.mongodb.client.model.IndexOptions;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
@@ -44,10 +49,12 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.Griffin;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Ontology;
+import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
-import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import org.bson.Document;
 
 /**
  * All collections in functional admin module
@@ -126,14 +133,52 @@ public enum FunctionalAdminCollections {
      */
     ONTOLOGY(Ontology.class, false, false);
 
-    final private VitamCollection vitamCollection;
+    private VitamCollection vitamCollection;
+
+
+    @VisibleForTesting
+    public static void beforeTestClass(final MongoDatabase db, final boolean recreate, final ElasticsearchAccessFunctionalAdmin esClient) {
+        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
+            if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
+                collection.vitamCollection.setName(GUIDFactory.newGUID().getId() + "_" + collection.getClasz().getSimpleName());
+                collection.initialize(db, recreate);
+                collection.initialize(esClient);
+            }
+        }
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
+                new IndexOptions().unique(true));
+
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
+
+    }
+
+    @VisibleForTesting
+    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient) throws ReferentialException {
+        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
+            if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
+                collection.vitamCollection.getCollection().drop();
+                esClient.deleteIndex(collection);
+            }
+        }
+    }
+
     final private boolean multitenant;
     final private boolean usingScore;
 
     FunctionalAdminCollections(final Class<?> clasz, boolean multiTenant, boolean usingScore) {
         this.multitenant = multiTenant;
         this.usingScore = usingScore;
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore);
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, multiTenant, usingScore, "");
+    }
+
+
+    public static List<Class<?>> getClasses() {
+        List<Class<?>> classes = new ArrayList<>();
+        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
+            classes.add(collection.getClasz());
+        }
+
+        return classes;
     }
 
     /**

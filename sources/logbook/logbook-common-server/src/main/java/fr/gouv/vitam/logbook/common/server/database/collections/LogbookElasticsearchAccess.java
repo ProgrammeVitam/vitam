@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -83,8 +84,10 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         LOGGER.debug("deleteIndex: " + getAliasName(collection, tenantId));
         try {
             if (client.admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(getAliasName(collection, tenantId)).get()
-                    .isAcknowledged()) {
+                String indexName = client.admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases().iterator().next().key;
+                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+
+                if(!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                     return false;
                 }

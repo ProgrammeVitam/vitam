@@ -206,6 +206,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -230,6 +231,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     @AfterClass
     public static void afterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
     }

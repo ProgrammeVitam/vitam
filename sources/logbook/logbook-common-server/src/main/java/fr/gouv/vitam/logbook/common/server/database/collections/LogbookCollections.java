@@ -26,16 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 
 /**
  * All collections
- *
  */
 public enum LogbookCollections {
     /**
@@ -61,19 +64,56 @@ public enum LogbookCollections {
 
     private VitamCollection vitamCollection;
 
+    @VisibleForTesting
+    public static void beforeTestClass(final MongoDatabase db, final boolean recreate, final LogbookElasticsearchAccess esClient, Integer... tenants) {
+        for (LogbookCollections collection : LogbookCollections.values()) {
+            collection.vitamCollection.setName(GUIDFactory.newGUID().getId() + "_" + collection.getClasz().getSimpleName());
+            collection.initialize(db, recreate);
+            if (collection == LogbookCollections.OPERATION) {
+                collection.initialize(esClient);
+                for (Integer tenant : tenants) {
+                    esClient.addIndex(collection, tenant);
+                }
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static void afterTestClass(final LogbookElasticsearchAccess esClient, Integer... tenants) {
+        for (LogbookCollections collection : LogbookCollections.values()) {
+            collection.vitamCollection.getCollection().drop();
+
+            if (collection == LogbookCollections.OPERATION) {
+                collection.initialize(esClient);
+                for (Integer tenant : tenants) {
+                    esClient.deleteIndex(collection, tenant);
+                }
+            }
+        }
+    }
+
     /**
      * id field
      */
     public final static String ID = "_id";
 
-    private LogbookCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, false);
+    LogbookCollections(final Class<?> clasz) {
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, false, "");
+    }
+
+    public static List<Class<?>> getClasses() {
+        List<Class<?>> classes = new ArrayList<>();
+        for (LogbookCollections collection : LogbookCollections.values()) {
+            classes.add(collection.getClasz());
+        }
+
+        return classes;
     }
 
     /**
      * Initialize the collection
      *
-     * @param db the mongo database
+     * @param db       the mongo database
      * @param recreate if needs to be recreated
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
@@ -91,7 +131,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the name of the collection
      */
     public String getName() {
@@ -99,7 +138,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the associated MongoCollection
      */
     public MongoCollection getCollection() {
@@ -107,7 +145,6 @@ public enum LogbookCollections {
     }
 
     /**
-     * 
      * @return the associated VitamCollection
      */
     public VitamCollection getVitamCollection() {
@@ -115,7 +152,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the casted MongoCollection
      */
     @SuppressWarnings("unchecked")
@@ -124,7 +160,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the casted MongoCollection
      */
     @SuppressWarnings("unchecked")
@@ -133,7 +168,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the casted MongoCollection
      */
     @SuppressWarnings("unchecked")
@@ -142,7 +176,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the casted MongoCollection
      */
     @SuppressWarnings("unchecked")
@@ -151,7 +184,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the casted MongoCollection
      */
     @SuppressWarnings("unchecked")
@@ -160,7 +192,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the associated class
      */
     public Class<?> getClasz() {
@@ -168,7 +199,6 @@ public enum LogbookCollections {
     }
 
     /**
-     *
      * @return the associated ES Client
      */
     public LogbookElasticsearchAccess getEsClient() {

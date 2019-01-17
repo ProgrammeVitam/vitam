@@ -99,7 +99,7 @@ public class VitamCollectionTest {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
         final VitamCollection vitamCollection =
-            VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
+            VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         assertEquals(vitamCollection.getName(), "CollectionSample_" + Thread.currentThread().getName());
         vitamCollection.initialize(esClient);

@@ -122,6 +122,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
@@ -130,8 +131,8 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
-
 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             workspaceClient.deleteContainer("process", true);

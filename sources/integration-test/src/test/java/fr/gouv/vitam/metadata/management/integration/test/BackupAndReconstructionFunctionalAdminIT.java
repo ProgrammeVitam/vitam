@@ -77,6 +77,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -123,9 +124,14 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     private static final String ACCESSION_REGISTER_DETAIL_DATA_3 =
             "functional-admin/accession-register/accession-register-detail-3.json";
 
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        handleBeforeClass(0, 1);
+    }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -826,8 +832,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
                         Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT_TEST.getVitamCollection()).save(units);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT_TEST.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)

@@ -26,17 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import org.apache.shiro.crypto.hash.Hash;
 
 /**
  * Metadata Collection
  */
 public enum MetadataCollections {
-    /**vitamCollection
+    /**
+     * vitamCollection
      * Unit Collection
      */
     UNIT(Unit.class),
@@ -47,14 +53,45 @@ public enum MetadataCollections {
 
     private VitamCollection vitamCollection;
 
+    @VisibleForTesting
+    public static void beforeTestClass(final MongoDatabase db, final boolean recreate, final ElasticsearchAccessMetadata esClient, Integer... tenants) {
+        for (MetadataCollections collection : MetadataCollections.values()) {
+            collection.vitamCollection.setName(GUIDFactory.newGUID().getId() + "_" + collection.vitamCollection.getClasz().getSimpleName());
+            collection.initialize(db, recreate);
+            collection.initialize(esClient);
+            for (Integer tenant : tenants) {
+                esClient.addIndex(collection, tenant);
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static void afterTestClass(final ElasticsearchAccessMetadata esClient, Integer... tenants) {
+        for (MetadataCollections collection : MetadataCollections.values()) {
+            collection.vitamCollection.getCollection().drop();
+            for (Integer tenant : tenants) {
+                esClient.deleteIndex(collection, tenant);
+            }
+        }
+    }
+
     MetadataCollections(final Class<?> clasz) {
-        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class));
+        vitamCollection = VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "");
+    }
+
+    public static List<Class<?>> getClasses() {
+        List<Class<?>> classes = new ArrayList<>();
+        for (MetadataCollections collection : MetadataCollections.values()) {
+            classes.add(collection.getClasz());
+        }
+
+        return classes;
     }
 
     /**
      * Initialize the collection
      *
-     * @param db database type
+     * @param db       database type
      * @param recreate true is as recreate type
      */
 
@@ -74,7 +111,6 @@ public enum MetadataCollections {
     }
 
     /**
-     *
      * @return the name of the collection
      */
     public String getName() {
@@ -82,7 +118,6 @@ public enum MetadataCollections {
     }
 
     /**
-     *
      * @return the associated MongoCollection
      */
     @SuppressWarnings("rawtypes")
@@ -91,7 +126,6 @@ public enum MetadataCollections {
     }
 
     /**
-     *
      * @return the associated class
      */
     public Class<?> getClasz() {
@@ -104,21 +138,19 @@ public enum MetadataCollections {
     }
 
     /**
-     *
      * @return the associated ES Client
      */
     public ElasticsearchAccessMetadata getEsClient() {
         return (ElasticsearchAccessMetadata) vitamCollection.getEsClient();
     }
-    
+
     /**
-     * 
      * @return True if score is to be used
      */
     public boolean useScore() {
         return vitamCollection.isUseScore();
     }
-    
+
     /**
      * get collection from value.
      *

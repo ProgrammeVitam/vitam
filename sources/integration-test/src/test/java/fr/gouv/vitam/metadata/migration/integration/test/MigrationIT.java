@@ -128,12 +128,14 @@ public class MigrationIT extends VitamRuleRunner {
     private MongoCollection<Document> ogCollection;
 
     @BeforeClass
-    public static void setUpBeforeClass() {
+    public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", VitamServerRunner.PORT_SERVICE_METADATA));
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
+    public static void tearDownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
     }

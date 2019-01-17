@@ -212,7 +212,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * @return The MongoCLientOptions to apply to MongoClient
      */
-    static final MongoClientOptions getMongoClientOptions() {
+    public static final MongoClientOptions getMongoClientOptions() {
         final VitamDocumentCodec<LogbookOperation> operationCodec = new VitamDocumentCodec<>(LogbookOperation.class);
 
         final VitamDocumentCodec<LogbookLifeCycleUnit> lifecycleUnitCodec =

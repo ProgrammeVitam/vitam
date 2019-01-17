@@ -97,6 +97,7 @@ public class ReportManagementIT extends VitamRuleRunner {
 
     @AfterClass
     public static void afterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -109,6 +110,7 @@ public class ReportManagementIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         BatchReportClientFactory batchReportClientFactory = BatchReportClientFactory.getInstance();
         batchReportClient = batchReportClientFactory.getClient();
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();

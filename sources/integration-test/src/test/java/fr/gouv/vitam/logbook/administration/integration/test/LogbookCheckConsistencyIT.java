@@ -158,8 +158,6 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final String SIP_KO_ARBO_RECURSIVE = "integration-logbook/data/KO_ARBO_recursif.zip";
     private static final String EXPECTED_RESULTS_JSON = "integration-logbook/data/expected_results.json";
 
-    private static final String DEFAULT_WORKFLOW_RESUME = "DEFAULT_WORKFLOW_RESUME";
-
     private static final int TENANT_0 = 0;
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
@@ -170,6 +168,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
 
         ProcessingManagementClientFactory.changeConfigurationUrl(runner.PROCESSING_URL);
@@ -184,6 +183,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
     @AfterClass
     public static void afterClass() throws Exception {
+        handleAfterClass(0, 1);
         if (workspaceClient != null) {
             workspaceClient.close();
         }

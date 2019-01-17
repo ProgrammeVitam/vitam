@@ -48,6 +48,7 @@ import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.DocWriteRequest.OpType;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -112,8 +113,10 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
         try {
             if (client.admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(getAliasName(collection, tenantId)).get()
-                    .isAcknowledged()) {
+                String indexName = client.admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases().iterator().next().key;
+                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+
+                if(!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
             }

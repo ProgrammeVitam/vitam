@@ -167,6 +167,7 @@ public class MassUpdateIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
         processMonitoring = ProcessMonitoringImpl.getInstance();
@@ -178,6 +179,7 @@ public class MassUpdateIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();

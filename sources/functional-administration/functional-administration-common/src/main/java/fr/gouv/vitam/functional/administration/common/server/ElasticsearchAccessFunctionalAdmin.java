@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchRequestBuilder;
@@ -98,9 +99,10 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public final void deleteIndex(final FunctionalAdminCollections collection) throws ReferentialException {
         try {
             if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-                // TODO: 07/12/18 SM to check 
-                if (!client.admin().indices().prepareDelete(collection.getName().toLowerCase()).get()
-                    .isAcknowledged()) {
+                String indexName = client.admin().indices().prepareGetAliases(collection.getName().toLowerCase()).get().getAliases().iterator().next().key;
+                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+
+                if(!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
             }

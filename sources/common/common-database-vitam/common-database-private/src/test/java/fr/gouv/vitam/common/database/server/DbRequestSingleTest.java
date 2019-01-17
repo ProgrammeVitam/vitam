@@ -98,7 +98,7 @@ public class DbRequestSingleTest {
         nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
 
         VitamThreadUtils.getVitamSession().setUsedForTests(true);
-        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
+        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
         vitamCollection.initialize(new ElasticsearchAccess(CLUSTER_NAME, nodes));
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
