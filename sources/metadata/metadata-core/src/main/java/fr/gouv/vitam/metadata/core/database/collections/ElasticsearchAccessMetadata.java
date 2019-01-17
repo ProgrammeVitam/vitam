@@ -74,6 +74,7 @@ import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.sort.SortBuilder;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -674,7 +675,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     }
 
     public void insertFullDocuments(MetadataCollections collection, Integer tenantId,
-        List<? extends MetadataDocument> documents)
+        Collection<? extends MetadataDocument> documents)
         throws MetaDataExecutionException {
         BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
 

@@ -12,7 +12,7 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.DeleteOneModel;
 import com.mongodb.client.model.InsertOneModel;
-import com.mongodb.client.model.ReplaceOneModel;
+import com.mongodb.client.model.UpdateOneModel;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
@@ -22,6 +22,7 @@ import org.bson.conversions.Bson;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
@@ -124,24 +125,22 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
         }
     }
 
-    public void update(List<T> metadataDocuments) throws MetaDataExecutionException {
+    public void update(Map<String, Bson> updates) throws MetaDataExecutionException {
         BulkWriteOptions options = new BulkWriteOptions();
         options.ordered(false);
-
         try {
-            List<ReplaceOneModel<T>> collect = metadataDocuments.stream()
+            List<UpdateOneModel<T>> collect = updates.entrySet().stream()
                 .map(item -> {
                     Bson query = and(
-                        eq(VitamDocument.ID, item.getId()),
+                        eq(VitamDocument.ID, item.getKey()),
                         eq(TENANT_ID, ParameterHelper.getTenantParameter()));
-                    return new ReplaceOneModel<>(query
-                        , item);
+                    return new UpdateOneModel<T>(query, item.getValue());
                 })
                 .collect(Collectors.toList());
             BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect, options);
-            if (bulkWriteResult.getMatchedCount() != metadataDocuments.size()) {
+            if (bulkWriteResult.getMatchedCount() != updates.size()) {
                 throw new MetaDataExecutionException(
-                    String.format("Error while bulk save document count : %s != size : %s :", bulkWriteResult.getInsertedCount(), metadataDocuments.size()));
+                    String.format("Error while bulk save document count : %s != size : %s :", bulkWriteResult.getInsertedCount(), updates.size()));
             }
         } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);

@@ -29,46 +29,6 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static com.mongodb.client.model.Accumulators.addToSet;
-import static com.mongodb.client.model.Aggregates.group;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
-
-import java.io.FileNotFoundException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
-import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
-import fr.gouv.vitam.common.exception.*;
-import fr.gouv.vitam.common.model.DurationData;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.massupdate.RuleActions;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.metadata.core.graph.GraphLoader;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
-import org.apache.commons.lang.StringUtils;
-import org.bson.conversions.Bson;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.sort.SortBuilder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -86,18 +46,23 @@ import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.PathQuery;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
+import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.server.MongoDbInMemory;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.translators.RequestToAbstract;
@@ -109,6 +74,12 @@ import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
+import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
+import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
+import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
@@ -116,15 +87,56 @@ import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.DurationData;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
+import fr.gouv.vitam.metadata.core.graph.GraphLoader;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
+import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import org.apache.commons.lang.StringUtils;
+import org.bson.conversions.Bson;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.sort.SortBuilder;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Accumulators.addToSet;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.in;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
 
 /**
  * DB Request using MongoDB only
@@ -187,7 +199,7 @@ public class DbRequest {
 
     /**
      * Execute rule action on unit
-     * 
+     *
      * @param unitId the unitId
      * @param ruleActions the list of ruleAction (by category)
      * @return the result
@@ -308,7 +320,7 @@ public class DbRequest {
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Results: {}", last);
         }
-        
+
         return last;
     }
 
@@ -1391,7 +1403,7 @@ public class DbRequest {
         LOGGER.debug("Exec db insert unit request: %s", requestParsers);
 
         List<Unit> unitToSave = Lists.newArrayList();
-        List<ObjectGroup> objectGroupToSave = Lists.newArrayList();
+        Map<String, ObjectGroupGraphUpdates> objectGroupGraphUpdatesMap = new HashMap<>();
         final Integer tenantId = ParameterHelper.getTenantParameter();
 
         try (GraphLoader graphLoader = new GraphLoader(mongoDbUnitRepository)) {
@@ -1412,8 +1424,6 @@ public class DbRequest {
                 final InsertToMongodb requestToMongodb = new InsertToMongodb(requestParser);
                 final Unit unit = new Unit(requestToMongodb.getFinalData());
 
-                String unitId = unit.getId();
-
                 Set<String> roots = requestParser.getRequest().getRoots();
 
                 UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
@@ -1429,16 +1439,9 @@ public class DbRequest {
 
                 String ogId = unit.getString(MetadataDocument.OG);
                 if (StringUtils.isNotEmpty(ogId)) {
-
-                    final ObjectGroup objectGroup =
-                        (ObjectGroup) MongoDbMetadataHelper.findOne(MetadataCollections.OBJECTGROUP, ogId);
-                    if (objectGroup == null) {
-                        throw new MetaDataExecutionException("Object associated with Unit not found: " + ogId +
-                            " from " + unitId);
-                    }
-
-                    objectGroup.buildParentGraph(unit);
-                    objectGroupToSave.add(objectGroup);
+                    ObjectGroupGraphUpdates objectGroupGraphUpdates = objectGroupGraphUpdatesMap
+                        .computeIfAbsent(ogId, id -> new ObjectGroupGraphUpdates());
+                    objectGroupGraphUpdates.buildParentGraph(unit);
                 }
             }
             PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "computeAU",
@@ -1458,15 +1461,18 @@ public class DbRequest {
                         saveAU.elapsed(TimeUnit.MILLISECONDS));
             }
 
-            if (!objectGroupToSave.isEmpty()) {
+            if (!objectGroupGraphUpdatesMap.isEmpty()) {
                 Stopwatch saveGOT = Stopwatch.createStarted();
-                mongoDbObjectGroupRepository.update(objectGroupToSave);
+                Map<String, Bson> updates = objectGroupGraphUpdatesMap.entrySet().stream()
+                    .collect(Collectors.toMap(Map.Entry::getKey, item -> item.getValue().toBsonUpdate()));
+                mongoDbObjectGroupRepository.update(updates);
                 PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInMongo",
                     saveGOT.elapsed(TimeUnit.MILLISECONDS));
 
                 saveGOT = Stopwatch.createStarted();
+                Collection<ObjectGroup> objectGroups = mongoDbObjectGroupRepository.selectByIds(updates.keySet(), null);
                 MetadataCollections.OBJECTGROUP.getEsClient()
-                    .insertFullDocuments(MetadataCollections.OBJECTGROUP, tenantId, objectGroupToSave);
+                    .insertFullDocuments(MetadataCollections.OBJECTGROUP, tenantId, objectGroups);
                 PerformanceLogger.getInstance().log("STP_UNIT_METADATA", "UNIT_METADATA_INDEXATION", "saveGOTInElastic",
                     saveGOT.elapsed(TimeUnit.MILLISECONDS));
             }

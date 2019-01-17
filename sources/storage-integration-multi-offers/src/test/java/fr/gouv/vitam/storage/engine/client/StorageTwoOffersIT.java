@@ -58,6 +58,7 @@ import org.apache.commons.lang3.time.StopWatch;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -170,6 +171,12 @@ public class StorageTwoOffersIT {
     @AfterClass
     public static void tearDownAfterClass() {
         VitamClientFactory.resetConnections();
+    }
+
+    @Before
+    public void init() throws IOException {
+        cleanOffer(OFFER_FOLDER);
+        cleanOffer(SECOND_FOLDER);
     }
 
     @After

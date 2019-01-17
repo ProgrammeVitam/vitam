@@ -29,15 +29,10 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.bson.Document;
 
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * ObjectGroup:<br>
@@ -188,38 +183,5 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
     @Override
     public MetadataDocument<ObjectGroup> newInstance(JsonNode content) {
         return new ObjectGroup(content);
-    }
-
-    public void buildParentGraph(Unit unit) {
-
-        // Add direct object group parent
-        Set<String> up = new HashSet<>(this.getCollectionOrEmpty(UP));
-        up.add(unit.getId());
-        this.put(UP, up);
-
-        // Merge ObjectGroup originating agencies with unit originating agencies
-        Set<String> originatingAgencies = new HashSet<>(this.getCollectionOrEmpty(ORIGINATING_AGENCIES));
-        originatingAgencies.addAll(unit.getCollectionOrEmpty(ORIGINATING_AGENCIES));
-        this.put(ORIGINATING_AGENCIES, originatingAgencies);
-
-        // Merge ObjectGroup allUnitParents (_us) with unit all parents
-        Set<String> allUnitParents = new HashSet<>(this.getCollectionOrEmpty(UNITUPS));
-        allUnitParents.addAll(unit.getCollectionOrEmpty(UNITUPS));
-        // AddToSet current ObjectGroup _up to ObjectGroup _us
-        allUnitParents.addAll(up);
-        this.put(UNITUPS, allUnitParents);
-
-        // Add operation id
-        Set<String> ops = new HashSet<>(unit.getCollectionOrEmpty(OPS));
-        ops.add(VitamThreadUtils.getVitamSession().getRequestId());
-        this.put(OPS, ops);
-
-        // Last graph update date
-        put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
-
-        // Debug
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("DEBUG: OG {}", JSON.serialize(this));
-        }
     }
 }
