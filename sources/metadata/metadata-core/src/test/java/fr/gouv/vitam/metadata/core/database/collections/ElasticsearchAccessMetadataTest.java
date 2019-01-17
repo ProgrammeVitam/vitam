@@ -221,11 +221,6 @@ public class ElasticsearchAccessMetadataTest {
             (Map<String, String>) (Object) JsonHandler.getMapFromString(S1);
         // add entries
         elasticsearchAccessMetadata.addEntryIndexes(MetadataCollections.UNIT, TENANT_ID_0, targetMap);
-        elasticsearchAccessMetadata.addEntryIndexesBlocking(MetadataCollections.UNIT, TENANT_ID_0, targetMap);
-
-        final Unit unit = new Unit(S1);
-        elasticsearchAccessMetadata.addBulkEntryIndex(targetMap, TENANT_ID_0, unit);
-
     }
 
     @Test
@@ -236,10 +231,6 @@ public class ElasticsearchAccessMetadataTest {
         // add unit
         final String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
         assertEquals(true, elasticsearchAccessMetadata.addEntryIndex(MetadataCollections.UNIT, TENANT_ID_0, id, S1));
-
-        // update index
-        assertEquals(true, elasticsearchAccessMetadata.updateEntryIndex(MetadataCollections.UNIT, TENANT_ID_0, id, S3));
-
     }
 
     @Test
@@ -280,10 +271,6 @@ public class ElasticsearchAccessMetadataTest {
         assertEquals(true, elasticsearchAccessMetadata
             .addEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S1_OG));
 
-        // update index
-        assertEquals(true, elasticsearchAccessMetadata
-            .updateEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S3));
-
     }
 
     @Test
@@ -296,13 +283,5 @@ public class ElasticsearchAccessMetadataTest {
         final String id = GUIDFactory.newObjectGroupGUID(TENANT_ID).toString();
         assertEquals(true, elasticsearchAccessMetadata
             .addEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S1_OG));
-
-        // update index
-        assertEquals(true, elasticsearchAccessMetadata
-            .updateEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S3));
-
-        final MetadataDocument<?> doc = new ObjectGroup(go);
-        assertEquals(true, elasticsearchAccessMetadata.addEntryIndex(doc, TENANT_ID_0));
-
     }
 }

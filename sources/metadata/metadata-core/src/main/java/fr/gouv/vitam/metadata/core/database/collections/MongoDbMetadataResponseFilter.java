@@ -114,6 +114,9 @@ public class MongoDbMetadataResponseFilter {
                 case VERSION:
                     replace(document, MetadataDocument.VERSION, VitamFieldsHelper.version());
                     break;
+                case ATOMIC_VERSION:
+                    remove(document, MetadataDocument.ATOMIC_VERSION);
+                    break;
                 case MIN:
                     replace(document, Unit.MINDEPTH, VitamFieldsHelper.min());
                     break;

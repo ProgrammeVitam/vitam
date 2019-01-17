@@ -90,11 +90,6 @@ public class Unit extends MetadataDocument<Unit> {
     }
 
     /**
-     * Es projection (no UPS)
-     */
-    public static final BasicDBObject UNIT_ES_PROJECTION = new BasicDBObject(UNITDEPTHS, 0);
-
-    /**
      * Storage Rule
      */
     public static final String STORAGERULE = MANAGEMENT + ".StorageRule";

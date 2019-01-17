@@ -57,6 +57,10 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetadataDocument.class);
     /**
+     * Internal version of the document: Incremented for each update (including computed fields)
+     */
+    public static final String ATOMIC_VERSION = "_av";
+    /**
      * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
     public static final String QUALIFIERS = "_qualifiers";
@@ -170,65 +174,6 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     protected abstract MetadataCollections getMetadataCollections();
 
     /**
-     * Update the object to the database
-     *
-     * @param update data of update operation
-     * @return this
-     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query for update operation
-     */
-    public MetadataDocument<E> update(final Bson update)
-        throws MetaDataExecutionException {
-        try {
-            getCollection().updateOne(eq(ID, getId()), update);
-        } catch (final MongoException e) {
-            LOGGER.warn(e);
-            throw new MetaDataExecutionException(e);
-        } catch (final IllegalArgumentException e) {
-            throw new MetaDataExecutionException(e);
-        }
-        return this;
-    }
-
-    /**
-     * Insert the document (only for new): should not be called elsewhere
-     *
-     * @return this
-     * @throws MetaDataExecutionException if mongo exception query or illegal argument of query
-     */
-    @SuppressWarnings("unchecked")
-    protected final MetadataDocument<E> insert() throws MetaDataExecutionException, MetaDataAlreadyExistException {
-        checkId();
-        try {
-            append(VERSION, 0);
-            append(TENANT_ID, ParameterHelper.getTenantParameter());
-            getCollection().insertOne((E) this);
-        } catch (final MongoWriteException e) {
-            if (e.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
-                throw new MetaDataAlreadyExistException("Metadata already exists: " + getId());
-            }
-            throw new MetaDataExecutionException(e);
-        } catch (final MongoException | IllegalArgumentException e) {
-            throw new MetaDataExecutionException(e);
-        }
-        return this;
-    }
-
-    /**
-     * Delete the current object
-     *
-     * @return {@link MetadataDocument}
-     * @throws MetaDataExecutionException if mongo exception delete request on collection
-     */
-    public final MetadataDocument<E> delete() throws MetaDataExecutionException {
-        try {
-            getCollection().deleteOne(eq(ID, this.getId()));
-        } catch (final MongoException e) {
-            throw new MetaDataExecutionException(e);
-        }
-        return this;
-    }
-
-    /**
      * @return the bypass toString
      */
     public String toStringDirect() {
@@ -262,5 +207,9 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
 
     public Collection<String> getUp() {
         return getCollectionOrEmpty(Unit.UP);
+    }
+
+    public Integer getAtomicVersion() {
+        return getInteger(ATOMIC_VERSION);
     }
 }

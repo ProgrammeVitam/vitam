@@ -63,6 +63,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
@@ -119,9 +120,7 @@ public class ReconstructionService {
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
 
     private static final String STRATEGY_ID = "default";
-    public static final String $_SET = "$set";
-    public static final String GRAPH_LAST_PERSISTED_DTE = "_glpd";
-    public static final String GRAPH_LAST_PERSISTED_DATE = GRAPH_LAST_PERSISTED_DTE;
+    private static final String $_SET = "$set";
 
     private RestoreBackupService restoreBackupService;
 
@@ -379,6 +378,47 @@ public class ReconstructionService {
             return;
         }
 
+        for (int retry = VitamConfiguration.getOptimisticLockRetryNumber(); retry > 0; retry--) {
+
+            List<MetadataBackupModel> dataFromOffer = loadMetadataSet(collection, tenant, writtenMetadata);
+
+            if (dataFromOffer.isEmpty()) {
+                // NOP
+                return;
+            }
+
+            try {
+                reconstructCollectionMetadata(collection, dataFromOffer);
+                reconstructCollectionLifecycles(collection, dataFromOffer);
+
+                // DONE
+                return;
+
+            } catch (DatabaseException e) {
+
+                if (!(e.getCause() instanceof MongoBulkWriteException)) {
+                    throw e;
+                }
+
+                LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct AU/GOT");
+
+                try {
+                    Thread.sleep(
+                        ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
+                } catch (InterruptedException e1) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
+                    Thread.currentThread().interrupt();
+                    throw new DatabaseException(e1);
+                }
+            }
+        }
+
+        throw new DatabaseException("Optimistic lock number of retry reached");
+    }
+
+    private List<MetadataBackupModel> loadMetadataSet(MetadataCollections collection, int tenant,
+        List<OfferLog> writtenMetadata) throws StorageException {
+
         // FIXME : parallel processing
         List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
         for (OfferLog offerLog : writtenMetadata) {
@@ -403,12 +443,7 @@ public class ReconstructionService {
 
             dataFromOffer.add(model);
         }
-
-        if (!dataFromOffer.isEmpty()) {
-            reconstructCollectionMetadata(collection, dataFromOffer,
-                VitamConfiguration.getOptimisticLockRetryNumber());
-            reconstructCollectionLifecycles(collection, dataFromOffer);
-        }
+        return dataFromOffer;
     }
 
     private void processDeletedMetadata(MetadataCollections collection, List<String> deletedMetadataIds)
@@ -571,12 +606,8 @@ public class ReconstructionService {
      * @param dataFromOffer list of items to back up
      * @throws DatabaseException databaseException
      */
-    private void reconstructCollectionMetadata(MetadataCollections collection, List<MetadataBackupModel> dataFromOffer,
-        Integer nbRetry)
+    private void reconstructCollectionMetadata(MetadataCollections collection, List<MetadataBackupModel> dataFromOffer)
         throws DatabaseException {
-        if (nbRetry < 0) {
-            throw new DatabaseException("Optimistic lock number of retry reached");
-        }
         LOGGER.info("[Reconstruction]: Back up of metadata bulk");
 
         // Do not erase graph data
@@ -586,27 +617,8 @@ public class ReconstructionService {
         List<WriteModel<Document>> metadata =
             dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).map(this::createReplaceOneModel)
                 .collect(Collectors.toList());
-        try {
-            this.bulkMongo(collection, metadata);
-        } catch (DatabaseException e) {
-            if (e.getCause() instanceof MongoBulkWriteException) {
-                LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct AU/GOT");
 
-                try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
-                } catch (InterruptedException e1) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
-                    throw new DatabaseException(e1);
-                }
-
-                nbRetry--; // Retry after optimistic lock problem
-                reconstructCollectionMetadata(collection, dataFromOffer, nbRetry);
-                return;
-            } else {
-                throw e;
-            }
-
-        }
+        this.bulkMongo(collection, metadata);
 
         List<Document> documents =
             dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).collect(Collectors.toList());
@@ -764,22 +776,24 @@ public class ReconstructionService {
      * @throws InvalidParseOperationException
      */
     private WriteModel<Document> createReplaceOneModel(Document document) {
-        final Object glpd = document.get(Unit.GRAPH_LAST_PERSISTED_DATE);
+        final Object glpd = document.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
 
         Bson filter;
         if (null == glpd) {
             // Document not yet in mongodb or in mongodb with but without graph data
             filter = and(
                 eq(ID, document.get(ID)),
-                exists(Unit.GRAPH, false)
+                exists(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, false)
             );
         } else {
             // Document already exists in mongodb and already have graph data
             filter = and(
                 eq(ID, document.get(ID)),
-                eq(Unit.GRAPH_LAST_PERSISTED_DATE, glpd.toString())
+                eq(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, glpd.toString())
             );
         }
+
+        // No need for "_av" (ATOMIC_VERSION) update in secondary site
         return new ReplaceOneModel<>(filter, document, new UpdateOptions().upsert(true));
     }
 }

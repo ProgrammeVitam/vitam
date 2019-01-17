@@ -31,6 +31,7 @@ import static com.mongodb.client.model.Filters.in;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ATOMIC_VERSION;
 
 /**
  * Repository to access to metadata collection
@@ -75,6 +76,7 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
             List<InsertOneModel<T>> collect = new ArrayList<>();
             metadataDocuments.forEach(metadataDocument -> {
                 metadataDocument.append(VERSION, 0);
+                metadataDocument.append(ATOMIC_VERSION, 0);
                 metadataDocument.append(TENANT_ID, ParameterHelper.getTenantParameter());
                 InsertOneModel<T> tInsertOneModel = new InsertOneModel<>(metadataDocument);
                 collect.add(tInsertOneModel);

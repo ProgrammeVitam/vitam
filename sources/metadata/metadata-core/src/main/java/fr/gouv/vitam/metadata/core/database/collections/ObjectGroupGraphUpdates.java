@@ -68,7 +68,8 @@ public class ObjectGroupGraphUpdates {
             Updates.set(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())),
             // Inc version
-            Updates.inc(ObjectGroup.VERSION, 1)
+            Updates.inc(ObjectGroup.VERSION, 1),
+            Updates.inc(ObjectGroup.ATOMIC_VERSION, 1)
         );
 
         // Debug

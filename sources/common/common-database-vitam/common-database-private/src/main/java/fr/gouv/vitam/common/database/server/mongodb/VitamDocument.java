@@ -39,13 +39,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import difflib.DiffUtils;
 import difflib.Patch;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 /**
  * Vitam Document MongoDb abstract
@@ -61,7 +58,7 @@ public abstract class VitamDocument<E> extends Document {
      */
     public static final String ID = "_id";
     /**
-     * Version of the document: Incresed for each update
+     * Version of the document: Incremented for each main updates (excluding computed fields)
      */
     public static final String VERSION = "_v";
     /**

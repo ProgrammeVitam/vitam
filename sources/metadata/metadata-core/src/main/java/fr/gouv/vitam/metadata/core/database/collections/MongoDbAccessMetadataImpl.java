@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.client.ListIndexesIterable;
@@ -125,14 +124,6 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      */
     public static long getObjectGroupSize() {
         return MetadataCollections.OBJECTGROUP.getCollection().count();
-    }
-
-    /**
-     * Force flush on disk (MongoDB): should not be used
-     */
-    protected void flushOnDisk() {
-        getMongoAdmin().runCommand(new BasicDBObject("fsync", 1).append("async", true)
-            .append("lock", false));
     }
 
     /**

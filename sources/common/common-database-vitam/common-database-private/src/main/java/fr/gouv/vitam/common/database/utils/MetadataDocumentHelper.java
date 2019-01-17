@@ -64,9 +64,10 @@ public class MetadataDocumentHelper {
         }
     }
 
-
     private enum TemporaryUnitFields {
-        ELIMINATION("_elimination");
+
+        ELIMINATION("_elimination"),
+        ATOMIC_VERSION("_av");
 
         private final String fieldName;
 
@@ -97,11 +98,27 @@ public class MetadataDocumentHelper {
         }
     }
 
+    private enum TemporaryObjectGroupFields {
+
+        ATOMIC_VERSION("_av");
+
+        private final String fieldName;
+
+        TemporaryObjectGroupFields(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        public String getFieldName() {
+            return fieldName;
+        }
+    }
+
 
     private static final List<String> computedGraphUnitFields;
     private static final List<String> computedGraphObjectGroupFields;
     private static final Set<String> temporaryUnitFields;
     private static final Set<String> computedUnitFields;
+    private static final Set<String> temporaryObjectGroupFields;
     private static final Set<String> computedObjectGroupFields;
 
     static {
@@ -117,10 +134,15 @@ public class MetadataDocumentHelper {
             Arrays.stream(TemporaryUnitFields.values()).map(TemporaryUnitFields::getFieldName).collect(
                 Collectors.toSet()));
 
+        temporaryObjectGroupFields = SetUtils.unmodifiableSet(
+            Arrays.stream(TemporaryUnitFields.values()).map(TemporaryUnitFields::getFieldName).collect(
+                Collectors.toSet()));
+
         computedUnitFields = SetUtils.unmodifiableSet(new HashSet<>(
             CollectionUtils.union(computedGraphUnitFields, temporaryUnitFields)));
 
-        computedObjectGroupFields = SetUtils.unmodifiableSet(new HashSet<>(computedGraphObjectGroupFields));
+        computedObjectGroupFields = SetUtils.unmodifiableSet(new HashSet<>(
+            CollectionUtils.union(computedGraphObjectGroupFields, temporaryObjectGroupFields)));
     }
 
     /**
@@ -153,7 +175,7 @@ public class MetadataDocumentHelper {
     }
 
     /**
-     * @return the list of all object group computed fields
+     * @return the list of all object group computed fields (computed graph fields + temporary fields)
      */
     public static Set<String> getComputedObjectGroupFields() {
         return computedObjectGroupFields;
