@@ -409,15 +409,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
         }
 
-        String mimetype = null;
+        String mimetype = MediaType.APPLICATION_OCTET_STREAM;
         String filename = null;
         String objectId = null;
         Long size = null;
         if (finalversionsResponse != null) {
-            if (finalversionsResponse.getFormatIdentification() != null &&
-                !finalversionsResponse.getFormatIdentification().getMimeType().isEmpty()) {
+            if (finalversionsResponse.getFormatIdentification() != null && !Strings.isNullOrEmpty(finalversionsResponse.getFormatIdentification().getMimeType())) {
                 mimetype = finalversionsResponse.getFormatIdentification().getMimeType();
-
             }
             if (finalversionsResponse.getFileInfoModel() != null &&
                 !Strings.isNullOrEmpty(finalversionsResponse.getFileInfoModel().getFilename())) {
@@ -425,10 +423,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
             objectId = finalversionsResponse.getId();
             size = finalversionsResponse.getSize();
-        }
-
-        if (Strings.isNullOrEmpty(mimetype)) {
-            mimetype = MediaType.APPLICATION_OCTET_STREAM;
         }
 
         if (Strings.isNullOrEmpty(filename)) {
