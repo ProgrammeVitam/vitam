@@ -330,7 +330,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             try (InputStream mappingStream = ElasticsearchCollections
                 .valueOf(indexParameters.getCollectionName().toUpperCase())
                 .getMappingAsInputStream()) {
-                return IndexationHelper.reindex(mongoCollection, collection.getEsClient(),
+                return IndexationHelper.reindex(mongoCollection, collection.getName(), collection.getEsClient(),
                     indexParameters.getTenants(), mappingStream);
             } catch (IOException exc) {
                 LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),

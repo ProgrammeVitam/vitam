@@ -134,7 +134,7 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         // When
         final IndexationResult indexationResult =
-            IndexationHelper.reindex(collection, elasticsearchAccess, tenants, resourceAsStream);
+            IndexationHelper.reindex(collection, AgenciesTest.class.getSimpleName(), elasticsearchAccess, tenants, resourceAsStream);
         // Then
         final SortedMap<String, AliasOrIndex> aliasAndIndexLookup =
             client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
@@ -200,7 +200,7 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         // When
         final IndexationResult indexationResult =
-            IndexationHelper.reindex(collection, elasticsearchAccess, tenants, resourceAsStream);
+            IndexationHelper.reindex(collection, AgenciesTest.class.getSimpleName(), elasticsearchAccess, tenants, resourceAsStream);
         // Then
         final SortedMap<String, AliasOrIndex> aliasAndIndexLookup =
             client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
@@ -248,7 +248,7 @@ public class IndexationHelperTest {
                 null);
 
         final IndexationResult indexationResult =
-            IndexationHelper.reindex(collection, elasticsearchAccess, tenants, resourceAsStream);
+            IndexationHelper.reindex(collection, AgenciesTest.class.getSimpleName(), elasticsearchAccess, tenants, resourceAsStream);
         // When
         for (IndexOK indexOK : indexationResult.getIndexOK()) {
             final String indexName = indexOK.getIndexName();

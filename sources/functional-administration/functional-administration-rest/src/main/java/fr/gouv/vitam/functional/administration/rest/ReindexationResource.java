@@ -43,6 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import org.bson.Document;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -171,7 +172,7 @@ public class ReindexationResource {
                                 ElasticsearchCollections.valueOf(index.getCollectionName().toUpperCase())
                                     .getMappingAsInputStream()) {
 
-                                results.add(IndexationHelper.reindex(mongoCollection, collectionToReindex.getEsClient(),
+                                results.add(IndexationHelper.reindex(mongoCollection, collectionToReindex.getName(), collectionToReindex.getEsClient(),
                                     index.getTenants(), mappingStream));
 
                                 atLeastOneOK.set(true);

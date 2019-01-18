@@ -979,7 +979,7 @@ public class MetaDataImpl implements MetaData {
         MongoCollection<Document> mongoCollection = collection.getCollection();
         try (InputStream mappingStream = ElasticsearchCollections.valueOf(indexParam.getCollectionName().toUpperCase())
             .getMappingAsInputStream()) {
-            return IndexationHelper.reindex(mongoCollection, mongoDbAccess.getEsClient(),
+            return IndexationHelper.reindex(mongoCollection, collection.getName(), mongoDbAccess.getEsClient(),
                 indexParam.getTenants(), mappingStream);
         } catch (IOException exc) {
             LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),

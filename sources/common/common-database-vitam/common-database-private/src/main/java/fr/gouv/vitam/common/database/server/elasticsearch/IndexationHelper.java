@@ -26,17 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bson.Document;
-
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
@@ -50,6 +42,12 @@ import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCol
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.bson.Document;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * IndexationHelper useful method for indexation
@@ -61,7 +59,7 @@ public class IndexationHelper {
 
     /**
      * reindex a collection on a tenant list with a esmapping file
-     * 
+     *
      * @param collection the collection to be reindexed
      * @param esClient the elastic client to be used to reindex
      * @param tenants the tenant list on which to reindex
@@ -69,11 +67,10 @@ public class IndexationHelper {
      * @return the result of the reindexation as a IndexationResult object
      * @throws IOException
      */
-    public static IndexationResult reindex(MongoCollection<Document> collection, ElasticsearchAccess esClient,
+    public static IndexationResult reindex(MongoCollection<Document> collection, String collectionName,
+        ElasticsearchAccess esClient,
         List<Integer> tenants, InputStream mapping)
         throws IOException {
-
-        final String collectionName = collection.getDocumentClass().getSimpleName();
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection);
         IndexationResult indexationResult = new IndexationResult();
         String collectionMapping = ElasticsearchUtil.transferJsonToMapping(mapping);
@@ -155,8 +152,8 @@ public class IndexationHelper {
 
     /**
      * switch index, attach a new index to an existing alias
-     * 
-     * @param aliasName the name of the alias 
+     *
+     * @param aliasName the name of the alias
      * @param newIndex the new index name to switch on
      * @param esClient the elastic client
      * @throws DatabaseException if an error occurs
@@ -189,7 +186,7 @@ public class IndexationHelper {
 
     /**
      * Get KO Result for reindexation orders
-     * 
+     *
      * @param indexParameters the index parameter
      * @param message the message to be added
      * @return the final result as an IndexationResult object
@@ -213,7 +210,7 @@ public class IndexationHelper {
 
     /**
      * Get KO Result for switching order
-     * 
+     *
      * @param switchIndexParameters the switch index parameter
      * @param message the message to be added
      * @return the final result as an IndexationResult object
