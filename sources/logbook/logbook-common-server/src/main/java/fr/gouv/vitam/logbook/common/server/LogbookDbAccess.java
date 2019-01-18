@@ -31,6 +31,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
@@ -423,7 +424,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
+    VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
 
     /**
