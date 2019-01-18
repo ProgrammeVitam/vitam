@@ -10,10 +10,12 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,13 +54,9 @@ public class DataMigrationRepositoryTest {
             UNIT_COLLECTION,
             OBJECT_GROUP_COLLECTION);
 
-    private MongoCollection<Unit> unitCollection = mongoRule.getMongoCollection(UNIT_COLLECTION, Unit.class);
-    private MongoCollection<ObjectGroup> ogCollection =
-        mongoRule.getMongoCollection(OBJECT_GROUP_COLLECTION, ObjectGroup.class);
-
-    @Before
+    @BeforeClass
     public void setUpBeforeClass() throws Exception {
-        repository = new DataMigrationRepository(unitCollection, ogCollection, TEST_BULK_SIZE);
+        repository = new DataMigrationRepository(TEST_BULK_SIZE);
     }
 
     @After
@@ -166,18 +164,18 @@ public class DataMigrationRepositoryTest {
         importUnitDataSetFile(dataSetFile);
 
         // When
-        Unit u1 = unitCollection.find(eq(Unit.ID, "1")).first();
+        Unit u1 = (Unit) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "1")).first();
         u1.put("TEST1", "VALUE1");
 
-        Unit u6 = unitCollection.find(eq(Unit.ID, "6")).first();
+        Unit u6 = (Unit) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "6")).first();
         u6.remove(Unit.ORIGINATING_AGENCY);
         u6.put("TEST6", "VALUE6");
 
         repository.bulkReplaceUnits(Arrays.asList(u1, u6));
 
         // Then
-        Unit u1_updated = unitCollection.find(eq(Unit.ID, "1")).first();
-        Unit u6_updated = unitCollection.find(eq(Unit.ID, "6")).first();
+        Unit u1_updated = (Unit) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "1")).first();
+        Unit u6_updated = (Unit) MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, "6")).first();
 
         assertThat(u1_updated.get("TEST1")).isEqualTo("VALUE1");
         assertThat(u6_updated.get("TEST6")).isEqualTo("VALUE6");
@@ -249,8 +247,10 @@ public class DataMigrationRepositoryTest {
         repository.bulkUpgradeObjectGroups(Arrays.asList("1", "6"));
 
         // Then
-        ObjectGroup og6_updated = ogCollection.find(eq(ObjectGroup.ID, "6")).first();
-        ObjectGroup og4_not_updated = ogCollection.find(eq(ObjectGroup.ID, "4")).first();
+        ObjectGroup og6_updated =
+            (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(eq(ObjectGroup.ID, "6")).first();
+        ObjectGroup og4_not_updated =
+            (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(eq(ObjectGroup.ID, "4")).first();
 
         assertThat(og6_updated.get(ObjectGroup.GRAPH_LAST_PERSISTED_DATE)).isNotNull();
         assertThat(og4_not_updated.get(ObjectGroup.GRAPH_LAST_PERSISTED_DATE)).isNull();
@@ -261,7 +261,7 @@ public class DataMigrationRepositoryTest {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {
-            unitCollection.insertOne(new Unit(JsonHandler.unprettyPrint(jsonNode)));
+            MetadataCollections.UNIT.getCollection().insertOne(new Unit(JsonHandler.unprettyPrint(jsonNode)));
         }
     }
 
@@ -270,7 +270,7 @@ public class DataMigrationRepositoryTest {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {
-            ogCollection.insertOne(new ObjectGroup(JsonHandler.unprettyPrint(jsonNode)));
+            MetadataCollections.OBJECTGROUP.getCollection().insertOne(new ObjectGroup(JsonHandler.unprettyPrint(jsonNode)));
         }
     }
 }

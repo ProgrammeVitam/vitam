@@ -46,7 +46,7 @@ public class MongoDbMetadataRepositoryTest {
 
     @Before
     public void setUp() throws Exception {
-        unitMongoDbMetadataRepository = new MongoDbMetadataRepository<>(mongoRule.getMongoCollection(UNIT.getName(), Unit.class));
+        unitMongoDbMetadataRepository = new MongoDbMetadataRepository<>(() -> mongoRule.getMongoCollection(UNIT.getName(), Unit.class));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
     }
 

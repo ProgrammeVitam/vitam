@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Iterator;
-import java.util.List;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -43,14 +37,31 @@ import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.action.support.master.AcknowledgedResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.settings.Settings.Builder;
 import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.common.unit.TimeValue;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Iterator;
+import java.util.List;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 /**
  * Elasticsearch Access
@@ -93,6 +104,48 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
         client = getClient(settings);
         default_builder = settings();
+    }
+
+    public void purgeIndex(String collectionName, Integer tenant) {
+        String indexName = collectionName + "_" + tenant;
+        purgeIndex(indexName);
+    }
+
+    public void purgeIndex(String indexName) {
+        if (client.admin().indices().prepareExists(indexName.toLowerCase()).get().isExists()) {
+            QueryBuilder qb = matchAllQuery();
+
+            SearchResponse scrollResp = client.prepareSearch(indexName.toLowerCase())
+                .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
+                .setScroll(new TimeValue(60000))
+                .setQuery(qb)
+                .setFetchSource(false)
+                .setSize(100).get();
+
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
+
+            do {
+                for (SearchHit hit : scrollResp.getHits().getHits()) {
+                    bulkRequest.add(client.prepareDelete(indexName.toLowerCase(), "typeunique", hit.getId()));
+                }
+
+                scrollResp =
+                    client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                        .actionGet();
+            } while (scrollResp.getHits().getHits().length != 0);
+
+            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+
+            if (bulkRequest.request().numberOfActions() != 0) {
+                BulkResponse bulkResponse = bulkRequest.get();
+
+                if (bulkResponse.hasFailures()) {
+                    throw new RuntimeException(
+                        String.format("DatabaseException when calling purge by bulk Request %s",
+                            bulkResponse.buildFailureMessage()));
+                }
+            }
+        }
     }
 
     /**
@@ -185,7 +238,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Create an index and alias for a collection (if the alias does not exist)
-     * 
+     *
      * @param collectionName the name of the collection
      * @param mapping the mapping as a string
      * @param type the type of the collection
@@ -228,7 +281,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Create an index without a linked alias
-     * 
+     *
      * @param collectionName
      * @param mapping
      * @param type
@@ -257,7 +310,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Switch index
-     * 
+     *
      * @param aliasName
      * @param indexNameToSwitchWith
      * @throws DatabaseException
@@ -268,7 +321,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
             client.admin().indices().getAliases(new GetAliasesRequest().aliases(aliasName))
                 .actionGet();
         String oldIndexName = null;
-        for (Iterator<String> it = actualIndex.getAliases().keysIt(); it.hasNext();) {
+        for (Iterator<String> it = actualIndex.getAliases().keysIt(); it.hasNext(); ) {
             oldIndexName = it.next();
         }
 
@@ -293,7 +346,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Settings method
-     * 
+     *
      * @return the builder
      * @throws IOException
      */

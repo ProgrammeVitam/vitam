@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -55,6 +52,9 @@ import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * All collections in functional admin module
@@ -137,18 +137,22 @@ public enum FunctionalAdminCollections {
 
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, final boolean recreate, final ElasticsearchAccessFunctionalAdmin esClient) {
+    public static void beforeTestClass(final MongoDatabase db, String prefix,
+        final ElasticsearchAccessFunctionalAdmin esClient) {
         for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
-                collection.vitamCollection.setName(GUIDFactory.newGUID().getId() + "_" + collection.getClasz().getSimpleName());
-                collection.initialize(db, recreate);
+                collection.vitamCollection
+                    .setName(prefix + "_" + collection.getClasz().getSimpleName());
+                collection.initialize(db, false);
                 collection.initialize(esClient);
             }
         }
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
+        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
+            .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
                 new IndexOptions().unique(true));
 
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
+        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+            .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
 
     }
 
@@ -156,8 +160,8 @@ public enum FunctionalAdminCollections {
     public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient) throws ReferentialException {
         for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
-                collection.vitamCollection.getCollection().drop();
-                esClient.deleteIndex(collection);
+                collection.vitamCollection.getCollection().deleteMany(new Document());
+                esClient.purgeIndex(collection.getName());
             }
         }
     }
@@ -198,7 +202,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db       database type
+     * @param db database type
      * @param recreate true is as recreate type
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {

@@ -92,25 +92,11 @@ public class MongoRule extends ExternalResource {
         this.collectionNames = Arrays.asList(collectionNames);
 
         mongoClient = new MongoClient(new ServerAddress("localhost", dataBasePort), clientOptions);
-
-        // Ensure index unique
-        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                new IndexOptions().unique(true));
-
-        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterSummary").createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
-    }
+   }
 
     @Override
     protected void after() {
         purge(collectionNames);
-
-
-        // Ensure index unique
-       /* mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Identifier", 1).append("_tenant", 1),
-            new IndexOptions().unique(true));
-
-        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterSummary").createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
-        */
     }
 
     private void purge(Collection<String> collectionNames) {

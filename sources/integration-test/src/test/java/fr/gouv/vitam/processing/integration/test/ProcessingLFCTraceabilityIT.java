@@ -153,8 +153,6 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     private ProcessingManagementClient processingClient;
     private static ProcessMonitoringImpl processMonitoring;
 
-    private static String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
-
     private static String SIP_COMPLEX_RULES = "integration-processing/3_UNITS_2_GOTS.zip";
 
     @BeforeClass

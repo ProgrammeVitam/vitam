@@ -35,6 +35,7 @@ import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import org.bson.Document;
 
 
 /**
@@ -65,10 +66,12 @@ public enum LogbookCollections {
     private VitamCollection vitamCollection;
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, final boolean recreate, final LogbookElasticsearchAccess esClient, Integer... tenants) {
+    public static void beforeTestClass(final MongoDatabase db, String prefix,
+        final LogbookElasticsearchAccess esClient, Integer... tenants) {
         for (LogbookCollections collection : LogbookCollections.values()) {
-            collection.vitamCollection.setName(GUIDFactory.newGUID().getId() + "_" + collection.getClasz().getSimpleName());
-            collection.initialize(db, recreate);
+            collection.vitamCollection
+                .setName(prefix + "_" + collection.getClasz().getSimpleName());
+            collection.initialize(db, false);
             if (collection == LogbookCollections.OPERATION) {
                 collection.initialize(esClient);
                 for (Integer tenant : tenants) {
@@ -81,12 +84,10 @@ public enum LogbookCollections {
     @VisibleForTesting
     public static void afterTestClass(final LogbookElasticsearchAccess esClient, Integer... tenants) {
         for (LogbookCollections collection : LogbookCollections.values()) {
-            collection.vitamCollection.getCollection().drop();
-
+            collection.vitamCollection.getCollection().deleteMany(new Document());
             if (collection == LogbookCollections.OPERATION) {
-                collection.initialize(esClient);
                 for (Integer tenant : tenants) {
-                    esClient.deleteIndex(collection, tenant);
+                    esClient.purgeIndex(collection.getName(), tenant);
                 }
             }
         }
@@ -113,7 +114,7 @@ public enum LogbookCollections {
     /**
      * Initialize the collection
      *
-     * @param db       the mongo database
+     * @param db the mongo database
      * @param recreate if needs to be recreated
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {

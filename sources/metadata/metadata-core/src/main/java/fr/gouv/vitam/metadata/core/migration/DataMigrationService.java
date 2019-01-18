@@ -27,24 +27,19 @@
 package fr.gouv.vitam.metadata.core.migration;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.collections.UnitGraphModel;
-
+import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.time.StopWatch;
 
@@ -84,8 +79,9 @@ public class DataMigrationService {
     public DataMigrationService() {
         this(new DataMigrationRepository(),
             new GraphLoader(
-                new MongoDbMetadataRepository(MetadataCollections.UNIT.getCollection())
-            ));
+                new MongoDbMetadataRepository(() -> MetadataCollections.UNIT.getCollection())
+            )
+        );
     }
 
     /**
@@ -205,7 +201,7 @@ public class DataMigrationService {
             sw.getTime(TimeUnit.SECONDS), updatedUnitCount.get(), unitsWithErrorsCount.get()));
     }
 
-    private void processDocument(Unit unit, Map<String, UnitGraphModel> directParentById)  {
+    private void processDocument(Unit unit, Map<String, UnitGraphModel> directParentById) {
 
         buildParentGraph(unit, directParentById);
         updateUnitSedaModel(unit);
@@ -215,7 +211,7 @@ public class DataMigrationService {
 
         Collection<String> directParentIds = unit.getCollectionOrEmpty(Unit.UP);
         UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
-        directParentIds.forEach( parentId -> {
+        directParentIds.forEach(parentId -> {
             unitGraphModel.addParent(directParentById.get(parentId));
         });
         unit.mergeWith(unitGraphModel);

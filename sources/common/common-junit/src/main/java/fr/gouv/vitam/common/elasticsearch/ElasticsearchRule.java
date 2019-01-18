@@ -26,18 +26,7 @@
  */
 package fr.gouv.vitam.common.elasticsearch;
 
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-
-import java.io.File;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import fr.gouv.vitam.common.VitamConfiguration;
-import org.apache.commons.io.FileUtils;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
@@ -53,19 +42,34 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
 
+import java.io.File;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+
 /**
+ *
  */
 public class ElasticsearchRule extends ExternalResource {
 
     private static final int tcpPort = 9300;
     public static final String VITAM_CLUSTER = "elasticsearch-data";
 
-    /**
-     * ElasticsearchRule constructor
-     *
-     * @param tempFolder
-     * @param collectionNames
-     */
+    public ElasticsearchRule(String... collectionNames) {
+        this(null, collectionNames);
+    }
+        /**
+         * ElasticsearchRule constructor
+         *
+         * @param tempFolder
+         * @param collectionNames
+         */
     public ElasticsearchRule(File tempFolder, String... collectionNames) {
 
         try {
@@ -74,8 +78,9 @@ public class ElasticsearchRule extends ExternalResource {
         } catch (final UnknownHostException e) {
             throw new RuntimeException(e);
         }
-        this.collectionNames = Arrays.asList(collectionNames);
-
+        if (null != collectionNames) {
+            this.collectionNames = Arrays.asList(collectionNames);
+        }
         // TODO: 12/13/17 create index for each collection
     }
 
@@ -93,48 +98,52 @@ public class ElasticsearchRule extends ExternalResource {
 
 
     private Client client;
-    private List<String> collectionNames;
+    private List<String> collectionNames = new ArrayList<>();
 
     @Override
     protected void after() {
-        purge(collectionNames);
+        purge(client, collectionNames);
     }
 
-    private void purge(Collection<String> collectionNames) {
+    private void purge(Client client, Collection<String> collectionNames) {
         for (String collectionName : collectionNames) {
 
-            if (client.admin().indices().prepareExists(collectionName.toLowerCase()).get().isExists()) {
-                QueryBuilder qb = matchAllQuery();
+            purge(client, collectionName);
+        }
+    }
 
-                SearchResponse scrollResp = client.prepareSearch(collectionName.toLowerCase())
-                    .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-                    .setScroll(new TimeValue(60000))
-                    .setQuery(qb)
-                    .setFetchSource(false)
-                    .setSize(100).get();
+    public static void purge(Client client, String collectionName) {
+        if (client.admin().indices().prepareExists(collectionName.toLowerCase()).get().isExists()) {
+            QueryBuilder qb = matchAllQuery();
 
-                BulkRequestBuilder bulkRequest = client.prepareBulk();
+            SearchResponse scrollResp = client.prepareSearch(collectionName.toLowerCase())
+                .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
+                .setScroll(new TimeValue(60000))
+                .setQuery(qb)
+                .setFetchSource(false)
+                .setSize(100).get();
 
-                do {
-                    for (SearchHit hit : scrollResp.getHits().getHits()) {
-                        bulkRequest.add(client.prepareDelete(collectionName.toLowerCase(), "typeunique", hit.getId()));
-                    }
+            BulkRequestBuilder bulkRequest = client.prepareBulk();
 
-                    scrollResp =
-                        client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
-                            .actionGet();
-                } while (scrollResp.getHits().getHits().length != 0);
+            do {
+                for (SearchHit hit : scrollResp.getHits().getHits()) {
+                    bulkRequest.add(client.prepareDelete(collectionName.toLowerCase(), "typeunique", hit.getId()));
+                }
 
-                bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+                scrollResp =
+                    client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                        .actionGet();
+            } while (scrollResp.getHits().getHits().length != 0);
 
-                if (bulkRequest.request().numberOfActions() != 0) {
-                    BulkResponse bulkResponse = bulkRequest.get();
+            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 
-                    if (bulkResponse.hasFailures()) {
-                        throw new RuntimeException(
-                            String.format("DatabaseException when calling purge by bulk Request %s",
-                                bulkResponse.buildFailureMessage()));
-                    }
+            if (bulkRequest.request().numberOfActions() != 0) {
+                BulkResponse bulkResponse = bulkRequest.get();
+
+                if (bulkResponse.hasFailures()) {
+                    throw new RuntimeException(
+                        String.format("DatabaseException when calling purge by bulk Request %s",
+                            bulkResponse.buildFailureMessage()));
                 }
             }
         }
@@ -168,7 +177,7 @@ public class ElasticsearchRule extends ExternalResource {
     }
 
     private void after(Set<String> collections) {
-        purge(collections);
+        purge(client, collections);
     }
 
     /**

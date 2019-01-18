@@ -26,16 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import org.apache.shiro.crypto.hash.Hash;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Metadata Collection
@@ -54,10 +54,12 @@ public enum MetadataCollections {
     private VitamCollection vitamCollection;
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, final boolean recreate, final ElasticsearchAccessMetadata esClient, Integer... tenants) {
+    public static void beforeTestClass(final MongoDatabase db, String prefix,
+        final ElasticsearchAccessMetadata esClient, Integer... tenants) {
         for (MetadataCollections collection : MetadataCollections.values()) {
-            collection.vitamCollection.setName(GUIDFactory.newGUID().getId() + "_" + collection.vitamCollection.getClasz().getSimpleName());
-            collection.initialize(db, recreate);
+            collection.vitamCollection
+                .setName(prefix + "_" + collection.vitamCollection.getClasz().getSimpleName());
+            collection.initialize(db, false);
             collection.initialize(esClient);
             for (Integer tenant : tenants) {
                 esClient.addIndex(collection, tenant);
@@ -68,9 +70,10 @@ public enum MetadataCollections {
     @VisibleForTesting
     public static void afterTestClass(final ElasticsearchAccessMetadata esClient, Integer... tenants) {
         for (MetadataCollections collection : MetadataCollections.values()) {
-            collection.vitamCollection.getCollection().drop();
+            collection.vitamCollection.getCollection().deleteMany(new Document());
+
             for (Integer tenant : tenants) {
-                esClient.deleteIndex(collection, tenant);
+                esClient.purgeIndex(collection.getName(), tenant);
             }
         }
     }
@@ -91,7 +94,7 @@ public enum MetadataCollections {
     /**
      * Initialize the collection
      *
-     * @param db       database type
+     * @param db database type
      * @param recreate true is as recreate type
      */
 

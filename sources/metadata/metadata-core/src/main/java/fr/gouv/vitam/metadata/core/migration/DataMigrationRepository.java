@@ -103,24 +103,19 @@ public class DataMigrationRepository {
     private static final String NB_UNIT_UPS = "nbUS";
 
     private final int bulkSize;
-    private final MongoCollection<Unit> unitCollection;
-    private final MongoCollection<ObjectGroup> ogCollection;
 
     /**
      * Constructor
      */
     public DataMigrationRepository() {
-        this(getUnitCollection(), getObjectGroupCollection(), VitamConfiguration.getMigrationBulkSize());
+        this(VitamConfiguration.getMigrationBulkSize());
     }
 
     /**
      * Constructor for testing
      */
     @VisibleForTesting
-    DataMigrationRepository(
-        MongoCollection<Unit> unitCollection, MongoCollection<ObjectGroup> ogCollection, int bulkSize) {
-        this.unitCollection = unitCollection;
-        this.ogCollection = ogCollection;
+    DataMigrationRepository(int bulkSize) {
         this.bulkSize = bulkSize;
     }
 
@@ -208,7 +203,7 @@ public class DataMigrationRepository {
         StopWatch stopWatch = StopWatch.createStarted();
 
         AggregateIterable<Unit> units =
-            unitCollection.aggregate(
+            MetadataCollections.UNIT.getCollection().aggregate(
                 Arrays.asList(
                     // Skip already migrated data
                     match(
@@ -242,7 +237,7 @@ public class DataMigrationRepository {
 
         List<Unit> unitsToUpdate = new ArrayList<>();
 
-        unitCollection
+        MetadataCollections.UNIT.getCollection()
             .find(in(Unit.ID, unitIds))
             .batchSize(unitIds.size())
             .forEach((Consumer<? super Unit>) unitsToUpdate::add);
@@ -255,7 +250,7 @@ public class DataMigrationRepository {
      */
     public Map<String, Unit> getUnitGraphByIds(Collection<String> unitIds) {
 
-        FindIterable<Unit> iterable = unitCollection
+        FindIterable<Unit> iterable = MetadataCollections.UNIT.getCollection()
             .find(in(Unit.ID, unitIds))
             .batchSize(unitIds.size())
             .projection(UNIT_VITAM_GRAPH_PROJECTION);
@@ -284,7 +279,7 @@ public class DataMigrationRepository {
             updates.add(replaceOneModel);
         }
 
-        unitCollection.bulkWrite(updates, new BulkWriteOptions().ordered(false));
+        MetadataCollections.UNIT.getCollection().bulkWrite(updates, new BulkWriteOptions().ordered(false));
     }
 
     /**
@@ -342,7 +337,7 @@ public class DataMigrationRepository {
         StopWatch stopWatch = StopWatch.createStarted();
 
         FindIterable<ObjectGroup> objectGroups =
-            ogCollection.find(
+            MetadataCollections.OBJECTGROUP.getCollection().find(
                 exists(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, false))
                 // Batch
                 .batchSize(bulkSize);
@@ -360,7 +355,7 @@ public class DataMigrationRepository {
 
         String graphLastPersistedDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
-        ogCollection.updateMany(
+        MetadataCollections.OBJECTGROUP.getCollection().updateMany(
             in(ObjectGroup.ID, objectGroupIds),
             Updates.set(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, graphLastPersistedDate)
         );

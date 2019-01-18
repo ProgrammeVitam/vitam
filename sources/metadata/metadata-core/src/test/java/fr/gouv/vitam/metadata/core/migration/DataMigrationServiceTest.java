@@ -15,6 +15,7 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
@@ -55,7 +56,7 @@ public class DataMigrationServiceTest {
     private static final int TEST_BULK_SIZE = 10;
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     @ClassRule
@@ -68,18 +69,14 @@ public class DataMigrationServiceTest {
             UNIT_COLLECTION,
             OBJECT_GROUP_COLLECTION);
 
-    private MongoCollection<Unit> unitCollection = mongoRule.getMongoCollection(UNIT_COLLECTION, Unit.class);
-    private MongoCollection<ObjectGroup> ogCollection =
-        mongoRule.getMongoCollection(OBJECT_GROUP_COLLECTION, ObjectGroup.class);
-
     private DataMigrationRepository repository =
-        new DataMigrationRepository(unitCollection, ogCollection, TEST_BULK_SIZE);
+        new DataMigrationRepository(TEST_BULK_SIZE);
 
     private GraphLoader graphLoader;
 
     @Before
     public void setUpBeforeClass() throws Exception {
-        graphLoader = new GraphLoader(new MongoDbMetadataRepository(unitCollection));
+        graphLoader = new GraphLoader(new MongoDbMetadataRepository(() -> MetadataCollections.UNIT.getCollection()));
     }
 
     @After
@@ -170,7 +167,7 @@ public class DataMigrationServiceTest {
         awaitTermination(instance);
 
         // Then
-        assertThat(unitCollection.find().iterator().hasNext()).isFalse();
+        assertThat(MetadataCollections.UNIT.getCollection().find().iterator().hasNext()).isFalse();
     }
 
     @RunWithCustomExecutor
@@ -193,10 +190,10 @@ public class DataMigrationServiceTest {
 
         // Then
         String expectedUnitDataSetFile = "DataMigrationR6/30UnitDataSet/ExpectedR7UnitDataSet.json";
-        assertDataSetEqualsExpectedFile(unitCollection, expectedUnitDataSetFile);
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitDataSetFile);
 
         String expectedOGDataSetFile = "DataMigrationR6/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
-        assertDataSetEqualsExpectedFile(ogCollection, expectedOGDataSetFile);
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedOGDataSetFile);
     }
 
     private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
@@ -248,7 +245,7 @@ public class DataMigrationServiceTest {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {
-            unitCollection.insertOne(new Unit(JsonHandler.unprettyPrint(jsonNode)));
+            MetadataCollections.UNIT.getCollection().insertOne(new Unit(JsonHandler.unprettyPrint(jsonNode)));
         }
     }
 
@@ -257,7 +254,7 @@ public class DataMigrationServiceTest {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {
-            ogCollection.insertOne(new ObjectGroup(JsonHandler.unprettyPrint(jsonNode)));
+            MetadataCollections.OBJECTGROUP.getCollection().insertOne(new ObjectGroup(JsonHandler.unprettyPrint(jsonNode)));
         }
     }
 }
