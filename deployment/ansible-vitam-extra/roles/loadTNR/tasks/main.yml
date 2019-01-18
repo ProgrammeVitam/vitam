@@ -11,7 +11,6 @@
     body: '{"token":{"principal":"{{vitam_users[0].login}}","credentials": "{{vitam_users[0].password}}" }}'
     body_format: json
     status_code: 200
-    validate_certs: no
     headers:
       Content-Type: "application/json;charset=utf-8"
       accept: "application/json, text/plain, */*"
@@ -30,7 +29,6 @@
 - name: Purge database collections before launching TNR
   uri:
     method: DELETE
-    validate_certs: no
     headers:
       X-CSRF-Token: "{{ login.json.tokenCSRF }}"
       X-Tenant-Id: "{{ item }}"
