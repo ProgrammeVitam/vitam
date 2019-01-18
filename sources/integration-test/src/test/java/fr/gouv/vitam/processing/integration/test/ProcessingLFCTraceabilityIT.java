@@ -187,25 +187,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @After
     public void afterTest() throws Exception {
-        MongoDatabase db = mongoRule.getMongoDatabase();
-        db.getCollection("Unit").drop();
-        db.getCollection("ObjectGroup").drop();
-        db.getCollection("LogbookOperation").drop();
-        db.getCollection("LogbookLifeCycleUnit").drop();
-        db.getCollection("LogbookLifeCycleObjectGroup").drop();
-
-        for (LogbookCollections collection : LogbookCollections.values()) {
-            if (collection.getEsClient() != null) {
-                collection.getEsClient().deleteIndex(collection, TENANT_ID);
-                collection.getEsClient().addIndex(collection, TENANT_ID);
-            }
-        }
-        for (MetadataCollections collection : MetadataCollections.values()) {
-            if (collection.getEsClient() != null) {
-                collection.getEsClient().deleteIndex(collection, TENANT_ID);
-                collection.getEsClient().addIndex(collection, TENANT_ID);
-            }
-        }
+        handleAfter(0, 1);
     }
 
     private static void checkServerStatus() {

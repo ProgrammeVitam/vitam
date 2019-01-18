@@ -144,18 +144,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @After
     public void afterTest() throws Exception {
-        MetadataCollections.UNIT.getCollection().deleteMany(new Document());
-        MetadataCollections.OBJECTGROUP.getCollection().deleteMany(new Document());
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().deleteMany(new Document());
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().deleteMany(new Document());
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
-            .deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
-            .addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
-            .deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
-            .addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+        handleAfter(0, 1);
     }
 
     private void wait(String operationId) {
