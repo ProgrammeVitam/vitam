@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -41,6 +42,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -155,6 +158,9 @@ public class MassUpdateUnitsProcessTest {
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
 
+    @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
+
     @InjectMocks
     private MassUpdateUnitsProcess massUpdateUnitsProcess;
 
@@ -162,6 +168,7 @@ public class MassUpdateUnitsProcessTest {
     private LogbookLifeCyclesClient lfcClient;
     private StorageClient storageClient;
     private WorkspaceClient workspaceClient;
+    private AdminManagementClient adminManagementClient;
 
     private InputStream unit;
     private RequestResponse<JsonNode> unitResponse;
@@ -179,6 +186,8 @@ public class MassUpdateUnitsProcessTest {
         given(storageClientFactory.getClient()).willReturn(storageClient);
         lfcClient = mock(LogbookLifeCyclesClient.class);
         given(lfcClientFactory.getClient()).willReturn(lfcClient);
+        adminManagementClient = mock(AdminManagementClient.class);
+        given(adminManagementClientFactory.getClient()).willReturn(adminManagementClient);
         unit = PropertiesUtils.getResourceAsStream(UNIT);
         File mdFile = PropertiesUtils.getResourceFile(METDATA_UNIT_RESPONSE_JSON);
         unitResponse = JsonHandler.getFromFile(mdFile, RequestResponseOK.class);
@@ -214,6 +223,9 @@ public class MassUpdateUnitsProcessTest {
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
             .thenReturn(getStoredInfoResult());
+        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper
+            .getOntologies(Response.Status.OK.getStatusCode()));
+        // TODO: Mock adminClient.findOntologies
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getOutput(DISTRIBUTION_LOCAL_REPORTS_RANK))
