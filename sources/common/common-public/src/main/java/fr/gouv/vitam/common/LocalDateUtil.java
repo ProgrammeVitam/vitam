@@ -198,6 +198,14 @@ public final class LocalDateUtil {
     }
 
     /**
+     * @param date localDate
+     * @return formatted date
+     */
+    public static String getFormattedSimpleDate(LocalDate date) {
+        return date.format(DateTimeFormatter.ofPattern(SIMPLE_DATE_FORMAT));
+    }
+
+    /**
      * @param date date
      * @return formatted date
      * @throws ParseException
@@ -205,6 +213,18 @@ public final class LocalDateUtil {
     public static Date getSimpleFormattedDate(final String date) throws ParseException {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
         return dateFormat.parse(date);
+    }
+
+
+    /**
+     * @param date formatted date
+     * @return the corresponding LocalDate
+     */
+    public static LocalDate getLocalDateFromSimpleFormattedDate(String date) {
+        if (date == null) {
+            return LocalDate.now(ZoneOffset.UTC);
+        }
+        return LocalDate.parse(date, DateTimeFormatter.ofPattern(SIMPLE_DATE_FORMAT));
     }
 
     /**
