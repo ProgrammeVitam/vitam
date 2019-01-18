@@ -520,8 +520,10 @@ public class MongoDbInMemory {
         try {
             ObjectNode newRule = JsonHandler.createObjectNode();
             newRule.put(RULE_KEY, ruleAction.getRule());
-            newRule.put(START_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
-            computeEndDate(newRule, bindRuleToDuration);
+            if (ruleAction.getStartDate() != null) {
+                newRule.put(START_DATE_KEY, LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.getDate(ruleAction.getStartDate())));
+                computeEndDate(newRule, bindRuleToDuration);
+            }
             return newRule;
         } catch(ParseException e) {
             throw new IllegalStateException(e);
@@ -552,7 +554,7 @@ public class MongoDbInMemory {
             return;
         }
 
-        String startDateString = unitRule.get(START_DATE_KEY).asText();
+        String startDateString = unitRule.get(START_DATE_KEY).textValue();
         if (startDateString == null) { return; }
         LocalDate startDate = LocalDateUtil.getLocalDateFromSimpleFormattedDate(startDateString);
 

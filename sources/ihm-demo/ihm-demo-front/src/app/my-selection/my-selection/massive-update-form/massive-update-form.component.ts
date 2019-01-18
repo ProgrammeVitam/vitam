@@ -220,8 +220,7 @@ export class MassiveUpdateFormComponent implements OnInit {
               nbUpdates++;
               break;
             case RuleAction.ADD:
-              // Check for ADD rules (RuleID + StartDate shouldn't be empty
-              if (!rule.Rule || !rule.StartDate) {
+              if (!rule.Rule) {
                 console.warn('Une règle ' + categoryKey + ' ajoutée ne renseigne pas de Date ou d\'identifiant.');
                 nbErrors++;
                 break;
