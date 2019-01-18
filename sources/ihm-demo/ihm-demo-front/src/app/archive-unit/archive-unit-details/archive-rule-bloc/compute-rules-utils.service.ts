@@ -95,8 +95,8 @@ export class ComputeRulesUtilsService {
           }
           inheritedItems[category.rule].Rules.push(updateStructure[category.rule].Rules[index]);
           updateStructure[category.rule].Rules.splice(index, 1);
-        } else {
-          updateStructure[category.rule].Rules[index].editionStartDate = new Date(updateStructure[category.rule].Rules[index].StartDate);
+        } else if (updateStructure[category.rule].Rules[index].StartDate) {
+            updateStructure[category.rule].Rules[index].editionStartDate = new Date(updateStructure[category.rule].Rules[index].StartDate);
         }
       }
 
