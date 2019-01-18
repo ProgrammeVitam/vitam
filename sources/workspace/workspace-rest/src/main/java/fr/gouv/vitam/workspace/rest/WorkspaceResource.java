@@ -26,29 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.rest;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -75,7 +52,28 @@ import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
 import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.compressors.CompressorException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The Workspace Resource.
@@ -358,7 +356,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @PUT
-    @Consumes({CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
+    @Consumes({CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_JSON)
     public Response uncompressObject(InputStream stream,
         @PathParam(CONTAINER_NAME) String containerName,

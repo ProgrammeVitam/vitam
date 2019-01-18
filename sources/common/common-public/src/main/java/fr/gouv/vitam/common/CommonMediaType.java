@@ -54,13 +54,22 @@ public class CommonMediaType extends MediaType {
     public static final MediaType TAR_TYPE = new MediaType(APPLICATION, "x-tar");
 
     /**
-     * A {@code String} constant representing {@value #GZIP} media type.
+     * A {@code String} constant representing {@value #XGZIP} media type.
      */
-    public final static String GZIP = "application/x-gzip";
+    public final static String XGZIP = "application/x-gzip";
+    /**
+     * A {@link MediaType} constant representing {@value #XGZIP} media type.
+     */
+    public static final MediaType XGZIP_TYPE = new MediaType(APPLICATION, "x-gzip");
+
+    /**
+     * A {@code String} constant representing {@value #XGZIP} media type.
+     */
+    public final static String GZIP = "application/gzip";
     /**
      * A {@link MediaType} constant representing {@value #GZIP} media type.
      */
-    public static final MediaType GZIP_TYPE = new MediaType(APPLICATION, "x-gzip");
+    public static final MediaType GZIP_TYPE = new MediaType(APPLICATION, "gzip");
 
     /**
      * A {@code String} constant representing {@value #BZIP2} media type.
@@ -94,6 +103,8 @@ public class CommonMediaType extends MediaType {
         switch (newMimeType) {
             case ZIP:
                 return ZIP_TYPE;
+            case XGZIP:
+                return XGZIP_TYPE;
             case GZIP:
                 return GZIP_TYPE;
             case TAR:
@@ -133,6 +144,7 @@ public class CommonMediaType extends MediaType {
 
         switch (mimeType) {
             case CommonMediaType.ZIP:
+            case CommonMediaType.XGZIP:
             case CommonMediaType.GZIP:
             case CommonMediaType.TAR:
             case CommonMediaType.BZIP2:

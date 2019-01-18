@@ -226,8 +226,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      */
     @POST
     @Path("/ingests")
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
-            CommonMediaType.BZIP2})
+    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
     public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
                                       @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
                                       @HeaderParam(GlobalDataRest.X_ACTION) String actionId,
@@ -283,8 +282,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
      */
     @Path("/operations/{id}")
     @POST
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
-            CommonMediaType.BZIP2})
+    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
                                     InputStream uploadedInputStream) {
@@ -551,7 +549,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
              WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(guid);
-            LOGGER.error("storage atr internal");
             try {
                 workspaceClient.createContainer(guid);
             } catch (ContentAddressableStorageAlreadyExistException e) {
