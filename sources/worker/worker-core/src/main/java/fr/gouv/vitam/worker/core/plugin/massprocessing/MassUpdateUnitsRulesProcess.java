@@ -334,20 +334,20 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         if (ruleAddition != null) {
             ruleAddition.stream()
                 .flatMap(x -> x.entrySet().stream())
-                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration));
+                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration, false));
         }
 
         List<Map<String, RuleCategoryAction>> ruleUpdates = ruleActions.getUpdate();
         if (ruleUpdates != null) {
             ruleUpdates.stream()
                 .flatMap(x -> x.entrySet().stream())
-                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration));
+                .forEach(x -> computeRuleDurationData(x, bindRulesToDuration, true));
         }
 
         return bindRulesToDuration;
     }
 
-    private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry, Map<String, DurationData> bindRuleDuration) {
+    private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry, Map<String, DurationData> bindRuleDuration, Boolean isUpdate) {
         RuleCategoryAction category = entry.getValue();
 
         if (category.getRules() == null) {
@@ -356,6 +356,15 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
         for (RuleAction rule: category.getRules()) {
             String ruleId = rule.getRule();
+
+            // When no "new" ruleId on update, the oldRule is taken as target rule for computing
+            if (ruleId == null && (!isUpdate || rule.getOldRule() == null)) {
+                throw new IllegalStateException("Cannot add a new rule withour RuleId");
+            }
+            if (ruleId == null) {
+                ruleId = rule.getOldRule();
+            }
+
             if (rule.getEndDate() != null) {
                 throw new IllegalStateException("Rule for update have a defined EndDate");
             }

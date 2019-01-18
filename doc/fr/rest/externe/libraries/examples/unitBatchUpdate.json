@@ -35,6 +35,10 @@
             {
               "OldRule": "ACC-00001",
               "Rule": "ACC-00002"
+            },
+            {
+              "OldRule": "ACC-00003",
+              "DeleteStartDate": true
             }
           ]
         }

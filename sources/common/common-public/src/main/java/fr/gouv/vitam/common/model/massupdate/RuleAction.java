@@ -42,6 +42,9 @@ public class RuleAction {
     @JsonProperty("EndDate")
     private String endDate;
 
+    @JsonProperty("DeleteStartDate")
+    private Boolean deleteStartDate;
+
     public String getOldRule() {
         return oldRule;
     }
@@ -72,5 +75,13 @@ public class RuleAction {
 
     public void setEndDate(String endDate) {
         this.endDate = endDate;
+    }
+
+    public Boolean isDeleteStartDate() {
+        return deleteStartDate;
+    }
+
+    public void setDeleteStartDate(Boolean deleteStartDate) {
+        this.deleteStartDate = deleteStartDate;
     }
 }

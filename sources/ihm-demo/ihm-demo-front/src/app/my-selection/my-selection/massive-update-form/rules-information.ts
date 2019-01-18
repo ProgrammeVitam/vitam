@@ -9,6 +9,7 @@ export class RuleInformation {
   Rule: string;
   StartDate?: Date;
   Action: RuleAction;
+  DeleteStartDate: boolean;
 }
 
 /* Rules category Types */
