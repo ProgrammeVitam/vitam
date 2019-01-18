@@ -102,15 +102,16 @@ public class MongoDbAccessAdminImplTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
+    public static final String PREFIX = "MongoDbAccessAdminImplTest_";
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(getMongoClientOptions(Lists.newArrayList(FileFormat.class, FileRules.class)), "Vitam-Test",
-            FileFormat.class.getSimpleName(), FileRules.class.getSimpleName());
+            PREFIX + FileFormat.class.getSimpleName(), PREFIX + FileRules.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            FileFormat.class.getSimpleName().toLowerCase(), FileRules.class.getSimpleName().toLowerCase());
+        new ElasticsearchRule(
+                PREFIX + FileFormat.class.getSimpleName().toLowerCase(), PREFIX + FileRules.class.getSimpleName().toLowerCase());
 
 
     private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";

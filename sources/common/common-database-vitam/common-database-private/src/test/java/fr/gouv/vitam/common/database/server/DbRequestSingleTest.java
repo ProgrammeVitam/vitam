@@ -60,7 +60,7 @@ public class DbRequestSingleTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     static final String DATABASE_NAME = "vitam-test";
@@ -74,15 +74,15 @@ public class DbRequestSingleTest {
     private static final Integer TENANT_ID = 0;
 
 
-
+    public static final String COLLECTION_PREFIX_ = "DbRequestSingleTest_";
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
-            CollectionSample.class.getSimpleName());
+            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
+                    COLLECTION_PREFIX_ + CollectionSample.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(), CollectionSample.class.getSimpleName());
+            new ElasticsearchRule(COLLECTION_PREFIX_ + CollectionSample.class.getSimpleName());
 
     private static MongoClient mongoClient = mongoRule.getMongoClient();
 
@@ -98,7 +98,7 @@ public class DbRequestSingleTest {
         nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
 
         VitamThreadUtils.getVitamSession().setUsedForTests(true);
-        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
+        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "DbRequestSingleTest_");
         vitamCollection.initialize(new ElasticsearchAccess(CLUSTER_NAME, nodes));
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
@@ -132,8 +132,8 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testVitamCollectionRequests()
-        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
+            throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
+            VitamDBException, SchemaValidationException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
@@ -219,12 +219,11 @@ public class DbRequestSingleTest {
     }
 
 
-
     @Test
     @RunWithCustomExecutor
     public void testOptimisticLockOK()
-        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
+            throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
+            VitamDBException, SchemaValidationException {
 
         VitamConfiguration.setOptimisticLockSleepTime(10);
         VitamConfiguration.setOptimisticLockRetryNumber(5);

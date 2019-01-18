@@ -76,7 +76,7 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         try {
             mongoClient.getDatabase(dbname).runCommand(new BasicDBObject("ping", "1"));
             return true;
-        } catch (final MongoException e) {
+        } catch (final Exception e) {
             LOGGER.warn(e);
             return false;
         }

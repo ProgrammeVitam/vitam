@@ -1,5 +1,19 @@
 package fr.gouv.vitam.functional.administration.migration.r7r8;
 
+import static com.mongodb.client.model.Sorts.ascending;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -38,43 +52,30 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static com.mongodb.client.model.Sorts.ascending;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-
 
 @RunWith(MockitoJUnitRunner.class)
 public class AccessionRegisterMigrationServiceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
+    public static final String PREFIX = "AccessionRegisterMigrationServiceTest_";
 
     @ClassRule
     public static MongoRule mongoRule =
             new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)), "Vitam-Test",
-                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-                    FunctionalAdminCollections.VITAM_SEQUENCE.getName());
+                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
+                    PREFIX + FunctionalAdminCollections.VITAM_SEQUENCE.getName());
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(
+            PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
+            PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
 
     private AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
     @Mock
     private FunctionalBackupService functionalBackupService;
+
     @Before
     public void setUpBeforeClass() throws Exception {
 
@@ -118,7 +119,7 @@ public class AccessionRegisterMigrationServiceTest {
         }).when(instance).purge();
 
         // When
-       started = instance.tryStartMigration(MigrationAction.PURGE);
+        started = instance.tryStartMigration(MigrationAction.PURGE);
         awaitOrThrow(awaitTermination_2);
 
         // Than

@@ -92,17 +92,20 @@ public class ReferentialAccessionRegisterImplTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
             new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static final String PREFIX = "ReferentialAccessionRegisterImplTest_";
 
     @ClassRule
     public static MongoRule mongoRule =
             new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
-                    "Vitam-DB", FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
+                    "Vitam-DB",
+                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
+            new ElasticsearchRule(
+                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
+                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
 
     static final List<Integer> tenantList = Arrays.asList(TENANT_ID);
     private static ElasticsearchAccessFunctionalAdmin esClient;
@@ -368,7 +371,7 @@ public class ReferentialAccessionRegisterImplTest {
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterDetail()
-        throws Exception {
+            throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
@@ -394,7 +397,7 @@ public class ReferentialAccessionRegisterImplTest {
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterSummary()
-        throws Exception {
+            throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_2_OK),

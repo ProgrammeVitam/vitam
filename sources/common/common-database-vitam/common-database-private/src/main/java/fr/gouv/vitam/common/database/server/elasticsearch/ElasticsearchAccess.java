@@ -225,7 +225,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public boolean checkConnection() {
         try (TransportClient clientCheck = getClient(getSettings(clusterName))) {
             return !clientCheck.connectedNodes().isEmpty();
-        } catch (final VitamException e) {
+        } catch (final Exception e) {
             LOGGER.warn(e);
             return false;
         }

@@ -63,12 +63,11 @@ public class VitamCollectionTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "Vitam-Test",
-            CollectionSample.class.getSimpleName());
+            new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "Vitam-Test",
+                    "VitamCollectionTest_" + CollectionSample.class.getSimpleName());
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule("VitamCollectionTest_" + CollectionSample.class.getSimpleName());
 
 
     @ClassRule
@@ -99,9 +98,8 @@ public class VitamCollectionTest {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
         final VitamCollection vitamCollection =
-            VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
+                VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
-        assertEquals(vitamCollection.getName(), "CollectionSample_" + Thread.currentThread().getName());
         vitamCollection.initialize(esClient);
         assertEquals(esClient, vitamCollection.getEsClient());
         vitamCollection.initialize(mongoRule.getMongoDatabase(), true);
@@ -109,7 +107,7 @@ public class VitamCollectionTest {
         assertEquals(null, mongoRule.getMongoDatabase().getWriteConcern().getJournal());
         assertEquals(ReadConcern.MAJORITY, mongoRule.getMongoDatabase().getReadConcern());
         final MongoCollection<CollectionSample> collection =
-            (MongoCollection<CollectionSample>) vitamCollection.getCollection();
+                (MongoCollection<CollectionSample>) vitamCollection.getCollection();
         String guid = GUIDFactory.newGUID().toString();
         final CollectionSample test = new CollectionSample(new Document("_id", guid));
         collection.insertOne(test);

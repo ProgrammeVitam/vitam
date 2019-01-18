@@ -1,26 +1,26 @@
 /**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- *
+ * <p>
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- *
+ * <p>
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- *
+ * <p>
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- *
+ * <p>
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- *
+ * <p>
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
@@ -58,42 +58,35 @@ import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
  */
 public class ElasticsearchRule extends ExternalResource {
 
-    private static final int tcpPort = 9300;
+    public static final int TCP_PORT = 9300;
     public static final String VITAM_CLUSTER = "elasticsearch-data";
 
-    public ElasticsearchRule(String... collectionNames) {
-        this(null, collectionNames);
-    }
-        /**
-         * ElasticsearchRule constructor
-         *
-         * @param tempFolder
-         * @param collectionNames
-         */
-    public ElasticsearchRule(File tempFolder, String... collectionNames) {
 
+    public ElasticsearchRule(String... collectionNames) {
         try {
             client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
-                new TransportAddress(InetAddress.getByName("localhost"), tcpPort));
+                    new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
         } catch (final UnknownHostException e) {
             throw new RuntimeException(e);
         }
+
         if (null != collectionNames) {
             this.collectionNames = Arrays.asList(collectionNames);
+
         }
         // TODO: 12/13/17 create index for each collection
     }
 
     private Settings getClientSettings() {
         return Settings.builder().put("cluster.name", VITAM_CLUSTER)
-            .put("client.transport.sniff", true)
-            .put("client.transport.ping_timeout", "2s")
-            .put("transport.tcp.connect_timeout", "1s")
-            .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
-            .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-            .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
-            .build();
+                .put("client.transport.sniff", true)
+                .put("client.transport.ping_timeout", "2s")
+                .put("transport.tcp.connect_timeout", "1s")
+                .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
+                .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
+                .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
+                .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
+                .build();
     }
 
 
@@ -112,16 +105,17 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
+
     public static void purge(Client client, String collectionName) {
         if (client.admin().indices().prepareExists(collectionName.toLowerCase()).get().isExists()) {
             QueryBuilder qb = matchAllQuery();
 
             SearchResponse scrollResp = client.prepareSearch(collectionName.toLowerCase())
-                .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-                .setScroll(new TimeValue(60000))
-                .setQuery(qb)
-                .setFetchSource(false)
-                .setSize(100).get();
+                    .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
+                    .setScroll(new TimeValue(60000))
+                    .setQuery(qb)
+                    .setFetchSource(false)
+                    .setSize(100).get();
 
             BulkRequestBuilder bulkRequest = client.prepareBulk();
 
@@ -131,8 +125,8 @@ public class ElasticsearchRule extends ExternalResource {
                 }
 
                 scrollResp =
-                    client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
-                        .actionGet();
+                        client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                                .actionGet();
             } while (scrollResp.getHits().getHits().length != 0);
 
             bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
@@ -142,12 +136,13 @@ public class ElasticsearchRule extends ExternalResource {
 
                 if (bulkResponse.hasFailures()) {
                     throw new RuntimeException(
-                        String.format("DatabaseException when calling purge by bulk Request %s",
-                            bulkResponse.buildFailureMessage()));
+                            String.format("DatabaseException when calling purge by bulk Request %s",
+                                    bulkResponse.buildFailureMessage()));
                 }
             }
         }
     }
+
 
     public void stop() {
         try {
@@ -185,17 +180,17 @@ public class ElasticsearchRule extends ExternalResource {
      *
      * @return the vitam cluster name
      */
-    public String getClusterName() {
+    public static String getClusterName() {
         return VITAM_CLUSTER;
     }
 
     /**
      * get the tcp port
      *
-     * @return tcpPort
+     * @return TCP_PORT
      */
     public static int getTcpPort() {
-        return tcpPort;
+        return TCP_PORT;
     }
 
     /**
