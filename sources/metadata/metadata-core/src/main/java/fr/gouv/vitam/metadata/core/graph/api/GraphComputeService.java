@@ -26,22 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.graph.api;
 
-import static com.mongodb.client.model.Filters.eq;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.Function;
 import com.mongodb.client.model.UpdateOneModel;
@@ -58,6 +42,7 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.graph.GraphRelation;
@@ -67,6 +52,22 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.bson.Document;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.mongodb.client.model.Filters.eq;
+
 /**
  * This class get units where calculated data are modified
  * Zip generated files and store the zipped file in the offer.
@@ -74,6 +75,7 @@ import org.bson.Document;
 public interface GraphComputeService extends VitamCache<String, Document>, VitamAutoCloseable {
 
     String $_SET = "$set";
+    String $_INC = "$inc";
     int START_DEPTH = 1;
 
     Integer concurrencyLevel = Math.max(Runtime.getRuntime().availableProcessors(), 32);
@@ -307,7 +309,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
                 .append(Unit.GRAPH, graph)
                 .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
-        Document data = new Document($_SET, update);
+        Document data = new Document($_SET, update)
+            .append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
         return new UpdateOneModel<>(eq(Unit.ID, unitId), data, new UpdateOptions().upsert(false));
     }
 
@@ -342,7 +345,8 @@ public interface GraphComputeService extends VitamCache<String, Document>, Vitam
         final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
                 .append(Unit.UNITUPS, unitParents)
                 .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())))
+            .append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
 
         return new UpdateOneModel<>(eq(ObjectGroup.ID, gotId), data, new UpdateOptions().upsert(false));
     }

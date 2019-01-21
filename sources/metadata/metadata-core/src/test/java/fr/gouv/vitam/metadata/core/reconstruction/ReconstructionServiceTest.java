@@ -564,7 +564,7 @@ public class ReconstructionServiceTest {
 
     private MetadataBackupModel getUnitMetadataBackupModel(String id, Long offset) {
         MetadataBackupModel model = new MetadataBackupModel();
-        model.setUnit(new Document("_id", id));
+        model.setUnit(new Document("_id", id).append("_v", 0));
         model.setLifecycle(new Document("_id", id));
         model.setOffset(offset);
         return model;
@@ -585,7 +585,7 @@ public class ReconstructionServiceTest {
 
     private MetadataBackupModel getGotMetadataBackupModel(String id, Long offset) {
         MetadataBackupModel model = new MetadataBackupModel();
-        model.setGot(new Document("_id", id));
+        model.setGot(new Document("_id", id).append("_v", 0));
         model.setLifecycle(new Document("_id", id));
         model.setOffset(offset);
         return model;

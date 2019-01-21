@@ -174,14 +174,6 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
-    public void givenMongoDbAccessWhenFlushOnDisKThenDoNothing() {
-        mongoDbAccess =
-            new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
-                esClient, tenantList);
-        mongoDbAccess.flushOnDisk();
-    }
-
-    @Test
     @RunWithCustomExecutor
     public void should_aggregate_unit_per_operation_id_and_originating_agency() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);

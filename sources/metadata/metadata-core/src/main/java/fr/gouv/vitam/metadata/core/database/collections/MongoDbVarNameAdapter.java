@@ -135,6 +135,9 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                     case VERSION:
                         // Valid for Unit and OG (And for VitamDocument items)
                         return MetadataDocument.VERSION;
+                    case ATOMIC_VERSION:
+                        // Valid for Unit and OG (And for VitamDocument items)
+                        return MetadataDocument.ATOMIC_VERSION;
                     case STORAGE:
                         // Valid for OG an Unit
                         return ObjectGroup.STORAGE + extension;

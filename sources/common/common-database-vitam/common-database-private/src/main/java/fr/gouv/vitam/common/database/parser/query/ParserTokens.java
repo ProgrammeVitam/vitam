@@ -696,6 +696,10 @@ public class ParserTokens extends BuilderToken {
          */
         VERSION("version"),
         /**
+         * Document's version (number of update on document)
+         */
+        ATOMIC_VERSION("atomic_version"),
+        /**
          * Document's usage (BINARY_MASTER, PHYSICAL_MASTER, DISSEMINATION, ...)
          */
         USAGE("usage"),
