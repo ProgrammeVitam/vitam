@@ -113,7 +113,8 @@ public class PreservationStorageMetadataAndLfcTest {
             Optional.empty()
         );
 
-        WorkflowBatchResult batchResult = WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", Collections.singletonList(outputExtra));
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", Collections.singletonList(outputExtra),
+            "BinaryMaster");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
 
         handlerIO.addOutputResult(0, batchResults);

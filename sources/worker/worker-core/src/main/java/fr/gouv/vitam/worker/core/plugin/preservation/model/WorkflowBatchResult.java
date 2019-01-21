@@ -46,33 +46,38 @@ import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.G
 public class WorkflowBatchResult {
     private final String gotId;
     private final String unitId;
-    private final String usage;
+    private final String targetUse;
+    private final String sourceUse;
     private final String requestId;
     private final List<OutputExtra> outputExtras;
     private final StatusCode globalStatus;
 
-    private WorkflowBatchResult(String gotId, String unitId, String usage, String requestId, List<OutputExtra> outputExtras, StatusCode globalStatus) {
+    private WorkflowBatchResult(String gotId, String unitId, String targetUse, String requestId, List<OutputExtra> outputExtras,
+        StatusCode globalStatus, String sourceUse) {
         this.gotId = gotId;
         this.unitId = unitId;
-        this.usage = usage;
+        this.targetUse = targetUse;
         this.requestId = requestId;
         this.outputExtras = outputExtras;
         this.globalStatus = globalStatus;
+        this.sourceUse = sourceUse;
     }
 
-    public static WorkflowBatchResult of(String gotId, String unitId, String usage, String requestId, List<OutputExtra> outputExtras) {
-        return new WorkflowBatchResult(gotId, unitId, usage, requestId, Collections.unmodifiableList(outputExtras), WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras));
+    public static WorkflowBatchResult of(String gotId, String unitId, String targetUse, String requestId, List<OutputExtra> outputExtras,
+        String sourceUse) {
+        return new WorkflowBatchResult(gotId, unitId, targetUse, requestId, Collections.unmodifiableList(outputExtras), WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
+            sourceUse);
     }
 
     public static WorkflowBatchResult of(WorkflowBatchResult workflowBatchResult, List<OutputExtra> outputExtras) {
         return new WorkflowBatchResult(
             workflowBatchResult.getGotId(),
             workflowBatchResult.getUnitId(),
-            workflowBatchResult.getUsage(),
+            workflowBatchResult.getTargetUse(),
             workflowBatchResult.getRequestId(),
             Collections.unmodifiableList(outputExtras),
-            WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras)
-        );
+            WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
+            workflowBatchResult.getSourceUse());
     }
 
     private static StatusCode globalStatusFromOutputExtras(List<OutputExtra> outputExtras) {
@@ -105,8 +110,12 @@ public class WorkflowBatchResult {
         return requestId;
     }
 
-    public String getUsage() {
-        return usage;
+    public String getTargetUse() {
+        return targetUse;
+    }
+
+    public String getSourceUse() {
+        return sourceUse;
     }
 
     public List<OutputExtra> getOutputExtras() {

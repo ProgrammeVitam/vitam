@@ -1309,7 +1309,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             PreservationRequest restrictedRequest =
                 new PreservationRequest(restrictedQuery, preservationRequest.getScenarioIdentifier(),
-                    preservationRequest.getUsage(),preservationRequest.getVersion());
+                    preservationRequest.getTargetUsage(),preservationRequest.getVersion(), preservationRequest.getSourceUsage());
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();

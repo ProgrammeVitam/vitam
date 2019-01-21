@@ -35,6 +35,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.Arrays.asList;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -123,14 +124,30 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             }
             JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
             DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
-            DbQualifiersModel qualifierModel = dbObjectGroupModel.getQualifiers()
-                .stream()
-                .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getUsage()))
-                .findFirst()
-                .orElseThrow(
-                    () -> new VitamRuntimeException(String.format("No 'Qualifier' %s for 'ObjectGroup' %s.", batchResult.getUsage(), gotId)));
+            DbQualifiersModel qualifierModel;
+            Integer lastVersion;
 
-            Integer lastVersion = extractLastVersionOfObjectGroup(batchResult, qualifierModel) + 1;
+            if (batchResult.getSourceUse().equals(batchResult.getTargetUse())) {
+                qualifierModel = dbObjectGroupModel
+                    .getQualifiers()
+                    .stream()
+                    .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getSourceUse()))
+                    .findFirst()
+                    .orElseThrow(
+                        () -> new VitamRuntimeException(
+                            String.format("No 'Qualifier' %s for 'ObjectGroup' %s.", batchResult.getSourceUse(), gotId)));
+                lastVersion = extractLastVersionOfQualifier(batchResult, qualifierModel) + 1;
+            } else {
+                qualifierModel = dbObjectGroupModel.getQualifiers()
+                    .stream()
+                    .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getTargetUse()))
+                    .findFirst()
+                    .orElse(new DbQualifiersModel());
+                boolean firstQualifier = isFirstQualifier(qualifierModel, batchResult);
+                lastVersion = getLastVersion(batchResult, qualifierModel, firstQualifier);
+            }
+
+
             List<DbVersionsModel> versionsModelToInsert = IntStream.range(0, generateOkActions.size())
                 .mapToObj(i -> buildVersionModel(generateOkActions.get(i), batchResult, lastVersion + i))
                 .collect(Collectors.toList());
@@ -139,16 +156,17 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             qualifierModel.setNbc(lastVersion);
 
             List<DbQualifiersModel> finalQualifiersModelToUpdate = dbObjectGroupModel.getQualifiers().stream()
-                .filter(qualifier -> !qualifier.getQualifier().equals(batchResult.getUsage()))
+                .filter(qualifier -> !qualifier.getQualifier().equals(batchResult.getTargetUse()))
                 .collect(Collectors.toList());
             finalQualifiersModelToUpdate.add(qualifierModel);
 
-            Optional<Integer> totalBinaries = finalQualifiersModelToUpdate.stream()
-                .map(qualifier -> qualifierModel.getNbc())
-                .reduce(Integer::sum);
+            final Optional<Integer> totalBinaries =
+                finalQualifiersModelToUpdate.stream()
+                    .map(DbQualifiersModel::getNbc)
+                    .reduce(Integer::sum);
 
-            if (!totalBinaries.isPresent()){
-                throw new IllegalStateException("not Found");
+            if (!totalBinaries.isPresent()) {
+                throw new IllegalStateException("total binaries for objectGroup nbc is absent");
             }
 
             Map<String, JsonNode> action = new HashMap<>();
@@ -173,28 +191,46 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         }
     }
 
-    private Integer extractLastVersionOfObjectGroup(WorkflowBatchResult workflowBatchResult, DbQualifiersModel qualifiersModel) {
-        return qualifiersModel.getVersions()
-            .stream()
-            .map(DbVersionsModel::getDataObjectVersion)
-            .map(dataObjectVersion -> asList(dataObjectVersion.split("_")).get(1))
-            .map(Integer::parseInt)
-            .max(Comparator.naturalOrder())
-            .orElseThrow(
-                () -> new VitamRuntimeException(String.format("Error extracting 'DataObjectVersion' for %s", workflowBatchResult.getGotId())));
+    private boolean isFirstQualifier(DbQualifiersModel qualifierModel, WorkflowBatchResult batchResult) {
+        if (qualifierModel.getQualifier() == null) {
+            qualifierModel.setNbc(1);
+            qualifierModel.setQualifier(batchResult.getTargetUse());
+            qualifierModel.setVersions(new ArrayList<>());
+            return true;
+        }
+        return false;
+    }
+
+    private Integer getLastVersion(WorkflowBatchResult batchResult, DbQualifiersModel qualifierModel, boolean firstQualifier) {
+        if (!firstQualifier) {
+            return extractLastVersionOfQualifier(batchResult, qualifierModel) + 1;
+        }
+        return 1;
+    }
+
+    private Integer extractLastVersionOfQualifier(WorkflowBatchResult workflowBatchResult, DbQualifiersModel qualifiersModel) {
+            return qualifiersModel.getVersions()
+                .stream()
+                .map(DbVersionsModel::getDataObjectVersion)
+                .map(dataObjectVersion -> asList(dataObjectVersion.split("_")).get(1))
+                .map(Integer::parseInt)
+                .max(Comparator.naturalOrder())
+                .orElseThrow(
+                    () -> new VitamRuntimeException(
+                        String.format("Error extracting 'DataObjectVersion' for %s", workflowBatchResult.getGotId())));
     }
 
     private DbVersionsModel buildVersionModel(OutputExtra outputExtra, WorkflowBatchResult workflowBatchResult, Integer newDataObjectVersion) {
         DbVersionsModel versionModel = new DbVersionsModel();
         versionModel.setId(outputExtra.getBinaryGUID());
         versionModel.setDataObjectGroupId(workflowBatchResult.getGotId());
-        versionModel.setDataObjectVersion(workflowBatchResult.getUsage() + "_" + newDataObjectVersion);
+        versionModel.setDataObjectVersion(workflowBatchResult.getTargetUse() + "_" + newDataObjectVersion);
         versionModel.setOpi(workflowBatchResult.getRequestId());
         versionModel.setAlgorithm(digestPreservationGeneration.getName());
 
         Optional<FormatIdentifierResponse> formatIdentifierResponse = outputExtra.getBinaryFormat();
 
-        if (!formatIdentifierResponse.isPresent()){
+        if (!formatIdentifierResponse.isPresent()) {
             throw new IllegalStateException("format not found");
         }
 

@@ -45,6 +45,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -52,6 +53,7 @@ import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -87,9 +89,21 @@ public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectAction
         throws ProcessingException, ContentAddressableStorageServerException {
         final ItemStatus itemStatus = new ItemStatus(PRESERVATION_STORAGE_METADATA_LFC);
         WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
-        return results.getWorkflowBatchResults().stream()
-            .map(x -> saveDocumentWithLfcInStorage(x.getGotId(), handler, param.getContainerName(), itemStatus))
-            .collect(Collectors.toList());
+        List<ItemStatus> itemStatuses = new ArrayList<>();
+        List<WorkflowBatchResult> workflowBatchResults = results.getWorkflowBatchResults();
+
+        for (WorkflowBatchResult result : workflowBatchResults) {
+            List<WorkflowBatchResult.OutputExtra> outputExtras = result.getOutputExtras().stream()
+                .filter(WorkflowBatchResult.OutputExtra::isOkAndGenerated)
+                .collect(Collectors.toList());
+
+            if (outputExtras.isEmpty()) {
+                itemStatuses.add(new ItemStatus(PRESERVATION_STORAGE_METADATA_LFC));
+                continue;
+            }
+            itemStatuses.add(saveDocumentWithLfcInStorage(result.getGotId(), handler, param.getContainerName(), itemStatus));
+        }
+        return itemStatuses;
     }
 
     private ItemStatus saveDocumentWithLfcInStorage(String guid, HandlerIO handlerIO, String containerName,

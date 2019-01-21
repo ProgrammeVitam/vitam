@@ -82,15 +82,19 @@
     <div class="ui-g" *ngIf="selectedOption === 'PRESERVATION'">
 
         <div class="ui-g-12" style="height: 60px;">
-            <div class="ui-g-4" style="height: 45px;">Version</div>
+            <div class="ui-g-4" style="height: 45px;">Usage source</div>
+            <p-dropdown class="ui-g-3" [options]="form.sourceUsage" [(ngModel)]="form.selectedSourceUse"></p-dropdown>
+        </div>
+
+        <div class="ui-g-12" style="height: 60px;">
+            <div class="ui-g-4" style="height: 45px;">Version source</div>
             <p-dropdown class="ui-g-3" [options]="form.versions" [(ngModel)]="form.seclectedVersion"></p-dropdown>
         </div>
 
         <div class="ui-g-12" style="height: 60px;">
-            <div class="ui-g-4" style="height: 45px;">Usage</div>
-            <p-dropdown class="ui-g-3" [options]="form.usages" [(ngModel)]="form.seclectedUsage"></p-dropdown>
+            <div class="ui-g-4" style="height: 45px;">Usage cible</div>
+            <p-dropdown class="ui-g-3" [options]="form.targetUsage" [(ngModel)]="form.selectedTargetUse"></p-dropdown>
         </div>
-
 
         <div class="ui-g-12" style="height: 60px;">
             <div class="ui-g-4" style="height: 45px;">Scénario</div>
