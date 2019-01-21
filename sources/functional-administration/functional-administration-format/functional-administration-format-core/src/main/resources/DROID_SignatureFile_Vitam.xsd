@@ -185,8 +185,7 @@
            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<!-- Vitam update : ignore case -->
-			<xsd:pattern value="[0-9A-Fa-f]{2}"/>
+			<xsd:pattern value="[0-9A-F]{2}"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:simpleType name="HexBytes">
@@ -196,8 +195,7 @@
            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<!-- Vitam update : ignore case -->
-			<xsd:pattern value="([0-9A-Fa-f]{2})+"/>
+			<xsd:pattern value="([0-9A-F]{2})+"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:simpleType name="HexByteRange">
@@ -208,8 +206,8 @@
            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<!-- Vitam update : ignore case & support for & in pattern -->
-			<xsd:pattern value="(\[!?&amp;?([0-9A-Fa-f]{2})+(:([0-9A-Fa-f]{2})+)?\]|[0-9A-Fa-f]{2})+"/>
+			<!-- Vitam update : & in pattern -->
+			<xsd:pattern value="(\[!?&amp;?([0-9A-F]{2})+(:([0-9A-F]{2})+)?\]|[0-9A-F]{2})+"/>
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:complexType name="FragmentType">

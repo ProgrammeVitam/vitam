@@ -41,15 +41,15 @@ import static org.junit.Assert.assertTrue;
 
 public class PronomParserTest {
 
-    private static final String FILE_TO_TEST = "FF-vitam.xml";
-    private static final String FILE_TO_TEST_KO = "FF-vitam-KO.xml";
+    private static final String FILE_TO_TEST = "DROID_SignatureFile_V94.xml";
+    private static final String FILE_TO_TEST_IO_EXCEPTION = "NotFound";
     private static final String FILE_TO_TEST_FORMAT_KO = "FF-vitam-format-KO.xml";
 
     @Test
     public void testPronomFormat() throws FileFormatException, FileNotFoundException {
         List<FileFormatModel> jsonFileFormat =
             PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST));
-        final FileFormatModel fileFormatModel = jsonFileFormat.get(jsonFileFormat.size() - 1);
+        final FileFormatModel fileFormatModel = jsonFileFormat.get(1327);
         assertTrue(fileFormatModel.getName().contains("RDF/XML"));
         assertEquals(fileFormatModel.getPuid(), "fmt/875");
         assertTrue(fileFormatModel.getMimeType().contains("application/rdf+xml"));
@@ -65,6 +65,6 @@ public class PronomParserTest {
 
     @Test(expected = FileNotFoundException.class)
     public void testPronomFileNotFound() throws FileNotFoundException, FileFormatException {
-        PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST_KO));
+        PronomParser.getPronom(PropertiesUtils.findFile(FILE_TO_TEST_IO_EXCEPTION));
     }
 }
