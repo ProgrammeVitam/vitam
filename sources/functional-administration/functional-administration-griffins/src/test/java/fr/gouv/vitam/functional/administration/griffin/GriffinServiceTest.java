@@ -1,5 +1,6 @@
 package fr.gouv.vitam.functional.administration.griffin;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -229,19 +230,13 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void shouldImportGriffin() throws Exception {
         //Given
+        List<GriffinModel> listToImport = JsonHandler.getFromFileAsTypeRefence(
+            PropertiesUtils.getResourceFile("griffins.json"),
+            new TypeReference<List<GriffinModel>>() {
+            }
+        );
+
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
-        String modelString1 =
-            "{\"#id\":\"Id1\",\"Name\":\"1\",\"Identifier\":\"IDENTIFIER1\",\"CreationDate\":\"25/10/2010\",\"LastUpdateDate\":\"25/10/2010\",\"ExecutableName\":\"exName\",\"ExecutableVersion\":\"exVersion\"}";
-        String modelString2 =
-            "{\"#id\":\"Id2\",\"Name\":\"2\",\"Identifier\":\"IDENTIFIER2\",\"CreationDate\":\"25/10/2010\",\"LastUpdateDate\":\"25/10/2010\",\"ExecutableName\":\"exName\",\"ExecutableVersion\":\"exVersion\"}";
-        String modelString3 =
-            "{\"#id\":\"Id3\",\"Name\":\"3\",\"Identifier\":\"IDENTIFIER3\",\"CreationDate\":\"25/10/2010\",\"LastUpdateDate\":\"25/10/2010\",\"ExecutableName\":\"exName\",\"ExecutableVersion\":\"exVersion\"}";
-
-        List<GriffinModel> listToImport = new ArrayList<>();
-
-        listToImport.add(getFromString(modelString1, GriffinModel.class));
-        listToImport.add(getFromString(modelString2, GriffinModel.class));
-        listToImport.add(getFromString(modelString3, GriffinModel.class));
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 

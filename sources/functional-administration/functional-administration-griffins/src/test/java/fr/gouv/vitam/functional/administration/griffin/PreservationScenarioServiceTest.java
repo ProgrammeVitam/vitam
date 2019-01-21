@@ -1,11 +1,18 @@
 package fr.gouv.vitam.functional.administration.griffin;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.administration.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -13,12 +20,14 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.PreservationScenario;
+import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -26,12 +35,17 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -53,6 +67,9 @@ public class PreservationScenarioServiceTest {
     @Mock private LogbookOperationsClient logbookOperationsClient;
 
     private PreservationScenarioService preservationScenarioService;
+    private PreservationScenarioModel defaultScenarioModel;
+
+    @Mock private DbRequestResult dbRequestResult;
 
     @Before
     public void setUp() {
@@ -60,30 +77,40 @@ public class PreservationScenarioServiceTest {
             new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
 
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+
+        defaultScenarioModel = new PreservationScenarioModel(
+            "name",
+            "id",
+            Collections.singletonList(ActionTypePreservation.GENERATE),
+            Collections.singletonList("string"),
+            Collections.singletonList(new GriffinByFormat()),
+            new GriffinByFormat());
+        defaultScenarioModel.setVersion(1);
+        GUID guid = newGUID();
+
+        getVitamSession().setTenantId(1);
+        getVitamSession().setRequestId(guid);
     }
 
     @Test
+    @RunWithCustomExecutor
     public void givenPreservationScenariosInDataBaseShouldCollectInsertUpdateAndDeleteList() throws Exception {
 
-        //Given
-        List<PreservationScenarioModel> allPreservationScenarioInDatabase = new ArrayList<>();
-        String modelString1 = "{\"#id\":\"Id1\",\"Name\":\"1\",\"Identifier\":\"IDENTIFIER1\"}";
-        String modelString2 = "{\"#id\":\"Id2\",\"Name\":\"2\",\"Identifier\":\"IDENTIFIER2\"}";
-        String modelString3 = "{\"#id\":\"Id3\",\"Name\":\"3\",\"Identifier\":\"IDENTIFIER3\"}";
+        List<PreservationScenarioModel> allPreservationScenarioInDatabase = JsonHandler.getFromFileAsTypeRefence(
+            PropertiesUtils.getResourceFile("scenarii.json"),
+            new TypeReference<List<PreservationScenarioModel>>() {
+            }
+        );
 
-        allPreservationScenarioInDatabase.add(JsonHandler.getFromString(modelString2, PreservationScenarioModel.class));
-        allPreservationScenarioInDatabase.add(JsonHandler.getFromString(modelString3, PreservationScenarioModel.class));
-
-        List<PreservationScenarioModel> listToImport = new ArrayList<>();
-
-        listToImport.add(JsonHandler.getFromString(modelString1, PreservationScenarioModel.class));
-        listToImport.add(JsonHandler.getFromString(modelString2, PreservationScenarioModel.class));
+        List<PreservationScenarioModel> listToImport = JsonHandler.getFromFileAsTypeRefence(
+            PropertiesUtils.getResourceFile("scenarii_import.json"),
+            new TypeReference<List<PreservationScenarioModel>>() {
+            }
+        );
 
         List<PreservationScenarioModel> listToInsert = new ArrayList<>();
         List<PreservationScenarioModel> listToUpdate = new ArrayList<>();
         List<String> listToDelete = new ArrayList<>();
-
-        DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
         //When
         when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
@@ -92,7 +119,8 @@ public class PreservationScenarioServiceTest {
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
 
         preservationScenarioService
-            .classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listToDelete);
+            .classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listToDelete,
+                allPreservationScenarioInDatabase);
 
         //Then
         assertThat(listToDelete.size()).isEqualTo(1);
@@ -108,24 +136,23 @@ public class PreservationScenarioServiceTest {
         VitamThreadUtils.getVitamSession().setRequestId(guid);
 
         //Given
-        List<PreservationScenarioModel> allPreservationScenarioInDatabase = new ArrayList<>();
-        String modelString1 =
-            "{\"#id\":\"Id1\",\"Name\":\"1\",\"Identifier\":\"IDENTIFIER1\",\"CreationDate\":\"25/10/2010\",\"LastUpdate\":\"25/10/2010\"}";
-        String modelString2 =
-            "{\"#id\":\"Id2\",\"Name\":\"2\",\"Identifier\":\"IDENTIFIER2\",\"CreationDate\":\"25/10/2010\",\"LastUpdate\":\"25/10/2010\"}";
-        String modelString3 =
-            "{\"#id\":\"Id3\",\"Name\":\"3\",\"Identifier\":\"IDENTIFIER3\",\"CreationDate\":\"25/10/2010\",\"LastUpdate\":\"25/10/2010\"}";
+        List<PreservationScenarioModel> allPreservationScenarioInDatabase = JsonHandler.getFromFileAsTypeRefence(
+            PropertiesUtils.getResourceFile("scenarii.json"),
+            new TypeReference<List<PreservationScenarioModel>>() {
+            }
+        );
 
+        List<PreservationScenarioModel> listToImport = JsonHandler.getFromFileAsTypeRefence(
+            PropertiesUtils.getResourceFile("scenarii_all.json"),
+            new TypeReference<List<PreservationScenarioModel>>() {
+            }
+        );
 
-        allPreservationScenarioInDatabase.add(JsonHandler.getFromString(modelString2, PreservationScenarioModel.class));
-        allPreservationScenarioInDatabase.add(JsonHandler.getFromString(modelString3, PreservationScenarioModel.class));
-
-        List<PreservationScenarioModel> listToImport = new ArrayList<>();
-        listToImport.add(getFromString(modelString1, PreservationScenarioModel.class));
-        listToImport.add(getFromString(modelString2, PreservationScenarioModel.class));
-        listToImport.add(getFromString(modelString3, PreservationScenarioModel.class));
-
-        DbRequestResult dbRequestResult = mock(DbRequestResult.class);
+        String requestId = getVitamSession().getRequestId();
+        File preservationScenarioFile = PropertiesUtils.getResourceFile(
+            "preservation_scenario_logbook_operation.json");
+        JsonNode preservationScenarioOperation = JsonHandler.getFromFile(preservationScenarioFile);
+        when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(preservationScenarioOperation);
 
         //When
         when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
@@ -158,10 +185,13 @@ public class PreservationScenarioServiceTest {
 
 
     @Test
+    @RunWithCustomExecutor
     public void shouldGetScenarioById() throws Exception {
         //Given
-        DbRequestResult dbRequestResult = new DbRequestResult();
         when(mongoDbAccess.findDocuments(any(), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
+        when(dbRequestResult.getRequestResponseOK(any(), any(), any()))
+            .thenReturn(new RequestResponseOK<>());
+
         //When
         RequestResponse<PreservationScenarioModel> preservationScenario =
             preservationScenarioService.findPreservationScenario(getFromString("{}"));
@@ -169,4 +199,125 @@ public class PreservationScenarioServiceTest {
         assertThat(preservationScenario).isNotNull();
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailedValidateScenarioWhenNameIsNullOrEmpty() throws Exception {
+        //Given
+        defaultScenarioModel.setName(null);
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+        //Given
+        defaultScenarioModel.setName("");
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailedWhenImportTwoDuplicatedScenarioIdentifiers() throws Exception {
+        //Given
+        PreservationScenarioModel secondScenarioModel = new PreservationScenarioModel(
+            "name",
+            "id",
+            Collections.singletonList(ActionTypePreservation.GENERATE),
+            Collections.singletonList("string"),
+            Collections.singletonList(new GriffinByFormat()),
+            new GriffinByFormat());
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Lists.newArrayList(defaultScenarioModel, secondScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Duplicate scenario");
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailedValidateScenarioWhenIdentifierIsNullOrEmpty() throws Exception {
+        //Given
+        defaultScenarioModel.setIdentifier(null);
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+        //Given
+        defaultScenarioModel.setIdentifier("");
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailedValidateScenarioWhenActionListIsNullOrEmpty() throws Exception {
+        //Given
+        defaultScenarioModel.setActionList(null);
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+        //Given
+        defaultScenarioModel.setActionList(new ArrayList<ActionTypePreservation>());
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+    }
+
+    @Test
+    @Ignore
+    @RunWithCustomExecutor
+    public void shouldFailedValidateScenarioWhenGriffinByFormatIsNullOrEmpty() throws Exception {
+        //Given
+        defaultScenarioModel.setGriffinByFormat(null);
+
+        //When
+        when(mongoDbAccess.findDocuments(any(), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
+
+        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
+            .thenReturn(new ArrayList<>());
+
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+        //Given
+        defaultScenarioModel.setGriffinByFormat(new ArrayList<GriffinByFormat>());
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+    }
+
+    @Ignore
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailedValidateScenarioWhenDefaultGriffinIsNullOrEmpty() throws Exception {
+        //Given
+        defaultScenarioModel.setDefaultGriffin(null);
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+        //Given
+        defaultScenarioModel.setDefaultGriffin(new GriffinByFormat());
+
+        // Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+
+    }
 }

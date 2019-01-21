@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class GriffinReport {
+public class PreservationScenarioReport {
 
     @JsonProperty("Operation")
     private FunctionalOperationModel operation;
@@ -45,17 +45,14 @@ public class GriffinReport {
     @JsonProperty("StatusCode")
     private StatusCode statusCode;
 
-    @JsonProperty("PreviousGriffinsVersion")
-    private String previousGriffinsVersion;
+    @JsonProperty("PreviousScenariosCreationDate")
+    private String previousScenariosCreationDate;
 
-    @JsonProperty("PreviousGriffinsCreationDate")
-    private String previousGriffinsCreationDate;
+    @JsonProperty("NewScenariosVersion")
+    private String newScenariosVersion;
 
-    @JsonProperty("NewGriffinsVersion")
-    private String newGriffinsVersion;
-
-    @JsonProperty("NewGriffinsCreationDate")
-    private String newGriffinsCreationDate;
+    @JsonProperty("NewScenariosCreationDate")
+    private String newScenariosCreationDate;
 
     @JsonProperty("RemovedIdentifiers")
     private Set<String> removedIdentifiers = new HashSet<>();
@@ -69,7 +66,7 @@ public class GriffinReport {
     @JsonProperty("Warnings")
     private List<String> warnings = new ArrayList<>();
 
-    public GriffinReport() {
+    public PreservationScenarioReport() {
         // empty constructor
     }
 
@@ -77,7 +74,7 @@ public class GriffinReport {
         return operation;
     }
 
-    public GriffinReport setOperation(
+    public PreservationScenarioReport setOperation(
         FunctionalOperationModel operation) {
         this.operation = operation;
         return this;
@@ -87,7 +84,7 @@ public class GriffinReport {
         return statusCode;
     }
 
-    public GriffinReport setStatusCode(StatusCode statusCode) {
+    public PreservationScenarioReport setStatusCode(StatusCode statusCode) {
         this.statusCode = statusCode;
         return this;
     }
@@ -125,36 +122,29 @@ public class GriffinReport {
         warnings.add(message);
     }
 
-    String getPreviousGriffinsVersion() {
-        return previousGriffinsVersion;
+
+    String getPreviousScenariosCreationDate() {
+        return previousScenariosCreationDate;
     }
 
-    void setPreviousGriffinsVersion(String previousGriffinsVersion) {
-        this.previousGriffinsVersion = previousGriffinsVersion;
+    public void setPreviousScenariosCreationDate(String previousScenariosCreationDate) {
+        this.previousScenariosCreationDate = previousScenariosCreationDate;
     }
 
-    String getPreviousGriffinsCreationDate() {
-        return previousGriffinsCreationDate;
+    String getNewScenariosVersion() {
+        return newScenariosVersion;
     }
 
-    void setPreviousGriffinsCreationDate(String previousGriffinsCreationDate) {
-        this.previousGriffinsCreationDate = previousGriffinsCreationDate;
+    public void setNewScenariosVersion(String newScenariosVersion) {
+        this.newScenariosVersion = newScenariosVersion;
     }
 
-    String getNewGriffinsVersion() {
-        return newGriffinsVersion;
+    String getNewScenariosCreationDate() {
+        return newScenariosCreationDate;
     }
 
-    void setNewGriffinsVersion(String newGriffinsVersion) {
-        this.newGriffinsVersion = newGriffinsVersion;
-    }
-
-    String getNewGriffinsCreationDate() {
-        return newGriffinsCreationDate;
-    }
-
-    public void setNewGriffinsCreationDate(String newGriffinsCreationDate) {
-        this.newGriffinsCreationDate = newGriffinsCreationDate;
+    public void setNewScenariosCreationDate(String newScenariosCreationDate) {
+        this.newScenariosCreationDate = newScenariosCreationDate;
     }
 
     void setRemovedIdentifiers(Set<String> removedIdentifiers) {

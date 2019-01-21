@@ -104,7 +104,8 @@ public class GriffinService {
     private FunctionalBackupService functionalBackupService;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    @VisibleForTesting GriffinService(MongoDbAccessReferential mongoDbAccess,
+    @VisibleForTesting
+    GriffinService(MongoDbAccessReferential mongoDbAccess,
         FunctionalBackupService functionalBackupService,
         LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.mongoDbAccess = mongoDbAccess;
@@ -212,13 +213,13 @@ public class GriffinService {
         report.setOperation(operationModel);
 
         if (!currentGriffinsModels.isEmpty()) {
-            report.setPreviousGriffins(currentGriffinsModels.get(0).getVersion().toString());
-            report.setPreviousGriffins(currentGriffinsModels.get(0).getCreationDate());
+            report.setPreviousGriffinsVersion(currentGriffinsModels.get(0).getExecutableVersion());
+            report.setPreviousGriffinsCreationDate(currentGriffinsModels.get(0).getCreationDate());
         }
 
-        if (!currentGriffinsModels.isEmpty()) {
-            report.setPreviousGriffins(currentGriffinsModels.get(0).getVersion().toString());
-            report.setPreviousGriffins(currentGriffinsModels.get(0).getCreationDate());
+        if (!newGriffinsModels.isEmpty()) {
+            report.setNewGriffinsVersion(newGriffinsModels.get(0).getExecutableVersion());
+            report.setPreviousGriffinsCreationDate(newGriffinsModels.get(0).getCreationDate());
         }
 
         Map<String, GriffinModel> currentGriffinsModelsByIdentifiers = newGriffinsModels
@@ -253,20 +254,6 @@ public class GriffinService {
     }
 
     private void reportVersioning(GriffinReport report) {
-        if (report.getPreviousGriffins() != null && report.getNewGriffinsVersion() != null) {
-
-            int previousVersion = Integer.parseInt(report.getPreviousGriffins());
-            int newVersion = Integer.parseInt(report.getNewGriffinsVersion());
-
-            if (previousVersion == newVersion) {
-                report.addWarning("Same referential version: " + newVersion);
-            }
-
-            if (previousVersion > newVersion) {
-                report.addWarning("New imported referential version " + previousVersion +
-                    " is older than previous referential version " + newVersion);
-            }
-        }
 
         if (report.getPreviousGriffinsCreationDate() != null && report.getNewGriffinsCreationDate() != null) {
 
