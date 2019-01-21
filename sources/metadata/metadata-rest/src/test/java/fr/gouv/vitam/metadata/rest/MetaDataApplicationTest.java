@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -57,7 +58,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 
 public class MetaDataApplicationTest {
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
@@ -72,22 +72,21 @@ public class MetaDataApplicationTest {
     private static MetaDataConfiguration config;
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static ElasticsearchTestConfiguration configEs = null;
 
 
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test", "Unit", "ObjectGroup");
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test");
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
 
     private MongoClient mongoClient = mongoRule.getMongoClient();
 
     @BeforeClass
     public static void beforeClass() throws Exception {
-        try {
-            configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+
     }
 
     /**
@@ -96,12 +95,11 @@ public class MetaDataApplicationTest {
     @Before
     public void setUp() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, configEs.getTcpPort()));
+        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", mongoClient.getAddress().getPort()));
-        // TODO: using configuration file ? Why not ?
-        config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
+        config = new MetaDataConfiguration(mongo_nodes, "vitam-test", ElasticsearchRule.VITAM_CLUSTER, nodes);
         VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
     }

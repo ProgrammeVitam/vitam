@@ -82,7 +82,7 @@ public enum LogbookCollections {
             collection.vitamCollection
                 .setName(prefix + collection.getClasz().getSimpleName());
             collection.initialize(db, false);
-            if (collection == LogbookCollections.OPERATION) {
+            if (collection == LogbookCollections.OPERATION && null != esClient) {
                 collection.initialize(esClient);
                 for (Integer tenant : tenants) {
                     esClient.addIndex(collection, tenant);
@@ -109,7 +109,7 @@ public enum LogbookCollections {
         ParametersChecker.checkParameter("logbookCollections is required", logbookCollections);
         for (LogbookCollections collection : logbookCollections) {
             collection.vitamCollection.getCollection().deleteMany(new Document());
-            if (collection == LogbookCollections.OPERATION) {
+            if (collection == LogbookCollections.OPERATION && null != esClient) {
                 for (Integer tenant : tenants) {
                     if (deleteEsIndex) {
                         esClient.deleteIndex(collection, tenant);

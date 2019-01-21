@@ -77,11 +77,11 @@ public class MongoRule extends ExternalResource {
     private String dataBaseName;
     private List<String> collectionNames;
 
-    /**
-     * @param clientOptions
-     * @param dataBaseName
-     * @param collectionNames
-     */
+        /**
+         * @param clientOptions
+         * @param dataBaseName
+         * @param collectionNames
+         */
     public MongoRule(MongoClientOptions clientOptions, String dataBaseName, String... collectionNames) {
         this.dataBaseName = dataBaseName;
         this.collectionNames = Arrays.asList(collectionNames);

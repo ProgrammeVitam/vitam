@@ -1,12 +1,5 @@
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.groups.Tuple.tuple;
-
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 
@@ -26,17 +19,26 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.VERSION;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.groups.Tuple.tuple;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MongoDbMetadataRepositoryTest {
 
     public static final int TENANT_ID = 0;
+
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
+
+
     @Rule
     public MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(Unit.class)),
             "test",
-            UNIT.getName());
+            PREFIX + UNIT.getName());
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -46,7 +48,8 @@ public class MongoDbMetadataRepositoryTest {
 
     @Before
     public void setUp() throws Exception {
-        unitMongoDbMetadataRepository = new MongoDbMetadataRepository<>(() -> mongoRule.getMongoCollection(UNIT.getName(), Unit.class));
+        unitMongoDbMetadataRepository =
+            new MongoDbMetadataRepository<>(() -> mongoRule.getMongoCollection(PREFIX + UNIT.getName(), Unit.class));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
     }
 
@@ -63,7 +66,7 @@ public class MongoDbMetadataRepositoryTest {
         unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2));
 
         // Then
-        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(UNIT.getName());
+        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
         assertThat(mongoCollection.count()).isEqualTo(2);
         assertThat(mongoCollection.find())
             .extracting("_id", VitamDocument.TENANT_ID, VERSION)
@@ -89,7 +92,7 @@ public class MongoDbMetadataRepositoryTest {
         unitMongoDbMetadataRepository.update(updates);
 
         // Then
-        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(UNIT.getName());
+        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
         assertThat(mongoCollection.count()).isEqualTo(2);
         assertThat(mongoCollection.find())
             .extracting("title")
@@ -124,9 +127,9 @@ public class MongoDbMetadataRepositoryTest {
 
         unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2));
 
-        unitMongoDbMetadataRepository.delete(Lists.newArrayList(unit1,unit2));
+        unitMongoDbMetadataRepository.delete(Lists.newArrayList(unit1, unit2));
 
-        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(UNIT.getName());
+        MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
 
 
         assertThat(mongoCollection.find()).isEmpty();

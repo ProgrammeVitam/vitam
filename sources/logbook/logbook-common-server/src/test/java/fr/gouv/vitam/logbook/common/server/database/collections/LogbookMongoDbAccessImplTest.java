@@ -1,15 +1,7 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl.getMongoClientOptions;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.collect.Iterables;
 import com.mongodb.client.FindIterable;
-
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -23,21 +15,42 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl.getMongoClientOptions;
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class LogbookMongoDbAccessImplTest {
 
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), "vitam-test", "LogbookLifeCycleUnit");
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(), "vitam-test");
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @BeforeClass
+    public static void beforeClass() {
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(), null, 0);
+    }
 
-    private LogbookMongoDbAccessImpl logbookMongoDbAccess = new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true, null, new ArrayList<>(), new LogbookTransformData());
+    @After
+    public void after() {
+        LogbookCollections.afterTestClass(null);
+    }
+
+    private LogbookMongoDbAccessImpl logbookMongoDbAccess =
+        new LogbookMongoDbAccessImpl(mongoRule.getMongoClient(), "vitam-test", true, null, new ArrayList<>(),
+            new LogbookTransformData());
 
 
     @Test
@@ -46,13 +59,15 @@ public class LogbookMongoDbAccessImplTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         GUID guidLFC = GUIDFactory.newEventGUID(0);
-        LogbookLifeCycleParameters masterLFC = getLogbookLifecyleParameters( GUIDFactory.newObjectGroupGUID(0), guidLFC);
+        LogbookLifeCycleParameters masterLFC = getLogbookLifecyleParameters(GUIDFactory.newObjectGroupGUID(0), guidLFC);
         logbookMongoDbAccess.createLogbook(LogbookCollections.LIFECYCLE_UNIT, masterLFC);
 
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk = new ArrayList<>();
         List<LogbookLifeCycleParameters> lifeCycleParameters = Lists.newArrayList();
-        lifeCycleParameters.add(getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0)));
-        lifeCycleParameters.add(getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0)));
+        lifeCycleParameters
+            .add(getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0)));
+        lifeCycleParameters
+            .add(getLogbookLifecyleParameters(GUIDFactory.newEventGUID(0), GUIDFactory.newObjectGroupGUID(0)));
 
         logbookLifeCycleParametersBulk.add(new LogbookLifeCycleParametersBulk(guidLFC.toString(), lifeCycleParameters));
 
@@ -60,7 +75,8 @@ public class LogbookMongoDbAccessImplTest {
         logbookMongoDbAccess.updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT, logbookLifeCycleParametersBulk);
 
         // Then
-        FindIterable<LogbookLifeCycle> id = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq("_id", guidLFC.toString()));
+        FindIterable<LogbookLifeCycle> id =
+            LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq("_id", guidLFC.toString()));
         LogbookLifeCycle lifeCycle = Iterables.getOnlyElement(id);
 
         assertThat((List) lifeCycle.get("events")).hasSize(2);
@@ -68,11 +84,11 @@ public class LogbookMongoDbAccessImplTest {
 
     /**
      * @param eventIdentifierProcess
-     *
      * @param objectIdentifierLFC
      * @return parameters
      */
-    private LogbookLifeCycleParameters getLogbookLifecyleParameters(GUID eventIdentifierProcess, GUID objectIdentifierLFC) {
+    private LogbookLifeCycleParameters getLogbookLifecyleParameters(GUID eventIdentifierProcess,
+        GUID objectIdentifierLFC) {
         GUID eventIdentifierLFC = GUIDFactory.newEventGUID(0);
         String eventTypeLFC = "logbook lifecycle unit version test";
         LogbookTypeProcess eventTypeProcessLFC = LogbookTypeProcess.INGEST_TEST;

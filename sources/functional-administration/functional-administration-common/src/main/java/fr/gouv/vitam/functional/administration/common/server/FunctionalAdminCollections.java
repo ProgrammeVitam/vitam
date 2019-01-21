@@ -153,7 +153,9 @@ public enum FunctionalAdminCollections {
                 collection.vitamCollection
                     .setName(prefix + collection.getClasz().getSimpleName());
                 collection.initialize(db, false);
-                collection.initialize(esClient);
+                if (null != esClient) {
+                    collection.initialize(esClient);
+                }
             }
         }
         FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
@@ -182,6 +184,10 @@ public enum FunctionalAdminCollections {
         for (FunctionalAdminCollections collection : functionalAdminCollections) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
                 collection.vitamCollection.getCollection().deleteMany(new Document());
+                if (null == esClient) {
+                    continue;
+                }
+
                 if (deleteEsIndex) {
                     try {
                         esClient.deleteIndex(collection);

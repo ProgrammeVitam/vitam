@@ -119,18 +119,6 @@ public class DataMigrationRepository {
         this.bulkSize = bulkSize;
     }
 
-    private static MongoCollection<Unit> getUnitCollection() {
-        @SuppressWarnings("unchecked")
-        MongoCollection<Unit> unitCollection = MetadataCollections.UNIT.getCollection();
-        return unitCollection;
-    }
-
-    private static MongoCollection<ObjectGroup> getObjectGroupCollection() {
-        @SuppressWarnings("unchecked")
-        MongoCollection<ObjectGroup> ogCollection = MetadataCollections.OBJECTGROUP.getCollection();
-        return ogCollection;
-    }
-
     /**
      * Returns all unit ids to migrate sorted by top-down hierarchy level, by chunks of (at most) BULK_SIZE.
      */
