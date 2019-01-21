@@ -184,8 +184,7 @@ public class PreservationActionPluginTest {
         // Then
         assertThatThrownBy(throwingCallable).isInstanceOf(ProcessingException.class);
 
-        String[] filesInGriffinDir = Paths.get(tmpGriffinFolder.getRoot().getPath())
-            .resolve("input-folder")
+        String[] filesInGriffinDir = Paths.get(tmpGriffinFolder.getRoot().getPath(), "input-folder", griffinId)
             .toFile()
             .list();
 
