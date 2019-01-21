@@ -27,11 +27,14 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -68,7 +71,14 @@ public enum LogbookCollections {
     @VisibleForTesting
     public static void beforeTestClass(final MongoDatabase db, String prefix,
         final LogbookElasticsearchAccess esClient, Integer... tenants) {
-        for (LogbookCollections collection : LogbookCollections.values()) {
+        beforeTestClass(db, prefix, esClient, Lists.newArrayList(LogbookCollections.values()), tenants);
+    }
+
+    @VisibleForTesting
+    public static void beforeTestClass(final MongoDatabase db, String prefix,
+        final LogbookElasticsearchAccess esClient, Collection<LogbookCollections> logbookCollections,
+        Integer... tenants) {
+        for (LogbookCollections collection : logbookCollections) {
             collection.vitamCollection
                 .setName(prefix + collection.getClasz().getSimpleName());
             collection.initialize(db, false);
@@ -81,13 +91,31 @@ public enum LogbookCollections {
         }
     }
 
+
+    @VisibleForTesting
+    public static void afterTestClass(final LogbookElasticsearchAccess esClient, boolean deleteEsIndex,
+        Integer... tenants) {
+        afterTestClass(esClient, Lists.newArrayList(LogbookCollections.values()), deleteEsIndex, tenants);
+    }
+
     @VisibleForTesting
     public static void afterTestClass(final LogbookElasticsearchAccess esClient, Integer... tenants) {
-        for (LogbookCollections collection : LogbookCollections.values()) {
+        afterTestClass(esClient, Lists.newArrayList(LogbookCollections.values()), false, tenants);
+    }
+
+    @VisibleForTesting
+    public static void afterTestClass(final LogbookElasticsearchAccess esClient,
+        Collection<LogbookCollections> logbookCollections, boolean deleteEsIndex, Integer... tenants) {
+        ParametersChecker.checkParameter("logbookCollections is required", logbookCollections);
+        for (LogbookCollections collection : logbookCollections) {
             collection.vitamCollection.getCollection().deleteMany(new Document());
             if (collection == LogbookCollections.OPERATION) {
                 for (Integer tenant : tenants) {
-                    esClient.purgeIndex(collection.getName(), tenant);
+                    if (deleteEsIndex) {
+                        esClient.deleteIndex(collection, tenant);
+                    } else {
+                        esClient.purgeIndex(collection.getName(), tenant);
+                    }
                 }
             }
         }

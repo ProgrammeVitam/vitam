@@ -39,6 +39,7 @@ import java.util.List;
 
 import com.mongodb.client.MongoIterable;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -87,7 +88,6 @@ public class MongoDbAccessMetadataFactoryTest {
     private static final String databaseName = "db-metadata";
     private static final String user = "user-metadata";
     private static final String pwd = "user-metadata";
-    private static ElasticsearchTestConfiguration config = null;
 
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
@@ -103,16 +103,10 @@ public class MongoDbAccessMetadataFactoryTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
         junitHelper = JunitHelper.getInstance();
 
         nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
         // MongoDB Node1
         mongoDbNodes = new ArrayList<>();
@@ -140,12 +134,8 @@ public class MongoDbAccessMetadataFactoryTest {
      */
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config == null) {
-            return;
-        }
         mongo.stop();
         junitHelper.releasePort(port);
-        JunitHelper.stopElasticsearchForTest(config);
         VitamClientFactory.resetConnections();
     }
 
@@ -211,7 +201,7 @@ public class MongoDbAccessMetadataFactoryTest {
 
 
     @Test
-    public void shouldHavePermissions() throws MetaDataException {
+    public void shouldHavePermissions() {
         final MetaDataConfiguration config =
             new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
         config.setDbUserName(user);

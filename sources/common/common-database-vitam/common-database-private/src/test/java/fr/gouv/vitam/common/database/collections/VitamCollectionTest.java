@@ -64,7 +64,7 @@ public class VitamCollectionTest {
     public static final String PREFIX = "vitamcollection"+GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "Vitam-Test",
+            new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "vitam-test",
                     PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule

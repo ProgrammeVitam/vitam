@@ -60,7 +60,7 @@ public class DbRequestSingleTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     static final String DATABASE_NAME = "vitam-test";
@@ -71,15 +71,15 @@ public class DbRequestSingleTest {
     private static final Integer TENANT_ID = 0;
 
 
-    public static final String PREFIX = "dbrequestsingle"+GUIDFactory.newGUID().getId();
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
-                PREFIX + CollectionSample.class.getSimpleName());
+        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
+            PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
+        new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
 
     private static MongoClient mongoClient = mongoRule.getMongoClient();
 
@@ -115,8 +115,8 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testVitamCollectionRequests()
-            throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-            VitamDBException, SchemaValidationException {
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
@@ -205,8 +205,8 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testOptimisticLockOK()
-            throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-            VitamDBException, SchemaValidationException {
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
+        VitamDBException, SchemaValidationException {
 
         VitamConfiguration.setOptimisticLockSleepTime(10);
         VitamConfiguration.setOptimisticLockRetryNumber(5);

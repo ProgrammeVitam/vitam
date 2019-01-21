@@ -29,9 +29,11 @@ package fr.gouv.vitam.common.database.offset;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.assertj.core.groups.Tuple;
 import org.bson.Document;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -42,11 +44,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffsetRepositoryTest {
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private final static String COLLECTIONNAME = "OffsetTest";
+    private final static String DB = "vitam-test";
+    private final static String COLLECTIONNAME = "Offset" + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, COLLECTIONNAME);
+    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), DB, COLLECTIONNAME);
 
     private OffsetRepository offsetRepository;
 
@@ -56,13 +58,18 @@ public class OffsetRepositoryTest {
     public static void beforeClass() {
         mongoRule.handleAfter();
     }
+
     @Before
     public void setUp() throws Exception {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), DB);
         offsetRepository = new OffsetRepository(mongoDbAccess, COLLECTIONNAME);
         mongoCollection = mongoRule.getMongoCollection(COLLECTIONNAME);
     }
 
+    @After
+    public void after() {
+        mongoRule.handleAfter();
+    }
 
     @Test
     public void should_insert_if_not_exist() {

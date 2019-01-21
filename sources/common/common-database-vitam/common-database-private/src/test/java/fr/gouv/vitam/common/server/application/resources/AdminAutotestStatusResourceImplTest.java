@@ -26,53 +26,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application.resources;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
+import com.mongodb.MongoClient;
+import com.mongodb.ServerAddress;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.DefaultAdminClient;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
 import org.assertj.core.util.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.DefaultAdminClient;
-import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AdminStatusMessage;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.junit.Assert.assertEquals;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
@@ -83,15 +71,12 @@ public class AdminAutotestStatusResourceImplTest {
     // URI
     private static final String ADMIN_STATUS_URI = "/admin/v1";
     private static final String TEST_CONF = "test-multiple-connector.conf";
-
+    private static final String COLLECTION_NAME =
+        CollectionSample.class.getSimpleName() + GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "Vitam-Test",
-                    "VitamCollectionTest_" + CollectionSample.class.getSimpleName());
-
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule("VitamCollectionTest_" + CollectionSample.class.getSimpleName());
-
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "vitam-test",
+            COLLECTION_NAME);
 
     private final static String HOST_NAME = "127.0.0.1";
     private static int dataBasePort;
@@ -115,29 +100,29 @@ public class AdminAutotestStatusResourceImplTest {
 
         dataBasePort = junitHelper.findAvailablePort();
         MongoClient mongoClient = new MongoClient(new ServerAddress(
-                HOST_NAME, mongoRule.getDataBasePort()),
-                VitamCollection.getMongoClientOptions(new ArrayList<>()));
+            HOST_NAME, mongoRule.getDataBasePort()),
+            VitamCollection.getMongoClientOptions(new ArrayList<>()));
 
         databaseMd = new MyMongoDbAccess(mongoClient, ElasticsearchRule.VITAM_CLUSTER, false);
 
         TestApplication.serviceRegistry = new VitamServiceRegistry();
         TestApplication.serviceRegistry.register(databaseMd).register(databaseEs);
         final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
-                new MinimalTestVitamApplicationFactory<TestApplication>() {
+            new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-                    @Override
-                    public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                            throws IllegalStateException {
-                        final TestApplication application = new TestApplication(TEST_CONF);
-                        return startAndReturn(application);
-                    }
+                @Override
+                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
+                    throws IllegalStateException {
+                    final TestApplication application = new TestApplication(TEST_CONF);
+                    return startAndReturn(application);
+                }
 
-                };
+            };
 
         serverAdminPort = junitHelper.findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
 
         final StartApplicationResponse<TestApplication> response =
-                testFactory.findAvailablePortSetToApplication();
+            testFactory.findAvailablePortSetToApplication();
 
         application = response.getApplication();
         factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
@@ -173,6 +158,7 @@ public class AdminAutotestStatusResourceImplTest {
         }
     }
 
+
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
         public TestVitamAdminClientFactory(int serverPort, String resourcePath) {
@@ -185,6 +171,7 @@ public class AdminAutotestStatusResourceImplTest {
         }
 
     }
+
 
     private static class TestWrongVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
@@ -298,8 +285,8 @@ public class AdminAutotestStatusResourceImplTest {
         // MongoDB
         LOGGER.warn("TEST MONGO KO");
         databaseMd.setMongoClient(new MongoClient(new ServerAddress(
-                HOST_NAME, 111111),
-                VitamCollection.getMongoClientOptions(new ArrayList<>())));
+            HOST_NAME, 111111),
+            VitamCollection.getMongoClientOptions(new ArrayList<>())));
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {

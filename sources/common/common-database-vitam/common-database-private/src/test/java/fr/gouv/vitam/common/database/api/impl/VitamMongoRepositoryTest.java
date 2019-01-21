@@ -69,9 +69,10 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 /**
+ *
  */
 public class VitamMongoRepositoryTest {
-    private static final String TEST_COLLECTION = "VitamMongoRepositoryTestCollection";
+    private static final String TEST_COLLECTION = "VitamMongoRepository" + GUIDFactory.newGUID().getId();
     private static final String VITAM_TEST = "vitam-test";
     private static final String TITLE = "Title";
     private static final String TEST_SAVE = "Test save ";
@@ -291,7 +292,7 @@ public class VitamMongoRepositoryTest {
             fail("should throw duplicate key MongoBulkWriteException");
         } catch (DatabaseException e) {
             assertThat(e.getCause()).isInstanceOf(MongoBulkWriteException.class);
-            MongoBulkWriteException err = (MongoBulkWriteException)e.getCause();
+            MongoBulkWriteException err = (MongoBulkWriteException) e.getCause();
             assertThat(err.getMessage()).contains("duplicate key");
         }
     }

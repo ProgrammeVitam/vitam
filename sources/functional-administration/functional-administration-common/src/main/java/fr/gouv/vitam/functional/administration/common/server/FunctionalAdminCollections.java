@@ -27,9 +27,11 @@
 package fr.gouv.vitam.functional.administration.common.server;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
@@ -54,6 +56,7 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
 import org.bson.Document;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -135,11 +138,17 @@ public enum FunctionalAdminCollections {
 
     private VitamCollection vitamCollection;
 
-
     @VisibleForTesting
     public static void beforeTestClass(final MongoDatabase db, String prefix,
         final ElasticsearchAccessFunctionalAdmin esClient) {
-        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
+        beforeTestClass(db, prefix, esClient, Lists.newArrayList(FunctionalAdminCollections.values()));
+    }
+
+    @VisibleForTesting
+    public static void beforeTestClass(final MongoDatabase db, String prefix,
+        final ElasticsearchAccessFunctionalAdmin esClient,
+        Collection<FunctionalAdminCollections> functionalAdminCollections) {
+        for (FunctionalAdminCollections collection : functionalAdminCollections) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
                 collection.vitamCollection
                     .setName(prefix + collection.getClasz().getSimpleName());
@@ -157,11 +166,31 @@ public enum FunctionalAdminCollections {
     }
 
     @VisibleForTesting
-    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient) throws ReferentialException {
-        for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
+    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient, boolean deleteEsIndex) {
+        afterTestClass(esClient, Lists.newArrayList(FunctionalAdminCollections.values()), deleteEsIndex);
+    }
+
+    @VisibleForTesting
+    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient) {
+        afterTestClass(esClient, Lists.newArrayList(FunctionalAdminCollections.values()), false);
+    }
+
+    @VisibleForTesting
+    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient,
+        Collection<FunctionalAdminCollections> functionalAdminCollections, boolean deleteEsIndex) {
+        ParametersChecker.checkParameter("functionalAdminCollections is required", functionalAdminCollections);
+        for (FunctionalAdminCollections collection : functionalAdminCollections) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
                 collection.vitamCollection.getCollection().deleteMany(new Document());
-                esClient.purgeIndex(collection.getName());
+                if (deleteEsIndex) {
+                    try {
+                        esClient.deleteIndex(collection);
+                    } catch (ReferentialException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    esClient.purgeIndex(collection.getName());
+                }
             }
         }
     }
