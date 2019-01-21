@@ -34,9 +34,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
@@ -46,40 +49,21 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 
 public class ElasticsearchAccessTest {
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private final static String CLUSTER_NAME = "cluster-vitam";
     private final static String HOST_NAME = "localhost";
-    private static ElasticsearchTestConfiguration config = null;
 
-    @BeforeClass
-    public static void setupBeforeClass() throws IOException {
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
-    }
+    @Rule
+    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
 
-    @AfterClass
-    public static void tearDownAfterClass() {
-        if (config == null) {
-            return;
-        }
-        JunitHelper.stopElasticsearchForTest(config);
-    }
 
     @Test
     public void testElasticsearchAccess() throws VitamException, IOException {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
 
-        final ElasticsearchAccess elastic = new ElasticsearchAccess(CLUSTER_NAME, nodes);
-        assertEquals(CLUSTER_NAME, elastic.getClusterName());
-        assertEquals(CLUSTER_NAME, elastic.getInfo());
+        final ElasticsearchAccess elastic = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        assertEquals(ElasticsearchRule.VITAM_CLUSTER, elastic.getClusterName());
+        assertEquals(ElasticsearchRule.VITAM_CLUSTER, elastic.getInfo());
         assertEquals(nodes, elastic.getNodes());
         assertNotNull(elastic.getClient());
         elastic.close();

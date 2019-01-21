@@ -61,13 +61,14 @@ public class VitamCollectionTest {
     public static RunWithCustomExecutorRule runInThread =
             new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    public static final String PREFIX = "vitamcollection"+GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
             new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "Vitam-Test",
-                    "VitamCollectionTest_" + CollectionSample.class.getSimpleName());
+                    PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule("VitamCollectionTest_" + CollectionSample.class.getSimpleName());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(PREFIX +  CollectionSample.class.getSimpleName());
 
 
     @ClassRule
@@ -89,7 +90,7 @@ public class VitamCollectionTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        elasticsearchRule.deleteIndexes();
     }
 
     @SuppressWarnings("unchecked")

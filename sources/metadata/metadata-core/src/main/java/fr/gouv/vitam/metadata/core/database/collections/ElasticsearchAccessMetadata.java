@@ -26,6 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.mongodb.DBObject;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -113,10 +119,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
         try {
             if (client.admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
-                String indexName = client.admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases().iterator().next().key;
+                String indexName =
+                    client.admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases()
+                        .iterator().next().key;
                 DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
 
-                if(!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
+                if (!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
             }
@@ -133,17 +141,16 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      *
      * @param collection the working metadata collection
      * @param tenantId the tenant for operation
-     * @return True if ok
+     * @return key aliasName value indexName or empty
      */
-    public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
+    public final Map<String, String> addIndex(final MetadataCollections collection, Integer tenantId) {
         try {
-            super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
+            return super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
                 VitamCollection.getTypeunique(), tenantId);
         } catch (final Exception e) {
             LOGGER.error("Error while set Mapping", e);
-            return false;
+            return new HashMap<>();
         }
-        return true;
     }
 
     /**
@@ -189,7 +196,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
 
     final ActionFuture<BulkResponse> addEntryIndexes(final MetadataCollections collection,
-                                                     final Integer tenantId, final Map<String, String> mapIdJson) {
+        final Integer tenantId, final Map<String, String> mapIdJson) {
         final BulkRequestBuilder bulkRequest = client.prepareBulk();
         // either use client#prepare, or use Requests# to directly build
         // index/delete requests

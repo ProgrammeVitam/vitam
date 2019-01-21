@@ -69,9 +69,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 public class ElasticsearchAccessMetadataTest {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestTest.class);
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -149,7 +146,7 @@ public class ElasticsearchAccessMetadataTest {
             "}";
 
         // add index
-        assertThat(elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0)).isTrue();
+        assertThat(elasticsearchAccessMetadata.addIndex(MetadataCollections.UNIT, TENANT_ID_0)).hasSize(1);
         // add unit
         final String id = GUIDFactory.newUnitGUID(TENANT_ID).toString();
         final String id2 = GUIDFactory.newUnitGUID(TENANT_ID).toString();

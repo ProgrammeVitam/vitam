@@ -66,23 +66,20 @@ public class DbRequestSingleTest {
     static final String DATABASE_NAME = "vitam-test";
     static VitamCollection vitamCollection;
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-
-    private static ElasticsearchTestConfiguration config = null;
 
     private static final Integer TENANT_ID = 0;
 
 
-    public static final String COLLECTION_PREFIX_ = "DbRequestSingleTest_";
+    public static final String PREFIX = "dbrequestsingle"+GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
             new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
-                    COLLECTION_PREFIX_ + CollectionSample.class.getSimpleName());
+                PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(COLLECTION_PREFIX_ + CollectionSample.class.getSimpleName());
+            new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
 
     private static MongoClient mongoClient = mongoRule.getMongoClient();
 
@@ -97,36 +94,22 @@ public class DbRequestSingleTest {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
 
-        VitamThreadUtils.getVitamSession().setUsedForTests(true);
-        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "DbRequestSingleTest_");
-        vitamCollection.initialize(new ElasticsearchAccess(CLUSTER_NAME, nodes));
+        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX);
+        vitamCollection.initialize(new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes));
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
     }
 
-    @Before
-    public void before() {
+    @AfterClass
+    public static void afterClass() {
         mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        elasticsearchRule.deleteIndexes();
     }
 
     @After
     public void after() {
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
-    }
-
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @AfterClass
-    public static void tearDown() {
-        if (config == null) {
-            return;
-        }
-
-        JunitHelper.stopElasticsearchForTest(config);
     }
 
     @Test

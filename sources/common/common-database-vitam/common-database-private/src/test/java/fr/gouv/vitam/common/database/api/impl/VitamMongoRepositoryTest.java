@@ -71,7 +71,7 @@ import org.junit.rules.TemporaryFolder;
 /**
  */
 public class VitamMongoRepositoryTest {
-    private static final String TEST_COLLECTION = "TestCollection";
+    private static final String TEST_COLLECTION = "VitamMongoRepositoryTestCollection";
     private static final String VITAM_TEST = "vitam-test";
     private static final String TITLE = "Title";
     private static final String TEST_SAVE = "Test save ";

@@ -35,26 +35,25 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.index.model.IndexOK;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.apache.commons.lang3.RandomUtils;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.cluster.metadata.AliasMetaData;
 import org.elasticsearch.cluster.metadata.AliasOrIndex;
 import org.elasticsearch.common.Strings;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentBuilder;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -62,7 +61,6 @@ import org.junit.rules.TemporaryFolder;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -73,10 +71,11 @@ import java.util.Optional;
 import java.util.SortedMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class IndexationHelperTest {
-    private static final String AGENCIES = "AgenciesTest";
+    private static final String AGENCIES = "indexationagenciestest" + GUIDFactory.newGUID().getId();
     private static final String VITAM_TEST = "vitam-test";
     private static final String AGENCIES_TEST_ES_MAPPING_JSON = "agenciesTest-es-mapping.json";
     private static final String TYPEUNIQUE = VitamCollection.getTypeunique();
@@ -87,46 +86,37 @@ public class IndexationHelperTest {
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    private static TransportClient client;
-
-    @Rule
-    public MongoRule mongoRule =
+    @ClassRule
+    public static MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AgenciesTest.class)),
             VITAM_TEST,
             AGENCIES);
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(AGENCIES + "_-1", AGENCIES + "_0", AGENCIES + "_1", AGENCIES + "_2");
 
-    public static final String CLUSTER_NAME = "elasticsearch-data";
-    private List<ElasticsearchNode> nodes;
-    private ElasticsearchAccess elasticsearchAccess;
-    private static JunitHelper.ElasticsearchTestConfiguration config;
+    private static ElasticsearchAccess elasticsearchAccess;
 
-    @Before
-    public void setUp() throws Exception {
-        int tcpPort = JunitHelper.getInstance().findAvailablePort();
-        int httPort = JunitHelper.getInstance().findAvailablePort();
-        config = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME, tcpPort, httPort);
-        Settings settings = ElasticsearchAccess.getSettings(CLUSTER_NAME);
-        client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), tcpPort));
-        nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", tcpPort));
-        elasticsearchAccess = new ElasticsearchAccess(CLUSTER_NAME, nodes);
+    @BeforeClass
+    public static void setUp() throws Exception {
+        elasticsearchAccess = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT)));
     }
 
     @AfterClass
-    public static void tearDown() throws Exception {
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
+    public static void afterClass() throws Exception {
+        mongoRule.handleAfter();
     }
 
-
+    @After
+    public void after() throws Exception {
+        elasticsearchRule.deleteIndexes();
+    }
 
     @Test
     public void should_index_in_elasticsearch_multiple_mongo_documents_with_tenant() throws Exception {
         // Given
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(AgenciesTest.class.getSimpleName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(AGENCIES);
         List<Integer> tenants = Arrays.asList(0, 1, 2);
         Map<String, Integer> mapIdsTenants = populatingMongoDatabase(collection, tenants);
 
@@ -134,28 +124,27 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         // When
         final IndexationResult indexationResult =
-            IndexationHelper.reindex(collection, AgenciesTest.class.getSimpleName(), elasticsearchAccess, tenants, resourceAsStream);
-        // Then
-        final SortedMap<String, AliasOrIndex> aliasAndIndexLookup =
-            client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
-                .getAliasAndIndexLookup();
-        for (String key : aliasAndIndexLookup.keySet()) {
+            IndexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
+                resourceAsStream);
 
+        for (IndexOK index : indexationResult.getIndexOK()) {
+            elasticsearchRule.addIndexToBePurged(index.getIndexName());
+
+            String[] split = index.getIndexName().split("_");
             VitamElasticsearchRepository vitamElasticsearchRepository =
-                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), key,
+                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), index.getIndexName(),
                     false);
             for (String id : mapIdsTenants.keySet()) {
-                Integer integer = mapIdsTenants.get(id);
-                String[] split = key.split("_");
+                Integer tenant = mapIdsTenants.get(id);
                 // check indexName if is the same that tenant.
-                if (split[1].equals(id)) {
-                    Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, integer);
+                if (split[1].equals(tenant.toString())) {
+                    Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, tenant);
                     Document document = documentById.get();
                     assertThat(document.get("Name")).isNotNull();
                 }
             }
         }
-        assertThat(indexationResult.getCollectionName()).isEqualTo(collection.getDocumentClass().getSimpleName());
+        assertThat(indexationResult.getCollectionName()).isEqualTo(AGENCIES);
         assertThat(indexationResult.getIndexOK().size()).isEqualTo(3);
         for (IndexOK indexOK : indexationResult.getIndexOK()) {
             assertThat(indexOK.getIndexName()).isNotNull();
@@ -165,34 +154,40 @@ public class IndexationHelperTest {
 
     private Map<String, Integer> populatingMongoDatabase(MongoCollection<Document> collection,
         List<Integer> tenants) throws IOException, DatabaseException {
-        VitamMongoRepository repository =
-            new VitamMongoRepository(collection);
+        VitamMongoRepository repository = new VitamMongoRepository(collection);
         Map<String, Integer> ids = new HashMap<>();
-        for (Integer tenant : tenants) {
-
-            List<Document> documents = new ArrayList<>();
-
-            for (int i = 0; i < 10; i++) {
-                String id = GUIDFactory.newGUID().toString();
-                XContentBuilder builder = jsonBuilder()
-                    .startObject()
-                    .field("_id", id)
-                    .field("_tenant", tenant)
-                    .field("Name", "Description" + i + " " + RandomUtils.nextDouble())
-                    .endObject();
-                documents.add(Document.parse(Strings.toString(builder)));
-                ids.put(id, tenant);
+        if (!tenants.isEmpty()) {
+            for (Integer tenant : tenants) {
+                insertDocuments(repository, ids, tenant);
             }
-            repository.save(documents);
+        } else {
+            insertDocuments(repository, ids, -1);
+
         }
         return ids;
+    }
+
+    private void insertDocuments(VitamMongoRepository repository, Map<String, Integer> ids, Integer tenant)
+        throws IOException, DatabaseException {
+        List<Document> documents = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            String id = GUIDFactory.newGUID().toString();
+            XContentBuilder builder = jsonBuilder()
+                .startObject()
+                .field("_id", id)
+                .field("_tenant", tenant)
+                .field("Name", "Description" + i + " " + RandomUtils.nextDouble())
+                .endObject();
+            documents.add(Document.parse(Strings.toString(builder)));
+            ids.put(id, tenant);
+        }
+        repository.save(documents);
     }
 
     @Test
     public void should_index_elasticsearch_multiple_mongo_documents_without_tenant() throws Exception {
         // Given
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(AgenciesTest.class.getSimpleName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(AGENCIES);
         List<Integer> tenants = Arrays.asList();
         Map<String, Integer> mapIdsTenants = populatingMongoDatabase(collection, tenants);
 
@@ -200,29 +195,28 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         // When
         final IndexationResult indexationResult =
-            IndexationHelper.reindex(collection, AgenciesTest.class.getSimpleName(), elasticsearchAccess, tenants, resourceAsStream);
-        // Then
-        final SortedMap<String, AliasOrIndex> aliasAndIndexLookup =
-            client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
-                .getAliasAndIndexLookup();
-        for (String key : aliasAndIndexLookup.keySet()) {
+            IndexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
+                resourceAsStream);
 
+        for (IndexOK index : indexationResult.getIndexOK()) {
+            elasticsearchRule.addIndexToBePurged(index.getIndexName());
+
+            String[] split = index.getIndexName().split("_");
             VitamElasticsearchRepository vitamElasticsearchRepository =
-                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), key,
+                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), index.getIndexName(),
                     false);
             for (String id : mapIdsTenants.keySet()) {
-                Integer integer = mapIdsTenants.get(id);
-                String[] split = key.split("_");
-                // check indexName is the same that tenant.
-                if (split[1].equals(id)) {
-                    Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, integer);
+                Integer tenant = mapIdsTenants.get(id);
+                // check indexName if is the same that tenant.
+                if (split[1].equals(tenant.toString())) {
+                    Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, tenant);
                     Document document = documentById.get();
                     assertThat(document.get("Name")).isNotNull();
                 }
             }
         }
         // Assert IndexationReport
-        assertThat(indexationResult.getCollectionName()).isEqualTo(collection.getDocumentClass().getSimpleName());
+        assertThat(indexationResult.getCollectionName()).isEqualTo(AGENCIES);
         assertThat(indexationResult.getIndexOK().size()).isEqualTo(1);
         for (IndexOK indexOK : indexationResult.getIndexOK()) {
             assertThat(indexOK.getIndexName()).isNotNull();
@@ -233,43 +227,58 @@ public class IndexationHelperTest {
     @Test
     public void should_switch_elasticsearch_index() throws Exception {
         // Given
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(AgenciesTest.class.getSimpleName());
-        List<Integer> tenants = Arrays.asList(0, 1, 2);
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(AGENCIES);
+        List<Integer> tenants = Arrays.asList(0, 1);
         Map<String, Integer> mapIdsTenants = populatingMongoDatabase(collection, tenants);
 
         final InputStream resourceAsStream =
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         String mapping = ElasticsearchUtil
             .transferJsonToMapping(new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON)));
-        String aliasName = collection.getDocumentClass().getSimpleName().toLowerCase();
-        elasticsearchAccess
-            .createIndexAndAliasIfAliasNotExists(aliasName, mapping, TYPEUNIQUE,
-                null);
+        tenants.forEach(o -> {
+            Map<String, String> res = elasticsearchAccess
+                .createIndexAndAliasIfAliasNotExists(AGENCIES, mapping, TYPEUNIQUE, o);
+            Assertions.assertThat(res).hasSize(1);
+            elasticsearchRule.addIndexToBePurged(res.keySet().iterator().next());
+            elasticsearchRule.addIndexToBePurged(res.values().iterator().next());
+        });
+
+        // Waite one second
+        Thread.sleep(1000);
 
         final IndexationResult indexationResult =
-            IndexationHelper.reindex(collection, AgenciesTest.class.getSimpleName(), elasticsearchAccess, tenants, resourceAsStream);
+            IndexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
+                resourceAsStream);
         // When
         for (IndexOK indexOK : indexationResult.getIndexOK()) {
             final String indexName = indexOK.getIndexName();
-            IndexationHelper.switchIndex(aliasName, indexName,
-                elasticsearchAccess);
-            final SortedMap<String, AliasOrIndex> aliasAndIndexLookup =
-                client.admin().cluster().prepareState().execute().actionGet().getState().getMetaData()
-                    .getAliasAndIndexLookup();
-            // Then
-            assertThat(aliasAndIndexLookup.size()).isEqualTo(5);
-            for (String key : aliasAndIndexLookup.keySet()) {
-                GetAliasesResponse actualAliases =
-                    client.admin().indices().getAliases(new GetAliasesRequest().indices(key))
-                        .actionGet();
-                for (Iterator<List<AliasMetaData>> it = actualAliases.getAliases().valuesIt(); it.hasNext(); ) {
-                    if (it.hasNext()) {
-                        final List<AliasMetaData> next = it.next();
-                        assertThat(next.size()).isEqualTo(1);
-                        final String alias = next.get(0).alias();
-                        assertThat(alias).isEqualTo(aliasName);
-                    }
+            elasticsearchRule.addIndexToBePurged(indexName);
+
+            String aliasName = AGENCIES + "_" + indexOK.getTenant();
+
+            Thread.sleep(5);
+            IndexationHelper.switchIndex(aliasName, indexName, elasticsearchAccess);
+            GetAliasesResponse actualAliases =
+                elasticsearchRule.getClient().admin().indices().getAliases(new GetAliasesRequest().indices(indexName))
+                    .actionGet();
+            for (Iterator<List<AliasMetaData>> it = actualAliases.getAliases().valuesIt(); it.hasNext(); ) {
+                if (it.hasNext()) {
+                    final List<AliasMetaData> next = it.next();
+                    assertThat(next.size()).isEqualTo(1);
+                    final String alias = next.get(0).alias();
+                    assertThat(alias).isEqualTo(aliasName);
+                }
+            }
+
+            VitamElasticsearchRepository vitamElasticsearchRepository =
+                new VitamElasticsearchRepository(elasticsearchAccess.getClient(), aliasName, false);
+            for (String id : mapIdsTenants.keySet()) {
+                Integer tenant = mapIdsTenants.get(indexName);
+                // check indexName if is the same that tenant.
+                if (indexOK.getTenant().equals(tenant)) {
+                    Optional<Document> documentById = vitamElasticsearchRepository.getByID(id, tenant);
+                    Document document = documentById.get();
+                    assertThat(document.get("Name")).isNotNull();
                 }
             }
         }
@@ -302,7 +311,7 @@ public class IndexationHelperTest {
         final String indexationResultTest = indexationResultNode.toString();
         IndexParameters indexParameters = new IndexParameters();
         indexParameters.setCollectionName("collection_name");
-        indexParameters.setTenants(Arrays.asList(1,2));
+        indexParameters.setTenants(Arrays.asList(1, 2));
         // When
         IndexationResult koResult = IndexationHelper.getFullKOResult(indexParameters, messageCause);
         final String koResultToAssert = JsonHandler.unprettyPrint(koResult);

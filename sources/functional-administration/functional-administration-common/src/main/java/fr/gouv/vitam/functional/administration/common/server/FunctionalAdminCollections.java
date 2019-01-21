@@ -142,7 +142,7 @@ public enum FunctionalAdminCollections {
         for (FunctionalAdminCollections collection : FunctionalAdminCollections.values()) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
                 collection.vitamCollection
-                    .setName(prefix + "_" + collection.getClasz().getSimpleName());
+                    .setName(prefix + collection.getClasz().getSimpleName());
                 collection.initialize(db, false);
                 collection.initialize(esClient);
             }

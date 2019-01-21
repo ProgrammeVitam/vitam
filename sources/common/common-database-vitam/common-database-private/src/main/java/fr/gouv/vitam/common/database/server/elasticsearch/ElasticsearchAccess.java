@@ -58,8 +58,10 @@ import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
@@ -243,9 +245,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @param mapping the mapping as a string
      * @param type the type of the collection
      * @param tenantId the tenant on which to create the index
-     * @return true if index is successfully created false if not
+     * @return key aliasName value indexName or empty
      */
-    public final boolean createIndexAndAliasIfAliasNotExists(String collectionName, String mapping, String type,
+    public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping, String type,
         Integer tenantId) {
         String indexName = getUniqueIndexName(collectionName, tenantId);
         String aliasName = getAliasName(collectionName, tenantId);
@@ -261,7 +263,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
                 if (!response.isAcknowledged()) {
                     LOGGER.error("Error creating index for " + type + " / collection : " + collectionName);
-                    return false;
+                    return new HashMap<>();
                 }
 
                 AcknowledgedResponse indAliasesResponse = client.admin().indices()
@@ -269,14 +271,16 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
                 if (!indAliasesResponse.isAcknowledged()) {
                     LOGGER.error("Error creating alias for " + type + " / collection : " + collectionName);
-                    return false;
+                    return new HashMap<>();
                 }
             } catch (final Exception e) {
                 LOGGER.error("Error while set Mapping", e);
-                return false;
+                return new HashMap<>();
             }
         }
-        return true;
+        Map<String, String> map = new HashMap<>();
+        map.put(aliasName, indexName);
+        return map;
     }
 
     /**

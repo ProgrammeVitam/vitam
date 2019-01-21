@@ -70,7 +70,7 @@ public enum LogbookCollections {
         final LogbookElasticsearchAccess esClient, Integer... tenants) {
         for (LogbookCollections collection : LogbookCollections.values()) {
             collection.vitamCollection
-                .setName(prefix + "_" + collection.getClasz().getSimpleName());
+                .setName(prefix + collection.getClasz().getSimpleName());
             collection.initialize(db, false);
             if (collection == LogbookCollections.OPERATION) {
                 collection.initialize(esClient);

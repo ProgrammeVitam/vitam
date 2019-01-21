@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.offset;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.common.database.offset.OffsetRepository.COLLECTION_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
@@ -37,26 +33,36 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import org.assertj.core.groups.Tuple;
 import org.bson.Document;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
+
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffsetRepositoryTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
+    private final static String COLLECTIONNAME = "OffsetTest";
 
-    @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, COLLECTION_NAME);
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, COLLECTIONNAME);
 
     private OffsetRepository offsetRepository;
 
     private MongoCollection<Document> mongoCollection;
 
+    @BeforeClass
+    public static void beforeClass() {
+        mongoRule.handleAfter();
+    }
     @Before
     public void setUp() throws Exception {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
-        offsetRepository = new OffsetRepository(mongoDbAccess);
-        mongoCollection = mongoRule.getMongoCollection(COLLECTION_NAME);
+        offsetRepository = new OffsetRepository(mongoDbAccess, COLLECTIONNAME);
+        mongoCollection = mongoRule.getMongoCollection(COLLECTIONNAME);
     }
+
 
     @Test
     public void should_insert_if_not_exist() {

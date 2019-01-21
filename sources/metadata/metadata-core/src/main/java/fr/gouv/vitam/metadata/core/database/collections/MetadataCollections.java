@@ -58,7 +58,7 @@ public enum MetadataCollections {
         final ElasticsearchAccessMetadata esClient, Integer... tenants) {
         for (MetadataCollections collection : MetadataCollections.values()) {
             collection.vitamCollection
-                .setName(prefix + "_" + collection.vitamCollection.getClasz().getSimpleName());
+                .setName(prefix + collection.vitamCollection.getClasz().getSimpleName());
             collection.initialize(db, false);
             collection.initialize(esClient);
             for (Integer tenant : tenants) {

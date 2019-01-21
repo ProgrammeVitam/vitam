@@ -50,6 +50,7 @@ import org.elasticsearch.index.query.QueryBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -57,6 +58,7 @@ import java.util.Map.Entry;
 import static fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil.transferJsonToMapping;
 
 // FIXME refactor with metadata
+
 
 /**
  * ElasticSearch model with MongoDB as main database
@@ -99,10 +101,12 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     public final void deleteIndex(final FunctionalAdminCollections collection) throws ReferentialException {
         try {
             if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
-                String indexName = client.admin().indices().prepareGetAliases(collection.getName().toLowerCase()).get().getAliases().iterator().next().key;
+                String indexName =
+                    client.admin().indices().prepareGetAliases(collection.getName().toLowerCase()).get().getAliases()
+                        .iterator().next().key;
                 DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
 
-                if(!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
+                if (!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
             }
@@ -116,17 +120,16 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      * Add a type to an index
      *
      * @param collection
-     * @return True if ok
+     * @return key aliasName value indexName or empty
      */
-    public final boolean addIndex(final FunctionalAdminCollections collection) {
+    public final Map<String, String> addIndex(final FunctionalAdminCollections collection) {
         try {
-            super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
+            return super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
                 VitamCollection.getTypeunique(), null);
         } catch (final Exception e) {
             LOGGER.error("Error while set Mapping", e);
-            return false;
+            return new HashMap<>();
         }
-        return true;
     }
 
     /**
@@ -166,8 +169,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
 
     /**
      * @param collection
-     * @param query      as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *                   values" : [list of id] } }"
+     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     * values" : [list of id] } }"
      * @param filter
      * @return a structure as ResultInterface
      * @throws ReferentialException
@@ -203,7 +206,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
             case ONTOLOGY:
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ONTOLOGY_FILE));
             case ACCESSION_REGISTER_SYMBOLIC:
-                return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE));
+                return transferJsonToMapping(
+                    Object.class.getResourceAsStream(MAPPING_ACCESSION_REGISTER_SYMBOLICS_FILE));
             case FORMATS:
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_FORMAT_FILE));
             case RULES:
@@ -226,7 +230,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 return transferJsonToMapping(Object.class.getResourceAsStream(MAPPING_PRESERVATION_SCENARIO_FILE));
             case VITAM_SEQUENCE:
             default:
-                LOGGER.warn(String.format("Trying to get mapping for collection '%s', but no mapping are configured.", collection.getName()));
+                LOGGER.warn(String.format("Trying to get mapping for collection '%s', but no mapping are configured.",
+                    collection.getName()));
                 return "";
         }
     }
@@ -237,7 +242,8 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     };
 
     private static final BasicDBObject[] accessionRegisterDetailIndexes = {
-        new BasicDBObject(AccessionRegisterDetail.ORIGINATING_AGENCY, 1).append(AccessionRegisterDetail.OPI, 1).append(AccessionRegisterDetail.TENANT_ID, 1)
+        new BasicDBObject(AccessionRegisterDetail.ORIGINATING_AGENCY, 1).append(AccessionRegisterDetail.OPI, 1).append(
+            AccessionRegisterDetail.TENANT_ID, 1)
     };
 
     /**

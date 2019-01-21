@@ -26,12 +26,17 @@
  */
 package fr.gouv.vitam.common.elasticsearch;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.cluster.metadata.AliasMetaData;
+import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
@@ -42,7 +47,6 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
 
-import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -65,13 +69,13 @@ public class ElasticsearchRule extends ExternalResource {
     public ElasticsearchRule(String... collectionNames) {
         try {
             client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
-                    new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
+                new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
         } catch (final UnknownHostException e) {
             throw new RuntimeException(e);
         }
 
         if (null != collectionNames) {
-            this.collectionNames = Arrays.asList(collectionNames);
+            this.collectionNames = Lists.newArrayList(collectionNames);
 
         }
         // TODO: 12/13/17 create index for each collection
@@ -79,14 +83,14 @@ public class ElasticsearchRule extends ExternalResource {
 
     private Settings getClientSettings() {
         return Settings.builder().put("cluster.name", VITAM_CLUSTER)
-                .put("client.transport.sniff", true)
-                .put("client.transport.ping_timeout", "2s")
-                .put("transport.tcp.connect_timeout", "1s")
-                .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
-                .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
-                .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-                .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
-                .build();
+            .put("client.transport.sniff", true)
+            .put("client.transport.ping_timeout", "2s")
+            .put("transport.tcp.connect_timeout", "1s")
+            .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
+            .put("thread_pool.search.size", VitamConfiguration.getNumberDbClientThread())
+            .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
+            .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
+            .build();
     }
 
 
@@ -111,11 +115,11 @@ public class ElasticsearchRule extends ExternalResource {
             QueryBuilder qb = matchAllQuery();
 
             SearchResponse scrollResp = client.prepareSearch(collectionName.toLowerCase())
-                    .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
-                    .setScroll(new TimeValue(60000))
-                    .setQuery(qb)
-                    .setFetchSource(false)
-                    .setSize(100).get();
+                .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
+                .setScroll(new TimeValue(60000))
+                .setQuery(qb)
+                .setFetchSource(false)
+                .setSize(100).get();
 
             BulkRequestBuilder bulkRequest = client.prepareBulk();
 
@@ -125,8 +129,8 @@ public class ElasticsearchRule extends ExternalResource {
                 }
 
                 scrollResp =
-                        client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
-                                .actionGet();
+                    client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                        .actionGet();
             } while (scrollResp.getHits().getHits().length != 0);
 
             bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
@@ -136,13 +140,35 @@ public class ElasticsearchRule extends ExternalResource {
 
                 if (bulkResponse.hasFailures()) {
                     throw new RuntimeException(
-                            String.format("DatabaseException when calling purge by bulk Request %s",
-                                    bulkResponse.buildFailureMessage()));
+                        String.format("DatabaseException when calling purge by bulk Request %s",
+                            bulkResponse.buildFailureMessage()));
                 }
             }
         }
     }
 
+
+    public final void deleteIndex(Client client, String collectionName) {
+        try {
+            if (client.admin().indices().prepareExists(collectionName).get().isExists()) {
+
+                String indexName = collectionName;
+                ImmutableOpenMap<String, List<AliasMetaData>>
+                    alias = client.admin().indices().prepareGetAliases(collectionName).get().getAliases();
+                if (alias.size() > 0) {
+                    indexName = alias.iterator().next().key;
+                }
+                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+
+                if (!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
+                    SysErrLogger.FAKE_LOGGER.syserr("Index :" + collectionName + " not deleted");
+                }
+            }
+        } catch (final Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+
+        }
+    }
 
     public void stop() {
         try {
@@ -158,6 +184,19 @@ public class ElasticsearchRule extends ExternalResource {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void deleteIndexes() {
+        for (String collectionName : collectionNames) {
+            deleteIndex(client, collectionName);
+        }
+        collectionNames = new ArrayList<>();
+    }
+
+    // Add index to be purged
+    public ElasticsearchRule addIndexToBePurged(String indexName) {
+        collectionNames.add(indexName);
+        return this;
     }
 
     /**

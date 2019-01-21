@@ -27,17 +27,9 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -70,7 +62,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
-import fr.gouv.vitam.ingest.internal.integration.test.IngestInternalIT;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -100,22 +91,30 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 public class ReindexSwitchIT extends VitamRuleRunner {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReindexSwitchIT.class);
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(ReindexSwitchIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            MetadataMain.class,
-                            WorkerMain.class,
-                            AdminManagementMain.class,
-                            LogbookMain.class,
-                            WorkspaceMain.class,
-                            ProcessManagementMain.class
-                    ));
+        new VitamServerRunner(ReindexSwitchIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class
+            ));
     private static final Integer TENANT_ID = 0;
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
@@ -130,9 +129,9 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        handleBeforeClass(0, 1);
+        handleBeforeClass("",0, 1);
         CONFIG_SIEGFRIED_PATH =
-                PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
@@ -173,34 +172,24 @@ public class ReindexSwitchIT extends VitamRuleRunner {
     }
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationId, "Process_SIP_unitary", objectId,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationId != null ? operationId.toString() : "outcomeDetailMessage",
-                operationId);
+            operationId, "Process_SIP_unitary", objectId,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationId != null ? operationId.toString() : "outcomeDetailMessage",
+            operationId);
         logbookClient.create(initParameters);
-    }
-
-    private boolean checkStatus() {
-        try {
-            processingClient.checkStatus();
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("ProcessManagement server is not active.", e);
-            return false;
-        }
     }
 
     @RunWithCustomExecutor
     @Test
     public void testReindexAndSwitch() throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-             MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+            LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
+            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
             launchReindexationAndSwitchAndCheckValues("ACCESS_CONTRACT", "access_contract", client, "");
@@ -228,7 +217,7 @@ public class ReindexSwitchIT extends VitamRuleRunner {
             JsonNode logbookResultAfter = logbookClient.selectOperationById(containerName);
 
             validateLogbookOperations(logbookResultBefore.get("$results").get(0),
-                    logbookResultAfter.get("$results").get(0));
+                logbookResultAfter.get("$results").get(0));
 
             nodeUnit = metadataClient.selectUnits(selectMulti.getFinalSelect());
             resultUnit = (ArrayNode) nodeUnit.get("$results");
@@ -244,15 +233,15 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
 
     private void launchReindexationAndSwitchAndCheckValues(String collection, String alias,
-                                                           AdminManagementClient client, String tenants)
-            throws Exception {
+        AdminManagementClient client, String tenants)
+        throws Exception {
         String order = "[{\"collection\" : \"" + collection + "\", \"tenants\" : [" + tenants + "]}]";
         Select select = new Select();
         JsonNode queryDsl = select.getFinalSelect();
         int sizeBefore = countCollection(collection, client, queryDsl);
 
         RequestResponse<IndexationResult> result =
-                client.launchReindexation(JsonHandler.getFromString(order));
+            client.launchReindexation(JsonHandler.getFromString(order));
         assertTrue(result.isOk());
         List<IndexationResult> idxResults = ((RequestResponseOK<IndexationResult>) result).getResults();
         String newIndexName = idxResults.get(0).getIndexOK().get(0).getIndexName();
@@ -268,28 +257,28 @@ public class ReindexSwitchIT extends VitamRuleRunner {
 
 
     private int countCollection(String collection, AdminManagementClient client, JsonNode queryDsl)
-            throws Exception {
+        throws Exception {
         int size = 0;
         if ("ACCESS_CONTRACT".equals(collection)) {
             size =
-                    ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(queryDsl)).getResults().size();
+                ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(queryDsl)).getResults().size();
         } else if ("FORMATS".equals(collection)) {
             size =
-                    ((RequestResponseOK<FileFormatModel>) client.getFormats(queryDsl)).getResults().size();
+                ((RequestResponseOK<FileFormatModel>) client.getFormats(queryDsl)).getResults().size();
         } else if ("INGEST_CONTRACT".equals(collection)) {
             size =
-                    ((RequestResponseOK<IngestContractModel>) client.findIngestContracts(queryDsl)).getResults().size();
+                ((RequestResponseOK<IngestContractModel>) client.findIngestContracts(queryDsl)).getResults().size();
         }
         return size;
     }
 
     private void validateLogbookOperations(JsonNode logbookResultReplay, JsonNode logbookResultNoReplay)
-            throws Exception {
+        throws Exception {
 
         JsonNode evDetDataReplay = JsonHandler.getFromString(logbookResultReplay.get("evDetData").asText());
         JsonNode evDetDataNotReplay = JsonHandler.getFromString(logbookResultNoReplay.get("evDetData").asText());
         assertEquals(evDetDataReplay.get("EvDetailReq").asText(),
-                evDetDataNotReplay.get("EvDetailReq").asText());
+            evDetDataNotReplay.get("EvDetailReq").asText());
     }
 
     private String launchIngest() throws Exception {
@@ -303,24 +292,25 @@ public class ReindexSwitchIT extends VitamRuleRunner {
         InputStream zipInputStreamSipObject = null;
 
         zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK);
+            PropertiesUtils.getResourceAsStream(SIP_OK);
 
         //
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
