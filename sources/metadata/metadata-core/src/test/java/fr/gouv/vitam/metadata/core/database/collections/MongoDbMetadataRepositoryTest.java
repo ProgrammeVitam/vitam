@@ -10,6 +10,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 
+import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -20,11 +21,13 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class MongoDbMetadataRepositoryTest {
 
@@ -77,11 +80,13 @@ public class MongoDbMetadataRepositoryTest {
         Unit unit2 = createUnit(id2);
 
         unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2));
-        unit1.put("title", "unit1");
-        unit2.put("title", "unit2");
+
+        Map<String, Bson> updates = new HashMap<>();
+        updates.put(id1, Updates.set("title", "unit1"));
+        updates.put(id2, Updates.set("title", "unit2"));
 
         // When
-        unitMongoDbMetadataRepository.update(Lists.newArrayList(unit1, unit2));
+        unitMongoDbMetadataRepository.update(updates);
 
         // Then
         MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(UNIT.getName());
