@@ -367,7 +367,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void should_import_griffin_with_warning_() throws Exception {
+    public void should_import_griffin_with_warning() throws Exception {
         getVitamSession().setTenantId(0);
 
 
@@ -402,6 +402,8 @@ public class PreservationIT extends VitamRuleRunner {
             requestId = getVitamSession().getRequestId();
 
             griffinReport = getGriffinReport(storageClient, requestId);
+
+            //Then
 
             assertThat(griffinReport.getStatusCode()).isEqualTo(StatusCode.WARNING);
 
@@ -464,27 +466,6 @@ public class PreservationIT extends VitamRuleRunner {
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
-        }
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_import_and_create_report() throws Exception {
-        getVitamSession().setTenantId(0);
-
-
-        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
-            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            GUID guid = newGUID();
-            getVitamSession().setRequestId(guid);
-
-            List<GriffinModel> griffinModelList = getGriffinModels("preservation/griffins.json");
-            client.importGriffins(griffinModelList);
-            ArrayNode jsonNode = (ArrayNode) accessClient
-                .selectOperationById(guid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
-                .get("$results")
-                .get(0)
-                .get("events");
         }
     }
 

@@ -42,14 +42,11 @@ import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import org.assertj.core.api.Fail;
 
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 

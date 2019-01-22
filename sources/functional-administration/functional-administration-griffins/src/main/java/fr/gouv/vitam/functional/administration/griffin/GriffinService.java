@@ -99,6 +99,7 @@ public class GriffinService {
     private static final String GRIFFIN_BACKUP_EVENT = "STP_BACKUP_GRIFFIN";
     private static final String GRIFFIN_IMPORT_EVENT = "IMPORT_GRIFFIN";
     private static final String GRIFFIN_REPORT = "GRIFFIN_REPORT";
+    private static final String UND_TENANT = "_tenant";
 
     private MongoDbAccessReferential mongoDbAccess;
     private FunctionalBackupService functionalBackupService;
@@ -416,8 +417,11 @@ public class GriffinService {
 
             formatDateForMongo(griffinModel);
 
+            ObjectNode griffin = (ObjectNode) toJsonNode(griffinModel);
+
+            griffin.put(UND_TENANT, getVitamSession().getTenantId());
             mongoDbAccess
-                .replaceDocument(JsonHandler.toJsonNode(griffinModel), griffinModel.getIdentifier(), IDENTIFIER,
+                .replaceDocument(griffin, griffinModel.getIdentifier(), IDENTIFIER,
                     FunctionalAdminCollections.GRIFFIN);
         }
     }

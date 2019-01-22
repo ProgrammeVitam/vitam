@@ -45,10 +45,8 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
 import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -60,6 +58,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.commons.collections4.SetUtils;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -70,7 +69,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -100,6 +98,7 @@ public class PreservationScenarioService {
     private static final String SCENARIO_BACKUP_EVENT = "STP_BACKUP_SCENARIO";
     private static final String SCENARIO_IMPORT_EVENT = "IMPORT_PRESERVATION_SCENARIO";
     private static final String SCENARIO_REPORT = "SCENARIO_REPORT";
+    private static final String UND_TENANT = "_tenant";
 
     private MongoDbAccessReferential mongoDbAccess;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -130,9 +129,6 @@ public class PreservationScenarioService {
         try {
             validate(listToImport);
 
-            final List<String> listIdsToDelete = new ArrayList<>();
-            final List<PreservationScenarioModel> listToUpdate = new ArrayList<>();
-            final List<PreservationScenarioModel> listToInsert = new ArrayList<>();
 
             final ObjectNode finalSelect = new Select().getFinalSelect();
             DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, PRESERVATION_SCENARIO);
@@ -140,35 +136,35 @@ public class PreservationScenarioService {
                 result.getDocuments(PreservationScenario.class, PreservationScenarioModel.class);
 
 
-            classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listIdsToDelete,
-                allScenariosInDatabase);
+            Set<String> newIdentifiers =
+                listToImport.stream().map(PreservationScenarioModel::getIdentifier).collect(toSet());
+            Set<String> oldIdentifiers =
+                allScenariosInDatabase.stream().map(PreservationScenarioModel::getIdentifier).collect(toSet());
 
-            insertScenarios(listToInsert);
 
-            updateScenarios(listToUpdate);
+            Set<String> updatedIdentifiers = SetUtils.intersection(newIdentifiers, oldIdentifiers);
 
-            deleteScenarios(listIdsToDelete);
+            if(!updatedIdentifiers.isEmpty()) {
+                updateScenarios(listToImport, updatedIdentifiers);
+            }
+
+            Set<String> identifierToDelete = SetUtils.difference(oldIdentifiers, newIdentifiers);
+            if(!identifierToDelete.isEmpty()){
+                deleteScenarios(identifierToDelete);
+            }
+
+            Set<String> identifierToAdd = SetUtils.difference(newIdentifiers, oldIdentifiers);
+            if(!identifierToAdd.isEmpty()){
+                insertScenarios(listToImport, identifierToAdd);
+            }
 
             functionalBackupService
                 .saveCollectionAndSequence(guid, SCENARIO_BACKUP_EVENT, PRESERVATION_SCENARIO, operationId);
 
-
-
-            List<String> updatedIdentifiers = listToUpdate
-                .stream()
-                .map(PreservationScenarioModel::getIdentifier)
-                .collect(Collectors.toList());
-
-            Set<String> addedIdentifiers = listToInsert
-                .stream()
-                .map(PreservationScenarioModel::getIdentifier)
-                .collect(toSet());
-
-
             PreservationScenarioReport preservationScenarioReport =
-                generateReport(allScenariosInDatabase, listToImport, updatedIdentifiers, new HashSet<>(listIdsToDelete),
-                    addedIdentifiers);
-            saveReport(guid,preservationScenarioReport);
+                generateReport(allScenariosInDatabase, listToImport, updatedIdentifiers, identifierToDelete,
+                    identifierToAdd);
+            saveReport(guid, preservationScenarioReport);
 
 
         } catch (VitamException e) {
@@ -208,7 +204,7 @@ public class PreservationScenarioService {
 
             Set<ConstraintViolation<PreservationScenarioModel>> constraint = validator.validate(model);
             if (!constraint.isEmpty()) {
-                throw new ReferentialException("Invalid scenario : '" + JsonHandler.toJsonNode(model));
+                throw new ReferentialException("Invalid scenario : '" + toJsonNode(model));
             }
 
             identifiers.add(model.getIdentifier());
@@ -218,7 +214,7 @@ public class PreservationScenarioService {
     private FunctionalOperationModel retrieveOperationModel() {
         try {
             JsonNode result = logbookOperationsClientFactory.getClient().selectOperationById(
-                VitamThreadUtils.getVitamSession().getRequestId());
+                getVitamSession().getRequestId());
 
             return JsonHandler.getFromJsonNode(result.get(TAG_RESULTS).get(0), FunctionalOperationModel.class);
         } catch (LogbookClientException | InvalidParseOperationException e) {
@@ -228,7 +224,7 @@ public class PreservationScenarioService {
 
     private PreservationScenarioReport generateReport(List<PreservationScenarioModel> currentScenariosModels,
         List<PreservationScenarioModel> newScenarioModels,
-        List<String> updatedIdentifiers, Set<String> removedIdentifiers, Set<String> addedIdentifiers) {
+        Set<String> updatedIdentifiers, Set<String> removedIdentifiers, Set<String> addedIdentifiers) {
 
 
         PreservationScenarioReport report = new PreservationScenarioReport();
@@ -293,7 +289,7 @@ public class PreservationScenarioService {
         }
     }
 
-    private void reportUpdatedIdentifiers(List<String> updatedIdentifiers, PreservationScenarioReport report,
+    private void reportUpdatedIdentifiers(Set<String> updatedIdentifiers, PreservationScenarioReport report,
         Map<String, PreservationScenarioModel> currentScenariosModelsByIdentifiers,
         Map<String, PreservationScenarioModel> newScenariosModelByIdentifiers) {
         for (String identifier : updatedIdentifiers) {
@@ -308,7 +304,7 @@ public class PreservationScenarioService {
 
     private String toComparableString(PreservationScenarioModel scenarioModel) {
         try {
-            ObjectNode currentJsonNode = (ObjectNode) JsonHandler.toJsonNode(scenarioModel);
+            ObjectNode currentJsonNode = (ObjectNode) toJsonNode(scenarioModel);
             // Exclude ignored fields from comparison
             currentJsonNode.remove(VitamDocument.ID);
             currentJsonNode.remove(PreservationScenario.VERSION);
@@ -316,7 +312,7 @@ public class PreservationScenarioService {
             currentJsonNode.remove(PreservationScenarioModel.TAG_LAST_UPDATE);
             return JsonHandler.prettyPrint(currentJsonNode);
         } catch (InvalidParseOperationException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
@@ -330,60 +326,23 @@ public class PreservationScenarioService {
         return concernedDiffLines;
     }
 
-    void classifyDataInInsertUpdateOrDeleteLists(@NotNull List<PreservationScenarioModel> listToImport,
-        @NotNull List<PreservationScenarioModel> listToInsert, @NotNull List<PreservationScenarioModel> listToUpdate,
-        @NotNull List<String> listToDelete,
-        List<PreservationScenarioModel> allScenariosInDatabase) {
-
-
-        Set<String> dataBaseIds =
-            allScenariosInDatabase.stream().map(PreservationScenarioModel::getIdentifier).collect(toSet());
-        final HashSet<String> updateIds = new HashSet<>(dataBaseIds);
-
-        final Set<String> importIds =
-            listToImport.stream().map(PreservationScenarioModel::getIdentifier).collect(toSet());
-        updateIds.retainAll(importIds);
-
-        final HashSet<String> removeIds = new HashSet<>(dataBaseIds);
-        removeIds.removeAll(updateIds);
-
-        listToDelete.addAll(removeIds);
-
-        for (PreservationScenarioModel preservationScenarioModel : listToImport) {
-
-            classifyModelToImportIntoInsertOrUpdateList(preservationScenarioModel, dataBaseIds, listToInsert,
-                listToUpdate);
-        }
-    }
-
-    private void classifyModelToImportIntoInsertOrUpdateList(
-        @NotNull PreservationScenarioModel preservationScenarioModel,
-        @NotNull Set<String> dataBaseIds, @NotNull List<PreservationScenarioModel> listToInsert,
-        @NotNull List<PreservationScenarioModel> listToUpdate) {
-
-        if (dataBaseIds.contains(preservationScenarioModel.getIdentifier())) {
-
-            listToUpdate.add(preservationScenarioModel);
-            return;
-        }
-        listToInsert.add(preservationScenarioModel);
-    }
-
-    private void insertScenarios(@NotNull List<PreservationScenarioModel> listToInsert)
+    private void insertScenarios(@NotNull List<PreservationScenarioModel> listToImport, Set<String> newIdentifiers)
         throws InvalidParseOperationException, ReferentialException, SchemaValidationException {
 
-        if (listToInsert.isEmpty()) {
+        if (listToImport.isEmpty()) {
             return;
         }
 
         ArrayNode treatmentToInsert = JsonHandler.createArrayNode();
 
-        for (PreservationScenarioModel preservationScenarioModel : listToInsert) {
-            preservationScenarioModel.setTenant(HeaderIdHelper.getTenantId());
+        for (PreservationScenarioModel preservationScenarioModel : listToImport) {
+            if (newIdentifiers.contains(preservationScenarioModel.getIdentifier())) {
+                preservationScenarioModel.setTenant(HeaderIdHelper.getTenantId());
 
-            formatDateForMongo(preservationScenarioModel);
+                formatDateForMongo(preservationScenarioModel);
 
-            treatmentToInsert.add(toJson(preservationScenarioModel));
+                treatmentToInsert.add(toJson(preservationScenarioModel));
+            }
         }
 
         mongoDbAccess.insertDocuments(treatmentToInsert, PRESERVATION_SCENARIO);
@@ -399,12 +358,12 @@ public class PreservationScenarioService {
         }
         JsonNode hashTenant = modelNode.remove(tenant());
         if (hashTenant != null) {
-            modelNode.set("_tenant", hashTenant);
+            modelNode.set(UND_TENANT, hashTenant);
         }
         return modelNode;
     }
 
-    private void deleteScenarios(@NotNull List<String> listIdsToDelete)
+    private void deleteScenarios(@NotNull Set<String> listIdsToDelete)
         throws ReferentialException, BadRequestException, SchemaValidationException {
         try {
             for (String identifier : listIdsToDelete) {
@@ -417,18 +376,23 @@ public class PreservationScenarioService {
         }
     }
 
-    private void updateScenarios(@NotNull List<PreservationScenarioModel> listToUpdate)
+    private void updateScenarios(@NotNull List<PreservationScenarioModel> listToImport, Set<String> identifierToUpdate)
         throws InvalidParseOperationException, DatabaseException {
 
-        for (PreservationScenarioModel preservationScenarioModel : listToUpdate) {
+        for (PreservationScenarioModel preservationScenarioModel : listToImport) {
 
-            preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(now()));
-            preservationScenarioModel
-                .setCreationDate(getFormattedDateForMongo(preservationScenarioModel.getCreationDate()));
+            if (identifierToUpdate.contains(preservationScenarioModel.getIdentifier())) {
+                preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(now()));
+                preservationScenarioModel
+                    .setCreationDate(getFormattedDateForMongo(preservationScenarioModel.getCreationDate()));
+                preservationScenarioModel.setTenant(getVitamSession().getTenantId());
+                ObjectNode scenario = (ObjectNode) toJsonNode(preservationScenarioModel);
 
-            mongoDbAccess.replaceDocument(JsonHandler.toJsonNode(preservationScenarioModel),
-                preservationScenarioModel.getIdentifier(), IDENTIFIER,
-                FunctionalAdminCollections.PRESERVATION_SCENARIO);
+                scenario.put(UND_TENANT, getVitamSession().getTenantId());
+                mongoDbAccess.replaceDocument(scenario,
+                    preservationScenarioModel.getIdentifier(), IDENTIFIER,
+                    FunctionalAdminCollections.PRESERVATION_SCENARIO);
+            }
         }
     }
 
@@ -436,6 +400,7 @@ public class PreservationScenarioService {
 
         String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
         preservationScenarioModel.setLastUpdate(lastUpdate);
+
         if (preservationScenarioModel.getCreationDate() != null) {
             String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
             preservationScenarioModel.setCreationDate(creationDate);
