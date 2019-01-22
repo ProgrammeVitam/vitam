@@ -37,7 +37,6 @@ import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.bson.Document;
 
 

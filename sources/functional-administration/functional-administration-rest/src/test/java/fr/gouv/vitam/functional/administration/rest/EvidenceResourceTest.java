@@ -55,8 +55,6 @@ import org.mockito.junit.MockitoRule;
  */
 public class EvidenceResourceTest {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceResourceTest.class);
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -77,7 +75,7 @@ public class EvidenceResourceTest {
     private EvidenceResource evidenceResource;
 
     @Before
-    public void setUp() throws InvalidParseOperationException, ReferentialException, VitamDBException, BadRequestException, SchemaValidationException, InvalidCreateOperationException, DatabaseException {
+    public void setUp() throws InvalidParseOperationException, ReferentialException {
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);

@@ -26,9 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.VITAM_SEQUENCE;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +38,13 @@ import java.util.SortedMap;
 import java.util.stream.Stream;
 
 import com.carrotsearch.hppc.cursors.ObjectCursor;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.client.transport.TransportClient;
@@ -46,24 +52,19 @@ import org.elasticsearch.cluster.metadata.AliasOrIndex;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 /**
  * ElasticsearchAccessFunctionalAdminTest
  */
 public class ElasticsearchAccessFunctionalAdminTest {
 
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private static TransportClient client;
 
-    private TransportClient client;
-
-    private ElasticsearchAccessFunctionalAdmin elasticsearchAccessFunctionalAdmin;
-    private static JunitHelper.ElasticsearchTestConfiguration config;
+    private static ElasticsearchAccessFunctionalAdmin elasticsearchAccessFunctionalAdmin;
 
     private int numberOfReplica = 2;
     private int numberOfIndices = Math.toIntExact(
@@ -72,25 +73,30 @@ public class ElasticsearchAccessFunctionalAdminTest {
             .count())
         * numberOfReplica;
 
-    @Before
-    public void setUp() throws Exception {
-        int tcpPort = JunitHelper.getInstance().findAvailablePort();
-        int httPort = JunitHelper.getInstance().findAvailablePort();
-        String clusterName = "elasticsearch-data";
-        config = JunitHelper.startElasticsearchForTest(temporaryFolder, clusterName, tcpPort, httPort);
-        Settings settings = ElasticsearchAccess.getSettings(clusterName);
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(getMongoClientOptions(), "vitam-test");
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @BeforeClass
+    public static void setUp() throws Exception {
+        Settings settings = ElasticsearchAccess.getSettings(ElasticsearchRule.VITAM_CLUSTER);
         client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), tcpPort));
+        client.addTransportAddress(new TransportAddress(InetAddress.getByName("localhost"), ElasticsearchRule.TCP_PORT));
         List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", tcpPort));
-        elasticsearchAccessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(clusterName, nodes);
+        nodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+        elasticsearchAccessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes);
+
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
     }
 
-    @AfterClass
-    public static void tearDown() {
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
+    @After
+    public void tearDown() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
     }
 
     @Test
@@ -145,8 +151,6 @@ public class ElasticsearchAccessFunctionalAdminTest {
         // Given
         createAllFunctionalAdminIndex();
         for (FunctionalAdminCollections functionalAdminCollections : FunctionalAdminCollections.values()) {
-
-            String index = functionalAdminCollections.getName().toLowerCase();
             // When
             // Careful Not mapping for VITAM_SEQUENCE
             if (!(functionalAdminCollections.equals(VITAM_SEQUENCE))) {

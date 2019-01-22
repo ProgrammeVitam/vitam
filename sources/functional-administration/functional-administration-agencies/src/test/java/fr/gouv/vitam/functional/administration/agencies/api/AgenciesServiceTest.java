@@ -41,11 +41,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -57,6 +56,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -85,7 +85,7 @@ public class AgenciesServiceTest {
 
     public static final String AGENCIES_REPORT = "AGENCIES_REPORT";
     private static VitamCounterService vitamCounterService;
-    public static final String PREFIX = "AgenciesServiceTest_";
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -100,12 +100,12 @@ public class AgenciesServiceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class)), "Vitam-Test",
-                    PREFIX + Agencies.class.getSimpleName());
+            new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)), "vitam-test",
+                    PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(PREFIX + Agencies.class.getSimpleName().toLowerCase());
+            new ElasticsearchRule(PREFIX + Agencies.class.getSimpleName().toLowerCase(), PREFIX + AccessContract.class.getSimpleName().toLowerCase());
 
 
     private static final Integer TENANT_ID = 1;
@@ -133,17 +133,12 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
                 MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
-
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhsot", elasticsearchRule.getTcpPort()));
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, new HashMap<>());
@@ -162,8 +157,7 @@ public class AgenciesServiceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        elasticsearchRule.deleteIndexes();
     }
 
     @After

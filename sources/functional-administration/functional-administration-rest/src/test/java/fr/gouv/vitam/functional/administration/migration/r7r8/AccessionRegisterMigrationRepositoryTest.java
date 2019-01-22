@@ -1,5 +1,13 @@
 package fr.gouv.vitam.functional.administration.migration.r7r8;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
@@ -8,49 +16,56 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccessionRegisterMigrationRepositoryTest {
 
     private static AccessionRegisterMigrationRepository repository;
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)), "Vitam-Test",
-                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
+            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)), "Vitam-Test");
 
     @Before
     public void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getVitamCollection().initialize(mongoRule.getMongoDatabase(), true);
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getVitamCollection().initialize(mongoRule.getMongoDatabase(), true);
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         repository = new AccessionRegisterMigrationRepository();
     }
 
     @After
-    public void tearDown() {
-        mongoRule.handleAfter();
+    public void tearDown() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), false);
+    }
+
+    @AfterClass
+    public static void afterClass() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
     }
 
     @Test

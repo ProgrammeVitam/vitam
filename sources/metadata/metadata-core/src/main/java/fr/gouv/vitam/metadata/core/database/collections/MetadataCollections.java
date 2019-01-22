@@ -26,6 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -34,10 +38,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import org.bson.Document;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Metadata Collection
@@ -70,10 +70,6 @@ public enum MetadataCollections {
             collection.vitamCollection
                 .setName(prefix + collection.vitamCollection.getClasz().getSimpleName());
             collection.initialize(db, false);
-            if (null == esClient) {
-                continue;
-            }
-
             collection.initialize(esClient);
             for (Integer tenant : tenants) {
                 esClient.addIndex(collection, tenant);
@@ -101,9 +97,6 @@ public enum MetadataCollections {
 
         for (MetadataCollections collection : metadataCollections) {
             collection.vitamCollection.getCollection().deleteMany(new Document());
-            if (null == esClient) {
-                continue;
-            }
 
             for (Integer tenant : tenants) {
                 if (deleteEsIndex) {

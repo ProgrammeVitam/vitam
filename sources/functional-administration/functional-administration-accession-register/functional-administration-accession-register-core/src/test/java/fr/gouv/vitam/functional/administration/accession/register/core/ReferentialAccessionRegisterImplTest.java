@@ -34,6 +34,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +51,7 @@ import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -92,22 +94,16 @@ public class ReferentialAccessionRegisterImplTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
             new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    public static final String PREFIX = "ReferentialAccessionRegisterImplTest_";
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
             new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
-                    "Vitam-DB",
-                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
+                    "vitam-db");
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(
-                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
-    static final List<Integer> tenantList = Arrays.asList(TENANT_ID);
     private static ElasticsearchAccessFunctionalAdmin esClient;
 
     static ReferentialAccessionRegisterImpl accessionRegisterImpl;
@@ -121,33 +117,28 @@ public class ReferentialAccessionRegisterImplTest {
         esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
 
-        Method initialize = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getClass().
-                getDeclaredMethod("initialize", ElasticsearchAccessFunctionalAdmin.class);
-        initialize.setAccessible(true);
-        initialize.invoke(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, esClient);
-
-        initialize = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getClass().
-                getDeclaredMethod("initialize", ElasticsearchAccessFunctionalAdmin.class);
-        initialize.setAccessible(true);
-        initialize.invoke(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, esClient);
-
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         MongoDbAccessAdminImpl mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(mongoDbAccessAdmin,
                 mock(FunctionalBackupService.class));
+
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
     }
 
     @After
-    public void afterTest() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+    public void afterTest() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false);
     }
 
 

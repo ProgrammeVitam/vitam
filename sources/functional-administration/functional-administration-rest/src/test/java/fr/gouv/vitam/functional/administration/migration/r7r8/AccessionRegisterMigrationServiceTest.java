@@ -9,7 +9,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -28,6 +30,8 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -36,6 +40,7 @@ import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
@@ -44,10 +49,10 @@ import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
@@ -56,21 +61,14 @@ import org.mockito.runners.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class AccessionRegisterMigrationServiceTest {
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-    public static final String PREFIX = "AccessionRegisterMigrationServiceTest_";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)), "Vitam-Test",
-                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                    PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-                    PREFIX + FunctionalAdminCollections.VITAM_SEQUENCE.getName());
+            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)), "vitam-test");
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(
-            PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-            PREFIX + FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
     @Mock
@@ -78,6 +76,10 @@ public class AccessionRegisterMigrationServiceTest {
 
     @Before
     public void setUpBeforeClass() throws Exception {
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
 
         final List<MongoDbNode> nodes = Lists.newArrayList(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
@@ -90,8 +92,16 @@ public class AccessionRegisterMigrationServiceTest {
     }
 
     @After
-    public void tearDown() {
-        mongoRule.handleAfter();
+    public void tearDown() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), false);
+    }
+
+    @AfterClass
+    public static void afterClass() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
     }
 
     @Test

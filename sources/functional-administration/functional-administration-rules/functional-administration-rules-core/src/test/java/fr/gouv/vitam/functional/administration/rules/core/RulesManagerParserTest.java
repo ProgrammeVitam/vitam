@@ -45,12 +45,11 @@ import fr.gouv.vitam.functional.administration.rules.core.RulesManagerParser;
 
 public class RulesManagerParserTest {
     private static String FILE_TO_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
-    private static String FILE_TO_TEST_KO = "jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     ArrayNode jsonFileRules = null;
     private static String REFERENTIAL_KO_WHITESPACE = "referential_ko_white_space.csv";
 
     @Test
-    public void testFileRules() throws FileFormatException, InvalidParseOperationException, IOException {
+    public void testFileRules() throws InvalidParseOperationException, IOException {
         jsonFileRules =
             RulesManagerParser.readObjectsFromCsvWriteAsArrayNode(PropertiesUtils.findFile(FILE_TO_TEST_OK));
         assertTrue(jsonFileRules.get(jsonFileRules.size() - 1).get("RuleId").toString().contains("CLASS-00001"));

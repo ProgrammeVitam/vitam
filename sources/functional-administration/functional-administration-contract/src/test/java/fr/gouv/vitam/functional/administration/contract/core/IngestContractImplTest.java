@@ -32,7 +32,9 @@ import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,12 +55,14 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
@@ -77,6 +81,7 @@ import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
@@ -106,21 +111,15 @@ public class IngestContractImplTest {
     static final String DATABASE_NAME = "vitam-test";
     static final String FORMAT_FILE = "file-format-light.json";
 
-    public static final String PREFIX = "IngestContractImplTest_";
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
             new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class, Agencies.class)),
-                    "Vitam-Test",
-                    PREFIX + AccessContract.class.getSimpleName(),
-                    PREFIX + Agencies.class.getSimpleName());
+                    "vitam-test");
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(
-                    PREFIX + AccessContract.class.getSimpleName().toLowerCase(),
-                    PREFIX + Agencies.class.getSimpleName().toLowerCase()
-            );
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
 
     static VitamCounterService vitamCounterService;
@@ -133,6 +132,10 @@ public class IngestContractImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.INGEST_CONTRACT, FunctionalAdminCollections.AGENCIES));
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
@@ -159,6 +162,8 @@ public class IngestContractImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
         ingestContractService.close();
         VitamClientFactory.resetConnections();
     }
@@ -170,9 +175,9 @@ public class IngestContractImplTest {
     }
 
     @After
-    public void afterTest() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+    public void afterTest() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false);
         Mockito.reset(functionalBackupService);
     }
 

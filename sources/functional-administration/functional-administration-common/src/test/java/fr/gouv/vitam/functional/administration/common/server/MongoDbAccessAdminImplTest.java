@@ -81,6 +81,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,16 +103,13 @@ public class MongoDbAccessAdminImplTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    public static final String PREFIX = "MongoDbAccessAdminImplTest_";
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(FileFormat.class, FileRules.class)), "Vitam-Test",
-            PREFIX + FileFormat.class.getSimpleName(), PREFIX + FileRules.class.getSimpleName());
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(FileFormat.class, FileRules.class)), "vitam-test");
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(
-                PREFIX + FileFormat.class.getSimpleName().toLowerCase(), PREFIX + FileRules.class.getSimpleName().toLowerCase());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
 
     private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";
@@ -152,8 +150,6 @@ public class MongoDbAccessAdminImplTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
-        FunctionalAdminCollections.FORMATS.initialize(esClient);
-        FunctionalAdminCollections.RULES.initialize(esClient);
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         mongoAccess =
@@ -236,12 +232,17 @@ public class MongoDbAccessAdminImplTest {
 
         context = createContext();
 
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.FORMATS));
+
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                com.google.common.collect.Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
     }
 
     @Test
@@ -257,7 +258,7 @@ public class MongoDbAccessAdminImplTest {
         arrayNode.add(jsonNode3);
         final FunctionalAdminCollections formatCollection = FunctionalAdminCollections.FORMATS;
         mongoAccess.insertDocuments(arrayNode, formatCollection).close();
-        assertEquals("FileFormat", formatCollection.getName());
+        assertEquals(PREFIX + "FileFormat", formatCollection.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.FORMATS.getName());
         assertEquals(3, collection.count());
@@ -347,7 +348,7 @@ public class MongoDbAccessAdminImplTest {
         arrayNode.add(jsonNode2);
         final FunctionalAdminCollections rulesCollection = FunctionalAdminCollections.RULES;
         mongoAccess.insertDocuments(arrayNode, rulesCollection).close();
-        assertEquals("FileRules", rulesCollection.getName());
+        assertEquals(PREFIX + "FileRules", rulesCollection.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.RULES.getName());
         assertEquals(2, collection.count());

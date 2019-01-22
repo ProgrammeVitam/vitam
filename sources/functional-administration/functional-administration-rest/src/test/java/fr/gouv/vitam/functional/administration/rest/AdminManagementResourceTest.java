@@ -26,30 +26,48 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -60,57 +78,38 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.google.common.collect.Sets;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 public class AdminManagementResourceTest {
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
@@ -141,19 +140,12 @@ public class AdminManagementResourceTest {
     private static final String ERROR_REPORT_CONTENT = "error_report_content.json";
     public static final int TENANT_ID1 = 1;
     private static final String PRONOM_FILE = "DROID_SignatureFile_V94.xml";
-
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
     static MongoDbAccessReferential mongoDbAccess;
-    static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
-
-    private static MongoDbAccessAdminImpl dbImpl;
 
     private InputStream stream;
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int serverPort;
-    private static int databasePort;
     private static File adminConfigFile;
 
     private static AdminManagementMain application;
@@ -169,13 +161,9 @@ public class AdminManagementResourceTest {
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
 
-    private static ElasticsearchTestConfiguration configEs = null;
-
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private static ElasticsearchAccessFunctionalAdmin esClient;
     private final static String originatingAgency = "OriginatingAgency";
     private InputStream streamErrorReport;
 
@@ -183,37 +171,25 @@ public class AdminManagementResourceTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        // ES
-        try {
-            configEs = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        databasePort = junitHelper.findAvailablePort();
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(databasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
-        esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, nodesEs);
+        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
         LogbookOperationsClientFactory.changeMode(null);
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(nodesEs);
-        realAdminConfig.setClusterName(CLUSTER_NAME);
+        realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
 
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
@@ -221,15 +197,14 @@ public class AdminManagementResourceTest {
 
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
-        mongoDbAccess = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, "vitam-test"));
+        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
+        mongoDbAccess =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         serverPort = junitHelper.findAvailablePort();
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
-        
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
 
         try {
 
@@ -246,16 +221,17 @@ public class AdminManagementResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        FunctionalAdminCollections
+            .afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                    Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES), true);
+
         LOGGER.debug("Ending tests");
         try {
             application.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
     }
@@ -275,8 +251,10 @@ public class AdminManagementResourceTest {
 
     @After
     public void tearDown() throws Exception {
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.FORMATS).close();
-        mongoDbAccess.deleteCollection(FunctionalAdminCollections.RULES).close();
+        FunctionalAdminCollections
+            .afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                    Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES), false);
     }
 
     @Test
@@ -337,7 +315,8 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
+        final AccessionRegisterDetailModel register =
+            JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(TENANT_ID);
         register.setId(guid.toString());
         given().contentType(ContentType.JSON).body(register)
@@ -373,7 +352,8 @@ public class AdminManagementResourceTest {
             .close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
+        final AccessionRegisterDetailModel register =
+            JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(TENANT_ID1);
         register.setId(guid.toString());
         given().contentType(ContentType.JSON).body(register)
@@ -529,7 +509,8 @@ public class AdminManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenANotWellFormedCSVInputstreamCheckThenReturnKO() throws IOException, InvalidParseOperationException {
+    public void givenANotWellFormedCSVInputstreamCheckThenReturnKO()
+        throws IOException, InvalidParseOperationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
@@ -539,7 +520,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(CHECK_RULES_URI);
         rr.then().statusCode(Status.BAD_REQUEST.getStatusCode());
-        JsonNode responseInputStream = JsonHandler.getFromInputStream(rr.asInputStream());        
+        JsonNode responseInputStream = JsonHandler.getFromInputStream(rr.asInputStream());
         ArrayNode responseArrayNode = (ArrayNode) responseInputStream.get("error").get("line 3");
         JsonNode expectedInputStream = JsonHandler.getFromInputStream(streamErrorReport);
         ArrayNode expectedArrayNode = (ArrayNode) expectedInputStream.get("error").get("line 3");

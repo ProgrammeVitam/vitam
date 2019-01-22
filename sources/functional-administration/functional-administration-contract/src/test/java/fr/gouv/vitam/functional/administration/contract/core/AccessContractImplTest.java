@@ -42,21 +42,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -68,6 +66,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -94,13 +93,13 @@ import fr.gouv.vitam.functional.administration.common.AgenciesParser;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -108,7 +107,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.openstack4j.api.exceptions.StatusCode;
 
 
 public class AccessContractImplTest {
@@ -122,20 +120,14 @@ public class AccessContractImplTest {
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
             VitamThreadPoolExecutor.getDefaultExecutor());
 
-    public static final String PREFIX = "AccessContractImplTest_";
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class, Agencies.class)),
-                    "Vitam-Test",
-                    PREFIX + AccessContract.class.getSimpleName(),
-                    PREFIX + Agencies.class.getSimpleName());
+            new MongoRule(getMongoClientOptions(Arrays.asList(AccessContract.class, Agencies.class)),
+                    "vitam-test");
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(
-                    PREFIX + AccessContract.class.getSimpleName().toLowerCase(),
-                    PREFIX + Agencies.class.getSimpleName().toLowerCase()
-            );
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
@@ -157,6 +149,10 @@ public class AccessContractImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT, FunctionalAdminCollections.AGENCIES));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
@@ -222,15 +218,17 @@ public class AccessContractImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
         accessContractService.close();
     }
 
 
     @After
-    public void afterTest() {
-        mongoRule.getMongoCollection(AccessContract.class.getSimpleName()).deleteMany(new Document());
+    public void afterTest() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT), false);
         reset(functionalBackupService);
     }
 
@@ -693,7 +691,7 @@ public class AccessContractImplTest {
         final SelectParserSingle parser = new SelectParserSingle(new SingleVarNameAdapter());
         final Select select = new Select();
         parser.parse(select.getFinalSelect());
-        parser.addCondition(QueryHelper.eq(NAME, name));
+        parser.addCondition(QueryHelper.eq("Identifier", acm.getIdentifier()));
         final JsonNode queryDsl = parser.getRequest().getFinalSelect();
 
 

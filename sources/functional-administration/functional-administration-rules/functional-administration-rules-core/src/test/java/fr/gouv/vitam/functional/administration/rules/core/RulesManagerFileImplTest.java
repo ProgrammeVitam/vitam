@@ -35,16 +35,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doNothing;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,50 +60,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.flipkart.zjsonpatch.JsonDiff;
-
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -126,6 +105,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesUpdateE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -140,12 +120,34 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.ExpectedException;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant ID
  * is changed for each call.
  */
 public class RulesManagerFileImplTest {
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final String ACCESS_RULE = "AccessRule";
     private static final String ACC_00003 = "ACC-00003";
@@ -179,18 +181,8 @@ public class RulesManagerFileImplTest {
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-    private static ElasticsearchTestConfiguration esConfig = null;
     private static VitamCounterService vitamCounterService;
-
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static JunitHelper junitHelper;
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitamtest";
-    static final String COLLECTION_NAME = "FileRules";
-    static int port;
     static RulesManagerFileImpl rulesFileManager;
     private static MongoDbAccessAdminImpl dbImpl;
 
@@ -214,32 +206,21 @@ public class RulesManagerFileImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                    Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
-        try {
-            esConfig = JunitHelper.startElasticsearchForTest(temporaryFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
+        esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         LogbookOperationsClientFactory.changeMode(null);
-        dbImpl = create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         List<Integer> tenants = new ArrayList<>();
         Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10, 11, 12};
         tenants.addAll(Arrays.asList(tenantsList));
@@ -247,14 +228,14 @@ public class RulesManagerFileImplTest {
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
 
         ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
+            new AdminManagementConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, DATABASE_NAME));
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         rulesFileManager =
             new RulesManagerFileImpl(dbAccess,
@@ -263,13 +244,9 @@ public class RulesManagerFileImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        if (esConfig != null) {
-            JunitHelper.stopElasticsearchForTest(esConfig);
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
+    public static void tearDownAfterClass() throws IOException, VitamException {
+        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
     }
 
     /**
@@ -553,7 +530,7 @@ public class RulesManagerFileImplTest {
         int tenantId = 5;
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         MongoDbAccessAdminImpl dbAccess = create(
-            new DbConfigurationImpl(nodes, DATABASE_NAME));
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         dbAccess.deleteCollection(FunctionalAdminCollections.RULES);
         final Select select = new Select();
         try {
