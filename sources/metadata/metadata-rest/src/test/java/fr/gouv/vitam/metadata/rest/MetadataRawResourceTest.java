@@ -26,18 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
+import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import io.restassured.RestAssured;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -49,35 +60,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
-import io.restassured.RestAssured;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * MetadataRawResource test
@@ -91,56 +81,40 @@ public class MetadataRawResourceTest {
     private static final String METADATA_URI = "/metadata/v1";
     private static final String DATABASE_NAME = "vitam-test";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
+
+    private final static String HOST_NAME = "127.0.0.1";
+    private static JunitHelper junitHelper;
+    private static int serverPort;
+
+    private static MetadataMain application;
+    private static final Integer TENANT_ID = 0;
+    static final List tenantList = Lists.newArrayList(TENANT_ID);
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
-    private final static String HOST_NAME = "127.0.0.1";
-
-    private static final String SERVER_HOST = "localhost";
-    private static JunitHelper junitHelper;
-    private static int dataBasePort;
-    private static int serverPort;
-
-    private static MetadataMain application;
-    private static ElasticsearchTestConfiguration config = null;
-    static final int tenantId = 0;
-    static final List tenantList = Lists.newArrayList(tenantId);
-    private static final Integer TENANT_ID = 0;
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), DATABASE_NAME);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        MetadataCollections.UNIT.getVitamCollection().setName(GUIDFactory.newGUID().getId()+ MetadataCollections.UNIT.getClasz().getSimpleName());
+        mongoRule.addCollectionToBePurged(MetadataCollections.UNIT.getName());
+        MetadataCollections.OBJECTGROUP.getVitamCollection().setName(GUIDFactory.newGUID().getId()+ MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
+        mongoRule.addCollectionToBePurged(MetadataCollections.OBJECTGROUP.getName());
+
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
         junitHelper = JunitHelper.getInstance();
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-
-        dataBasePort = junitHelper.findAvailablePort();
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
+        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
-        // TODO: using configuration file ? Why not ?
+        mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, ElasticsearchRule.VITAM_CLUSTER, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
@@ -159,31 +133,18 @@ public class MetadataRawResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        if (config == null) {
-            return;
-        }
-        JunitHelper.stopElasticsearchForTest(config);
         try {
             application.stop();
         } catch (final Exception e) {
             // ignore
         }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
     }
 
-    @Before
-    public void before() {
-        Assume.assumeTrue("Elasticsearch not started but should", config != null);
-    }
-
     @After
     public void tearDown() {
-        MetadataCollections.UNIT.getCollection().drop();
-        MetadataCollections.OBJECTGROUP.getCollection().drop();
+        mongoRule.handleAfter();
     }
 
     @RunWithCustomExecutor

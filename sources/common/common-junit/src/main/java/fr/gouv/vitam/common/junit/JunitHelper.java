@@ -383,30 +383,6 @@ public class JunitHelper extends ExternalResource {
     }
 
     /**
-     * Helper to start an Elasticsearch server (unrecommended version)
-     *
-     * @param tempFolder  the TemporaryFolder declared as ClassRule within the Junit class
-     * @param clusterName the cluster name
-     * @param tcpPort     the given TcpPort
-     * @param httpPort    the given HttpPort
-     * @return the ElasticsearchTestConfiguration to pass to stopElasticsearchForTest
-     * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
-     */
-    public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
-                                                                                 String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
-        final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
-        config.httpPort = httpPort;
-        config.tcpPort = tcpPort;
-        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-            tryStartElasticsearch(config, tempFolder, clusterName);
-            if (config != null) {
-                return config;
-            }
-        }
-        throw new VitamApplicationServerException("Cannot start Elasticsearch");
-    }
-
-    /**
      * Helper to start an Elasticsearch server (recommended version)
      *
      * @param tempFolder  the TemporaryFolder declared as ClassRule within the Junit class

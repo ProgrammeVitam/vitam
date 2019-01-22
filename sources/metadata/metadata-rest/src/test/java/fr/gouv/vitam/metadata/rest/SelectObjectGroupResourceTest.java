@@ -27,6 +27,11 @@
 package fr.gouv.vitam.metadata.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import de.flapdoodle.embed.mongo.MongodExecutable;
@@ -93,13 +98,9 @@ public class SelectObjectGroupResourceTest {
     private static final String OBJECT_GROUPS_URI = "/objectgroups";
     private static final String DATABASE_NAME = "vitam-test";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
 
@@ -110,14 +111,10 @@ public class SelectObjectGroupResourceTest {
             "   {\"$badRquest\" : \"mavar3\"}, " +
             "   {\"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
 
-    private static final String SERVER_HOST = "localhost";
-
     private static final String BODY_TEST =
         "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
-    private static int dataBasePort;
-    private static ElasticsearchTestConfiguration config = null;
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
         {
@@ -125,37 +122,29 @@ public class SelectObjectGroupResourceTest {
         }
     };
 
+    private static ElasticsearchAccessMetadata accessMetadata;
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), DATABASE_NAME);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+
+        final List<ElasticsearchNode> nodes = new ArrayList<>();
+        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
+        accessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
+            accessMetadata, 0);
+
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
         junitHelper = JunitHelper.getInstance();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
 
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-
-        dataBasePort = junitHelper.findAvailablePort();
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
-        mongo_nodes.add(new MongoDbNode(SERVER_HOST, dataBasePort));
-        // TODO: using configuration file ? Why not ?
+        mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, CLUSTER_NAME, nodes);
+            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, ElasticsearchRule.VITAM_CLUSTER, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
@@ -175,27 +164,19 @@ public class SelectObjectGroupResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config == null) {
-            return;
+
+        try {
+            MetadataCollections.afterTestClass(accessMetadata, true, 0);
+            application.stop();
+        } finally {
+            junitHelper.releasePort(serverPort);
+            VitamClientFactory.resetConnections();
         }
-        JunitHelper.stopElasticsearchForTest(config);
-
-        application.stop();
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(dataBasePort);
-        junitHelper.releasePort(serverPort);
-        VitamClientFactory.resetConnections();
-    }
-
-    @Before
-    public void before() {
-        Assume.assumeTrue("Elasticsearch not started but should", config != null);
     }
 
     @After
     public void tearDown() {
-        MetadataCollections.UNIT.getCollection().drop();
+        MetadataCollections.afterTestClass(accessMetadata, false, 0);
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {

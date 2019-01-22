@@ -27,21 +27,18 @@
 
 package fr.gouv.vitam.common.junit;
 
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.net.ServerSocket;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.net.ServerSocket;
-
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 
 public class JunitHelperTest {
 
@@ -54,22 +51,26 @@ public class JunitHelperTest {
         try {
             junitFindAvailablePort0.isListeningOn("znN>", -4608);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             junitFindAvailablePort0.isListeningOn("znN>", 65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             junitFindAvailablePort0.isListeningOn(-4608);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             junitFindAvailablePort0.isListeningOn(65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         assertFalse(junitFindAvailablePort0.isListeningOn("znN>", 1025));
     }
 
@@ -151,21 +152,5 @@ public class JunitHelperTest {
         assertEquals(0, JunitHelper.consumeInputStreamPerByte(null));
         // Just check by running
         JunitHelper.awaitFullGc();
-    }
-
-    @Test
-    public void testLaunchElasticsearch() throws VitamApplicationServerException {
-        ElasticsearchTestConfiguration config = JunitHelper.startElasticsearchForTest(temporaryFolder, "test");
-        JunitHelper.stopElasticsearchForTest(config);
-        final int tcpPort = JunitHelper.getInstance().findAvailablePort();
-        final int httpPort = JunitHelper.getInstance().findAvailablePort();
-        config = JunitHelper.startElasticsearchForTest(temporaryFolder, "test", tcpPort, httpPort);
-        try {
-            JunitHelper.startElasticsearchForTest(temporaryFolder, "test", tcpPort, httpPort);
-            fail("Should raized an exception");
-        } catch (final VitamApplicationServerException e) {
-
-        }
-        JunitHelper.stopElasticsearchForTest(config);
     }
 }
