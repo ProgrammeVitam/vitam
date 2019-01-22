@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -57,6 +53,10 @@ import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * All collections in functional admin module
@@ -155,44 +155,65 @@ public enum FunctionalAdminCollections {
                 collection.initialize(esClient);
             }
         }
-        if(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection() != null) {
+        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection() != null) {
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
-                    .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                            new IndexOptions().unique(true));
+                .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
+                    new IndexOptions().unique(true));
         }
 
-        if(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection() != null) {
+        if (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection() != null) {
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
+                .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
+                    new IndexOptions().unique(true));
         }
 
     }
 
     @VisibleForTesting
-    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient, boolean deleteEsIndex) {
-        afterTestClass(esClient, Lists.newArrayList(FunctionalAdminCollections.values()), deleteEsIndex);
+    public static void afterTestClass(boolean deleteEsIndex) {
+        afterTestClass(Lists.newArrayList(FunctionalAdminCollections.values()), deleteEsIndex);
     }
 
     @VisibleForTesting
-    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient) {
-        afterTestClass(esClient, Lists.newArrayList(FunctionalAdminCollections.values()), false);
+    public static void afterTestClass(Collection<FunctionalAdminCollections> functionalAdminCollections,
+        boolean deleteEsIndex) {
+        ParametersChecker.checkParameter("functionalAdminCollections is required", functionalAdminCollections);
+        ElasticsearchAccessFunctionalAdmin esClient = null;
+        for (FunctionalAdminCollections collection : functionalAdminCollections) {
+            if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
+                collection.vitamCollection.getCollection().deleteMany(new Document());
+                if (collection.getEsClient() != null) {
+                    esClient = collection.getEsClient();
+                    if (deleteEsIndex) {
+                        try {
+                            collection.getEsClient().deleteIndex(collection);
+                        } catch (ReferentialException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        collection.getEsClient().purgeIndex(collection.getName());
+                    }
+                }
+            }
+        }
+        if (null != esClient) {
+            esClient.close();
+        }
     }
 
     @VisibleForTesting
-    public static void afterTestClass(final ElasticsearchAccessFunctionalAdmin esClient,
-        Collection<FunctionalAdminCollections> functionalAdminCollections, boolean deleteEsIndex) {
+    public static void afterTest() {
+        afterTest(Lists.newArrayList(FunctionalAdminCollections.values()));
+    }
+
+    @VisibleForTesting
+    public static void afterTest(Collection<FunctionalAdminCollections> functionalAdminCollections) {
         ParametersChecker.checkParameter("functionalAdminCollections is required", functionalAdminCollections);
         for (FunctionalAdminCollections collection : functionalAdminCollections) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
                 collection.vitamCollection.getCollection().deleteMany(new Document());
-                if (deleteEsIndex) {
-                    try {
-                        esClient.deleteIndex(collection);
-                    } catch (ReferentialException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    esClient.purgeIndex(collection.getName());
+                if (collection.getEsClient() != null) {
+                    collection.getEsClient().purgeIndex(collection.getName());
                 }
             }
         }

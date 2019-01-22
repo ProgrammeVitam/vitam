@@ -157,19 +157,15 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        MetadataCollections.afterTestClass(esClient, true, 0, 1);
-        FunctionalAdminCollections.afterTestClass(
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+    public static void tearDownAfterClass() {
+        MetadataCollections.afterTestClass(true, 0, 1);
+        FunctionalAdminCollections.afterTestClass(true);
     }
 
     @After
-    public void after() throws Exception {
-        MetadataCollections.afterTestClass(esClient, false, 0, 1);
-        FunctionalAdminCollections.afterTestClass(
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false);
+    public void after() {
+        MetadataCollections.afterTest(0, 1);
+        FunctionalAdminCollections.afterTest();
 
     }
 

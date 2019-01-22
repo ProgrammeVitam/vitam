@@ -26,8 +26,6 @@ public class MongoDbAccessAdminFactoryTest {
     public static MongoRule mongoRule =
         new MongoRule(getMongoClientOptions(), "vitam-test");
 
-    private static final String PREFIX = GUIDFactory.newGUID().getId();
-
     private static MongoDbAccessAdminImpl mongoDbAccess;
 
     @Test
@@ -37,16 +35,8 @@ public class MongoDbAccessAdminFactoryTest {
         mongoDbAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName(), true, "user", "pwd"));
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
-
         assertNotNull(mongoDbAccess);
         assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
-
-
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
 
         mongoDbAccess.close();
     }

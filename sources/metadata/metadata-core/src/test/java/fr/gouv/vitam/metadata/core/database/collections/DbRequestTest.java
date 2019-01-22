@@ -26,44 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.all;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.min;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
-import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -125,6 +87,44 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.isNull;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nin;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.path;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.range;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.size;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.term;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.all;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.add;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.inc;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.min;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.push;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.set;
+import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper.unset;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 public class DbRequestTest {
@@ -246,11 +246,14 @@ public class DbRequestTest {
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test");
 
+    private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
+
     @BeforeClass
     public static void beforeClass() throws Exception {
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
+            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT)));
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
-            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID_0,
+            elasticsearchAccessMetadata, TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
 
     }
@@ -260,8 +263,7 @@ public class DbRequestTest {
      */
     @AfterClass
     public static void tearDown() throws Exception {
-        MetadataCollections.afterTestClass(new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true, TENANT_ID_0,
+        MetadataCollections.afterTestClass(true, TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
     }
 
@@ -284,10 +286,10 @@ public class DbRequestTest {
      */
     @After
     public void after() throws Exception {
-        MetadataCollections.afterTestClass(new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false, TENANT_ID_0,
+        MetadataCollections.afterTest(TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
     }
+
     /**
      * Test method for execRequest
      * .

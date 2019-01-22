@@ -101,16 +101,14 @@ public class AdminManagementApplicationTest {
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         configuration = new AdminManagementConfiguration(nodes, "db-functional-administration", 
             ElasticsearchRule.VITAM_CLUSTER, nodesEs);
-        MongoDbAccessAdminImpl mongoDbAccess = MongoDbAccessAdminFactory.create(configuration);
         serverPort = junitHelper.findAvailablePort();
         VitamServerFactory.setDefaultPort(serverPort);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.afterTestClass(true);
         junitHelper.releasePort(serverPort);
     }
 

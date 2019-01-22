@@ -1,15 +1,11 @@
 package fr.gouv.vitam.logbook.rest;
 
-import java.io.File;
-import java.io.IOException;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
@@ -22,13 +18,15 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+
 public class LogbookApplicationAuthenticationTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -37,7 +35,7 @@ public class LogbookApplicationAuthenticationTest {
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
-    
+
     private static File logbook;
     private static LogbookConfiguration realLogbook;
 
@@ -48,8 +46,8 @@ public class LogbookApplicationAuthenticationTest {
         new JHades().overlappingJarsReport();
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), 0, 1);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), 0, 1);
 
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
@@ -62,9 +60,8 @@ public class LogbookApplicationAuthenticationTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws IOException, VitamException {
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, 0, 1);
+    public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, 0, 1);
         VitamClientFactory.resetConnections();
     }
 

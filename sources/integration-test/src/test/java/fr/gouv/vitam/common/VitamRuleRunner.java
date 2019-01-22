@@ -100,21 +100,15 @@ public class VitamRuleRunner {
         esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 
         MetadataCollections
-            .afterTestClass(new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes), tenants);
+            .afterTestClass(false, tenants);
         LogbookCollections
-            .afterTestClass(new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
-        FunctionalAdminCollections
-            .afterTestClass(new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes));
+            .afterTestClass(false, tenants);
+        FunctionalAdminCollections.afterTestClass(false);
     }
 
     public static void handleAfter(Integer... tenants) throws Exception {
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
-
-        MetadataCollections
-            .afterTestClass(new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes), tenants);
-        LogbookCollections
-            .afterTestClass(new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
+        MetadataCollections.afterTest(tenants);
+        LogbookCollections.afterTest(tenants);
     }
 
     private static List<Class<?>> merge(List<Class<?>> classes, List<Class<?>> classes1, List<Class<?>> classes2) {

@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -38,6 +34,10 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Metadata Collection
@@ -78,31 +78,52 @@ public enum MetadataCollections {
     }
 
     @VisibleForTesting
-    public static void afterTestClass(final ElasticsearchAccessMetadata esClient, Integer... tenants) {
-        afterTestClass(esClient, Lists.newArrayList(MetadataCollections.values()), false, tenants);
+    public static void afterTestClass(boolean deleteEsIndex, Integer... tenants) {
+        afterTestClass(Lists.newArrayList(MetadataCollections.values()), deleteEsIndex, tenants);
     }
 
     @VisibleForTesting
-    public static void afterTestClass(final ElasticsearchAccessMetadata esClient, boolean deleteEsIndex,
+    public static void afterTestClass(Collection<MetadataCollections> metadataCollections, boolean deleteEsIndex,
         Integer... tenants) {
-        afterTestClass(esClient, Lists.newArrayList(MetadataCollections.values()), deleteEsIndex, tenants);
-    }
-
-    @VisibleForTesting
-    public static void afterTestClass(final ElasticsearchAccessMetadata esClient,
-        Collection<MetadataCollections> metadataCollections, boolean deleteEsIndex, Integer... tenants) {
         if (null == metadataCollections) {
             return;
         }
-
+        ElasticsearchAccessMetadata esClient = null;
         for (MetadataCollections collection : metadataCollections) {
             collection.vitamCollection.getCollection().deleteMany(new Document());
 
-            for (Integer tenant : tenants) {
-                if (deleteEsIndex) {
-                    esClient.deleteIndex(collection, tenant);
-                } else {
-                    esClient.purgeIndex(collection.getName(), tenant);
+            if (null != collection.getEsClient()) {
+                esClient = collection.getEsClient();
+                for (Integer tenant : tenants) {
+                    if (deleteEsIndex) {
+                        collection.getEsClient().deleteIndex(collection, tenant);
+                    } else {
+                        collection.getEsClient().purgeIndex(collection.getName(), tenant);
+                    }
+                }
+            }
+        }
+        if (null != esClient) {
+            esClient.close();
+        }
+    }
+
+
+    @VisibleForTesting
+    public static void afterTest(Integer... tenants) {
+        afterTest(Lists.newArrayList(MetadataCollections.values()), tenants);
+    }
+
+    @VisibleForTesting
+    public static void afterTest(Collection<MetadataCollections> metadataCollections, Integer... tenants) {
+        if (null == metadataCollections) {
+            return;
+        }
+        for (MetadataCollections collection : metadataCollections) {
+            collection.vitamCollection.getCollection().deleteMany(new Document());
+            if (null != collection.getEsClient()) {
+                for (Integer tenant : tenants) {
+                    collection.getEsClient().purgeIndex(collection.getName(), tenant);
                 }
             }
         }

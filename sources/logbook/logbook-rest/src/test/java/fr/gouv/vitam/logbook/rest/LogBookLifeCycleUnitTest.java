@@ -248,7 +248,7 @@ public class LogBookLifeCycleUnitTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             if (application != null) {
@@ -258,8 +258,7 @@ public class LogBookLifeCycleUnitTest {
             LOGGER.error(e);
         }
 
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID);
+        LogbookCollections.afterTestClass(true, TENANT_ID);
 
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();

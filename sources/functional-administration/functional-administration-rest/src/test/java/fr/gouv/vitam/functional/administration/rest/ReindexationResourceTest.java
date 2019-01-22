@@ -26,17 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static io.restassured.RestAssured.given;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -81,13 +70,24 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static io.restassured.RestAssured.given;
+
 public class ReindexationResourceTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -132,8 +132,8 @@ public class ReindexationResourceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
         new JHades().overlappingJarsReport();
 
@@ -157,7 +157,8 @@ public class ReindexationResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        mongoDbAccess =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -181,7 +182,7 @@ public class ReindexationResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -189,8 +190,7 @@ public class ReindexationResourceTest {
             LOGGER.error(e);
         }
 
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+        FunctionalAdminCollections.afterTestClass(true);
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
     }
@@ -206,9 +206,8 @@ public class ReindexationResourceTest {
     }
 
     @After
-    public void tearDown() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false);
+    public void tearDown() {
+        FunctionalAdminCollections.afterTest();
     }
 
     @Test

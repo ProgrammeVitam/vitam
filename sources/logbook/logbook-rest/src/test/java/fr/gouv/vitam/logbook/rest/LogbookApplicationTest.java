@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -58,6 +51,13 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.fail;
+
 
 public class LogbookApplicationTest {
 
@@ -65,7 +65,7 @@ public class LogbookApplicationTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -93,8 +93,8 @@ public class LogbookApplicationTest {
         new JHades().overlappingJarsReport();
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), 0, 1);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), 0, 1);
 
         junitHelper = JunitHelper.getInstance();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
@@ -107,7 +107,8 @@ public class LogbookApplicationTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
         LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes);
+            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
+                esNodes);
         VitamConfiguration.setTenants(tenantList);
         logbookConfiguration.setOpLfcEventsToSkip(new ArrayList<>());
         logbookConfiguration.setOpEventsNotInWf(new ArrayList<>());
@@ -127,9 +128,8 @@ public class LogbookApplicationTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws IOException, VitamException {
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, 0, 1);
+    public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, 0, 1);
         mongoDbAccess.close();
         junitHelper.releasePort(serverPort);
         VitamServerFactory.setDefaultPort(oldPort);

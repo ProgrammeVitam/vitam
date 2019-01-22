@@ -167,9 +167,8 @@ public class MetadataResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        MetadataCollections.afterTestClass(elasticsearchAccessMetadata, true, 0, 1);
-        FunctionalAdminCollections.afterTestClass(accessFunctionalAdmin,
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+        MetadataCollections.afterTestClass(true, 0, 1);
+        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
         try {
             metadataMain.stop();
@@ -183,10 +182,9 @@ public class MetadataResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTestClass(elasticsearchAccessMetadata, false, 0, 1);
-        FunctionalAdminCollections.afterTestClass(accessFunctionalAdmin,
-            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), false);
+        MetadataCollections.afterTest(0, 1);
+        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {

@@ -18,33 +18,6 @@
 package fr.gouv.vitam.functional.administration.context.core;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
-import static org.mockito.internal.verification.VerificationModeFactory.times;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -58,7 +31,6 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -95,6 +67,31 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.internal.verification.VerificationModeFactory.times;
+
 public class ContextServiceImplTest {
 
     @Rule
@@ -111,7 +108,7 @@ public class ContextServiceImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(Context.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(Context.class)), "vitam-test");
 
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
@@ -128,13 +125,14 @@ public class ContextServiceImplTest {
     public static void setUpBeforeClass() throws Exception {
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        dbImpl =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
@@ -164,24 +162,23 @@ public class ContextServiceImplTest {
         accessContractService = mock(ContractService.class);
 
         contextService =
-            new ContextServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
+            new ContextServiceImpl(MongoDbAccessAdminFactory
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
                 vitamCounterService, ingestContractService, accessContractService, securityProfileService,
                 functionalBackupService);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws IOException, VitamException {
+    public static void tearDownAfterClass() {
         contextService.close();
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+        FunctionalAdminCollections.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @After
-    public void afterTest() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.INGEST_CONTRACT), false);
+    public void afterTest() {
+        FunctionalAdminCollections.afterTest(
+            Lists.newArrayList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.INGEST_CONTRACT));
         reset(ingestContractService);
         reset(functionalBackupService);
     }
@@ -215,7 +212,8 @@ public class ContextServiceImplTest {
         verifyZeroInteractions(accessContractService);
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
-            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT), any());
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT),
+            any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -247,7 +245,8 @@ public class ContextServiceImplTest {
         assertTrue(updateResponse.isOk());
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
-            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT), any());
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT),
+            any());
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -277,15 +276,15 @@ public class ContextServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileIngest = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         final List<IngestContractModel> ingestContractModels =
-                JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileIngest, new TypeReference<List<IngestContractModel>>() {
+            });
         String INGEST_CONTRACT_ID = "IC-000001";
         when(ingestContractService.findByIdentifier(INGEST_CONTRACT_ID)).thenReturn(ingestContractModels.get(0));
 
         final File fileContexts = PropertiesUtils.getResourceFile("contexts_empty.json");
         final List<ContextModel> ModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
 
         RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
         assertThat(response.isOk()).isTrue();
@@ -293,9 +292,9 @@ public class ContextServiceImplTest {
         final Select select = new Select();
         select.setQuery(eq("Name", "My_Context_1"));
         final ContextModel context =
-                contextService
-                        .findContexts(select.getFinalSelect())
-                        .getDocuments(Context.class, ContextModel.class).get(0);
+            contextService
+                .findContexts(select.getFinalSelect())
+                .getDocuments(Context.class, ContextModel.class).get(0);
 
         reset(functionalBackupService);
 
@@ -316,8 +315,8 @@ public class ContextServiceImplTest {
 
         final File fileContexts = PropertiesUtils.getResourceFile("KO_contexts_invalid_contract.json");
         final List<ContextModel> ModelList =
-                JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
-                });
+            JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
+            });
 
         RequestResponse<ContextModel> response = contextService.createContexts(ModelList);
         assertThat(response.isOk()).isFalse();
@@ -341,7 +340,8 @@ public class ContextServiceImplTest {
         assertThat(response.isOk()).isTrue();
 
         verify(functionalBackupService).saveCollectionAndSequence(any(),
-            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT), any());
+            Mockito.eq(ContextServiceImpl.CONTEXTS_BACKUP_EVENT), Mockito.eq(FunctionalAdminCollections.CONTEXT),
+            any());
         verifyNoMoreInteractions(functionalBackupService);
 
         verifyZeroInteractions(ingestContractService);

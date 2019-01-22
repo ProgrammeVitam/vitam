@@ -185,16 +185,13 @@ public class ContextResourceTest {
         }
 
         junitHelper.releasePort(serverPort);
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+        FunctionalAdminCollections.afterTestClass( true);
         VitamClientFactory.resetConnections();
     }
 
     @After
-    public void tearDown() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE), false);
+    public void tearDown() {
+        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE));
     }
 
     @Test

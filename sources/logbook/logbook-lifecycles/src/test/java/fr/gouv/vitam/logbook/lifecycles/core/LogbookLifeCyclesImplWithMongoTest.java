@@ -197,9 +197,8 @@ public class LogbookLifeCyclesImplWithMongoTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws IOException, VitamException {
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, tenantId);
+    public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, tenantId);
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();
     }

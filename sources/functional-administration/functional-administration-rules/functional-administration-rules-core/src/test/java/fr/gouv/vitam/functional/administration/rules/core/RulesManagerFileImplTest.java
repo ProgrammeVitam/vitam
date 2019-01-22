@@ -27,39 +27,6 @@
 package fr.gouv.vitam.functional.administration.rules.core;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.flipkart.zjsonpatch.JsonDiff;
@@ -134,6 +101,39 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 /**
  * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant ID
  * is changed for each call.
@@ -144,7 +144,7 @@ public class RulesManagerFileImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -159,10 +159,10 @@ public class RulesManagerFileImplTest {
     private static final String FILE_TO_TEST_RULES_DURATION_KO = "jeu_donnees_KO_regles_CSV_test.csv";
     private static final String FILE_TO_COMPARE = "jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_UPDATE_RULE_TYPE = "jeu_donnees_OK_regles_CSV_update_ruleType.csv";
-    
-    private static final String FILE_UPDATE_RULE_DURATION = "jeu_donnees_OK_regles_CSV_update_ruleDuration.csv";    
+
+    private static final String FILE_UPDATE_RULE_DURATION = "jeu_donnees_OK_regles_CSV_update_ruleDuration.csv";
     private static final String FILE_UPDATE_RULE_DESC = "jeu_donnees_OK_regles_CSV_update_ruleDesc.csv";
-    
+
     private static final String FILE_DELETE_RULE = "jeu_donnees_OK_regles_CSV_delete_rule.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";
@@ -208,7 +208,7 @@ public class RulesManagerFileImplTest {
     public static void setUpBeforeClass() throws Exception {
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                    Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
@@ -222,13 +222,14 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         dbImpl = create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         List<Integer> tenants = new ArrayList<>();
-        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8 , 9, 10, 11, 12};
+        Integer tenantsList[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
         tenants.addAll(Arrays.asList(tenantsList));
         createRuleDurationConfigration(tenants);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, null);
 
         ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes));
+            new AdminManagementConfiguration(nodes, mongoRule.getMongoDatabase().getName(),
+                ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
     }
 
@@ -245,8 +246,7 @@ public class RulesManagerFileImplTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+        FunctionalAdminCollections.afterTestClass(true);
     }
 
     /**
@@ -274,7 +274,8 @@ public class RulesManagerFileImplTest {
         Set<String> notUsedUpdatedRules = new HashSet<>();
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
-                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
+                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules,
+                notUsedDeletedRules, notUsedUpdatedRules);
         } catch (final FileRulesException e) {
             fail("Check file with FILE_TO_TEST_OK should not throw exception");
         } catch (FileRulesDeleteException e) {
@@ -285,7 +286,8 @@ public class RulesManagerFileImplTest {
 
         try {
             rulesFileManager.checkFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
-                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules);
+                errors, usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules,
+                notUsedDeletedRules, notUsedUpdatedRules);
             fail("Check file with FILE_TO_TEST_KO should throw exception");
         } catch (final FileRulesCsvException e) {
             exception.expect(FileRulesCsvException.class);
@@ -329,7 +331,7 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();        
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
         List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
@@ -337,8 +339,8 @@ public class RulesManagerFileImplTest {
         assertThatThrownBy(() -> rulesFileManager.checkFile(
             new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO_EMPTY_LINE)), errors, usedDeletedRules,
             usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
-                .isInstanceOf(FileRulesCsvException.class)
-                .hasMessageContaining("Index for header 'RuleType' is 1 but CSVRecord only has 1 values!");
+            .isInstanceOf(FileRulesCsvException.class)
+            .hasMessageContaining("Index for header 'RuleType' is 1 but CSVRecord only has 1 values!");
 
     }
 
@@ -501,7 +503,8 @@ public class RulesManagerFileImplTest {
             try {
                 select.setQuery(eq("#tenant", tenantId));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {}
+            } catch (ReferentialException e) {
+            }
             if (fileRules.size() == 0) {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
@@ -547,7 +550,8 @@ public class RulesManagerFileImplTest {
             try {
                 select.setQuery(eq("#tenant", tenantId));
                 fileRules = convertResponseResultToFileRules(rulesFileManager.findDocuments(select.getFinalSelect()));
-            } catch (ReferentialException e) {}
+            } catch (ReferentialException e) {
+            }
             if (fileRules.size() == 0) {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
                 rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)),
@@ -784,7 +788,7 @@ public class RulesManagerFileImplTest {
         Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
         List<FileRulesModel> usedDeletedRules = new ArrayList<>();
         List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();        
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
         List<FileRulesModel> insertRules = new ArrayList<>();
         Set<String> notUsedDeletedRules = new HashSet<>();
         Set<String> notUsedUpdatedRules = new HashSet<>();
@@ -793,8 +797,9 @@ public class RulesManagerFileImplTest {
         // When
         assertThatThrownBy(() -> rulesFileManager
             .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
-                usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
-                    .isInstanceOf(ReferentialException.class);
+                usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules,
+                notUsedUpdatedRules))
+            .isInstanceOf(ReferentialException.class);
 
         return rulesFileManager.generateErrorReport(errorsMap, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
             null);
@@ -926,7 +931,7 @@ public class RulesManagerFileImplTest {
                 assertEquals(ACCESS_RULE, fileRulesAfter.getRuletype());
             }
         }
-        
+
         final Path reportAfterUpdate = Paths.get(file.getAbsolutePath(), "reportAfterUpdate.json");
         getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate);
 
@@ -950,11 +955,11 @@ public class RulesManagerFileImplTest {
                 assertEquals("26", fileRulesUpdated.getRuleduration());
             }
         }
-        
-        File file2 = folder.newFolder();        
+
+        File file2 = folder.newFolder();
         final Path reportAfterUpdate2 = Paths.get(file2.getAbsolutePath(), "reportAfterUpdate.json");
         getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate2);
-        
+
         // FILE_TO_COMPARE => update 1 rule, but only one descritption
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_UPDATE_RULE_DESC)),
             FILE_UPDATE_RULE_DESC);
@@ -975,7 +980,7 @@ public class RulesManagerFileImplTest {
                 assertEquals("26", fileRulesUpdated.getRuleduration());
             }
         }
-        
+
     }
 
     @Test
@@ -986,7 +991,7 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         final Select select = new Select();
         // given
-        
+
         // init data with first import
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
@@ -1012,23 +1017,25 @@ public class RulesManagerFileImplTest {
         getInputStreamAndInitialiseMockWhenImportFileRules(reportAfterUpdate);
 
         // prepare for import ko with linked deleted rule
-        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.getFromFile(PropertiesUtils.findFile(USED_DELETED_RULE_RESULT)));
-        final ArgumentCaptor<LogbookOperationParameters> logOpParamsCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        when(metaDataClient.selectUnits(any()))
+            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.findFile(USED_DELETED_RULE_RESULT)));
+        final ArgumentCaptor<LogbookOperationParameters> logOpParamsCaptor =
+            ArgumentCaptor.forClass(LogbookOperationParameters.class);
         doNothing().when(logbookOperationsclient).update(logOpParamsCaptor.capture());
-        
+
         // when
-		assertThatThrownBy(() -> rulesFileManager
-				.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DELETE_RULE)), FILE_DELETE_RULE))
-						.isInstanceOf(FileRulesException.class);
-		List<LogbookOperationParameters> logbooks = logOpParamsCaptor.getAllValues();
-		assertThat(logbooks).hasSize(2);
-		assertThat(logbooks.get(0).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
-		assertThat(logbooks.get(0).getStatus()).isEqualTo(StatusCode.KO);
-		assertThat(logbooks.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo("CHECK_RULES");
-		assertThat(logbooks.get(1).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
-		assertThat(logbooks.get(1).getStatus()).isEqualTo(StatusCode.KO);
-		assertThat(logbooks.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo("STP_IMPORT_RULES");
-		
+        assertThatThrownBy(() -> rulesFileManager
+            .importFile(new FileInputStream(PropertiesUtils.findFile(FILE_DELETE_RULE)), FILE_DELETE_RULE))
+            .isInstanceOf(FileRulesException.class);
+        List<LogbookOperationParameters> logbooks = logOpParamsCaptor.getAllValues();
+        assertThat(logbooks).hasSize(2);
+        assertThat(logbooks.get(0).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
+        assertThat(logbooks.get(0).getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(logbooks.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo("CHECK_RULES");
+        assertThat(logbooks.get(1).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
+        assertThat(logbooks.get(1).getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(logbooks.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo("STP_IMPORT_RULES");
+
 
     }
 

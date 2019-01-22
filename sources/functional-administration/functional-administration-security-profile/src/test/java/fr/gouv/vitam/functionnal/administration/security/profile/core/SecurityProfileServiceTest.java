@@ -29,16 +29,6 @@ package fr.gouv.vitam.functionnal.administration.security.profile.core;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -55,7 +45,6 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
@@ -76,7 +65,6 @@ import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminF
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -95,7 +83,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import static fr.gouv.vitam.common.database.offset.OffsetRepository.COLLECTION_NAME;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -176,16 +163,13 @@ public class SecurityProfileServiceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true);
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.afterTestClass(true);
     }
 
     @After
-    public void afterTest() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE), false);
+    public void afterTest() {
+        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
         securityProfileService.close();
     }
 

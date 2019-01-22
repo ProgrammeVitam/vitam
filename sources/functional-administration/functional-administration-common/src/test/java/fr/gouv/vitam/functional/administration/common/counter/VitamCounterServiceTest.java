@@ -26,22 +26,9 @@
  */
 package fr.gouv.vitam.functional.administration.common.counter;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -50,18 +37,24 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.assertj.core.api.Assertions.assertThat;
 
 
 public class VitamCounterServiceTest {
@@ -78,16 +71,19 @@ public class VitamCounterServiceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(VitamSequence.class)), "vitam-test");
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().setName(
+            PREFIX + FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().getClasz().getSimpleName());
         List tenants = new ArrayList<>();
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        dbImpl =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         tenants.add(new Integer(TENANT_ID));
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant0 = new ArrayList<>();
@@ -104,25 +100,14 @@ public class VitamCounterServiceTest {
         VitamConfiguration.setAdminTenant(TENANT_ID);
 
         vitamCounterService = new VitamCounterService(dbImpl, tenants, listEnableExternalIdentifiers);
-
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.ACCESS_CONTRACT));
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+        FunctionalAdminCollections.VITAM_SEQUENCE.getCollection().drop();
         VitamClientFactory.resetConnections();
     }
 
-    @After
-    public void afterTest() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false);
-    }
 
     @Test
     @RunWithCustomExecutor
@@ -146,7 +131,9 @@ public class VitamCounterServiceTest {
 
         vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE);
         vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.SECURITY_PROFILE_SEQUENCE);
-        Integer backUpSequence = vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE).getCounter();
+        Integer backUpSequence =
+            vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE)
+                .getCounter();
         assertThat(ic).isEqualTo("IC-000003");
         assertThat(ac).isEqualTo("AC-000002");
         assertThat(pr).isEqualTo("PR-000002");

@@ -61,7 +61,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -72,7 +74,7 @@ import static com.mongodb.client.model.Sorts.descending;
  */
 public class VitamCounterService {
 
-    private static final int DEFAULT_ADMIN_TENANT = VitamConfiguration.getAdminTenant();
+    private static final Supplier<Integer> DEFAULT_ADMIN_TENANT = () -> VitamConfiguration.getAdminTenant();
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);
@@ -159,7 +161,7 @@ public class VitamCounterService {
         if (sequenceType.getCollection().isMultitenant())
             return true;
 
-        return (tenantId == DEFAULT_ADMIN_TENANT);
+        return Objects.equals(tenantId, DEFAULT_ADMIN_TENANT.get());
     }
 
     private void createSequenceIfNotExists(Integer tenantId, String sequenceName)

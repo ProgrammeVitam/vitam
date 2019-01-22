@@ -222,9 +222,7 @@ public class AdminManagementResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         FunctionalAdminCollections
-            .afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                    Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES), true);
+            .afterTestClass(Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES), true);
 
         LOGGER.debug("Ending tests");
         try {
@@ -252,9 +250,7 @@ public class AdminManagementResourceTest {
     @After
     public void tearDown() throws Exception {
         FunctionalAdminCollections
-            .afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                    Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES), false);
+            .afterTest(Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES));
     }
 
     @Test

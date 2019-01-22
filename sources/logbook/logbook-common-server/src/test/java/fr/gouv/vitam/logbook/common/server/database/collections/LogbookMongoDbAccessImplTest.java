@@ -45,7 +45,7 @@ public class LogbookMongoDbAccessImplTest {
 
     @After
     public void after() {
-        LogbookCollections.afterTestClass(null);
+        LogbookCollections.afterTest();
     }
 
     private LogbookMongoDbAccessImpl logbookMongoDbAccess =

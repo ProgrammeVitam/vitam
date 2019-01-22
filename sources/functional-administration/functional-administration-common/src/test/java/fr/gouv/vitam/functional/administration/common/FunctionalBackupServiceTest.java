@@ -68,6 +68,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -94,7 +95,8 @@ public class FunctionalBackupServiceTest {
     private String FUNCTIONAL_COLLECTION = PREFIX + "AGENCIES";
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(newArrayList(Agencies.class)), ElasticsearchRule.VITAM_CLUSTER, FUNCTIONAL_COLLECTION);
+        new MongoRule(getMongoClientOptions(newArrayList(Agencies.class)), ElasticsearchRule.VITAM_CLUSTER,
+            FUNCTIONAL_COLLECTION);
 
     @Rule
     public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(FUNCTIONAL_COLLECTION);
@@ -123,9 +125,9 @@ public class FunctionalBackupServiceTest {
     @Before
     public void setUp() throws Exception {
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
         functionalCollection = FunctionalAdminCollections.AGENCIES.getCollection();
         functionalCollection.insertOne(Document.parse(DOC1_TENANT0));
         functionalCollection.insertOne(Document.parse(DOC2_TENANT1));
@@ -141,11 +143,14 @@ public class FunctionalBackupServiceTest {
             .willReturn(vitamBackupSequence);
     }
 
+    @AfterClass
+    public static void afterClass() {
+        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.AGENCIES), true);
+    }
+
     @After
-    public void cleanUp() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Lists.newArrayList(FunctionalAdminCollections.AGENCIES),true);
+    public void cleanUp() {
+        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
     }
 
     @Test
@@ -170,9 +175,12 @@ public class FunctionalBackupServiceTest {
 
         ArgumentCaptor<String> hashArgCaptor = ArgumentCaptor.forClass(String.class);
         verify(backupLogbookManager)
-            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_" + PREFIX + "Agencies_10.json"), any());
+            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_" + PREFIX + "Agencies_10.json"),
+                any());
 
-        String expectedDump = "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + ",\"backup_sequence\":" + BACKUP_SEQUENCE_DOC + "}";
+        String expectedDump =
+            "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + ",\"backup_sequence\":" +
+                BACKUP_SEQUENCE_DOC + "}";
         String expectedDigest = new Digest(VitamConfiguration.getDefaultDigestType()).update(expectedDump).digestHex();
 
         assertThat(savedDocCapture).hasSize(1);

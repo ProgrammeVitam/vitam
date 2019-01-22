@@ -62,9 +62,8 @@ public class AdminManagementApplicationAuthenticationTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.afterTestClass(true);
     }
 
     @Test

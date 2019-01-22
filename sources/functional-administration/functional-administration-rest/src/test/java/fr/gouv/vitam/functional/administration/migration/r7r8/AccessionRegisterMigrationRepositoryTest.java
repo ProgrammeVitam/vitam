@@ -1,13 +1,5 @@
 package fr.gouv.vitam.functional.administration.migration.r7r8;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Lists;
@@ -19,7 +11,6 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -35,6 +26,13 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class AccessionRegisterMigrationRepositoryTest {
 
     private static AccessionRegisterMigrationRepository repository;
@@ -43,41 +41,45 @@ public class AccessionRegisterMigrationRepositoryTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)), "Vitam-Test");
+        new MongoRule(VitamCollection
+            .getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
+            "Vitam-Test");
 
     @Before
     public void setUpBeforeClass() throws Exception {
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         repository = new AccessionRegisterMigrationRepository();
     }
 
     @After
-    public void tearDown() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), false);
+    public void tearDown() {
+        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
     @AfterClass
-    public static void afterClass() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
+    public static void afterClass() {
+        FunctionalAdminCollections.afterTestClass(Lists
+            .newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
     }
 
     @Test
     public void testSelectAccessionRegisterDetailAndSummary_emptyDataSet() {
         // Given / When
-        try (CloseableIterator<List<Document>> listCloseableIterator = repository.selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+        try (CloseableIterator<List<Document>> listCloseableIterator = repository
+            .selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
             // Then
             assertThat(listCloseableIterator.hasNext()).isFalse();
         }
 
         // Given / When
-        try (CloseableIterator<List<Document>> listCloseableIterator = repository.selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
+        try (CloseableIterator<List<Document>> listCloseableIterator = repository
+            .selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             // Then
             assertThat(listCloseableIterator.hasNext()).isFalse();
         }
@@ -88,10 +90,12 @@ public class AccessionRegisterMigrationRepositoryTest {
 
         // Given : Complex data set with R6 model (no graph fields)
         String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), accessionRegisterDetailDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
+            accessionRegisterDetailDataSetFile);
 
         // When
-        try (CloseableIterator<List<Document>> listCloseableIterator = repository.selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+        try (CloseableIterator<List<Document>> listCloseableIterator = repository
+            .selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
 
 
             // Then
@@ -109,10 +113,12 @@ public class AccessionRegisterMigrationRepositoryTest {
 
         // Given : Complex data set with R6 model (no graph fields)
         String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), accessionRegisterDetailDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
+            accessionRegisterDetailDataSetFile);
 
         // When
-        try (CloseableIterator<List<Document>> listCloseableIterator = repository.selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
+        try (CloseableIterator<List<Document>> listCloseableIterator = repository
+            .selectAccessionRegistesBulk(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
 
 
             // Then
@@ -128,7 +134,7 @@ public class AccessionRegisterMigrationRepositoryTest {
     }
 
     private void importDataSetFile(MongoCollection<Document> mongoCollection, String dataSetFile)
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {

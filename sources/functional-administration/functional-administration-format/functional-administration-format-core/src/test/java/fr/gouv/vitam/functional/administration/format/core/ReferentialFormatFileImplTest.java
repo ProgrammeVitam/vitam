@@ -26,25 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.format.core;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl.FILE_FORMAT_REPORT;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
@@ -91,6 +72,25 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl.FILE_FORMAT_REPORT;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
+
 public class ReferentialFormatFileImplTest {
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
     String FILE_TO_TEST_OK = "DROID_SignatureFile_V94.xml";
@@ -104,7 +104,7 @@ public class ReferentialFormatFileImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class)), "vitam-test");
 
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
@@ -116,8 +116,8 @@ public class ReferentialFormatFileImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
@@ -128,22 +128,22 @@ public class ReferentialFormatFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName())), functionalBackupService, logbookOperationsClient);
+                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName())), functionalBackupService,
+            logbookOperationsClient);
         ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(mongoDbNodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes));
+            new AdminManagementConfiguration(mongoDbNodes, mongoRule.getMongoDatabase().getName(),
+                ElasticsearchRule.VITAM_CLUSTER, esNodes));
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @After
-    public void cleanup() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false);
+    public void cleanup() {
+        FunctionalAdminCollections.afterTest();
     }
 
     @Test
@@ -324,7 +324,8 @@ public class ReferentialFormatFileImplTest {
 
     private void checkFormatsInDb(int expected) {
         final MongoClient client = new MongoClient(new ServerAddress("localhost", mongoRule.getDataBasePort()));
-        final MongoCollection<Document> collection = client.getDatabase(mongoRule.getMongoDatabase().getName()).getCollection(FunctionalAdminCollections.FORMATS.getName());
+        final MongoCollection<Document> collection = client.getDatabase(mongoRule.getMongoDatabase().getName())
+            .getCollection(FunctionalAdminCollections.FORMATS.getName());
         assertEquals(expected, collection.count());
         client.close();
     }

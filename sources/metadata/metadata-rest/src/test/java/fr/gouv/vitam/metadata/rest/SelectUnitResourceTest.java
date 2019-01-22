@@ -26,16 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -70,6 +60,16 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Test for select unit (and by id) functionality
@@ -222,18 +222,17 @@ public class SelectUnitResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         try {
-            MetadataCollections.afterTestClass(accessMetadata, true, 1);
+            MetadataCollections.afterTestClass(true, 1);
             application.stop();
         } finally {
             junitHelper.releasePort(serverPort);
             VitamClientFactory.resetConnections();
         }
-
     }
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTestClass(accessMetadata, false, 0);
+        MetadataCollections.afterTest(0);
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws InvalidParseOperationException {

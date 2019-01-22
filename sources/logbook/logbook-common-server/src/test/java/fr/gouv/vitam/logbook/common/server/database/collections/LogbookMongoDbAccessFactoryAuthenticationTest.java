@@ -1,11 +1,5 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static org.junit.Assert.assertNotNull;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -29,16 +23,24 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertNotNull;
+
+@Ignore("Already tested in @see MongoDbAccessMetadataFactoryTest. This test should be reactivated when mongo docker with an authenticated user is used")
 public class LogbookMongoDbAccessFactoryAuthenticationTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -57,14 +59,13 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID);
+    public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, TENANT_ID);
         VitamClientFactory.resetConnections();
     }
 
@@ -80,7 +81,8 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
         LogbookConfiguration config =
-            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes, true, user, pwd);
+            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
+                esNodes, true, user, pwd);
         VitamConfiguration.setTenants(tenantList);
         new LogbookMongoDbAccessFactory();
         mongoDbAccess = LogbookMongoDbAccessFactory.create(config);

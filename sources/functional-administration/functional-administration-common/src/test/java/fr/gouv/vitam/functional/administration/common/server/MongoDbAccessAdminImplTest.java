@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -73,6 +74,7 @@ import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -106,13 +108,11 @@ public class MongoDbAccessAdminImplTest {
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(FileFormat.class, FileRules.class)), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(FunctionalAdminCollections.getClasses()), "vitam-test");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
-
-    private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";
 
     private static final String REUSE_RULE = "ReuseRule";
     private static final String RULE_ID_VALUE = "APK-485";
@@ -128,7 +128,6 @@ public class MongoDbAccessAdminImplTest {
 
     private static final String DEFAULT_DATE = "2018-04-05T13:34:40.234";
 
-    static int port;
     static MongoDbAccessAdminImpl mongoAccess;
     static FileFormat fileFormat1;
     static FileFormat fileFormat2;
@@ -232,17 +231,18 @@ public class MongoDbAccessAdminImplTest {
 
         context = createContext();
 
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.FORMATS));
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient);
 
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                com.google.common.collect.Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+        FunctionalAdminCollections.afterTestClass( true);
+    }
+
+    @After
+    public void after() throws Exception {
+        FunctionalAdminCollections.afterTest();
     }
 
     @Test
@@ -389,8 +389,6 @@ public class MongoDbAccessAdminImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final JsonNode jsonNode = JsonHandler.toJsonNode(register);
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
-        assertEquals(ACCESSION_REGISTER_DETAIL_COLLECTION,
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         assertEquals(1, collection.count());
@@ -594,8 +592,8 @@ public class MongoDbAccessAdminImplTest {
     @Test
     @RunWithCustomExecutor
     public void testDeleteContext()
-            throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
-            DatabaseException, SchemaValidationException, BadRequestException {
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
+        DatabaseException, SchemaValidationException, BadRequestException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contextCollection = FunctionalAdminCollections.CONTEXT;
@@ -609,7 +607,7 @@ public class MongoDbAccessAdminImplTest {
         final DbRequestResult result = mongoAccess.deleteDocument(select.getFinalSelect(), contextCollection);
         result.close();
 
-        final DbRequestResult contextFound =  mongoAccess.findDocuments(select.getFinalSelect(), contextCollection);
+        final DbRequestResult contextFound = mongoAccess.findDocuments(select.getFinalSelect(), contextCollection);
         assertEquals(0, contextFound.getTotal());
         contextFound.close();
 

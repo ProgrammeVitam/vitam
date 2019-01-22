@@ -26,14 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -65,6 +57,14 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
 
 /**
  *
@@ -154,7 +154,7 @@ public class SelectObjectGroupResourceTest {
     public static void tearDownAfterClass() throws Exception {
 
         try {
-            MetadataCollections.afterTestClass(accessMetadata, true, 0);
+            MetadataCollections.afterTestClass(true, 0);
             application.stop();
         } finally {
             junitHelper.releasePort(serverPort);
@@ -164,7 +164,7 @@ public class SelectObjectGroupResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTestClass(accessMetadata, false, 0);
+        MetadataCollections.afterTest(0);
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {

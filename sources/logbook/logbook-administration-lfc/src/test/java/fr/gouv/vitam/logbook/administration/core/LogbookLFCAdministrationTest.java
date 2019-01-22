@@ -1,26 +1,5 @@
 package fr.gouv.vitam.logbook.administration.core;
 
-import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
@@ -65,13 +44,34 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class LogbookLFCAdministrationTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -103,8 +103,8 @@ public class LogbookLFCAdministrationTest {
     @BeforeClass
     public static void init() throws IOException, VitamException {
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
 
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -129,19 +129,16 @@ public class LogbookLFCAdministrationTest {
 
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, tenantId);
+    public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, tenantId);
 
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();
     }
 
     @After
-    public void tearDown() throws VitamException, IOException {
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(LogbookCollections.OPERATION), false, tenantId);
+    public void tearDown() {
+        LogbookCollections.afterTest(Arrays.asList(LogbookCollections.OPERATION), tenantId);
     }
 
 
@@ -175,7 +172,7 @@ public class LogbookLFCAdministrationTest {
             .isEqualTo("UNIT_LFC_TRACEABILITY");
         assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
             get(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name())).isEqualTo(
-                TEMPORIZATION_DELAY.toString());
+            TEMPORIZATION_DELAY.toString());
         assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
             get(WorkerParameterName.lifecycleTraceabilityMaxEntries.name())).isEqualTo(
             MAX_ENTRIES.toString());
@@ -203,7 +200,7 @@ public class LogbookLFCAdministrationTest {
 
     @Test
     @RunWithCustomExecutor
-    public void traceabilityAuditTest() throws Exception{
+    public void traceabilityAuditTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         reset(workspaceClient);
@@ -218,24 +215,28 @@ public class LogbookLFCAdministrationTest {
         LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
 
         LogbookLFCAdministration logbookAdministration =
-                new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
-                        workspaceClientFactory, TEMPORIZATION_DELAY, MAX_ENTRIES);
+            new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
+                workspaceClientFactory, TEMPORIZATION_DELAY, MAX_ENTRIES);
 
-        for (int i=0; i<23; i++) {
+        for (int i = 0; i < 23; i++) {
             logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
             logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.ObjectGroup);
         }
 
         LogbookAuditAdministration logbookAuditAdministration =
-                new LogbookAuditAdministration(logbookOperations);
-        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
-        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
+            new LogbookAuditAdministration(logbookOperations);
+        assertEquals(23,
+            logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
+        assertEquals(23,
+            logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
 
         logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
 
-        assertEquals(24, logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
+        assertEquals(24,
+            logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
         verify(alertService, never()).createAlert(anyString());
-        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
+        assertEquals(23,
+            logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
         verify(alertService, never()).createAlert(anyString());
     }
 }

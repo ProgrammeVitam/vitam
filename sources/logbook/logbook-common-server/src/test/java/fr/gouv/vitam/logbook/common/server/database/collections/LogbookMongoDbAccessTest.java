@@ -133,8 +133,7 @@ public class LogbookMongoDbAccessTest {
     @AfterClass
     public static void tearDownAfterClass() throws IOException, VitamException {
 
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID);
+        LogbookCollections.afterTestClass(true, TENANT_ID);
 
         mongoDbAccess.close();
         VitamClientFactory.resetConnections();

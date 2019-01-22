@@ -26,31 +26,13 @@
  */
 package fr.gouv.vitam.functional.administration.accession.register.core;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -63,10 +45,9 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.*;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl;
-import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
@@ -79,6 +60,18 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
 
 public class ReferentialAccessionRegisterImplTest {
     static String ACCESSION_REGISTER_DETAIL = "accession-register_detail.json";
@@ -93,13 +86,14 @@ public class ReferentialAccessionRegisterImplTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
     public static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
-                    "vitam-db");
+        new MongoRule(
+            getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
+            "vitam-db");
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -114,31 +108,30 @@ public class ReferentialAccessionRegisterImplTest {
     public static void setUpBeforeClass() throws Exception {
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
-        esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
+        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+        esClient = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        MongoDbAccessAdminImpl mongoDbAccessAdmin = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        MongoDbAccessAdminImpl mongoDbAccessAdmin =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         accessionRegisterImpl = new ReferentialAccessionRegisterImpl(mongoDbAccessAdmin,
-                mock(FunctionalBackupService.class));
+            mock(FunctionalBackupService.class));
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+            esClient,
+            Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), true);
+        FunctionalAdminCollections.afterTestClass(true);
     }
 
     @After
     public void afterTest() throws IOException, VitamException {
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), false);
+        FunctionalAdminCollections.afterTest();
     }
 
 
@@ -150,8 +143,8 @@ public class ReferentialAccessionRegisterImplTest {
         ElasticsearchAccessFunctionalAdmin.ensureIndex();
 
         AccessionRegisterDetailModel ardm =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL),
-                        AccessionRegisterDetailModel.class);
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL),
+                AccessionRegisterDetailModel.class);
 
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
@@ -168,7 +161,7 @@ public class ReferentialAccessionRegisterImplTest {
         Select select = new Select();
         select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
         RequestResponseOK<AccessionRegisterSummary> response =
-                accessionRegisterImpl.findDocuments(select.getFinalSelect());
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
         assertThat(response.isOk()).isTrue();
         assertThat(response.getResults()).hasSize(1);
         AccessionRegisterSummary summary = response.getResults().iterator().next();
@@ -191,10 +184,10 @@ public class ReferentialAccessionRegisterImplTest {
 
         select = new Select();
         select.setQuery(
-                QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
+            QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
 
         RequestResponseOK<AccessionRegisterDetail> detailResponse =
-                accessionRegisterImpl.findDetail(select.getFinalSelect());
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
 
         assertThat(detailResponse.isOk()).isTrue();
         assertThat(detailResponse.getResults()).hasSize(1);
@@ -220,8 +213,8 @@ public class ReferentialAccessionRegisterImplTest {
 
         // Add elimination event 1
         ardm =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_ELIMINATION),
-                        AccessionRegisterDetailModel.class);
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_ELIMINATION),
+                AccessionRegisterDetailModel.class);
 
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
@@ -238,7 +231,7 @@ public class ReferentialAccessionRegisterImplTest {
         select = new Select();
         select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
         response =
-                accessionRegisterImpl.findDocuments(select.getFinalSelect());
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
         assertThat(response.isOk()).isTrue();
         assertThat(response.getResults()).hasSize(1);
         summary = response.getResults().iterator().next();
@@ -261,10 +254,10 @@ public class ReferentialAccessionRegisterImplTest {
 
         select = new Select();
         select.setQuery(
-                QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
+            QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
 
         detailResponse =
-                accessionRegisterImpl.findDetail(select.getFinalSelect());
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
 
         assertThat(detailResponse.isOk()).isTrue();
         assertThat(detailResponse.getResults()).hasSize(1);
@@ -290,8 +283,8 @@ public class ReferentialAccessionRegisterImplTest {
 
         // Add elimination event 1
         ardm =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_ELIMINATION_2),
-                        AccessionRegisterDetailModel.class);
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_ELIMINATION_2),
+                AccessionRegisterDetailModel.class);
 
         accessionRegisterImpl.createOrUpdateAccessionRegister(ardm);
 
@@ -308,7 +301,7 @@ public class ReferentialAccessionRegisterImplTest {
         select = new Select();
         select.setQuery(QueryHelper.eq("OriginatingAgency", "OG_1"));
         response =
-                accessionRegisterImpl.findDocuments(select.getFinalSelect());
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
         assertThat(response.isOk()).isTrue();
         assertThat(response.getResults()).hasSize(1);
         summary = response.getResults().iterator().next();
@@ -331,10 +324,10 @@ public class ReferentialAccessionRegisterImplTest {
 
         select = new Select();
         select.setQuery(
-                QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
+            QueryHelper.and().add(QueryHelper.eq("Opi", "Opi_1"), QueryHelper.eq("OriginatingAgency", "OG_1")));
 
         detailResponse =
-                accessionRegisterImpl.findDetail(select.getFinalSelect());
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
 
         assertThat(detailResponse.isOk()).isTrue();
         assertThat(detailResponse.getResults()).hasSize(1);
@@ -362,24 +355,24 @@ public class ReferentialAccessionRegisterImplTest {
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterDetail()
-            throws Exception {
+        throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_OK),
-                AccessionRegisterDetailModel.class);
+            AccessionRegisterDetailModel.class);
         ElasticsearchAccessFunctionalAdmin.ensureIndex();
 
         register.setOriginatingAgency("testFindAccessionRegisterDetailAgency");
 
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection =
-                mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
+            mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
         assertEquals(1, collection.count());
 
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "testFindAccessionRegisterDetailAgency"));
         final RequestResponseOK<AccessionRegisterDetail> detail =
-                accessionRegisterImpl.findDetail(select.getFinalSelect());
+            accessionRegisterImpl.findDetail(select.getFinalSelect());
         assertEquals(1, detail.getResults().size());
         final AccessionRegisterDetail item = detail.getResults().get(0);
         assertEquals("testFindAccessionRegisterDetailAgency", item.getOriginatingAgency());
@@ -388,21 +381,21 @@ public class ReferentialAccessionRegisterImplTest {
     @Test
     @RunWithCustomExecutor
     public void testFindAccessionRegisterSummary()
-            throws Exception {
+        throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         register = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(FILE_TO_TEST_2_OK),
-                AccessionRegisterDetailModel.class);
+            AccessionRegisterDetailModel.class);
         ElasticsearchAccessFunctionalAdmin.ensureIndex();
 
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection =
-                mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
+            mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
         assertEquals(1, collection.count());
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OG_1"));
         final RequestResponseOK<AccessionRegisterSummary> summary =
-                accessionRegisterImpl.findDocuments(select.getFinalSelect());
+            accessionRegisterImpl.findDocuments(select.getFinalSelect());
         assertEquals(1, summary.getResults().size());
         final AccessionRegisterSummary item = summary.getResults().get(0);
         assertEquals("OG_1", item.getOriginatingAgency());

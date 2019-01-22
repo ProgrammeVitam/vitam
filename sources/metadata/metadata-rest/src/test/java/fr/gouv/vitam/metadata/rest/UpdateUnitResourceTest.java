@@ -147,7 +147,7 @@ public class UpdateUnitResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         try {
-            MetadataCollections.afterTestClass(esClient, true, 0);
+            MetadataCollections.afterTestClass(true, 0);
             application.stop();
         } finally {
             junitHelper.releasePort(serverPort);
@@ -157,7 +157,7 @@ public class UpdateUnitResourceTest {
 
     @After
     public void tearDown() {
-        MetadataCollections.afterTestClass(esClient, false, 0);
+        MetadataCollections.afterTest(0);
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws InvalidParseOperationException {

@@ -238,14 +238,11 @@ public class WebApplicationResourceDeleteTest {
             LOGGER.error(e);
         }
 
-        FunctionalAdminCollections.afterTestClass(new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true);
+        FunctionalAdminCollections.afterTestClass(true);
 
-        MetadataCollections.afterTestClass(new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID, 1);
+        MetadataCollections.afterTestClass(true, TENANT_ID, 1);
 
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID, 1);
+        LogbookCollections.afterTestClass(true, TENANT_ID, 1);
 
         mongoDbAccessAdmin.close();
         mongoDbAccessLogbook.close();

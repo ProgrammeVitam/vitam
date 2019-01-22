@@ -226,8 +226,7 @@ public class LogbookResourceIT {
             LOGGER.error(e);
         }
 
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, tenantId);
+        LogbookCollections.afterTestClass(true, tenantId);
 
         junitHelper.releasePort(serverPort);
         junitHelper.releasePort(workspacePort);
