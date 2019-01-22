@@ -34,7 +34,7 @@ vitam_defaults:
     syslog_facility: local0
 
 # Used in ingest, unitary update, mass-update
-classificationList: ["Secret Défense", "Confidentiel Défense"]
+classificationList: ["Non protégé","Secret Défense", "Confidentiel Défense"]
 # Used in ingest, unitary update, mass-update
 classificationLevelOptional: true
 
