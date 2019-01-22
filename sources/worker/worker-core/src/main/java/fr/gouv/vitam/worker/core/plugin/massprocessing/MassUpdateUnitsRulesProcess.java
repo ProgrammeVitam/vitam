@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
@@ -43,7 +42,14 @@ import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.DurationData;
+import fr.gouv.vitam.common.model.IngestWorkflowConstants;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
@@ -86,7 +92,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -373,8 +379,10 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             }
 
             // Never compute any endDate if no correct StartDate is given
-            if (startDateString == null) { continue; }
-            LocalDateTime startDate = LocalDateUtil.parseMongoFormattedDate(startDateString);
+            if (startDateString == null) {
+                continue;
+            }
+            LocalDate startDate = LocalDate.parse(startDateString);
             if (startDate.getYear() >= 9000) {
                 throw new IllegalStateException("Wrong Start Date: Year should be lower than 9000 but get " + startDate.getYear());
             }

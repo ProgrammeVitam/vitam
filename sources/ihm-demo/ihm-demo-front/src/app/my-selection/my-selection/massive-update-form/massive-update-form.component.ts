@@ -215,7 +215,7 @@ export class MassiveUpdateFormComponent implements OnInit {
               updates[categoryKey].Rules.push({
                 OldRule: rule.OriginRule,
                 Rule: rule.Rule,
-                StartDate: rule.StartDate
+                StartDate: DateService.dateToString(rule.StartDate)
               });
               nbUpdates++;
               break;
@@ -230,7 +230,7 @@ export class MassiveUpdateFormComponent implements OnInit {
               }
               additions[categoryKey].Rules.push({
                 Rule: rule.Rule,
-                StartDate: rule.StartDate
+                StartDate: DateService.dateToString(rule.StartDate)
               });
               nbUpdates++;
               break;
