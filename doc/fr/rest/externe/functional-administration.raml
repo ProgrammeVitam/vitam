@@ -380,6 +380,54 @@ documentation:
            required: false
            enum: [ "application/json", "application/octet-stream" ]
 
+/griffin:
+  displayName: griffons
+  description: Téléverser le référentiel des griffon
+  get:
+    description: Permet de télécharger le référentiel des griffons
+    is: [AdminTraits.AdminListingResponse]
+  post:
+    description: Téléverse le référentiel des griffons ou annule et remplace les référentiels existant
+    is: [AdminTraits.AdminListingResponse, AdminTraits.AdminUpload]
+
+  /{id_document}:
+    uriParameters:
+      id_document:
+        required: true
+        description: Identifiant du griffon
+    displayName: griffons
+    description: API qui permet de télécharger un griffon via l'identifiant du document
+    get:
+      description: |
+        Permet de faire une requête par identifiant sur un griffon.
+        L'identifiant du griffon est la chaîne "id_document" dans l'URL.
+        la requête renvoie alors le griffon au format json.
+      is: [AdminTraits.AdminListingResponse]
+
+/preservationScenario:
+  displayName: scénario de préservation
+  description: Télécharger le référentiel des scénario de préservation
+  get:
+    description: Permet de télécharger le référentiel des scénario de préservation
+    is: [AdminTraits.AdminListingResponse]
+  post:
+    description: Téléverse le référentiel des scénarios de préservation ou annule et remplace les référentiels existant
+    is: [AdminTraits.AdminListingResponse, AdminTraits.AdminUpload]
+
+  /{id_document}:
+    uriParameters:
+      id_document:
+        required: true
+        description: Identifiant du scénario de préservation
+    displayName: scénario de préservation
+    description: API qui permet de télécharger un scénario de préservation via l'identifiant du document
+    get:
+      description: |
+        Permet de faire une requête par identifiant sur un scénario de préservation.
+        L'identifiant du scénario de préservation est la chaîne "id_document" dans l'URL.
+        la requête renvoie alors le scénario de préservation au format json.
+      is: [AdminTraits.AdminListingResponse]
+
 /archiveunitprofiles:
   displayName: Document Types
   description: |

@@ -230,6 +230,7 @@ documentation:
   displayName: Elimination
   description: |
     API qui définit les requêtes pour l'élimination des unités archivistiques.
+
   /analysis:
     displayName: Opération d'analyse des unités archivistiques éliminables.
     description: |
@@ -313,6 +314,29 @@ documentation:
           description: Precondition Failed, date in json input body is not parsable, therefore the operation is not possible
           body:
             application/json:
+
+/preservation:
+  displayName: Préservation
+  description: |
+    Opération de préservation des unités archivistiques.
+  post:
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/json" ]
+    description: |
+      Exécute une opération de préservation sur (une ou) les unités archivistiques.
+    is: [AccessTraits.PreservationResponseAsync]
+    responses:
+      200:
+        description: Success
+        body:
+          application/json:
+            description: Success response
+      412:
+        description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+        body:
+          application/json:
 
 /:
   displayName: Endpoints
