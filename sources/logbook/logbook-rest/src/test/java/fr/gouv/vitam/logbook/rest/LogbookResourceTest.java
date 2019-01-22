@@ -88,10 +88,12 @@ import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.jhades.JHades;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -103,6 +105,9 @@ import org.junit.rules.TemporaryFolder;
 @RunWithCustomExecutor
 public class LogbookResourceTest {
 
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
+
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
@@ -111,8 +116,6 @@ public class LogbookResourceTest {
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
     private static final String LIFECYCLES_TRACEABILITY_CHECK = "/lifecycles/traceability/check/";
 
     @Rule
@@ -171,26 +174,28 @@ public class LogbookResourceTest {
     @Rule
     public WireMockClassRule processingInstanceRule = processingWireMockRule;
 
+    private static LogbookElasticsearchAccess elasticsearchAccess;
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
-
-        final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
-        realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
-        realLogbook.getElasticsearchNodes().get(0).setTcpPort(ElasticsearchRule.TCP_PORT);
-        realLogbook.setWorkspaceUrl("http://localhost:" + workspacePort);
-        realLogbook.setProcessingUrl("http://localhost:" + processingPort);
-
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+
+        elasticsearchAccess = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                elasticsearchAccess, TENANT_ID);
+
+        final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
+        realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
+        realLogbook.setElasticsearchNodes(esNodes);
+        realLogbook.setWorkspaceUrl("http://localhost:" + workspacePort);
+        realLogbook.setProcessingUrl("http://localhost:" + processingPort);
+
+
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
@@ -272,14 +277,19 @@ public class LogbookResourceTest {
             LOGGER.error(e);
         }
 
-        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID);
+        LogbookCollections.afterTestClass(elasticsearchAccess,true, TENANT_ID);
 
         mongoDbAccess.close();
         junitHelper.releasePort(workspacePort);
         junitHelper.releasePort(processingPort);
         VitamClientFactory.resetConnections();
     }
+
+    @After
+    public void tearDown() {
+        LogbookCollections.afterTestClass(elasticsearchAccess,false, TENANT_ID);
+    }
+
 
     @Test
     public final void testTraceability() {
