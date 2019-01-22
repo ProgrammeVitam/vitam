@@ -27,18 +27,18 @@
 
 package fr.gouv.vitam.common.junit;
 
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.net.ServerSocket;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.net.ServerSocket;
+
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class JunitHelperTest {
 
@@ -51,26 +51,22 @@ public class JunitHelperTest {
         try {
             junitFindAvailablePort0.isListeningOn("znN>", -4608);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn("znN>", 65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn(-4608);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             junitFindAvailablePort0.isListeningOn(65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         assertFalse(junitFindAvailablePort0.isListeningOn("znN>", 1025));
     }
 

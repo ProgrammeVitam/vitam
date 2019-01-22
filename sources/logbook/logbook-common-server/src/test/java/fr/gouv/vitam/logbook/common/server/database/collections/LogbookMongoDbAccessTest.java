@@ -35,47 +35,33 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
-
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.server.mongodb.VitamMongoCursor;
 import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -94,58 +80,49 @@ import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookV
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 
 /**
  * MongoDbAccess Test
  */
 public class LogbookMongoDbAccessTest {
 
-    private static final String DATABASE_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final Integer TENANT_ID = 0;
     private static final List<Integer> tenantList = Arrays.asList(0);
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
-    private final static String ES_HOST_NAME = "localhost";
-    // ES
-    @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+
     static LogbookDbAccess mongoDbAccess;
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    private static JunitHelper junitHelper;
-    private static int port;
-    private static ElasticsearchTestConfiguration config = null;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+    public static void setUpBeforeClass() throws IOException, VitamException {
 
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
         LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
 
         mongoDbAccess =
@@ -154,14 +131,12 @@ public class LogbookMongoDbAccessTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
+    public static void tearDownAfterClass() throws IOException, VitamException {
+
+        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID);
+
         mongoDbAccess.close();
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
         VitamClientFactory.resetConnections();
     }
 

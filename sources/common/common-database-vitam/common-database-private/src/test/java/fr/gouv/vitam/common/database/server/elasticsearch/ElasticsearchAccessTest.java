@@ -28,25 +28,15 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
+import fr.gouv.vitam.common.exception.VitamException;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 
 public class ElasticsearchAccessTest {
     private final static String HOST_NAME = "localhost";

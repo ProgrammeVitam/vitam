@@ -1,28 +1,20 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -34,27 +26,29 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
-import ru.yandex.qatools.embed.service.MongoEmbeddedService;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class LogbookMongoDbAccessFactoryAuthenticationTest {
-    private static final String DATABASE_HOST = "localhost";
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     static LogbookMongoDbAccessImpl mongoDbAccess;
-    private static int port;
-    private static JunitHelper junitHelper;
-    private static MongoEmbeddedService mongo;
-    private static final String databaseName = "db-logbook";
-    private static final String user = "user-logbook";
-    private static final String pwd = "user-logbook";
 
     private static final Integer TENANT_ID = 0;
     private static final List<Integer> tenantList = Arrays.asList(0);
-
-    // ES
-    @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
-    private final static String ES_HOST_NAME = "localhost";
-    private static ElasticsearchTestConfiguration config = null;
+    private static final String user = "user-logbook";
+    private static final String pwd = "user-logbook";
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -62,29 +56,15 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
-
-        // Starting the embedded services within temporary dir
-        mongo = new MongoEmbeddedService(
-            DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
-        mongo.start();
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        mongo.stop();
-        junitHelper.releasePort(port);
+        LogbookCollections.afterTestClass(new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),true, TENANT_ID);
         VitamClientFactory.resetConnections();
     }
 
@@ -94,18 +74,17 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // mongo
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         // es
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
         LogbookConfiguration config =
-            new LogbookConfiguration(nodes, databaseName, ES_CLUSTER_NAME, esNodes, true, user, pwd);
+            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER, esNodes, true, user, pwd);
         VitamConfiguration.setTenants(tenantList);
         new LogbookMongoDbAccessFactory();
         mongoDbAccess = LogbookMongoDbAccessFactory.create(config);
         assertNotNull(mongoDbAccess);
-        assertEquals("db-logbook", mongoDbAccess.getMongoDatabase().getName());
         final LogbookOperationParameters parameters = LogbookParametersFactory.newLogbookOperationParameters();
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             if (LogbookParameterName.eventDateTime.equals(name)) {
