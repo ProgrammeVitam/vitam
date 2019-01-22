@@ -27,47 +27,65 @@
 
 package fr.gouv.vitam.storage.offers.common.database;
 
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
-import org.bson.Document;
-import org.junit.Rule;
-import org.junit.Test;
-
 public class OfferSequenceServiceTest {
 
     private static final String DATABASE_NAME = "Vitam-test";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
-    @Rule
-    public MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
-        OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION);
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        for (OfferCollections o : OfferCollections.values()) {
+            o.setPrefix(PREFIX);
+            mongoRule.addCollectionToBePurged(o.getName());
+        }
+    }
+
+
+    @After
+    public void after() throws Exception {
+        mongoRule.handleAfter();
+    }
 
     @Test
     public void testOfferSequenceService() throws ContentAddressableStorageDatabaseException {
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(mongoRule.getMongoDatabase());
 
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find())
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
             .hasSize(0);
 
         service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find())
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
             .hasSize(1)
             .extracting("Counter").containsExactly(1L);
 
-        assertThat(mongoRule.getMongoCollection(OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION).find())
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
             .hasSize(1)
             .extracting("Counter").containsExactly(1L);
 
     }
+
     @Test
     public void should_throw_ContentAddressableStorageDatabaseException_on_getOfferLog_when_mongo_throws_MongoException() {
         // given

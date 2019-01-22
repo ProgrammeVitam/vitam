@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.common.elasticsearch;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -49,9 +49,8 @@ import org.junit.rules.ExternalResource;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -75,7 +74,7 @@ public class ElasticsearchRule extends ExternalResource {
         }
 
         if (null != collectionNames) {
-            this.collectionNames = Lists.newArrayList(collectionNames);
+            this.collectionNames = Sets.newHashSet(collectionNames);
 
         }
         // TODO: 12/13/17 create index for each collection
@@ -95,7 +94,7 @@ public class ElasticsearchRule extends ExternalResource {
 
 
     private Client client;
-    private List<String> collectionNames = new ArrayList<>();
+    private Set<String> collectionNames = new HashSet<>();
 
     @Override
     protected void after() {
@@ -190,7 +189,7 @@ public class ElasticsearchRule extends ExternalResource {
         for (String collectionName : collectionNames) {
             deleteIndex(client, collectionName);
         }
-        collectionNames = new ArrayList<>();
+        collectionNames = new HashSet<>();
     }
 
     // Add index to be purged

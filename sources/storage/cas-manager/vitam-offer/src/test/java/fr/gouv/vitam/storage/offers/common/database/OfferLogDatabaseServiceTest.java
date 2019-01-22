@@ -26,17 +26,24 @@
  */
 package fr.gouv.vitam.storage.offers.common.database;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
+import com.mongodb.MongoException;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.junit.After;
 import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -44,27 +51,22 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
+import java.util.List;
 
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.Order;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class OfferLogDatabaseServiceTest {
 
     private static final String DATABASE_NAME = "Vitam-test";
     private static final String CONTAINER_OBJECT_0 = "object_0";
     private static final String CONTAINER_OBJECT_1 = "object_1";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
-    @Rule
-    public MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
-        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -73,6 +75,20 @@ public class OfferLogDatabaseServiceTest {
     private OfferSequenceDatabaseService offerSequenceDatabaseService;
 
     private OfferLogDatabaseService offerLogDatabaseService;
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        for (OfferCollections o : OfferCollections.values()) {
+            o.setPrefix(PREFIX);
+            mongoRule.addCollectionToBePurged(o.getName());
+        }
+    }
+
+
+    @After
+    public void after() throws Exception {
+        mongoRule.handleAfter();
+    }
 
     @Before
     public void setUp() {
@@ -94,13 +110,13 @@ public class OfferLogDatabaseServiceTest {
         verify(offerSequenceDatabaseService, Mockito.times(2))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
 
-        Document firstOfferLog = mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
+        Document firstOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
             .find(Filters.and(Filters.eq("FileName", "object_name_0.json"), Filters.eq("Sequence", 1L)))
             .first();
         assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
         assertThat(firstOfferLog.get("Sequence")).isEqualTo(1);
         assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
-        Document secondOfferLog = mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
+        Document secondOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
             .find(Filters.and(Filters.eq("FileName", "object_name_0.json"), Filters.eq("Sequence", 2L)))
             .first();
         assertThat(secondOfferLog.get("FileName")).isEqualTo("object_name_0.json");
@@ -122,14 +138,14 @@ public class OfferLogDatabaseServiceTest {
         verify(offerSequenceDatabaseService, Mockito.times(2))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
 
-        Document firstOfferLog = mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
+        Document firstOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
             .find(Filters.and(Filters.eq("FileName", "object_name_0.json"), Filters.eq("Sequence", 1L)))
             .first();
         assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
         assertThat(firstOfferLog.get("Sequence")).isEqualTo(1);
         assertThat(firstOfferLog.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
 
-        Document secondOfferLog = mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
+        Document secondOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
             .find(Filters.and(Filters.eq("FileName", "object_name_1.json"), Filters.eq("Sequence", 2L)))
             .first();
         assertThat(secondOfferLog.get("FileName")).isEqualTo("object_name_1.json");
@@ -150,7 +166,7 @@ public class OfferLogDatabaseServiceTest {
         verify(offerSequenceDatabaseService, Mockito.times(1))
             .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
 
-        Document firstOfferLog = mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
+        Document firstOfferLog = mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
             .find(Filters.and(Filters.eq("FileName", "object_name_0.json"))).first();
         assertThat(firstOfferLog.get("FileName")).isEqualTo("object_name_0.json");
         assertThat(firstOfferLog.get("Sequence")).isEqualTo(longSequence);
@@ -302,15 +318,14 @@ public class OfferLogDatabaseServiceTest {
     }
 
     @Test
-    public void should_have_parse_error_when_document_invalid_time()
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+    public void should_have_parse_error_when_document_invalid_time() {
         // given
         Document documentInvalid = new Document();
         documentInvalid.put("Sequence", 1L);
         documentInvalid.put("FileName", "object_name_0.json");
         documentInvalid.put("Container", CONTAINER_OBJECT_0);
         documentInvalid.put("Time", CONTAINER_OBJECT_0);
-        mongoRule.getMongoCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME).insertOne(documentInvalid);
+        mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName()).insertOne(documentInvalid);
 
         // when + then
         assertThatCode(() -> {

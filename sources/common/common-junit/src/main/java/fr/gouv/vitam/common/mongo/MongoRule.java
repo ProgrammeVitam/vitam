@@ -26,12 +26,7 @@
  */
 package fr.gouv.vitam.common.mongo;
 
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
@@ -48,6 +43,11 @@ import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import org.bson.Document;
 import org.junit.rules.ExternalResource;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Launch a single instance of Mongo database, drop collection after each test
@@ -75,7 +75,7 @@ public class MongoRule extends ExternalResource {
 
     private final MongoClient mongoClient;
     private String dataBaseName;
-    private List<String> collectionNames;
+    private Set<String> collectionNames;
 
         /**
          * @param clientOptions
@@ -84,7 +84,11 @@ public class MongoRule extends ExternalResource {
          */
     public MongoRule(MongoClientOptions clientOptions, String dataBaseName, String... collectionNames) {
         this.dataBaseName = dataBaseName;
-        this.collectionNames = Arrays.asList(collectionNames);
+        if (null != collectionNames) {
+            this.collectionNames = Sets.newHashSet(collectionNames);
+        } else {
+            this.collectionNames = new HashSet<>();
+        }
 
         mongoClient = new MongoClient(new ServerAddress("localhost", dataBasePort), clientOptions);
    }
@@ -104,6 +108,11 @@ public class MongoRule extends ExternalResource {
         }
     }
 
+    // Add index to be purged
+    public MongoRule addCollectionToBePurged(String collection) {
+        collectionNames.add(collection);
+        return this;
+    }
     /**
      * Used when annotated @ClassRule
      */

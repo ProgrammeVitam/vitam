@@ -27,36 +27,9 @@
 
 package fr.gouv.vitam.storage.offers.common.driver;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.nio.file.Files;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
-import org.bson.Document;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import io.restassured.RestAssured;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
-
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -72,6 +45,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -80,10 +54,34 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
+import io.restassured.RestAssured;
+import org.bson.Document;
+import org.jhades.JHades;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Integration driver offer tests
@@ -96,6 +94,7 @@ public class DriverToOfferTest {
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String DATABASE_NAME = "Vitam";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     private static DriverImpl driver;
 
@@ -113,19 +112,28 @@ public class DriverToOfferTest {
     private static String CONTAINER;
     private static StorageOffer offer = new StorageOffer();
 
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
-            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
 
+    @After
+    public void after() throws Exception {
+        mongoRule.handleAfter();
+    }
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        for (OfferCollections o : OfferCollections.values()) {
+            o.setPrefix(PREFIX);
+            mongoRule.addCollectionToBePurged(o.getName());
+        }
+
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
-        final OfferConfiguration realWorkspaceOffer = PropertiesUtils.readYaml(workspaceOffer, OfferConfiguration.class);
+        final OfferConfiguration realWorkspaceOffer =
+            PropertiesUtils.readYaml(workspaceOffer, OfferConfiguration.class);
         File newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         List<MongoDbNode> mongoDbNodes = realWorkspaceOffer.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
@@ -164,7 +172,7 @@ public class DriverToOfferTest {
 
         // delete files
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                StorageConfiguration.class);
+            StorageConfiguration.class);
         final File container = new File(conf.getStoragePath() + CONTAINER);
         File object = new File(container.getAbsolutePath(), guid);
         Files.deleteIfExists(object.toPath());
@@ -179,7 +187,7 @@ public class DriverToOfferTest {
     public void integrationTest() throws Exception {
         // check offer database emptiness
         FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME).getCollection
-            (OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME).find();
+            (OfferCollections.OFFER_LOG.getName()).find();
         assertThat(results).hasSize(0);
 
         offer.setBaseUrl("https://localhost:" + serverPort);
@@ -192,7 +200,7 @@ public class DriverToOfferTest {
         offer.setId("Default");
 
         driver.addOffer(offer, null);
-        
+
         connection = driver.connect(offer.getId());
         assertNotNull(connection);
 
@@ -200,15 +208,17 @@ public class DriverToOfferTest {
         guid = GUIDFactory.newObjectGUID(TENANT_ID).toString();
         File archiveFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         try (FileInputStream fin = new FileInputStream(archiveFile)) {
-            final MessageDigest messageDigest = MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
+            final MessageDigest messageDigest =
+                MessageDigest.getInstance(VitamConfiguration.getDefaultDigestType().getName());
             try (DigestInputStream digestInputStream = new DigestInputStream(fin, messageDigest)) {
                 request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid,
-                        VitamConfiguration.getDefaultDigestType().getName(), digestInputStream);
+                    VitamConfiguration.getDefaultDigestType().getName(), digestInputStream);
                 request.setSize(archiveFile.length());
                 final StoragePutResult result = connection.putObject(request);
                 assertNotNull(result);
 
-                final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+                final StorageConfiguration conf =
+                    PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
                         StorageConfiguration.class);
                 final File container = new File(conf.getStoragePath() + CONTAINER);
                 assertNotNull(container);
@@ -223,13 +233,13 @@ public class DriverToOfferTest {
         }
 
         results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME).getCollection
-            (OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME).find(Filters.and(Filters.eq("Container", TENANT_ID +
-                "_unit"),Filters.eq("FileName", guid)));
+            (OfferCollections.OFFER_LOG.getName()).find(Filters.and(Filters.eq("Container", TENANT_ID +
+            "_unit"), Filters.eq("FileName", guid)));
         assertThat(results).hasSize(1);
 
         try (FileInputStream fin = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             request = new StoragePutRequest(null, DataCategory.UNIT.name(), guid,
-                    VitamConfiguration.getDefaultDigestType().getName(), fin);
+                VitamConfiguration.getDefaultDigestType().getName(), fin);
             request.setSize(archiveFile.length());
             connection.putObject(request);
             fail("Should have an exception !");
@@ -237,27 +247,28 @@ public class DriverToOfferTest {
             // Nothing, missing tenant parameter
         }
 
-        final StorageObjectRequest getRequest = new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
+        final StorageObjectRequest getRequest =
+            new StorageObjectRequest(TENANT_ID, DataCategory.UNIT.getFolder(), guid);
         connection.getObject(getRequest);
 
         // Add some objects
         for (int i = 0; i < 150; i++) {
             try (FakeInputStream fis = new FakeInputStream(50)) {
                 request = new StoragePutRequest(TENANT_ID, DataCategory.UNIT.name(), "f" + i,
-                        VitamConfiguration.getDefaultDigestType().getName(), fis);
+                    VitamConfiguration.getDefaultDigestType().getName(), fis);
                 request.setSize(50);
                 connection.putObject(request);
             }
         }
         results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME).getCollection
-            (OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME).find(Filters.eq("Container", TENANT_ID + "_unit"));
+            (OfferCollections.OFFER_LOG.getName()).find(Filters.eq("Container", TENANT_ID + "_unit"));
         // Take into account first object created at the beginning !!!
         assertThat(results).hasSize(151);
 
         for (int i = 0; i < 150; i++) {
             results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME).getCollection
-                (OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME).find(Filters.and(Filters.eq("Container", TENANT_ID +
-                "_unit"),Filters.eq("FileName", "f" + i)));
+                (OfferCollections.OFFER_LOG.getName()).find(Filters.and(Filters.eq("Container", TENANT_ID +
+                "_unit"), Filters.eq("FileName", "f" + i)));
             assertThat(results).hasSize(1);
         }
 
@@ -268,7 +279,7 @@ public class DriverToOfferTest {
         assertNotNull(response.getHeaderString(GlobalDataRest.X_CURSOR_ID));
 
         listRequest = new StorageListRequest(TENANT_ID, DataCategory.UNIT.getFolder(),
-                response.getHeaderString(GlobalDataRest.X_CURSOR_ID), true);
+            response.getHeaderString(GlobalDataRest.X_CURSOR_ID), true);
         response = connection.listObjects(listRequest);
         assertNotNull(response);
         assertEquals(Response.Status.OK.getStatusCode(), response.getHttpCode());

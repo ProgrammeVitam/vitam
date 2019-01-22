@@ -43,6 +43,7 @@ import java.util.regex.Pattern;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -83,7 +84,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -126,21 +126,23 @@ public class RestoreBackupIT {
 
     static TemporaryFolder folder = new TemporaryFolder();
 
-    private static RestoreBackupService recoverBuckupService;
+    private static RestoreBackupService recoverBackupService;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
-        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        OfferCollections.OFFER_LOG.setPrefix(GUIDFactory.newGUID().getId());
+        OfferCollections.OFFER_SEQUENCE.setPrefix(GUIDFactory.newGUID().getId());
+        mongoRule.addCollectionToBePurged(OfferCollections.OFFER_LOG.getName());
+        mongoRule.addCollectionToBePurged(OfferCollections.OFFER_SEQUENCE.getName());
 
         containerName = String.format("%s_%s", TENANT_ID, DataCategory.BACKUP.getCollectionName().toLowerCase());
-        recoverBuckupService = new RestoreBackupServiceImpl();
+        recoverBackupService = new RestoreBackupServiceImpl();
 
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
@@ -179,7 +181,7 @@ public class RestoreBackupIT {
             serverConfiguration.setUrlWorkspace(seg[0]);
         }
         serverConfiguration
-            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + Integer.toString(workspacePort));
+            .setUrlWorkspace(serverConfiguration.getUrlWorkspace() + ":" + workspacePort);
 
         folder.create();
         serverConfiguration.setZippingDirecorty(folder.newFolder().getAbsolutePath());
@@ -254,9 +256,9 @@ public class RestoreBackupIT {
 
     @After
     public void tearDown() throws Exception {
+        mongoRule.handleAfter();
         // delete the container on the Workspace
         workspaceClient.deleteContainer(containerName, true);
-        mongoRule.handleAfter();
         // clean offers
         cleanOffers();
     }
@@ -265,7 +267,7 @@ public class RestoreBackupIT {
     @RunWithCustomExecutor
     public void testRetrievalLastBackupVersion_emptyResult() throws Exception {
         // get the last version of the json backup files.
-        Optional<String> lastBackupVersion = recoverBuckupService
+        Optional<String> lastBackupVersion = recoverBackupService
             .getLatestSavedFileName(STRATEGY_ID, DataCategory.RULES, FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup version found.");
@@ -280,7 +282,7 @@ public class RestoreBackupIT {
         prepareBackupStorage();
 
         // get the last version of the json backup files.
-        Optional<String> lastBackupVersion = recoverBuckupService
+        Optional<String> lastBackupVersion = recoverBackupService
             .getLatestSavedFileName(STRATEGY_ID, DataCategory.BACKUP, FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(lastBackupVersion.isPresent());
@@ -294,7 +296,7 @@ public class RestoreBackupIT {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // get the backup copy file.
-        Optional<CollectionBackupModel> collectionBackup = recoverBuckupService
+        Optional<CollectionBackupModel> collectionBackup = recoverBackupService
             .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
 
         LOGGER.debug("No backup copy found.");
@@ -309,7 +311,7 @@ public class RestoreBackupIT {
         prepareBackupStorage();
 
         // get the backup copy file.
-        Optional<CollectionBackupModel> collectionBackup = recoverBuckupService
+        Optional<CollectionBackupModel> collectionBackup = recoverBackupService
             .readLatestSavedFile(STRATEGY_ID, FunctionalAdminCollections.RULES);
 
         Assert.assertTrue(collectionBackup.isPresent());

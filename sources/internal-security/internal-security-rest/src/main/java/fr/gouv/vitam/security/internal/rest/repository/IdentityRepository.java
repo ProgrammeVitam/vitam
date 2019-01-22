@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.security.internal.rest.repository;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -56,9 +57,14 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
 
     private final CertificateCRLCheckRepositoryHelper crlRepositoryHelper;
 
-    public IdentityRepository(MongoDbAccess mongoDbAccess) {
-        identityCollection = mongoDbAccess.getMongoDatabase().getCollection(CERTIFICATE_COLLECTION);
+    @VisibleForTesting
+    public IdentityRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+        identityCollection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
         crlRepositoryHelper = new CertificateCRLCheckRepositoryHelper(identityCollection);
+    }
+
+    public IdentityRepository(MongoDbAccess mongoDbAccess) {
+        this(mongoDbAccess, CERTIFICATE_COLLECTION);
     }
 
     /**

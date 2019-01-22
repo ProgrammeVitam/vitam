@@ -54,6 +54,7 @@ import static org.junit.Assert.assertTrue;
 public class IdentityRepositoryTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
+    private final static String CERTIFICATE_COLLECTION = "Certificate" + GUIDFactory.newGUID().getId();
 
     @Rule
     public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, CERTIFICATE_COLLECTION);
@@ -63,9 +64,9 @@ public class IdentityRepositoryTest {
     private MongoCollection<Document> certificateCollection;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
-        identityRepository = new IdentityRepository(mongoDbAccess);
+        identityRepository = new IdentityRepository(mongoDbAccess, CERTIFICATE_COLLECTION);
         certificateCollection = mongoRule.getMongoCollection(CERTIFICATE_COLLECTION);
     }
 

@@ -34,6 +34,7 @@ import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.bson.Document;
 import org.junit.Before;
@@ -53,7 +54,7 @@ public class PreservationReportRepositoryTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
     private static final int TENANT_ID = 0;
-    public static final String PRESERVATION_REPORT = "PreservationReport";
+    public static final String PRESERVATION_REPORT = "PreservationReport" + GUIDFactory.newGUID().getId();
 
     @Rule
     public MongoRule mongoRule =
@@ -68,7 +69,7 @@ public class PreservationReportRepositoryTest {
     @Before
     public void setUp() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
-        repository = new PreservationReportRepository(mongoDbAccess);
+        repository = new PreservationReportRepository(mongoDbAccess, PRESERVATION_REPORT);
         preservationReportCollection = mongoRule.getMongoCollection(PRESERVATION_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
         preservationReportModel = new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,

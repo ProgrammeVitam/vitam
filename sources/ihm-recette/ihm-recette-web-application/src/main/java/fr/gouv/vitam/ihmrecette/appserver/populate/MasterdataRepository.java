@@ -26,24 +26,10 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.mongodb.MongoException;
-import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-
-import com.mongodb.client.model.InsertOneModel;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -53,8 +39,18 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
-import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.common.xcontent.XContentType;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * insert into metadata in bulk mode
@@ -72,7 +68,7 @@ public class MasterdataRepository {
     private static final String RULE_CATEGORY = "RULE_CATEGORY";
 
     private MongoDatabase metadataDb;
-    private TransportClient transportClient;
+    private Client transportClient;
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
 
@@ -83,7 +79,7 @@ public class MasterdataRepository {
     
     private static String ACCESS_CONTRACTS_TEMPLATE;
 
-    public MasterdataRepository(MongoDatabase metadataDb, TransportClient transportClient) {
+    public MasterdataRepository(MongoDatabase metadataDb, Client transportClient) {
         this.metadataDb = metadataDb;
         this.transportClient = transportClient;
         try {

@@ -18,8 +18,7 @@ import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetad
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
+import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
@@ -65,9 +64,9 @@ public class VitamRuleRunner {
         new MongoRule(VitamCollection.getMongoClientOptions(
             merge(MetadataCollections.getClasses(), LogbookCollections.getClasses(),
                 FunctionalAdminCollections.getClasses())), "Vitam-Test",
-            OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION,
+            OfferCollections.OFFER_SEQUENCE.getName(),
             OffsetRepository.COLLECTION_NAME,
-            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME,
+            OfferCollections.OFFER_LOG.getName(),
             PersonalRepository.PERSONAL_COLLECTION,
             EliminationActionObjectGroupRepository.ELIMINATION_ACTION_OBJECT_GROUP,
             EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT);
@@ -113,9 +112,9 @@ public class VitamRuleRunner {
         esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 
         MetadataCollections
-                .afterTestClass(new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes), tenants);
+            .afterTestClass(new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes), tenants);
         LogbookCollections
-                .afterTestClass(new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
+            .afterTestClass(new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes), tenants);
     }
 
     private static List<Class<?>> merge(List<Class<?>> classes, List<Class<?>> classes1, List<Class<?>> classes2) {

@@ -28,8 +28,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
-import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -52,8 +50,9 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.*;
-import static fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
@@ -61,6 +60,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 public class EliminationActionUnitRepositoryTest {
 
     private final static String CLUSTER_NAME = "vitam-cluster";
+    private final static String ELIMINATION_ACTION_UNIT = "EliminationActionUnit" + GUIDFactory.newGUID().getId();
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
 
@@ -75,7 +75,7 @@ public class EliminationActionUnitRepositoryTest {
     @Before
     public void setUp() throws Exception {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
-        repository = new EliminationActionUnitRepository(mongoDbAccess);
+        repository = new EliminationActionUnitRepository(mongoDbAccess, ELIMINATION_ACTION_UNIT);
         eliminationUnitCollection = mongoRule.getMongoCollection(ELIMINATION_ACTION_UNIT);
     }
 
