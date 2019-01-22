@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.Map;
 
 public class ResultPreservation {
-    @JsonProperty("requestId")
+    @JsonProperty("RequestId")
     private String requestId;
-    @JsonProperty("id")
+    @JsonProperty("Id")
     private String id;
-    @JsonProperty("outputs")
+    @JsonProperty("Outputs")
     private Map<String, List<OutputPreservation>> outputs;
 
     public ResultPreservation() {

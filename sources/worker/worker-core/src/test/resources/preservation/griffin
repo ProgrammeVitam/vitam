@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-echo '{"requestId":"REQUEST_ID","id":"batch-reference","outputs":{"TEST_ID":[{"input":{"Name":"TEST_ID","FormatId":"fmt/41"},"status":"OK","analyseResult":"NOT_VALID","action":"ANALYSE"}]}}' > "$1/result.json"
+echo '{"RequestId":"REQUEST_ID","Id":"batch-reference","Outputs":{"TEST_ID":[{"Input":{"Name":"TEST_ID","FormatId":"fmt/41"},"Status":"OK","AnalyseResult":"NOT_VALID","Action":"ANALYSE"}]}}' > "$1/result.json"
