@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,69 +23,85 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
-
+ *******************************************************************************/
+package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
+import java.util.Set;
 
-public class ParametersPreservation {
-    @JsonProperty("RequestId")
-    private String requestId;
-    @JsonProperty("Id")
-    private String id;
-    @JsonProperty("Actions")
-    private List<ActionPreservation> actions;
-    @JsonProperty("Inputs")
-    private List<InputPreservation> inputs;
+/**
+ * GriffinByFormat class
+ */
+public class GriffinByFormat {
+    @NotEmpty
+    @JsonProperty("FormatList")
+    private Set<String> formatList;
+
+    @NotEmpty
+    @JsonProperty("GriffinIdentifier")
+    private String griffinIdentifier;
+
+    @Positive
+    @JsonProperty("Timeout")
+    private int timeOut;
+
+    @Positive
+    @JsonProperty("MaxSize")
+    private int maxSize;
+
     @JsonProperty("Debug")
     private boolean debug;
 
-    public ParametersPreservation() {
+    @NotEmpty
+    @JsonProperty("ActionDetail")
+    private List<ActionPreservation> actionDetail;
+
+    public GriffinByFormat() {//default Constructor
     }
 
-    public ParametersPreservation(String requestId, String batchId, List<InputPreservation> input,
-        List<ActionPreservation> actions, boolean debug) {
-        this.requestId = requestId;
-        this.id = batchId;
-        this.inputs = input;
-        this.actions = actions;
-        this.debug = debug;
+    public GriffinByFormat(@NotEmpty Set<String> formatList,
+        @NotEmpty String griffinIdentifier,
+        @NotEmpty List<ActionPreservation> actionDetail) {
+        this.formatList = formatList;
+        this.griffinIdentifier = griffinIdentifier;
+        this.actionDetail = actionDetail;
     }
 
-    public String getRequestId() {
-        return requestId;
+    public Set<String> getFormatList() {
+        return formatList;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
+    public void setFormatList(Set<String> formatList) {
+        this.formatList = formatList;
     }
 
-    public String getId() {
-        return id;
+    public String getGriffinIdentifier() {
+        return griffinIdentifier;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setGriffinIdentifier(String griffinIdentifier) {
+        this.griffinIdentifier = griffinIdentifier;
     }
 
-    public List<ActionPreservation> getActions() {
-        return actions;
+    public int getTimeOut() {
+        return timeOut;
     }
 
-    public void setActions(List<ActionPreservation> actions) {
-        this.actions = actions;
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
     }
 
-    public List<InputPreservation> getInputs() {
-        return inputs;
+    public int getMaxSize() {
+        return maxSize;
     }
 
-    public void setInputs(List<InputPreservation> inputs) {
-        this.inputs = inputs;
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
     }
 
     public boolean isDebug() {
@@ -96,15 +112,11 @@ public class ParametersPreservation {
         this.debug = debug;
     }
 
-    @Override
-    public String toString() {
-        return "Parameters{" +
-            "requestId='" + requestId + '\'' +
-            ", id='" + id + '\'' +
-            ", actions=" + actions +
-            ", inputs=" + inputs +
-            ", debug=" + debug +
-            '}';
+    public List<ActionPreservation> getActionDetail() {
+        return actionDetail;
+    }
+
+    public void setActionDetail(List<ActionPreservation> actionDetail) {
+        this.actionDetail = actionDetail;
     }
 }
-

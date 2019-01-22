@@ -24,26 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.administration;
+package fr.gouv.vitam.common.model.administration.preservation;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
 
 import javax.validation.constraints.NotEmpty;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static java.util.Optional.empty;
-
+import javax.validation.constraints.NotNull;
 /**
- * PreservationScenarioModel class
+ * GriffinModel class
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class PreservationScenarioModel {
+public class GriffinModel {
 
     private static final String TAG_DESCRIPTION = "Description";
 
@@ -55,13 +48,9 @@ public class PreservationScenarioModel {
 
     public static final String TAG_LAST_UPDATE = "LastUpdate";
 
-    private static final String TAG_ACTION_LIST = "ActionList";
+    private static final String TAG_EXECUTABLE_VERSION = "ExecutableVersion";
 
-    private static final String TAG_GRIFFIN_BY_FORMAT = "GriffinByFormat";
-
-    private static final String TAG_DEFAULT_GRIFFIN = "DefaultGriffin";
-
-    private static final String TAG_METADATA_FILTER = "MetadataFilter";
+    private static final String TAG_EXECUTABLE_NAME = "ExecutableName";
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
     private String id;
@@ -90,33 +79,26 @@ public class PreservationScenarioModel {
     private String lastUpdate;
 
     @NotEmpty
-    @JsonProperty(TAG_ACTION_LIST)
-    private List<ActionTypePreservation> actionList;
+    @JsonProperty(TAG_EXECUTABLE_NAME)
+    private String executableName;
 
-    @JsonProperty(TAG_METADATA_FILTER)
-    private List<String> metadataFilter;
+    @NotEmpty
+    @JsonProperty(TAG_EXECUTABLE_VERSION)
+    private String executableVersion;
 
-    @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
-    private List<GriffinByFormat> griffinByFormat;
 
-    @JsonProperty(TAG_DEFAULT_GRIFFIN)
-    private GriffinByFormat defaultGriffin;
-
-    public PreservationScenarioModel() {
+    public GriffinModel() {
+        // empty constructor
     }
 
-    public PreservationScenarioModel(@NotEmpty String name,
-        @NotEmpty String identifier,
-        @NotEmpty List<ActionTypePreservation> actionList,
-        @NotEmpty List<String> metadataFilter,
-        @NotEmpty List<GriffinByFormat> griffinByFormat,
-        @NotEmpty GriffinByFormat defaultGriffin) {
+    public GriffinModel(@NotNull @NotEmpty String name,
+        @NotNull @NotEmpty String identifier,
+        @NotNull @NotEmpty String executableName,
+        @NotNull @NotEmpty String executableVersion) {
         this.name = name;
         this.identifier = identifier;
-        this.actionList = actionList;
-        this.metadataFilter = metadataFilter;
-        this.griffinByFormat = griffinByFormat;
-        this.defaultGriffin = defaultGriffin;
+        this.executableName = executableName;
+        this.executableVersion = executableVersion;
     }
 
     public String getId() {
@@ -183,107 +165,20 @@ public class PreservationScenarioModel {
         this.lastUpdate = lastUpdate;
     }
 
-    public List<ActionTypePreservation> getActionList() {
-        return actionList;
+    public String getExecutableName() {
+        return executableName;
     }
 
-    public void setActionList(List<ActionTypePreservation> actionList) {
-        this.actionList = actionList;
+    public void setExecutableName(String executableName) {
+        this.executableName = executableName;
     }
 
-    public List<String> getMetadataFilter() {
-        return metadataFilter;
+    public String getExecutableVersion() {
+        return executableVersion;
     }
 
-    public void setMetadataFilter(List<String> metadataFilter) {
-        this.metadataFilter = metadataFilter;
+    public void setExecutableVersion(String executableVersion) {
+        this.executableVersion = executableVersion;
     }
 
-    public List<GriffinByFormat> getGriffinByFormat() {
-        return griffinByFormat;
-    }
-
-    public void setGriffinByFormat(List<GriffinByFormat> griffinByFormat) {
-        this.griffinByFormat = griffinByFormat;
-    }
-
-    public GriffinByFormat getDefaultGriffin() {
-        return defaultGriffin;
-    }
-
-    public void setDefaultGriffin(GriffinByFormat defaultGriffin) {
-        this.defaultGriffin = defaultGriffin;
-    }
-
-    public Optional<String> getGriffinIdentifierByFormat(String format) {
-
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
-            return empty();
-        }
-
-        for (GriffinByFormat element : griffinByFormat) {
-            if (element.getFormatList().contains(format)) {
-                return Optional.of(element.getGriffinIdentifier());
-            }
-        }
-        return empty();
-    }
-
-    @JsonIgnore
-    public Optional<GriffinByFormat> getGriffinByFormat(String format) {
-
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
-            return empty();
-        }
-
-        Optional<GriffinByFormat> first =
-            griffinByFormat.stream()
-                .filter(e -> e.getFormatList().contains(format))
-                .findFirst();
-
-        if (first.isPresent()) {
-            return first;
-        }
-
-        if (defaultGriffin == null) {
-            return empty();
-        }
-
-        return Optional.of(defaultGriffin);
-    }
-
-
-    @JsonIgnore
-    public Set<String> getAllGriffinIdentifiers() {
-
-        Set<String> identifierSet = new HashSet<>();
-
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
-            return identifierSet;
-        }
-
-        griffinByFormat.forEach(g -> identifierSet.add(g.getGriffinIdentifier()));
-
-        if (defaultGriffin != null)
-            identifierSet.add(defaultGriffin.getGriffinIdentifier());
-
-        return identifierSet;
-    }
-
-    @Override public String toString() {
-        return "PreservationScenarioModel{" +
-            "id='" + id + '\'' +
-            ", tenant=" + tenant +
-            ", version=" + version +
-            ", name='" + name + '\'' +
-            ", identifier='" + identifier + '\'' +
-            ", description='" + description + '\'' +
-            ", creationDate='" + creationDate + '\'' +
-            ", lastUpdate='" + lastUpdate + '\'' +
-            ", actionList=" + actionList +
-            ", metadataFilter=" + metadataFilter +
-            ", griffinByFormat=" + griffinByFormat +
-            ", defaultGriffin=" + defaultGriffin +
-            '}';
-    }
 }

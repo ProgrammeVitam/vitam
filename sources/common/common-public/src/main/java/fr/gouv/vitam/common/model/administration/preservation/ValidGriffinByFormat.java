@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,46 +23,27 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.model.administration;
+ *******************************************************************************/
+package fr.gouv.vitam.common.model.administration.preservation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ActionPreservation {
-    @JsonProperty("Type")
-    private ActionTypePreservation type;
-    @JsonProperty("Values")
-    private ValuesPreservation values;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-    public ActionPreservation() {
-    }
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
-    }
+@Constraint(validatedBy = GriffinByFormatValidator.class)
+@Target({ METHOD, PARAMETER })
+@Retention(RUNTIME)
+public @interface ValidGriffinByFormat    {
+    String message() default "griffinBy format has to be valid";
 
-    public ActionTypePreservation getType() {
-        return type;
-    }
+    Class<?>[] groups() default {};
 
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
-    }
+    Class<? extends Payload>[] payload() default {};
 
-    public ValuesPreservation getValues() {
-        return values;
-    }
-
-    public void setValues(ValuesPreservation values) {
-        this.values = values;
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
-    }
 }
-

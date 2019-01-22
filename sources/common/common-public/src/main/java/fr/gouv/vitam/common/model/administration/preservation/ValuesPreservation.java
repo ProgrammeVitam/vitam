@@ -24,87 +24,69 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.preservation.model;
-
+package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 
+import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-public class ParametersPreservation {
-    @JsonProperty("RequestId")
-    private String requestId;
-    @JsonProperty("Id")
-    private String id;
-    @JsonProperty("Actions")
-    private List<ActionPreservation> actions;
-    @JsonProperty("Inputs")
-    private List<InputPreservation> inputs;
-    @JsonProperty("Debug")
-    private boolean debug;
+public class ValuesPreservation {
 
-    public ParametersPreservation() {
+    @JsonProperty("Extension")
+    private String extension;
+    @NotEmpty
+    @JsonProperty("Args")
+    private List<String> args;
+    @JsonProperty("DataToExtract")
+    private Map<String, String> dataToExtract;
+
+    public ValuesPreservation() {    }
+
+    public ValuesPreservation(String extension, List<String> args) {
+        this.extension = extension;
+        this.args = args;
     }
 
-    public ParametersPreservation(String requestId, String batchId, List<InputPreservation> input,
-        List<ActionPreservation> actions, boolean debug) {
-        this.requestId = requestId;
-        this.id = batchId;
-        this.inputs = input;
-        this.actions = actions;
-        this.debug = debug;
+    public ValuesPreservation(Map<String, String> dataToExtract) {
+        this.dataToExtract = dataToExtract;
     }
 
-    public String getRequestId() {
-        return requestId;
+    public String getExtension() {
+        return extension;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
+    public void setExtension(String extension) {
+        this.extension = extension;
     }
 
-    public String getId() {
-        return id;
+    public List<String> getArgs() {
+        if (args == null) {
+            return Collections.emptyList();
+        }
+        return args;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setArgs(List<String> args) {
+        this.args = args;
     }
 
-    public List<ActionPreservation> getActions() {
-        return actions;
+    public Map<String, String> getDataToExtract() {
+        return dataToExtract;
     }
 
-    public void setActions(List<ActionPreservation> actions) {
-        this.actions = actions;
-    }
-
-    public List<InputPreservation> getInputs() {
-        return inputs;
-    }
-
-    public void setInputs(List<InputPreservation> inputs) {
-        this.inputs = inputs;
-    }
-
-    public boolean isDebug() {
-        return debug;
-    }
-
-    public void setDebug(boolean debug) {
-        this.debug = debug;
+    public void setDataToExtract(Map<String, String> dataToExtract) {
+        this.dataToExtract = dataToExtract;
     }
 
     @Override
     public String toString() {
-        return "Parameters{" +
-            "requestId='" + requestId + '\'' +
-            ", id='" + id + '\'' +
-            ", actions=" + actions +
-            ", inputs=" + inputs +
-            ", debug=" + debug +
+        return "Values{" +
+            "Extension='" + extension + '\'' +
+            ", Args=" + args +
+            ", DataToExtract=" + dataToExtract +
             '}';
     }
 }
-

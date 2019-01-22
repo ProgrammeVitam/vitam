@@ -1,8 +1,8 @@
 package fr.gouv.vitam.functional.administration.griffin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
@@ -11,9 +11,10 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
-import fr.gouv.vitam.common.model.administration.GriffinByFormat;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -21,7 +22,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -38,18 +38,18 @@ import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+import static com.google.common.collect.ImmutableSet.of;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollection;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -83,9 +83,9 @@ public class PreservationScenarioServiceTest {
         defaultScenarioModel = new PreservationScenarioModel(
             "name",
             "id",
-            Collections.singletonList(ActionTypePreservation.GENERATE),
-            Collections.singletonList("string"),
-            Collections.singletonList(new GriffinByFormat()),
+            singletonList(ActionTypePreservation.GENERATE),
+            singletonList("string"),
+            singletonList(new GriffinByFormat()),
             new GriffinByFormat());
         defaultScenarioModel.setVersion(1);
         GUID guid = newGUID();
@@ -217,7 +217,7 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
         //Given
@@ -225,7 +225,7 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
     }
@@ -237,9 +237,9 @@ public class PreservationScenarioServiceTest {
         PreservationScenarioModel secondScenarioModel = new PreservationScenarioModel(
             "name",
             "id",
-            Collections.singletonList(ActionTypePreservation.GENERATE),
-            Collections.singletonList("string"),
-            Collections.singletonList(new GriffinByFormat()),
+            singletonList(ActionTypePreservation.GENERATE),
+            singletonList("string"),
+            singletonList(new GriffinByFormat()),
             new GriffinByFormat());
 
         // Then
@@ -257,7 +257,7 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
         //Given
@@ -265,7 +265,7 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
     }
@@ -278,7 +278,7 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
         //Given
@@ -286,7 +286,7 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
     }
@@ -304,10 +304,9 @@ public class PreservationScenarioServiceTest {
         when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
             .thenReturn(new ArrayList<>());
 
-
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
         //Given
@@ -315,30 +314,25 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
     }
 
-    @Ignore
+
     @Test
     @RunWithCustomExecutor
-    public void shouldFailedValidateScenarioWhenDefaultGriffinIsNullOrEmpty() throws Exception {
+    public void shouldFailedValidateDefaultGriffinHasNoActionDetail() throws Exception {
         //Given
-        defaultScenarioModel.setDefaultGriffin(null);
+        GriffinByFormat format =
+            new GriffinByFormat(of("fmt"), "id",  ImmutableList.of(new ActionPreservation()));
+        defaultScenarioModel.setDefaultGriffin(format);
 
         // Then
         assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
-
-        //Given
-        defaultScenarioModel.setDefaultGriffin(new GriffinByFormat());
-
-        // Then
-        assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(Collections.singletonList(defaultScenarioModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
+            .isInstanceOf(ReferentialException.class);
 
     }
+
 }

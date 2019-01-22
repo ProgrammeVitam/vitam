@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,68 +23,19 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
+ *******************************************************************************/
+package fr.gouv.vitam.common.model.administration.preservation;
+
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
+/**
+ * GriffinByFormatValidator class
  */
-package fr.gouv.vitam.common.model.administration;
+public class GriffinByFormatValidator implements ConstraintValidator<ValidGriffinByFormat, GriffinByFormat> {
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
-public class ValuesPreservation {
-
-    @JsonProperty("Extension")
-    private String extension;
-    @JsonProperty("Args")
-    private List<String> args;
-    @JsonProperty("DataToExtract")
-    private Map<String, String> dataToExtract;
-
-    public ValuesPreservation() {    }
-
-    public ValuesPreservation(String extension, List<String> args) {
-        this.extension = extension;
-        this.args = args;
-    }
-
-    public ValuesPreservation(Map<String, String> dataToExtract) {
-        this.dataToExtract = dataToExtract;
-    }
-
-    public String getExtension() {
-        return extension;
-    }
-
-    public void setExtension(String extension) {
-        this.extension = extension;
-    }
-
-    public List<String> getArgs() {
-        if (args == null) {
-            return Collections.emptyList();
-        }
-        return args;
-    }
-
-    public void setArgs(List<String> args) {
-        this.args = args;
-    }
-
-    public Map<String, String> getDataToExtract() {
-        return dataToExtract;
-    }
-
-    public void setDataToExtract(Map<String, String> dataToExtract) {
-        this.dataToExtract = dataToExtract;
-    }
-
-    @Override
-    public String toString() {
-        return "Values{" +
-            "Extension='" + extension + '\'' +
-            ", Args=" + args +
-            ", DataToExtract=" + dataToExtract +
-            '}';
-    }
+   public boolean isValid(GriffinByFormat griffinByFormat, ConstraintValidatorContext context) {
+      return false;
+   }
 }
