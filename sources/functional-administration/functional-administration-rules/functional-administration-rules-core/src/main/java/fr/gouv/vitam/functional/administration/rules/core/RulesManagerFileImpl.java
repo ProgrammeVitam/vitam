@@ -37,12 +37,7 @@ import static fr.gouv.vitam.functional.administration.common.ReportConstants.JDO
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.MESSAGE;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.OUT_MESSG;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -197,6 +192,9 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
     private static final String STP_IMPORT_RULES_SUCCESS =
         "Succès du processus d'enregistrement de la copie du référentiel des règles de gestion";
 
+    private static final String STP_IMPORT_RULES_FAILURE =
+            "Echec du processus d'enregistrement de la copie du référentiel des règles de gestion";
+
     private static final String USED_DELETED_RULES = "usedDeletedRules";
     private static final String USED_UPDATED_RULES = "usedUpdatedRules";
     private static final String RESULTS = "$results";
@@ -218,6 +216,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     private static final String CHECK_RULES = "CHECK_RULES";
     private static final String CHECK_RULES_INVALID_CSV = "INVALID_CSV";
+    private static final String STP_IMPORT_RULES_ENCODING_NOT_UTF_EIGHT = "INVALID_CSV_ENCODING_NOT_UTF_EIGHT";
     private static final String MAX_DURATION_EXCEEDS = "MAX_DURATION_EXCEEDS";
     private static final String CHECK_RULES_IMPORT_IN_PROCESS = "IMPORT_IN_PROCESS";
     private static final String COMMIT_RULES = "COMMIT_RULES";
@@ -320,7 +319,10 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
             updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, filename);
             throw e;
-        } catch (FileRulesException e) {
+        } catch (IOException e ){
+            handleIOException(filename, errors, usedDeletedRulesForReport, usedUpdateRulesForReport, eip, eip1, e);
+            throw e;
+        }catch (FileRulesException e) {
             throw e;
         } catch (FileRulesImportInProgressException e) {
             updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(CHECK_RULES_IMPORT_IN_PROCESS, eip);
@@ -332,6 +334,18 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             file.delete();
         }
 
+    }
+
+    private void handleIOException(String filename, Map<Integer, List<ErrorReport>> errors, List<FileRulesModel> usedDeletedRulesForReport, List<FileRulesModel> usedUpdateRulesForReport, GUID eip, GUID eip1, IOException e) throws StorageException, InvalidParseOperationException {
+        updateCheckFileRulesLogbookOperationWhenCheckBeforeImportIsKo(STP_IMPORT_RULES_ENCODING_NOT_UTF_EIGHT, eip);
+        final String jsonReportFile = eip + ".json";
+        InputStream stream = generateReportKO(errors,usedDeletedRulesForReport,usedUpdateRulesForReport,eip);
+        try {
+            backupService.saveFile(stream, eip, RULES_REPORT, DataCategory.REPORT, jsonReportFile);
+        } catch (VitamException ve) {
+            throw new StorageException(ve.getMessage(), ve);
+        }
+        updateStpImportRulesLogbookOperation(eip, eip1, StatusCode.KO, "Error Encoding File : " + filename + " : "+ e.getMessage());
     }
 
     private void generateReportCommitAndSecureFileRules(File file, final GUID eip, final GUID eip1,
@@ -406,7 +420,7 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
         InputStream fileInputStream = null; 
     	try {
             usedUpdateRulesForReport.addAll(usedUpdateRulesForUpdateUnit);
-            
+
             generateReport(errors, eip, usedDeletedRulesForReport, usedUpdateRulesForReport);
             Set<String> usedUpdateRules = new HashSet<>();
             for (FileRulesModel fileRuleModel : usedUpdateRulesForReport) {
@@ -1625,9 +1639,41 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
 
     }
 
+    /**
+     * generate Report KO
+     *
+     * @param errors the list of error for generated errors
+     * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit
+     * @param usedUpdatedRules list of fileRules that attempt to be updated but have reference to unit
+     * @return the error report inputStream
+     */
+    private InputStream generateReportKO(Map<Integer, List<ErrorReport>> errors,
+                                         List<FileRulesModel> usedDeletedRules, List<FileRulesModel> usedUpdatedRules, GUID eip) {
+        final ObjectNode reportFinal = JsonHandler.createObjectNode();
+        final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
+        final ArrayNode usedDeletedArrayNode = JsonHandler.createArrayNode();
+        final ArrayNode usedUpdatedArrayNode = JsonHandler.createArrayNode();
+        guidmasterNode.put(EV_TYPE, STP_IMPORT_RULES);
+        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        guidmasterNode.put(EV_ID, eip.toString());
+        guidmasterNode.put(OUT_MESSG,
+                STP_IMPORT_RULES_FAILURE);
+        for (FileRulesModel fileRulesModel : usedDeletedRules) {
+            usedDeletedArrayNode.add(fileRulesModel.toString());
+        }
+        for (FileRulesModel fileRulesModel : usedUpdatedRules) {
+            usedUpdatedArrayNode.add(fileRulesModel.toString());
+        }
+        reportFinal.set(JDO_DISPLAY, guidmasterNode);
+        reportFinal.set(USED_DELETED_RULES, usedDeletedArrayNode);
+        reportFinal.set(USED_UPDATED_RULES, usedUpdatedArrayNode);
+        String json = JsonHandler.unprettyPrint(reportFinal);
+        return new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+
+    }
 
     /**
-     * generate Error Report
+     * generate  Report OK
      *
      * @param errors the list of error for generated errors
      * @param usedDeletedRules list of fileRules that attempt to be deleted but have reference to unit

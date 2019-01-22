@@ -29,9 +29,7 @@ package fr.gouv.vitam.functional.administration.rules.core;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -46,10 +44,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -164,6 +159,7 @@ public class RulesManagerFileImplTest {
     private static final String FILE_DELETE_RULE = "jeu_donnees_OK_regles_CSV_delete_rule.csv";
     private static final String FILE_TO_TEST_KO_INVALID_FORMAT = "jeu_donnees_KO_regles_CSV_invalid_format.csv";
     private static final String FILE_TO_TEST_KO_MISSING_COLUMN = "jeu_donnees_KO_regles_CSV_missing_column.csv";
+    private static final String FILE_TO_TEST_KO_INVALID_ENCODING = "jeu_donnees_OK_regles_CSV_regles_latin3-1.csv";
     private static final String STP_IMPORT_RULES = "STP_IMPORT_RULES";
     private static final String USED_UPDATED_RULE_RESULT = "used_updated_rule_result.json";
     private static final String USED_DELETED_RULE_RESULT = "used_deleted_rule_result.json";
@@ -685,6 +681,94 @@ public class RulesManagerFileImplTest {
             () -> rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
                 FILE_TO_TEST_KO)).isInstanceOf(FileRulesCsvException.class).hasMessageContaining("Invalid CSV File");
 
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldRetrieveIOExceptionWhenImportCsvWithBadEncodingFormatNotUTF8() throws Exception {
+        int tenantId = 0;
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+
+        // mock Storage
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+
+        // given
+        LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
+        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+                .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+
+        // prepare logbook operation capture
+        final ArgumentCaptor<LogbookOperationParameters> logOpParamsCaptor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
+        doNothing().when(logbookOperationsclient).update(logOpParamsCaptor.capture());
+
+        // when
+        assertThatThrownBy(() -> rulesFileManager
+                .importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO_INVALID_ENCODING)), FILE_TO_TEST_KO_INVALID_ENCODING))
+                .isInstanceOf(IOException.class);
+
+        List<LogbookOperationParameters> logbooks = logOpParamsCaptor.getAllValues();
+        assertThat(logbooks).hasSize(2);
+        assertThat(logbooks.get(0).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
+        assertThat(logbooks.get(0).getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(logbooks.get(0).getParameterValue(LogbookParameterName.eventType)).isEqualTo("CHECK_RULES");
+        assertThat(logbooks.get(0).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("CHECK_RULES.INVALID_CSV_ENCODING_NOT_UTF_EIGHT.KO");
+        assertThat(logbooks.get(0).getParameterValue(LogbookParameterName.outcomeDetailMessage)).isEqualTo("Échec du contrôle de la conformité du fichier des règles de gestion : fichier CSV n'est pas encodé en UTF8");
+        assertThat(logbooks.get(1).getTypeProcess()).isEqualTo(LogbookTypeProcess.MASTERDATA);
+        assertThat(logbooks.get(1).getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(logbooks.get(1).getParameterValue(LogbookParameterName.eventType)).isEqualTo("STP_IMPORT_RULES");
+        assertThat(logbooks.get(1).getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo("STP_IMPORT_RULES.KO");
+        assertThat(logbooks.get(1).getParameterValue(LogbookParameterName.outcomeDetailMessage)).isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
+
+        // Given
+        final InputStream reportInputStream =
+                getInputStreamAndInitialiseMockWhenCheckRuleFileFailsInCharConverionException(FILE_TO_TEST_KO_INVALID_ENCODING);
+        // When
+        final JsonNode errorReportAtJson = JsonHandler.getFromInputStream(reportInputStream);
+        final JsonNode errorNode = errorReportAtJson.get(ReportConstants.JDO_DISPLAY);
+
+        // Then
+        assertThat(errorNode.get("outMessg").asText())
+                .isEqualTo("Échec du processus d'import du référentiel des règles de gestion");
+        assertThat(errorNode.get("usedDeletedRules"))
+                .isNullOrEmpty();
+        assertThat(errorNode.get("usedUpdatedRules"))
+                .isNullOrEmpty();
+    }
+
+    private InputStream getInputStreamAndInitialiseMockWhenCheckRuleFileFailsInCharConverionException(String filename)
+            throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
+            MetaDataClientServerException, FileRulesException, VitamDBException {
+
+        // mock logbook client
+        LogbookOperationsClient client = mock(LogbookOperationsClient.class);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(client);
+
+        MetaDataClient metaDataClient = mock(MetaDataClient.class);
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createArrayNode());
+        assertThatCode(() -> when(client.selectOperation(Matchers.anyObject()))
+                .thenReturn(getJsonResult(STP_IMPORT_RULES, 0))).doesNotThrowAnyException();
+
+        Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
+        List<FileRulesModel> usedDeletedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdatedRules = new ArrayList<>();
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit = new ArrayList<>();
+        List<FileRulesModel> insertRules = new ArrayList<>();
+        Set<String> notUsedDeletedRules = new HashSet<>();
+        Set<String> notUsedUpdatedRules = new HashSet<>();
+
+        // When
+        assertThatThrownBy(() -> rulesFileManager
+                .checkFile(new FileInputStream(PropertiesUtils.findFile(filename)), errorsMap,
+                        usedDeletedRules, usedUpdatedRules, usedUpdateRulesForUpdateUnit, insertRules, notUsedDeletedRules, notUsedUpdatedRules))
+                .isInstanceOf(IOException.class);
+
+        return rulesFileManager.generateErrorReport(errorsMap, usedDeletedRules, usedUpdatedRules, StatusCode.KO,
+                null);
     }
 
     @Test
