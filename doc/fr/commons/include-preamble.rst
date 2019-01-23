@@ -19,6 +19,7 @@ Documents internes
    ":term:`DAT`","http://www.programmevitam.fr/ressources/DocCourante/html/archi"
    ":term:`DIN`","http://www.programmevitam.fr/ressources/DocCourante/html/installation"
    ":term:`DEX`","http://www.programmevitam.fr/ressources/DocCourante/html/exploitation"
+   ":term:`DMV`","http://www.programmevitam.fr/ressources/DocCourante/html/migration"
    "Release notes",""
 
 
@@ -84,6 +85,9 @@ Glossaire
 
    DIN
       Dossier d'Installation
+
+   DMV
+      Documentation de Montées de Version
 
    DNSSEC
       `Domain Name System Security Extensions` est un protocole standardisé par l'IETF permettant de résoudre certains problèmes de sécurité liés au protocole DNS. Les spécifications sont publiées dans la RFC 4033 et les suivantes (une version antérieure de DNSSEC n'a eu aucun succès). `Définition DNSSEC <https://fr.wikipedia.org/wiki/Domain_Name_System_Security_Extensions>`_
