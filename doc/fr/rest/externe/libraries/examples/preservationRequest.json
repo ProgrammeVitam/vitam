@@ -13,6 +13,7 @@
     "$projection": {}
   },
   "scenarioId" : "PSC-000001",
-  "usage": "BinaryMaster",
+  "targetUsage": "BinaryMaster",
+  "sourceUsage": "Dissemination",
   "version": "FIRST"
 }
