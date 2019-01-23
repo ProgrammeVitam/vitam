@@ -5,8 +5,8 @@ import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleResponseModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoFinalActionInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoKeepAccessSp;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoType;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import org.junit.After;
 import org.junit.Before;
@@ -173,9 +173,13 @@ public class EliminationAnalysisServiceTest {
         // Then
         assertThat(eliminationAnalysisResult.getOperationId()).isEqualTo(OPERATION_ID);
         assertThat(eliminationAnalysisResult.getDestroyableOriginatingAgencies()).isEmpty();
-        assertThat(eliminationAnalysisResult.getNonDestroyableOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
-        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.KEEP);
-        assertThat(eliminationAnalysisResult.getExtendedInfo()).isEmpty();
+        assertThat(eliminationAnalysisResult.getGlobalStatus()).isEqualTo(EliminationGlobalStatus.CONFLICT);
+        assertThat(eliminationAnalysisResult.getExtendedInfo().get(0))
+            .isInstanceOf(EliminationExtendedInfoFinalActionInconsistency.class);
+
+        EliminationExtendedInfoFinalActionInconsistency conflict =
+            (EliminationExtendedInfoFinalActionInconsistency) eliminationAnalysisResult.getExtendedInfo().get(0);
+        assertThat(conflict.getDetails().getOriginatingAgencies()).containsExactlyInAnyOrder("sp1");
     }
 
     @Test

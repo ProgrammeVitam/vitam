@@ -31,9 +31,11 @@ import fr.gouv.vitam.metadata.core.rules.model.BaseInheritedResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedPropertyResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleResponseModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisStatusForOriginatingAgency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfo;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;
+import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoFinalActionInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoKeepAccessSp;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoType;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
@@ -64,20 +66,27 @@ public class EliminationAnalysisService {
         String operationId, List<InheritedRuleResponseModel> rules, List<InheritedPropertyResponseModel> properties,
         LocalDate expirationDate, String sp) {
 
-        Map<String, Boolean> isDestroyableByOriginatingAgency =
-            analyzeDestroyableByOriginatingAgency(rules, properties, expirationDate);
+        Map<String, EliminationAnalysisStatusForOriginatingAgency> statusByOriginatingAgency =
+            analyzeFinalActionByOriginatingAgency(rules, properties, expirationDate);
 
         Set<String> destroyableOriginatingAgencies =
-            filterByDestroyableStatus(isDestroyableByOriginatingAgency, true);
+            filterByTargetStatus(statusByOriginatingAgency, EliminationAnalysisStatusForOriginatingAgency.DESTROY);
         Set<String> nonDestroyableOriginatingAgencies =
-            filterByDestroyableStatus(isDestroyableByOriginatingAgency, false);
+            filterByTargetStatus(statusByOriginatingAgency, EliminationAnalysisStatusForOriginatingAgency.KEEP);
+        Set<String> conflictOnOriginatingAgencies =
+            filterByTargetStatus(statusByOriginatingAgency, EliminationAnalysisStatusForOriginatingAgency.FINAL_ACTION_INCONSISTENCY);
 
         EliminationGlobalStatus
-            globalStatus = getGlobalStatus(destroyableOriginatingAgencies, nonDestroyableOriginatingAgencies);
+            globalStatus = getGlobalStatus(destroyableOriginatingAgencies, nonDestroyableOriginatingAgencies, conflictOnOriginatingAgencies);
 
         List<EliminationExtendedInfo> extendedInfo = new ArrayList<>();
 
         if (globalStatus != EliminationGlobalStatus.KEEP) {
+            // FINAL_ACTION_INCONSISTENCY
+            if (!conflictOnOriginatingAgencies.isEmpty()) {
+                extendedInfo.add(new EliminationExtendedInfoFinalActionInconsistency(conflictOnOriginatingAgencies));
+            }
+
             // KEEP_ACCESS_SP
             if (shouldKeepAccessToOriginatingAgency(sp, destroyableOriginatingAgencies,
                 nonDestroyableOriginatingAgencies)) {
@@ -97,7 +106,11 @@ public class EliminationAnalysisService {
     }
 
     private EliminationGlobalStatus getGlobalStatus(Set<String> destroyableOriginatingAgencies,
-        Set<String> nonDestroyableOriginatingAgencies) {
+        Set<String> nonDestroyableOriginatingAgencies, Set<String> conflictOnOriginatingAgencies) {
+
+        if (!conflictOnOriginatingAgencies.isEmpty()) {
+            return EliminationGlobalStatus.CONFLICT;
+        }
 
         if (destroyableOriginatingAgencies.isEmpty()) {
             return EliminationGlobalStatus.KEEP;
@@ -119,7 +132,7 @@ public class EliminationAnalysisService {
     /**
      * Group rules & properties by originating agency & return destroyable status
      */
-    private Map<String, Boolean> analyzeDestroyableByOriginatingAgency(
+    private Map<String, EliminationAnalysisStatusForOriginatingAgency> analyzeFinalActionByOriginatingAgency(
         Collection<InheritedRuleResponseModel> rules, Collection<InheritedPropertyResponseModel> properties,
         LocalDate expirationDate) {
 
@@ -128,7 +141,7 @@ public class EliminationAnalysisService {
                 .map(BaseInheritedResponseModel::getOriginatingAgency)
                 .collect(Collectors.toSet());
 
-        Map<String, Boolean> isDestroyableForOriginatingAgency = new HashMap<>();
+        Map<String, EliminationAnalysisStatusForOriginatingAgency> statusForOriginatingAgency = new HashMap<>();
 
         for (String originatingAgency : originatingAgencies) {
 
@@ -140,9 +153,14 @@ public class EliminationAnalysisService {
             boolean destroyableForOriginatingAgency =
                 isDestroyable(originatingAgencyRules, originatingAgencyProperties, expirationDate);
 
-            isDestroyableForOriginatingAgency.put(originatingAgency, destroyableForOriginatingAgency);
+            boolean conflictForOriginatingAgency =
+                isFinalActionConflict(originatingAgencyRules, originatingAgencyProperties, expirationDate, destroyableForOriginatingAgency);
+
+            EliminationAnalysisStatusForOriginatingAgency status =
+                EliminationAnalysisStatusForOriginatingAgency.getValue(destroyableForOriginatingAgency, conflictForOriginatingAgency);
+            statusForOriginatingAgency.put(originatingAgency, status);
         }
-        return isDestroyableForOriginatingAgency;
+        return statusForOriginatingAgency;
     }
 
     /**
@@ -162,13 +180,13 @@ public class EliminationAnalysisService {
 
         for (String parentId : SetUtils.union(rulesByDirectParentId.keySet(), propertiesByDirectParentId.keySet())) {
 
-            Map<String, Boolean> destroyableForParentId = analyzeDestroyableByOriginatingAgency(
+            Map<String, EliminationAnalysisStatusForOriginatingAgency> destroyableForParentId = analyzeFinalActionByOriginatingAgency(
                 rulesByDirectParentId.get(parentId), propertiesByDirectParentId.get(parentId), expirationDate);
 
             Set<String> destroyableOriginatingAgencies =
-                filterByDestroyableStatus(destroyableForParentId, true);
+                filterByTargetStatus(destroyableForParentId, EliminationAnalysisStatusForOriginatingAgency.DESTROY);
             Set<String> nonDestroyableOriginatingAgencies =
-                filterByDestroyableStatus(destroyableForParentId, false);
+                filterByTargetStatus(destroyableForParentId, EliminationAnalysisStatusForOriginatingAgency.KEEP);
 
             if (!destroyableOriginatingAgencies.isEmpty() &&
                 !nonDestroyableOriginatingAgencies.isEmpty()) {
@@ -203,12 +221,37 @@ public class EliminationAnalysisService {
         return response;
     }
 
-    private Set<String> filterByDestroyableStatus(Map<String, Boolean> isDestroyableForOriginatingAgency,
-        boolean destroyable) {
-        return isDestroyableForOriginatingAgency.entrySet().stream()
-            .filter(entry -> destroyable == entry.getValue())
+    private Set<String> filterByTargetStatus(Map<String, EliminationAnalysisStatusForOriginatingAgency> statusForOriginatingAgency,
+        EliminationAnalysisStatusForOriginatingAgency targetStatus) {
+        return statusForOriginatingAgency.entrySet().stream()
+            .filter(entry -> targetStatus.equals(entry.getValue()))
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
+    }
+
+    private boolean isFinalActionConflict(List<InheritedRuleResponseModel> rules, List<InheritedPropertyResponseModel> properties,
+        LocalDate expirationDate, Boolean isDestroyableForOriginatingAgency) {
+
+        // If DESTROY: no conflict
+        if (isDestroyableForOriginatingAgency) {
+            return false;
+        }
+
+        // From there, status is a global keep
+        List<String> destroyIds = properties.stream()
+            .filter(p -> FINAL_ACTION.equals(p.getPropertyName()))
+            .filter(p -> VitamConstants.AppraisalRuleFinalAction.DESTROY.equals(
+                VitamConstants.AppraisalRuleFinalAction.fromValue(p.getPropertyValue().toString())
+            ))
+            .map(InheritedPropertyResponseModel::getUnitId)
+            .collect(Collectors.toList());
+
+        // If no Destroy => All are KEEP, no conflict
+        if (destroyIds.isEmpty()) {
+            return false;
+        }
+
+        return areEndDatesReached(rules, expirationDate);
     }
 
     /**
@@ -244,7 +287,7 @@ public class EliminationAnalysisService {
         }
 
         if (finalActions.stream().anyMatch(VitamConstants.AppraisalRuleFinalAction.KEEP::equals)) {
-            // At least one keep --> Keep
+            // Only KEEP (implicit or explicit)
             return false;
         }
 
