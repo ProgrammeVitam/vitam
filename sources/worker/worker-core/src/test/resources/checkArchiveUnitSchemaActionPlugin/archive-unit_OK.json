@@ -63,8 +63,7 @@
 				"ClassificationLevel": "Secret Défense",
 				"ClassificationOwner": "ClassificationOwner",
 				"ClassificationReassessingDate": "2016-05-02",
-				"NeedReassessingAuthorization": true,
-				"NeedAuthorization": true
+				"NeedReassessingAuthorization": true
 			},
 			"AnyOtherField": "AnyOtherValue",
 			"UpdateOperation": {
@@ -79,7 +78,8 @@
 			},
 			"ArchiveUnit": {
 				"ArchiveUnitRefId": "ID_CHILD"
-			}
+			},
+			"NeedAuthorization": true
 		},
 		"AnyOtherField": "AnyOtherValue",
 		"DescriptionLevel": "Item",
