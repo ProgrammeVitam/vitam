@@ -116,8 +116,8 @@
                             <div class="ui-g-12" *ngIf="internalSavedRules[category.rule].Rules.length > 0">
                                 <div class="ui-g-3">Identifiant d'origine</div>
                                 <div class="ui-g-3">Nouvel identifiant</div>
-                                <div class="ui-g-2">Date de début</div>
-                                <div class="ui-g-3">Type d'action</div>
+                                <div class="ui-g-3">Date de début</div>
+                                <div class="ui-g-2">Type d'action</div>
                                 <div class="ui-g-1">Annuler</div>
                             </div>
 
@@ -131,12 +131,18 @@
                                         <div class="ui-g-3">
                                             <input pInputText [(ngModel)]="rule.Rule" style="width: 100%"/>
                                         </div>
-                                        <div class="ui-g-2">
-                                            <p-calendar *ngIf="rule.Action!==RULE_ACTIONS.DELETE" [(ngModel)]="rule.StartDate"
+                                        <div class="ui-g-3">
+                                            <p-calendar class="ui-g-10 ui-g-nopad" *ngIf="rule.Action!==RULE_ACTIONS.DELETE && !rule.DeleteStartDate" [(ngModel)]="rule.StartDate"
                                                         [inputStyle]="{'width':'100%'}" [dateFormat]="'dd/mm/yy'"
                                                         [yearNavigator]="true" [yearRange]="'1970:2500'" [locale]="frLocale"></p-calendar>
+                                            <span class="ui-g-10 ui-g-nopad"
+                                                  *ngIf="rule.Action===RULE_ACTIONS.UPDATE && rule.DeleteStartDate">Suppression</span>
+                                            <i class="ui-g-2 ui-g-nopad fa fa-times clickableDiv"
+                                               *ngIf="rule.Action===RULE_ACTIONS.UPDATE && !rule.DeleteStartDate" (click)="toogleStartDate(rule, true)"></i>
+                                            <i class="ui-g-2 ui-g-nopad fa fa-refresh clickableDiv"
+                                               *ngIf="rule.Action===RULE_ACTIONS.UPDATE && rule.DeleteStartDate" (click)="toogleStartDate(rule, false)"></i>
                                         </div>
-                                        <div class="ui-g-3">
+                                        <div class="ui-g-2">
                                             <div class="ui-g-1"></div>
                                             <i class="ui-g-2" [ngClass]="getRuleActionIcon(rule.Action)"></i>
                                             <span class="ui-g-8">{{getRuleActionLabel(rule.Action)}}</span>

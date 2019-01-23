@@ -111,7 +111,33 @@ types:
         description: Contient la requête de recherche
         type: object
       ruleActions:
-        description: Contient le POJO de mise à jour des métadonnées de gestion
+        description: |
+          Contient le POJO de mise à jour des métadonnées de gestion (Voir exemple).
+
+          Il est possible d'ajouter (add), mettre à jour (update) ou supprimer (delete) des catégories de règles de gestion (règles et propriétés), ainsi que de mettre à jour les métadonnées de gestion hors catégories de règles (addOrUpdateMetadata/deleteMetadata).
+
+          Pour les catégories de règles de gestion, voici les champs autorisés à la racine des catégories (règles et propriétés):
+
+          | Champ                         | Catégorie spécifique       | Commentaire                                                                                                |
+          |-------------------------------|----------------------------|------------------------------------------------------------------------------------------------------------|
+          | Rules                         | Toutes                     | Permet de définir les modifications sur les règles de gestion de l'unité archivistique                     |
+          | PreventInheritance            | Toutes                     | Permet de définir si la catégorie hérite (false) ou non (true) des règles de l'unité archivistique parente |
+          | PreventRulesId                | Toutes                     | Permet de définir une liste de règles qui ne seront pas hérités de l'unité archivistique parente           |
+          | FinalAction                   | StorageRule, AppraisalRule | Permet de définir le sort final de la catégorie (valeurs spécifiques selon la catégorie)                   |
+          | ClassificationLevel           | ClassificationRule         | Permet de définir le niveau de classification                                                              |
+          | ClassificationOwner           | ClassificationRule         | Permet de définir le service émetteur                                                                      |
+          | ClassificationAudience        | ClassificationRule         | Permet de définir le champ de diffusion                                                                    |
+          | ClassificationReassessingDate | ClassificationRule         | Permet de définir la date de réévaluation                                                                  |
+          | NeedReassessingAuthorization  | ClassificationRule         | Permet de définir si les modifications sont soumises (true) ou non (false) à validation humaine            |
+
+          Pour les règles de gestion, voici les champs autorisés dans le tableau de règles (champ Rules) d'une catégorie
+
+          | Champ           | Contraintes                   | Commentaire                                                 |
+          |-----------------|-------------------------------|-----------------------------------------------|
+          | OldRule         | update, obligatoire           | Permet de définir l'identifiant de règle que l'on veut modifier |
+          | Rule            | add/delete, obligatoire; update, facultatif | Permet de définir l'identifiant de la règle que l'ont veut ajouter/supprimer ou de celle remplacant l'ancienne règle |
+          | StartDate       | add/update, facultatif        | Permet de définir la date de début de la règle ajoutée/modifiée |
+          | DeleteStartDate | update, facultatif            | Permet de supprimer (true) la date de début de la règle à mettre à jour |
         type: object
     example: !include examples/unitBatchUpdate.json
 

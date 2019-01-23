@@ -78,6 +78,11 @@ export class MassiveUpdateFormComponent implements OnInit {
     }
   }
 
+  toogleStartDate(rule: RuleInformation, removeStartDate: boolean) {
+    delete rule.StartDate;
+    rule.DeleteStartDate = removeStartDate;
+  }
+
   removeRule(category, index) {
     this.internalSavedRules[category].Rules.splice(index, 1);
   }
@@ -202,8 +207,8 @@ export class MassiveUpdateFormComponent implements OnInit {
           // /UPDATE rules
           switch (rule.Action) {
             case RuleAction.UPDATE:
-              if (!rule.OriginRule || (!rule.Rule && !rule.StartDate)) {
-                console.warn('Une règle ' + categoryKey + ' ajoutée ne renseigne pas d\'identifiant d\'origine ou ne renseigne pas de Date et d\'identifiant.');
+              if (!rule.OriginRule || (!rule.Rule && !rule.StartDate && !rule.DeleteStartDate)) {
+                console.warn('Une règle ' + categoryKey + ' ajoutée ne renseigne pas d\'identifiant d\'origine ou ne modifie pas la règle');
                 nbErrors++;
                 break;
               }
@@ -215,7 +220,8 @@ export class MassiveUpdateFormComponent implements OnInit {
               updates[categoryKey].Rules.push({
                 OldRule: rule.OriginRule,
                 Rule: rule.Rule,
-                StartDate: DateService.dateToString(rule.StartDate)
+                StartDate: DateService.dateToString(rule.StartDate),
+                DeleteStartDate: rule.DeleteStartDate
               });
               nbUpdates++;
               break;

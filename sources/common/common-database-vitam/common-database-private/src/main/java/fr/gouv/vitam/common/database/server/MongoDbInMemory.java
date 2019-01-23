@@ -29,8 +29,6 @@ package fr.gouv.vitam.common.database.server;
 
 import java.text.ParseException;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.function.Function;
@@ -534,6 +532,12 @@ public class MongoDbInMemory {
         try {
             if (ruleAction.getRule() != null) {
                 unitRule.put(RULE_KEY, ruleAction.getRule());
+            }
+
+            if (ruleAction.isDeleteStartDate()) {
+                unitRule.remove(START_DATE_KEY);
+                unitRule.remove(END_DATE_KEY);
+                return;
             }
 
             if (ruleAction.getStartDate() != null) {
