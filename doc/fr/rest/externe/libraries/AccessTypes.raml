@@ -63,8 +63,11 @@ types:
         scenarioId:
           description: L'identifiant du scénario de préservation
           type: string
-        usage:
-          description: usage du binaire cible et du binaire générer
+        targetUsage:
+          description: usage du binaire générer
+          type: string
+        sourceUsage:
+          description: usage du binaire cible
           type: string
         version:
           description: La version du binaire sur lequel on veux opérer une action de préservation
@@ -85,7 +88,8 @@ types:
             "$projection": {}
            },
           "scenarioId" : "PSC-000001",
-          "usage": "BinaryMaster",
+          "targetUsage": "BinaryMaster",
+          "sourceUsage": "BinaryMaster",
           "version": "FIRST"
         }
 

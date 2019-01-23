@@ -237,8 +237,9 @@ traits:
         description: |
           Body contient la requête DSL au format JSON.
           l'Identifiant du scénario de préservation.
-          l'usage du binaire à traité
-          La version (FIRST ou LAST)
+          l'usage source source du binaire à traité,
+          La version du binaire source (FIRST ou LAST) et
+          l'usage cible du binaire à générer
         schema: AccessTypes.PreservationRequest
         example: !include examples/preservationRequest.json
     responses:
