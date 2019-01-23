@@ -29,12 +29,15 @@ package fr.gouv.vitam.common.model.administration.preservation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 public class ActionPreservation {
     @JsonProperty("Type")
-    @NotEmpty
+    @NotNull
     private ActionTypePreservation type;
+    @Valid
     @JsonProperty("Values")
     private ValuesPreservation values;
 

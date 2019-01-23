@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -36,13 +37,19 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
+import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
 import static java.util.Collections.singletonList;
@@ -92,6 +99,38 @@ public class PreservationScenarioServiceTest {
 
         getVitamSession().setTenantId(1);
         getVitamSession().setRequestId(guid);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void name() throws Exception {
+        //Given
+        List<PreservationScenarioModel> allPreservationScenarioInDatabase = JsonHandler.getFromFileAsTypeRefence(
+            PropertiesUtils.getResourceFile("preservation_list.json"),
+            new TypeReference<List<PreservationScenarioModel>>() {
+            }
+        );
+
+        validate(allPreservationScenarioInDatabase);
+    }
+
+    private void validate(List<PreservationScenarioModel> allPreservationScenarioInDatabase)
+        throws ReferentialException, InvalidParseOperationException {
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+        List<String> identifiers = new ArrayList<>();
+        for (PreservationScenarioModel model : allPreservationScenarioInDatabase) {
+            Set<ConstraintViolation<PreservationScenarioModel>> constraint = validator.validate(model);
+            if (!constraint.isEmpty()) {
+                throw new ReferentialException("Invalid scenario : '" + toJsonNode(model));
+            }
+
+            if (identifiers.contains(model.getIdentifier())) {
+                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier());
+            }
+
+            identifiers.add(model.getIdentifier());
+        }
     }
 
     @Test

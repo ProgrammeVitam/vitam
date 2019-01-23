@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -54,10 +55,12 @@ public class GriffinByFormat {
     @JsonProperty("MaxSize")
     private int maxSize;
 
+    @NotNull
     @JsonProperty("Debug")
-    private boolean debug;
+    private Boolean debug;
 
     @NotEmpty
+    @Valid
     @JsonProperty("ActionDetail")
     private List<ActionPreservation> actionDetail;
 
@@ -104,11 +107,11 @@ public class GriffinByFormat {
         this.maxSize = maxSize;
     }
 
-    public boolean isDebug() {
+    public Boolean isDebug() {
         return debug;
     }
 
-    public void setDebug(boolean debug) {
+    public void setDebug(Boolean debug) {
         this.debug = debug;
     }
 

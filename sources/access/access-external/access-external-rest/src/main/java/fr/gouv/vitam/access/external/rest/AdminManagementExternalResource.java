@@ -2855,7 +2855,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            LOGGER.error(e);
             return buildErrorResponse(VitamCode.REFERENTIAL_NOT_FOUND, e.getMessage());
         } catch (ReferentialException e) {
             LOGGER.error(e);

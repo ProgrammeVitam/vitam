@@ -103,7 +103,6 @@ public class PreservationScenarioModel {
     private List<GriffinByFormat> griffinByFormat;
 
     @JsonProperty(TAG_DEFAULT_GRIFFIN)
-
     @Valid
     private GriffinByFormat defaultGriffin;
 
