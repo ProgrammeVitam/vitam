@@ -130,7 +130,8 @@ export class LogbookOperationComponent extends PageComponent {
     if (['AUDIT', 'EXPORT_DIP', 'INGEST', 'MASS_UPDATE'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
       || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME'
       || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
-      || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION') {
+      || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION'
+      || item.evType.toUpperCase() === 'PRESERVATION') {
 
       if (LogbookOperationComponent.isOperationInProgress(item)) {
         return ['fa-clock-o'];
@@ -221,6 +222,7 @@ export class LogbookOperationComponent extends PageComponent {
       case 'AUDIT':
       case 'DATA_MIGRATION':
       case 'ELIMINATION':
+      case 'PRESERVATION':
         logbookService.downloadReport(item.evIdProc);
         break;
       case 'MASS_UPDATE':
