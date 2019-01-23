@@ -101,14 +101,15 @@ public class IndexationHelperTest {
     }
 
     @AfterClass
-    public static void afterClass() throws Exception {
-        mongoRule.handleAfter();
+    public static void afterClass() {
+        mongoRule.handleAfterClass();
         elasticsearchAccess.close();
+        elasticsearchRule.deleteIndexes();
     }
 
     @After
     public void after() throws Exception {
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.deleteIndexesWithoutClose();
     }
 
     @Test

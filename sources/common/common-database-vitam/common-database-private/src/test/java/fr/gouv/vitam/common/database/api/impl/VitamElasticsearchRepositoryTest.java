@@ -96,7 +96,7 @@ public class VitamElasticsearchRepositoryTest {
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(TESTINDEX);
 
-    public VitamElasticsearchRepositoryTest() throws IOException {
+    public VitamElasticsearchRepositoryTest() {
     }
 
     @AfterClass

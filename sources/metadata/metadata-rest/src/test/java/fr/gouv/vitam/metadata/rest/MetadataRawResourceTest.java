@@ -133,6 +133,8 @@ public class MetadataRawResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        mongoRule.handleAfterClass();
+
         try {
             application.stop();
         } catch (final Exception e) {

@@ -25,6 +25,7 @@ import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -84,8 +85,12 @@ public class DataMigrationServiceTest {
     }
 
     @Before
-    public void befor() throws Exception {
+    public void befor() {
         graphLoader = new GraphLoader(new MongoDbMetadataRepository(() -> MetadataCollections.UNIT.getCollection()));
+    }
+    @AfterClass
+    public static  void afterClass() {
+        mongoRule.handleAfterClass();
     }
 
     @After

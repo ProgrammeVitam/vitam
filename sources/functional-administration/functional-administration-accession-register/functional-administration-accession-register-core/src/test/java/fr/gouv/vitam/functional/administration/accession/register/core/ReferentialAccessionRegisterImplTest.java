@@ -125,12 +125,12 @@ public class ReferentialAccessionRegisterImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         FunctionalAdminCollections.afterTestClass(true);
     }
 
     @After
-    public void afterTest() throws IOException, VitamException {
+    public void afterTest() {
         FunctionalAdminCollections.afterTest();
     }
 

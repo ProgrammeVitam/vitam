@@ -57,6 +57,7 @@ public class MongoRule extends ExternalResource {
     private static int dataBasePort;
 
     private static MongodExecutable mongodExecutable;
+
     static {
         dataBasePort = JunitHelper.getInstance().findAvailablePort();
 
@@ -77,11 +78,13 @@ public class MongoRule extends ExternalResource {
     private String dataBaseName;
     private Set<String> collectionNames;
 
-        /**
-         * @param clientOptions
-         * @param dataBaseName
-         * @param collectionNames
-         */
+    private boolean clientClosed = false;
+
+    /**
+     * @param clientOptions
+     * @param dataBaseName
+     * @param collectionNames
+     */
     public MongoRule(MongoClientOptions clientOptions, String dataBaseName, String... collectionNames) {
         this.dataBaseName = dataBaseName;
         if (null != collectionNames) {
@@ -91,11 +94,13 @@ public class MongoRule extends ExternalResource {
         }
 
         mongoClient = new MongoClient(new ServerAddress("localhost", dataBasePort), clientOptions);
-   }
+    }
 
     @Override
     protected void after() {
-        purge(collectionNames);
+        if (!clientClosed) {
+            purge(collectionNames);
+        }
     }
 
     private void purge(Collection<String> collectionNames) {
@@ -113,9 +118,15 @@ public class MongoRule extends ExternalResource {
         collectionNames.add(collection);
         return this;
     }
+
     /**
      * Used when annotated @ClassRule
      */
+    public void handleAfterClass() {
+        after();
+        close();
+    }
+
     public void handleAfter() {
         after();
     }
@@ -131,6 +142,7 @@ public class MongoRule extends ExternalResource {
             e.printStackTrace();
         }
     }
+
     public static int getDataBasePort() {
         return dataBasePort;
     }
@@ -157,5 +169,10 @@ public class MongoRule extends ExternalResource {
 
     private void after(Set<String> collections) {
         purge(collections);
+    }
+
+    public void close() {
+        mongoClient.close();
+        clientClosed = true;
     }
 }

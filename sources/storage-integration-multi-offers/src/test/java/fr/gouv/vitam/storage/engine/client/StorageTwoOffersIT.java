@@ -178,6 +178,8 @@ public class StorageTwoOffersIT {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        mongoRuleOffer1.handleAfterClass();
+        mongoRuleOffer2.handleAfterClass();
         VitamClientFactory.resetConnections();
     }
 

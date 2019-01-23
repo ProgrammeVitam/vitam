@@ -15,6 +15,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -56,12 +57,17 @@ public class DataMigrationRepositoryTest {
             OBJECT_GROUP_COLLECTION);
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() {
         MetadataCollections.UNIT.getVitamCollection().setName(UNIT_COLLECTION);
         MetadataCollections.UNIT.getVitamCollection().initialize(mongoRule.getMongoDatabase(), false);
         MetadataCollections.OBJECTGROUP.getVitamCollection().setName(OBJECT_GROUP_COLLECTION);
         MetadataCollections.OBJECTGROUP.getVitamCollection().initialize(mongoRule.getMongoDatabase(), false);
         repository = new DataMigrationRepository(TEST_BULK_SIZE);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        mongoRule.handleAfterClass();
     }
 
     @After

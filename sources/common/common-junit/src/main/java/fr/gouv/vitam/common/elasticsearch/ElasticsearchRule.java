@@ -63,6 +63,7 @@ public class ElasticsearchRule extends ExternalResource {
 
     public static final int TCP_PORT = 9300;
     public static final String VITAM_CLUSTER = "elasticsearch-data";
+    private boolean clientClosed = false;
 
 
     public ElasticsearchRule(String... collectionNames) {
@@ -77,7 +78,6 @@ public class ElasticsearchRule extends ExternalResource {
             this.collectionNames = Sets.newHashSet(collectionNames);
 
         }
-        // TODO: 12/13/17 create index for each collection
     }
 
     private Settings getClientSettings() {
@@ -98,7 +98,9 @@ public class ElasticsearchRule extends ExternalResource {
 
     @Override
     protected void after() {
-        purge(client, collectionNames);
+        if (!clientClosed) {
+            purge(client, collectionNames);
+        }
     }
 
     private void purge(Client client, Collection<String> collectionNames) {
@@ -185,11 +187,19 @@ public class ElasticsearchRule extends ExternalResource {
         }
     }
 
+    public void deleteIndexesWithoutClose() {
+        for (String collectionName : collectionNames) {
+            deleteIndex(client, collectionName);
+        }
+        collectionNames = new HashSet<>();
+    }
+
     public void deleteIndexes() {
         for (String collectionName : collectionNames) {
             deleteIndex(client, collectionName);
         }
         collectionNames = new HashSet<>();
+        close();
     }
 
     // Add index to be purged
@@ -238,5 +248,10 @@ public class ElasticsearchRule extends ExternalResource {
      */
     public Client getClient() {
         return client;
+    }
+
+    public void close() {
+        client.close();
+        clientClosed = true;
     }
 }

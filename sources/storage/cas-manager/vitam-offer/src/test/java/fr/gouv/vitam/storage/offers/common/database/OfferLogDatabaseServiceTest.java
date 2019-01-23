@@ -41,6 +41,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -84,9 +85,13 @@ public class OfferLogDatabaseServiceTest {
         }
     }
 
+    @AfterClass
+    public static void afterClass() {
+        mongoRule.handleAfterClass();
+    }
 
     @After
-    public void after() throws Exception {
+    public void after() {
         mongoRule.handleAfter();
     }
 

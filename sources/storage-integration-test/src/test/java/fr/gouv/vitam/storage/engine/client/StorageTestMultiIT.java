@@ -220,6 +220,8 @@ public class StorageTestMultiIT {
 
     @AfterClass
     public static void afterClass() throws Exception {
+        mongoRule.handleAfterClass();
+
         cleanWorkspace();
         // final clean, remove workspace folder
         try {

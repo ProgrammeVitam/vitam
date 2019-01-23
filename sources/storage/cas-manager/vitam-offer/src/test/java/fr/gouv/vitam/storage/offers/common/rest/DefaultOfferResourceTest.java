@@ -164,6 +164,8 @@ public class DefaultOfferResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        mongoRule.handleAfterClass();
+
         LOGGER.debug("Ending tests");
         try {
             application.stop();

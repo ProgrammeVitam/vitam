@@ -211,6 +211,7 @@ public class RestoreBackupIT {
 
     @AfterClass
     public static void afterClass() throws Exception {
+        mongoRule.handleAfterClass();
 
         // Ugly style but necessary because this is the folder representing the workspace
         File workspaceFolder = new File(CONTAINER);

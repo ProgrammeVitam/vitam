@@ -1,15 +1,5 @@
 package fr.gouv.vitam.common.database.server;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -52,6 +42,16 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 public class DbRequestSingleTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
 
@@ -79,6 +79,7 @@ public class DbRequestSingleTest {
         new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
 
     private static MongoClient mongoClient = mongoRule.getMongoClient();
+    private static ElasticsearchAccess esClient;
 
 
     /**
@@ -92,15 +93,17 @@ public class DbRequestSingleTest {
         nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
 
         vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX);
-        vitamCollection.initialize(new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes));
+        esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        vitamCollection.initialize(esClient);
         vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
 
     }
 
     @AfterClass
     public static void afterClass() {
-        mongoRule.handleAfter();
+        mongoRule.handleAfterClass();
         elasticsearchRule.deleteIndexes();
+        esClient.close();
     }
 
     @After

@@ -77,7 +77,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
     }
 
     @AfterClass
-    public static void setAfterClass() throws Exception {
+    public static void setAfterClass() {
         FunctionalAdminCollections.afterTestClass(true);
     }
 

@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import org.assertj.core.groups.Tuple;
 import org.bson.Document;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -54,9 +55,9 @@ public class OffsetRepositoryTest {
 
     private MongoCollection<Document> mongoCollection;
 
-    @BeforeClass
+    @AfterClass
     public static void beforeClass() {
-        mongoRule.handleAfter();
+        mongoRule.handleAfterClass();
     }
 
     @Before

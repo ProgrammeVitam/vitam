@@ -101,7 +101,7 @@ pipeline {
                 dir('sources') {
                     script {
                         docker.withRegistry('http://pic-prod-docker.vitam-env') {
-                            docker.image('pic-prod-docker.vitam-env/elasticsearch:6.5.3').withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
+                            docker.image('pic-prod-docker.vitam-env/elasticsearch:6.5.4').withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                             	sh '$MVN_COMMAND -f pom.xml clean test sonar:sonar -Dsonar.branch=$GIT_BRANCH'
                             }
                         }

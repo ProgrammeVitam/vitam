@@ -158,6 +158,7 @@ public class AgenciesServiceTest {
     @AfterClass
     public static void tearDownAfterClass() {
         elasticsearchRule.deleteIndexes();
+        mongoRule.handleAfterClass();
     }
 
     @After

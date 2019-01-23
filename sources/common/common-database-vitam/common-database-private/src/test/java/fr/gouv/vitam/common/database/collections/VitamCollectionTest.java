@@ -88,8 +88,8 @@ public class VitamCollectionTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        mongoRule.handleAfter();
+    public static void tearDownAfterClass() {
+        mongoRule.handleAfterClass();
         elasticsearchRule.deleteIndexes();
         esClient.close();
     }

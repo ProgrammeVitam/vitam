@@ -214,6 +214,8 @@ public class StorageTestMultiNoSslIT {
 
     @AfterClass
     public static void afterClass() throws Exception {
+
+        mongoRule.handleAfter();
         cleanWorkspace();
         // final clean, remove workspace folder
         try {

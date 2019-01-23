@@ -163,6 +163,8 @@ public class DriverToOfferTest {
 
     @AfterClass
     public static void shutdownAfterClass() throws Exception {
+        mongoRule.handleAfterClass();
+
         if (connection != null) {
             connection.close();
         }

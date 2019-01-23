@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import org.bson.Document;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -62,9 +63,13 @@ public class OfferSequenceServiceTest {
         }
     }
 
+    @AfterClass
+    public static void afterClass() {
+        mongoRule.handleAfterClass();
+    }
 
     @After
-    public void after() throws Exception {
+    public void after() {
         mongoRule.handleAfter();
     }
 

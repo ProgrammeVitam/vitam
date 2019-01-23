@@ -66,6 +66,7 @@ public class PopulateServiceTest {
     @AfterClass
     public static void afterClass() {
         elasticsearchRule.deleteIndexes();
+        mongoRule.handleAfterClass();
     }
 
     @Before
