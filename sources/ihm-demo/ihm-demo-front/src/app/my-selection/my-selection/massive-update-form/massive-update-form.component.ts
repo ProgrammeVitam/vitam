@@ -228,10 +228,11 @@ export class MassiveUpdateFormComponent implements OnInit {
               if (!additions[categoryKey] || !additions[categoryKey].Rules) {
                 additions[categoryKey] = {Rules: []};
               }
-              additions[categoryKey].Rules.push({
-                Rule: rule.Rule,
-                StartDate: DateService.dateToString(rule.StartDate)
-              });
+              let newRule: any = {Rule: rule.Rule};
+              if (!!rule.StartDate) {
+                newRule.StartDate = DateService.dateToString(rule.StartDate);
+              }
+              additions[categoryKey].Rules.push(newRule);
               nbUpdates++;
               break;
             case RuleAction.DELETE:
