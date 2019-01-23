@@ -28,7 +28,7 @@ package fr.gouv.vitam.functional.administration.format.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class FileFormatOperationModel {
+public class FunctionalOperationModel {
 
     @JsonProperty("evType")
     private String evType;
@@ -39,7 +39,7 @@ public class FileFormatOperationModel {
     @JsonProperty("evId")
     private String evId;
 
-    public FileFormatOperationModel() {
+    public FunctionalOperationModel() {
         // Empty constructor for deserialization
     }
 
@@ -47,7 +47,7 @@ public class FileFormatOperationModel {
         return evType;
     }
 
-    public FileFormatOperationModel setEvType(String evType) {
+    public FunctionalOperationModel setEvType(String evType) {
         this.evType = evType;
         return this;
     }
@@ -56,7 +56,7 @@ public class FileFormatOperationModel {
         return evDateTime;
     }
 
-    public FileFormatOperationModel setEvDateTime(String evDateTime) {
+    public FunctionalOperationModel setEvDateTime(String evDateTime) {
         this.evDateTime = evDateTime;
         return this;
     }
@@ -65,7 +65,7 @@ public class FileFormatOperationModel {
         return evId;
     }
 
-    public FileFormatOperationModel setEvId(String evId) {
+    public FunctionalOperationModel setEvId(String evId) {
         this.evId = evId;
         return this;
     }

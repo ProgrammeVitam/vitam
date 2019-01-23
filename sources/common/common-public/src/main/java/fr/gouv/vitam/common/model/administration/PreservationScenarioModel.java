@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -50,9 +51,9 @@ public class PreservationScenarioModel {
 
     public static final String TAG_IDENTIFIER = "Identifier";
 
-    private static final String TAG_CREATION_DATE = "CreationDate";
+    public static final String TAG_CREATION_DATE = "CreationDate";
 
-    private static final String TAG_LAST_UPDATE = "LastUpdate";
+    public static final String TAG_LAST_UPDATE = "LastUpdate";
 
     private static final String TAG_ACTION_LIST = "ActionList";
 
@@ -71,9 +72,11 @@ public class PreservationScenarioModel {
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer version;
 
+    @NotEmpty
     @JsonProperty(TAG_NAME)
     private String name;
 
+    @NotEmpty
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
@@ -86,6 +89,7 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
 
+    @NotEmpty
     @JsonProperty(TAG_ACTION_LIST)
     private List<ActionTypePreservation> actionList;
 
@@ -97,6 +101,23 @@ public class PreservationScenarioModel {
 
     @JsonProperty(TAG_DEFAULT_GRIFFIN)
     private GriffinByFormat defaultGriffin;
+
+    public PreservationScenarioModel() {
+    }
+
+    public PreservationScenarioModel(@NotEmpty String name,
+        @NotEmpty String identifier,
+        @NotEmpty List<ActionTypePreservation> actionList,
+        @NotEmpty List<String> metadataFilter,
+        @NotEmpty List<GriffinByFormat> griffinByFormat,
+        @NotEmpty GriffinByFormat defaultGriffin) {
+        this.name = name;
+        this.identifier = identifier;
+        this.actionList = actionList;
+        this.metadataFilter = metadataFilter;
+        this.griffinByFormat = griffinByFormat;
+        this.defaultGriffin = defaultGriffin;
+    }
 
     public String getId() {
         return id;

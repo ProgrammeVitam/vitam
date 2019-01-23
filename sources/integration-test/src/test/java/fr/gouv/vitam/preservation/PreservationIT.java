@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -69,6 +70,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.griffin.GriffinReport;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
@@ -81,6 +83,11 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
@@ -123,6 +130,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
@@ -211,7 +219,7 @@ public class PreservationIT extends VitamRuleRunner {
         getVitamSession().setTenantId(1);
         getVitamSession().setRequestId(newGUID());
 
-        List<GriffinModel> griffinModelList = getGriffinModels();
+        List<GriffinModel> griffinModelList = getGriffinModels("preservation/griffins.json");
         client.importGriffins(griffinModelList);
 
         getVitamSession().setTenantId(0);
@@ -336,9 +344,10 @@ public class PreservationIT extends VitamRuleRunner {
         });
     }
 
-    private List<GriffinModel> getGriffinModels() throws FileNotFoundException, InvalidParseOperationException {
+    private List<GriffinModel> getGriffinModels(String resourcesFile)
+        throws FileNotFoundException, InvalidParseOperationException {
 
-        File resourceFile = PropertiesUtils.getResourceFile("preservation/griffins.json");
+        File resourceFile = PropertiesUtils.getResourceFile(resourcesFile);
         return getFromFileAsTypeRefence(resourceFile, new TypeReference<List<GriffinModel>>() {
         });
     }
@@ -355,6 +364,61 @@ public class PreservationIT extends VitamRuleRunner {
         return contract;
     }
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_import_griffin_with_warning() throws Exception {
+        getVitamSession().setTenantId(0);
+
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+        ) {
+
+            GUID guid = newGUID();
+            getVitamSession().setRequestId(guid);
+
+            // Given
+            List<GriffinModel> griffinModelList = getGriffinModels("preservation/griffins.json");
+            // When
+            client.importGriffins(griffinModelList);
+
+            // Then
+            String requestId = getVitamSession().getRequestId();
+
+            GriffinReport griffinReport = getGriffinReport(storageClient, requestId);
+
+            assertThat(griffinReport.getStatusCode()).isEqualTo(StatusCode.OK);
+
+            guid = newGUID();
+            getVitamSession().setRequestId(guid);
+            // given
+
+            griffinModelList = getGriffinModels("preservation/griffins_updated.json");
+            client.importGriffins(griffinModelList);
+
+            // When
+
+            requestId = getVitamSession().getRequestId();
+
+            griffinReport = getGriffinReport(storageClient, requestId);
+
+            //Then
+
+            assertThat(griffinReport.getStatusCode()).isEqualTo(StatusCode.WARNING);
+
+        }
+    }
+
+    private GriffinReport getGriffinReport(StorageClient storageClient, String requestId)
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException {
+
+        Response response = storageClient.getContainerAsync("default", requestId + ".json",
+            DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+
+        return getFromInputStream((InputStream) response.getEntity(), GriffinReport.class);
+    }
+
     @Test
     @RunWithCustomExecutor
     public void should_import_preservationReferential() throws Exception {
@@ -367,7 +431,7 @@ public class PreservationIT extends VitamRuleRunner {
             GUID guid = newGUID();
             getVitamSession().setRequestId(guid);
 
-            List<GriffinModel> griffinModelList = getGriffinModels();
+            List<GriffinModel> griffinModelList = getGriffinModels("preservation/griffins.json");
             client.importGriffins(griffinModelList);
 
             // When
@@ -381,6 +445,10 @@ public class PreservationIT extends VitamRuleRunner {
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
+
+            assertThat(jsonNode.iterator()).extracting(j -> j.get("outDetail").asText())
+                .contains("GRIFFIN_REPORT.OK");
+
             guid = newGUID();
             getVitamSession().setRequestId(guid);
             List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels();
@@ -388,7 +456,7 @@ public class PreservationIT extends VitamRuleRunner {
             client.importPreservationScenarios(preservationScenarioModelList);
 
             // When
-             jsonNode = (ArrayNode) accessClient
+            jsonNode = (ArrayNode) accessClient
                 .selectOperationById(guid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
                 .get("$results")
                 .get(0)
@@ -476,7 +544,7 @@ public class PreservationIT extends VitamRuleRunner {
 
     private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)
         throws FileNotFoundException, InvalidParseOperationException {
-        JsonNode expected = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile));
+        JsonNode expected = getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile));
         if (excludeFields != null) {
             expected.forEach(e -> {
                 ObjectNode ee = (ObjectNode) e;

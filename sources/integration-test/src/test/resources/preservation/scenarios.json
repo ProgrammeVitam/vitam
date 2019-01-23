@@ -8,7 +8,7 @@
     "ActionList": [
       "GENERATE"
     ],
-    "MetadataFilter": null,
+    "MetadataFilter": [],
     "GriffinByFormat": [
       {
         "FormatList": [
@@ -81,7 +81,7 @@
         "GriffinIdentifier": "GRI-000003",
         "TimeOut": 20,
         "MaxSize": 10000000,
-        "Debug":true,
+        "Debug": true,
         "ActionDetail": [
           {
             "Type": "GENERATE",
@@ -140,7 +140,7 @@
         "GriffinIdentifier": "GRI-000001",
         "TimeOut": 10,
         "MaxSize": 10000000,
-        "Debug":true,
+        "Debug": true,
         "ActionDetail": [
           {
             "type": "GENERATE",
@@ -163,7 +163,7 @@
       "GriffinIdentifier": "GRI-000005",
       "TimeOut": 10,
       "MaxSize": 10000000,
-      "Debug":true,
+      "Debug": true,
       "ActionDetail": [
         {
           "Type": "ANALYSE",
@@ -186,7 +186,8 @@
       "ANALYSE",
       "GENERATE"
     ],
-    "MetadataFilter": null,
+    "MetadataFilter": [
+    ],
     "GriffinByFormat": [
       {
         "FormatList": [
@@ -206,7 +207,7 @@
         "GriffinIdentifier": "GRI-000023",
         "TimeOut": 20,
         "MaxSize": 10000000,
-        "Debug":true,
+        "Debug": true,
         "ActionDetail": [
           {
             "type": "ANALYSE",
@@ -264,8 +265,7 @@
         "GriffinIdentifier": "GRI-000012",
         "TimeOut": 10,
         "MaxSize": 10000000,
-        "Debug":true,
-
+        "Debug": true,
         "ActionDetail": [
           {
             "Type": "ANALYSE",
@@ -288,7 +288,7 @@
       "GriffinIdentifier": "GRI-000005",
       "TimeOut": 10,
       "MaxSize": 10000000,
-      "Debug":true,
+      "Debug": true,
       "ActionDetail": [
         {
           "Type": "ANALYSE",
@@ -333,7 +333,7 @@
         "GriffinIdentifier": "GRI-000034",
         "TimeOut": 20,
         "MaxSize": 10000000,
-        "Debug":true,
+        "Debug": true,
         "ActionDetail": [
           {
             "Type": "ANALYSE",
@@ -351,7 +351,7 @@
       "GriffinIdentifier": "GRI-000005",
       "TimeOut": 10,
       "MaxSize": 10000000,
-      "Debug":true,
+      "Debug": true,
       "ActionDetail": [
         {
           "Type": "ANALYSE",

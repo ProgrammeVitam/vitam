@@ -88,6 +88,7 @@ public class PreservationResource {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (Exception e) {
+            LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         }
     }
@@ -107,6 +108,7 @@ public class PreservationResource {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (Exception e) {
+            LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         }
     }
@@ -132,7 +134,7 @@ public class PreservationResource {
             return Response.status(Status.OK).entity(requestResponse).build();
 
         } catch (InvalidParseOperationException | BadRequestException e) {
-
+            LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
             LOGGER.error(e);
@@ -153,7 +155,7 @@ public class PreservationResource {
             return Response.status(Status.OK).entity(requestResponse).build();
 
         } catch (InvalidParseOperationException | BadRequestException e) {
-
+            LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
             LOGGER.error(e);

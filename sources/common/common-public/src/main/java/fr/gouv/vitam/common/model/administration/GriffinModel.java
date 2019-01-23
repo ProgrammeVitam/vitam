@@ -26,14 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.model.ModelConstants;
 
-import java.util.List;
-
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 /**
  * GriffinModel class
  */
@@ -46,9 +44,9 @@ public class GriffinModel {
 
     public static final String TAG_IDENTIFIER = "Identifier";
 
-    private static final String TAG_CREATION_DATE = "CreationDate";
+    public static final String TAG_CREATION_DATE = "CreationDate";
 
-    private static final String TAG_LAST_UPDATE = "LastUpdate";
+    public static final String TAG_LAST_UPDATE = "LastUpdate";
 
     private static final String TAG_EXECUTABLE_VERSION = "ExecutableVersion";
 
@@ -63,9 +61,11 @@ public class GriffinModel {
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer version;
 
+    @NotEmpty
     @JsonProperty(TAG_NAME)
     private String name;
 
+    @NotEmpty
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
@@ -78,11 +78,28 @@ public class GriffinModel {
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
 
+    @NotEmpty
     @JsonProperty(TAG_EXECUTABLE_NAME)
     private String executableName;
 
+    @NotEmpty
     @JsonProperty(TAG_EXECUTABLE_VERSION)
     private String executableVersion;
+
+
+    public GriffinModel() {
+        // empty constructor
+    }
+
+    public GriffinModel(@NotNull @NotEmpty String name,
+        @NotNull @NotEmpty String identifier,
+        @NotNull @NotEmpty String executableName,
+        @NotNull @NotEmpty String executableVersion) {
+        this.name = name;
+        this.identifier = identifier;
+        this.executableName = executableName;
+        this.executableVersion = executableVersion;
+    }
 
     public String getId() {
         return id;

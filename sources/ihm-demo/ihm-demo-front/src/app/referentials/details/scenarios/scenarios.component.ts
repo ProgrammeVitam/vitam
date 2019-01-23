@@ -8,7 +8,6 @@ import {ReferentialsService} from '../../referentials.service';
 import {PageComponent} from '../../../common/page/page-component';
 import {ErrorService} from '../../../common/error.service';
 import {Scenario} from './scenario';
-import {ArchiveUnitHelper} from '../../../archive-unit/archive-unit.helper';
 import {ReferentialHelper} from '../../referential.helper';
 
 @Component({

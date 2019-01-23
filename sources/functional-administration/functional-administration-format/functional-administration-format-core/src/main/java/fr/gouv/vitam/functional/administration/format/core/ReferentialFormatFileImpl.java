@@ -72,8 +72,8 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatImportEventDetails;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
-import fr.gouv.vitam.functional.administration.format.model.FileFormatOperationModel;
 import fr.gouv.vitam.functional.administration.format.model.FormatImportReport;
+import fr.gouv.vitam.functional.administration.format.model.FunctionalOperationModel;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
@@ -299,7 +299,7 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
 
         FormatImportReport report = new FormatImportReport();
 
-        FileFormatOperationModel operationModel = retrieveOperationModel();
+        FunctionalOperationModel operationModel = retrieveOperationModel();
 
         report.setOperation(operationModel);
 
@@ -385,12 +385,12 @@ public class ReferentialFormatFileImpl implements ReferentialFile<FileFormat>, V
         return report;
     }
 
-    private FileFormatOperationModel retrieveOperationModel() {
+    private FunctionalOperationModel retrieveOperationModel() {
         try {
             JsonNode result = logbookOperationsClient.selectOperationById(
                 VitamThreadUtils.getVitamSession().getRequestId());
 
-            return JsonHandler.getFromJsonNode(result.get(TAG_RESULTS).get(0), FileFormatOperationModel.class);
+            return JsonHandler.getFromJsonNode(result.get(TAG_RESULTS).get(0), FunctionalOperationModel.class);
         } catch (LogbookClientException | InvalidParseOperationException e) {
             throw new VitamRuntimeException("Could not load operation data", e);
         }

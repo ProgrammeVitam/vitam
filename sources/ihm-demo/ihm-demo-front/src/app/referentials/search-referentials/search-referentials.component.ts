@@ -380,8 +380,8 @@ export class SearchReferentialsComponent extends PageComponent {
           this.breadcrumbName = 'Griffons';
           this.specificTitle = 'Griffons';
           this.referentialData = [
-            new FieldDefinition('GriffinName', 'Intitulé', 4, 10),
-            FieldDefinition.createIdField('GriffinID', 'Identifiant', 4, 10)
+            new FieldDefinition('GriffinName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('GriffinID', 'Identifiant', 6, 8)
           ];
           this.searchForm = {'GriffinID': 'all', 'GriffinName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};
           this.initialSortKey = 'Name';
@@ -392,9 +392,9 @@ export class SearchReferentialsComponent extends PageComponent {
               () => ({'width': '225px'})),
             ColumnDefinition.makeStaticColumn('Identifier', 'Identifiant', undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('ExecutableName', 'ExecutableName', undefined,
+            ColumnDefinition.makeStaticColumn('ExecutableName', 'Nom de l\'executable' , undefined,
               () => ({'width': '125px'})),
-            ColumnDefinition.makeStaticColumn('ExecutableVersion', 'ExecutableVersion', undefined,
+            ColumnDefinition.makeStaticColumn('ExecutableVersion', 'Version d\'exécution', undefined,
               () => ({'width': '125px'}))
           ];
           this.referentialPath = 'admin/griffins';
@@ -405,8 +405,8 @@ export class SearchReferentialsComponent extends PageComponent {
           this.breadcrumbName = 'Scenarios';
           this.specificTitle = 'Scenarios';
           this.referentialData = [
-            new FieldDefinition('ScenarioName', 'Intitulé', 4, 10),
-            FieldDefinition.createIdField('ScenarioID', 'Identifiant', 4, 10)
+            new FieldDefinition('ScenarioName', 'Intitulé', 6, 8),
+            FieldDefinition.createIdField('ScenarioID', 'Identifiant', 6, 8)
           ];
 
           this.searchForm = {'ScenarioID': 'all', 'ScenarioName': 'all', 'orderby': {'field': 'Name', 'sortType': 'ASC'}};

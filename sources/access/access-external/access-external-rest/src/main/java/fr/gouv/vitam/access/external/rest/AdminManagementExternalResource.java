@@ -2725,22 +2725,22 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "griffins:read", isAdminOnly = true, description = "Lister le contenu du référentiel des griffons")
-    public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select) throws AdminManagementClientServerException {
+    public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select)
+        throws AdminManagementClientServerException {
 
-            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-                SanityChecker.checkJsonAll(select);
-                RequestResponse result = client.findGriffin(select);
-                int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
-                return Response.status(st).entity(result).build();
-            } catch (ReferentialException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
-            } catch (final InvalidParseOperationException e) {
-                LOGGER.error(e);
-                final Status status = Status.BAD_REQUEST;
-                return buildErrorResponse(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage());
-            }
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+            SanityChecker.checkJsonAll(select);
+            RequestResponse result = client.findGriffin(select);
+            int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (ReferentialException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage());
         }
+    }
 
 
     @Path("/preservationScenario")
@@ -2813,6 +2813,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.REFERENTIAL_NOT_FOUND, e.getMessage());
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
@@ -2843,6 +2847,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
+        } catch (ReferentialNotFoundException e) {
+            LOGGER.error(e);
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.REFERENTIAL_NOT_FOUND, e.getMessage());
         } catch (ReferentialException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());

@@ -1,0 +1,32 @@
+[
+  {
+    "#id": "Id1",
+    "Name": "1",
+    "Identifier": "IDENTIFIER1",
+    "CreationDate": "25/10/2010",
+    "LastUpdate": "25/10/2010",
+    "MetadataFilter": [
+      "AU_TextContent",
+      "AU_NamedEntity"
+    ],
+    "ActionList": [
+      "GENERATE"
+    ],
+    "#version": 1
+  },
+  {
+    "#id": "Id2",
+    "Name": "2",
+    "Identifier": "IDENTIFIER2",
+    "CreationDate": "25/10/2010",
+    "LastUpdate": "25/10/2010",
+    "MetadataFilter": [
+      "AU_TextContent",
+      "AU_NamedEntity"
+    ],
+    "ActionList": [
+      "GENERATE"
+    ],
+    "#version": 1
+  }
+]

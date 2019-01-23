@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import java.util.Set;
 
@@ -40,6 +41,7 @@ public class GriffinByFormat {
     @JsonProperty("GriffinIdentifier")
     private String griffinIdentifier;
     @JsonProperty("Timeout")
+    @NotEmpty
     private int timeOut;
     @JsonProperty("MaxSize")
     private int maxSize;

@@ -39,7 +39,7 @@ import java.util.Set;
 public class FormatImportReport {
 
     @JsonProperty("Operation")
-    private FileFormatOperationModel operation;
+    private FunctionalOperationModel operation;
 
     @JsonProperty("StatusCode")
     private StatusCode statusCode;
@@ -71,12 +71,12 @@ public class FormatImportReport {
     public FormatImportReport() {
     }
 
-    public FileFormatOperationModel getOperation() {
+    public FunctionalOperationModel getOperation() {
         return operation;
     }
 
     public FormatImportReport setOperation(
-        FileFormatOperationModel operation) {
+        FunctionalOperationModel operation) {
         this.operation = operation;
         return this;
     }

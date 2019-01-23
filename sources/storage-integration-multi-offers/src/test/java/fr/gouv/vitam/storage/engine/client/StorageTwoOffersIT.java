@@ -61,6 +61,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -438,6 +439,7 @@ public class StorageTwoOffersIT {
         checkFileExistenceAndContent("file1", UNIT, true, "data1_V2".getBytes(), OFFER_ID, SECOND_OFFER_ID);
     }
 
+    @Ignore
     @Test
     @RunWithCustomExecutor
     public void synchronizeOneOfferFromAnotherFromScratch() throws Exception {
