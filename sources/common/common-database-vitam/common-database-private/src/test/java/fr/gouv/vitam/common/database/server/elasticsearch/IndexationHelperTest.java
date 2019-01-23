@@ -103,6 +103,7 @@ public class IndexationHelperTest {
     @AfterClass
     public static void afterClass() throws Exception {
         mongoRule.handleAfter();
+        elasticsearchAccess.close();
     }
 
     @After

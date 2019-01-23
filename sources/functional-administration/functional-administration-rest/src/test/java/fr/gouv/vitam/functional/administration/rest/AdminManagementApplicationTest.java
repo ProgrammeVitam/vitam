@@ -109,6 +109,7 @@ public class AdminManagementApplicationTest {
     @AfterClass
     public static void tearDownAfterClass() {
         FunctionalAdminCollections.afterTestClass(true);
+        esClient.close();
         junitHelper.releasePort(serverPort);
     }
 

@@ -193,6 +193,7 @@ public class ReindexationResourceTest {
         FunctionalAdminCollections.afterTestClass(true);
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
+        esClient.close();
     }
 
     @Before

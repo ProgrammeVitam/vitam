@@ -88,6 +88,7 @@ public class AdminAutotestStatusResourceImplTest {
     private static TestVitamAdminClientFactory factory;
     private static ElasticsearchNode elasticsearchNode;
     private static MongoDbAccess databaseMd;
+    private static ElasticsearchAccess databaseEs;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -96,7 +97,7 @@ public class AdminAutotestStatusResourceImplTest {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         elasticsearchNode = new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT);
         nodes.add(elasticsearchNode);
-        final ElasticsearchAccess databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
         dataBasePort = junitHelper.findAvailablePort();
         MongoClient mongoClient = new MongoClient(new ServerAddress(
@@ -141,6 +142,7 @@ public class AdminAutotestStatusResourceImplTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        databaseEs.close();
         junitHelper.releasePort(serverAdminPort);
         junitHelper.releasePort(dataBasePort);
         VitamClientFactory.resetConnections();

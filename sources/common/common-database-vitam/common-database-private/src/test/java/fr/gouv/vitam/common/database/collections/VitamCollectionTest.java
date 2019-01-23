@@ -91,6 +91,7 @@ public class VitamCollectionTest {
     public static void tearDownAfterClass() throws Exception {
         mongoRule.handleAfter();
         elasticsearchRule.deleteIndexes();
+        esClient.close();
     }
 
     @SuppressWarnings("unchecked")
