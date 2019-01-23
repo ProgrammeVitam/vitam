@@ -73,6 +73,9 @@ Glossaire
    COTS
       Component Off The Shelves ; il s'agit d'un composant "sur étagère", non développé par le projet :term:`VITAM`, mais intégré à partir d'un binaire externe. Par exemple : MongoDB, ElasticSearch.
 
+   CRL 
+      `Certificate Revocation List` ; liste des identifiants des certificats qui ont été révoqués ou invalidés et qui ne sont donc plus dignes de confiance. Cette norme est spécifiée dans les RFC 5280 et RFC 6818. 
+
    DAT
       Dossier d'Architecture Technique
 
