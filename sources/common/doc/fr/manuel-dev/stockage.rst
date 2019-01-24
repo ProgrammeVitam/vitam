@@ -2,7 +2,7 @@
 Common-storage
 ==============
 
-Le common storage est un module commun pour plusieurs modules qui consiste à gérer des objets stockés dans un container et/ou dans dans un repertoire, ce module propose plusieurs offres de stockage (Jclouds), par exemple file Systeme et swift (open stack et ceph) configurabe par code (java) ou par fichier de configuration. Dans les chapitres suivants, on présentra les 2 modes du configuration
+Le common storage est un module commun pour plusieurs modules qui consiste à gérer des objets stockés dans un container et/ou dans dans un repertoire, ce module propose plusieurs offres de stockage (Jclouds), par exemple filesystem, swift (open stack et ceph) et s3 configurables par code (java) ou par fichier de configuration. Dans les chapitres suivants, on présentra les 3 modes du configuration
 
 1- Présentation des APIs Java:
 ------------------------------------------------
@@ -19,6 +19,7 @@ L'API principale est l'interface ContentAddressableStorage. Celle-ci a la hiéra
 
     + FileSystem : implémentation d'un CAS sur FileSystem (via jclouds) avec une répertoire à plat sous les container
     + OpenstackSwift : classe d'implémentation permettant le stockage sur Swift (via jclouds)
+    + AmazonS3V1 : classe d'implémentation permettant le stockage sur S3 (via le sdk amazon s3 v1)
 
 1.2 - Liste des méthodes :
 
@@ -95,12 +96,33 @@ La première chose que nous devons faire est d'ajouter la dépendance maven dans
        <version>x.x.x</version>
   </dependency>
 
-La configuration de l'offre de stockage est basé sur plusieurs paramètres:
+La configuration de l'offre de stockage est basé sur plusieurs paramètres.
 
-  - provider :: String : le type de l'offre de stockage (valeur par defaut: filesystem, valeur possibles : openstack-swift , filesystem ou chaîne vide)
+Les paramètres communs aux types d'offres sont:
+  - provider :: String : le type de l'offre de stockage (valeur par defaut si chaîne vide: filesystem) Les valeurs possibles sont:
+    - filesystem
+    - openstack-swift
+    - amazon-s3-v1
+
+Pour une offre Filesystem les paramétres de configuration sont :
+  - storagePath :: String : path de stockage pour l'offre FileSystem
+
+Pour une offre Swift les paramétres de configuration sont :
   - swiftKeystoneAuthUrl* :: String : URL d'authentification keystone
   - swiftUser* :: String : le nom de l'utilisateur (sur rados, il prend la forme <tenant>$<user>)
-  - storagePath :: String : path de stockage pour l'offre FileSystem
+
+Pour une offre S3 les paramétres de configuration sont :
+  - s3AccessKey :: String : Access Key ID
+  - s3SecretKey :: String : Secret Access key
+  - s3RegionName :: String : region (pour les requêtes signée en algorithme V4)
+  - s3Endpoint :: String : URL du stockage
+  - s3SignerType :: String : type de signtature utilisé. Valeurs possibles :
+    - signature V4 : 'AWSS3V4SignerType' (valeur par défaut si chaîne vide). 
+    - signature v2 : 'S3SignerType'
+  - s3MaxConnections :: Integer : nombre maximum de connection HTTP ouvertes
+  - s3ConnectionTimeout :: Integer : temps maximum pour l'établissement d'une connection avant d'abandonner (en millisecondes)
+  - s3S3PathStyleAccessEnabled  :: Boolean : activer l'accès en "path-style" à la place du "virtual-hosted-style" 
+  
 
 2.1 - Configuration par code:
 
@@ -132,6 +154,19 @@ La configuration de l'offre de stockage est basé sur plusieurs paramètres:
        .setSwiftUid(swift)
        .setSwiftSubUser(user)
        .setCredential(passwd);
+
+2.1.d Exemple S3
+
+Cet exemple correspond aux valeurs d'une image docker Openio.
+
+.. code-block:: java
+
+  StorageConfiguration storeConfiguration = new StorageConfiguration().setProvider(StorageProvider.AMAZON_S3_V1.getValue())
+		.setS3RegionName(Regions.US_WEST_1.getName());
+		.setS3Endpoint("http://127.0.0.1:6007");
+		.setS3AccessKey("demo:demo");
+		.setS3SecretKey("DEMO_PASS");
+		.setS3PathStyleAccessEnabled(true);
 
 
 2.2 - Configuration par fichier
