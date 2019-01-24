@@ -67,6 +67,14 @@ public class GriffinByFormat {
     public GriffinByFormat() {//default Constructor
     }
 
+    public GriffinByFormat(DefaultGriffin defaultGriffin) {
+        this.griffinIdentifier = defaultGriffin.getGriffinIdentifier();
+        this.timeOut = defaultGriffin.getTimeOut();
+        this.maxSize = defaultGriffin.getMaxSize();
+        this.debug = defaultGriffin.isDebug();
+        this.actionDetail = defaultGriffin.getActionDetail();
+    }
+
     public GriffinByFormat(@NotEmpty Set<String> formatList,
         @NotEmpty String griffinIdentifier,
         @NotEmpty List<ActionPreservation> actionDetail) {

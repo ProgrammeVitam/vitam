@@ -144,17 +144,17 @@ public class PreservationScenarioService {
 
             Set<String> updatedIdentifiers = SetUtils.intersection(newIdentifiers, oldIdentifiers);
 
-            if(!updatedIdentifiers.isEmpty()) {
+            if (!updatedIdentifiers.isEmpty()) {
                 updateScenarios(listToImport, updatedIdentifiers);
             }
 
             Set<String> identifierToDelete = SetUtils.difference(oldIdentifiers, newIdentifiers);
-            if(!identifierToDelete.isEmpty()){
+            if (!identifierToDelete.isEmpty()) {
                 deleteScenarios(identifierToDelete);
             }
 
             Set<String> identifierToAdd = SetUtils.difference(newIdentifiers, oldIdentifiers);
-            if(!identifierToAdd.isEmpty()){
+            if (!identifierToAdd.isEmpty()) {
                 insertScenarios(listToImport, identifierToAdd);
             }
 
@@ -193,7 +193,7 @@ public class PreservationScenarioService {
     }
 
     private void validate(List<PreservationScenarioModel> listToImport)
-        throws ReferentialException, InvalidParseOperationException {
+        throws ReferentialException {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
         List<String> identifiers = new ArrayList<>();
@@ -204,7 +204,8 @@ public class PreservationScenarioService {
 
             Set<ConstraintViolation<PreservationScenarioModel>> constraint = validator.validate(model);
             if (!constraint.isEmpty()) {
-                throw new ReferentialException("Invalid scenario : '" + toJsonNode(model));
+                throw new ReferentialException(
+                    "Invalid scenario  for  : '" + model.getIdentifier() + "' : " + constraint.toString());
             }
 
             identifiers.add(model.getIdentifier());

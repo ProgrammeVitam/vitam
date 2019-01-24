@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -14,6 +15,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.administration.preservation.DefaultGriffin;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -28,6 +30,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import nu.xom.jaxen.util.SingletonList;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -43,6 +46,7 @@ import javax.validation.Validator;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -50,6 +54,7 @@ import static com.google.common.collect.ImmutableSet.of;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
 import static java.util.Collections.singletonList;
@@ -87,13 +92,17 @@ public class PreservationScenarioServiceTest {
 
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
+        DefaultGriffin defaultGriffin =
+            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation()));
+
         defaultScenarioModel = new PreservationScenarioModel(
             "name",
             "id",
-            singletonList(ActionTypePreservation.GENERATE),
+            singletonList(GENERATE),
             singletonList("string"),
             singletonList(new GriffinByFormat()),
-            new GriffinByFormat());
+            defaultGriffin);
+
         defaultScenarioModel.setVersion(1);
         GUID guid = newGUID();
 
@@ -273,17 +282,35 @@ public class PreservationScenarioServiceTest {
     @RunWithCustomExecutor
     public void shouldFailedWhenImportTwoDuplicatedScenarioIdentifiers() throws Exception {
         //Given
+        GriffinByFormat griffinByFormat =
+            new GriffinByFormat(of("fmt"), "id", ImmutableList.of(new ActionPreservation()));
+        griffinByFormat.setDebug(false);
+        griffinByFormat.setActionDetail(Collections.singletonList(new ActionPreservation(GENERATE,null)));
+        griffinByFormat.setFormatList(Sets.newHashSet("ts"));
+        griffinByFormat.setMaxSize(2);
+        griffinByFormat.setTimeOut(2000);
+
+        DefaultGriffin defaultGriffin =
+            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation(GENERATE,null)));
+
+        defaultGriffin.setDebug(false);
+        defaultGriffin.setActionDetail(Collections.singletonList(new ActionPreservation(GENERATE,null)));
+        defaultGriffin.setMaxSize(2);
+        defaultGriffin.setTimeOut(2000);
+
+
+
         PreservationScenarioModel secondScenarioModel = new PreservationScenarioModel(
             "name",
             "id",
-            singletonList(ActionTypePreservation.GENERATE),
+            singletonList(GENERATE),
             singletonList("string"),
-            singletonList(new GriffinByFormat()),
-            new GriffinByFormat());
+            singletonList(griffinByFormat),
+            defaultGriffin);
 
         // Then
         assertThatThrownBy(() -> preservationScenarioService
-            .importScenarios(Lists.newArrayList(defaultScenarioModel, secondScenarioModel)))
+            .importScenarios(Lists.newArrayList(secondScenarioModel, secondScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Duplicate scenario");
 
     }
@@ -363,9 +390,9 @@ public class PreservationScenarioServiceTest {
     @RunWithCustomExecutor
     public void shouldFailedValidateDefaultGriffinHasNoActionDetail() throws Exception {
         //Given
-        GriffinByFormat format =
-            new GriffinByFormat(of("fmt"), "id",  ImmutableList.of(new ActionPreservation()));
-        defaultScenarioModel.setDefaultGriffin(format);
+        DefaultGriffin defaultGriffin =
+            new DefaultGriffin(of("fmt"), "id",  ImmutableList.of(new ActionPreservation()));
+        defaultScenarioModel.setDefaultGriffin(defaultGriffin);
 
         // Then
         assertThatThrownBy(

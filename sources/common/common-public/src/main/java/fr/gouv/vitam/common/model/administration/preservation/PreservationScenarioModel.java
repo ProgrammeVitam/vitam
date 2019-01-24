@@ -104,7 +104,7 @@ public class PreservationScenarioModel {
 
     @JsonProperty(TAG_DEFAULT_GRIFFIN)
     @Valid
-    private GriffinByFormat defaultGriffin;
+    private DefaultGriffin defaultGriffin;
 
     public PreservationScenarioModel() {
     }
@@ -114,7 +114,7 @@ public class PreservationScenarioModel {
         @NotEmpty List<ActionTypePreservation> actionList,
         @NotEmpty List<String> metadataFilter,
         @NotEmpty List<GriffinByFormat> griffinByFormat,
-        @NotEmpty GriffinByFormat defaultGriffin) {
+        @NotEmpty DefaultGriffin defaultGriffin) {
         this.name = name;
         this.identifier = identifier;
         this.actionList = actionList;
@@ -211,49 +211,44 @@ public class PreservationScenarioModel {
         this.griffinByFormat = griffinByFormat;
     }
 
-    public GriffinByFormat getDefaultGriffin() {
+    public DefaultGriffin getDefaultGriffin() {
         return defaultGriffin;
     }
 
-    public void setDefaultGriffin(GriffinByFormat defaultGriffin) {
+    public void setDefaultGriffin(DefaultGriffin defaultGriffin) {
         this.defaultGriffin = defaultGriffin;
     }
 
     public Optional<String> getGriffinIdentifierByFormat(String format) {
+        Optional<GriffinByFormat> griffin = getGriffinByFormat(format);
 
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
-            return empty();
-        }
+        return griffin.map(GriffinByFormat::getGriffinIdentifier);
 
-        for (GriffinByFormat element : griffinByFormat) {
-            if (element.getFormatList().contains(format)) {
-                return Optional.of(element.getGriffinIdentifier());
-            }
-        }
-        return empty();
     }
 
     @JsonIgnore
     public Optional<GriffinByFormat> getGriffinByFormat(String format) {
 
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
+        boolean emptyGriffinList = griffinByFormat == null || griffinByFormat.isEmpty();
+
+        if (emptyGriffinList) {
+            if(defaultGriffin != null) {
+                return Optional.of(new GriffinByFormat(defaultGriffin));
+            }
             return empty();
         }
 
-        Optional<GriffinByFormat> first =
-            griffinByFormat.stream()
-                .filter(e -> e.getFormatList().contains(format))
-                .findFirst();
-
-        if (first.isPresent()) {
-            return first;
+        for (GriffinByFormat element : griffinByFormat) {
+            if (element.getFormatList().contains(format)) {
+                return Optional.of(element);
+            }
         }
 
-        if (defaultGriffin == null) {
-            return empty();
+        if(defaultGriffin != null) {
+            return Optional.of(new GriffinByFormat(defaultGriffin));
         }
 
-        return Optional.of(defaultGriffin);
+        return empty();
     }
 
 

@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,61 +23,92 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
 package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
+import java.util.List;
+import java.util.Set;
 
-public class ActionPreservation {
-    @JsonProperty("Type")
+/**
+ * DefaultGriffin class
+ */
+public class DefaultGriffin {
+
+
+    @NotEmpty
+    @JsonProperty("GriffinIdentifier")
+    private String griffinIdentifier;
+
+    @Positive
+    @JsonProperty("Timeout")
+    private int timeOut;
+
+    @Positive
+    @JsonProperty("MaxSize")
+    private int maxSize;
+
     @NotNull
-    private ActionTypePreservation type;
+    @JsonProperty("Debug")
+    private Boolean debug;
 
+    @NotEmpty
     @Valid
-    @JsonProperty("Values")
-    private ValuesPreservation values;
+    @JsonProperty("ActionDetail")
+    private List<ActionPreservation> actionDetail;
 
-    public ActionPreservation() {
+    public DefaultGriffin() {//default Constructor
     }
 
-    public ActionPreservation(
-        @NotNull ActionTypePreservation type,
-        @Valid ValuesPreservation values) {
-        this.type = type;
-        this.values = values;
+    public DefaultGriffin(@NotEmpty Set<String> formatList,
+        @NotEmpty String griffinIdentifier,
+        @NotEmpty List<ActionPreservation> actionDetail) {
+        this.griffinIdentifier = griffinIdentifier;
+        this.actionDetail = actionDetail;
     }
 
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
+    public String getGriffinIdentifier() {
+        return griffinIdentifier;
     }
 
-    public ActionTypePreservation getType() {
-        return type;
+    public void setGriffinIdentifier(String griffinIdentifier) {
+        this.griffinIdentifier = griffinIdentifier;
     }
 
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
+    public int getTimeOut() {
+        return timeOut;
     }
 
-    public ValuesPreservation getValues() {
-        return values;
+    public void setTimeOut(int timeOut) {
+        this.timeOut = timeOut;
     }
 
-    public void setValues(ValuesPreservation values) {
-        this.values = values;
+    public int getMaxSize() {
+        return maxSize;
     }
 
-    @Override
-    public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
+    public void setMaxSize(int maxSize) {
+        this.maxSize = maxSize;
+    }
+
+    public Boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(Boolean debug) {
+        this.debug = debug;
+    }
+
+    public List<ActionPreservation> getActionDetail() {
+        return actionDetail;
+    }
+
+    public void setActionDetail(List<ActionPreservation> actionDetail) {
+        this.actionDetail = actionDetail;
     }
 }
-

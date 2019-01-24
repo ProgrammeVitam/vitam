@@ -23,7 +23,9 @@ public class PreservationScenarioModelTest {
     }
 
     @Test
-    public void shouldFailGriffinIdFromModel() {
+    public void shouldFailGriffinIdFromModel() throws Exception {
+        model = getFromFile(PropertiesUtils.getResourceFile("preservation/completeScenarioWithoutDefault.json"),
+            PreservationScenarioModel.class);
 
         Optional<String> griffinIdentifierByFormat3 = model.getGriffinIdentifierByFormat("toto");
         assertThat(griffinIdentifierByFormat3).isEmpty();

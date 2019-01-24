@@ -37,7 +37,7 @@ public class ValuesPreservation {
 
     @JsonProperty("Extension")
     private String extension;
-    @NotEmpty
+
     @JsonProperty("Args")
     private List<String> args;
     @JsonProperty("DataToExtract")
