@@ -3,9 +3,7 @@ package fr.gouv.vitam.functional.administration.griffin;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -13,26 +11,28 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.model.administration.preservation.DefaultGriffin;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.Griffin;
 import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import nu.xom.jaxen.util.SingletonList;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -46,16 +46,20 @@ import javax.validation.Validator;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.google.common.collect.ImmutableSet.of;
+import static com.google.common.collect.Lists.newArrayList;
+import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,7 +67,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -110,69 +113,42 @@ public class PreservationScenarioServiceTest {
         getVitamSession().setRequestId(guid);
     }
 
-    @Test
-    @RunWithCustomExecutor
-    public void name() throws Exception {
-        //Given
-        List<PreservationScenarioModel> allPreservationScenarioInDatabase = JsonHandler.getFromFileAsTypeRefence(
-            PropertiesUtils.getResourceFile("preservation_list.json"),
-            new TypeReference<List<PreservationScenarioModel>>() {
-            }
-        );
 
-        validate(allPreservationScenarioInDatabase);
-    }
-
-    private void validate(List<PreservationScenarioModel> allPreservationScenarioInDatabase)
-        throws ReferentialException, InvalidParseOperationException {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-
-        List<String> identifiers = new ArrayList<>();
-        for (PreservationScenarioModel model : allPreservationScenarioInDatabase) {
-            Set<ConstraintViolation<PreservationScenarioModel>> constraint = validator.validate(model);
-            if (!constraint.isEmpty()) {
-                throw new ReferentialException("Invalid scenario : '" + toJsonNode(model));
-            }
-
-            if (identifiers.contains(model.getIdentifier())) {
-                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier());
-            }
-
-            identifiers.add(model.getIdentifier());
-        }
-    }
 
     @Test
     @RunWithCustomExecutor
     public void givenPreservationScenariosInDataBaseShouldCollectInsertUpdateAndDeleteList() throws Exception {
 
         //Given
-        List<PreservationScenarioModel> allPreservationScenarioInDatabase = JsonHandler.getFromFileAsTypeRefence(
-            PropertiesUtils.getResourceFile("scenarii.json"),
-            new TypeReference<List<PreservationScenarioModel>>() {
-            }
-        );
+        List<PreservationScenarioModel>
+            allPreservationScenarioInDatabase = getPreservationScenarioModels("scenarii.json");
 
-        List<PreservationScenarioModel> listToImport = JsonHandler.getFromFileAsTypeRefence(
-            PropertiesUtils.getResourceFile("scenarii_import.json"),
-            new TypeReference<List<PreservationScenarioModel>>() {
-            }
-        );
+        List<PreservationScenarioModel> listToImport =
+            getPreservationScenarioModels("scenarii_import.json");
 
         String requestId = getVitamSession().getRequestId();
-        File preservationScenarioFile = PropertiesUtils.getResourceFile(
+        File preservationScenarioFile = getResourceFile(
             "preservation_scenario_logbook_operation.json");
         JsonNode preservationScenarioOperation = JsonHandler.getFromFile(preservationScenarioFile);
-        when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(preservationScenarioOperation);
+
+        List<GriffinModel> listGriffons = singletonList(new GriffinModel().setIdentifier("GRI-000001"));
+        List<FileFormatModel> listFormat = getFileFormatModels("fileformatModel.json");
 
         //When
+        when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(preservationScenarioOperation);
+
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class))
+            .thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+
         when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
             .thenReturn(allPreservationScenarioInDatabase);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
 
-        RequestResponse<PreservationScenarioModel> requestResponse =
-            preservationScenarioService.importScenarios(listToImport);
+        when(dbRequestResult.getDocuments(FileFormat.class, FileFormatModel.class)).thenReturn(listFormat);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
 
+        preservationScenarioService.importScenarios(listToImport);
 
         verify(mongoDbAccess, times(1)).insertDocuments(any(), eq(PRESERVATION_SCENARIO));
 
@@ -190,28 +166,33 @@ public class PreservationScenarioServiceTest {
         VitamThreadUtils.getVitamSession().setRequestId(guid);
 
         //Given
-        List<PreservationScenarioModel> allPreservationScenarioInDatabase = JsonHandler.getFromFileAsTypeRefence(
-            PropertiesUtils.getResourceFile("scenarii.json"),
-            new TypeReference<List<PreservationScenarioModel>>() {
-            }
-        );
+        List<PreservationScenarioModel>
+            allPreservationScenarioInDatabase = getPreservationScenarioModels("scenarii.json");
 
-        List<PreservationScenarioModel> listToImport = JsonHandler.getFromFileAsTypeRefence(
-            PropertiesUtils.getResourceFile("scenarii_all.json"),
-            new TypeReference<List<PreservationScenarioModel>>() {
-            }
-        );
+        List<PreservationScenarioModel> listToImport =
+            getPreservationScenarioModels("scenarii_all.json");
 
         String requestId = getVitamSession().getRequestId();
-        File preservationScenarioFile = PropertiesUtils.getResourceFile(
+        File preservationScenarioFile = getResourceFile(
             "preservation_scenario_logbook_operation.json");
         JsonNode preservationScenarioOperation = JsonHandler.getFromFile(preservationScenarioFile);
+
+        List<FileFormatModel> listFormat = getFileFormatModels("fileformatModel.json");
+        List<GriffinModel> listGriffons = singletonList(new GriffinModel().setIdentifier("GRI-000001"));
+
+        //When
+
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(preservationScenarioOperation);
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class))
+            .thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
 
         //When
         when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
             .thenReturn(allPreservationScenarioInDatabase);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
+        when(dbRequestResult.getDocuments(FileFormat.class, FileFormatModel.class)).thenReturn(listFormat);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
 
         RequestResponse<PreservationScenarioModel> requestResponse =
             preservationScenarioService.importScenarios(listToImport);
@@ -239,6 +220,14 @@ public class PreservationScenarioServiceTest {
 
         verify(functionalBackupService)
             .saveCollectionAndSequence(guid, "STP_BACKUP_SCENARIO", PRESERVATION_SCENARIO, guid.getId());
+
+
+        // test false type creation date
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_false_type_creationDate.json");
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid date");
     }
 
 
@@ -285,20 +274,18 @@ public class PreservationScenarioServiceTest {
         GriffinByFormat griffinByFormat =
             new GriffinByFormat(of("fmt"), "id", ImmutableList.of(new ActionPreservation()));
         griffinByFormat.setDebug(false);
-        griffinByFormat.setActionDetail(Collections.singletonList(new ActionPreservation(GENERATE,null)));
+        griffinByFormat.setActionDetail(singletonList(new ActionPreservation(GENERATE, null)));
         griffinByFormat.setFormatList(Sets.newHashSet("ts"));
         griffinByFormat.setMaxSize(2);
         griffinByFormat.setTimeOut(2000);
 
         DefaultGriffin defaultGriffin =
-            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation(GENERATE,null)));
+            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation(GENERATE, null)));
 
         defaultGriffin.setDebug(false);
-        defaultGriffin.setActionDetail(Collections.singletonList(new ActionPreservation(GENERATE,null)));
+        defaultGriffin.setActionDetail(singletonList(new ActionPreservation(GENERATE, null)));
         defaultGriffin.setMaxSize(2);
         defaultGriffin.setTimeOut(2000);
-
-
 
         PreservationScenarioModel secondScenarioModel = new PreservationScenarioModel(
             "name",
@@ -310,7 +297,7 @@ public class PreservationScenarioServiceTest {
 
         // Then
         assertThatThrownBy(() -> preservationScenarioService
-            .importScenarios(Lists.newArrayList(secondScenarioModel, secondScenarioModel)))
+            .importScenarios(newArrayList(secondScenarioModel, secondScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Duplicate scenario");
 
     }
@@ -322,18 +309,586 @@ public class PreservationScenarioServiceTest {
         defaultScenarioModel.setIdentifier(null);
 
         // Then
-        assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
         //Given
         defaultScenarioModel.setIdentifier("");
 
         // Then
-        assertThatThrownBy(
-            () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_actionList() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_field_actionList.json");
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_defaultGriffin_actionDetail() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_defaultGriffin_actionDetail.json.json");
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_defaultGriffin_debug() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_defaultGriffin_debug.json.json");
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_defaultGriffin_griffinIdentifier() throws Exception {
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_defaultGriffin_griffinIdentifier.json.json");
+        //Then
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_defaultGriffin_maxSize() throws Exception {
+        //Given
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_defaultGriffin_maxSize.json.json");
+        //Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_defaultGriffin_timeout() throws Exception {
+        //Given
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_defaultGriffin_timeout.json.json");
+        //Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_defaultGriffin_type() throws Exception {
+        //Given
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_defaultGriffin_type.json.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat() throws Exception {
+        //Given
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_field_griffinByFormat.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat_actionDetail() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_griffinByFormat_actionDetail.json.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat_debug() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_griffinByFormat_debug.json.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat_formatList() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_griffinByFormat_formatList.json.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat_griffinIdentifier() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_griffinByFormat_griffinIdentifier.json.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat_maxSize() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_griffinByFormat_maxSize.json.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat_timeout() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_field_griffinByFormat_timeout.json.json");
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_griffinByFormat_type() throws Exception {
+
+        // Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_field_griffinByFormat_type.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_identifier() throws Exception {
+        // Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_field_identifier.json");
+
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_field_name() throws Exception {
+
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_field_name.json");
+
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_actionList() throws Exception {
+        //Given / When / Then
+
+        assertThatThrownBy(
+            () -> getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_actionList.json"))
+            .isInstanceOf(InvalidParseOperationException.class);
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_defaultFormat_actionDetail() throws Exception {
+        // Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_value_defaultFormat_actionDetail.json");
+
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_defaultFormat_debug() throws Exception {
+        //Given
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_defaultFormat_debug.json");
+
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_defaultFormat_griffinIdentifier() throws Exception {
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_value_defaultFormat_griffinIdentifier.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_defaultFormat_maxSize() throws Exception {
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_defaultFormat_maxSize.json");
+
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_defaultFormat_timeout() throws Exception {
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_defaultFormat_timeout.json");
+
+        //When / Then
+
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_defaultFormat_type() throws Exception {
+        // Given / When / Then
+
+        assertThatThrownBy(() -> getPreservationScenarioModels(
+            "preservationScenarios/KO_scenario_absent_value_defaultFormat_type.json"))
+            .isInstanceOf(InvalidParseOperationException.class);
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_formatList() throws Exception {
+
+        // Given
+        List<GriffinModel> listGriffons = singletonList(new GriffinModel().setIdentifier("GRI-000001"));
+
+        //When
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class))
+            .thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_formatList.json");
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_griffinByFormat_actionDetail() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_value_griffinByFormat_actionDetail.json");
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_griffinByFormat_debug() throws Exception {
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_griffinByFormat_debug.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_griffinByFormat_griffinIdentifier() throws Exception {
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_value_griffinByFormat_griffinIdentifier.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_griffinByFormat_maxSize() throws Exception {
+        //Given
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_value_griffinByFormat_maxSize.json");
+        //When / Then
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_griffinByFormat_timeout() throws Exception {
+        // Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_value_griffinByFormat_timeout.json");
+
+        //When / Then
+
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_griffinByFormat_type() throws Exception {
+        //given /When / Then
+
+        assertThatThrownBy(
+            () -> getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_absent_value_griffinByFormat_type.json"))
+            .isInstanceOf(InvalidParseOperationException.class);
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_identifier() throws Exception {
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_identifier.json");
+        //When / Then
+
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_absent_value_name() throws Exception {
+        //Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_value_name.json");
+
+        //When / Then
+
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_false_type_debug() throws Exception {
+        //Given/ When / Then
+
+        assertThatThrownBy(
+            () -> getPreservationScenarioModels("preservationScenarios/KO_scenario_false_type_debug.json"))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_false_type_maxSize() throws Exception {
+        //Given
+        String resource = "preservationScenarios/KO_scenario_false_type_maxSize.json";
+
+        //When / Then
+        assertThatThrownBy(() -> getPreservationScenarioModels(resource))
+            .isInstanceOf(InvalidParseOperationException.class);
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_false_type_timeout() throws Exception {
+
+        //Given         //When / Then
+        assertThatThrownBy(
+            () -> getPreservationScenarioModels("preservationScenarios/KO_scenario_false_type_timeout.json"))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    //        preservationScenarios/KO_scenario_format.pdf
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_same_identifier() throws Exception {
+        //Given
+
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels("preservationScenarios/KO_scenario_same_identifier.json");
+        //When / Then
+
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Duplicate scenario : 'PSC-000001'");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_unknown_value_defaultGriffin_griffinIdentifier() throws Exception {
+
+        // Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_unknown_value_defaultGriffin_griffinIdentifier.json");
+
+        List<GriffinModel> listGriffons = singletonList(new GriffinModel().setIdentifier("GRI-000001"));
+
+        //When
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class))
+            .thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+
+        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Griffin 'TOTO' is not in database");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_unknown_value_defaultGriffin_type() throws Exception {
+        //When / Then
+
+        assertThatThrownBy(() -> getPreservationScenarioModels(
+            "preservationScenarios/KO_scenario_unknown_value_defaultGriffin_type.json"))
+            .isInstanceOf(InvalidParseOperationException.class);
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_unknown_value_formatList() throws Exception {
+        // Given
+        List<GriffinModel> listGriffons = singletonList(new GriffinModel().setIdentifier("GRI-000001"));
+
+        List<FileFormatModel> listFormat = new ArrayList<>();
+
+        //When
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class))
+            .thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+
+        when(dbRequestResult.getDocuments(FileFormat.class, FileFormatModel.class))
+            .thenReturn(listFormat);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
+
+        //Then
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(
+                getPreservationScenarioModels("preservationScenarios/KO_scenario_unknown_value_formatList.json")))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Format is not in database");
+        ;
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_unknown_value_GriffinByFormat_griffinIdentifier() throws Exception {
+        // Given
+        List<PreservationScenarioModel> scenarios =
+            getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_unknown_value_GriffinByFormat_griffinIdentifier.json");
+
+        List<GriffinModel> listGriffons = new ArrayList<>();
+
+        //When
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class))
+            .thenReturn(listGriffons);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+
+        assertThatThrownBy(
+            () -> preservationScenarioService.importScenarios(scenarios))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Griffin 'TOTO' is not in database");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void KO_scenario_unknown_value_GriffinByFormat_type() throws Exception {
+
+        assertThatThrownBy(
+            () -> getPreservationScenarioModels(
+                "preservationScenarios/KO_scenario_unknown_value_GriffinByFormat_type.json"))
+            .isInstanceOf(InvalidParseOperationException.class);
+    }
+
+    private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
+        throws InvalidParseOperationException, FileNotFoundException {
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<PreservationScenarioModel>>() {
+        });
+    }
+
+    private List<FileFormatModel> getFileFormatModels(String s)
+        throws InvalidParseOperationException, FileNotFoundException {
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<FileFormatModel>>() {
+        });
     }
 
     @Test
@@ -358,7 +913,6 @@ public class PreservationScenarioServiceTest {
     }
 
     @Test
-    @Ignore
     @RunWithCustomExecutor
     public void shouldFailedValidateScenarioWhenGriffinByFormatIsNullOrEmpty() throws Exception {
         //Given
@@ -376,7 +930,7 @@ public class PreservationScenarioServiceTest {
             .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
         //Given
-        defaultScenarioModel.setGriffinByFormat(new ArrayList<GriffinByFormat>());
+        defaultScenarioModel.setGriffinByFormat(new ArrayList<>());
 
         // Then
         assertThatThrownBy(
@@ -391,13 +945,13 @@ public class PreservationScenarioServiceTest {
     public void shouldFailedValidateDefaultGriffinHasNoActionDetail() throws Exception {
         //Given
         DefaultGriffin defaultGriffin =
-            new DefaultGriffin(of("fmt"), "id",  ImmutableList.of(new ActionPreservation()));
+            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation()));
         defaultScenarioModel.setDefaultGriffin(defaultGriffin);
 
         // Then
         assertThatThrownBy(
             () -> preservationScenarioService.importScenarios(singletonList(defaultScenarioModel)))
-            .isInstanceOf(ReferentialException.class);
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
 
     }
 

@@ -99,6 +99,8 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_METADATA_FILTER)
     private List<String> metadataFilter;
 
+    @Valid
+    @NotEmpty
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
 
@@ -106,7 +108,7 @@ public class PreservationScenarioModel {
     @Valid
     private DefaultGriffin defaultGriffin;
 
-    public PreservationScenarioModel() {
+    public PreservationScenarioModel() {//empty  constructor
     }
 
     public PreservationScenarioModel(@NotEmpty String name,

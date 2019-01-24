@@ -137,8 +137,9 @@ public class GriffinModel {
         return identifier;
     }
 
-    public void setIdentifier(String identifier) {
+    public GriffinModel setIdentifier(String identifier) {
         this.identifier = identifier;
+        return this;
     }
 
     public String getDescription() {

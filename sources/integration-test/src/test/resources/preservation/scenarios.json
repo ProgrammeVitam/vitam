@@ -143,8 +143,8 @@
         "Debug": true,
         "ActionDetail": [
           {
-            "type": "GENERATE",
-            "values": {
+            "Type": "GENERATE",
+            "Values": {
               "Extension": "pdf",
               "Args": [
                 "-quality",
@@ -210,8 +210,8 @@
         "Debug": true,
         "ActionDetail": [
           {
-            "type": "ANALYSE",
-            "values": {
+            "Type": "ANALYSE",
+            "Values": {
               "args": [
                 "-strict"
               ]
@@ -330,7 +330,7 @@
           "fmt/293",
           "fmt/297"
         ],
-        "GriffinIdentifier": "GRI-000034",
+        "GriffinIdentifier": "GRI-000003",
         "Timeout": 20,
         "MaxSize": 10000000,
         "Debug": true,

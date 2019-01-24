@@ -45,14 +45,19 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.Griffin;
 import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
 import fr.gouv.vitam.functional.administration.format.model.FunctionalOperationModel;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -67,6 +72,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -85,12 +91,15 @@ import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.PreservationScenario.IDENTIFIER;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbook;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventKo;
 import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventSuccess;
 import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
 import static java.time.LocalDateTime.now;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 public class PreservationScenarioService {
@@ -127,8 +136,8 @@ public class PreservationScenarioService {
         createLogbook(logbookOperationsClientFactory, guid, SCENARIO_IMPORT_EVENT);
 
         try {
-            validate(listToImport);
 
+            validate(listToImport);
 
             final ObjectNode finalSelect = new Select().getFinalSelect();
             DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, PRESERVATION_SCENARIO);
@@ -177,6 +186,57 @@ public class PreservationScenarioService {
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
+    private void functionalGriffinIdentifierValidation(List<PreservationScenarioModel> listToImport)
+        throws BadRequestException, ReferentialException, InvalidParseOperationException {
+
+        final ObjectNode finalSelect = new Select().getFinalSelect();
+        DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, GRIFFIN);
+
+        final List<GriffinModel> allGriffinInDatabase = result.getDocuments(Griffin.class, GriffinModel.class);
+        List<String> griffinsIdentifier =
+            allGriffinInDatabase.stream().map(GriffinModel::getIdentifier).collect(toList());
+
+        for (PreservationScenarioModel scenario : listToImport) {
+            checkGriffinByFormatIdentifier(scenario, griffinsIdentifier);
+        }
+    }
+
+    private void formatValidation(List<PreservationScenarioModel> listToImport)
+        throws BadRequestException, ReferentialException, InvalidParseOperationException {
+
+        final ObjectNode finalSelect = new Select().getFinalSelect();
+        DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, FORMATS);
+
+        final List<FileFormatModel> allGriffinInDatabase = result.getDocuments(FileFormat.class, FileFormatModel.class);
+        List<String> formatPuids =
+            allGriffinInDatabase.stream().map(FileFormatModel::getPuid).collect(toList());
+
+        for (PreservationScenarioModel scenario : listToImport) {
+            for(GriffinByFormat griffinByFormat : scenario.getGriffinByFormat()) {
+                for(String format : griffinByFormat.getFormatList()) {
+                    if(!formatPuids.contains(format)) {
+                        throw new ReferentialException("Format is not in database");
+                    }
+                }
+            }
+        }
+    }
+
+    private void checkGriffinByFormatIdentifier(PreservationScenarioModel scenario, List<String> griffinsIdentifiers)
+        throws ReferentialException {
+        for (GriffinByFormat griffinByFormat : scenario.getGriffinByFormat()) {
+            if (!griffinsIdentifiers.contains(griffinByFormat.getGriffinIdentifier())) {
+                throw new ReferentialException("Griffin '"+griffinByFormat.getGriffinIdentifier()+"' is not in database");
+            }
+        }
+
+        if (scenario.getDefaultGriffin() != null &&
+            !griffinsIdentifiers.contains(scenario.getDefaultGriffin().getGriffinIdentifier())) {
+            throw new ReferentialException("Griffin '"+scenario.getDefaultGriffin().getGriffinIdentifier()+"' is not in database");
+        }
+    }
+
+
 
     private void saveReport(GUID guid, PreservationScenarioReport griffinReport) throws StorageException {
 
@@ -193,13 +253,22 @@ public class PreservationScenarioService {
     }
 
     private void validate(List<PreservationScenarioModel> listToImport)
-        throws ReferentialException {
+        throws ReferentialException, BadRequestException, InvalidParseOperationException {
+
+        entryValidation(listToImport);
+
+        functionalGriffinIdentifierValidation(listToImport);
+
+        formatValidation(listToImport);
+    }
+
+    private void entryValidation(List<PreservationScenarioModel> listToImport) throws ReferentialException {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
         List<String> identifiers = new ArrayList<>();
         for (PreservationScenarioModel model : listToImport) {
             if (identifiers.contains(model.getIdentifier())) {
-                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier());
+                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier()+"'");
             }
 
             Set<ConstraintViolation<PreservationScenarioModel>> constraint = validator.validate(model);
@@ -397,14 +466,19 @@ public class PreservationScenarioService {
         }
     }
 
-    private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) {
+    private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) throws ReferentialException {
 
-        String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
-        preservationScenarioModel.setLastUpdate(lastUpdate);
+        try {
+            String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
+            preservationScenarioModel.setLastUpdate(lastUpdate);
 
-        if (preservationScenarioModel.getCreationDate() != null) {
-            String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
-            preservationScenarioModel.setCreationDate(creationDate);
+            if (preservationScenarioModel.getCreationDate() != null) {
+
+                String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
+                preservationScenarioModel.setCreationDate(creationDate);
+            }
+        } catch (DateTimeParseException e) {
+            throw new ReferentialException("Invalid date");
         }
     }
 

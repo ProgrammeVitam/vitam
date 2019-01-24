@@ -230,7 +230,8 @@ public class PreservationIT extends VitamRuleRunner {
 
         getVitamSession().setTenantId(0);
         getVitamSession().setRequestId(newGUID());
-        List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels();
+        List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels(
+            "preservation/scenarios.json");
 
         client.importPreservationScenarios(preservationScenarioModelList);
 
@@ -344,8 +345,8 @@ public class PreservationIT extends VitamRuleRunner {
         }
     }
 
-    private List<PreservationScenarioModel> getPreservationScenarioModels() throws Exception {
-        File resourceFile = PropertiesUtils.getResourceFile("preservation/scenarios.json");
+    private List<PreservationScenarioModel> getPreservationScenarioModels(String resourcesFile) throws Exception {
+        File resourceFile = PropertiesUtils.getResourceFile(resourcesFile);
         return getFromFileAsTypeRefence(resourceFile, new TypeReference<List<PreservationScenarioModel>>() {
         });
     }
@@ -457,7 +458,8 @@ public class PreservationIT extends VitamRuleRunner {
 
             guid = newGUID();
             getVitamSession().setRequestId(guid);
-            List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels();
+            List<PreservationScenarioModel> preservationScenarioModelList =
+                getPreservationScenarioModels("preservation/scenarios.json");
 
             client.importPreservationScenarios(preservationScenarioModelList);
 

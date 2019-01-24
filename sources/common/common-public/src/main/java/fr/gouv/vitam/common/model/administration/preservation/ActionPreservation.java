@@ -42,7 +42,7 @@ public class ActionPreservation {
     @JsonProperty("Values")
     private ValuesPreservation values;
 
-    public ActionPreservation() {
+    public ActionPreservation() {//empty constructor
     }
 
     public ActionPreservation(

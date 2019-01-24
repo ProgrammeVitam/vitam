@@ -1,18 +1,16 @@
-[
-  {
-    "#id": "Id1",
-    "Name": "1",
-    "Identifier": "IDENTIFIER1",
-    "CreationDate": "25/10/2010",
-    "LastUpdate": "25/10/2010",
-    "MetadataFilter": [
-      "AU_TextContent",
-      "AU_NamedEntity"
+{
+    "Identifier": "PSC-000001",
+    "Name": "Tranformation en GIF (fmt/43)",
+    "Description": "Ce scénario, appelant le griffon ImageMagick, permet de convertir des fichiers dont le PUID est fmt/43 en fichiers au format GIF, et prenant la forme de vignettes de 100px x 100px",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "ActionList": [
+      "GENERATE"
     ],
+    "MetadataFilter": null,
     "GriffinByFormat": [
       {
         "FormatList": ["fmt/43"],
-        "GriffinIdentifier": "GRI-000001",
+        "GriffinIdentifier": "",
         "Timeout": 2000,
         "MaxSize": 10000000,
         "Debug":true,
@@ -20,7 +18,7 @@
           {
             "Type": "GENERATE",
             "Values": {
-              "Extension": "TIF",
+              "Extension": "GIF",
               "Args": [
                 "-thumbnail",
                 "100x100"
@@ -30,23 +28,7 @@
         ]
       }
     ],
-    "ActionList": [
-      "GENERATE"
-    ],
-    "#version": 1
-  },
-  {
-    "#id": "Id2",
-    "Name": "2",
-    "Identifier": "IDENTIFIER2",
-    "CreationDate": "25/10/2010",
-    "LastUpdate": "25/10/2010",
-    "MetadataFilter": [
-      "AU_TextContent",
-      "AU_NamedEntity"
-    ],
-    "GriffinByFormat": [
-      {
+    "DefaultGriffin": {
         "FormatList": ["fmt/43"],
         "GriffinIdentifier": "GRI-000001",
         "Timeout": 2000,
@@ -56,7 +38,7 @@
           {
             "Type": "GENERATE",
             "Values": {
-              "Extension": "TIF",
+              "Extension": "GIF",
               "Args": [
                 "-thumbnail",
                 "100x100"
@@ -65,10 +47,5 @@
           }
         ]
       }
-    ],
-    "ActionList": [
-      "GENERATE"
-    ],
-    "#version": 1
+    
   }
-]
