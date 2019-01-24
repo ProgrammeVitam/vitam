@@ -7,3 +7,4 @@ Montées de version bugfix
 
    r6/_toc.rst
    r7/_toc.rst
+   r8/_toc.rst
