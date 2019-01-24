@@ -5,20 +5,20 @@
 
 
 Paramétrages supplémentaires
-============================
+#############################
 
 .. _update_jvm:
 
 Tuning JVM
------------
+==========
 
 .. note:: Cette section est en cours de développement.
 
-.. caution:: en cas de colocalisation, bien prendre en compte la taille JVM de chaque composant (VITAM : -Xmx512m par défaut) pour éviter de swapper.
+.. caution:: en cas de colocalisation, bien prendre en compte la taille :term:`JVM` de chaque composant (VITAM : -Xmx512m par défaut) pour éviter de `swapper`.
 
 
-Un tuning fin des paramètres JVM de chaque composant VITAM est possible.
-Pour cela, il faut modifier le fichier ``group_vars/all/jvm_opts.yml``
+Un `tuning` fin des paramètres JVM de chaque composant :term:`VITAM` est possible.
+Pour cela, il faut modifier le contenu du fichier ``environments/group_vars/all/jvm_opts.yml``
 
 Pour chaque composant, il est possible de modifier ces 3 variables:
 
@@ -26,9 +26,25 @@ Pour chaque composant, il est possible de modifier ces 3 variables:
 * gc: parmètres gc
 * java: autres paramètres java
 
+Installation des greffons
+==========================
+
+.. note:: Fonctionnalité apparue en R9.
+
+Il est possible de choisir les greffons installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``environments/group_vars/all/vitam-vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
+
+Exemple::
+
+   vitam_griffins: ["vitam-imagemagick-griffin", "vitam-jhove-griffin"]
+
+Voici la liste des greffons disponibles au moment de la présente publication :
+
+
+.. literalinclude:: liste_griffins.txt
+   :language: text
 
 Paramétrage de l'antivirus (ingest-externe)
--------------------------------------------
+===========================================
 
 L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; pour cela :
 
@@ -50,12 +66,12 @@ L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; p
 .. warning:: Sur plate-forme Debian, ClamAV est installé sans base de données. Pour que l'antivirus soit fonctionnel, il est nécessaire, durant l'installation, de la télécharger ; il est donc nécessaire de renseigner dans l'inventaire la directive ``http_proxy_environnement``.
 
 Paramétrage des certificats externes (\*-externe)
--------------------------------------------------
+=================================================
 
 Se reporter au chapitre dédié à la gestion des certificats: :doc:`20-certificats`
 
 Placer "hors Vitam" le composant ihm-demo 
------------------------------------------
+=========================================
 
 Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé par le nom de machine hébergeant le composant ihm-demo et ajouter le contenu ci-dessous ::
 
@@ -67,7 +83,7 @@ Il est également fortement recommandé de positionner la valeur de la directive
 
 
 Paramétrage de la centralisation des logs Vitam
------------------------------------------------
+================================================
 
 2 cas sont possibles :
 
@@ -75,7 +91,7 @@ Paramétrage de la centralisation des logs Vitam
 * Utiliser un SIEM tiers.
 
 Gestion par Vitam
-^^^^^^^^^^^^^^^^^
+-------------------
 
 Pour une gestion des logs par Vitam, il est nécessaire de déclarer les serveurs ad-hoc dans le fichier d'inventaire pour les 3 groupes suivants:
     - hosts-logstash
@@ -84,7 +100,7 @@ Pour une gestion des logs par Vitam, il est nécessaire de déclarer les serveur
 
 
 Redirection des logs sur un SIEM tiers
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------
 
 En configuration par défaut, les logs Vitam sont tout d'abord routés vers un serveur rsyslog installé sur chaque machine.
 Il est possible d'en modifier le routage, qui par défaut redirige vers le serveur logstash via le protocole syslog en TCP.
@@ -95,7 +111,7 @@ Pour cela, il est nécessaire de placer un fichier de configuration dédié dans
 
 
 Fichiers complémentaires
-------------------------
+==========================
 
 A titre informatif, le positionnement des variables ainsi que des dérivations des déclarations de variables sont effectuées dans les fichiers suivants :
 

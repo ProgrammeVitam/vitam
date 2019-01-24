@@ -4,3 +4,4 @@
   package:
     name: "{{ vitam_griffins }}"
     state: latest
+  tags: griffins
