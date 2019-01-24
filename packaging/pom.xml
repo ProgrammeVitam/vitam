@@ -73,6 +73,16 @@
 							<executable>./remove_user_certificates.sh</executable>
 						</configuration>
 					</execution>
+					<execution>
+						<id>Remove vitam griffins</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>./remove_griffins.sh</executable>
+						</configuration>
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>
