@@ -133,15 +133,13 @@ public class DefaultOfferResourceTest {
             mongoRule.addCollectionToBePurged(o.getName());
         }
 
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
-
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final OfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, OfferConfiguration.class);
         List<MongoDbNode> mongoDbNodes = realWorkspaceOffer.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         realWorkspaceOffer.setMongoDbNodes(mongoDbNodes);
+        realWorkspaceOffer.setDbName(MongoRule.VITAM_DB);
         File newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
