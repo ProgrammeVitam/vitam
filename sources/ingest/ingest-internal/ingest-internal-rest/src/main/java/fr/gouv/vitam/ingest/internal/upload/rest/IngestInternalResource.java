@@ -119,6 +119,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
     private static final String JSON = ".json";
+    private static final String JSONL = ".jsonl";
     private static final String INGEST = "ingest";
     private static final String FOLDER_SIP = "SIP";
     private static final String INGEST_INT_UPLOAD = "STP_UPLOAD_SIP";
@@ -571,15 +572,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-    private Response downloadObjectAsync(String objectId,
-                                         String type) {
+    private Response downloadObjectAsync(String objectId, String type) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             DataCategory documentType = DataCategory.getByCollectionName(type);
             if (documentType == DataCategory.MANIFEST || documentType == DataCategory.REPORT) {
                 objectId += XML;
             } else if (documentType == DataCategory.DISTRIBUTIONREPORTS) {
                 objectId += DISTRIBUTIONREPORT_SUFFIX;
-            } else if (documentType == DataCategory.RULES) {
+            } else if (documentType == DataCategory.PRESERVATION) {
+                // #2940 Ugly hack for use the same point of API for all report
+                objectId = "preservationReport-" + objectId + JSONL;
+                documentType = DataCategory.REPORT;
+            }else if (documentType == DataCategory.RULES) {
                 // #2940 Ugly hack for use the same point of API for all report
                 objectId += JSON;
                 documentType = DataCategory.REPORT;

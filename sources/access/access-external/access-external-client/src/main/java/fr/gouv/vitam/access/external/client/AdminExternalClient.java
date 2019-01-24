@@ -73,7 +73,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param vitamContext the vitam context
-     * @param rules        the input stream to be checked
+     * @param rules the input stream to be checked
      * @return response including InputStream
      * @throws VitamClientException
      */
@@ -86,7 +86,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param vitamContext the vitam context
-     * @param formats      the input stream to be checked
+     * @param formats the input stream to be checked
      * @return response including InputStream
      * @throws VitamClientException
      */
@@ -97,7 +97,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find formats.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of formats
      * @throws VitamClientException
      */
@@ -108,7 +108,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find rules.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of rules
      * @throws VitamClientException
      */
@@ -119,7 +119,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find entry contracts.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of ingest contrats
      * @throws VitamClientException
      */
@@ -132,7 +132,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find access contracts.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of access contrats
      * @throws VitamClientException
      */
@@ -145,7 +145,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find contexts.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of contexts
      * @throws VitamClientException
      */
@@ -156,7 +156,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find profiles.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of profiles
      * @throws VitamClientException
      */
@@ -167,7 +167,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find accession registers.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of accession registers
      * @throws VitamClientException
      */
@@ -179,7 +179,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find accession registers symbolic.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of accession registers
      * @throws VitamClientException
      */
@@ -191,7 +191,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find archive unit profiles
      *
      * @param vitamContext the vitam context
-     * @param query        select query
+     * @param query select query
      * @return list of archive unit profiles
      * @throws VitamClientException
      */
@@ -203,8 +203,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Get the accession register details matching the given query
      *
      * @param vitamContext the vitam context
-     * @param id           the id of accession register
-     * @param query        The DSL Query as a JSON Node
+     * @param id the id of accession register
+     * @param query The DSL Query as a JSON Node
      * @return The AccessionregisterDetails list as a response jsonNode
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientServerException
@@ -228,7 +228,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <li>One or many contracts elready exist in the database</li>
      * </ul>
      *
-     * @param vitamContext    the vitam context
+     * @param vitamContext the vitam context
      * @param ingestContracts as InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
@@ -249,7 +249,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <li>One or many contracts already exist in the database</li>
      * </ul>
      *
-     * @param vitamContext    the vitam context
+     * @param vitamContext the vitam context
      * @param accessContracts as InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
@@ -261,9 +261,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Update the given access contract by query dsl
      *
-     * @param vitamContext     the vitam context
+     * @param vitamContext the vitam context
      * @param accessContractId the given id of the access contract
-     * @param queryDsl         the given dsl query
+     * @param queryDsl the given dsl query
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
@@ -275,9 +275,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Update the given ingest contract by query dsl
      *
-     * @param vitamContext     the vitam context
+     * @param vitamContext the vitam context
      * @param ingestContractId the given id of the ingest contract
-     * @param queryDsl         the given dsl query
+     * @param queryDsl the given dsl query
      * @return Response status ok or vitam error
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
@@ -290,9 +290,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Update the given archive unit profile by query DSL
      *
-     * @param vitamContext         the vitam context
+     * @param vitamContext the vitam context
      * @param archiveUnitprofileId the id of the archive unit profile update target
-     * @param queryDSL             the given DSL query
+     * @param queryDSL the given DSL query
      * @return Response status OK or a VitamError
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
@@ -312,7 +312,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * </ul>
      *
      * @param vitamContext the vitam context
-     * @param profiles     as Json InputStream
+     * @param profiles as Json InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
@@ -327,9 +327,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      *
      * The profile file will be saved in storage with the name of id of profile metadata
      *
-     * @param vitamContext      the vitam context
+     * @param vitamContext the vitam context
      * @param profileMetadataId
-     * @param profile           as InputStream
+     * @param profile as InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
@@ -342,7 +342,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Download the profile file according to profileMetadataId
      *
-     * @param vitamContext      the vitam context
+     * @param vitamContext the vitam context
      * @param profileMetadataId
      * @return Response
      */
@@ -365,7 +365,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Update the context by query dsl
      *
      * @param vitamContext the vitam context
-     * @param contextId    the context id
+     * @param contextId the context id
      * @param queryDsl
      * @return Vitam response
      * @throws AccessExternalClientException
@@ -412,7 +412,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find a format by its id.
      *
      * @param vitamContext the vitam context
-     * @param formatId     the formatId
+     * @param formatId the formatId
      * @return a format
      * @throws VitamClientException
      */
@@ -424,7 +424,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find a rule by its id.
      *
      * @param vitamContext the vitam context
-     * @param ruleId       the rule id
+     * @param ruleId the rule id
      * @return a rule
      * @throws VitamClientException
      */
@@ -435,7 +435,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find an entry contract by its id.
      *
      * @param vitamContext the vitam context
-     * @param contractId   the contract id
+     * @param contractId the contract id
      * @return an ingest contract
      * @throws VitamClientException
      */
@@ -448,7 +448,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find an access contracts by its id.
      *
      * @param vitamContext the vitam context
-     * @param contractId   the contract id
+     * @param contractId the contract id
      * @return an access contract
      * @throws VitamClientException
      */
@@ -461,7 +461,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find a context by its id
      *
      * @param vitamContext the vitam context
-     * @param contextId    the context id
+     * @param contextId the context id
      * @return a context
      * @throws VitamClientException
      */
@@ -473,7 +473,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find a profile by its id.
      *
      * @param vitamContext the vitam context
-     * @param profileId    the profile tId
+     * @param profileId the profile tId
      * @return a profile
      * @throws VitamClientException
      */
@@ -484,7 +484,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Find an accession register by its id.
      *
-     * @param vitamContext        the vitam context
+     * @param vitamContext the vitam context
      * @param accessionRegisterId the accession register id
      * @return an accession register
      * @throws VitamClientException
@@ -497,7 +497,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find agencies
      *
      * @param vitamContext the vitam context
-     * @param query        select query
+     * @param query select query
      * @return list of agencies
      * @throws VitamClientException
      */
@@ -507,7 +507,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find an agency by its id.
      *
      * @param vitamContext the vitam context
-     * @param agencyById   the agency id
+     * @param agencyById the agency id
      * @return an agency
      * @throws VitamClientException
      */
@@ -519,7 +519,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find an archive unit profile by its id.
      *
      * @param vitamContext the vitam context
-     * @param id           the archive unit profile Id
+     * @param id the archive unit profile Id
      * @return an archive unit profile
      * @throws VitamClientException
      */
@@ -530,9 +530,9 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Updates the given security profile by query dsl
      *
-     * @param vitamContext      the vitam context
+     * @param vitamContext the vitam context
      * @param securityProfileId the identifier of the security profile to update
-     * @param queryDsl          the given dsl query
+     * @param queryDsl the given dsl query
      * @return Response status ok or vitam error
      * @throws VitamClientException
      */
@@ -544,7 +544,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find security profiles by query dsl.
      *
      * @param vitamContext the vitam context
-     * @param select       select query
+     * @param select select query
      * @return list of security profiles
      * @throws VitamClientException
      */
@@ -555,7 +555,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * Find a security profile by its identifier.
      *
-     * @param vitamContext      the vitam context
+     * @param vitamContext the vitam context
      * @param securityProfileId the identifier of the security profile
      * @return a security profile
      * @throws VitamClientException
@@ -580,7 +580,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Get the list of operations details
      *
      * @param vitamContext the vitam context
-     * @param query        filter query
+     * @param query filter query
      * @return list of operations details
      * @throws VitamClientException
      */
@@ -592,8 +592,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Update the operation according to the requested action
      *
      * @param vitamContext the vitam context
-     * @param action       an action as a string among "RESUME" (resume workflow till the end), "NEXT" (launch next step),
-     *                     "REPLAY" (replay the step) and PAUSE" (pause the workflow)
+     * @param action an action as a string among "RESUME" (resume workflow till the end), "NEXT" (launch next step),
+     * "REPLAY" (replay the step) and PAUSE" (pause the workflow)
      * @param operationId
      * @return the status
      * @throws VitamClientException
@@ -637,7 +637,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * create a set of agencies
      *
      * @param vitamContext the vitam context
-     * @param agencies     agencies to be created
+     * @param agencies agencies to be created
      * @param filename
      * @return Vitam response
      * @throws InvalidParseOperationException
@@ -650,7 +650,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * create a set of formats
      *
      * @param vitamContext the vitam context
-     * @param formats      formats to be created
+     * @param formats formats to be created
      * @param filename
      * @return Vitam response
      * @throws InvalidParseOperationException
@@ -663,7 +663,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * create a set of rules
      *
      * @param vitamContext the vitam context
-     * @param rules        rules to be created
+     * @param rules rules to be created
      * @param filename
      * @return Vitam response
      * @throws InvalidParseOperationException
@@ -676,7 +676,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * create a set of security profiles
      *
-     * @param vitamContext     the vitam context
+     * @param vitamContext the vitam context
      * @param securityProfiles security profiles to be created
      * @param filename
      * @return Vitam response
@@ -691,7 +691,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Download distribution reports
      *
      * @param vitamContext the vitam context
-     * @param opId         the op (logbook) ID
+     * @param opId the op (logbook) ID
      * @return the rulesReport
      * @throws VitamClientException
      */
@@ -699,10 +699,21 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
         throws VitamClientException;
 
     /**
+     * Download preservation reports
+     *
+     * @param vitamContext the vitam context
+     * @param opId the op (logbook) ID
+     * @return preservation report
+     * @throws VitamClientException
+     */
+    Response downloadPreservationReport(VitamContext vitamContext, String opId)
+        throws VitamClientException;
+
+    /**
      * Download rules report
      *
      * @param vitamContext the vitam context
-     * @param opId         the op (logbook) ID
+     * @param opId the op (logbook) ID
      * @return the rulesReport
      * @throws VitamClientException
      */
@@ -713,7 +724,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Download Csv referential Agencies
      *
      * @param vitamContext the vitam context
-     * @param opId         the op (logbook) ID
+     * @param opId the op (logbook) ID
      * @return Agecsv referential
      * @throws VitamClientException vitamClientException
      */
@@ -724,7 +735,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Download Csv referential Rules
      *
      * @param vitamContext the vitam context
-     * @param opId         the op (logbook) ID
+     * @param opId the op (logbook) ID
      * @return Rules csv referential
      * @throws VitamClientException vitamClientException
      */
@@ -738,7 +749,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * <b>The caller is responsible to close the Response after consuming the inputStream.</b>
      *
      * @param vitamContext the vitam context
-     * @param agencies     the input stream to be checked
+     * @param agencies the input stream to be checked
      * @return response including InputStream
      * @throws VitamClientException
      */
@@ -749,7 +760,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * launch a traceability audit for the request
      *
      * @param vitamContext the vitamContext
-     * @param queryDsl     the queryDsl
+     * @param queryDsl the queryDsl
      * @return RequestResponse
      * @throws VitamClientException The Exception
      */
@@ -760,7 +771,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * launch a rectification audit for the operation id
      *
      * @param vitamContext the operation Id
-     * @param operationId  the operation Id
+     * @param operationId the operation Id
      * @return RequestResponse
      * @throws VitamClientException The Exception
      */
@@ -771,7 +782,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
     /**
      * launch probative value process
      *
-     * @param vitamContext          the vitam context
+     * @param vitamContext the vitam context
      * @param probativeValueRequest the request
      * @return RequestResponse
      * @throws VitamClientException {@link VitamClientException}
@@ -792,7 +803,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * </ul>
      *
      * @param vitamContext the vitam context
-     * @param profiles     archive unit profiles as Json InputStream
+     * @param profiles archive unit profiles as Json InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
@@ -805,7 +816,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find ontologies
      *
      * @param vitamContext the vitam context
-     * @param query        select query
+     * @param query select query
      * @return list of ontologies
      * @throws VitamClientException
      */
@@ -818,7 +829,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      * Find an ontology by its id.
      *
      * @param vitamContext the vitam context
-     * @param id           the ontology Id
+     * @param id the ontology Id
      * @return an ontology
      * @throws VitamClientException
      */
@@ -838,7 +849,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      *
      * @param forceUpdate
      * @param vitamContext the vitam context
-     * @param ontologies   as Json InputStream
+     * @param ontologies as Json InputStream
      * @return Vitam response
      * @throws InvalidParseOperationException
      * @throws AccessExternalClientException
