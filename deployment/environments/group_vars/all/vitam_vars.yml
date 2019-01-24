@@ -291,7 +291,7 @@ vitam:
         restoreBulkSize: 1000
         # batch thread pool size
         minBatchThreadPoolSize: 4
-        maxBatchThreadPoolSize: 16
+        maxBatchThreadPoolSize: 32
         # Digest computation timeout in seconds
         batchDigestComputationTimeout: 300
         # Offer synchronization batch size & thread pool size
