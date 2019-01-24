@@ -720,13 +720,16 @@ public class EvidenceService {
                     throw new IllegalStateException("Unsupported metadata type " + metadataType);
             }
 
-            JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());
+            RequestResponseOK<JsonNode> requestResponseOK =
+                RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
 
-            return result.get(TAG_RESULTS).get(0).get(LogbookMongoDbName.eventIdentifier.getDbname()).asText();
+            if(requestResponseOK.getResults().isEmpty()) {
+                throw new EvidenceAuditException(EvidenceStatus.WARN,
+                    NO_TRACEABILITY_OPERATION_FOUND_MATCHING_DATE + lastPersistedDate);
+            }
 
-        } catch (LogbookClientNotFoundException e) {
-            throw new EvidenceAuditException(EvidenceStatus.WARN,
-                NO_TRACEABILITY_OPERATION_FOUND_MATCHING_DATE + lastPersistedDate, e);
+            return requestResponseOK.getResults().get(0).get(LogbookMongoDbName.eventIdentifier.getDbname()).asText();
+
         } catch (InvalidCreateOperationException | InvalidParseOperationException | LogbookClientException e) {
             throw new EvidenceAuditException(EvidenceStatus.FATAL,
                 "An error occurred during traceability operation retrieval", e);
@@ -790,10 +793,16 @@ public class EvidenceService {
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter("events.evDateTime");
 
-            JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());
+            RequestResponseOK<JsonNode> requestResponseOK =
+                RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
+
+            if(requestResponseOK.getResults().isEmpty()) {
+                throw new EvidenceAuditException(EvidenceStatus.FATAL,
+                    "An error occurred during last traceability operation retrieval. At least one expected");
+            }
 
             String lastOperationId =
-                result.get(TAG_RESULTS).get(0).get(LogbookMongoDbName.eventIdentifier.getDbname()).asText();
+                requestResponseOK.getResults().get(0).get(LogbookMongoDbName.eventIdentifier.getDbname()).asText();
             return lastOperationId.equals(operationId);
 
         } catch (InvalidCreateOperationException | InvalidParseOperationException | LogbookClientException e) {

@@ -234,22 +234,23 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                     QueryHelper.eq("events.outDetail", "PROCESS_SIP_UNITARY.WARNING")),
                 QueryHelper.in("events.agIdExt.originatingAgency", originatingAgency)));
 
-        try {
-            JsonNode result = jopClient.selectOperation(selectQuery.getFinalSelect());
-            for (JsonNode res : result.get(RequestResponseOK.TAG_RESULTS)) {
-                if (res.get("agIdExt") != null) {
-                    final String agIdExt = res.get("agIdExt").asText();
-                    final JsonNode agIdExtNode = JsonHandler.getFromString(agIdExt);
-                    source.add(JsonHandler.createObjectNode().put(HASH_TENANT, res.get(HASH_TENANT).asText())
-                        .put(ORIGINATING_AGENCY, agIdExtNode.get("originatingAgency").asText())
-                        .put(EV_ID_PROC, res.get(EV_ID_PROC).asText()));
-                }
-            }
-        } catch (LogbookClientNotFoundException e) {
-            LOGGER.error("Logbook error, can not create source ", e);
+            RequestResponseOK<JsonNode> requestResponseOK =
+                RequestResponseOK.getFromJsonNode(jopClient.selectOperation(selectQuery.getFinalSelect()));
+
+        if (requestResponseOK.getResults().isEmpty()) {
+            LOGGER.error("Logbook error, can not create source");
             return source;
         }
 
+        for (JsonNode res : requestResponseOK.getResults()) {
+            if (res.get("agIdExt") != null) {
+                final String agIdExt = res.get("agIdExt").asText();
+                final JsonNode agIdExtNode = JsonHandler.getFromString(agIdExt);
+                source.add(JsonHandler.createObjectNode().put(HASH_TENANT, res.get(HASH_TENANT).asText())
+                    .put(ORIGINATING_AGENCY, agIdExtNode.get("originatingAgency").asText())
+                    .put(EV_ID_PROC, res.get(EV_ID_PROC).asText()));
+            }
+        }
         return source;
     }
 
