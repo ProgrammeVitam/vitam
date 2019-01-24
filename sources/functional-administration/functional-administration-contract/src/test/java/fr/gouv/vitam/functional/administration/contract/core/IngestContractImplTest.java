@@ -113,8 +113,7 @@ public class IngestContractImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class, Agencies.class)),
-            "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class, Agencies.class)));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

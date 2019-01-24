@@ -58,7 +58,7 @@ public class ElasticsearchAccessFunctionalAdminTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), "vitam-test");
+        new MongoRule(getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

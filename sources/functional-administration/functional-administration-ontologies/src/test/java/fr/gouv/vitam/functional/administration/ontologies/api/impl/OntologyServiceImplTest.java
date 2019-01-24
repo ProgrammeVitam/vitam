@@ -94,7 +94,7 @@ public class OntologyServiceImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(Ontology.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(Ontology.class)));
 
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;

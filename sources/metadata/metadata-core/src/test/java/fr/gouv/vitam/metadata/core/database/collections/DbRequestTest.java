@@ -244,7 +244,7 @@ public class DbRequestTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test");
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
 

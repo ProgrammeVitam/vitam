@@ -26,7 +26,7 @@ public class LogbookApplicationAuthenticationTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

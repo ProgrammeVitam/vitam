@@ -365,12 +365,12 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.22.1</version>
                     <configuration>
-                        <argLine>-Xmx512m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
+                        <argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
                         <!-- Non Parallel mode -->
                         <parallel>classes</parallel>
                         <threadCount>1</threadCount>
                         <perCoreThreadCount>true</perCoreThreadCount>
-                        <forkCount>2C</forkCount>
+                        <forkCount>1C</forkCount>
                         <reuseForks>false</reuseForks>
                         <trimStackTrace>false</trimStackTrace>
                         <systemPropertyVariables>

@@ -105,7 +105,6 @@ import junit.framework.TestCase;
 
 public class StorageTestMultiNoSslIT {
 
-    private static final String DATABASE_NAME = "Vitam-test";
     private static final int NB_MULTIPLE_THREADS = 100;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiNoSslIT.class);
@@ -137,7 +136,7 @@ public class StorageTestMultiNoSslIT {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {

@@ -42,7 +42,7 @@ public class PopulateServiceTest {
 
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "populatedb");
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

@@ -61,13 +61,12 @@ import static org.mockito.Mockito.when;
 
 public class OfferLogDatabaseServiceTest {
 
-    private static final String DATABASE_NAME = "Vitam-test";
     private static final String CONTAINER_OBJECT_0 = "object_0";
     private static final String CONTAINER_OBJECT_1 = "object_1";
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();

@@ -87,7 +87,6 @@ public class UpdateUnitResourceTest {
 
     private static final String ID_UNIT = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
-    private static final String DATABASE_NAME = "vitam-test";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
     @ClassRule
@@ -107,7 +106,7 @@ public class UpdateUnitResourceTest {
     private static int serverPort;
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), DATABASE_NAME);
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     private static MetadataMain application;
     private static ElasticsearchAccessMetadata esClient;
@@ -127,7 +126,7 @@ public class UpdateUnitResourceTest {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, ElasticsearchRule.VITAM_CLUSTER, nodes);
+            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();

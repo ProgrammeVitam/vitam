@@ -73,7 +73,6 @@ import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
 
 public class IndexationHelperTest {
     private static final String AGENCIES = "indexationagenciestest" + GUIDFactory.newGUID().getId();
-    private static final String VITAM_TEST = "vitam-test";
     private static final String AGENCIES_TEST_ES_MAPPING_JSON = "agenciesTest-es-mapping.json";
     private static final String TYPEUNIQUE = VitamCollection.getTypeunique();
     private static final String INDEXATION_RESULT_WITHOUT_TENANT_JSON = "indexation_result_without_tenant.json";
@@ -86,7 +85,6 @@ public class IndexationHelperTest {
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AgenciesTest.class)),
-            VITAM_TEST,
             AGENCIES);
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =

@@ -117,7 +117,7 @@ public class MetadataResourceTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test");
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

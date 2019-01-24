@@ -57,7 +57,7 @@ public class MongoDbAccessFactoryTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test");
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     private MongoClient mongoClient = mongoRule.getMongoClient();
 
@@ -68,11 +68,11 @@ public class MongoDbAccessFactoryTest {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
         final MetaDataConfiguration config =
-            new MetaDataConfiguration(mongo_nodes, "vitam-test", ElasticsearchRule.VITAM_CLUSTER, nodes);
+            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         VitamConfiguration.setTenants(tenantList);
         MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config);
         assertNotNull(mongoDbAccess);
-        Assertions.assertThat(mongoDbAccess.getMongoDatabase().getName()).isEqualTo("vitam-test");
+        Assertions.assertThat(mongoDbAccess.getMongoDatabase().getName()).isEqualTo(MongoRule.VITAM_DB);
         mongoDbAccess.close();
     }
 }

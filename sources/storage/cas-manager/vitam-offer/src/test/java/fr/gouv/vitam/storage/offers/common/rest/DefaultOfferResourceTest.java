@@ -94,7 +94,6 @@ import static org.junit.Assert.assertTrue;
 public class DefaultOfferResourceTest {
 
     private static final String WORKSPACE_OFFER_CONF = "storage-default-offer.conf";
-    private static final String DATABASE_NAME = "Vitam";
 
     private static final String REST_URI = "/offer/v1";
     private static int serverPort;
@@ -125,7 +124,7 @@ public class DefaultOfferResourceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -662,7 +661,7 @@ public class DefaultOfferResourceTest {
     }
 
     private void checkOfferDatabaseEmptiness() {
-        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME)
+        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(MongoRule.VITAM_DB)
             .getCollection(OfferCollections.OFFER_LOG.getName()).find();
         assertThat(results).hasSize(0);
     }
@@ -672,7 +671,7 @@ public class DefaultOfferResourceTest {
     }
 
     private void checkOfferDatabaseExistingDocument(String container, String filename, int count) {
-        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME)
+        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(MongoRule.VITAM_DB)
             .getCollection(OfferCollections.OFFER_LOG.getName())
             .find(Filters.and(Filters.eq("Container", container), Filters.eq("FileName", filename)));
 

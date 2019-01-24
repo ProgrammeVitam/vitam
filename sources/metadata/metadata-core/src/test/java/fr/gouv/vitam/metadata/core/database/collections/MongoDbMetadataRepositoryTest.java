@@ -37,7 +37,6 @@ public class MongoDbMetadataRepositoryTest {
     @Rule
     public MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(Unit.class)),
-            "test",
             PREFIX + UNIT.getName());
 
     @Rule

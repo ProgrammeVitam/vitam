@@ -42,8 +42,7 @@ public class AccessionRegisterMigrationRepositoryTest {
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(VitamCollection
-            .getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
-            "Vitam-Test");
+            .getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)));
 
     @Before
     public void setUpBeforeClass() throws Exception {

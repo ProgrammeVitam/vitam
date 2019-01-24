@@ -71,13 +71,12 @@ public class LogbookLFCAdministrationTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final String DATABASE_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
     private static final Integer TEMPORIZATION_DELAY = 300;
     private static final Integer MAX_ENTRIES = 100_000;
     static LogbookDbAccess mongoDbAccess;
@@ -122,7 +121,7 @@ public class LogbookLFCAdministrationTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ES_HOST_NAME, ElasticsearchRule.TCP_PORT));
         LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, DATABASE_NAME, ElasticsearchRule.VITAM_CLUSTER, esNodes);
+            new LogbookConfiguration(nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
     }

@@ -52,13 +52,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PreservationReportRepositoryTest {
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private static final int TENANT_ID = 0;
     public static final String PRESERVATION_REPORT = "PreservationReport" + GUIDFactory.newGUID().getId();
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), CLUSTER_NAME, PRESERVATION_REPORT);
+        new MongoRule(getMongoClientOptions(), PRESERVATION_REPORT);
 
     private PreservationReportRepository repository;
 
@@ -68,7 +67,7 @@ public class PreservationReportRepositoryTest {
 
     @Before
     public void setUp() {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         repository = new PreservationReportRepository(mongoDbAccess, PRESERVATION_REPORT);
         preservationReportCollection = mongoRule.getMongoCollection(PRESERVATION_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";

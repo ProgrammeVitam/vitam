@@ -3,7 +3,6 @@ package fr.gouv.vitam.common.database.server;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -60,7 +59,6 @@ public class DbRequestSingleTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
-    static final String DATABASE_NAME = "vitam-test";
     static VitamCollection vitamCollection;
 
     private final static String HOST_NAME = "127.0.0.1";
@@ -71,14 +69,13 @@ public class DbRequestSingleTest {
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
+        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
             PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
         new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
 
-    private static MongoClient mongoClient = mongoRule.getMongoClient();
     private static ElasticsearchAccess esClient;
 
 
@@ -95,7 +92,7 @@ public class DbRequestSingleTest {
         vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX);
         esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         vitamCollection.initialize(esClient);
-        vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
+        vitamCollection.initialize(mongoRule.getMongoDatabase(), true);
 
     }
 

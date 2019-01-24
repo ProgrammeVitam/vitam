@@ -48,7 +48,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +70,7 @@ public class VitamCounterServiceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(VitamSequence.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(VitamSequence.class)));
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 

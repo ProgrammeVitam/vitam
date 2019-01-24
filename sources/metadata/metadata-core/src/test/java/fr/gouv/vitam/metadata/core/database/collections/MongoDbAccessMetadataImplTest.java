@@ -116,14 +116,14 @@ public class MongoDbAccessMetadataImplTest {
     private static final String DEFAULT_MONGO3 = PREFIX + "Unit";
     private static final String DEFAULT_MONGO4 = PREFIX + "ObjectGroup";
     private static final String DEFAULT_MONGO5 =
-        PREFIX + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=vitam-test." + PREFIX + "Unit}}";
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns="+MongoRule.VITAM_DB+"." + PREFIX + "Unit}}";
     private static final String DEFAULT_MONGO6 =
-        PREFIX + "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test." + PREFIX + "Unit}}";
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns="+MongoRule.VITAM_DB+"." + PREFIX + "Unit}}";
     private static final String DEFAULT_MONGO7 =
-        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=vitam-test." + PREFIX +
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns="+MongoRule.VITAM_DB+"." + PREFIX +
             "ObjectGroup}}";
     private static final String DEFAULT_MONGO8 =
-        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=vitam-test." + PREFIX +
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns="+MongoRule.VITAM_DB+"." + PREFIX +
             "ObjectGroup}}";
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -131,7 +131,7 @@ public class MongoDbAccessMetadataImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test");
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

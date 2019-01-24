@@ -22,13 +22,12 @@ import static fr.gouv.vitam.security.internal.rest.repository.PersonalRepository
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PersonalRepositoryTest {
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private static final String CERTIFICATE_HASH =
         "2f1062f8bf84e7eb83a0f64c98d891fbe2c811b17ffac0bce1a6dc9c7c3dcbb7";
     public static final String PERSONAL_COLLECTION = "PersonalCertificate" + GUIDFactory.newGUID().getId();
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, PERSONAL_COLLECTION);
+    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), PERSONAL_COLLECTION);
 
     private PersonalRepository personalRepository;
 
@@ -36,7 +35,7 @@ public class PersonalRepositoryTest {
 
     @Before
     public void setUp() throws Exception {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         personalRepository = new PersonalRepository(mongoDbAccess, PERSONAL_COLLECTION);
         certificateCollection = mongoRule.getMongoCollection(PERSONAL_COLLECTION);
     }

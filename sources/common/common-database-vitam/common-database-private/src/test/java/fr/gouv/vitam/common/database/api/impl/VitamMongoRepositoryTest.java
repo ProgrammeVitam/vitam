@@ -26,21 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api.impl;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
-
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.google.common.collect.Lists;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
@@ -68,12 +53,26 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.elasticsearch.common.xcontent.XContentFactory.jsonBuilder;
+
 /**
  *
  */
 public class VitamMongoRepositoryTest {
     private static final String TEST_COLLECTION = "VitamMongoRepository" + GUIDFactory.newGUID().getId();
-    private static final String VITAM_TEST = "vitam-test";
     private static final String TITLE = "Title";
     private static final String TEST_SAVE = "Test save ";
     private static VitamMongoRepository repository;
@@ -84,7 +83,6 @@ public class VitamMongoRepositoryTest {
     @Rule
     public MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
-            VITAM_TEST,
             TEST_COLLECTION);
 
     @Before

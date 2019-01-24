@@ -53,7 +53,6 @@ public class DataMigrationServiceTest {
 
     private static final String UNIT_COLLECTION = "Unit" + GUIDFactory.newGUID().getId();
     private static final String OBJECT_GROUP_COLLECTION = "Got" + GUIDFactory.newGUID().getId();
-    private static final String VITAM_TEST = "vitam-test";
 
     private static final int TEST_BULK_SIZE = 10;
     @Rule
@@ -67,7 +66,6 @@ public class DataMigrationServiceTest {
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(Unit.class, ObjectGroup.class)),
-            VITAM_TEST,
             UNIT_COLLECTION,
             OBJECT_GROUP_COLLECTION);
 

@@ -45,11 +45,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class OffsetRepositoryTest {
 
-    private final static String DB = "vitam-test";
     private final static String COLLECTIONNAME = "Offset" + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), DB, COLLECTIONNAME);
+    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(),COLLECTIONNAME);
 
     private OffsetRepository offsetRepository;
 
@@ -62,7 +61,7 @@ public class OffsetRepositoryTest {
 
     @Before
     public void setUp() throws Exception {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), DB);
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         offsetRepository = new OffsetRepository(mongoDbAccess, COLLECTIONNAME);
         mongoCollection = mongoRule.getMongoCollection(COLLECTIONNAME);
     }

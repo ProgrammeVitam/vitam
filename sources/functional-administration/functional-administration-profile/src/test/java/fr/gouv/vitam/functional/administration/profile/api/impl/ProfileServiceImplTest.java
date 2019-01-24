@@ -93,7 +93,7 @@ public class ProfileServiceImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(Profile.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(Profile.class)));
 
     static final String DATABASE_HOST = "localhost";
     private static VitamCounterService vitamCounterService;

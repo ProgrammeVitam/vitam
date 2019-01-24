@@ -68,7 +68,7 @@ public class MetaDataApplicationTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test");
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -87,7 +87,7 @@ public class MetaDataApplicationTest {
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", mongoClient.getAddress().getPort()));
-        config = new MetaDataConfiguration(mongo_nodes, "vitam-test", ElasticsearchRule.VITAM_CLUSTER, nodes);
+        config = new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
     }

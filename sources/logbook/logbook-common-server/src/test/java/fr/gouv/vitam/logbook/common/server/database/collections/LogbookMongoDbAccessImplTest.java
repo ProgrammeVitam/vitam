@@ -32,7 +32,7 @@ public class LogbookMongoDbAccessImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), "vitam-test");
+        new MongoRule(getMongoClientOptions());
 
     @Rule
     public RunWithCustomExecutorRule runInThread =

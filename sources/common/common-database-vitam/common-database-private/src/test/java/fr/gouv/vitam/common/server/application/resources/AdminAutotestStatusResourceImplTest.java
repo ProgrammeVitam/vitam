@@ -75,7 +75,7 @@ public class AdminAutotestStatusResourceImplTest {
         CollectionSample.class.getSimpleName() + GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "vitam-test",
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
             COLLECTION_NAME);
 
     private final static String HOST_NAME = "127.0.0.1";

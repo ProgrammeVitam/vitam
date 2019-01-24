@@ -57,6 +57,7 @@ import java.util.Set;
  */
 public class MongoRule extends ExternalResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoRule.class);
+    public static final String VITAM_DB = "vitam-test";
 
     private static int dataBasePort;
 
@@ -79,18 +80,16 @@ public class MongoRule extends ExternalResource {
     }
 
     private final MongoClient mongoClient;
-    private String dataBaseName;
     private Set<String> collectionNames;
 
     private boolean clientClosed = false;
 
     /**
      * @param clientOptions
-     * @param dataBaseName
      * @param collectionNames
      */
-    public MongoRule(MongoClientOptions clientOptions, String dataBaseName, String... collectionNames) {
-        this.dataBaseName = dataBaseName;
+    public MongoRule(MongoClientOptions clientOptions, String... collectionNames) {
+
         if (null != collectionNames) {
             this.collectionNames = Sets.newHashSet(collectionNames);
         } else {
@@ -103,19 +102,19 @@ public class MongoRule extends ExternalResource {
     @Override
     protected void after() {
         if (!clientClosed) {
-            purge(collectionNames);
+            purge(MongoRule.VITAM_DB, collectionNames);
         }
 
         printSystemInfo();
     }
 
-    private void purge(Collection<String> collectionNames) {
+    private void purge(String database, Collection<String> collectionNames) {
         for (String collectionName : collectionNames) {
             if ("VitamSequence".equals(collectionName)) {
-                mongoClient.getDatabase(dataBaseName).getCollection(collectionName).updateMany(Filters.exists("_id"),
+                mongoClient.getDatabase(database).getCollection(collectionName).updateMany(Filters.exists("_id"),
                     Updates.set("Counter", 0));
             }
-            mongoClient.getDatabase(dataBaseName).getCollection(collectionName).deleteMany(new Document());
+            mongoClient.getDatabase(database).getCollection(collectionName).deleteMany(new Document());
         }
     }
 
@@ -131,6 +130,11 @@ public class MongoRule extends ExternalResource {
     public void handleAfterClass() {
         after();
         close();
+    }
+
+    public void handleAfterClass(String database) {
+        handleAfter(database);
+        handleAfterClass();
     }
 
     private void printSystemInfo() {
@@ -164,6 +168,11 @@ public class MongoRule extends ExternalResource {
         after();
     }
 
+    public void handleAfter(String database) {
+        purge(database, collectionNames);
+        handleAfter();
+    }
+
     public void stop() {
         mongodExecutable.stop();
     }
@@ -185,24 +194,21 @@ public class MongoRule extends ExternalResource {
     }
 
     public MongoDatabase getMongoDatabase() {
-        return mongoClient.getDatabase(dataBaseName);
+        return mongoClient.getDatabase(VITAM_DB);
     }
 
     public MongoCollection<Document> getMongoCollection(String collectionName) {
-        return mongoClient.getDatabase(dataBaseName).getCollection(collectionName);
+        return mongoClient.getDatabase(VITAM_DB).getCollection(collectionName);
     }
 
     public <TDocument> MongoCollection<TDocument> getMongoCollection(String collectionName, Class<TDocument> clazz) {
-        return mongoClient.getDatabase(dataBaseName).getCollection(collectionName, clazz);
+        return mongoClient.getDatabase(VITAM_DB).getCollection(collectionName, clazz);
     }
 
     public void handleAfter(Set<String> collections) {
-        after(collections);
+        purge(MongoRule.VITAM_DB, collections);
     }
 
-    private void after(Set<String> collections) {
-        purge(collections);
-    }
 
     public void close() {
         mongoClient.close();

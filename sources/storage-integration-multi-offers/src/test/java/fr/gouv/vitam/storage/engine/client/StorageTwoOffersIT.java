@@ -137,10 +137,10 @@ public class StorageTwoOffersIT {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRuleOffer1 = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam");
+    public static MongoRule mongoRuleOffer1 = new MongoRule(VitamCollection.getMongoClientOptions() );
 
     @ClassRule
-    public static MongoRule mongoRuleOffer2 = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam2");
+    public static MongoRule mongoRuleOffer2 = new MongoRule(VitamCollection.getMongoClientOptions());
 
     private static OfferSyncAdminResource offerSyncAdminResource;
 
@@ -178,8 +178,8 @@ public class StorageTwoOffersIT {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        mongoRuleOffer1.handleAfterClass();
-        mongoRuleOffer2.handleAfterClass();
+        mongoRuleOffer1.handleAfterClass("vitamoffer1");
+        mongoRuleOffer2.handleAfterClass("vitamoffer2");
         VitamClientFactory.resetConnections();
     }
 
@@ -193,8 +193,8 @@ public class StorageTwoOffersIT {
     public void cleanup() throws IOException {
         cleanOffer(OFFER_FOLDER);
         cleanOffer(SECOND_FOLDER);
-        mongoRuleOffer1.handleAfter();
-        mongoRuleOffer2.handleAfter();
+        mongoRuleOffer1.handleAfter("vitamoffer1");
+        mongoRuleOffer2.handleAfter("vitamoffer2");
     }
 
     private void cleanOffer(String offerFolder) throws IOException {

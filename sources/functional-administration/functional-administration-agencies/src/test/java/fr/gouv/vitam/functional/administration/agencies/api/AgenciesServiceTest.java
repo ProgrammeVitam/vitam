@@ -100,7 +100,7 @@ public class AgenciesServiceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)), "vitam-test",
+            new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)),
                     PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
 
     @ClassRule

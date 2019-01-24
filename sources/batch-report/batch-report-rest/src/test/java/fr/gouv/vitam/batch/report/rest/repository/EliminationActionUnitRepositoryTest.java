@@ -59,14 +59,13 @@ import static org.assertj.core.groups.Tuple.tuple;
 
 public class EliminationActionUnitRepositoryTest {
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String ELIMINATION_ACTION_UNIT = "EliminationActionUnit" + GUIDFactory.newGUID().getId();
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
 
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), CLUSTER_NAME, ELIMINATION_ACTION_UNIT);
+        new MongoRule(getMongoClientOptions(), ELIMINATION_ACTION_UNIT);
 
     private EliminationActionUnitRepository repository;
 
@@ -74,7 +73,7 @@ public class EliminationActionUnitRepositoryTest {
 
     @Before
     public void setUp() throws Exception {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         repository = new EliminationActionUnitRepository(mongoDbAccess, ELIMINATION_ACTION_UNIT);
         eliminationUnitCollection = mongoRule.getMongoCollection(ELIMINATION_ACTION_UNIT);
     }

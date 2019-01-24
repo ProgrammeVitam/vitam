@@ -106,10 +106,9 @@ public class LogbookResourceTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
-    public static final String DB_NAME = "vitam-test";
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(), DB_NAME);
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -194,7 +193,7 @@ public class LogbookResourceTest {
         realLogbook.setElasticsearchNodes(esNodes);
         realLogbook.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realLogbook.setMongoDbNodes(nodes);
-        realLogbook.setDbName(DB_NAME);
+        realLogbook.setDbName(MongoRule.VITAM_DB);
         realLogbook.setWorkspaceUrl("http://localhost:" + workspacePort);
         realLogbook.setProcessingUrl("http://localhost:" + processingPort);
         VitamConfiguration.setTenants(tenantList);

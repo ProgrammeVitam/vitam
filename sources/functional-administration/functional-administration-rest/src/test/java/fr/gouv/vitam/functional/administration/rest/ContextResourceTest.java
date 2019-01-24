@@ -1,17 +1,5 @@
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -55,6 +43,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+
 /**
  * As context Resource call ContextService, the full tests are done in @see AccessContextTest
  */
@@ -64,7 +64,7 @@ public class ContextResourceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -101,9 +101,9 @@ public class ContextResourceTest {
         new JHades().overlappingJarsReport();
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-                Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE));
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
@@ -127,7 +127,8 @@ public class ContextResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+        mongoDbAccess =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -159,13 +160,13 @@ public class ContextResourceTest {
 
     private static void createSecurityProfile() throws Exception {
         // Create initial security context
-            File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
-            JsonNode secProfileJson = JsonHandler.getFromFile(securityProfileFile);
-            given().contentType(ContentType.JSON).body(secProfileJson)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
-                .then().statusCode(Status.CREATED.getStatusCode());
+        File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
+        JsonNode secProfileJson = JsonHandler.getFromFile(securityProfileFile);
+        given().contentType(ContentType.JSON).body(secProfileJson)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
     }
 
     @Before
@@ -185,13 +186,14 @@ public class ContextResourceTest {
         }
 
         junitHelper.releasePort(serverPort);
-        FunctionalAdminCollections.afterTestClass( true);
+        FunctionalAdminCollections.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @After
     public void tearDown() {
-        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE));
+        FunctionalAdminCollections
+            .afterTest(Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE));
     }
 
     @Test

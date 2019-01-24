@@ -82,7 +82,7 @@ public class ArchiveUnitProfileServiceImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(ArchiveUnitProfile.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(ArchiveUnitProfile.class)));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

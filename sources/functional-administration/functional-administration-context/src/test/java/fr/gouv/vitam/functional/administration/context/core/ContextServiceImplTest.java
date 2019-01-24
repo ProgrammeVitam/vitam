@@ -108,7 +108,7 @@ public class ContextServiceImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(Context.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(Context.class)));
 
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;

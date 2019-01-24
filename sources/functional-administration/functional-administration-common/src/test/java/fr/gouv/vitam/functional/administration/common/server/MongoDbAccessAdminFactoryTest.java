@@ -24,19 +24,19 @@ import org.junit.Test;
 public class MongoDbAccessAdminFactoryTest {
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), "vitam-test");
+        new MongoRule(getMongoClientOptions());
 
     private static MongoDbAccessAdminImpl mongoDbAccess;
 
     @Test
-    public void testCreateAdmin() throws IOException, VitamException {
+    public void testCreateAdmin() {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         mongoDbAccess = MongoDbAccessAdminFactory.create(
             new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName(), true, "user", "pwd"));
 
         assertNotNull(mongoDbAccess);
-        assertEquals("vitam-test", mongoDbAccess.getMongoDatabase().getName());
+        assertEquals(MongoRule.VITAM_DB, mongoDbAccess.getMongoDatabase().getName());
 
         mongoDbAccess.close();
     }

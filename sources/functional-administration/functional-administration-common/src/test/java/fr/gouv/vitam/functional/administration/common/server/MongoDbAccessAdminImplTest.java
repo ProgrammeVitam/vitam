@@ -108,7 +108,7 @@ public class MongoDbAccessAdminImplTest {
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(FunctionalAdminCollections.getClasses()), "vitam-test");
+        new MongoRule(VitamCollection.getMongoClientOptions(FunctionalAdminCollections.getClasses()));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.collections;
 
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.mongodb.ReadConcern;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -54,21 +47,29 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 @RunWithCustomExecutor
 public class VitamCollectionTest {
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
-            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    public static final String PREFIX = "vitamcollection"+GUIDFactory.newGUID().getId();
+    public static final String PREFIX = "vitamcollection" + GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), "vitam-test",
-                    PREFIX + CollectionSample.class.getSimpleName());
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
+            PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(PREFIX +  CollectionSample.class.getSimpleName());
+    public static ElasticsearchRule elasticsearchRule =
+        new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
 
 
     @ClassRule
@@ -100,7 +101,7 @@ public class VitamCollectionTest {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
         final VitamCollection vitamCollection =
-                VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
+            VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         vitamCollection.initialize(esClient);
         assertEquals(esClient, vitamCollection.getEsClient());
@@ -109,7 +110,7 @@ public class VitamCollectionTest {
         assertEquals(null, mongoRule.getMongoDatabase().getWriteConcern().getJournal());
         assertEquals(ReadConcern.MAJORITY, mongoRule.getMongoDatabase().getReadConcern());
         final MongoCollection<CollectionSample> collection =
-                (MongoCollection<CollectionSample>) vitamCollection.getCollection();
+            (MongoCollection<CollectionSample>) vitamCollection.getCollection();
         String guid = GUIDFactory.newGUID().toString();
         final CollectionSample test = new CollectionSample(new Document("_id", guid));
         collection.insertOne(test);

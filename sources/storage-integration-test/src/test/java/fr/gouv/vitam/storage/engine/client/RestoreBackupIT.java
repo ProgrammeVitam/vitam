@@ -100,7 +100,6 @@ public class RestoreBackupIT {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RestoreBackupIT.class);
 
-    private static final String DATABASE_NAME = "Vitam-test";
 
     private static final String WORKSPACE_CONF = "storage-test/workspace.conf";
     private static final String DEFAULT_OFFER_CONF = "storage-test/storage-default-offer-ssl.conf";
@@ -132,7 +131,7 @@ public class RestoreBackupIT {
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {

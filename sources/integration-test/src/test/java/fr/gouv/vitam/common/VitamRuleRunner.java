@@ -63,7 +63,7 @@ public class VitamRuleRunner {
     public static MongoRule mongoRule =
         new MongoRule(VitamCollection.getMongoClientOptions(
             merge(MetadataCollections.getClasses(), LogbookCollections.getClasses(),
-                FunctionalAdminCollections.getClasses())), "Vitam-Test",
+                FunctionalAdminCollections.getClasses())),
             OfferCollections.OFFER_SEQUENCE.getName(),
             OffsetRepository.COLLECTION_NAME,
             OfferCollections.OFFER_LOG.getName(),

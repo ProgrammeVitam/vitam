@@ -104,7 +104,7 @@ public class ReferentialFormatFileImplTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class)), "vitam-test");
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class)));
 
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);

@@ -95,7 +95,7 @@ public class FunctionalBackupServiceTest {
     private String FUNCTIONAL_COLLECTION = PREFIX + "AGENCIES";
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(newArrayList(Agencies.class)), ElasticsearchRule.VITAM_CLUSTER,
+        new MongoRule(getMongoClientOptions(newArrayList(Agencies.class)),
             FUNCTIONAL_COLLECTION);
 
     @Rule

@@ -52,8 +52,6 @@ import io.restassured.RestAssured;
 import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -79,7 +77,6 @@ public class MetadataRawResourceTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static final String METADATA_URI = "/metadata/v1";
-    private static final String DATABASE_NAME = "vitam-test";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
     private final static String HOST_NAME = "127.0.0.1";
@@ -95,13 +92,15 @@ public class MetadataRawResourceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), DATABASE_NAME);
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        MetadataCollections.UNIT.getVitamCollection().setName(GUIDFactory.newGUID().getId()+ MetadataCollections.UNIT.getClasz().getSimpleName());
+        MetadataCollections.UNIT.getVitamCollection()
+            .setName(GUIDFactory.newGUID().getId() + MetadataCollections.UNIT.getClasz().getSimpleName());
         mongoRule.addCollectionToBePurged(MetadataCollections.UNIT.getName());
-        MetadataCollections.OBJECTGROUP.getVitamCollection().setName(GUIDFactory.newGUID().getId()+ MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
+        MetadataCollections.OBJECTGROUP.getVitamCollection()
+            .setName(GUIDFactory.newGUID().getId() + MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
         mongoRule.addCollectionToBePurged(MetadataCollections.OBJECTGROUP.getName());
 
         // Identify overlapping in particular jsr311
@@ -114,7 +113,7 @@ public class MetadataRawResourceTest {
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, mongoRule.getDataBasePort()));
         final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, DATABASE_NAME, ElasticsearchRule.VITAM_CLUSTER, nodes);
+            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         configuration.setJettyConfig(JETTY_CONFIG);
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();

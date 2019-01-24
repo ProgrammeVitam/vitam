@@ -124,8 +124,7 @@ public class AccessContractImplTest {
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Arrays.asList(AccessContract.class, Agencies.class)),
-            "vitam-test");
+        new MongoRule(getMongoClientOptions(Arrays.asList(AccessContract.class, Agencies.class)));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();

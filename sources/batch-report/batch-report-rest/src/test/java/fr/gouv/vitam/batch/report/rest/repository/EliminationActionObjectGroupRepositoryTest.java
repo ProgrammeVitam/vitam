@@ -60,7 +60,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
 public class EliminationActionObjectGroupRepositoryTest {
-    private final static String DB = "vitam-cluster";
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
 
@@ -68,7 +67,7 @@ public class EliminationActionObjectGroupRepositoryTest {
         "EliminationActionObjectGroup" + GUIDFactory.newGUID().getId();
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), DB, ELIMINATION_ACTION_OBJECT_GROUP);
+        new MongoRule(getMongoClientOptions(), ELIMINATION_ACTION_OBJECT_GROUP);
 
     private EliminationActionObjectGroupRepository repository;
 
@@ -76,7 +75,7 @@ public class EliminationActionObjectGroupRepositoryTest {
 
     @Before
     public void setUp() {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), DB);
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         repository = new EliminationActionObjectGroupRepository(mongoDbAccess, ELIMINATION_ACTION_OBJECT_GROUP);
         eliminationObjectGroupCollection = mongoRule.getMongoCollection(ELIMINATION_ACTION_OBJECT_GROUP);
     }

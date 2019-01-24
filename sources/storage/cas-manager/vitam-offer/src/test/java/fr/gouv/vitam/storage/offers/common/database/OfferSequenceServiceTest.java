@@ -49,11 +49,10 @@ import static org.mockito.Mockito.when;
 
 public class OfferSequenceServiceTest {
 
-    private static final String DATABASE_NAME = "Vitam-test";
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {

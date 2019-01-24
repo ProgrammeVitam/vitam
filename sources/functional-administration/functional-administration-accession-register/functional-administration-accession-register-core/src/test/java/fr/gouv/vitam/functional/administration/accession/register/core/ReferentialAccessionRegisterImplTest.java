@@ -92,8 +92,7 @@ public class ReferentialAccessionRegisterImplTest {
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(
-            getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)),
-            "vitam-db");
+            getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
