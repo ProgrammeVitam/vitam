@@ -203,7 +203,6 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
 
     private LogbookOperation findLastOperationTraceabilityLifecycle(String eventType)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        LogbookOperation lastOperationTraceabilityLifecycle = null;
         final Select select = new Select();
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
         final Query findEvent = QueryHelper
@@ -220,13 +219,12 @@ public abstract class ListLifecycleTraceabilityActionHandler extends ActionHandl
                 RequestResponseOK.getFromJsonNode(logbookOperationsClient.selectOperation(select.getFinalSelect()));
             List<ObjectNode> foundOperation = requestResponseOK.getResults();
             if (foundOperation != null && foundOperation.size() >= 1) {
-                lastOperationTraceabilityLifecycle = new LogbookOperation(foundOperation.get(0));
+                return new LogbookOperation(foundOperation.get(0));
             }
-            return lastOperationTraceabilityLifecycle;
-        } catch (LogbookClientNotFoundException e) {
+
             LOGGER.debug("Logbook not found, this is the first Operation of this type");
+            return null;
         }
-        return null;
     }
 
     private void exportToWorkspace(HandlerIO handlerIO, JsonNode item,

@@ -1498,12 +1498,6 @@ public class RulesManagerFileImpl implements ReferentialFile<FileRules> {
             } else {
                 return false;
             }
-        } catch (LogbookClientNotFoundException e) {
-            // TODO: ugly catch because if there is no result on logbook with dsl query, the logbook throws a
-            // NotFoundException. If I fix this, everything may be broken (check LogbookOperationImpl.select method)
-            // Hope for the best here.
-            LOGGER.warn(e);
-            return false;
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             // May not happen
             LOGGER.error(e);
