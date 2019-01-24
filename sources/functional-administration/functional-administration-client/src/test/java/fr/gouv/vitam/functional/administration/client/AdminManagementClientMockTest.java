@@ -87,14 +87,14 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void givenClientMockWhenAndInputXMLOKThenReturnOK() throws FileFormatException, FileNotFoundException {
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
         client.checkFormat(stream);
     }
 
     @Test
     public void givenClientMockWhenWhenImportThenReturnOK() throws FileFormatException, FileNotFoundException {
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        client.importFormat(stream, "FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
+        client.importFormat(stream, "DROID_SignatureFile_V94.xml");
     }
 
     @Test

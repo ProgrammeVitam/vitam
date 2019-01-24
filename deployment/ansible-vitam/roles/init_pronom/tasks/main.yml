@@ -1,7 +1,7 @@
 ---
 # tasks file for init_pronom
 
-# Source example: http://www.nationalarchives.gov.uk/documents/DROID_SignatureFile_V88.xml
+# Source example: http://www.nationalarchives.gov.uk/documents/DROID_SignatureFile_V94.xml
 # - name: get PRONOM {{pronom_version}}
 #   get_url:
 #     url: "{{pronom_baseurl}}/DROID_SignatureFile_{{pronom_version}}.xml"

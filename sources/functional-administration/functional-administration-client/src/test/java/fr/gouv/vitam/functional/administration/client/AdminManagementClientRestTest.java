@@ -502,7 +502,7 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     @Test
     public void givenInputstreamOKWhenCheckThenReturnOK() throws ReferentialException, FileNotFoundException {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
         Response checkFormatReponse = client.checkFormat(stream);
         assertEquals(Status.OK.getStatusCode(), checkFormatReponse.getStatus());
     }
@@ -519,8 +519,8 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     @Test
     public void givenInputstreamOKWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        client.importFormat(stream, "FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
+        client.importFormat(stream, "DROID_SignatureFile_V94.xml");
     }
 
 
@@ -528,16 +528,16 @@ public class AdminManagementClientRestTest extends VitamJerseyTest {
     public void givenAnInvalidQueryThenReturnKO() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         final Select select = new Select();
-        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        client.importFormat(stream, "FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
+        client.importFormat(stream, "DROID_SignatureFile_V94.xml");
         client.getFormats(select.getFinalSelect());
         client.getFormatByID("HDE");
     }
 
     @Test(expected = ReferentialException.class)
     public void givenAnInvalidIDThenReturnNOTFOUND() throws Exception {
-        final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
-        client.importFormat(stream, "FF-vitam.xml");
+        final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
+        client.importFormat(stream, "DROID_SignatureFile_V94.xml");
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         client.getFormatByID("HDE");
     }

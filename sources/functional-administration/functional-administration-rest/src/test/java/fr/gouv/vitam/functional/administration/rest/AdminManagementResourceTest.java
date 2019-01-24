@@ -140,6 +140,7 @@ public class AdminManagementResourceTest {
     private static final int TENANT_ID = 0;
     private static final String ERROR_REPORT_CONTENT = "error_report_content.json";
     public static final int TENANT_ID1 = 1;
+    private static final String PRONOM_FILE = "DROID_SignatureFile_V94.xml";
 
     static MongodExecutable mongodExecutable;
     static MongodProcess mongod;
@@ -290,7 +291,7 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(CHECK_FORMAT_URI)
             .then().statusCode(Status.OK.getStatusCode());
@@ -311,9 +312,9 @@ public class AdminManagementResourceTest {
     @RunWithCustomExecutor
     public void insertAPronomFile() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
+            .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
 
             .when().post(IMPORT_FORMAT_URI)
@@ -398,7 +399,7 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
@@ -406,7 +407,7 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
 
-            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
+            .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 
@@ -433,13 +434,13 @@ public class AdminManagementResourceTest {
     public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
+            .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
 
             .when().post(IMPORT_FORMAT_URI)
@@ -466,13 +467,13 @@ public class AdminManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void findFormat() throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
             .contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
+            .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
@@ -492,14 +493,14 @@ public class AdminManagementResourceTest {
         throws IOException, InvalidParseOperationException, InvalidCreateOperationException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        stream = PropertiesUtils.getResourceAsStream("FF-vitam.xml");
+        stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
         with()
             .contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .header(GlobalDataRest.X_FILENAME, "FF-vitam.xml")
+            .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .when().post(IMPORT_FORMAT_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
 

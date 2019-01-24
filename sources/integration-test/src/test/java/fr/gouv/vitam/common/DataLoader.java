@@ -82,8 +82,8 @@ public class DataLoader {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importFormat(
-                PropertiesUtils.getResourceAsStream(dataFodler + "/DROID_SignatureFile_V88.xml"),
-                "DROID_SignatureFile_V88.xml");
+                PropertiesUtils.getResourceAsStream(dataFodler + "/DROID_SignatureFile_V94.xml"),
+                "DROID_SignatureFile_V94.xml");
             // Import Rules
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importRulesFile(
