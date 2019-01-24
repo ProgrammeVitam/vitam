@@ -97,13 +97,8 @@
     - http_proxy_environnement is defined
     - http_proxy_environnement != ''
 
-# # SYSTEM WIDE ? sinon, lancer en tant que vitam
-# - name: initialize git lfs
-#   chdir: /vitam/data/ihm-recette/test-data/system
-#   shell: git lfs pull
-
 - name: ensure git repo is clean
-  shell: "git reset --hard"
+  shell: "git reset --hard && git clean -fd"
   become_user: "{{ vitam_defaults.users.vitam }}"
   become_method: sudo
   args:
@@ -120,53 +115,8 @@
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
-- name: Reset branch
-  shell: "git reset --hard && git clean -fd"
+- name: Checkout the branch
+  shell: "git checkout {{ vitam_tests_branch }} && git reset --hard origin/{{ vitam_tests_branch }}"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-
-# KWA introduce branch variable
-- name: checkout {{ vitam_tests_branch }}
-  shell: "git checkout {{ vitam_tests_branch }}"
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
-#    creates: /vitam/data/ihm-recette/test-data/system/data/
-# Et les droits sur les fichiers ???
-
-- name: "checkout {{ vitam_tests_branch }}"
-  shell: "git checkout {{ vitam_tests_branch }}"
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "false"
-
-- name: "check whether on branch or commit for {{ vitam_tests_branch }}"
-  shell: "git status --branch --short"
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  environment:
-    - LANG: C
-  register: isonbranch
-
-# In cas of DEBUG test
-# - name: debug
-#   debug:
-#     var: isonbranch.stdout
-
-- name: rebase documents only when on branch
-  shell: "git rebase"
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
-
-- name: rebase documents only when on branch
-  shell: "git rebase"
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "false"
