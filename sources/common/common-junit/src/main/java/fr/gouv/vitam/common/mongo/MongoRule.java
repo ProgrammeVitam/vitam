@@ -41,9 +41,12 @@ import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.junit.rules.ExternalResource;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
@@ -53,6 +56,7 @@ import java.util.Set;
  * Launch a single instance of Mongo database, drop collection after each test
  */
 public class MongoRule extends ExternalResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoRule.class);
 
     private static int dataBasePort;
 
@@ -101,6 +105,8 @@ public class MongoRule extends ExternalResource {
         if (!clientClosed) {
             purge(collectionNames);
         }
+
+        printSystemInfo();
     }
 
     private void purge(Collection<String> collectionNames) {
@@ -125,6 +131,33 @@ public class MongoRule extends ExternalResource {
     public void handleAfterClass() {
         after();
         close();
+    }
+
+    private void printSystemInfo() {
+        long id = System.currentTimeMillis();
+        LOGGER.error(id + "- Available processors (cores): " + Runtime.getRuntime().availableProcessors());
+
+        /* Total amount of free memory available to the JVM */
+        LOGGER.error(id + "- Free memory (bytes): " + Runtime.getRuntime().freeMemory());
+
+        /* This will return Long.MAX_VALUE if there is no preset limit */
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        /* Maximum amount of memory the JVM will attempt to use */
+        LOGGER.error(id + "- Maximum memory (bytes): " + (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory));
+
+        /* Total memory currently available to the JVM */
+        LOGGER.error(id + "- Total memory available to JVM (bytes): " + Runtime.getRuntime().totalMemory());
+
+        /* Get a list of all filesystem roots on this system */
+        File[] roots = File.listRoots();
+
+        /* For each filesystem root, print some info */
+        for (File root : roots) {
+            LOGGER.error(id + "- File system root: " + root.getAbsolutePath());
+            LOGGER.error(id + "- Total space (bytes): " + root.getTotalSpace());
+            LOGGER.error(id + "- Free space (bytes): " + root.getFreeSpace());
+            LOGGER.error(id + "- Usable space (bytes): " + root.getUsableSpace());
+        }
     }
 
     public void handleAfter() {
