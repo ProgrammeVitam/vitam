@@ -832,11 +832,42 @@ Dans le cas d'un update, les opérateurs suivants sont utilisables
 
 | Opérateur | Commentaire                                                 |
 |-----------|-------------------------------------------------------------|
-| $set      | Crée ou modifie la valeur d'un ou plusieurs champs (requêtes de modification uniquement)              |
+| $set      | Crée ou modifie la valeur d'un champ (requêtes de modification uniquement)              |
 | $unset    | Supprime un ou plusieurs champs (requêtes de modification uniquement)                                 |
 | $add      | Ajout d'une valeur à un champ de type liste non redondante (requêtes de reclassification uniquement)  |
 | $pull     | Supprime une valeur d'un champ de type liste non redondante (requêtes de reclassification uniquement) |
 | $setregex | Permet de modifier une valeur par pattern dans l'update de masse des unités d'archive                 |
+
+### Opérateur $set : Ajouter plusieurs règles de gestion
+```json
+{
+  "$roots": ["managementRulesUpdate"],
+  "$query": [],
+  "$filter": {},
+  "$action": [
+    {
+      "$set": {
+        "#management.AccessRule.Rules": [
+          {
+            "Rule": "ACC-00001",
+            "StartDate": "2018-12-04"
+          }
+        ]
+      }
+    },
+    {
+      "$set": {
+        "#management.DisseminationRule.Rules": [
+          {
+            "Rule": "DIS-00001",
+            "StartDate": "2018-12-04"
+          }
+        ]
+      }
+    }
+  ]
+}
+```
 
 ### Opérateur $setregex : Action de remplacement d'une chaine de caractères par pattern
 
