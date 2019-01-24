@@ -99,6 +99,7 @@
         <jclouds.version>2.1.1</jclouds.version>
         <jclouds-ceph.version>2.1.1</jclouds-ceph.version>
         <openstack4j.version>3.1.0</openstack4j.version>
+        <awssdk.v1.version>1.11.488</awssdk.v1.version>
         <thaiopensource.version>20091111</thaiopensource.version>
         <guava.version>27.0.1-jre</guava.version>
         <log4j2.version>2.11.1</log4j2.version>
@@ -874,6 +875,12 @@
                 <groupId>org.pacesys.openstack4j.connectors</groupId>
                 <artifactId>openstack4j-httpclient</artifactId>
                 <version>${openstack4j.version}</version>
+            </dependency>
+	            
+            <dependency>
+                <groupId>com.amazonaws</groupId>
+                <artifactId>aws-java-sdk-s3</artifactId>
+                <version>${awssdk.v1.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.elasticsearch</groupId>

@@ -17,3 +17,14 @@ swiftConnectionTimeout: {{ vitam_offers[offer_conf]["swiftConnectionTimeout"] | 
 swiftReadTimeout: {{ vitam_offers[offer_conf]["swiftReadTimeout"] | default(200000) }}
 swiftHardRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftHardRenewTokenDelayBeforeExpireTime"] | default(60) }}
 swiftSoftRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftSoftRenewTokenDelayBeforeExpireTime"] | default(300) }}
+
+s3RegionName: {{ vitam_offers[offer_conf]["s3RegionName"] | default("") }}
+s3Endpoint: {{ vitam_offers[offer_conf]["s3Endpoint"] | default("") }}
+s3PathStyleAccessEnabled: {{ vitam_offers[offer_conf]["s3PathStyleAccessEnabled"] | default(true) }}
+s3AccessKey: {{ vitam_offers[offer_conf]["s3AccessKey"] | default("") }}
+s3SecretKey: {{ vitam_offers[offer_conf]["s3SecretKey"] | default("") }}
+s3SignerType: {{ vitam_offers[offer_conf]["s3SignerType"] | default("") }}
+s3MaxConnections: {{ vitam_offers[offer_conf]["s3MaxConnections"] | default(1000) }}
+s3ConnectionTimeout: {{ vitam_offers[offer_conf]["s3ConnectionTimeout"] | default(200000) }}
+s3TrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
+s3TrustStorePassword: {{ password_truststore }}

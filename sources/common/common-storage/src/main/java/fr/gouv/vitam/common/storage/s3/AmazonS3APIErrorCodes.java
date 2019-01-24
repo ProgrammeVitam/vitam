@@ -1,76 +1,81 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
- * <p>
+ *
  * contact.vitam@culture.gouv.fr
- * <p>
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
- * <p>
+ *
  * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
  * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "http://www.cecill.info".
- * <p>
+ *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
- * <p>
+ *
  * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
- * <p>
+ *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.storage.constants;
+ *******************************************************************************/
+package fr.gouv.vitam.common.storage.s3;
 
 /**
- * Storage offers provider
+ * List of error codes as defined by Amazon's S3 API and used by Amazon S3
+ * connector in Vitam.
+ * 
+ * @see https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
+ *
  */
-public enum StorageProvider {
-    /**
-     * File system storage offer
-     */
-    FILESYSTEM("filesystem"),
-    /**
-     * Swift storage offer (ceph or openStack)
-     * authent v1
-     * DO NOT CHANGE THE VALUE OF THIS VAR AS JCLOUDS IS EXPECTING THIS EXACT VALUE
-     */
-    SWIFT_AUTH_V1("openstack-swift"),
-    /**
-     * Swift storage offer
-     * authent v2
-     */
-    SWIFT_AUTH_V2("openstack-swift-v2"),
-    /**
-     * Swift storage offer
-     * authent v3
-     */
-    SWIFT_AUTH_V3("openstack-swift-v3"),
-    /**
-     * S3 storage offer
-     * Amazon SDK S3 v1 
-     */
-    AMAZON_S3_V1("amazon-s3-v1"),
-    /**
-     * File system storage offer with a hashed directory structure
-     */
-    HASHFILESYSTEM("filesystem-hash");
+public enum AmazonS3APIErrorCodes {
 
-    private String value;
+	/**
+	 * Error for case when bucket already exists without acl
+	 */
+	BUCKET_ALREADY_EXISTS("BucketAlreadyExists"),
+	/**
+	 * Error for case when bucket already exists with acl
+	 */
+	BUCKET_ALREADY_OWNED_BY_YOU("BucketAlreadyOwnedByYou"),
+	/**
+	 * Error when bucket does not exists
+	 */
+	NO_SUCH_BUCKET("NoSuchBucket"),
+	/**
+	 * Error when object does not exists
+	 */
+	NO_SUCH_KEY("NoSuchKey"),
+	/**
+	 * Error when bucket or object does not exists
+	 */
+	NOT_FOUND("404 Not Found");
 
-    private StorageProvider(String value) {
-        this.value = value;
-    }
+	/**
+	 * Amazon S3 API error response codes
+	 */
+	private final String errorCode;
 
-    /**
-     * @return the value
-     */
-    public String getValue() {
-        return value;
-    }
+	/**
+	 * Constructor
+	 * 
+	 * @param errorCode error code
+	 */
+	private AmazonS3APIErrorCodes(String errorCode) {
+		this.errorCode = errorCode;
+	}
 
+	/**
+	 * Gets the errorCode
+	 * 
+	 * @return errorCode
+	 */
+	public String getErrorCode() {
+		return errorCode;
+	}
 }
