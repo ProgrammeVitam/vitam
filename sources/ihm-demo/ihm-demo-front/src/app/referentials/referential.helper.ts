@@ -9,6 +9,15 @@ export class ReferentialHelper {
     DataObjectVersion: ['BinaryMaster', 'Dissemination', 'Thumbnail', 'TextContent', 'PhysicalMaster']
   };
 
+  static preservationLists ={
+    DataObjectVersion: [
+      {label: '', value: undefined},
+      {label: 'Original numérique', value: 'BinaryMaster'},
+      {label: 'Diffusion', value: 'Dissemination'},
+      {label: 'Vignette', value: 'Thumbnail'},
+      {label: 'Contenu brut', value: 'TextContent'}]
+  }
+
   constructor() {
   }
 

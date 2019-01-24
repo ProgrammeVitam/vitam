@@ -301,12 +301,13 @@ public class PreservationPreparationPlugin extends ActionHandler {
         ObjectGroupResponse objectGroup, PreservationScenarioModel scenarioModel,
         Map<String, GriffinModel> griffinModelListForScenario) {
 
-        String qualifier = preservationRequest.getUsage();
+        String targetQualifier = preservationRequest.getTargetUsage();
+        String sourceQualifier = preservationRequest.getSourceUsage();
 
         PreservationVersion version = preservationRequest.getVersion();
 
         Optional<VersionsModel> versionsModelOptional = (version == FIRST) ?
-            objectGroup.getFirstVersionsModel(qualifier) : objectGroup.getLastVersionsModel(qualifier);
+            objectGroup.getFirstVersionsModel(sourceQualifier) : objectGroup.getLastVersionsModel(sourceQualifier);
 
         if (!versionsModelOptional.isPresent()) {
             return Optional.empty();
@@ -329,12 +330,12 @@ public class PreservationPreparationPlugin extends ActionHandler {
         GriffinModel griffinModel = griffinModelListForScenario.get(griffinId);
 
         return Optional.of(getPreservationDistributionLine(objectGroup.getId(), unitId, versionsModel,
-            formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, qualifier));
+            formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, targetQualifier, sourceQualifier));
     }
 
     private PreservationDistributionLine getPreservationDistributionLine(String objectGroupId, String unitId,
         VersionsModel version, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel,
-        String qualifier) {
+        String targetQualifier, String sourceQualifier) {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine();
 
@@ -347,7 +348,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
         preservationDistributionLine.setObjectId(version.getId());
         preservationDistributionLine.setDebug(griffinByFormatModel.isDebug());
         preservationDistributionLine.setTimeout(griffinByFormatModel.getMaxSize());
-        preservationDistributionLine.setUsage(qualifier);
+        preservationDistributionLine.setTargetUse(targetQualifier);
+        preservationDistributionLine.setSourceUse(sourceQualifier);
 
         return preservationDistributionLine;
     }

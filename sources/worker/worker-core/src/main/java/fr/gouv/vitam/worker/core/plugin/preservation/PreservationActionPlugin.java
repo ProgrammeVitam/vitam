@@ -255,7 +255,7 @@ public class PreservationActionPlugin extends ActionHandler {
             .stream()
             .map(OutputExtra::of)
             .collect(Collectors.toList());
-        return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getUsage(), result.getRequestId(), outputExtras);
+        return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras, e.getSourceUse());
     }
 
     private void createReport(ResultPreservation resultPreservation, List<PreservationDistributionLine> entries,

@@ -26,12 +26,50 @@
  *******************************************************************************/
 package fr.gouv.vitam.preservation;
 
+import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
+import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
+import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
+import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
+import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
@@ -80,6 +118,8 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
@@ -96,6 +136,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.After;
@@ -106,42 +147,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
-import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
-import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
-import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
-import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Ingest Internal integration test
@@ -508,7 +513,7 @@ public class PreservationIT extends VitamRuleRunner {
 
             ObjectNode finalSelect = select.getFinalSelect();
             PreservationRequest preservationRequest =
-                new PreservationRequest(finalSelect, "PSC-000001", "BinaryMaster", LAST);
+                new PreservationRequest(finalSelect, "PSC-000001", "BinaryMaster", LAST, "BinaryMaster");
             accessClient.startPreservation(preservationRequest);
 
             waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
@@ -524,22 +529,68 @@ public class PreservationIT extends VitamRuleRunner {
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
-
-            // Get accession register details after start preservation
-            countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
-            assertThat(countDetails).isEqualTo(4);
-
-            // Assert AccessionRegisterSummary
-            assertJsonEquals("preservation/expected/accession_register_ratp_after.json",
-                JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .find(new Document("OriginatingAgency", "RATP"))),
-                excludeFields);
-
-            assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_after.json",
-                JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .find(new Document("OriginatingAgency", "FRAN_NP_009913"))),
-                excludeFields);
+            validateAccessionRegisterDetails(excludeFields);
         }
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_preservation_workflow_with_various_usage() throws Exception {
+        // Given
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+            getVitamSession().setTenantId(tenantId);
+            getVitamSession().setContractId(contractId);
+            getVitamSession().setContextId("Context_IT");
+            getVitamSession().setRequestId(operationGuid);
+
+            buildAndSavePreservationResultFile();
+
+            SelectMultiQuery select = new SelectMultiQuery();
+            select.setQuery(QueryHelper.exists("#id"));
+
+            ObjectNode finalSelect = select.getFinalSelect();
+            PreservationRequest preservationRequest =
+                new PreservationRequest(finalSelect, "PSC-000001", "Dissemination", FIRST, "BinaryMaster");
+            accessClient.startPreservation(preservationRequest);
+
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
+
+            // When
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                .selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
+
+            // Then
+            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+
+            JsonNode objectGroup =
+                JsonHandler.toJsonNode(MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId())).sort(
+                    Sorts.ascending(ObjectGroup.NBCHILD)));
+            Assertions.assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo("Dissemination");
+        }
+    }
+
+    private void validateAccessionRegisterDetails(List<String> excludeFields) throws FileNotFoundException, InvalidParseOperationException {
+        long countDetails;
+        // Get accession register details after start preservation
+        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
+        assertThat(countDetails).isEqualTo(4);
+
+        // Assert AccessionRegisterSummary
+        assertJsonEquals("preservation/expected/accession_register_ratp_after.json",
+            JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(new Document("OriginatingAgency", "RATP"))),
+            excludeFields);
+
+        assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_after.json",
+            JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(new Document("OriginatingAgency", "FRAN_NP_009913"))),
+            excludeFields);
     }
 
     private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)
@@ -563,8 +614,7 @@ public class PreservationIT extends VitamRuleRunner {
             });
         }
 
-        JsonAssert
-            .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
+        JsonAssert.assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
     }
 
     @After
@@ -575,13 +625,16 @@ public class PreservationIT extends VitamRuleRunner {
         runAfterMongo(Sets.newHashSet(
 
             FunctionalAdminCollections.PRESERVATION_SCENARIO.getName(),
-            FunctionalAdminCollections.GRIFFIN.getName()
-
+            FunctionalAdminCollections.GRIFFIN.getName(),
+            MetadataCollections.UNIT.getName(),
+            MetadataCollections.OBJECTGROUP.getName()
         ));
 
         runAfterEs(Sets.newHashSet(
             FunctionalAdminCollections.PRESERVATION_SCENARIO.getName().toLowerCase(),
-            FunctionalAdminCollections.GRIFFIN.getName().toLowerCase()
+            FunctionalAdminCollections.GRIFFIN.getName().toLowerCase(),
+            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0"
         ));
     }
 

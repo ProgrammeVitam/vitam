@@ -34,6 +34,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
+import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
@@ -107,7 +109,9 @@ public class PreservationUpdateObjectGroupPluginTest {
             Optional.empty()
         );
 
-        WorkflowBatchResult batchResult = WorkflowBatchResult.of("gotId", "unitId", "BinaryMaster", "requestId", Collections.singletonList(outputExtra));
+        WorkflowBatchResult batchResult =
+            WorkflowBatchResult.of("gotId", "unitId", "BinaryMaster", "requestId", Collections.singletonList(outputExtra),
+                "BinaryMaster");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
 
         handlerIO.addOutputResult(0, batchResults);
@@ -129,4 +133,5 @@ public class PreservationUpdateObjectGroupPluginTest {
         // Then
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
     }
+
 }

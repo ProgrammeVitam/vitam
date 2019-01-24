@@ -153,7 +153,7 @@ public class PreservationStep {
 
         JsonNode queryNode = JsonHandler.getFromString(query);
 
-        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usage, LAST);
+        PreservationRequest preservationRequest = new PreservationRequest(queryNode, scenarioId, usage, LAST, usage);
         RequestResponse response = world.getAccessClient().launchPreservation(vitamContext, preservationRequest);
 
         final String operationId = response.getHeaderString(X_REQUEST_ID);

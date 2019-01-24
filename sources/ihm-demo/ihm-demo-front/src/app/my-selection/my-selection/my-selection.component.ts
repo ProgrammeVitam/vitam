@@ -419,7 +419,8 @@ export class MySelectionComponent extends PageComponent {
         if (this.checkInputs()) {
           let preservationRequest = {
             dslQuery: query,
-            usage: this.form.seclectedUsage,
+            targetUsage: this.form.selectedTargetUse,
+            sourceUsage: this.form.selectedSourceUse,
             version: this.form.seclectedVersion,
             scenarioId: this.form.selectedScenario
           };
@@ -464,11 +465,8 @@ export class MySelectionComponent extends PageComponent {
         break;
       case 'PRESERVATION':
         this.form.preservationMode = false;
-        this.form.usages = [
-          {label: '', value: undefined},
-          {label: 'BinaryMaster', value: 'BinaryMaster'},
-          {label: 'Dissemination', value: 'Dissemination'}
-        ];
+        this.form.targetUsage = ReferentialHelper.preservationLists.DataObjectVersion;
+        this.form.sourceUsage = ReferentialHelper.preservationLists.DataObjectVersion;
         this.form.versions = [
           {label: '', value: undefined},
           {label: 'FIRST', value: 'FIRST'},
@@ -513,7 +511,8 @@ export class MySelectionComponent extends PageComponent {
       case 'MASS_UPDATE':
         return this.form.updateRules || this.form.updateMetadata;
       case 'PRESERVATION':
-        return this.form.seclectedUsage != null && this.form.seclectedVersion != null && this.form.selectedScenario != null
+        return this.form.selectedSourceUse != null && this.form.selectedTargetUse != null &&
+          this.form.seclectedVersion != null && this.form.selectedScenario != null;
       default:
         return false;
     }

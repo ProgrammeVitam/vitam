@@ -87,7 +87,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setAction(ActionTypePreservation.ANALYSE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+            ""));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -107,7 +108,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setOutputName("outputName");
         OutputExtra outputExtra = new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("sha-42"), Optional.empty(), Optional.empty(), Optional.empty());
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+            ""));
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(output.getOutputName()));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
@@ -142,7 +144,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+            ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -165,7 +168,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setOutputName("outputName");
         OutputExtra outputExtra = new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("42424242424242424242"), Optional.empty(), Optional.empty(), Optional.empty());
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+            ""));
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(output.getOutputName()));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
@@ -198,7 +202,8 @@ public class PreservationStorageBinaryPluginTest {
         output.setOutputName("outputName");
         OutputExtra outputExtra = new OutputExtra(output, "binaryGuid", Optional.of(32L), Optional.of("hash_42"), Optional.empty(), Optional.empty(), Optional.empty());
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+            ""));
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(output.getOutputName()));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);

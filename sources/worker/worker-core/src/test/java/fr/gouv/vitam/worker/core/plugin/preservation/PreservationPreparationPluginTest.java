@@ -39,7 +39,6 @@ import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin.OBJECT_GROUPS_TO_PRESERVE_JSONL;
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -101,7 +100,7 @@ public class PreservationPreparationPluginTest {
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
         PreservationRequest preservationRequest =
-            new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST);
+            new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster");
 
         when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(preservationRequest));
 

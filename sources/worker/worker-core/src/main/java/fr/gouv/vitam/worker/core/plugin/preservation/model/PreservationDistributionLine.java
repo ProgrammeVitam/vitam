@@ -53,17 +53,17 @@ public class PreservationDistributionLine {
     private boolean debug;
     @JsonProperty("timeout")
     private int timeout;
-    @JsonProperty("usage")
-    private String usage;
+    @JsonProperty("targetUse")
+    private String targetUse;
+    @JsonProperty("sourceUse")
+    private String sourceUse;
 
     public PreservationDistributionLine() {
     }
 
     public PreservationDistributionLine(String formatId, String filename,
         List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
-        boolean debug,
-        int timeout,
-        String id, String usage) {
+        boolean debug, int timeout, String id, String targetUse, String sourceUse) {
         this.formatId = formatId;
         this.filename = filename;
         this.actionPreservationList = actionPreservationList;
@@ -73,7 +73,8 @@ public class PreservationDistributionLine {
         this.debug = debug;
         this.timeout = timeout;
         this.id = id;
-        this.usage = usage;
+        this.targetUse = targetUse;
+        this.sourceUse = sourceUse;
     }
 
     public String getId() {
@@ -149,11 +150,19 @@ public class PreservationDistributionLine {
         this.timeout = timeout;
     }
 
-    public String getUsage() {
-        return usage;
+    public String getTargetUse() {
+        return targetUse;
     }
 
-    public void setUsage(String usage) {
-        this.usage = usage;
+    public void setTargetUse(String targetUse) {
+        this.targetUse = targetUse;
+    }
+
+    public String getSourceUse() {
+        return sourceUse;
+    }
+
+    public void setSourceUse(String sourceUse) {
+        this.sourceUse = sourceUse;
     }
 }

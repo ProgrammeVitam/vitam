@@ -29,8 +29,6 @@ package fr.gouv.vitam.common.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.List;
-
 public class PreservationRequest {
 
     @JsonProperty("dslQuery")
@@ -39,8 +37,11 @@ public class PreservationRequest {
     @JsonProperty("scenarioId")
     private String scenarioIdentifier;
 
-    @JsonProperty("usage")
-    private String usage;
+    @JsonProperty("targetUsage")
+    private String targetUsage;
+
+    @JsonProperty("sourceUsage")
+    private String sourceUsage;
 
     @JsonProperty("version")
     private PreservationVersion version;
@@ -49,13 +50,15 @@ public class PreservationRequest {
         //for Jackson
     }
 
-    public PreservationRequest(JsonNode dslQuery, String scenarioIdentifier, String usage,
-        PreservationVersion version) {
+    public PreservationRequest(@JsonProperty(required = true) JsonNode dslQuery,
+        @JsonProperty(required = true) String scenarioIdentifier, @JsonProperty(required = true) String targetUsage,
+        @JsonProperty(required = true) PreservationVersion version, @JsonProperty(required = true) String sourceUsage) {
 
         this.dslQuery = dslQuery;
         this.scenarioIdentifier = scenarioIdentifier;
-        this.usage = usage;
+        this.targetUsage = targetUsage;
         this.version = version;
+        this.sourceUsage = sourceUsage;
     }
 
     public JsonNode getDslQuery() {
@@ -66,11 +69,15 @@ public class PreservationRequest {
         return scenarioIdentifier;
     }
 
-    public String getUsage() {
-        return usage;
+    public String getTargetUsage() {
+        return targetUsage;
     }
 
     public PreservationVersion getVersion() {
         return version;
+    }
+
+    public String getSourceUsage() {
+        return sourceUsage;
     }
 }
