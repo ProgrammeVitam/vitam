@@ -224,6 +224,9 @@ export class LogbookOperationComponent extends PageComponent {
       case 'ELIMINATION':
         logbookService.downloadReport(item.evIdProc);
         break;
+      case 'PRESERVATION':
+        logbookService.downloadPreservationReport(item.evIdProc);
+        break;
       case 'MASS_UPDATE':
         logbookService.downloadMassUpdateReport(item.evIdProc);
         break;

@@ -2406,6 +2406,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     @GET
+    @Path("/preservationreport/{opId}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Secured(permission = "preservationreport:id:read",
+        description = "Récupérer le rapport pour une opération d'import de règles de gestion")
+    public Response downloadPreservationAsStream(@PathParam("opId") String opId) {
+        return downloadObjectAsync(opId, IngestCollection.PRESERVATION);
+    }
+
+    @GET
     @Path("/distributionreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Secured(permission = "distributionreport:id:read",

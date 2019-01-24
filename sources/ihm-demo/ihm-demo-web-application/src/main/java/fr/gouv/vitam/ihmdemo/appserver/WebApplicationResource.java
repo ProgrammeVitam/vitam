@@ -184,7 +184,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public static final String X_CHUNK_OFFSET = "X-Chunk-Offset";
     private static final String CSV = ".csv";
     private static final String JSON = ".json";
+    private static final String JSONL = ".jsonl";
     private static final String DISTRIBUTION = "distribution";
+    private static final String PRESERVATION = "preservation";
     private static final String AGENCIES = "agencies";
     private static final String RULES = "rules";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
@@ -1522,6 +1524,30 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
+    @GET
+    @Path("/report/preservation/download/{id}")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response downloadPreservationReport(@Context HttpServletRequest request, @PathParam("id") String id) {
+        try {
+            SanityChecker.checkParameter(id);
+            File file = downloadReportOrCsv(id, request, PRESERVATION);
+            if (file != null) {
+                return Response.ok().entity(new FileInputStream(file))
+                    .type(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                    .header(CONTENT_DISPOSITION,
+                        "attachment; filename=" + id + ".jsonl")
+                    .build();
+            } else {
+                return Response.status(Status.NOT_FOUND).build();
+            }
+        } catch (InvalidParseOperationException e) {
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+    }
+
 
     @GET
     @Path("/referential/download/{id}/{type}")
@@ -1556,6 +1582,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
                     .downloadDistributionReport(
                         UserInterfaceTransactionManager.getVitamContext(request), guid);
                 file = getFileFromResponse(response.readEntity(InputStream.class), guid, JSON);
+            }
+            if(PRESERVATION.equals(typeOfDownload)){
+                response = adminExternalClient
+                    .downloadPreservationReport(
+                        UserInterfaceTransactionManager.getVitamContext(request), guid);
+                file = getFileFromResponse(response.readEntity(InputStream.class), guid, JSONL);
             }
             if (JSON.equals(typeOfDownload)) {
                 response = adminExternalClient

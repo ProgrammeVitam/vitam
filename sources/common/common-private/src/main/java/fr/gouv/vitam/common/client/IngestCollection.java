@@ -60,8 +60,11 @@ public enum IngestCollection {
     /**
      * Ugly hack hack for homogeneity download batch update reports
      */
-    DISTRIBUTIONREPORTS("distributionreports");
-
+    DISTRIBUTIONREPORTS("distributionreports"),
+    /**
+     * Ugly hack hack for homogeneity download batch update reports
+     */
+    PRESERVATION("preservation");
 
     /**
      * Name

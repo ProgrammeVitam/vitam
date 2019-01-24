@@ -82,6 +82,8 @@ public enum DataCategory {
      */
     RULES("rules", "rules", false, false),
 
+    PRESERVATION("preservation", "preservation", false, false),
+
     /**
      * Referential csv imported for rules
      */
