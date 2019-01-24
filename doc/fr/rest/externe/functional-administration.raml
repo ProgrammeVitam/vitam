@@ -152,6 +152,20 @@ documentation:
       X-Http-Method-Override:
         required: true
 
+/preservationreport/{opId}:
+  displayName: preservation report
+  uriParameters:
+        opId:
+          required: true
+          description: |
+            Identifiant de l'opération concernée
+  description: |
+     Permet de télécharger un objet représentant le rapport de préservation en fonction de l'id de l'opération
+  is: [ AdminTraits.AdminFileItemResponse ]
+  get:
+     description:  |
+      Permet de télécharger un objet représentant le rapport de préservation en fonction de l'id de l'opération
+
 /admin-external/v1/distributionreport/{opId}:
   displayName: Rapports de mise à jour de masse
   uriParameters:
