@@ -58,7 +58,7 @@
     mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - name: create git repo
-  shell: git clone --no-checkout {{vitam_tests_gitrepo_url}} .
+  shell: "git clone --no-checkout {{vitam_tests_gitrepo_url}} ."
   become_user: "{{ vitam_defaults.users.vitam }}"
   environment:
     http_proxy: "{{ http_proxy_environnement }}"
@@ -68,7 +68,7 @@
     creates: /vitam/data/ihm-recette/test-data/system/.git/
 
 - name: store auth
-  shell: git config credential.helper 'store --file=/vitam/data/ihm-recette/test-data/system/.git/.git-credentials'
+  shell: "git config credential.helper 'store --file=/vitam/data/ihm-recette/test-data/system/.git/.git-credentials'"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
@@ -83,7 +83,7 @@
   when: vitam_gitlab_itest_login is defined
 
 - name: initialize git lfs
-  shell: git lfs install --local
+  shell: "git lfs install --local"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system
@@ -93,73 +93,25 @@
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: 
+  when:
     - http_proxy_environnement is defined
     - http_proxy_environnement != ''
 
-# # SYSTEM WIDE ? sinon, lancer en tant que vitam
-# - name: initialize git lfs
-#   chdir: /vitam/data/ihm-recette/test-data/system
-#   shell: git lfs pull
-
 - name: ensure git repo is clean
-  shell: git reset --hard
+  shell: "git reset --hard && git clean -fd"
   become_user: "{{ vitam_defaults.users.vitam }}"
+  become_method: sudo
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-
-- name: check whether data are already downloaded from git lfs
-  stat:
-      path: /vitam/data/ihm-recette/test-data/system/data/
-  register: git_pulled
 
 - name: fetch repo
-  shell: git fetch
+  shell: "git fetch"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
-# KWA introduce branch variable
-- name: checkout {{ vitam_tests_branch }}
-  shell: git checkout {{ vitam_tests_branch }}
+- name: Checkout the branch
+  shell: "git checkout {{ vitam_tests_branch }} && git reset --hard origin/{{ vitam_tests_branch }}"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
-  when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
-#    creates: /vitam/data/ihm-recette/test-data/system/data/
-# Et les droits sur les fichiers ???
-
-- name: checkout {{ vitam_tests_branch }}
-  shell: git checkout {{ vitam_tests_branch }}
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  when: vitam.ihm_recette.use_proxy_to_clone_tests |lower == "false"
-
-- name: check whether on branch or commit for {{ vitam_tests_branch }}
-  shell: git status --branch --short
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  environment:
-    - LANG: C
-  register: isonbranch
-
-# In cas of DEBUG test
-# - name: debug
-#   debug:
-#     var: isonbranch.stdout
-
-- name: rebase documents only when on branch
-  shell: git rebase
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "true"
-
-- name: rebase documents only when on branch
-  shell: git rebase
-  become_user: "{{ vitam_defaults.users.vitam }}"
-  args:
-    chdir: /vitam/data/ihm-recette/test-data/system/
-  when: (git_pulled.stat.exists) and (git_pulled.stat.isdir is defined) and (git_pulled.stat.isdir) and ( isonbranch.stdout.find('no branch') == -1) and vitam.ihm_recette.use_proxy_to_clone_tests |lower == "false"
