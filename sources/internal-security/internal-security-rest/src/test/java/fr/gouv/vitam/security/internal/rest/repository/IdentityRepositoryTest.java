@@ -28,12 +28,12 @@ package fr.gouv.vitam.security.internal.rest.repository;
 
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,7 +44,6 @@ import java.util.Optional;
 
 import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.security.internal.rest.repository.IdentityRepository.CERTIFICATE_COLLECTION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -53,19 +52,19 @@ import static org.junit.Assert.assertTrue;
  */
 public class IdentityRepositoryTest {
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
+    private final static String CERTIFICATE_COLLECTION = "Certificate" + GUIDFactory.newGUID().getId();
 
     @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CLUSTER_NAME, CERTIFICATE_COLLECTION);
+    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), CERTIFICATE_COLLECTION);
 
     private IdentityRepository identityRepository;
 
     private MongoCollection<Document> certificateCollection;
 
     @Before
-    public void setUp() throws Exception {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
-        identityRepository = new IdentityRepository(mongoDbAccess);
+    public void setUp() {
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
+        identityRepository = new IdentityRepository(mongoDbAccess, CERTIFICATE_COLLECTION);
         certificateCollection = mongoRule.getMongoCollection(CERTIFICATE_COLLECTION);
     }
 

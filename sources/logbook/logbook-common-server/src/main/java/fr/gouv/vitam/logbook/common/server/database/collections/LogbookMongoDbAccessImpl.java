@@ -26,25 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.or;
-import static com.mongodb.client.model.Indexes.hashed;
-import static com.mongodb.client.model.Updates.combine;
-import static fr.gouv.vitam.common.LocalDateUtil.now;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.ID;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.LAST_PERSISTED_DATE;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
-import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.VERSION;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -69,7 +50,6 @@ import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
@@ -123,6 +103,25 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.or;
+import static com.mongodb.client.model.Indexes.hashed;
+import static com.mongodb.client.model.Updates.combine;
+import static fr.gouv.vitam.common.LocalDateUtil.now;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.ID;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.LAST_PERSISTED_DATE;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
+import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.VERSION;
 
 /**
  * MongoDb Access implementation base class
@@ -205,14 +204,21 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         // init Logbook Operation Mapping for ES
         LogbookCollections.OPERATION.initialize(this.esClient);
         for (Integer tenant : tenants) {
-            LogbookCollections.OPERATION.getEsClient().addIndex(LogbookCollections.OPERATION, tenant);
+            Map<String, String> map =
+                LogbookCollections.OPERATION.getEsClient().addIndex(LogbookCollections.OPERATION, tenant);
+            if (map.isEmpty()) {
+                throw new RuntimeException(
+                    "Index not created for the collection " + LogbookCollections.OPERATION.getName() +
+                        " and tenant :" +
+                        tenant);
+            }
         }
     }
 
     /**
      * @return The MongoCLientOptions to apply to MongoClient
      */
-    static final MongoClientOptions getMongoClientOptions() {
+    public static final MongoClientOptions getMongoClientOptions() {
         final VitamDocumentCodec<LogbookOperation> operationCodec = new VitamDocumentCodec<>(LogbookOperation.class);
 
         final VitamDocumentCodec<LogbookLifeCycleUnit> lifecycleUnitCodec =
@@ -382,7 +388,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public VitamMongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(LogbookCollections collection, Select select)
+    public VitamMongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(LogbookCollections collection,
+        Select select)
         throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
@@ -404,7 +411,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings("unchecked")
     @Override
-    public VitamMongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(LogbookCollections collection,
+    public VitamMongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(
+        LogbookCollections collection,
         Select select)
         throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
@@ -584,7 +592,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookNotFoundException
      */
     @SuppressWarnings("rawtypes")
-    private final VitamMongoCursor select(final LogbookCollections collection, final JsonNode select, final ObjectNode slice)
+    private final VitamMongoCursor select(final LogbookCollections collection, final JsonNode select,
+        final ObjectNode slice)
         throws LogbookDatabaseException, VitamDBException {
         try {
             final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
@@ -888,7 +897,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @SuppressWarnings({"rawtypes"})
     @Override
-    public void updateLogbookLifeCycle(LogbookCollections collection, List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+    public void updateLogbookLifeCycle(LogbookCollections collection,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, collection);
         if (logbookLifeCycleParametersBulk == null || logbookLifeCycleParametersBulk.isEmpty()) {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
@@ -926,7 +936,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             // modifie le master pour rajouter de nouvelles info au master.
             // checkCopyToMaster(collection, items[i]);
         }
-        BulkWriteResult bulkWriteResult = collection.getCollection().bulkWrite(updates, new BulkWriteOptions().ordered(false));
+        BulkWriteResult bulkWriteResult =
+            collection.getCollection().bulkWrite(updates, new BulkWriteOptions().ordered(false));
 
         if (bulkWriteResult.getModifiedCount() != logbookLifeCycleParametersBulk.size()) {
             throw new VitamRuntimeException(
@@ -1176,7 +1187,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             }
             if (LogbookCollections.OPERATION.equals(collection)) {
                 esClient.deleteIndex(LogbookCollections.OPERATION, tenantId);
-                esClient.addIndex(LogbookCollections.OPERATION, tenantId);
+                Map<String, String> map = esClient.addIndex(LogbookCollections.OPERATION, tenantId);
+                if (map.isEmpty()) {
+                    throw new RuntimeException(
+                        "Index not created for the collection " + LogbookCollections.OPERATION.getName() +
+                            " and tenant :" +
+                            tenantId);
+                }
+
             }
             if (result.getDeletedCount() != count) {
                 throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
@@ -1522,9 +1540,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         List<SortBuilder> sorts = requestToEs.getFinalOrderBy(collection.getVitamCollection().isUseScore());
         SearchResponse elasticSearchResponse =
-            collection.getEsClient().search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter()), null,
-                sorts, requestToEs.getFinalOffset(),
-                requestToEs.getFinalLimit());
+            collection.getEsClient()
+                .search(collection, tenantId, requestToEs.getNthQueries(0, new LogbookVarNameAdapter()), null,
+                    sorts, requestToEs.getFinalOffset(),
+                    requestToEs.getFinalLimit());
         if (elasticSearchResponse.status() != RestStatus.OK) {
             return new VitamMongoCursor<>(new EmptyMongoCursor());
         }
@@ -1542,8 +1561,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         // replace query with list of ids from es
         parser.getRequest().setQuery(new NopQuery());
-        return new VitamMongoCursor(DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(collection.getVitamCollection(), parser,
-            idsSorted, null), hits.getTotalHits(), elasticSearchResponse.getScrollId());
+        return new VitamMongoCursor(
+            DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(collection.getVitamCollection(), parser,
+                idsSorted, null), hits.getTotalHits(), elasticSearchResponse.getScrollId());
     }
 
 
@@ -1699,7 +1719,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public void bulkInsert(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
+    public void bulkInsert(LogbookCollections lifecycleUnit,
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
         throws DatabaseException {
         List<InsertOneModel<VitamDocument>> vitamDocuments = logbookLifeCycleModels
             .stream()

@@ -27,16 +27,6 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.nio.file.Files;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -62,7 +52,6 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
@@ -82,6 +71,15 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.nio.file.Files;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
@@ -119,14 +117,15 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
+        handleBeforeClass(0, 1);
         // set bulk size to 1 for tests
         VitamConfiguration.setWorkerBulkSize(1);
+        // TODO perhaps we have to delete worker.db FileUtils.forceDeleteOnExit(PropertiesUtils.fileFromDataFolder("worker.db"));
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-
+        handleAfterClass(0, 1);
         runAfter();
 
         VitamConfiguration.setWorkerBulkSize(10);
@@ -147,7 +146,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Before
     public void setUp() throws Exception {
 
-
+        // Delete eventually exisiting workerdb file
         final WorkerBean workerBean =
             new WorkerBean("DefaultWorker", "DefaultWorker", 1, 0, "status",
                 new WorkerRemoteConfiguration("localhost", workerMockRule.port()));
@@ -181,11 +180,11 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     }
 
 
-
     private void waitStep(ProcessWorkflow processWorkflow, int stepId) {
 
         while (processWorkflow.getSteps().get(stepId).getStepStatusCode() != StatusCode.STARTED) {
             try {
+                LOGGER.error("== Wait step :" + stepId);
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -211,6 +210,12 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow() throws Exception {
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
         ProcessingIT.prepareVitamSession();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -243,7 +248,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.stopProcessManagementServer(false);
 
         // wait a little bit
-        LOGGER.info("After STOP");
+        LOGGER.error("=== After STOP");
 
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);

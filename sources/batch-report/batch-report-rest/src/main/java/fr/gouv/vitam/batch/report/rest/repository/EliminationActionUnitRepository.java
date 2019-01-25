@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.repository;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.DistinctIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -59,8 +60,13 @@ public class EliminationActionUnitRepository extends EliminationCommonRepository
     public static final String METADATA_OBJECT_GROUP_ID = "_metadata.objectGroupId";
     private final MongoCollection<Document> unitReportCollection;
 
+    @VisibleForTesting
+    public EliminationActionUnitRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+        this.unitReportCollection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
+    }
+
     public EliminationActionUnitRepository(MongoDbAccess mongoDbAccess) {
-        this.unitReportCollection = mongoDbAccess.getMongoDatabase().getCollection(ELIMINATION_ACTION_UNIT);
+        this(mongoDbAccess, ELIMINATION_ACTION_UNIT);
     }
 
     public void bulkAppendReport(List<EliminationActionUnitModel> reports) {

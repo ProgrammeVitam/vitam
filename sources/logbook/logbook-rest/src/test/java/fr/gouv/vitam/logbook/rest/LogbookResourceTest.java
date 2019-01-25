@@ -29,38 +29,30 @@ package fr.gouv.vitam.logbook.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -73,9 +65,13 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.jhades.JHades;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -101,11 +97,21 @@ import static io.restassured.RestAssured.with;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assume.assumeTrue;
 
 @RunWithCustomExecutor
 public class LogbookResourceTest {
+
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookResourceTest.class);
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
     private static final String LIFECYCLES_TRACEABILITY_CHECK = "/lifecycles/traceability/check/";
 
     @Rule
@@ -115,18 +121,8 @@ public class LogbookResourceTest {
 
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
-    private static final String DATABASE_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
-    private static LogbookDbAccess mongoDbAccess;
-    private static MongodExecutable mongodExecutable;
-    private static MongodProcess mongod;
-
-    // ES
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
-    private final static String ES_HOST_NAME = "localhost";
-    private static ElasticsearchTestConfiguration config = null;
 
     private static final String REST_URI = "/logbook/v1";
     private static final String OPERATIONS_URI = "/operations";
@@ -136,11 +132,12 @@ public class LogbookResourceTest {
     private static final String TRACEABILITY_URI = "/operations/traceability";
     private static final String OBJECT_GROUP_LFC_TRACEABILITY_URI = "/lifecycles/units/traceability";
     private static final String UNIT_LFC_TRACEABILITY_URI = "/lifecycles/objectgroups/traceability";
-    private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/unitlifecycles/bylastpersisteddate";
-    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/objectgrouplifecycles/bylastpersisteddate";
+    private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL =
+        "/raw/unitlifecycles/bylastpersisteddate";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL =
+        "/raw/objectgrouplifecycles/bylastpersisteddate";
     private static final String CHECK_LOGBOOK_COHERENCE_URI = "/checklogbook";
 
-    private static int databasePort;
     private static int serverPort;
     private static LogbookMain application;
 
@@ -152,6 +149,9 @@ public class LogbookResourceTest {
     private static LogbookOperationParameters logbookParametersSelectId;
     private static final String BODY_QUERY =
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelect\"}}, $projection: {}, $filter: {}}";
+
+    private static final String BODY_QUERY_1 =
+        "{$query: {$eq: {\"evType\" : \"eventTypeValueSelectId\"}}, $projection: {}, $filter: {}}";
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static final String FILE_QUERY_OFFSET_LIMIT = "logbook_request_offset_limit.json";
 
@@ -173,43 +173,31 @@ public class LogbookResourceTest {
     @Rule
     public WireMockClassRule processingInstanceRule = processingWireMockRule;
 
+    private static LogbookElasticsearchAccess elasticsearchAccess;
+
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
-        databasePort = junitHelper.findAvailablePort();
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+
+        elasticsearchAccess = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes);
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccess, TENANT_ID);
+
         final File logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.getMongoDbNodes().get(0).setDbPort(databasePort);
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(databasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
-        realLogbook.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+        realLogbook.setElasticsearchNodes(esNodes);
+        realLogbook.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
+        realLogbook.setMongoDbNodes(nodes);
+        realLogbook.setDbName(MongoRule.VITAM_DB);
         realLogbook.setWorkspaceUrl("http://localhost:" + workspacePort);
         realLogbook.setProcessingUrl("http://localhost:" + processingPort);
-
-        final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
-        LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
         VitamConfiguration.setTenants(tenantList);
-        mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
         serverPort = junitHelper.findAvailablePort();
-
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
 
         RestAssured.port = serverPort;
         RestAssured.basePath = REST_URI;
@@ -283,18 +271,19 @@ public class LogbookResourceTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        mongoDbAccess.close();
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        junitHelper.releasePort(serverPort);
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(databasePort);
+
+        LogbookCollections.afterTestClass(true, TENANT_ID);
+
         junitHelper.releasePort(workspacePort);
         junitHelper.releasePort(processingPort);
         VitamClientFactory.resetConnections();
     }
+
+    @After
+    public void tearDown() {
+        LogbookCollections.afterTest(TENANT_ID);
+    }
+
 
     @Test
     public final void testTraceability() {
@@ -633,7 +622,7 @@ public class LogbookResourceTest {
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(BODY_QUERY))
+            .body(JsonHandler.getFromString(BODY_QUERY_1))
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI, logbookParametersSelectId.getParameterValue(
                 LogbookParameterName.eventIdentifierProcess))

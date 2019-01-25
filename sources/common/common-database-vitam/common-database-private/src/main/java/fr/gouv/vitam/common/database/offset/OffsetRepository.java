@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.database.offset;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.UpdateOptions;
@@ -46,19 +47,24 @@ public class OffsetRepository {
 
     private final MongoCollection<Document> offerCollection;
 
+    @VisibleForTesting
+    public OffsetRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+        offerCollection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
+    }
+
     /**
      * Constructor
      *
      * @param mongoDbAccess mongoDbAccess
      */
     public OffsetRepository(MongoDbAccess mongoDbAccess) {
-        offerCollection = mongoDbAccess.getMongoDatabase().getCollection(COLLECTION_NAME);
+        this(mongoDbAccess, COLLECTION_NAME);
     }
 
     /**
      * Create or update offset
      *
-     * @param tenant     the tenant
+     * @param tenant the tenant
      * @param collection the collection name
      */
     public void createOrUpdateOffset(int tenant, String collection, long offset) {
@@ -79,7 +85,7 @@ public class OffsetRepository {
     /**
      * Get current offset
      *
-     * @param tenant     the tenant
+     * @param tenant the tenant
      * @param collection the collection name we want to reconstruct, bat can be any other unique name (graph)
      * @return the offset value for collection/tenant, 0L if not found
      */

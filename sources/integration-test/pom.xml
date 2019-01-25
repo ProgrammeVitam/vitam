@@ -21,6 +21,7 @@
 						<perCoreThreadCount>false</perCoreThreadCount>
 						<forkCount>1</forkCount>
 						<reuseForks>true</reuseForks>
+						<shutdown>kill</shutdown>
 						<systemPropertyVariables>
 							<log4j.configurationFile>log4j2-test.xml</log4j.configurationFile>
 							<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>

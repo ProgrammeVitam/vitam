@@ -26,57 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
+import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
-
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -90,20 +55,50 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWithCustomExecutor
 public class LogbookOperationsImplWithDatabasesTest {
 
-    private static final String DATABASE_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
-    private final static String ES_HOST_NAME = "localhost";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final int tenantId = 0;
     private static final List<Integer> tenantList = Collections.singletonList(0);
     private final static GUID eip = GUIDFactory.newEventGUID(tenantId);
@@ -116,15 +111,8 @@ public class LogbookOperationsImplWithDatabasesTest {
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    // ES
-    @ClassRule
-    public static TemporaryFolder esTempFolder = new TemporaryFolder();
+
     private static LogbookDbAccess mongoDbAccess;
-    private static MongodExecutable mongodExecutable;
-    private static MongodProcess mongod;
-    private static JunitHelper junitHelper;
-    private static int port;
-    private static ElasticsearchTestConfiguration config = null;
     private static LogbookOperationParameters logbookParametersStart;
     private static LogbookOperationParameters logbookParametersAppend;
     private static LogbookOperationParameters logbookParametersWrongStart;
@@ -148,28 +136,17 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), 0, 1);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+        esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
         LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
+                esNodes);
         VitamConfiguration.setTenants(tenantList);
 
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
@@ -243,16 +220,14 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, 0, 1);
         mongoDbAccess.close();
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
         VitamClientFactory.resetConnections();
     }
 
     @After
-    public void clean() throws DatabaseException {
-        mongoDbAccess.deleteCollection(LogbookCollections.OPERATION);
+    public void clean() {
+        LogbookCollections.afterTest(0, 1);
     }
 
     @Test
@@ -377,7 +352,7 @@ public class LogbookOperationsImplWithDatabasesTest {
     }
 
     private static void assertDateBetween(LocalDateTime localDateTime, LocalDateTime gte, LocalDateTime lte) {
-        assert(localDateTime.isEqual(gte) || localDateTime.isAfter(gte));
-        assert(localDateTime.isEqual(lte) || localDateTime.isBefore(lte));
+        assert (localDateTime.isEqual(gte) || localDateTime.isAfter(gte));
+        assert (localDateTime.isEqual(lte) || localDateTime.isBefore(lte));
     }
 }

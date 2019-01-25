@@ -35,13 +35,10 @@ import static org.junit.Assert.fail;
 
 import java.net.ServerSocket;
 
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 
 public class JunitHelperTest {
 
@@ -151,21 +148,5 @@ public class JunitHelperTest {
         assertEquals(0, JunitHelper.consumeInputStreamPerByte(null));
         // Just check by running
         JunitHelper.awaitFullGc();
-    }
-
-    @Test
-    public void testLaunchElasticsearch() throws VitamApplicationServerException {
-        ElasticsearchTestConfiguration config = JunitHelper.startElasticsearchForTest(temporaryFolder, "test");
-        JunitHelper.stopElasticsearchForTest(config);
-        final int tcpPort = JunitHelper.getInstance().findAvailablePort();
-        final int httpPort = JunitHelper.getInstance().findAvailablePort();
-        config = JunitHelper.startElasticsearchForTest(temporaryFolder, "test", tcpPort, httpPort);
-        try {
-            JunitHelper.startElasticsearchForTest(temporaryFolder, "test", tcpPort, httpPort);
-            fail("Should raized an exception");
-        } catch (final VitamApplicationServerException e) {
-
-        }
-        JunitHelper.stopElasticsearchForTest(config);
     }
 }

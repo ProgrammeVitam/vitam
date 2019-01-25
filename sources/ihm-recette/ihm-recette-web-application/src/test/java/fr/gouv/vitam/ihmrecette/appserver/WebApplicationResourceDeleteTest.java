@@ -32,36 +32,28 @@ import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
+import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
+import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -74,6 +66,7 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -86,32 +79,46 @@ import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
+import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.http.Cookie;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class WebApplicationResourceDeleteTest {
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResourceDeleteTest.class);
 
@@ -127,11 +134,7 @@ public class WebApplicationResourceDeleteTest {
     private static final String IHM_RECETTE_CONF = "ihm-recette.conf";
     private static JunitHelper junitHelper;
     private static int serverPort;
-    private static int databasePort;
     private static File adminConfigFile;
-
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
 
     private static MongoDbAccessAdminImpl mongoDbAccessAdmin;
     private static LogbookMongoDbAccessImpl mongoDbAccessLogbook;
@@ -139,8 +142,6 @@ public class WebApplicationResourceDeleteTest {
 
     private static IhmRecetteMain application;
 
-    private static JunitHelper.ElasticsearchTestConfiguration config = null;
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
     private static final Integer ADMIN_TENANT_ID = 1;
@@ -153,49 +154,42 @@ public class WebApplicationResourceDeleteTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
-        junitHelper = JunitHelper.getInstance();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
-        databasePort = junitHelper.findAvailablePort();
+        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID, 1);
+
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID, 1);
+
+        junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
 
         final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
         final WebApplicationConfig realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
         realAdminConfig.setAuthentication(false);
-        realAdminConfig.setClusterName(CLUSTER_NAME);
+        realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         VitamConfiguration.setTenants(tenantList);
 
-        realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+        realAdminConfig.getElasticsearchNodes().get(0).setTcpPort(ElasticsearchRule.TCP_PORT);
         adminConfigFile = File.createTempFile("test", IHM_RECETTE_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(databasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-
         final List<MongoDbNode> mongoNodes = new ArrayList<>();
-        mongoNodes.add(new MongoDbNode("localhost", databasePort));
+        mongoNodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
         RestAssured.port = serverPort;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
@@ -220,7 +214,7 @@ public class WebApplicationResourceDeleteTest {
 
         mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration);
         ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), CLUSTER_NAME, esNodes));
+            new AdminManagementConfiguration(mongoNodes, realAdminConfig.getMasterdataDbName(), ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
         try {
             application = new IhmRecetteMain(adminConfigFile.getAbsolutePath());
@@ -243,15 +237,16 @@ public class WebApplicationResourceDeleteTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+
+        FunctionalAdminCollections.afterTestClass(true);
+
+        MetadataCollections.afterTestClass(true, TENANT_ID, 1);
+
+        LogbookCollections.afterTestClass(true, TENANT_ID, 1);
+
         mongoDbAccessAdmin.close();
         mongoDbAccessLogbook.close();
         mongoDbAccessMetadata.close();
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
     }
 
@@ -646,7 +641,7 @@ public class WebApplicationResourceDeleteTest {
     }
 
     @SuppressWarnings("rawtypes")
-    public GUID addData(MetadataCollections collection) {
+    public GUID addData(MetadataCollections collection) throws MetaDataExecutionException {
         final GUID guid = GUIDFactory.newGUID();
         final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
         data1.put(VitamDocument.TENANT_ID, TENANT_ID);
@@ -657,8 +652,10 @@ public class WebApplicationResourceDeleteTest {
             document = new Unit(data1);
         }
 
-        mongoDbAccessMetadata.getMongoDatabase().getCollection(collection.getClasz().getSimpleName())
+        mongoDbAccessMetadata.getMongoDatabase().getCollection(collection.getName())
             .insertOne(document);
+
+        mongoDbAccessMetadata.getEsClient().insertFullDocument(collection, TENANT_ID, document.getId(), document);
 
         return guid;
     }
@@ -677,7 +674,7 @@ public class WebApplicationResourceDeleteTest {
             document = new LogbookLifeCycleObjectGroup(data1);
         }
 
-        mongoDbAccessLogbook.getMongoDatabase().getCollection(collection.getClasz().getSimpleName())
+        mongoDbAccessLogbook.getMongoDatabase().getCollection(collection.getName())
             .insertOne(document);
         return guid;
     }
@@ -725,14 +722,14 @@ public class WebApplicationResourceDeleteTest {
     public boolean existsData(LogbookCollections collection, String id) {
         final BasicDBObject bbo = new BasicDBObject("_id", id);
         mongoDbAccessLogbook.getMongoDatabase().listCollectionNames();
-        return mongoDbAccessLogbook.getMongoDatabase().getCollection(collection.getClasz().getSimpleName()).find(bbo)
+        return mongoDbAccessLogbook.getMongoDatabase().getCollection(collection.getName()).find(bbo)
             .first() != null;
 
     }
 
     public boolean existsData(MetadataCollections collection, String id) {
         final BasicDBObject bbo = new BasicDBObject("_id", id);
-        return mongoDbAccessMetadata.getMongoDatabase().getCollection(collection.getClasz().getSimpleName()).find(bbo)
+        return mongoDbAccessMetadata.getMongoDatabase().getCollection(collection.getName()).find(bbo)
             .first() != null;
     }
 }

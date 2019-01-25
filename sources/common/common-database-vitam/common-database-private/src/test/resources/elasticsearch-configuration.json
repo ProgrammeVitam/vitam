@@ -3,7 +3,7 @@
     "analyzer": {
       "default": {
         "type": "custom",
-        "tokenizer": "icu_tokenizer",
+        "tokenizer": "standard",
         "filter": [
           "_stopwords",
           "asciifolding",
@@ -21,7 +21,7 @@
       },
       "default_search": {
         "type": "custom",
-        "tokenizer": "icu_tokenizer",
+        "tokenizer": "standard",
         "filter": [
           "_stopwords",
           "asciifolding",

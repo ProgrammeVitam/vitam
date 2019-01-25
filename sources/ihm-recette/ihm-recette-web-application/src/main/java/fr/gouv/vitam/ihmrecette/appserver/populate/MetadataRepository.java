@@ -48,6 +48,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.bson.Document;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.client.Client;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
 
@@ -76,7 +77,7 @@ public class MetadataRepository {
     public static final String STRATEGY_ID = "default";
 
     private MongoDatabase metadataDb;
-    private TransportClient transportClient;
+    private Client transportClient;
     private ObjectMapper objectMapper;
     private final StoragePopulateImpl storagePopulateService;
     private final ExecutorService storageExecutorService
@@ -84,7 +85,7 @@ public class MetadataRepository {
 
     private Map<VitamDataType, MongoCollection<Document>> mongoCollections = new HashMap<>();
 
-    public MetadataRepository(MongoDatabase metadataDb, TransportClient transportClient,
+    public MetadataRepository(MongoDatabase metadataDb, Client transportClient,
         StoragePopulateImpl storagePopulateService) {
         this.metadataDb = metadataDb;
         this.transportClient = transportClient;

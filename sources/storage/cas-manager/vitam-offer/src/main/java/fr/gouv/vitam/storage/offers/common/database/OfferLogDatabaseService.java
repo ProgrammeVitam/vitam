@@ -27,38 +27,33 @@
 
 package fr.gouv.vitam.storage.offers.common.database;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.gte;
-import static com.mongodb.client.model.Filters.lte;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Sorts;
-
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.gte;
+import static com.mongodb.client.model.Filters.lte;
 
 /**
  * Database service for access to OfferLog collection.
  */
 public class OfferLogDatabaseService {
-
-    public static final String OFFER_LOG_COLLECTION_NAME = "OfferLog";
-    public static final String OFFER_SEQUENCE_COLLECTION_NAME = "OfferSequence";
 
     private static final String SEQUENCE = "Sequence";
     private static final String CONTAINER = "Container";
@@ -69,19 +64,19 @@ public class OfferLogDatabaseService {
 
     /**
      * Constructor
-     * 
+     *
      * @param offerSequenceDatabaseService offerSequenceService
      * @param mongoDatabase mongoDatabase
      */
     public OfferLogDatabaseService(OfferSequenceDatabaseService offerSequenceDatabaseService,
         MongoDatabase mongoDatabase) {
-        this.mongoCollection = mongoDatabase.getCollection(OFFER_LOG_COLLECTION_NAME);
+        this.mongoCollection = mongoDatabase.getCollection(OfferCollections.OFFER_LOG.getName());
         this.offerSequenceDatabaseService = offerSequenceDatabaseService;
     }
 
     /**
      * Save on offerLog.
-     * 
+     *
      * @param containerName name of the container
      * @param fileName file name
      * @param action action
@@ -109,7 +104,7 @@ public class OfferLogDatabaseService {
 
     /**
      * Search in offer log
-     * 
+     *
      * @param containerName container name
      * @param offset sequence offset
      * @param limit max number of result

@@ -52,8 +52,8 @@ public class VitamCollectionHelper {
      * @param usingScore
      * @return VitamCollection
      */
-    public static VitamCollection getCollection(final Class<?> clasz, boolean multitenant, boolean usingScore) {
-        return new VitamCollection(clasz, multitenant, usingScore);
+    public static VitamCollection getCollection(final Class<?> clasz, boolean multitenant, boolean usingScore, String prefix) {
+        return new VitamCollection(clasz, multitenant, usingScore, prefix);
     }
     
     /**

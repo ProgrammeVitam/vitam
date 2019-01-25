@@ -49,6 +49,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
+import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import okhttp3.Credentials;
@@ -136,12 +137,10 @@ public class StorageTwoOffersIT {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRuleOffer1 = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam",
-        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME, OfferLogDatabaseService.OFFER_SEQUENCE_COLLECTION_NAME);
+    public static MongoRule mongoRuleOffer1 = new MongoRule(VitamCollection.getMongoClientOptions() );
 
     @ClassRule
-    public static MongoRule mongoRuleOffer2 = new MongoRule(VitamCollection.getMongoClientOptions(), "Vitam2",
-        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME, OfferLogDatabaseService.OFFER_SEQUENCE_COLLECTION_NAME);
+    public static MongoRule mongoRuleOffer2 = new MongoRule(VitamCollection.getMongoClientOptions());
 
     private static OfferSyncAdminResource offerSyncAdminResource;
 
@@ -151,6 +150,14 @@ public class StorageTwoOffersIT {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+
+        OfferCollections.OFFER_LOG.setPrefix(GUIDFactory.newGUID().getId());
+        OfferCollections.OFFER_SEQUENCE.setPrefix(GUIDFactory.newGUID().getId());
+        mongoRuleOffer1.addCollectionToBePurged(OfferCollections.OFFER_LOG.getName());
+        mongoRuleOffer1.addCollectionToBePurged(OfferCollections.OFFER_SEQUENCE.getName());
+        mongoRuleOffer2.addCollectionToBePurged(OfferCollections.OFFER_LOG.getName());
+        mongoRuleOffer2.addCollectionToBePurged(OfferCollections.OFFER_SEQUENCE.getName());
+
 
         VitamConfiguration.setRestoreBulkSize(15);
 
@@ -171,6 +178,8 @@ public class StorageTwoOffersIT {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        mongoRuleOffer1.handleAfterClass("vitamoffer1");
+        mongoRuleOffer2.handleAfterClass("vitamoffer2");
         VitamClientFactory.resetConnections();
     }
 
@@ -184,8 +193,8 @@ public class StorageTwoOffersIT {
     public void cleanup() throws IOException {
         cleanOffer(OFFER_FOLDER);
         cleanOffer(SECOND_FOLDER);
-        mongoRuleOffer1.handleAfter();
-        mongoRuleOffer2.handleAfter();
+        mongoRuleOffer1.handleAfter("vitamoffer1");
+        mongoRuleOffer2.handleAfter("vitamoffer2");
     }
 
     private void cleanOffer(String offerFolder) throws IOException {

@@ -14,32 +14,35 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -48,55 +51,61 @@ import static com.mongodb.client.model.Sorts.ascending;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 
-@RunWith(MockitoJUnitRunner.class)
 public class AccessionRegisterMigrationServiceTest {
 
-    @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)), "Vitam-Test",
-                    FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                    FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-                    FunctionalAdminCollections.VITAM_SEQUENCE.getName());
+        new MongoRule(VitamCollection
+            .getMongoClientOptions(Lists.newArrayList(AccessionRegisterDetail.class, AccessionRegisterSummary.class)));
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
-    private AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
+    private static AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
     @Mock
     private FunctionalBackupService functionalBackupService;
-    @Before
-    public void setUpBeforeClass() throws Exception {
 
-        final List<MongoDbNode> nodes = Lists.newArrayList(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        final List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
-        final List<ElasticsearchNode> esNodes = Lists.newArrayList(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
-        ElasticsearchAccessAdminFactory.create(elasticsearchRule.getClusterName(), esNodes);
-
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes),
+            Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         accessionRegisterMigrationRepository = new AccessionRegisterMigrationRepository(VitamRepositoryFactory.get());
 
     }
 
     @After
     public void tearDown() {
-        mongoRule.handleAfter();
+        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
     }
 
     @Test
     public void tryStartMigration_firstStart() throws Exception {
         // Given
-        AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
+        AccessionRegisterMigrationService instance =
+            spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
         CountDownLatch awaitTermination_1 = new CountDownLatch(1);
         doAnswer(i -> {
             awaitTermination_1.countDown();
@@ -118,7 +127,7 @@ public class AccessionRegisterMigrationServiceTest {
         }).when(instance).purge();
 
         // When
-       started = instance.tryStartMigration(MigrationAction.PURGE);
+        started = instance.tryStartMigration(MigrationAction.PURGE);
         awaitOrThrow(awaitTermination_2);
 
         // Than
@@ -130,7 +139,8 @@ public class AccessionRegisterMigrationServiceTest {
     public void tryStartMigration_alreadyRunning() throws Exception {
 
         // Given
-        AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
+        AccessionRegisterMigrationService instance =
+            spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         CountDownLatch longRunningTask = new CountDownLatch(1);
 
@@ -158,7 +168,8 @@ public class AccessionRegisterMigrationServiceTest {
         // First invocation
 
         // Given
-        AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
+        AccessionRegisterMigrationService instance =
+            spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         // When
         boolean firstStart = instance.tryStartMigration(MigrationAction.MIGRATE);
@@ -181,7 +192,8 @@ public class AccessionRegisterMigrationServiceTest {
     public void mongoDataUpdate_emptyDataSet() throws Exception {
 
         // Given
-        AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
+        AccessionRegisterMigrationService instance =
+            spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         // When
         instance.tryStartMigration(MigrationAction.MIGRATE);
@@ -189,7 +201,8 @@ public class AccessionRegisterMigrationServiceTest {
         awaitTermination(instance);
 
         // Then
-        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find().iterator().hasNext()).isFalse();
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find().iterator().hasNext())
+            .isFalse();
     }
 
     @Test
@@ -197,12 +210,15 @@ public class AccessionRegisterMigrationServiceTest {
 
         // R7 AccessionRegister(Detail, Summary) model
         String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), accessionRegisterDetailDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
+            accessionRegisterDetailDataSetFile);
 
         String accessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(), accessionRegisterSummaryDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(),
+            accessionRegisterSummaryDataSetFile);
 
-        AccessionRegisterMigrationService instance = spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
+        AccessionRegisterMigrationService instance =
+            spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
 
         // When
         instance.tryStartMigration(MigrationAction.MIGRATE);
@@ -211,19 +227,23 @@ public class AccessionRegisterMigrationServiceTest {
 
         // Then
         String expectedAccessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail_EXPECTED.json";
-        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), expectedAccessionRegisterDetailDataSetFile);
+        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
+            expectedAccessionRegisterDetailDataSetFile);
 
         // Check persisted in ES
-        SearchResponse search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        SearchResponse search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(2);
 
         String expectedAccessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary_EXPECTED.json";
-        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(), expectedAccessionRegisterSummaryDataSetFile);
+        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(),
+            expectedAccessionRegisterSummaryDataSetFile);
 
         // Check persisted in ES
-        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(2);
 
 
@@ -236,17 +256,19 @@ public class AccessionRegisterMigrationServiceTest {
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count()).isEqualTo(0);
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count()).isEqualTo(0);
 
-        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(0);
 
-        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(0);
     }
 
     private void importDataSetFile(MongoCollection<Document> mongoCollection, String dataSetFile)
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
         for (JsonNode jsonNode : jsonDataSet) {
@@ -256,23 +278,23 @@ public class AccessionRegisterMigrationServiceTest {
 
 
     private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
-            throws InvalidParseOperationException, FileNotFoundException {
+        throws InvalidParseOperationException, FileNotFoundException {
 
         ArrayNode unitDataSet = dumpDataSet(mongoCollection);
 
         String expectedUnitDataSet =
-                JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-                        expectedDataSetFile)));
+            JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
+                expectedDataSetFile)));
 
         JsonAssert.assertJsonEquals(expectedUnitDataSet, unitDataSet,
-                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
     private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection) throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
         FindIterable<T> documents = mongoCollection.find()
-                .sort(Sorts.orderBy(ascending("_id")));
+            .sort(Sorts.orderBy(ascending("_id")));
 
         for (T document : documents) {
             ObjectNode json = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));

@@ -28,16 +28,7 @@ package fr.gouv.vitam.functionnal.administration.security.profile.core;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -45,14 +36,19 @@ import fr.gouv.vitam.common.database.builder.query.action.AddAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -63,22 +59,25 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.security.profile.core.SecurityProfileService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +94,15 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class SecurityProfileServiceTest {
 
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final String NAME = "Name";
     public static final String PERMISSIONS = "Permissions";
 
@@ -108,39 +116,22 @@ public class SecurityProfileServiceTest {
     private static final Integer EXTERNAL_TENANT = 2;
     private static MongoDbAccessAdminImpl dbImpl;
 
-    private static JunitHelper junitHelper;
-    private static final String COLLECTION_NAME = "SecurityProfile";
-    private static final String DATABASE_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
-    private static MongodExecutable mongodExecutable;
-    private static MongodProcess mongod;
-    private static MongoClient client;
-
     private VitamCounterService vitamCounterService;
     private FunctionalBackupService functionalBackupService;
     private SecurityProfileService securityProfileService;
     private AdminManagementClient adminManagementClient;
 
-    static int mongoPort;
-
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        mongoPort = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(mongoPort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
+    public static void setUpBeforeClass() throws IOException, VitamException {
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
-
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
     }
 
     @Before
@@ -148,7 +139,7 @@ public class SecurityProfileServiceTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
@@ -165,25 +156,20 @@ public class SecurityProfileServiceTest {
         functionalBackupService = mock(FunctionalBackupService.class);
         adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
 
-
         securityProfileService =
             new SecurityProfileService(
-                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
                 vitamCounterService, functionalBackupService, adminManagementClient);
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(mongoPort);
-        client.close();
+        FunctionalAdminCollections.afterTestClass(true);
     }
 
     @After
     public void afterTest() {
-        MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        collection.deleteMany(new Document());
+        FunctionalAdminCollections.afterTest(Arrays.asList(FunctionalAdminCollections.SECURITY_PROFILE));
         securityProfileService.close();
     }
 

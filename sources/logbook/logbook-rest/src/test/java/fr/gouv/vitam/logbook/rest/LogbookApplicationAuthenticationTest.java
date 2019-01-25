@@ -1,10 +1,16 @@
 package fr.gouv.vitam.logbook.rest;
 
-import static org.junit.Assume.assumeTrue;
-
-import java.io.File;
-
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -12,31 +18,24 @@ import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
-import ru.yandex.qatools.embed.service.MongoEmbeddedService;
+import java.io.File;
 
 public class LogbookApplicationAuthenticationTest {
-    private static final String DATABASE_HOST = "localhost";
 
-    private static int port;
-    private static JunitHelper junitHelper;
-    private static MongoEmbeddedService mongo;
-    private static final String databaseName = "db-logbook";
-    private static final String user = "user-logbook";
-    private static final String pwd = "user-logbook";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final String LOGBOOK_CONF = "logbook-auth-test.conf";
 
-    // ES
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
-    private static ElasticsearchTestConfiguration config = null;
-    
+
     private static File logbook;
     private static LogbookConfiguration realLogbook;
 
@@ -46,24 +45,14 @@ public class LogbookApplicationAuthenticationTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
-        junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-
-        // Starting the embedded services within temporary dir
-        mongo = new MongoEmbeddedService(
-            DATABASE_HOST + ":" + port, databaseName, user, pwd, "localreplica");
-        mongo.start();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), 0, 1);
 
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
-        realLogbook.getMongoDbNodes().get(0).setDbPort(port);
-        realLogbook.getElasticsearchNodes().get(0).setTcpPort(config.getTcpPort());
+        realLogbook.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        realLogbook.getElasticsearchNodes().get(0).setTcpPort(ElasticsearchRule.TCP_PORT);
 
         File file = temporaryFolder.newFile();
         configurationFile = file.getAbsolutePath();
@@ -71,17 +60,13 @@ public class LogbookApplicationAuthenticationTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        mongo.stop();
-        junitHelper.releasePort(port);
+    public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, 0, 1);
         VitamClientFactory.resetConnections();
     }
 
     @Test
-    public void testApplicationLaunch() throws VitamApplicationServerException {
+    public void testApplicationLaunch() {
         new LogbookMain(configurationFile);
     }
 

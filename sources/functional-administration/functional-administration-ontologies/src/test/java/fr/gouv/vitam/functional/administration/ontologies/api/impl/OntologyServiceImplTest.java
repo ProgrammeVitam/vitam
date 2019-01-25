@@ -27,38 +27,21 @@
 
 package fr.gouv.vitam.functional.administration.ontologies.api.impl;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newRequestIdGUID;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.reset;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -66,18 +49,35 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
+import fr.gouv.vitam.functional.administration.common.Ontology;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newRequestIdGUID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.reset;
 
 public class OntologyServiceImplTest {
 
@@ -89,20 +89,17 @@ public class OntologyServiceImplTest {
     private static final Integer EXTERNAL_TENANT = 3;
     public static final Integer ADMIN_TENANT = 1;
 
-    static JunitHelper junitHelper;
-    static final String COLLECTION_NAME = "Ontology";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
     static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient client;
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(Ontology.class)));
+
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
-    static Map<Integer, List<String>> externalIdentifiers;
-
     static OntologyServiceImpl ontologyService;
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
-    static int mongoPort;
 
     @Before
     public void setUp() throws Exception {
@@ -113,22 +110,19 @@ public class OntologyServiceImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        mongoPort = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(mongoPort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
+
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            Arrays.asList(FunctionalAdminCollections.ONTOLOGY));
+
         VitamConfiguration.setAdminTenant(ADMIN_TENANT);
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
+        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
 
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        dbImpl =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
         tenants.add(new Integer(EXTERNAL_TENANT));
@@ -143,24 +137,21 @@ public class OntologyServiceImplTest {
         LogbookOperationsClientFactory.changeMode(null);
 
         ontologyService =
-            new OntologyServiceImpl(MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME)),
+            new OntologyServiceImpl(MongoDbAccessAdminFactory
+                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName())),
                 vitamCounterService, functionalBackupService);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(mongoPort);
-        client.close();
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.afterTestClass(true);
         ontologyService.close();
     }
 
     @After
     public void afterTest() {
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        collection.deleteMany(new Document());
+        FunctionalAdminCollections.afterTest();
         reset(functionalBackupService);
     }
 
@@ -178,7 +169,7 @@ public class OntologyServiceImplTest {
     public void givenTestFindAllForCacheThenReturnEmpty() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final RequestResponseOK<OntologyModel> ontologyModelList =
-                ontologyService.findOntologiesForCache(JsonHandler.createObjectNode());
+            ontologyService.findOntologiesForCache(JsonHandler.createObjectNode());
         assertThat(ontologyModelList.getResults()).isEmpty();
     }
 
@@ -298,7 +289,8 @@ public class OntologyServiceImplTest {
             });
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
-        final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_Ko_identifier_equals_sedafield_in_DB.json");
+        final File fileOntology2 =
+            PropertiesUtils.getResourceFile("ontology_Ko_identifier_equals_sedafield_in_DB.json");
         final List<OntologyModel> ontologyModelList2 =
             JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
             });

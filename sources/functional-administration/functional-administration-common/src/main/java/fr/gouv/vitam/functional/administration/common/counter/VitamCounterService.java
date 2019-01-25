@@ -61,7 +61,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
@@ -72,7 +74,7 @@ import static com.mongodb.client.model.Sorts.descending;
  */
 public class VitamCounterService {
 
-    private static final int DEFAULT_ADMIN_TENANT = VitamConfiguration.getAdminTenant();
+    private static final Supplier<Integer> DEFAULT_ADMIN_TENANT = () -> VitamConfiguration.getAdminTenant();
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamCounterService.class);
@@ -159,7 +161,7 @@ public class VitamCounterService {
         if (sequenceType.getCollection().isMultitenant())
             return true;
 
-        return (tenantId == DEFAULT_ADMIN_TENANT);
+        return Objects.equals(tenantId, DEFAULT_ADMIN_TENANT.get());
     }
 
     private void createSequenceIfNotExists(Integer tenantId, String sequenceName)
@@ -238,7 +240,8 @@ public class VitamCounterService {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    public VitamSequence getNextBackupSequenceDocument(Integer tenant, SequenceType sequenceType) throws ReferentialException {
+    public VitamSequence getNextBackupSequenceDocument(Integer tenant, SequenceType sequenceType)
+        throws ReferentialException {
         return getNextSequenceDocument(tenant, sequenceType, sequenceType.getBackupSequenceName());
     }
 
@@ -253,7 +256,8 @@ public class VitamCounterService {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    private VitamSequence getNextSequenceDocument(Integer tenant, SequenceType sequenceType, String name) throws ReferentialException {
+    private VitamSequence getNextSequenceDocument(Integer tenant, SequenceType sequenceType, String name)
+        throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
         incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
         Bson query;
@@ -325,11 +329,16 @@ public class VitamCounterService {
                 FunctionalAdminCollections.VITAM_SEQUENCE.getCollection().find(query).sort(descending("Counter"))
                     .limit(1).into(new ArrayList<FunctionalAdminCollections>());
             if (result.isEmpty()) {
-                throw new ReferentialException("Document not found");
+                throw new ReferentialException(
+                    "Document not found collection : " + FunctionalAdminCollections.VITAM_SEQUENCE.getName() +
+                        " sequence: " + sequenceType.getName());
             }
             return (VitamSequence) ((Object) result.iterator().next());
         } catch (final Exception e) {
-            LOGGER.error("find Document Exception", e);
+            if (e instanceof ReferentialException) {
+                throw e;
+            }
+            LOGGER.error("find Document Exception: ", e);
             throw new ReferentialException(e);
         }
     }

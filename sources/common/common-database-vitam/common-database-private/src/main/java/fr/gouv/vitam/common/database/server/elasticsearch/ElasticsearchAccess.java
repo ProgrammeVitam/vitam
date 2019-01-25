@@ -26,32 +26,47 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Iterator;
-import java.util.List;
-
-import org.elasticsearch.action.admin.indices.alias.IndicesAliasesResponse;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
-import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
-import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.settings.Settings.Builder;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
+import org.elasticsearch.ResourceAlreadyExistsException;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
+import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
+import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
+import org.elasticsearch.action.bulk.BulkRequestBuilder;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.support.WriteRequest;
+import org.elasticsearch.action.support.master.AcknowledgedResponse;
+import org.elasticsearch.client.Client;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.settings.Settings.Builder;
+import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.sort.FieldSortBuilder;
+import org.elasticsearch.search.sort.SortOrder;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 /**
  * Elasticsearch Access
@@ -66,7 +81,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public Builder default_builder;
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
-    protected final TransportClient client;
+    private AtomicReference<Client> esClient = new AtomicReference<>();
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;
 
@@ -90,10 +105,49 @@ public class ElasticsearchAccess implements DatabaseConnection {
         this.clusterName = clusterName;
         this.nodes = nodes;
 
-        final Settings settings = getSettings(clusterName);
-
-        client = getClient(settings);
         default_builder = settings();
+    }
+
+    public void purgeIndex(String collectionName, Integer tenant) {
+        String indexName = collectionName + "_" + tenant;
+        purgeIndex(indexName);
+    }
+
+    public void purgeIndex(String indexName) {
+        if (getClient().admin().indices().prepareExists(indexName.toLowerCase()).get().isExists()) {
+            QueryBuilder qb = matchAllQuery();
+
+            SearchResponse scrollResp = getClient().prepareSearch(indexName.toLowerCase())
+                .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
+                .setScroll(new TimeValue(60000))
+                .setQuery(qb)
+                .setFetchSource(false)
+                .setSize(100).get();
+
+            BulkRequestBuilder bulkRequest = getClient().prepareBulk();
+
+            do {
+                for (SearchHit hit : scrollResp.getHits().getHits()) {
+                    bulkRequest.add(getClient().prepareDelete(indexName.toLowerCase(), "typeunique", hit.getId()));
+                }
+
+                scrollResp =
+                    getClient().prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                        .actionGet();
+            } while (scrollResp.getHits().getHits().length != 0);
+
+            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+
+            if (bulkRequest.request().numberOfActions() != 0) {
+                BulkResponse bulkResponse = bulkRequest.get();
+
+                if (bulkResponse.hasFailures()) {
+                    throw new RuntimeException(
+                        String.format("DatabaseException when calling purge by bulk Request %s",
+                            bulkResponse.buildFailureMessage()));
+                }
+            }
+        }
     }
 
     /**
@@ -111,8 +165,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .put("client.transport.sniff", true)
             .put("client.transport.ping_timeout", "2s")
             .put("transport.tcp.connect_timeout", "1s")
-            .put("transport.profiles.client.connect_timeout", "1s")
-            .put("transport.profiles.tcp.connect_timeout", "1s")
             // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the
             // default max value. So no configuration is needed.
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
@@ -134,7 +186,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
             final TransportClient clientNew = new PreBuiltTransportClient(settings);
             for (final ElasticsearchNode node : nodes) {
                 clientNew.addTransportAddress(
-                    new InetSocketTransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
+                    new TransportAddress(InetAddress.getByName(node.getHostName()), node.getTcpPort()));
             }
             return clientNew;
         } catch (final UnknownHostException e) {
@@ -147,7 +199,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Close the ElasticSearch connection
      */
     public void close() {
-        client.close();
+        getClient().close();
     }
 
     /**
@@ -161,7 +213,20 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @return the client
      */
     public Client getClient() {
-        return client;
+        final Client client = esClient.get();
+        if (null == client) {
+            synchronized (this) {
+                if (null == esClient.get()) {
+                    try {
+                        esClient.set(getClient(getSettings(clusterName)));
+                    } catch (VitamException e) {
+                        LOGGER.error("Error while get ES client", e);
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        return esClient.get();
     }
 
     /**
@@ -175,7 +240,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public boolean checkConnection() {
         try (TransportClient clientCheck = getClient(getSettings(clusterName))) {
             return !clientCheck.connectedNodes().isEmpty();
-        } catch (final VitamException e) {
+        } catch (final Exception e) {
             LOGGER.warn(e);
             return false;
         }
@@ -188,50 +253,55 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Create an index and alias for a collection (if the alias does not exist)
-     * 
+     *
      * @param collectionName the name of the collection
      * @param mapping the mapping as a string
      * @param type the type of the collection
      * @param tenantId the tenant on which to create the index
-     * @return true if index is successfully created false if not
+     * @return key aliasName value indexName or empty
      */
-    public final boolean createIndexAndAliasIfAliasNotExists(String collectionName, String mapping, String type,
+    public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping,
+        String type,
         Integer tenantId) {
         String indexName = getUniqueIndexName(collectionName, tenantId);
         String aliasName = getAliasName(collectionName, tenantId);
         LOGGER.debug("addIndex: {}", indexName);
-        if (!client.admin().indices().prepareExists(aliasName).get().isExists()) {
+        if (!getClient().admin().indices().prepareExists(aliasName).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
                 LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-                final CreateIndexResponse response = client.admin().indices()
+                final CreateIndexResponse response = getClient().admin().indices()
                     .prepareCreate(indexName)
                     .setSettings(default_builder)
                     .addMapping(type, mapping, XContentType.JSON).get();
 
                 if (!response.isAcknowledged()) {
                     LOGGER.error("Error creating index for " + type + " / collection : " + collectionName);
-                    return false;
+                    return new HashMap<>();
                 }
 
-                IndicesAliasesResponse indAliasesResponse = client.admin().indices()
+                AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
                     .prepareAliases().addAlias(indexName, aliasName).execute().get();
 
                 if (!indAliasesResponse.isAcknowledged()) {
                     LOGGER.error("Error creating alias for " + type + " / collection : " + collectionName);
-                    return false;
+                    return new HashMap<>();
                 }
+            } catch (ResourceAlreadyExistsException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             } catch (final Exception e) {
                 LOGGER.error("Error while set Mapping", e);
-                return false;
+                return new HashMap<>();
             }
         }
-        return true;
+        Map<String, String> map = new HashMap<>();
+        map.put(aliasName, indexName);
+        return map;
     }
 
     /**
      * Create an index without a linked alias
-     * 
+     *
      * @param collectionName
      * @param mapping
      * @param type
@@ -246,7 +316,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         // Retrieve alias
         LOGGER.debug("createIndex");
         LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-        final CreateIndexResponse response = client.admin().indices()
+        final CreateIndexResponse response = getClient().admin().indices()
             .prepareCreate(indexName)
             .setSettings(default_builder)
             .addMapping(type, mapping, XContentType.JSON).get();
@@ -260,7 +330,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Switch index
-     * 
+     *
      * @param aliasName
      * @param indexNameToSwitchWith
      * @throws DatabaseException
@@ -268,18 +338,18 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public final void switchIndex(String aliasName, String indexNameToSwitchWith)
         throws DatabaseException {
         GetAliasesResponse actualIndex =
-            client.admin().indices().getAliases(new GetAliasesRequest().aliases(aliasName))
+            getClient().admin().indices().getAliases(new GetAliasesRequest().aliases(aliasName))
                 .actionGet();
         String oldIndexName = null;
-        for (Iterator<String> it = actualIndex.getAliases().keysIt(); it.hasNext();) {
+        for (Iterator<String> it = actualIndex.getAliases().keysIt(); it.hasNext(); ) {
             oldIndexName = it.next();
         }
 
-        if (!client.admin().indices().prepareExists(aliasName).get().isExists()) {
+        if (!getClient().admin().indices().prepareExists(aliasName).get().isExists()) {
             throw new DatabaseException(String.format("Alias not exist : %s", aliasName));
         }
         // RemoveAlias to the old index and Add alias to new index
-        IndicesAliasesResponse indAliasesResponse = client.admin().indices()
+        AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
             .prepareAliases()
             .removeAlias(oldIndexName, aliasName)
             .addAlias(indexNameToSwitchWith, aliasName)
@@ -296,13 +366,13 @@ public class ElasticsearchAccess implements DatabaseConnection {
 
     /**
      * Settings method
-     * 
+     *
      * @return the builder
      * @throws IOException
      */
     public Builder settings() throws IOException {
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
-            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE));
+            ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
     }
 
     private String getUniqueIndexName(final String collectionName, Integer tenantId) {

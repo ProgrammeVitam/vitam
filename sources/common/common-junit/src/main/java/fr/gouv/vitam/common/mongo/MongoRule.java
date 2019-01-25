@@ -26,31 +26,21 @@
  */
 package fr.gouv.vitam.common.mongo;
 
-import java.io.IOException;
-import java.util.Arrays;
+import java.io.File;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterSummaryModel;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.junit.rules.ExternalResource;
 
@@ -58,89 +48,125 @@ import org.junit.rules.ExternalResource;
  * Launch a single instance of Mongo database, drop collection after each test
  */
 public class MongoRule extends ExternalResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoRule.class);
+    public static final String VITAM_DB = "vitam-test";
 
-    private static int dataBasePort;
+    private static int dataBasePort = 27017;
 
-    private static MongodExecutable mongodExecutable;
-    static {
-        dataBasePort = JunitHelper.getInstance().findAvailablePort();
+    /*
+        private static MongodExecutable mongodExecutable;
 
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        try {
-            mongodExecutable = starter.prepare(new MongodConfigBuilder()
-                .withLaunchArgument("--enableMajorityReadConcern")
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-                .build());
-            mongodExecutable.start();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        static {
+            dataBasePort = JunitHelper.getInstance().findAvailablePort();
+
+            final MongodStarter starter = MongodStarter.getDefaultInstance();
+            try {
+                mongodExecutable = starter.prepare(new MongodConfigBuilder()
+                    .withLaunchArgument("--enableMajorityReadConcern")
+                    .version(Version.Main.PRODUCTION)
+                    .net(new Net(dataBasePort, Network.localhostIsIPv6()))
+                    .build());
+                mongodExecutable.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-    }
 
+    */
     private final MongoClient mongoClient;
-    private String dataBaseName;
-    private List<String> collectionNames;
+    private Set<String> collectionNames;
+
+    private boolean clientClosed = false;
 
     /**
      * @param clientOptions
-     * @param dataBaseName
      * @param collectionNames
      */
-    public MongoRule(MongoClientOptions clientOptions, String dataBaseName, String... collectionNames) {
-        this.dataBaseName = dataBaseName;
-        this.collectionNames = Arrays.asList(collectionNames);
+    public MongoRule(MongoClientOptions clientOptions, String... collectionNames) {
+
+        if (null != collectionNames) {
+            this.collectionNames = Sets.newHashSet(collectionNames);
+        } else {
+            this.collectionNames = new HashSet<>();
+        }
 
         mongoClient = new MongoClient(new ServerAddress("localhost", dataBasePort), clientOptions);
-
-        // Ensure index unique
-        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                new IndexOptions().unique(true));
-
-        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterSummary").createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
     }
 
     @Override
     protected void after() {
-        purge(collectionNames);
+        if (!clientClosed) {
+            purge(MongoRule.VITAM_DB, collectionNames);
+        }
 
-
-        // Ensure index unique
-       /* mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterDetail").createIndex(new Document("OriginatingAgency", 1).append("Identifier", 1).append("_tenant", 1),
-            new IndexOptions().unique(true));
-
-        mongoClient.getDatabase(dataBaseName).getCollection("AccessionRegisterSummary").createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1), new IndexOptions().unique(true));
-        */
+        printSystemInfo();
     }
 
-    private void purge(Collection<String> collectionNames) {
+    private void purge(String database, Collection<String> collectionNames) {
         for (String collectionName : collectionNames) {
             if ("VitamSequence".equals(collectionName)) {
-                mongoClient.getDatabase(dataBaseName).getCollection(collectionName).updateMany(Filters.exists("_id"),
+                mongoClient.getDatabase(database).getCollection(collectionName).updateMany(Filters.exists("_id"),
                     Updates.set("Counter", 0));
             }
-            mongoClient.getDatabase(dataBaseName).getCollection(collectionName).deleteMany(new Document());
+            mongoClient.getDatabase(database).getCollection(collectionName).deleteMany(new Document());
         }
+    }
+
+    // Add index to be purged
+    public MongoRule addCollectionToBePurged(String collection) {
+        collectionNames.add(collection);
+        return this;
     }
 
     /**
      * Used when annotated @ClassRule
      */
+    public void handleAfterClass() {
+        after();
+        close();
+    }
+
+    public void handleAfterClass(String database) {
+        handleAfter(database);
+        handleAfterClass();
+    }
+
+    private void printSystemInfo() {
+        long id = System.currentTimeMillis();
+        LOGGER.error(id + "- Available processors (cores): " + Runtime.getRuntime().availableProcessors());
+
+        /* Total amount of free memory available to the JVM */
+        LOGGER.error(id + "- Free memory (bytes): " + Runtime.getRuntime().freeMemory());
+
+        /* This will return Long.MAX_VALUE if there is no preset limit */
+        long maxMemory = Runtime.getRuntime().maxMemory();
+        /* Maximum amount of memory the JVM will attempt to use */
+        LOGGER.error(id + "- Maximum memory (bytes): " + (maxMemory == Long.MAX_VALUE ? "no limit" : maxMemory));
+
+        /* Total memory currently available to the JVM */
+        LOGGER.error(id + "- Total memory available to JVM (bytes): " + Runtime.getRuntime().totalMemory());
+
+        /* Get a list of all filesystem roots on this system */
+        File[] roots = File.listRoots();
+
+        /* For each filesystem root, print some info */
+        for (File root : roots) {
+            LOGGER.error(id + "- File system root: " + root.getAbsolutePath());
+            LOGGER.error(id + "- Total space (bytes): " + root.getTotalSpace());
+            LOGGER.error(id + "- Free space (bytes): " + root.getFreeSpace());
+            LOGGER.error(id + "- Usable space (bytes): " + root.getUsableSpace());
+        }
+    }
+
     public void handleAfter() {
         after();
     }
 
-    public void stop() {
-        mongodExecutable.stop();
+    public void handleAfter(String database) {
+        purge(database, collectionNames);
+        handleAfter();
     }
 
-    public void start() {
-        try {
-            mongodExecutable.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
     public static int getDataBasePort() {
         return dataBasePort;
     }
@@ -150,22 +176,24 @@ public class MongoRule extends ExternalResource {
     }
 
     public MongoDatabase getMongoDatabase() {
-        return mongoClient.getDatabase(dataBaseName);
+        return mongoClient.getDatabase(VITAM_DB);
     }
 
     public MongoCollection<Document> getMongoCollection(String collectionName) {
-        return mongoClient.getDatabase(dataBaseName).getCollection(collectionName);
+        return mongoClient.getDatabase(VITAM_DB).getCollection(collectionName);
     }
 
     public <TDocument> MongoCollection<TDocument> getMongoCollection(String collectionName, Class<TDocument> clazz) {
-        return mongoClient.getDatabase(dataBaseName).getCollection(collectionName, clazz);
+        return mongoClient.getDatabase(VITAM_DB).getCollection(collectionName, clazz);
     }
 
     public void handleAfter(Set<String> collections) {
-        after(collections);
+        purge(MongoRule.VITAM_DB, collections);
     }
 
-    private void after(Set<String> collections) {
-        purge(collections);
+
+    public void close() {
+        mongoClient.close();
+        clientClosed = true;
     }
 }

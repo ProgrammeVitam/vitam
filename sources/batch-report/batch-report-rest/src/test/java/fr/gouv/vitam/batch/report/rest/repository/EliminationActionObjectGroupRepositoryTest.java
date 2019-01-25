@@ -50,20 +50,24 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.*;
-import static fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository.ELIMINATION_ACTION_OBJECT_GROUP;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.OPI;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECTS;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
+import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_SIZE;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.groups.Tuple.tuple;
 
 public class EliminationActionObjectGroupRepositoryTest {
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
 
+    private static final String ELIMINATION_ACTION_OBJECT_GROUP =
+        "EliminationActionObjectGroup" + GUIDFactory.newGUID().getId();
     @Rule
     public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), CLUSTER_NAME, ELIMINATION_ACTION_OBJECT_GROUP);
+        new MongoRule(getMongoClientOptions(), ELIMINATION_ACTION_OBJECT_GROUP);
 
     private EliminationActionObjectGroupRepository repository;
 
@@ -71,8 +75,8 @@ public class EliminationActionObjectGroupRepositoryTest {
 
     @Before
     public void setUp() {
-        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), CLUSTER_NAME);
-        repository = new EliminationActionObjectGroupRepository(mongoDbAccess);
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
+        repository = new EliminationActionObjectGroupRepository(mongoDbAccess, ELIMINATION_ACTION_OBJECT_GROUP);
         eliminationObjectGroupCollection = mongoRule.getMongoCollection(ELIMINATION_ACTION_OBJECT_GROUP);
     }
 
@@ -120,10 +124,10 @@ public class EliminationActionObjectGroupRepositoryTest {
 
     @Test
     public void compute_own_accession_register_multiple_objects_from_different_operation_ok()
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         // Given
         List<EliminationActionObjectGroupModel> eliminationUnitModels =
-                getDocuments("/eliminationObjectGroupMultipleObjectsDifferentOperations.json");
+            getDocuments("/eliminationObjectGroupMultipleObjectsDifferentOperations.json");
         // When
         repository.bulkAppendReport(eliminationUnitModels);
 
@@ -139,13 +143,13 @@ public class EliminationActionObjectGroupRepositoryTest {
         Assertions.assertThat(documents.size()).isEqualTo(4);
 
         Assertions.assertThat(documents)
-                .extracting(ORIGINATING_AGENCY, TOTAL_SIZE, TOTAL_OBJECTS, OPI, TOTAL_OBJECT_GROUPS)
-                .containsSequence(
-                        tuple("sp1", 6, 1, "opi3", 0),
-                        tuple("sp1", 20, 4, "opi2", 1),
-                        tuple("sp1", 13, 3, "opi1", 1),
-                        tuple("sp1", 7, 2, "opi0", 2)
-                );
+            .extracting(ORIGINATING_AGENCY, TOTAL_SIZE, TOTAL_OBJECTS, OPI, TOTAL_OBJECT_GROUPS)
+            .containsSequence(
+                tuple("sp1", 6, 1, "opi3", 0),
+                tuple("sp1", 20, 4, "opi2", 1),
+                tuple("sp1", 13, 3, "opi1", 1),
+                tuple("sp1", 7, 2, "opi0", 2)
+            );
     }
 
     @Test

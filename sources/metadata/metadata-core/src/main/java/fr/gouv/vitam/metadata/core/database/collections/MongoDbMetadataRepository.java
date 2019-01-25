@@ -22,6 +22,7 @@ import org.bson.conversions.Bson;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -38,15 +39,14 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.
  */
 public class MongoDbMetadataRepository<T extends VitamDocument> {
 
-    private MongoCollection<T> mongoCollection;
+    private Supplier<MongoCollection<T>> mongoCollectionSupplier;
 
-    public MongoDbMetadataRepository(MongoCollection<T> mongoCollection) {
-        this.mongoCollection = mongoCollection;
+    public MongoDbMetadataRepository(Supplier<MongoCollection<T>> mongoCollectionSupplier) {
+        this.mongoCollectionSupplier = mongoCollectionSupplier;
     }
 
     /**
      * @param ids list of parents
-     *
      * @param projection
      * @return the FindIterable on the find request based on the given collection
      */
@@ -54,7 +54,7 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
         // final Bson condition = and(in(ID, ids), eq(TENANT_ID, ParameterHelper.getTenantParameter()));
         final Bson condition = in(ID, ids);
 
-        FindIterable<T> result = mongoCollection.find(condition).projection(projection);
+        FindIterable<T> result = mongoCollectionSupplier.get().find(condition).projection(projection);
 
         List<T> vitamDocuments = new ArrayList<>();
 
@@ -81,10 +81,11 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
                 InsertOneModel<T> tInsertOneModel = new InsertOneModel<>(metadataDocument);
                 collect.add(tInsertOneModel);
             });
-            BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect, options);
+            BulkWriteResult bulkWriteResult = mongoCollectionSupplier.get().bulkWrite(collect, options);
             if (bulkWriteResult.getInsertedCount() != metadataDocuments.size()) {
                 throw new MetaDataExecutionException(
-                    String.format("Error while bulk save document count : %s != size : %s :", bulkWriteResult.getInsertedCount(), metadataDocuments.size()));
+                    String.format("Error while bulk save document count : %s != size : %s :",
+                        bulkWriteResult.getInsertedCount(), metadataDocuments.size()));
             }
         } catch (final MongoBulkWriteException e) {
             List<String> ids = new ArrayList<>();
@@ -104,7 +105,8 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
 
     /**
      * delete bulk documents
-     * @param metadataDocuments  metadataDocuments
+     *
+     * @param metadataDocuments metadataDocuments
      * @throws MetaDataExecutionException MetaDataExecutionException
      */
     public void delete(List<T> metadataDocuments) throws MetaDataExecutionException {
@@ -117,10 +119,11 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
                 DeleteOneModel<T> tDeleteOneModel = new DeleteOneModel<>(metadataDocument);
                 collect.add(tDeleteOneModel);
             });
-            BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect, options);
+            BulkWriteResult bulkWriteResult = mongoCollectionSupplier.get().bulkWrite(collect, options);
             if (bulkWriteResult.getDeletedCount() != metadataDocuments.size()) {
                 throw new MetaDataExecutionException(
-                    String.format("Error while bulk delete document count : %s != size : %s :", bulkWriteResult.getDeletedCount(), metadataDocuments.size()));
+                    String.format("Error while bulk delete document count : %s != size : %s :",
+                        bulkWriteResult.getDeletedCount(), metadataDocuments.size()));
             }
         } catch (final MongoException | IllegalArgumentException e) {
             throw new MetaDataExecutionException(e);
@@ -139,7 +142,7 @@ public class MongoDbMetadataRepository<T extends VitamDocument> {
                     return new UpdateOneModel<T>(query, item.getValue());
                 })
                 .collect(Collectors.toList());
-            BulkWriteResult bulkWriteResult = mongoCollection.bulkWrite(collect, options);
+            BulkWriteResult bulkWriteResult = mongoCollectionSupplier.get().bulkWrite(collect, options);
             if (bulkWriteResult.getMatchedCount() != updates.size()) {
                 throw new MetaDataExecutionException(
                     String.format("Error while bulk save document count : %s != size : %s :", bulkWriteResult.getInsertedCount(), updates.size()));

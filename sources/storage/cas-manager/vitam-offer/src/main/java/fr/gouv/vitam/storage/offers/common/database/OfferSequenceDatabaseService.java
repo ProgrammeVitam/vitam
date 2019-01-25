@@ -27,26 +27,23 @@
 
 package fr.gouv.vitam.storage.offers.common.database;
 
-import static com.mongodb.client.model.Filters.eq;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
-
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * Database service for access to OfferSequence collection.
  */
 public class OfferSequenceDatabaseService {
 
-    public static final String OFFER_SEQUENCE_COLLECTION = "OfferSequence";
     public static final String BACKUP_LOG_SEQUENCE_ID = "Backup_Log_Sequence";
 
     private MongoCollection<Document> mongoCollection;
@@ -57,7 +54,7 @@ public class OfferSequenceDatabaseService {
      * @param mongoDatabase mongoDatabase
      */
     public OfferSequenceDatabaseService(MongoDatabase mongoDatabase) {
-        this.mongoCollection = mongoDatabase.getCollection(OFFER_SEQUENCE_COLLECTION);
+        this.mongoCollection = mongoDatabase.getCollection(OfferCollections.OFFER_SEQUENCE.getName());
     }
 
     /**

@@ -26,38 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common;
 
-import com.mongodb.client.MongoCollection;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
-import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
-import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
-import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import org.apache.commons.io.IOUtils;
-import org.bson.Document;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
 import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newEventGUID;
@@ -71,12 +39,50 @@ import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.google.common.collect.Lists;
+import com.mongodb.client.MongoCollection;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.counter.SequenceType;
+import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
+import fr.gouv.vitam.functional.administration.common.exception.FunctionalBackupServiceException;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import org.apache.commons.io.IOUtils;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 
 @RunWithCustomExecutor
 public class FunctionalBackupServiceTest {
-
-    private final static String CLUSTER_NAME = "vitam-cluster";
-
     public static final String DOC1_TENANT0 =
         "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5laaaaaq\", \"_tenant\" : 0, \"Name\" : \"A\", \"Identifier\" : \"ID-008\" }";
     public static final String DOC2_TENANT1 =
@@ -86,10 +92,15 @@ public class FunctionalBackupServiceTest {
     public static final String BACKUP_SEQUENCE_DOC =
         "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5oaaaaaq\", \"Counter\" : 10, \"Name\" : \"BACKUP_A\", \"_tenant\" : 0 }";
 
-    private String FUNCTIONAL_COLLECTION = "AGENCIES";
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(newArrayList(Agencies.class)), CLUSTER_NAME, FUNCTIONAL_COLLECTION);
+    private static String PREFIX = GUIDFactory.newGUID().getId();
+    private static String FUNCTIONAL_COLLECTION = PREFIX + "AGENCIES";
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(newArrayList(Agencies.class)),
+            FUNCTIONAL_COLLECTION);
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(FUNCTIONAL_COLLECTION);
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -112,10 +123,15 @@ public class FunctionalBackupServiceTest {
 
     private MongoCollection<Document> functionalCollection;
 
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
+    }
     @Before
     public void setUp() throws Exception {
-        FunctionalAdminCollections.AGENCIES.getVitamCollection()
-            .initialize(mongoRule.getMongoClient().getDatabase(CLUSTER_NAME), false);
         functionalCollection = FunctionalAdminCollections.AGENCIES.getCollection();
         functionalCollection.insertOne(Document.parse(DOC1_TENANT0));
         functionalCollection.insertOne(Document.parse(DOC2_TENANT1));
@@ -131,9 +147,16 @@ public class FunctionalBackupServiceTest {
             .willReturn(vitamBackupSequence);
     }
 
+    @AfterClass
+    public static void afterClass() {
+        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.AGENCIES), true);
+    }
+
     @After
     public void cleanUp() {
-        FunctionalAdminCollections.AGENCIES.getCollection().deleteMany(new Document());
+        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     @Test
@@ -158,9 +181,12 @@ public class FunctionalBackupServiceTest {
 
         ArgumentCaptor<String> hashArgCaptor = ArgumentCaptor.forClass(String.class);
         verify(backupLogbookManager)
-            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_Agencies_10.json"), any());
+            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_" + PREFIX + "Agencies_10.json"),
+                any());
 
-        String expectedDump = "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + ",\"backup_sequence\":" + BACKUP_SEQUENCE_DOC + "}";
+        String expectedDump =
+            "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + ",\"backup_sequence\":" +
+                BACKUP_SEQUENCE_DOC + "}";
         String expectedDigest = new Digest(VitamConfiguration.getDefaultDigestType()).update(expectedDump).digestHex();
 
         assertThat(savedDocCapture).hasSize(1);

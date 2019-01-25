@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -52,14 +53,12 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
+import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
 import org.apache.commons.io.FileUtils;
@@ -70,7 +69,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import javax.ws.rs.core.MediaType;
@@ -95,7 +94,6 @@ import static org.junit.Assert.assertTrue;
 public class DefaultOfferResourceTest {
 
     private static final String WORKSPACE_OFFER_CONF = "storage-default-offer.conf";
-    private static final String DATABASE_NAME = "Vitam";
 
     private static final String REST_URI = "/offer/v1";
     private static int serverPort;
@@ -112,27 +110,28 @@ public class DefaultOfferResourceTest {
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String ARCHIVE_FILE_V2_TXT = "archivefile_v2.txt";
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     private static final ObjectMapper OBJECT_MAPPER;
     private static DefaultOfferMain application;
 
     static {
-
         OBJECT_MAPPER = new ObjectMapper(new JsonFactory());
         OBJECT_MAPPER.disable(SerializationFeature.INDENT_OUTPUT);
     }
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResourceTest.class);
 
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
-            OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME, OfferSequenceDatabaseService.OFFER_SEQUENCE_COLLECTION);
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
+        for (OfferCollections o : OfferCollections.values()) {
+            o.setPrefix(PREFIX);
+            mongoRule.addCollectionToBePurged(o.getName());
+        }
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final OfferConfiguration realWorkspaceOffer =
@@ -140,6 +139,7 @@ public class DefaultOfferResourceTest {
         List<MongoDbNode> mongoDbNodes = realWorkspaceOffer.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         realWorkspaceOffer.setMongoDbNodes(mongoDbNodes);
+        realWorkspaceOffer.setDbName(MongoRule.VITAM_DB);
         File newWorkspaceOfferConf = File.createTempFile("test", WORKSPACE_OFFER_CONF, workspaceOffer.getParentFile());
         PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
@@ -161,6 +161,8 @@ public class DefaultOfferResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        mongoRule.handleAfterClass();
+
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -194,8 +196,7 @@ public class DefaultOfferResourceTest {
         FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/1_object")));
         FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/2_object")));
 
-        // for skipped test (putObjectChunkTest)
-        // FileUtils.deleteDirectory((new File(conf.getStoragePath() + "/1")));
+        mongoRule.handleAfter();
     }
 
     @Test
@@ -393,7 +394,7 @@ public class DefaultOfferResourceTest {
 
         assertThat(response.statusCode()).isEqualTo(expectedStatus.getStatusCode());
 
-        if(expectedStatus == Status.CREATED) {
+        if (expectedStatus == Status.CREATED) {
             JsonNode content = JsonHandler.getFromInputStream(response.body().asInputStream());
             assertThat(content.get("size").longValue()).isEqualTo(file.length());
             Digest digest = new Digest(DigestType.SHA512);
@@ -449,9 +450,9 @@ public class DefaultOfferResourceTest {
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
             assertNotNull(in);
             with().header(GlobalDataRest.X_TENANT_ID, "1")
-                    .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, "8766")
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).content(in).when()
                 .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, OBJECT_CODE, "id1");
         }
 
@@ -622,7 +623,8 @@ public class DefaultOfferResourceTest {
         ResponseBody responseBody1 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogNoResult).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response1 = JsonHandler.getFromInputStream(responseBody1.asInputStream(), RequestResponseOK.class, OfferLog.class);
+        final RequestResponseOK<OfferLog> response1 =
+            JsonHandler.getFromInputStream(responseBody1.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response1.getStatus()).isEqualTo(200);
         assertThat(response1.getResults().size()).isEqualTo(0);
 
@@ -630,7 +632,8 @@ public class DefaultOfferResourceTest {
         ResponseBody responseBody2 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogWithOffsetWithLimit).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response2 = JsonHandler.getFromInputStream(responseBody2.asInputStream(), RequestResponseOK.class, OfferLog.class);
+        final RequestResponseOK<OfferLog> response2 =
+            JsonHandler.getFromInputStream(responseBody2.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response2.getStatus()).isEqualTo(200);
         assertThat(response2.getResults().size()).isEqualTo(4);
 
@@ -638,24 +641,26 @@ public class DefaultOfferResourceTest {
         ResponseBody responseBody3 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogNoOffsetWithLimit).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response3 = JsonHandler.getFromInputStream(responseBody3.asInputStream(), RequestResponseOK.class, OfferLog.class);
+        final RequestResponseOK<OfferLog> response3 =
+            JsonHandler.getFromInputStream(responseBody3.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response3.getStatus()).isEqualTo(200);
         assertThat(response3.getResults().size()).isEqualTo(10);
-        
+
         OfferLogRequest getOfferLogOffsetLimitDesc = new OfferLogRequest(5L, 3, Order.DESC);
         getOfferLogNoOffsetWithLimit.setLimit(10);
         ResponseBody responseBody4 = given().header(GlobalDataRest.X_TENANT_ID, "1")
             .contentType(MediaType.APPLICATION_JSON).content(getOfferLogOffsetLimitDesc).when()
             .get(OBJECTS_URI + "/" + DataCategory.OBJECT.name() + LOG_URI).getBody();
-        final RequestResponseOK<OfferLog> response4 = JsonHandler.getFromInputStream(responseBody4.asInputStream(), RequestResponseOK.class, OfferLog.class);
+        final RequestResponseOK<OfferLog> response4 =
+            JsonHandler.getFromInputStream(responseBody4.asInputStream(), RequestResponseOK.class, OfferLog.class);
         assertThat(response4.getStatus()).isEqualTo(200);
         assertThat(response4.getResults().size()).isEqualTo(3);
 
     }
 
     private void checkOfferDatabaseEmptiness() {
-        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME)
-            .getCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME).find();
+        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(MongoRule.VITAM_DB)
+            .getCollection(OfferCollections.OFFER_LOG.getName()).find();
         assertThat(results).hasSize(0);
     }
 
@@ -664,8 +669,8 @@ public class DefaultOfferResourceTest {
     }
 
     private void checkOfferDatabaseExistingDocument(String container, String filename, int count) {
-        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME)
-            .getCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
+        FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(MongoRule.VITAM_DB)
+            .getCollection(OfferCollections.OFFER_LOG.getName())
             .find(Filters.and(Filters.eq("Container", container), Filters.eq("FileName", filename)));
 
         assertThat(results).hasSize(count);

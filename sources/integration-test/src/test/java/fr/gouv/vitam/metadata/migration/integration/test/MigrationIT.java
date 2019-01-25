@@ -41,8 +41,6 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -62,8 +60,6 @@ import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.groups.Tuple;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -72,7 +68,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -81,14 +76,10 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
-import retrofit2.http.Path;
 
-import javax.ws.rs.PathParam;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 
 import static com.mongodb.client.model.Indexes.ascending;
@@ -104,19 +95,20 @@ public class MigrationIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(MigrationIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            MetadataMain.class,
-                            WorkspaceMain.class,
-                            StorageMain.class,
-                            DefaultOfferMain.class,
-                            AdminManagementMain.class
-                    ));
+        new VitamServerRunner(MigrationIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkspaceMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class,
+                AdminManagementMain.class
+            ));
 
 
     private static final String METADATA_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_METADATA_ADMIN;
-    private static final String ADMIN_MANAGEMENT_URL = "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
+    private static final String ADMIN_MANAGEMENT_URL =
+        "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
 
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
@@ -124,16 +116,17 @@ public class MigrationIT extends VitamRuleRunner {
     private MetadataAdminMigrationService metadataAdminMigrationService;
     private AccessionRegisterAdminMigrationService accessionRegisterAdminMigrationService;
 
-    private MongoCollection<Document> unitCollection;
-    private MongoCollection<Document> ogCollection;
 
     @BeforeClass
-    public static void setUpBeforeClass() {
-        MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", VitamServerRunner.PORT_SERVICE_METADATA));
+    public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
+        MetaDataClientFactory
+            .changeMode(new ClientConfigurationImpl("localhost", VitamServerRunner.PORT_SERVICE_METADATA));
     }
 
     @AfterClass
-    public static void tearDownAfterClass() {
+    public static void tearDownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -144,22 +137,21 @@ public class MigrationIT extends VitamRuleRunner {
         final OkHttpClient okHttpClient = new OkHttpClient.Builder().build();
 
         Retrofit retrofit_metadata =
-                new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
-                        .addConverterFactory(JacksonConverterFactory.create()).build();
+            new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
+                .addConverterFactory(JacksonConverterFactory.create()).build();
 
         Retrofit retrofit_admin_management =
-                new Retrofit.Builder().client(okHttpClient).baseUrl(ADMIN_MANAGEMENT_URL)
-                        .addConverterFactory(JacksonConverterFactory.create()).build();
+            new Retrofit.Builder().client(okHttpClient).baseUrl(ADMIN_MANAGEMENT_URL)
+                .addConverterFactory(JacksonConverterFactory.create()).build();
         metadataAdminMigrationService = retrofit_metadata.create(MetadataAdminMigrationService.class);
-        accessionRegisterAdminMigrationService = retrofit_admin_management.create(AccessionRegisterAdminMigrationService.class);
-
-        unitCollection = MetadataCollections.UNIT.getCollection();
-        ogCollection = MetadataCollections.OBJECTGROUP.getCollection();
+        accessionRegisterAdminMigrationService =
+            retrofit_admin_management.create(AccessionRegisterAdminMigrationService.class);
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         runAfter();
+        handleAfterClass(0, 1);
     }
 
 
@@ -167,20 +159,20 @@ public class MigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_failedAuthn() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = metadataAdminMigrationService.startDataMigration("BAD TOKEN").execute();
+            response = metadataAdminMigrationService.startDataMigration("BAD TOKEN").execute();
         assertThat(response.isSuccessful()).isFalse();
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                responseMigrationInProgress = metadataAdminMigrationService.checkDataMigrationInProgress().execute();
+            responseMigrationInProgress = metadataAdminMigrationService.checkDataMigrationInProgress().execute();
         assertThat(responseMigrationInProgress.code())
-                .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
+            .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void startMetadataDataMigration_emptyDb() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -190,7 +182,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_emptyDataSet() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -200,22 +192,21 @@ public class MigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_fullDataSet() throws Exception {
 
         // Given
-        importDataSetFile(unitCollection, "integration-metadata-migration/30UnitDataSet/R6UnitDataSet.json");
-        importDataSetFile(ogCollection, "integration-metadata-migration/15ObjectGroupDataSet/R6ObjectGroupDataSet.json");
+        importDataSetFile(MetadataCollections.UNIT.getCollection(), "integration-metadata-migration/30UnitDataSet/R6UnitDataSet.json");
+        importDataSetFile(MetadataCollections.OBJECTGROUP.getCollection(), "integration-metadata-migration/15ObjectGroupDataSet/R6ObjectGroupDataSet.json");
 
         // When
-        Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+        Response<MetadataMigrationAdminResource.ResponseMessage> response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
         // Then
         String expectedUnitDataSetFile = "integration-metadata-migration/30UnitDataSet/ExpectedR7UnitDataSet.json";
-        assertDataSetEqualsExpectedFile(unitCollection, expectedUnitDataSetFile, true);
+        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitDataSetFile, true);
 
         String expectedOGDataSetFile =
-                "integration-metadata-migration/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
-        assertDataSetEqualsExpectedFile(ogCollection, expectedOGDataSetFile, true);
+            "integration-metadata-migration/15ObjectGroupDataSet/ExpectedR7ObjectGroupDataSet.json";
+        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedOGDataSetFile, true);
     }
 
 
@@ -223,20 +214,21 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_failedAuthn() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration("BAD TOKEN").execute();
+            response = accessionRegisterAdminMigrationService.startDataMigration("BAD TOKEN").execute();
         assertThat(response.isSuccessful()).isFalse();
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                responseMigrationInProgress = accessionRegisterAdminMigrationService.checkDataMigrationInProgress().execute();
+            responseMigrationInProgress =
+            accessionRegisterAdminMigrationService.checkDataMigrationInProgress().execute();
         assertThat(responseMigrationInProgress.code())
-                .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
+            .isEqualTo(javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void startAccessionRegisterMigration_emptyDb() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -246,7 +238,7 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_emptyDataSet() throws Exception {
 
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
 
         awaitTermination();
@@ -257,45 +249,52 @@ public class MigrationIT extends VitamRuleRunner {
     public void startAccessionRegisterMigration_fullDataSet() throws Exception {
         // Given
         String accessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), accessionRegisterDetailDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
+            accessionRegisterDetailDataSetFile);
 
         String accessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary.json";
-        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(), accessionRegisterSummaryDataSetFile);
+        importDataSetFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(),
+            accessionRegisterSummaryDataSetFile);
 
         // When
         Response<MetadataMigrationAdminResource.ResponseMessage>
-                response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+            response = accessionRegisterAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
         // Then
         String expectedAccessionRegisterDetailDataSetFile = "migration_r7_r8/accession_register_detail_EXPECTED.json";
-        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(), expectedAccessionRegisterDetailDataSetFile, false);
+        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection(),
+            expectedAccessionRegisterDetailDataSetFile, false);
 
         // Check persisted in ES
-        SearchResponse search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        SearchResponse search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(2);
 
         String expectedAccessionRegisterSummaryDataSetFile = "migration_r7_r8/accession_register_summary_EXPECTED.json";
-        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(), expectedAccessionRegisterSummaryDataSetFile, false);
+        assertDataSetEqualsExpectedFile(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection(),
+            expectedAccessionRegisterSummaryDataSetFile, false);
 
         // Check persisted in ES
-        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(2);
 
 
         // Check storage
         VitamThreadUtils.getVitamSession().setTenantId(0);
         RestoreBackupServiceImpl restoreBackupService = new RestoreBackupServiceImpl();
-        List<OfferLog> listing = restoreBackupService.getListing("default", DataCategory.ACCESSION_REGISTER_DETAIL, 0l, 100, Order.ASC);
+        List<OfferLog> listing =
+            restoreBackupService.getListing("default", DataCategory.ACCESSION_REGISTER_DETAIL, 0l, 100, Order.ASC);
         assertThat(listing).hasSize(2);
         assertThat(listing).extracting("Container", "FileName")
-                .contains(
-                        tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57asp2qaaaaq.json"),
-                        tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57t4pqiaaaaq.json")
-                );
+            .contains(
+                tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57asp2qaaaaq.json"),
+                tuple("0_accessionregisterdetail", "0_aehaaaaaaehdfg3uabrxcale57t4pqiaaaaq.json")
+            );
 
 
         // When purge
@@ -307,12 +306,14 @@ public class MigrationIT extends VitamRuleRunner {
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count()).isEqualTo(0);
         assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count()).isEqualTo(0);
 
-        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(0);
 
-        search = elasticsearchRule.getClient().prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
-                .setQuery(QueryBuilders.matchAllQuery()).get();
+        search = elasticsearchRule.getClient()
+            .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase())
+            .setQuery(QueryBuilders.matchAllQuery()).get();
         assertThat(search.getHits().getTotalHits()).isEqualTo(0);
     }
 
@@ -324,7 +325,7 @@ public class MigrationIT extends VitamRuleRunner {
             Thread.sleep(1000);
 
             Response<MetadataMigrationAdminResource.ResponseMessage> responseMigrationInProgress =
-                    metadataAdminMigrationService.checkDataMigrationInProgress().execute();
+                metadataAdminMigrationService.checkDataMigrationInProgress().execute();
             if (responseMigrationInProgress.code() == javax.ws.rs.core.Response.Status.NOT_FOUND.getStatusCode())
                 return;
         }
@@ -334,7 +335,7 @@ public class MigrationIT extends VitamRuleRunner {
 
 
     private void importDataSetFile(MongoCollection collection, String dataSetFile)
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
 
         InputStream inputDataSet = PropertiesUtils.getResourceAsStream(dataSetFile);
         ArrayNode jsonDataSet = (ArrayNode) JsonHandler.getFromInputStream(inputDataSet);
@@ -343,25 +344,27 @@ public class MigrationIT extends VitamRuleRunner {
         }
     }
 
-    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile, boolean replaceFields)
-            throws InvalidParseOperationException, FileNotFoundException {
+    private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile,
+        boolean replaceFields)
+        throws InvalidParseOperationException, FileNotFoundException {
 
         ArrayNode unitDataSet = dumpDataSet(mongoCollection, replaceFields);
 
         String updatedUnitDataSet = JsonHandler.unprettyPrint(unitDataSet);
         String expectedUnitDataSet =
-                JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-                        expectedDataSetFile)));
+            JsonHandler.unprettyPrint(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
+                expectedDataSetFile)));
 
         JsonAssert.assertJsonEquals(expectedUnitDataSet, updatedUnitDataSet,
-                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
-    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean replaceFields) throws InvalidParseOperationException {
+    private <T> ArrayNode dumpDataSet(MongoCollection<T> mongoCollection, boolean replaceFields)
+        throws InvalidParseOperationException {
 
         ArrayNode dataSet = JsonHandler.createArrayNode();
         FindIterable<T> documents = mongoCollection.find()
-                .sort(orderBy(ascending(MetadataDocument.ID)));
+            .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
             ObjectNode docObjectNode = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
@@ -384,7 +387,7 @@ public class MigrationIT extends VitamRuleRunner {
 
         @POST("/metadata/v1/migration")
         Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
-                @Header("Authorization") String basicAuthnToken);
+            @Header("Authorization") String basicAuthnToken);
 
         @GET("/metadata/v1/migration/status")
         Call<MetadataMigrationAdminResource.ResponseMessage> checkDataMigrationInProgress();
@@ -394,10 +397,12 @@ public class MigrationIT extends VitamRuleRunner {
     public interface AccessionRegisterAdminMigrationService {
 
         @POST("/adminmanagement/v1/migration/accessionregister/migrate")
-        Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(@Header("Authorization") String basicAuthnToken);
+        Call<MetadataMigrationAdminResource.ResponseMessage> startDataMigration(
+            @Header("Authorization") String basicAuthnToken);
 
         @POST("/adminmanagement/v1/migration/accessionregister/purge")
-        Call<MetadataMigrationAdminResource.ResponseMessage> startDataPurge(@Header("Authorization") String basicAuthnToken);
+        Call<MetadataMigrationAdminResource.ResponseMessage> startDataPurge(
+            @Header("Authorization") String basicAuthnToken);
 
 
         @GET("/adminmanagement/v1/migration/accessionregister/status")

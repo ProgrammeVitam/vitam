@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.repository;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Aggregates;
@@ -78,8 +79,13 @@ public class PreservationReportRepository {
     private static final String PRESERVATION_REPORT = "PreservationReport";
     private final MongoCollection<Document> collection;
 
+    @VisibleForTesting
+    public PreservationReportRepository(MongoDbAccess mongoDbAccess, String collectionName) {
+        this.collection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
+    }
+
     public PreservationReportRepository(MongoDbAccess mongoDbAccess) {
-        this.collection = mongoDbAccess.getMongoDatabase().getCollection(PRESERVATION_REPORT);
+        this(mongoDbAccess, PRESERVATION_REPORT);
     }
 
     public void bulkAppendReport(List<PreservationReportModel> reports) {
@@ -169,7 +175,9 @@ public class PreservationReportRepository {
     }
 
     private Integer getStats(Bson matchee, String name) {
-        Document result = collection.aggregate(Arrays.asList(match(matchee), group(String.format("$%s", name), sum("result", 1)))).first();
+        Document result =
+            collection.aggregate(Arrays.asList(match(matchee), group(String.format("$%s", name), sum("result", 1))))
+                .first();
         return result != null
             ? result.getInteger("result")
             : 0;

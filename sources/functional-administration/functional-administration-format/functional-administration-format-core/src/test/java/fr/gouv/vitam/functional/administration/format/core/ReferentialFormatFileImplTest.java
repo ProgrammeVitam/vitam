@@ -27,40 +27,35 @@
 package fr.gouv.vitam.functional.administration.format.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.format.model.FormatImportReport;
@@ -75,7 +70,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayInputStream;
@@ -86,12 +80,12 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.functional.administration.format.core.ReferentialFormatFileImpl.FILE_FORMAT_REPORT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -109,72 +103,43 @@ public class ReferentialFormatFileImplTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class)));
+
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-    private static ElasticsearchTestConfiguration esConfig = null;
-
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static JunitHelper junitHelper;
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static final String COLLECTION_NAME = "FileFormat";
-    static int port;
     static ReferentialFormatFileImpl formatFile;
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        try {
-            esConfig = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
-        port = junitHelper.findAvailablePort();
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(HOST_NAME, esConfig.getTcpPort()));
+        esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
         final List<MongoDbNode> mongoDbNodes = new ArrayList<>();
-        mongoDbNodes.add(new MongoDbNode(DATABASE_HOST, port));
+        mongoDbNodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-
-        final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, port));
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(nodes, DATABASE_NAME)), functionalBackupService, logbookOperationsClient);
-        ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(nodes, DATABASE_NAME, CLUSTER_NAME, esNodes));
-
+                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName())), functionalBackupService,
+            logbookOperationsClient);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        if (esConfig != null) {
-            JunitHelper.stopElasticsearchForTest(esConfig);
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @After
-    public void cleanup() throws Exception {
-        VitamRepositoryFactory.get().getVitamMongoRepository(FunctionalAdminCollections.FORMATS.getVitamCollection()).purge();
-        VitamRepositoryFactory.get().getVitamESRepository(FunctionalAdminCollections.FORMATS.getVitamCollection()).purge();
+    public void cleanup() {
+        FunctionalAdminCollections.afterTest();
     }
 
     @Test
@@ -354,8 +319,9 @@ public class ReferentialFormatFileImplTest {
     }
 
     private void checkFormatsInDb(int expected) {
-        final MongoClient client = new MongoClient(new ServerAddress(DATABASE_HOST, port));
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
+        final MongoClient client = new MongoClient(new ServerAddress("localhost", mongoRule.getDataBasePort()));
+        final MongoCollection<Document> collection = client.getDatabase(mongoRule.getMongoDatabase().getName())
+            .getCollection(FunctionalAdminCollections.FORMATS.getName());
         assertEquals(expected, collection.count());
         client.close();
     }

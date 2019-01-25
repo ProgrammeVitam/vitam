@@ -148,6 +148,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
 
@@ -162,6 +163,7 @@ public class ReplayProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
 

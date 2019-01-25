@@ -92,4 +92,11 @@ public enum VitamDataType {
     public String getIndexName(int tenantId) {
         return String.format(indexName, tenantId);
     }
-}
+
+    public void setIndexName(String indexName) {
+        this.indexName = indexName;
+    }
+
+    public void setCollectionName(String collectionName) {
+        this.collectionName = collectionName;
+    }}

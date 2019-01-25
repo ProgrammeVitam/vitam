@@ -1,19 +1,8 @@
 package fr.gouv.vitam.common.database.server;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.mongodb.MongoClient;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -35,8 +24,6 @@ import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -49,11 +36,20 @@ import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class DbRequestSingleTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
@@ -63,28 +59,24 @@ public class DbRequestSingleTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
-    static final String DATABASE_NAME = "vitam-test";
     static VitamCollection vitamCollection;
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
-
-    private static ElasticsearchTestConfiguration config = null;
 
     private static final Integer TENANT_ID = 0;
 
 
-
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)), DATABASE_NAME,
-            CollectionSample.class.getSimpleName());
+        new MongoRule(VitamCollection.getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
+            PREFIX + CollectionSample.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(), CollectionSample.class.getSimpleName());
+        new ElasticsearchRule(PREFIX + CollectionSample.class.getSimpleName());
 
-    private static MongoClient mongoClient = mongoRule.getMongoClient();
+    private static ElasticsearchAccess esClient;
 
 
     /**
@@ -97,36 +89,24 @@ public class DbRequestSingleTest {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
 
-
-        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false);
-        vitamCollection.initialize(new ElasticsearchAccess(CLUSTER_NAME, nodes));
-        vitamCollection.initialize(mongoClient.getDatabase(DATABASE_NAME), true);
+        vitamCollection = VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX);
+        esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        vitamCollection.initialize(esClient);
+        vitamCollection.initialize(mongoRule.getMongoDatabase(), true);
 
     }
 
-    @Before
-    public void before() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+    @AfterClass
+    public static void afterClass() {
+        mongoRule.handleAfterClass();
+        elasticsearchRule.deleteIndexes();
+        esClient.close();
     }
 
     @After
     public void after() {
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
-    }
-
-
-    /**
-     * @throws java.lang.Exception
-     */
-    @AfterClass
-    public static void tearDown() {
-        if (config == null) {
-            return;
-        }
-
-        JunitHelper.stopElasticsearchForTest(config);
     }
 
     @Test
@@ -217,7 +197,6 @@ public class DbRequestSingleTest {
         assertEquals(1, vitamCollection.getCollection().count());
         deleteResult.close();
     }
-
 
 
     @Test

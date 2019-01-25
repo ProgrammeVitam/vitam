@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import io.restassured.http.ContentType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -47,6 +46,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -55,12 +55,17 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.lang3.StringUtils;
@@ -101,6 +106,8 @@ public class MetadataResourceTest {
     private static final String DATA_URI = "/metadata/v1";
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
+
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -110,19 +117,10 @@ public class MetadataResourceTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-DB",
-            MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1"
-        );
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
     private static JunitHelper junitHelper;
     private static int serverPort;
 
@@ -130,12 +128,13 @@ public class MetadataResourceTest {
     static final int tenantId = 0;
     static final List tenantList = Lists.newArrayList(tenantId);
     private static final Integer TENANT_ID = 0;
+    private static ElasticsearchAccessMetadata elasticsearchAccessMetadata;
+    private static ElasticsearchAccessFunctionalAdmin accessFunctionalAdmin;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
-
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
+        List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
@@ -143,6 +142,13 @@ public class MetadataResourceTest {
         final MetaDataConfiguration configuration =
             new MetaDataConfiguration(mongo_nodes, mongoRule.getMongoDatabase().getName(),
                 elasticsearchRule.getClusterName(), nodes);
+
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccessMetadata, 0, 1);
+        accessFunctionalAdmin = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, accessFunctionalAdmin,
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         configuration.setJettyConfig(JETTY_CONFIG);
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
@@ -161,6 +167,9 @@ public class MetadataResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        MetadataCollections.afterTestClass(true, 0, 1);
+        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
         try {
             metadataMain.stop();
         } catch (final Exception e) {
@@ -173,8 +182,9 @@ public class MetadataResourceTest {
 
     @After
     public void tearDown() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        MetadataCollections.afterTest(0, 1);
+        FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
     }
 
     private static final JsonNode buildDSLWithOptions(String data) throws Exception {

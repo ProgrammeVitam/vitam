@@ -26,52 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.ServerIdentity;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import net.javacrumbs.jsonunit.JsonAssert;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static io.restassured.RestAssured.given;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -82,24 +37,70 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static io.restassured.RestAssured.given;
-import static org.junit.Assume.assumeTrue;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import net.javacrumbs.jsonunit.JsonAssert;
+import org.jhades.JHades;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 /**
  *
  */
 public class LogBookLifeCycleObjectGroupTest {
 
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogBookLifeCycleObjectGroupTest.class);
 
     private static final String REST_URI = "/logbook/v1";
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static final String SERVER_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
-    private static MongodExecutable mongodExecutable;
-    private static MongodProcess mongod;
 
     private static final Integer tenantId = 0;
     private static final List<Integer> tenantList = Arrays.asList(0);
@@ -107,15 +108,11 @@ public class LogBookLifeCycleObjectGroupTest {
     // ES
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
-    private final static String ES_HOST_NAME = "localhost";
-    private static ElasticsearchTestConfiguration config = null;
 
     private static final String LIFE_OBJECT_GROUP_ID_URI = "/operations/{id_op}/objectgrouplifecycles/{id_lc}";
     private static final String LIFE_OBJECT_GROUP_URI = "/operations/{id_op}/objectgrouplifecycles";
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL = "/raw/objectgrouplifecycles/byid/";
 
-    private static int databasePort;
     private static int serverPort;
     private static LogbookMain application;
     private static LogbookLifeCycleObjectGroupParameters logbookLifeCyclesObjectGroupParametersStart;
@@ -134,23 +131,11 @@ public class LogBookLifeCycleObjectGroupTest {
     public static void setUpBeforeClass() throws Exception {
         new JHades().overlappingJarsReport();
 
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
+
         junitHelper = JunitHelper.getInstance();
-        databasePort = junitHelper.findAvailablePort();
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(databasePort, Network.localhostIsIPv6()))
-            .build());
-
-        mongod = mongodExecutable.start();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(temporaryFolder, ES_CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
         serverPort = junitHelper.findAvailablePort();
 
         // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
@@ -159,16 +144,16 @@ public class LogBookLifeCycleObjectGroupTest {
         try {
             final LogbookConfiguration logbookConf = new LogbookConfiguration();
             final List<MongoDbNode> nodes = new ArrayList<>();
-            nodes.add(new MongoDbNode(SERVER_HOST, databasePort));
-            logbookConf.setDbName(DATABASE_NAME).setMongoDbNodes(nodes);
+            nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+            logbookConf.setDbName(mongoRule.getMongoDatabase().getName()).setMongoDbNodes(nodes);
             final List<ElasticsearchNode> esNodes = new ArrayList<>();
-            esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+            esNodes.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
             logbookConf.setJettyConfig(JETTY_CONFIG);
             logbookConf.setP12LogbookFile("tsa.p12");
             logbookConf.setP12LogbookPassword("1234");
             logbookConf.setWorkspaceUrl("http://localhost:8001");
             logbookConf.setProcessingUrl("http://localhost:8002");
-            logbookConf.setClusterName(ES_CLUSTER_NAME);
+            logbookConf.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
             logbookConf.setElasticsearchNodes(esNodes);
             VitamConfiguration.setTenants(tenantList);
             logbookConf.setOpLfcEventsToSkip(new ArrayList<>());
@@ -259,12 +244,9 @@ public class LogBookLifeCycleObjectGroupTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(databasePort);
+
+        LogbookCollections.afterTestClass(true, tenantId);
+
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
     }

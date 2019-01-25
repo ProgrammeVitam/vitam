@@ -20,15 +20,10 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -37,13 +32,17 @@ import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.VitamApplication;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -54,7 +53,6 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -86,7 +84,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -99,18 +96,23 @@ import static org.mockito.Mockito.when;
  */
 public class ProfileResourceTest {
 
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProfileResourceTest.class);
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
 
     private static final String RESOURCE_URI = "/adminmanagement/v1";
-    private static final String IDENTIFIER = "Identifier";
 
     private static final int TENANT_ID = 0;
 
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
     static MongoDbAccessReferential mongoDbAccess;
-    static String DATABASE_NAME = "vitam-test";
     private static String DATABASE_HOST = "localhost";
     private static WorkspaceClient workspaceClient;
     private static WorkspaceClientFactory workspaceClientFactory;
@@ -126,63 +128,46 @@ public class ProfileResourceTest {
     public WireMockClassRule instanceRule = wireMockRule;
 
     private static int serverPort;
-    private static int databasePort;
     private static File adminConfigFile;
     private static AdminManagementMain application;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    private static ElasticsearchTestConfiguration configEs = null;
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private static MongoDbAccessAdminImpl dbImpl;
-    private final static String CLUSTER_NAME = "vitam-cluster";
-
-    private static ElasticsearchAccessFunctionalAdmin esClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        new JHades().overlappingJarsReport();
-
-        databasePort = junitHelper.findAvailablePort();
-
-        // ES
-        try {
-            configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
 
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", configEs.getTcpPort()));
-        esClient = new ElasticsearchAccessFunctionalAdmin(CLUSTER_NAME, nodesEs);
-        LogbookOperationsClientFactory.changeMode(null);
+        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                nodesEs));
+
+        LogbookOperationsClientFactory.changeMode(null);
+        System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.newFolder().getAbsolutePath());
+        SystemPropertyUtil.refresh();
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(databasePort);
+        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        realAdminConfig.setDbName(MongoRule.VITAM_DB);
         realAdminConfig.setElasticsearchNodes(nodesEs);
-        realAdminConfig.setClusterName(CLUSTER_NAME);
+        realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
 
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(databasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, databasePort));
-        mongoDbAccess = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
+        mongoDbAccess =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -191,7 +176,6 @@ public class ProfileResourceTest {
 
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
 
         try {
             application = new AdminManagementMain(adminConfigFile.getAbsolutePath());
@@ -209,25 +193,20 @@ public class ProfileResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
+        System.setProperty(VitamConfiguration.getVitamTmpProperty(), VitamConfiguration.getVitamTmpFolder());
+        SystemPropertyUtil.refresh();
         try {
             application.stop();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
-
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(databasePort);
         junitHelper.releasePort(serverPort);
-        if (null != configEs) {
-            junitHelper.releasePort(configEs.getHttpPort());
-            junitHelper.releasePort(configEs.getTcpPort());
-        }
+        FunctionalAdminCollections.afterTestClass(true);
         VitamClientFactory.resetConnections();
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
             .willReturn(
                 aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
@@ -363,7 +342,7 @@ public class ProfileResourceTest {
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
             .then().statusCode(Status.OK.getStatusCode());
-        
+
         given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
@@ -435,7 +414,8 @@ public class ProfileResourceTest {
         update.addActions(setDescription);
         update.setQuery(QueryHelper.eq("Name", "aName"));
 
-        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
 
             .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
             .statusCode(Status.OK.getStatusCode());

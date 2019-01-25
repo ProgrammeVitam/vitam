@@ -26,52 +26,44 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application.resources;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
-
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import org.assertj.core.util.Lists;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static org.junit.Assert.assertEquals;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
- *
  */
 public class AdminAutotestStatusResourceImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminAutotestStatusResourceImplTest.class);
@@ -79,53 +71,42 @@ public class AdminAutotestStatusResourceImplTest {
     // URI
     private static final String ADMIN_STATUS_URI = "/admin/v1";
     private static final String TEST_CONF = "test-multiple-connector.conf";
-
-    private static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-
-    /**
-     * Temp folder for Elasticsearch
-     */
+    private static final String COLLECTION_NAME =
+        CollectionSample.class.getSimpleName() + GUIDFactory.newGUID().getId();
     @ClassRule
-    public static TemporaryFolder tempFolder = new TemporaryFolder();
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
+            COLLECTION_NAME);
 
-    private final static String CLUSTER_NAME = "vitam-cluster-autotest";
     private final static String HOST_NAME = "127.0.0.1";
     private static int dataBasePort;
     private static JunitHelper junitHelper;
 
     private static int serverAdminPort;
+    private static int fakePort;
 
     private static TestApplication application;
     private static TestVitamAdminClientFactory factory;
-    private static ElasticsearchTestConfiguration config = null;
+    private static ElasticsearchNode elasticsearchNode;
+    private static MongoDbAccess databaseMd;
+    private static ElasticsearchAccess databaseEs;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         VitamConfiguration.setConnectTimeout(100);
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-        final ElasticsearchAccess databaseEs = new ElasticsearchAccess(CLUSTER_NAME, nodes);
+        elasticsearchNode = new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT);
+        nodes.add(elasticsearchNode);
+        databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
         dataBasePort = junitHelper.findAvailablePort();
+        fakePort = junitHelper.findAvailablePort();
+        MongoClient mongoClient = new MongoClient(new ServerAddress(
+            HOST_NAME, mongoRule.getDataBasePort()),
+            VitamCollection.getMongoClientOptions(new ArrayList<>()));
 
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        final MongoDbAccess databaseMd = new MyMongoDbAccess(new MongoClient(new ServerAddress(
-            HOST_NAME, dataBasePort),
-            VitamCollection.getMongoClientOptions(new ArrayList<>())), CLUSTER_NAME, false);
+        databaseMd = new MyMongoDbAccess(mongoClient, ElasticsearchRule.VITAM_CLUSTER, false);
 
         TestApplication.serviceRegistry = new VitamServiceRegistry();
         TestApplication.serviceRegistry.register(databaseMd).register(databaseEs);
@@ -155,9 +136,6 @@ public class AdminAutotestStatusResourceImplTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         VitamConfiguration.setConnectTimeout(1000);
-        if (config == null) {
-            return;
-        }
         LOGGER.debug("Ending tests");
         try {
             if (application != null) {
@@ -166,14 +144,10 @@ public class AdminAutotestStatusResourceImplTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        databaseEs.close();
         junitHelper.releasePort(serverAdminPort);
-        if (config == null) {
-            return;
-        }
-        JunitHelper.stopElasticsearchForTest(config);
-        mongod.stop();
-        mongodExecutable.stop();
         junitHelper.releasePort(dataBasePort);
+        junitHelper.releasePort(fakePort);
         VitamClientFactory.resetConnections();
     }
 
@@ -182,7 +156,13 @@ public class AdminAutotestStatusResourceImplTest {
         public MyMongoDbAccess(MongoClient mongoClient, String dbname, boolean recreate) {
             super(mongoClient, dbname, recreate);
         }
+
+        @Override
+        public MongoDbAccess setMongoClient(MongoClient mongoClient) {
+            return super.setMongoClient(mongoClient);
+        }
     }
+
 
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
@@ -196,6 +176,7 @@ public class AdminAutotestStatusResourceImplTest {
         }
 
     }
+
 
     private static class TestWrongVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
@@ -279,9 +260,7 @@ public class AdminAutotestStatusResourceImplTest {
 
         // ES
         LOGGER.warn("TEST ELASTICSEARCH KO");
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
+        elasticsearchNode.setTcpPort(fakePort);
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
@@ -310,8 +289,9 @@ public class AdminAutotestStatusResourceImplTest {
 
         // MongoDB
         LOGGER.warn("TEST MONGO KO");
-        mongod.stop();
-        mongodExecutable.stop();
+        databaseMd.setMongoClient(new MongoClient(new ServerAddress(
+            HOST_NAME, fakePort),
+            VitamCollection.getMongoClientOptions(new ArrayList<>())));
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {

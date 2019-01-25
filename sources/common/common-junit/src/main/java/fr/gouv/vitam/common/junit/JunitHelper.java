@@ -26,26 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.junit;
 
-import com.google.common.testing.GcFinalization;
-import fr.gouv.vitam.common.SystemPropertyUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.http.BindHttpException;
-import org.elasticsearch.node.InternalSettingsPreparer;
-import org.elasticsearch.node.Node;
-import org.elasticsearch.node.NodeValidationException;
-import org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin;
-import org.elasticsearch.plugins.Plugin;
-import org.elasticsearch.transport.BindTransportException;
-import org.elasticsearch.transport.Netty4Plugin;
-import org.junit.rules.ExternalResource;
-import org.junit.rules.TemporaryFolder;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +38,22 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-//import org.elasticsearch.node.internal.InternalSettingsPreparer;
+import com.google.common.testing.GcFinalization;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.http.BindHttpException;
+import org.elasticsearch.plugins.Plugin;
+import org.elasticsearch.transport.BindTransportException;
+import org.elasticsearch.transport.Netty4Plugin;
+import org.junit.rules.ExternalResource;
+import org.junit.rules.TemporaryFolder;
+
 
 /**
  * This class allows to get an available port during Junit execution
@@ -327,156 +322,6 @@ public class JunitHelper extends ExternalResource {
         } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException |
                 IllegalArgumentException | InvocationTargetException | UnsupportedOperationException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-    }
-
-    /**
-     * Class to help to build and stop an Elasticsearch server
-     */
-    public static class ElasticsearchTestConfiguration {
-        int tcpPort;
-        int httpPort;
-        File elasticsearchHome;
-        Node node;
-
-        /**
-         * @return the associated TCP PORT
-         */
-        public int getTcpPort() {
-            return tcpPort;
-        }
-
-        /**
-         * @return the associated HTTP PORT
-         */
-        public int getHttpPort() {
-            return httpPort;
-        }
-
-        /**
-         * @return the associated Home
-         */
-        public File getElasticsearchHome() {
-            return elasticsearchHome;
-        }
-
-        /**
-         * @return the associated Node
-         */
-        public Node getNode() {
-            return node;
-        }
-    }
-
-    private static final void tryStartElasticsearch(ElasticsearchTestConfiguration config, TemporaryFolder tempFolder,
-                                                    String clusterName) {
-        try {
-            config.elasticsearchHome = tempFolder.newFolder();
-            final Settings settings = Settings.builder()
-                    .put("http.enabled", true)
-                    .put("http.type", "netty4")
-                    //.put("discovery.zen.ping.multicast.enabled", false)
-                    .put("transport.tcp.port", config.tcpPort)
-                    .put("transport.type", "netty4")
-                    .put("http.port", config.httpPort)
-                    // The node.client setting has been removed.
-                    // Instead, each node role needs to be set separately using the existing node.master, node.data and node.ingest.
-                    // By default a node is a master-eligible node and a data node, plus it can pre-process documents through ingest pipelines.
-                    //.put("node.client", false)
-                    .put("cluster.name", clusterName)
-                    .put("path.home", config.elasticsearchHome.getCanonicalPath())
-                    .put("plugin.mandatory", "org.elasticsearch.plugin.analysis.icu.AnalysisICUPlugin")
-                    .put("transport.tcp.connect_timeout", "1s")
-                    .put("transport.profiles.tcp.connect_timeout", "1s")
-                    .put("thread_pool.search.size", 4)
-                    .put("thread_pool.search.queue_size", VitamConfiguration.getNumberEsQueue())
-                    .put("thread_pool.bulk.queue_size", VitamConfiguration.getNumberEsQueue())
-                    .build();
-
-            final List<Class<? extends Plugin>> plugins = Arrays.asList(Netty4Plugin.class, AnalysisICUPlugin.class);
-            config.node =
-                    new NodeWithPlugins(InternalSettingsPreparer.prepareEnvironment(settings, null), plugins);
-            config.node.start();
-        } catch (BindTransportException | BindHttpException | IOException | NodeValidationException e) {
-            LOGGER.error(e);
-            config.node = null;
-            try {
-                Thread.sleep(WAIT_BETWEEN_TRY);
-            } catch (final InterruptedException e1) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
-            }
-        }
-    }
-
-    /**
-     * Helper to start an Elasticsearch server (unrecommended version)
-     *
-     * @param tempFolder  the TemporaryFolder declared as ClassRule within the Junit class
-     * @param clusterName the cluster name
-     * @param tcpPort     the given TcpPort
-     * @param httpPort    the given HttpPort
-     * @return the ElasticsearchTestConfiguration to pass to stopElasticsearchForTest
-     * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
-     */
-    public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
-                                                                                 String clusterName, int tcpPort, int httpPort) throws VitamApplicationServerException {
-        final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
-        config.httpPort = httpPort;
-        config.tcpPort = tcpPort;
-        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-            tryStartElasticsearch(config, tempFolder, clusterName);
-            if (config.node != null) {
-                return config;
-            }
-        }
-        throw new VitamApplicationServerException("Cannot start Elasticsearch");
-    }
-
-    /**
-     * Helper to start an Elasticsearch server (recommended version)
-     *
-     * @param tempFolder  the TemporaryFolder declared as ClassRule within the Junit class
-     * @param clusterName the cluster name
-     * @return the ElasticsearchTestConfiguration to pass to stopElasticsearchForTest
-     * @throws VitamApplicationServerException if the Elasticsearch server cannot be started
-     */
-    public static final ElasticsearchTestConfiguration startElasticsearchForTest(TemporaryFolder tempFolder,
-                                                                                 String clusterName) throws VitamApplicationServerException {
-        final JunitHelper junitHelper = getInstance();
-        final ElasticsearchTestConfiguration config = new ElasticsearchTestConfiguration();
-        for (int i = 0; i < VitamConfiguration.getRetryNumber(); i++) {
-            config.tcpPort = junitHelper.findAvailablePort();
-            config.httpPort = junitHelper.findAvailablePort();
-            tryStartElasticsearch(config, tempFolder, clusterName);
-            if (config.node == null) {
-                junitHelper.releasePort(config.tcpPort);
-                junitHelper.releasePort(config.httpPort);
-                config.node = null;
-            } else {
-                return config;
-            }
-        }
-        throw new VitamApplicationServerException("Cannot start Elasticsearch");
-    }
-
-    /**
-     * Stop the Elasticsearch server started through start ElasticsearchForTest
-     *
-     * @param config the ElasticsearchTestConfiguration
-     */
-    public static final void stopElasticsearchForTest(ElasticsearchTestConfiguration config) {
-        if (config != null) {
-            final JunitHelper junitHelper = getInstance();
-            if (config.node != null) {
-                try {
-                    config.node.close();
-                } catch (IOException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                    config.node = null;
-                }
-            }
-            junitHelper.releasePort(config.tcpPort);
-            junitHelper.releasePort(config.httpPort);
         }
     }
 

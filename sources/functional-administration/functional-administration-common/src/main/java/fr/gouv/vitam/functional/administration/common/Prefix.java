@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,40 +23,21 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.database.server.elasticsearch;
+ */
+package fr.gouv.vitam.functional.administration.common;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+public enum Prefix {
+    PREFIX(GUIDFactory.newGUID().getId());
 
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
-import org.junit.Rule;
-import org.junit.Test;
+    String prefix;
 
-public class ElasticsearchAccessTest {
-    private final static String HOST_NAME = "localhost";
+    Prefix(String prefix) {
+        this.prefix = prefix;
+    }
 
-    @Rule
-    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
-
-
-    @Test
-    public void testElasticsearchAccess() throws VitamException, IOException {
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, elasticsearchRule.getTcpPort()));
-
-        final ElasticsearchAccess elastic = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
-        assertEquals(ElasticsearchRule.VITAM_CLUSTER, elastic.getClusterName());
-        assertEquals(ElasticsearchRule.VITAM_CLUSTER, elastic.getInfo());
-        assertEquals(nodes, elastic.getNodes());
-        assertNotNull(elastic.getClient());
-        elastic.close();
-
+    public String getPrefix() {
+        return prefix;
     }
 }

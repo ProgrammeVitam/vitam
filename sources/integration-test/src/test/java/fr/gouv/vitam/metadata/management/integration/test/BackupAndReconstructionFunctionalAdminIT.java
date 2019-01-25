@@ -77,6 +77,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
@@ -123,9 +124,14 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
     private static final String ACCESSION_REGISTER_DETAIL_DATA_3 =
             "functional-admin/accession-register/accession-register-detail-3.json";
 
+    @BeforeClass
+    public static void beforeClass() throws Exception {
+        handleBeforeClass(0, 1);
+    }
 
     @AfterClass
-    public static void afterClass() {
+    public static void afterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
     }

@@ -29,16 +29,34 @@ package fr.gouv.vitam.logbook.common.server.database.collections;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+import com.mongodb.DBObject;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import org.bson.Document;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
@@ -54,26 +72,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import com.mongodb.DBObject;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
-
 public class LogbookElasticsearchAccessTest {
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+            new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -82,52 +90,43 @@ public class LogbookElasticsearchAccessTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     private static LogbookElasticsearchAccess esClient;
-
-    private static ElasticsearchTestConfiguration config = null;
-
 
     private static final int tenantId = 0;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
-        esClient = new LogbookElasticsearchAccess(CLUSTER_NAME, nodes);
+        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
+        esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
     }
 
     @AfterClass
     public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, tenantId);
         esClient.close();
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
     }
 
 
     @Test
     @RunWithCustomExecutor
-    public void testElasticsearchAccessOperation() throws InvalidParseOperationException, LogbookException {
+    public void testElasticsearchAccessOperation() throws LogbookException {
         // add index
-        assertEquals(true, esClient.addIndex(LogbookCollections.OPERATION, tenantId));
+        esClient.addIndex(LogbookCollections.OPERATION, tenantId);
 
         // data
-        GUID eventIdentifier = GUIDFactory.newEventGUID(0);
+        GUID eventIdentifier = GUIDFactory.newEventGUID(tenantId);
         String eventType = "IMPORT_FORMAT";
-        GUID eventIdentifierProcess = GUIDFactory.newEventGUID(0);
+        GUID eventIdentifierProcess = GUIDFactory.newEventGUID(tenantId);
         LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.MASTERDATA;
         StatusCode outcome = StatusCode.STARTED;
         String outcomeDetailMessage = "IMPORT_FORMAT." + StatusCode.STARTED.name();
-        GUID eventIdentifierRequest = GUIDFactory.newEventGUID(0);
+        GUID eventIdentifierRequest = GUIDFactory.newEventGUID(tenantId);
 
         // add indexEntry
         final LogbookOperationParameters parametersForCreation =
@@ -139,7 +138,7 @@ public class LogbookElasticsearchAccessTest {
                 parametersForCreation.putParameterValue(name, LocalDateUtil.now().toString());
             } else {
                 parametersForCreation.putParameterValue(name,
-                    GUIDFactory.newEventGUID(0).getId());
+                    GUIDFactory.newEventGUID(tenantId).getId());
             }
 
         }
@@ -165,7 +164,7 @@ public class LogbookElasticsearchAccessTest {
         assertNotNull(elasticSearchResponse.getHits().getAt(0));
 
         // update entry
-        Map<String, Object> created = elasticSearchResponse.getHits().getAt(0).getSource();
+        Map<String, Object> created = elasticSearchResponse.getHits().getAt(0).getSourceAsMap();
         for (int i = 0; i < 3; i++) {
             outcome = StatusCode.OK;
             outcomeDetailMessage = "IMPORT_FORMAT." + StatusCode.OK.name();

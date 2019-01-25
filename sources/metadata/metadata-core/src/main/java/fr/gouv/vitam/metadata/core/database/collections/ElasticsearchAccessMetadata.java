@@ -26,8 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.mongodb.DBObject;
-import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -46,11 +52,11 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
+import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.DocWriteRequest.OpType;
-import org.elasticsearch.action.ListenableActionFuture;
+import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshRequest;
 import org.elasticsearch.action.admin.indices.refresh.RefreshResponse;
-import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteRequestBuilder;
@@ -72,12 +78,6 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.sort.SortBuilder;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 
 /**
@@ -112,17 +112,20 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     public final boolean deleteIndex(final MetadataCollections collection, Integer tenantId) {
         try {
-            if (client.admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
-                if (!client.admin().indices().prepareDelete(getAliasName(collection, tenantId)).get()
-                    .isAcknowledged()) {
+            if (getClient().admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
+                String indexName =
+                    getClient().admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases()
+                        .iterator().next().key;
+                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+
+                if (!getClient().admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
             }
-            refreshIndex(collection, tenantId);
             return true;
         } catch (final Exception e) {
             LOGGER.error("Error while deleting index", e);
-            return true;
+            return false;
         }
     }
 
@@ -131,23 +134,22 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      *
      * @param collection the working metadata collection
      * @param tenantId the tenant for operation
-     * @return True if ok
+     * @return key aliasName value indexName or empty
      */
-    public final boolean addIndex(final MetadataCollections collection, Integer tenantId) {
+    public final Map<String, String> addIndex(final MetadataCollections collection, Integer tenantId) {
         try {
-            super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
+            return super.createIndexAndAliasIfAliasNotExists(collection.getName().toLowerCase(), getMapping(collection),
                 VitamCollection.getTypeunique(), tenantId);
         } catch (final Exception e) {
             LOGGER.error("Error while set Mapping", e);
-            return false;
+            return new HashMap<>();
         }
-        return true;
     }
 
     /**
      * refresh an index
      *
-     * @param collection the workking metadata collection
+     * @param collection the working metadata collection
      * @param tenantId the tenant for operation
      */
     public final void refreshIndex(final MetadataCollections collection, Integer tenantId) {
@@ -156,7 +158,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.debug("refreshIndex: " + allIndexes);
         }
         RefreshResponse response =
-            client.admin().indices().refresh(new RefreshRequest(allIndexes)).actionGet();
+            getClient().admin().indices().refresh(new RefreshRequest(allIndexes)).actionGet();
         LOGGER.debug("Refresh request executed with {} successfull shards", response.getSuccessfulShards());
     }
 
@@ -172,7 +174,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     final boolean addEntryIndex(final MetadataCollections collection, final Integer tenantId, final String id,
         final String json) {
         final String type = VitamCollection.getTypeunique();
-        return client.prepareIndex(getAliasName(collection, tenantId), type, id).setSource(json)
+        return getClient().prepareIndex(getAliasName(collection, tenantId), type, id).setSource(json, XContentType.JSON)
             .setOpType(OpType.INDEX)
             .get().getVersion() > 0;
     }
@@ -186,14 +188,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      * @return the listener on bulk insert
      */
 
-    final ListenableActionFuture<BulkResponse> addEntryIndexes(final MetadataCollections collection,
+    final ActionFuture<BulkResponse> addEntryIndexes(final MetadataCollections collection,
         final Integer tenantId, final Map<String, String> mapIdJson) {
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
         // either use client#prepare, or use Requests# to directly build
         // index/delete requests
         final String type = VitamCollection.getTypeunique();
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.add(client.prepareIndex(getAliasName(collection, tenantId), type, val.getKey())
+            bulkRequest.add(getClient().prepareIndex(getAliasName(collection, tenantId), type, val.getKey())
                 .setSource(val.getValue(), XContentType.JSON));
         }
         return bulkRequest.execute(); // new thread
@@ -238,7 +240,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             int limitES = (limit != null && limit > 0) ? limit : GlobalDatasDb.DEFAULT_LIMIT_SCROLL;
             int scrollTimeoutES =
                 (scrollTimeout != null && scrollTimeout > 0) ? scrollTimeout : GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT;
-            request = client.prepareSearch(getAliasName(collection, tenantId))
+            request = getClient().prepareSearch(getAliasName(collection, tenantId))
                 .setScroll(new TimeValue(scrollTimeoutES))
                 .setQuery(query)
                 .setSize(limitES);
@@ -248,14 +250,14 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             if (scrollId.equals(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD)) {
                 response = request.get();
             } else {
-                response = client.prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeoutES)).execute()
+                response = getClient().prepareSearchScroll(scrollId).setScroll(new TimeValue(scrollTimeoutES)).execute()
                     .actionGet();
             }
             resultRequest.setScrollId(response.getScrollId());
         } else {
             // Note: Could change the code to allow multiple indexes and multiple
             // types
-            request = client.prepareSearch(getAliasName(collection, tenantId))
+            request = getClient().prepareSearch(getAliasName(collection, tenantId))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(type).setExplain(false)
                 .setSize(GlobalDatas.LIMIT_LOAD).setFetchSource(MetadataDocument.ES_PROJECTION, null);
             if (offset != -1) {
@@ -336,7 +338,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
      */
     public SearchResponse basicSearch(MetadataCollections collection, Integer tenantId,
         List<AggregationBuilder> aggregations, QueryBuilder query) {
-        SearchRequestBuilder request = client.prepareSearch(getAliasName(collection, tenantId)).setQuery(query);
+        SearchRequestBuilder request = getClient().prepareSearch(getAliasName(collection, tenantId)).setQuery(query);
         aggregations.forEach(request::addAggregation);
         return request
             .execute()
@@ -354,7 +356,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public final void deleteEntryIndex(final MetadataCollections collections, Integer tenantId, final String type,
         final String id)
         throws MetaDataExecutionException, MetaDataNotFoundException {
-        final DeleteRequestBuilder builder = client.prepareDelete(getAliasName(collections, tenantId), type, id);
+        final DeleteRequestBuilder builder = getClient().prepareDelete(getAliasName(collections, tenantId), type, id);
         final DeleteResponse response;
         try {
             response = builder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).get();
@@ -383,7 +385,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
             dbObject.removeField(VitamDocument.ID);
             final String document = dbObject.toString().trim();
-            IndexResponse indexResponse = client.prepareIndex(getAliasName(collection, tenantId),
+            IndexResponse indexResponse = getClient().prepareIndex(getAliasName(collection, tenantId),
                 VitamCollection.getTypeunique(), id)
                 .setSource(document, XContentType.JSON)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
@@ -400,13 +402,13 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public void insertFullDocuments(MetadataCollections collection, Integer tenantId,
         Collection<? extends MetadataDocument> documents)
         throws MetaDataExecutionException {
-        BulkRequestBuilder bulkRequestBuilder = client.prepareBulk();
+        BulkRequestBuilder bulkRequestBuilder = getClient().prepareBulk();
 
         documents.forEach(document -> {
             String id = (String) document.remove("_id");
             String source = document.toJson();
             bulkRequestBuilder
-                .add(client.prepareIndex(getAliasName(collection, tenantId), VitamCollection.TYPEUNIQUE, id)
+                .add(getClient().prepareIndex(getAliasName(collection, tenantId), VitamCollection.TYPEUNIQUE, id)
                     .setSource(source, XContentType.JSON));
         });
 
@@ -438,7 +440,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
             dbObject.removeField(VitamDocument.ID);
             final String toUpdate = dbObject.toString().trim();
-            UpdateResponse response = client.prepareUpdate(getAliasName(collection, tenantId),
+            UpdateResponse response = getClient().prepareUpdate(getAliasName(collection, tenantId),
                 VitamCollection.getTypeunique(), id)
                 .setDoc(toUpdate, XContentType.JSON)
                 .setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
@@ -468,11 +470,11 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
         }
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        BulkRequestBuilder bulkRequest = getClient().prepareBulk();
         int max = VitamConfiguration.getMaxElasticsearchBulk();
         for (String id : ids) {
             max--;
-            bulkRequest.add(client.prepareDelete(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
+            bulkRequest.add(getClient().prepareDelete(getAliasName(MetadataCollections.OBJECTGROUP, tenantId),
                 VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
@@ -482,7 +484,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                     LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
                     throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
                 }
-                bulkRequest = client.prepareBulk();
+                bulkRequest = getClient().prepareBulk();
             }
         }
         if (bulkRequest.numberOfActions() > 0) {
@@ -511,12 +513,12 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             LOGGER.error("ES delete in error since no results to delete");
             throw new MetaDataExecutionException("No result to delete");
         }
-        BulkRequestBuilder bulkRequest = client.prepareBulk();
+        BulkRequestBuilder bulkRequest = getClient().prepareBulk();
         int max = VitamConfiguration.getMaxElasticsearchBulk();
         for (String id : ids) {
             max--;
             bulkRequest
-                .add(client.prepareDelete(getAliasName(MetadataCollections.UNIT, tenantId),
+                .add(getClient().prepareDelete(getAliasName(MetadataCollections.UNIT, tenantId),
                     VitamCollection.getTypeunique(), id));
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
@@ -526,7 +528,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
                     LOGGER.error("ES delete in error: " + bulkResponse.buildFailureMessage());
                     throw new MetaDataExecutionException(bulkResponse.buildFailureMessage());
                 }
-                bulkRequest = client.prepareBulk();
+                bulkRequest = getClient().prepareBulk();
             }
         }
         if (bulkRequest.numberOfActions() > 0) {

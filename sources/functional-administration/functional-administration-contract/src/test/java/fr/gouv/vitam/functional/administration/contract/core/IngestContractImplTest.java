@@ -21,16 +21,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -42,18 +33,20 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
-import fr.gouv.vitam.common.error.VitamCodeHelper;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -61,34 +54,35 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
-import org.assertj.core.api.Assertions;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mockito;
-import org.openstack4j.api.exceptions.StatusCode;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -111,38 +105,36 @@ public class IngestContractImplTest {
 
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
-    static JunitHelper junitHelper;
-    static final String COLLECTION_NAME = "IngestContract";
     static final String DATABASE_HOST = "localhost";
     static final String DATABASE_NAME = "vitam-test";
     static final String FORMAT_FILE = "file-format-light.json";
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient client;
+
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(AccessContract.class, Agencies.class)));
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
+
     static VitamCounterService vitamCounterService;
     static MetaDataClient metaDataClientMock;
     static FunctionalBackupService functionalBackupService;
 
     static ContractService<IngestContractModel> ingestContractService;
-    static int mongoPort;
     private static MongoDbAccessAdminImpl dbImpl;
 
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        mongoPort = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(mongoPort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
-
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Arrays.asList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            Arrays.asList(FunctionalAdminCollections.INGEST_CONTRACT, FunctionalAdminCollections.AGENCIES));
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
+        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));
@@ -166,25 +158,21 @@ public class IngestContractImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(mongoPort);
-        client.close();
+    public static void tearDownAfterClass() {
+        FunctionalAdminCollections.afterTestClass(true);
         ingestContractService.close();
         VitamClientFactory.resetConnections();
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
     }
 
     @After
     public void afterTest() {
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        collection.deleteMany(new Document());
+        FunctionalAdminCollections.afterTest();
         Mockito.reset(functionalBackupService);
     }
 
@@ -487,7 +475,6 @@ public class IngestContractImplTest {
         response = ingestContractService.createContracts(IngestContractModelList);
         assertThat(response.isOk()).isFalse();
     }
-
 
 
     @Test

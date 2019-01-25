@@ -26,20 +26,11 @@
  */
 package fr.gouv.vitam.functional.administration.common.counter;
 
-import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -50,10 +41,9 @@ import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import org.bson.Document;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -62,7 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
@@ -75,34 +65,24 @@ public class VitamCounterServiceTest {
 
     private static final Integer TENANT_ID = 1;
 
-    static JunitHelper junitHelper;
-    static final String COLLECTION_NAME = "AccessContract";
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
-    static MongoClient client;
     private static MongoDbAccessAdminImpl dbImpl;
-    static int mongoPort;
     static VitamCounterService vitamCounterService;
-    static Map<Integer, List<String>> externalIdentifiers;
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(VitamSequence.class)));
+
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        junitHelper = JunitHelper.getInstance();
-        mongoPort = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(mongoPort, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        client = new MongoClient(new ServerAddress(DATABASE_HOST, mongoPort));
+        FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().setName(
+            PREFIX + FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().getClasz().getSimpleName());
         List tenants = new ArrayList<>();
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoPort));
-        dbImpl = MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, DATABASE_NAME));
+        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        dbImpl =
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
         tenants.add(new Integer(TENANT_ID));
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant0 = new ArrayList<>();
@@ -123,18 +103,10 @@ public class VitamCounterServiceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(mongoPort);
-        client.close();
+        FunctionalAdminCollections.VITAM_SEQUENCE.getCollection().drop();
         VitamClientFactory.resetConnections();
     }
 
-    @After
-    public void afterTest() {
-        final MongoCollection<Document> collection = client.getDatabase(DATABASE_NAME).getCollection(COLLECTION_NAME);
-        collection.deleteMany(new Document());
-    }
 
     @Test
     @RunWithCustomExecutor
@@ -158,7 +130,9 @@ public class VitamCounterServiceTest {
 
         vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE);
         vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.SECURITY_PROFILE_SEQUENCE);
-        Integer backUpSequence = vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE).getCounter();
+        Integer backUpSequence =
+            vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE)
+                .getCounter();
         assertThat(ic).isEqualTo("IC-000003");
         assertThat(ac).isEqualTo("AC-000002");
         assertThat(pr).isEqualTo("PR-000002");

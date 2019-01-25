@@ -26,38 +26,30 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import com.mongodb.MongoClient;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import com.mongodb.MongoClient;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import static org.junit.Assert.fail;
 
 public class MetaDataApplicationTest {
 
-    private final static String CLUSTER_NAME = "vitam-cluster";
     private final static String HOST_NAME = "127.0.0.1";
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
@@ -72,23 +64,18 @@ public class MetaDataApplicationTest {
     private static MetaDataConfiguration config;
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
-    private static ElasticsearchTestConfiguration configEs = null;
 
 
-    @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "vitam-test", "Unit", "ObjectGroup");
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
 
     private MongoClient mongoClient = mongoRule.getMongoClient();
 
-    @BeforeClass
-    public static void beforeClass() throws Exception {
-        try {
-            configEs = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
-    }
 
     /**
      * @throws java.lang.Exception
@@ -96,12 +83,11 @@ public class MetaDataApplicationTest {
     @Before
     public void setUp() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, configEs.getTcpPort()));
+        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", mongoClient.getAddress().getPort()));
-        // TODO: using configuration file ? Why not ?
-        config = new MetaDataConfiguration(mongo_nodes, "vitam-test", CLUSTER_NAME, nodes);
+        config = new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, nodes);
         VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
     }

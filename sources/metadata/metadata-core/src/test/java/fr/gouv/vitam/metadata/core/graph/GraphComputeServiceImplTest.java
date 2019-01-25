@@ -35,6 +35,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.stubbing.Answer;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -116,15 +117,14 @@ public class GraphComputeServiceImplTest {
         given(findIterableGot.limit(anyInt())).willReturn(findIterableGot);
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
+        Answer<Object> objectAnswer = o -> new Document("_id", GUIDFactory.newGUID().getId())
+            .append("_og", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
+            .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
         when(mongoCursorUnit.next()).thenAnswer(
-            o -> new Document("_id", GUIDFactory.newGUID().getId())
-                .append("_og", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
-                .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
+            objectAnswer
         );
         when(mongoCursorGot.next()).thenAnswer(
-            o -> new Document("_id", GUIDFactory.newGUID().getId())
-                .append("_og", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
-                .append("_glpd", LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()))
+            objectAnswer
         );
     }
 

@@ -1,25 +1,6 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import com.google.common.collect.Lists;
-import com.mongodb.Block;
-import com.mongodb.client.model.Filters;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
-import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.InputStream;
 import java.net.InetAddress;
@@ -28,39 +9,68 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import com.google.common.collect.Lists;
+import com.mongodb.Block;
+import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
+import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.elasticsearch.client.transport.TransportClient;
+import org.elasticsearch.common.settings.Settings;
+import org.elasticsearch.common.transport.TransportAddress;
+import org.elasticsearch.transport.client.PreBuiltTransportClient;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class PopulateServiceTest {
 
     private static final String STORAGE_CONF_FILE = "storage.conf";
-    @Rule
-    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Rule
-    public MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "metadata",
-        Arrays.stream(VitamDataType.values()).map(VitamDataType::getCollectionName).toArray(String[]::new));
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
-
-    @Rule
-    public MongoRule logbookMongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), "logbook",
-        Arrays.stream(VitamDataType.values()).map(VitamDataType::getCollectionName).toArray(String[]::new));
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private PopulateService populateService;
     private MetadataRepository metadataRepository;
     private MasterdataRepository masterdataRepository;
     private LogbookRepository logbookRepository;
-    private TransportClient client;
+
+    @BeforeClass
+    public static void beforeClass() {
+        for (VitamDataType vitamDataType : VitamDataType.values()) {
+            vitamDataType.setCollectionName(PREFIX + vitamDataType.getCollectionName());
+            vitamDataType.setIndexName(PREFIX + vitamDataType.getIndexName());
+            elasticsearchRule.addIndexToBePurged(vitamDataType.getIndexName());
+            mongoRule.addCollectionToBePurged(vitamDataType.getCollectionName());
+        }
+
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        elasticsearchRule.deleteIndexes();
+        mongoRule.handleAfterClass();
+    }
 
     @Before
     public void setUp() throws Exception {
-        int tcpPort = JunitHelper.getInstance().findAvailablePort();
-        int httPort = JunitHelper.getInstance().findAvailablePort();
-        String clusterName = "elasticsearch-data";
-        JunitHelper.startElasticsearchForTest(temporaryFolder, clusterName, tcpPort, httPort);
-        Settings settings = ElasticsearchAccess.getSettings(clusterName);
-
-        client = new PreBuiltTransportClient(settings);
-        client.addTransportAddress(new InetSocketTransportAddress(InetAddress.getByName("localhost"), tcpPort));
 
         StoragePopulateImpl storagePopulateService;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
@@ -70,13 +80,23 @@ public class PopulateServiceTest {
             storagePopulateService = new StoragePopulateImpl(configuration);
         }
 
-        this.metadataRepository = new MetadataRepository(mongoRule.getMongoDatabase(), client, storagePopulateService);
-        this.masterdataRepository = new MasterdataRepository(mongoRule.getMongoDatabase(), client);
-        this.logbookRepository = new LogbookRepository(logbookMongoRule.getMongoDatabase());
-        MetadataStorageService metadataStorageService = new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
+        this.metadataRepository =
+            new MetadataRepository(mongoRule.getMongoDatabase(), elasticsearchRule.getClient(), storagePopulateService);
+        this.masterdataRepository =
+            new MasterdataRepository(mongoRule.getMongoDatabase(), elasticsearchRule.getClient());
+        this.logbookRepository = new LogbookRepository(mongoRule.getMongoDatabase());
+        MetadataStorageService metadataStorageService =
+            new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
         UnitGraph unitGraph = new UnitGraph(metadataRepository);
         populateService =
-            new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 4, metadataStorageService);
+            new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 4,
+                metadataStorageService);
+    }
+
+    @After
+    public void after() throws Exception {
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     @Test
@@ -191,17 +211,17 @@ public class PopulateServiceTest {
             i += 1;
         }
 
-        assertThat(logbookMongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).count())
+        assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).count())
             .isEqualTo(10);
-        assertThat(logbookMongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).count())
+        assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).count())
             .isEqualTo(10);
-        logbookMongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).find().skip(1).
+        mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) doc -> {
                 assertThat(doc.getInteger("_tenant").equals(0)).isTrue();
                 assertThat(doc.getString("evType").equals("LFC.LFC_CREATION")).isTrue();
                 assertThat(doc.get("events", List.class).size() == 10).isTrue();
             });
-        logbookMongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).find().skip(1).
+        mongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) doc -> {
                 assertThat(doc.getInteger("_tenant").equals(0)).isTrue();
                 assertThat(doc.getString("evType").equals("LFC.LFC_CREATION")).isTrue();

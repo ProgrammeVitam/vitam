@@ -246,7 +246,7 @@ public class DbRequestSingle {
                 try {
                     SchemaValidationUtils validator = new SchemaValidationUtils();
                     JsonNode jsonDocument = JsonHandler.toJsonNode(obj);
-                    SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getName());
+                    SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getClasz().getSimpleName());
                     if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                         throw new SchemaValidationException(status.getValidationMessage());
                     }
@@ -611,7 +611,7 @@ public class DbRequestSingle {
                 try {
                     SchemaValidationUtils validator = new SchemaValidationUtils();
                     SchemaValidationStatus status =
-                        validator.validateJson(updatedJsonDocument, vitamCollection.getName());
+                        validator.validateJson(updatedJsonDocument, vitamCollection.getClasz().getSimpleName());
                     if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                         throw new SchemaValidationException(status.getValidationMessage());
                     }

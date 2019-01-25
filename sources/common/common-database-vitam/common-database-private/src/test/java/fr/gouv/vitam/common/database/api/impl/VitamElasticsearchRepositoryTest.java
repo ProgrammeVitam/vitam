@@ -34,32 +34,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.Document;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.client.Client;
+import org.elasticsearch.common.Strings;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-
 /**
+ *
  */
 public class VitamElasticsearchRepositoryTest {
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
 
-    public static final String TESTINDEX = "testindex";
+    public static final String TESTINDEX = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
     private static VitamElasticsearchRepository repository;
 
 
@@ -90,20 +93,30 @@ public class VitamElasticsearchRepositoryTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    @Rule
-    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(tempFolder.newFolder(), TESTINDEX);
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(TESTINDEX);
 
-    public VitamElasticsearchRepositoryTest() throws IOException {}
+    public VitamElasticsearchRepositoryTest() {
+    }
 
+    @AfterClass
+    public static void afterClass() {
+        elasticsearchRule.deleteIndexes();
+    }
 
     @Before
-    public void setUpBeforeClass() throws Exception {
+    public void before() throws Exception {
         repository = new VitamElasticsearchRepository(elasticsearchRule.getClient(), TESTINDEX, false);
         /*
          * findByIdentifierAndTenant works only if identifier is term (not text) As es by default detect Identifier as
-         * text we shoud pre-create index with correct mapping
+         * text we should pre-create index with correct mapping
          */
         createIndexWithMapping(elasticsearchRule.getClient());
+    }
+
+    @After
+    public void after() throws Exception {
+        elasticsearchRule.handleAfter();
     }
 
     @Test
@@ -117,7 +130,7 @@ public class VitamElasticsearchRepositoryTest {
             .field("Title", "Test save")
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         assertThat(document.get(VitamDocument.ID)).isNotNull();
@@ -139,7 +152,7 @@ public class VitamElasticsearchRepositoryTest {
             .field("Title", "Test save")
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         VitamRepositoryStatus result = repository.saveOrUpdate(document);
 
         assertThat(VitamRepositoryStatus.CREATED.equals(result));
@@ -157,7 +170,7 @@ public class VitamElasticsearchRepositoryTest {
             .field("Title", "Test othersave")
             .endObject();
 
-        document = Document.parse(builder.string());
+        document = Document.parse(Strings.toString(builder));
         result = repository.saveOrUpdate(document);
 
         assertThat(VitamRepositoryStatus.UPDATED.equals(result));
@@ -176,7 +189,7 @@ public class VitamElasticsearchRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save " + RandomUtils.nextDouble())
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
 
         // pruge all tenants
@@ -187,7 +200,7 @@ public class VitamElasticsearchRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 1)
                 .field("Title", "Test save " + RandomUtils.nextDouble())
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
 
         repository.save(documents);
@@ -216,7 +229,7 @@ public class VitamElasticsearchRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save " + RandomUtils.nextDouble())
                 .endObject();
-            documents.add(Document.parse(builder.string()));
+            documents.add(Document.parse(Strings.toString(builder)));
         }
 
         repository.saveOrUpdate(documents);
@@ -234,7 +247,7 @@ public class VitamElasticsearchRepositoryTest {
                 .field(VitamDocument.TENANT_ID, 0)
                 .field("Title", "Test save updated")
                 .endObject();
-            updatedDocuments.add(Document.parse(builder.string()));
+            updatedDocuments.add(Document.parse(Strings.toString(builder)));
         }
 
         repository.saveOrUpdate(updatedDocuments);
@@ -264,7 +277,7 @@ public class VitamElasticsearchRepositoryTest {
             .field("Title", "Test save")
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.getByID(id, tenant);
@@ -299,7 +312,7 @@ public class VitamElasticsearchRepositoryTest {
                 .field("Title", "Test save")
                 .endObject();
 
-            Document document = Document.parse(builder.string());
+            Document document = Document.parse(Strings.toString(builder));
             repository.save(document);
         }
         Optional<Document> response = repository.getByID(GUIDFactory.newGUID().toString(), tenant);
@@ -318,7 +331,7 @@ public class VitamElasticsearchRepositoryTest {
             .field("Title", "Test save")
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.getByID(id, tenant);
@@ -341,7 +354,7 @@ public class VitamElasticsearchRepositoryTest {
             .field("Title", "Test save")
             .endObject();
 
-        Document document = Document.parse(builder.string());
+        Document document = Document.parse(Strings.toString(builder));
         repository.save(document);
 
         Optional<Document> response = repository.getByID(id, tenant);
@@ -384,6 +397,6 @@ public class VitamElasticsearchRepositoryTest {
 
     public Settings.Builder settings() throws IOException {
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
-            VitamElasticsearchRepositoryTest.class.getResourceAsStream(ES_CONFIGURATION_FILE));
+            VitamElasticsearchRepositoryTest.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
     }
 }

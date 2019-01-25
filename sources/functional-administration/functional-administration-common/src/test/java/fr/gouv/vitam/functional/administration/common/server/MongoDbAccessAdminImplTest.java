@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -73,6 +74,7 @@ import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -81,6 +83,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -102,18 +105,14 @@ public class MongoDbAccessAdminImplTest {
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(FileFormat.class, FileRules.class)), "Vitam-Test",
-            FileFormat.class.getSimpleName(), FileRules.class.getSimpleName());
+        new MongoRule(VitamCollection.getMongoClientOptions(FunctionalAdminCollections.getClasses()));
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            FileFormat.class.getSimpleName().toLowerCase(), FileRules.class.getSimpleName().toLowerCase());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
-
-    private static final String ACCESSION_REGISTER_DETAIL_COLLECTION = "AccessionRegisterDetail";
 
     private static final String REUSE_RULE = "ReuseRule";
     private static final String RULE_ID_VALUE = "APK-485";
@@ -129,7 +128,6 @@ public class MongoDbAccessAdminImplTest {
 
     private static final String DEFAULT_DATE = "2018-04-05T13:34:40.234";
 
-    static int port;
     static MongoDbAccessAdminImpl mongoAccess;
     static FileFormat fileFormat1;
     static FileFormat fileFormat2;
@@ -151,8 +149,6 @@ public class MongoDbAccessAdminImplTest {
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes);
-        FunctionalAdminCollections.FORMATS.initialize(esClient);
-        FunctionalAdminCollections.RULES.initialize(esClient);
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
         mongoAccess =
@@ -235,12 +231,18 @@ public class MongoDbAccessAdminImplTest {
 
         context = createContext();
 
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient);
+
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        FunctionalAdminCollections.afterTestClass( true);
+    }
+
+    @After
+    public void after() throws Exception {
+        FunctionalAdminCollections.afterTest();
     }
 
     @Test
@@ -256,7 +258,7 @@ public class MongoDbAccessAdminImplTest {
         arrayNode.add(jsonNode3);
         final FunctionalAdminCollections formatCollection = FunctionalAdminCollections.FORMATS;
         mongoAccess.insertDocuments(arrayNode, formatCollection).close();
-        assertEquals("FileFormat", formatCollection.getName());
+        assertEquals(PREFIX + "FileFormat", formatCollection.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.FORMATS.getName());
         assertEquals(3, collection.count());
@@ -346,7 +348,7 @@ public class MongoDbAccessAdminImplTest {
         arrayNode.add(jsonNode2);
         final FunctionalAdminCollections rulesCollection = FunctionalAdminCollections.RULES;
         mongoAccess.insertDocuments(arrayNode, rulesCollection).close();
-        assertEquals("FileRules", rulesCollection.getName());
+        assertEquals(PREFIX + "FileRules", rulesCollection.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.RULES.getName());
         assertEquals(2, collection.count());
@@ -387,8 +389,6 @@ public class MongoDbAccessAdminImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final JsonNode jsonNode = JsonHandler.toJsonNode(register);
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
-        assertEquals(ACCESSION_REGISTER_DETAIL_COLLECTION,
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         assertEquals(1, collection.count());
@@ -592,8 +592,8 @@ public class MongoDbAccessAdminImplTest {
     @Test
     @RunWithCustomExecutor
     public void testDeleteContext()
-            throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
-            DatabaseException, SchemaValidationException, BadRequestException {
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
+        DatabaseException, SchemaValidationException, BadRequestException {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contextCollection = FunctionalAdminCollections.CONTEXT;
@@ -607,7 +607,7 @@ public class MongoDbAccessAdminImplTest {
         final DbRequestResult result = mongoAccess.deleteDocument(select.getFinalSelect(), contextCollection);
         result.close();
 
-        final DbRequestResult contextFound =  mongoAccess.findDocuments(select.getFinalSelect(), contextCollection);
+        final DbRequestResult contextFound = mongoAccess.findDocuments(select.getFinalSelect(), contextCollection);
         assertEquals(0, contextFound.getTotal());
         contextFound.close();
 

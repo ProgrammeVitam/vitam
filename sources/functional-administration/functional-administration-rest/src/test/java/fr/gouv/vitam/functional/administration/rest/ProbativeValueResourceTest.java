@@ -7,14 +7,13 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response;
+import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -43,9 +42,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * ProbativeValueResource Test
@@ -98,7 +94,7 @@ public class ProbativeValueResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void given_empty_query_when_export_then_return_forbidden_request() throws Exception {
+    public void given_empty_query_when_export_then_return_forbidden_request() {
 
         Response probativeValue = probativeValueResource
             .exportProbativeValue(new ProbativeValueRequest(new Select().getFinalSelect(), singletonList("BinaryMaster")));

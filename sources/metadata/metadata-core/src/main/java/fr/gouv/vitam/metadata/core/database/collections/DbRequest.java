@@ -184,16 +184,16 @@ public class DbRequest {
     // TODO JE finish to refactor
     public DbRequest() {
         this(
-            new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
+            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()));
     }
 
     /**
      * Constructor
      */
     public DbRequest(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
-        this(new MongoDbMetadataRepository<Unit>(MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(MetadataCollections.OBJECTGROUP.getCollection()));
+        this(new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()));
         this.changesTrigger = new ChangesTrigger(fileNameTriggersConfig);
     }
 

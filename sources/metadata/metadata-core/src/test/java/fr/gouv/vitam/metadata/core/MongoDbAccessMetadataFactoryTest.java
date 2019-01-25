@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,8 +36,23 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+import com.mongodb.MongoClient;
+import com.mongodb.MongoCredential;
+import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
+import com.mongodb.client.model.Filters;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import org.bson.Document;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -46,25 +60,6 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
-import fr.gouv.vitam.metadata.api.exception.MetaDataException;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import ru.yandex.qatools.embed.service.MongoEmbeddedService;
 
 public class MongoDbAccessMetadataFactoryTest {
@@ -87,7 +82,6 @@ public class MongoDbAccessMetadataFactoryTest {
     private static final String databaseName = "db-metadata";
     private static final String user = "user-metadata";
     private static final String pwd = "user-metadata";
-    private static ElasticsearchTestConfiguration config = null;
 
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
@@ -103,16 +97,10 @@ public class MongoDbAccessMetadataFactoryTest {
 
     @BeforeClass
     public static void setup() throws IOException {
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(tempFolder, CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
         junitHelper = JunitHelper.getInstance();
 
         nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode(HOST_NAME, config.getTcpPort()));
+        nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
         // MongoDB Node1
         mongoDbNodes = new ArrayList<>();
@@ -140,12 +128,8 @@ public class MongoDbAccessMetadataFactoryTest {
      */
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (config == null) {
-            return;
-        }
         mongo.stop();
         junitHelper.releasePort(port);
-        JunitHelper.stopElasticsearchForTest(config);
         VitamClientFactory.resetConnections();
     }
 
@@ -211,7 +195,7 @@ public class MongoDbAccessMetadataFactoryTest {
 
 
     @Test
-    public void shouldHavePermissions() throws MetaDataException {
+    public void shouldHavePermissions() {
         final MetaDataConfiguration config =
             new MetaDataConfiguration(mongoDbNodes, databaseName, CLUSTER_NAME, nodes);
         config.setDbUserName(user);

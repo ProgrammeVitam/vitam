@@ -92,17 +92,14 @@ public class SecurityInternalIT extends VitamRuleRunner {
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
 
-    private final static String ISSUER_NAME =
-        "CN=ca_intermediate_client-external, OU=authorities, O=vitam, L=paris, ST=idf, C=fr";
-
     private static InternalSecurityClient internalSecurityClient;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
+        handleBeforeClass(0, 1);
         File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
         final InternalSecurityConfiguration internalSecurityConfiguration =
-            PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
+                PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
         internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
@@ -114,6 +111,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
 
     @AfterClass
     public static void shutdownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         if (identityMain != null) {
             identityMain.stop();
@@ -139,8 +137,8 @@ public class SecurityInternalIT extends VitamRuleRunner {
         byte[] certificate = toByteArray(stream);
         //WHEN //THEN
         assertThatThrownBy(
-            () -> internalSecurityClient.checkPersonalCertificate(certificate, "tt:read"))
-            .isInstanceOf(InternalSecurityException.class);
+                () -> internalSecurityClient.checkPersonalCertificate(certificate, "tt:read"))
+                .isInstanceOf(InternalSecurityException.class);
     }
 
     @Test
@@ -149,8 +147,8 @@ public class SecurityInternalIT extends VitamRuleRunner {
         // When / Then
         VitamThreadUtils.getVitamSession().setTenantId(0);
         assertThatThrownBy(
-            () -> internalSecurityClient.checkPersonalCertificate(null, "tt:read"))
-            .isInstanceOf(InternalSecurityException.class);
+                () -> internalSecurityClient.checkPersonalCertificate(null, "tt:read"))
+                .isInstanceOf(InternalSecurityException.class);
     }
 
     @Test
@@ -200,7 +198,8 @@ public class SecurityInternalIT extends VitamRuleRunner {
         //WHEN
         HttpClient client = HttpClientBuilder.create().build();
         HttpPost delete = new HttpPost(url) {
-            @Override public String getMethod() {
+            @Override
+            public String getMethod() {
                 return "DELETE";
             }
         };
@@ -223,40 +222,40 @@ public class SecurityInternalIT extends VitamRuleRunner {
         identityInsertModel.setCertificate(toByteArray(getClass().getResourceAsStream(IDENTITY_CERT_FILE)));
 
         final TestVitamClientFactory<DefaultClient> testClientFactory =
-            new TestVitamClientFactory<>(29003, "/v1/api");
+                new TestVitamClientFactory<>(29003, "/v1/api");
         VitamRestTestClient restClient = new VitamRestTestClient(testClientFactory);
 
         restClient.given().body(identityInsertModel, MediaType.APPLICATION_JSON_TYPE).status(
-            Response.Status.CREATED).when().post("/identity");
+                Response.Status.CREATED).when().post("/identity");
 
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size()).isEqualTo(1);
 
         restClient.given().body(toByteArray(getClass().getResourceAsStream(PERSONAL_CERT_FILE)),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
-            Response.Status.NO_CONTENT).post("/personalCertificate");
+                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+                Response.Status.NO_CONTENT).post("/personalCertificate");
 
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(1);
 
         // When empty CRL
         restClient.given()
-            .body(toByteArray(getClass().getResourceAsStream(EMPTY_CRL_FILE)), MediaType.APPLICATION_OCTET_STREAM_TYPE)
-            .status(
-                Response.Status.NO_CONTENT).post("/crl");
+                .body(toByteArray(getClass().getResourceAsStream(EMPTY_CRL_FILE)), MediaType.APPLICATION_OCTET_STREAM_TYPE)
+                .status(
+                        Response.Status.NO_CONTENT).post("/crl");
         // Then
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
-            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
 
 
         //When Non empty CRL revoking sia certificate
         restClient.given().body(toByteArray(getClass().getResourceAsStream(CRL_SIA_REVOKED_FILE)),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
-            Response.Status.NO_CONTENT).post("/crl");
+                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+                Response.Status.NO_CONTENT).post("/crl");
 
         // Then
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
-            CertificateStatus.VALID.name()))).size()).isEqualTo(0);
+                CertificateStatus.VALID.name()))).size()).isEqualTo(0);
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
-            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
 
     }
 

@@ -68,6 +68,7 @@ public class VitamSession {
     private AccessContractModel contract = null;
     private Object other = null;
     private String personalCertificate = null;
+    private boolean usedForTests;
 
     /**
      * @param owningThread the owning thread
@@ -94,6 +95,7 @@ public class VitamSession {
         newSession.applicationSessionId = origin.getApplicationSessionId();
         newSession.securityProfileIdentifier = origin.getSecurityProfileIdentifier();
         newSession.personalCertificate = origin.getPersonalCertificate();
+        newSession.usedForTests = origin.isUsedForTests();
         return newSession;
     }
 
@@ -318,6 +320,7 @@ public class VitamSession {
         setApplicationSessionId(newSession.getApplicationSessionId());
         setSecurityProfileIdentifier(newSession.getSecurityProfileIdentifier());
         setPersonalCertificate(newSession.getPersonalCertificate());
+        setUsedForTests(newSession.isUsedForTests());
 
     }
 
@@ -362,5 +365,13 @@ public class VitamSession {
                 "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" +
                 applicationSessionId + "', personalCertificate:'" +
                 personalCertificate + "'}";
+    }
+
+    public boolean isUsedForTests() {
+        return usedForTests;
+    }
+
+    public void setUsedForTests(boolean usedForTests) {
+        this.usedForTests = usedForTests;
     }
 }

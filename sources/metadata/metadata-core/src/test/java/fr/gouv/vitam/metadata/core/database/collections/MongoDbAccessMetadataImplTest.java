@@ -26,33 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.ARCHIVE_UNIT;
-import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECT;
-import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECTS_SIZE;
-import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.CREATION_DATE;
-import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.OBJECT_GROUP;
-import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.TENANT;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
-import static java.util.Locale.US;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.tuple;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
@@ -62,6 +35,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -70,6 +44,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
+import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import org.assertj.core.util.Lists;
@@ -77,6 +53,7 @@ import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.common.ParseField;
 import org.elasticsearch.common.xcontent.ContextParser;
+import org.elasticsearch.common.xcontent.DeprecationHandler;
 import org.elasticsearch.common.xcontent.NamedXContentRegistry;
 import org.elasticsearch.common.xcontent.json.JsonXContent;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -90,44 +67,80 @@ import org.elasticsearch.search.aggregations.metrics.sum.ParsedSum;
 import org.elasticsearch.search.aggregations.metrics.sum.SumAggregationBuilder;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ParsedValueCount;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCountAggregationBuilder;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.powermock.api.mockito.PowerMockito;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.ARCHIVE_UNIT;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECT;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.BINARY_OBJECTS_SIZE;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.CREATION_DATE;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.OBJECT_GROUP;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic.TENANT;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static java.util.Locale.US;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyListOf;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+
+@RunWithCustomExecutor
 public class MongoDbAccessMetadataImplTest {
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final String DEFAULT_MONGO =
-        "AccessionRegisterDetail\n" + "AccessionRegisterSummary\n" + "Unit\n" + "ObjectGroup\n" +
-            "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-DB.Unit}}\n" +
-            "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-DB.Unit}}\n" +
-            "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=Vitam-DB.ObjectGroup}}\n" +
-            "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=Vitam-DB.ObjectGroup}}\n";
 
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    private static final String DEFAULT_MONGO1 = PREFIX + "AccessionRegisterDetail";
+    private static final String DEFAULT_MONGO2 = PREFIX + "AccessionRegisterSummary";
+    private static final String DEFAULT_MONGO3 = PREFIX + "Unit";
+    private static final String DEFAULT_MONGO4 = PREFIX + "ObjectGroup";
+    private static final String DEFAULT_MONGO5 =
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=" + MongoRule.VITAM_DB + "." + PREFIX +
+            "Unit}}";
+    private static final String DEFAULT_MONGO6 =
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=" + MongoRule.VITAM_DB + "." +
+            PREFIX + "Unit}}";
+    private static final String DEFAULT_MONGO7 =
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=" + MongoRule.VITAM_DB + "." +
+            PREFIX +
+            "ObjectGroup}}";
+    private static final String DEFAULT_MONGO8 =
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=" + MongoRule.VITAM_DB +
+            "." + PREFIX +
+            "ObjectGroup}}";
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions(), "Vitam-DB",
-            MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName());
 
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
-            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1"
-        );
+    public static MongoRule mongoRule =
+        new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     static final List<Integer> tenantList = Arrays.asList(0);
     private static ElasticsearchAccessMetadata esClient;
@@ -138,19 +151,28 @@ public class MongoDbAccessMetadataImplTest {
 
     @BeforeClass
     public static void setupOne() throws IOException, VitamException {
+        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(),
+            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT)));
+        MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient, 0, 1);
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
 
-        final List<ElasticsearchNode> nodes = new ArrayList<>();
-        nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
-
-        esClient = new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), nodes);
 
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+    public static void tearDownAfterClass() {
+        MetadataCollections.afterTestClass(true, 0, 1);
+        FunctionalAdminCollections.afterTestClass(true);
+    }
+
+    @After
+    public void after() {
+        MetadataCollections.afterTest(0, 1);
+        FunctionalAdminCollections.afterTest();
+
     }
 
     @Test
@@ -158,9 +180,18 @@ public class MongoDbAccessMetadataImplTest {
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), true,
                 esClient, tenantList);
-        assertThat(mongoDbAccess.getInfo()).isEqualTo(DEFAULT_MONGO);
-        assertThat(MetadataCollections.UNIT.getName()).isEqualTo("Unit");
-        assertThat(MetadataCollections.OBJECTGROUP.getName()).isEqualTo("ObjectGroup");
+        assertThat(mongoDbAccess.getInfo())
+            .contains(DEFAULT_MONGO1)
+            .contains(DEFAULT_MONGO2)
+            .contains(DEFAULT_MONGO3)
+            .contains(DEFAULT_MONGO4)
+            .contains(DEFAULT_MONGO5)
+            .contains(DEFAULT_MONGO6)
+            .contains(DEFAULT_MONGO7)
+            .contains(DEFAULT_MONGO8)
+        ;
+        assertThat(MetadataCollections.UNIT.getName()).isEqualTo(PREFIX + "Unit");
+        assertThat(MetadataCollections.OBJECTGROUP.getName()).isEqualTo(PREFIX + "ObjectGroup");
         assertThat(MongoDbAccessMetadataImpl.getUnitSize()).isEqualTo(0);
         assertThat(MongoDbAccessMetadataImpl.getObjectGroupSize()).isEqualTo(0);
     }
@@ -170,7 +201,16 @@ public class MongoDbAccessMetadataImplTest {
         mongoDbAccess =
             new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
                 esClient, tenantList);
-        assertEquals(DEFAULT_MONGO, mongoDbAccess.getInfo());
+        assertThat(mongoDbAccess.getInfo())
+            .contains(DEFAULT_MONGO1)
+            .contains(DEFAULT_MONGO2)
+            .contains(DEFAULT_MONGO3)
+            .contains(DEFAULT_MONGO4)
+            .contains(DEFAULT_MONGO5)
+            .contains(DEFAULT_MONGO6)
+            .contains(DEFAULT_MONGO7)
+            .contains(DEFAULT_MONGO8)
+        ;
     }
 
     @Test
@@ -284,10 +324,13 @@ public class MongoDbAccessMetadataImplTest {
     @Test
     public void should_select_accession_register_symbolic() throws Exception {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
-        SearchResponse archiveUnitResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_1.data"));
-        SearchResponse objectGroupResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_1.data"));
+        SearchResponse archiveUnitResponse =
+            searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_1.data"));
+        SearchResponse objectGroupResponse =
+            searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_1.data"));
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(archiveUnitResponse);
@@ -314,10 +357,13 @@ public class MongoDbAccessMetadataImplTest {
     @Test
     public void should_fill_all_accession_register_symbolic_information() throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
-        SearchResponse archiveUnitResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_2.data"));
-        SearchResponse objectGroupResponse = searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_2.data"));
+        SearchResponse archiveUnitResponse =
+            searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_2.data"));
+        SearchResponse objectGroupResponse =
+            searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_2.data"));
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
             .willReturn(archiveUnitResponse);
@@ -351,9 +397,11 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
-    public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link() throws IOException, InvalidParseOperationException {
+    public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link()
+        throws IOException, InvalidParseOperationException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         long numberOfOriginatingAgencies = 12;
         long numberOfOriginatingAgency = 1;
@@ -362,7 +410,7 @@ public class MongoDbAccessMetadataImplTest {
                 numberOfOriginatingAgencies, numberOfOriginatingAgency)
         );
         SearchResponse objectGroupResponse = searchResult(
-                PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_3.data")
+            PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_3.data")
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -387,16 +435,19 @@ public class MongoDbAccessMetadataImplTest {
             .findFirst();
 
         // Then
-        assertThat(first).map(a -> a.getLong(ARCHIVE_UNIT)).hasValue(numberOfOriginatingAgencies - numberOfOriginatingAgency);
+        assertThat(first).map(a -> a.getLong(ARCHIVE_UNIT))
+            .hasValue(numberOfOriginatingAgencies - numberOfOriginatingAgency);
     }
 
     @Test
-    public void should_add_number_of_binaries_and_binaries_total_size_to_related_accession_register_when_object_group_counted() throws IOException {
+    public void should_add_number_of_binaries_and_binaries_total_size_to_related_accession_register_when_object_group_counted()
+        throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse = searchResult(
-                String.format(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_4.data"))
+            String.format(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_4.data"))
         );
         double binarySize = 88209;
         long binaryCount = 2;
@@ -405,8 +456,8 @@ public class MongoDbAccessMetadataImplTest {
 
         SearchResponse objectGroupResponse = searchResult(
             String.format(US,
-                    PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_4.data"),
-                    objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
+                PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_4.data"),
+                objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -440,10 +491,11 @@ public class MongoDbAccessMetadataImplTest {
     public void should_add_zero_binaries_and_zero_binaries_total_size_to_related_accession_register_when_object_group_NOT_counted()
         throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse = searchResult(
-                PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_5.data")
+            PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_5.data")
         );
         double binarySize = 0;
         long binaryCount = 0;
@@ -452,7 +504,7 @@ public class MongoDbAccessMetadataImplTest {
 
         SearchResponse objectGroupResponse = searchResult(
             String.format(US,
-                    PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_5.data"),
+                PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_5.data"),
                 objectGroupCountAll, binaryCount, binarySize, objectGroupCountThis, binaryCount, binarySize)
         );
 
@@ -484,15 +536,17 @@ public class MongoDbAccessMetadataImplTest {
     }
 
     @Test
-    public void should_NOT_created_new_accession_register_with_object_group_information_when_no_related_accession_register() throws IOException {
+    public void should_NOT_created_new_accession_register_with_object_group_information_when_no_related_accession_register()
+        throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse = searchResult(
-                PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_6.data")
+            PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_6.data")
         );
         SearchResponse objectGroupResponse = searchResult(
-                PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_6.data")
+            PropertiesUtils.getResourceAsString("accession_register_symbolic_got_aggs_6.data")
         );
 
         given(client.basicSearch(eq(UNIT), eq(0), anyListOf(AggregationBuilder.class), any(QueryBuilder.class)))
@@ -537,6 +591,7 @@ public class MongoDbAccessMetadataImplTest {
 
     private SearchResponse searchResult(String content) throws IOException {
         NamedXContentRegistry registry = new NamedXContentRegistry(getDefaultNamedXContents());
-        return SearchResponse.fromXContent(JsonXContent.jsonXContent.createParser(registry, content));
+        return SearchResponse.fromXContent(
+            JsonXContent.jsonXContent.createParser(registry, DeprecationHandler.THROW_UNSUPPORTED_OPERATION, content));
     }
 }

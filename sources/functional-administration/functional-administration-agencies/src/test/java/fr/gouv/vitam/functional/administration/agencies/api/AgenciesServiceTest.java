@@ -41,11 +41,10 @@ import java.util.HashMap;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -57,6 +56,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.counter.VitamCounterService;
@@ -85,10 +85,11 @@ public class AgenciesServiceTest {
 
     public static final String AGENCIES_REPORT = "AGENCIES_REPORT";
     private static VitamCounterService vitamCounterService;
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+            VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -99,14 +100,12 @@ public class AgenciesServiceTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class)), "Vitam-Test",
-            Agencies.class.getSimpleName());
+            new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)),
+                    PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(org.assertj.core.util.Files.newTemporaryFolder(),
-            Agencies.class.getSimpleName().toLowerCase());
-
+            new ElasticsearchRule(PREFIX + Agencies.class.getSimpleName().toLowerCase(), PREFIX + AccessContract.class.getSimpleName().toLowerCase());
 
 
     private static final Integer TENANT_ID = 1;
@@ -119,7 +118,6 @@ public class AgenciesServiceTest {
     private static List<AgenciesModel> agenciesToUpdate;
     private static List<AgenciesModel> agenciesToDelete;
     private static List<AgenciesModel> agenciesInDb;
-
 
 
     @Mock
@@ -135,18 +133,12 @@ public class AgenciesServiceTest {
     @RunWithCustomExecutor
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
-
-
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhsot", elasticsearchRule.getTcpPort()));
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, new HashMap<>());
@@ -165,8 +157,8 @@ public class AgenciesServiceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-       mongoRule.handleAfter();
-       elasticsearchRule.handleAfter();
+        elasticsearchRule.deleteIndexes();
+        mongoRule.handleAfterClass();
     }
 
     @After
@@ -187,7 +179,7 @@ public class AgenciesServiceTest {
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(anyObject()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+                .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
         instantiateAgencyService();
 
@@ -199,13 +191,13 @@ public class AgenciesServiceTest {
             Files.copy(argumentAt, reportPath);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT),
-            eq(DataCategory.REPORT), endsWith(".json"));
+                eq(DataCategory.REPORT), endsWith(".json"));
 
         File fileAgencies1 = getResourceFile("agencies.csv");
 
         // When
         RequestResponse<AgenciesModel> response =
-            agencyService.importAgencies(new FileInputStream(fileAgencies1), null);
+                agencyService.importAgencies(new FileInputStream(fileAgencies1), null);
 
         // Then
         assertThat(response.isOk()).isTrue();
@@ -233,7 +225,7 @@ public class AgenciesServiceTest {
         assertThat(response.isOk()).isFalse();
         assertThat(report.get("Operation")).isNotNull();
         String error =
-            "{\"line 4\":[{\"Code\":\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\",\"Message\":\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\",\"Information additionnelle\":\"Name\"}]}";
+                "{\"line 4\":[{\"Code\":\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\",\"Message\":\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\",\"Information additionnelle\":\"Name\"}]}";
         assertThat(report.get("error").toString()).isEqualTo(error);
         reportPath.toFile().delete();
 
@@ -247,7 +239,7 @@ public class AgenciesServiceTest {
         assertThat(response.isOk()).isFalse();
         assertThat(report.get("Operation")).isNotNull();
         error =
-            "{\"line 3\":[{\"Code\":\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\",\"Message\":\"Le fichier importé n'est pas au format CSV\"}]}";
+                "{\"line 3\":[{\"Code\":\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\",\"Message\":\"Le fichier importé n'est pas au format CSV\"}]}";
         assertThat(report.get("error").toString()).isEqualTo(error);
         reportPath.toFile().delete();
 
@@ -264,7 +256,7 @@ public class AgenciesServiceTest {
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("Operation")).isNotNull();
         assertThat((report.get("UsedAgencies to Delete")).get(0).textValue())
-            .startsWith("AG-00000");
+                .startsWith("AG-00000");
 
     }
 
@@ -299,7 +291,7 @@ public class AgenciesServiceTest {
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
         when(logbookOperationsclient.selectOperation(anyObject()))
-            .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
+                .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
         instantiateAgencyService();
 
@@ -308,68 +300,67 @@ public class AgenciesServiceTest {
     }
 
     static String contract = "{ \"_tenant\": 1,\n" +
-        "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
-        "    \"Identifier\": \"AC-000018\",\n" +
-        "    \"Description\": \"aDescription of the contract\",\n" +
-        "    \"Status\": \"ACTIVE\",\n" +
-        "    \"CreationDate\": \"2016-12-10T00:00:00.000\",\n" +
-        "    \"LastUpdate\": \"2017-10-06T01:53:22.544\",\n" +
-        "    \"ActivationDate\": \"2016-12-10T00:00:00.000\",\n" +
-        "    \"DeactivationDate\": \"2016-12-10T00:00:00.000\",\n" +
-        "    \"DataObjectVersion\": [],\n" +
-        "    \"OriginatingAgencies\": [\n" +
-        "        \"FRAN_NP_005568\",\n" +
-        "        \"AG-000001\"\n" +
-        "    ],\n" +
-        "    \"WritingPermission\": true,\n" +
-        "    \"EveryOriginatingAgency\": true,\n" +
-        "    \"EveryDataObjectVersion\": false,\n" +
-        "    \"_v\": 0\n" +
-        "}";
+            "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
+            "    \"Identifier\": \"AC-000018\",\n" +
+            "    \"Description\": \"aDescription of the contract\",\n" +
+            "    \"Status\": \"ACTIVE\",\n" +
+            "    \"CreationDate\": \"2016-12-10T00:00:00.000\",\n" +
+            "    \"LastUpdate\": \"2017-10-06T01:53:22.544\",\n" +
+            "    \"ActivationDate\": \"2016-12-10T00:00:00.000\",\n" +
+            "    \"DeactivationDate\": \"2016-12-10T00:00:00.000\",\n" +
+            "    \"DataObjectVersion\": [],\n" +
+            "    \"OriginatingAgencies\": [\n" +
+            "        \"FRAN_NP_005568\",\n" +
+            "        \"AG-000001\"\n" +
+            "    ],\n" +
+            "    \"WritingPermission\": true,\n" +
+            "    \"EveryOriginatingAgency\": true,\n" +
+            "    \"EveryDataObjectVersion\": false,\n" +
+            "    \"_v\": 0\n" +
+            "}";
 
     private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
         return JsonHandler.getFromString(String.format("{\n" +
-            "     \"httpCode\": 200,\n" +
-            "     \"$hits\": {\n" +
-            "          \"total\": 1,\n" +
-            "          \"offset\": 0,\n" +
-            "          \"limit\": 1,\n" +
-            "          \"size\": 1\n" +
-            "     },\n" +
-            "     \"$results\": [\n" +
-            "          {\n" +
-            "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
-            "               \"events\": [\n" +
-            "                    {\n" +
-            "                         \"outcome\": \"%s\"\n" +
-            "                    }\n" +
-            "               ],\n" +
-            "               \"_v\": 0,\n" +
-            "               \"_tenant\": %d\n" +
-            "          }\n" +
-            "     ],\n" +
-            "     \"$context\": {\n" +
-            "          \"$query\": {\n" +
-            "               \"$eq\": {\n" +
-            "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
-            "               }\n" +
-            "          },\n" +
-            "          \"$filter\": {\n" +
-            "               \"$limit\": 1,\n" +
-            "               \"$orderby\": {\n" +
-            "                    \"evDateTime\": -1\n" +
-            "               }\n" +
-            "          },\n" +
-            "          \"$projection\": {\n" +
-            "               \"$fields\": {\n" +
-            "                    \"#id\": 1,\n" +
-            "                    \"events.outcome\": 1\n" +
-            "               }\n" +
-            "          }\n" +
-            "     }\n" +
-            "}", outcome, tenantId));
+                "     \"httpCode\": 200,\n" +
+                "     \"$hits\": {\n" +
+                "          \"total\": 1,\n" +
+                "          \"offset\": 0,\n" +
+                "          \"limit\": 1,\n" +
+                "          \"size\": 1\n" +
+                "     },\n" +
+                "     \"$results\": [\n" +
+                "          {\n" +
+                "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
+                "               \"events\": [\n" +
+                "                    {\n" +
+                "                         \"outcome\": \"%s\"\n" +
+                "                    }\n" +
+                "               ],\n" +
+                "               \"_v\": 0,\n" +
+                "               \"_tenant\": %d\n" +
+                "          }\n" +
+                "     ],\n" +
+                "     \"$context\": {\n" +
+                "          \"$query\": {\n" +
+                "               \"$eq\": {\n" +
+                "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
+                "               }\n" +
+                "          },\n" +
+                "          \"$filter\": {\n" +
+                "               \"$limit\": 1,\n" +
+                "               \"$orderby\": {\n" +
+                "                    \"evDateTime\": -1\n" +
+                "               }\n" +
+                "          },\n" +
+                "          \"$projection\": {\n" +
+                "               \"$fields\": {\n" +
+                "                    \"#id\": 1,\n" +
+                "                    \"events.outcome\": 1\n" +
+                "               }\n" +
+                "          }\n" +
+                "     }\n" +
+                "}", outcome, tenantId));
     }
-
 
 
     private JsonNode getReportJsonAdnCleanFile() throws InvalidParseOperationException {
@@ -383,16 +374,16 @@ public class AgenciesServiceTest {
 
     private void instantiateAgencyService() {
         agencyService =
-            new AgenciesService(dbImpl,
-                vitamCounterService,
-                functionalBackupService,
-                logbookOperationsClientFactory,
-                manager,
-                agenciesInDb,
-                agenciesToDelete,
-                agenciesToInsert,
-                agenciesToUpdate,
-                usedAgenciesByAU,
-                usedAgenciesByContracts);
+                new AgenciesService(dbImpl,
+                        vitamCounterService,
+                        functionalBackupService,
+                        logbookOperationsClientFactory,
+                        manager,
+                        agenciesInDb,
+                        agenciesToDelete,
+                        agenciesToInsert,
+                        agenciesToUpdate,
+                        usedAgenciesByAU,
+                        usedAgenciesByContracts);
     }
 }

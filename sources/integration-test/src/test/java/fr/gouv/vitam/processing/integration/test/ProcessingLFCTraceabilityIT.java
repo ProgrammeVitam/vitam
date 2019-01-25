@@ -153,12 +153,11 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
     private ProcessingManagementClient processingClient;
     private static ProcessMonitoringImpl processMonitoring;
 
-    private static String WORFKLOW_NAME = "PROCESS_SIP_UNITARY";
-
     private static String SIP_COMPLEX_RULES = "integration-processing/3_UNITS_2_GOTS.zip";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
@@ -172,6 +171,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
 
@@ -187,25 +187,7 @@ public class ProcessingLFCTraceabilityIT extends VitamRuleRunner {
 
     @After
     public void afterTest() throws Exception {
-        MongoDatabase db = mongoRule.getMongoDatabase();
-        db.getCollection("Unit").drop();
-        db.getCollection("ObjectGroup").drop();
-        db.getCollection("LogbookOperation").drop();
-        db.getCollection("LogbookLifeCycleUnit").drop();
-        db.getCollection("LogbookLifeCycleObjectGroup").drop();
-
-        for (LogbookCollections collection : LogbookCollections.values()) {
-            if (collection.getEsClient() != null) {
-                collection.getEsClient().deleteIndex(collection, TENANT_ID);
-                collection.getEsClient().addIndex(collection, TENANT_ID);
-            }
-        }
-        for (MetadataCollections collection : MetadataCollections.values()) {
-            if (collection.getEsClient() != null) {
-                collection.getEsClient().deleteIndex(collection, TENANT_ID);
-                collection.getEsClient().addIndex(collection, TENANT_ID);
-            }
-        }
+        handleAfter(0, 1);
     }
 
     private static void checkServerStatus() {

@@ -41,6 +41,7 @@ import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * MongoDbAccess Implement for Admin
@@ -54,10 +55,10 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
     /**
      * @param mongoClient MongoClient
-     * @param dbname      MongoDB database name
-     * @param recreate    True to recreate the index
-     * @param esClient    Elasticsearch client
-     * @param tenants     the tenant list
+     * @param dbname MongoDB database name
+     * @param recreate True to recreate the index
+     * @param esClient Elasticsearch client
+     * @param tenants the tenant list
      */
 
     public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
@@ -75,8 +76,19 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         MetadataCollections.OBJECTGROUP.initialize(this.esClient);
 
         for (Integer tenant : tenants) {
-            MetadataCollections.UNIT.getEsClient().addIndex(MetadataCollections.UNIT, tenant);
-            MetadataCollections.OBJECTGROUP.getEsClient().addIndex(MetadataCollections.OBJECTGROUP, tenant);
+            Map<String, String> map =
+                MetadataCollections.UNIT.getEsClient().addIndex(MetadataCollections.UNIT, tenant);
+            if (map.isEmpty()) {
+                throw new RuntimeException(
+                    "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" +
+                        tenant);
+            }
+            map = MetadataCollections.OBJECTGROUP.getEsClient().addIndex(MetadataCollections.OBJECTGROUP, tenant);
+            if (map.isEmpty()) {
+                throw new RuntimeException(
+                    "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() +
+                        " and tenant :" + tenant);
+            }
         }
     }
 
@@ -102,7 +114,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         }
         for (final MetadataCollections coll : MetadataCollections.values()) {
             if (coll != null && coll.getCollection() != null) {
-                @SuppressWarnings("unchecked") final ListIndexesIterable<Document> list =
+                @SuppressWarnings("unchecked")
+                final ListIndexesIterable<Document> list =
                     coll.getCollection().listIndexes();
                 for (final Document dbObject : list) {
                     builder.append(coll.getName()).append(' ').append(dbObject).append('\n');
@@ -155,7 +168,11 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                 }
 
                 esClient.deleteIndex(MetadataCollections.UNIT, tenantId);
-                esClient.addIndex(MetadataCollections.UNIT, tenantId);
+                Map<String, String> map = esClient.addIndex(MetadataCollections.UNIT, tenantId);
+                if (map.isEmpty()) {
+                    throw new RuntimeException(
+                        "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" + tenantId);
+                }
             }
         }
     }
@@ -182,7 +199,11 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                             .getDeletedCount());
                 }
                 esClient.deleteIndex(MetadataCollections.OBJECTGROUP, tenantId);
-                esClient.addIndex(MetadataCollections.OBJECTGROUP, tenantId);
+                Map<String, String> map = esClient.addIndex(MetadataCollections.OBJECTGROUP, tenantId);
+                if (map.isEmpty()) {
+                    throw new RuntimeException(
+                        "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() + " and tenant :" + tenantId);
+                }
             }
         }
     }

@@ -1,10 +1,59 @@
 package fr.gouv.vitam.logbook.administration.core;
 
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
+import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
+import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
+import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
+import fr.gouv.vitam.processing.common.ProcessingEntry;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.assertj.core.api.Java6Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -16,72 +65,22 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.alert.AlertService;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
-import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
-import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.mockito.ArgumentCaptor;
-
 public class LogbookLFCAdministrationTest {
 
+    private static final String PREFIX = GUIDFactory.newGUID().getId();
+
+    @ClassRule
+    public static MongoRule mongoRule =
+        new MongoRule(VitamCollection.getMongoClientOptions());
+
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final String DATABASE_HOST = "localhost";
-    private static final String DATABASE_NAME = "vitam-test";
     private static final Integer TEMPORIZATION_DELAY = 300;
     private static final Integer MAX_ENTRIES = 100_000;
     static LogbookDbAccess mongoDbAccess;
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
     private static fr.gouv.vitam.common.junit.JunitHelper junitHelper;
-    private static int port;
 
     private static WorkspaceClientFactory workspaceClientFactory;
     private static WorkspaceClient workspaceClient;
@@ -89,12 +88,9 @@ public class LogbookLFCAdministrationTest {
     private static ProcessingManagementClientFactory processingManagementClientFactory;
     private static ProcessingManagementClient processingManagementClient;
 
-    // ES
     @ClassRule
     public static TemporaryFolder esTempFolder = new TemporaryFolder();
-    private final static String ES_CLUSTER_NAME = "vitam-cluster";
     private final static String ES_HOST_NAME = "localhost";
-    private static ElasticsearchTestConfiguration config = null;
 
     private static final Integer tenantId = 0;
     static final List<Integer> tenantList = Arrays.asList(0);
@@ -104,7 +100,11 @@ public class LogbookLFCAdministrationTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @BeforeClass
-    public static void init() throws IOException {
+    public static void init() throws IOException, VitamException {
+        LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
+
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
 
@@ -114,49 +114,30 @@ public class LogbookLFCAdministrationTest {
 
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(processingManagementClientFactory.getClient()).willReturn(processingManagementClient);
-
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
         junitHelper = JunitHelper.getInstance();
-        port = junitHelper.findAvailablePort();
-        mongodExecutable = starter.prepare(new MongodConfigBuilder()
-            .withLaunchArgument("--enableMajorityReadConcern")
-            .version(Version.Main.PRODUCTION)
-            .net(new Net(port, Network.localhostIsIPv6()))
-            .build());
-        mongod = mongodExecutable.start();
-        // ES
-        try {
-            config = JunitHelper.startElasticsearchForTest(esTempFolder, ES_CLUSTER_NAME);
-        } catch (final VitamApplicationServerException e1) {
-            assumeTrue(false);
-        }
 
         List<MongoDbNode> nodes = new ArrayList<MongoDbNode>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, port));
+        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, config.getTcpPort()));
+        esNodes.add(new ElasticsearchNode(ES_HOST_NAME, ElasticsearchRule.TCP_PORT));
         LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, DATABASE_NAME, ES_CLUSTER_NAME, esNodes);
+            new LogbookConfiguration(nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes);
         VitamConfiguration.setTenants(tenantList);
         mongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration);
     }
 
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
+        LogbookCollections.afterTestClass(true, tenantId);
+
         mongoDbAccess.close();
-        if (config != null) {
-            JunitHelper.stopElasticsearchForTest(config);
-        }
-        mongod.stop();
-        mongodExecutable.stop();
-        junitHelper.releasePort(port);
         VitamClientFactory.resetConnections();
     }
 
     @After
-    public void tearDown() throws DatabaseException {
-        mongoDbAccess.deleteCollection(LogbookCollections.OPERATION);
+    public void tearDown() {
+        LogbookCollections.afterTest(Arrays.asList(LogbookCollections.OPERATION), tenantId);
     }
 
 
@@ -190,7 +171,7 @@ public class LogbookLFCAdministrationTest {
             .isEqualTo("UNIT_LFC_TRACEABILITY");
         assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
             get(WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name())).isEqualTo(
-                TEMPORIZATION_DELAY.toString());
+            TEMPORIZATION_DELAY.toString());
         assertThat(processingEntryArgumentCaptor.getValue().getExtraParams().
             get(WorkerParameterName.lifecycleTraceabilityMaxEntries.name())).isEqualTo(
             MAX_ENTRIES.toString());
@@ -218,7 +199,7 @@ public class LogbookLFCAdministrationTest {
 
     @Test
     @RunWithCustomExecutor
-    public void traceabilityAuditTest() throws Exception{
+    public void traceabilityAuditTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
         reset(workspaceClient);
@@ -233,24 +214,28 @@ public class LogbookLFCAdministrationTest {
         LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
 
         LogbookLFCAdministration logbookAdministration =
-                new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
-                        workspaceClientFactory, TEMPORIZATION_DELAY, MAX_ENTRIES);
+            new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
+                workspaceClientFactory, TEMPORIZATION_DELAY, MAX_ENTRIES);
 
-        for (int i=0; i<23; i++) {
+        for (int i = 0; i < 23; i++) {
             logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
             logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.ObjectGroup);
         }
 
         LogbookAuditAdministration logbookAuditAdministration =
-                new LogbookAuditAdministration(logbookOperations);
-        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
-        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
+            new LogbookAuditAdministration(logbookOperations);
+        assertEquals(23,
+            logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
+        assertEquals(23,
+            logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
 
         logbookAdministration.generateSecureLogbookLFC(LfcTraceabilityType.Unit);
 
-        assertEquals(24, logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
+        assertEquals(24,
+            logbookAuditAdministration.auditTraceability(Contexts.UNIT_LFC_TRACEABILITY.getEventType(), 1, 24));
         verify(alertService, never()).createAlert(anyString());
-        assertEquals(23, logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
+        assertEquals(23,
+            logbookAuditAdministration.auditTraceability(Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), 1, 24));
         verify(alertService, never()).createAlert(anyString());
     }
 }

@@ -49,6 +49,7 @@ import javax.ws.rs.core.Response.Status;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.jhades.JHades;
@@ -104,7 +105,6 @@ import junit.framework.TestCase;
 
 public class StorageTestMultiNoSslIT {
 
-    private static final String DATABASE_NAME = "Vitam-test";
     private static final int NB_MULTIPLE_THREADS = 100;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageTestMultiNoSslIT.class);
@@ -136,11 +136,14 @@ public class StorageTestMultiNoSslIT {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME,
-        OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME);
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        OfferCollections.OFFER_LOG.setPrefix(GUIDFactory.newGUID().getId());
+        OfferCollections.OFFER_SEQUENCE.setPrefix(GUIDFactory.newGUID().getId());
+        mongoRule.addCollectionToBePurged(OfferCollections.OFFER_LOG.getName());
+        mongoRule.addCollectionToBePurged(OfferCollections.OFFER_SEQUENCE.getName());
         // Identify overlapping in particular jsr311
         new JHades().overlappingJarsReport();
 
@@ -210,6 +213,8 @@ public class StorageTestMultiNoSslIT {
 
     @AfterClass
     public static void afterClass() throws Exception {
+
+        mongoRule.handleAfter();
         cleanWorkspace();
         // final clean, remove workspace folder
         try {

@@ -206,6 +206,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         // reconstruct service interface - replace non existing client
         // uncomment timeouts for debug mode
         final OkHttpClient okHttpClient = new OkHttpClient.Builder()
@@ -230,6 +231,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
     @AfterClass
     public static void afterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
         VitamClientFactory.resetConnections();
     }
@@ -246,8 +248,9 @@ public class MetadataManagementIT extends VitamRuleRunner {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         runAfter();
+        handleAfterClass(0, 1);
     }
 
     @Test
@@ -918,7 +921,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(computedGot.get(Unit.ORIGINATING_AGENCIES, List.class)).hasSize(1).contains("OA2");
 
         // PURGE mongo
-        mongoRule.handleAfter();
+        MetadataCollections.UNIT.getCollection().deleteMany(new Document());
         // Re-insert
         Document got_with_unit_up = got_without_unit
             .append(ObjectGroup.UP, Lists.newArrayList("au_without_parents"));

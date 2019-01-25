@@ -268,6 +268,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         CONFIG_BIG_WORKER_PATH = PropertiesUtils.getResourcePath("integration-processing/bigworker.conf").toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
@@ -289,7 +290,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-
+        handleAfterClass(0, 1);
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         storageClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.PRODUCTION);
         runAfter();
@@ -1352,7 +1353,7 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient.putObject(containerName, "query.json", JsonHandler.writeToInpustream(finalSelect));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess( containerName, Contexts.EXPORT_DIP.name());
+        processingClient.initVitamProcess(containerName, Contexts.EXPORT_DIP.name());
 
         // When
         RequestResponse<JsonNode> jsonNodeRequestResponse =

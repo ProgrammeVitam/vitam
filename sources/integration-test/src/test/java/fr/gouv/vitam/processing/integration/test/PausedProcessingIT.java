@@ -122,6 +122,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(0, 1);
         CONFIG_SIEGFRIED_PATH =
             PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
@@ -130,8 +131,8 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        handleAfterClass(0, 1);
         runAfter();
-
 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             workspaceClient.deleteContainer("process", true);
@@ -143,18 +144,7 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     @After
     public void afterTest() throws Exception {
-        MetadataCollections.UNIT.getCollection().deleteMany(new Document());
-        MetadataCollections.OBJECTGROUP.getCollection().deleteMany(new Document());
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().deleteMany(new Document());
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().deleteMany(new Document());
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
-            .deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-        FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getEsClient()
-            .addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
-            .deleteIndex(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
-        FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getEsClient()
-            .addIndex(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL);
+        handleAfter(0, 1);
     }
 
     private void wait(String operationId) {

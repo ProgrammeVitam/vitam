@@ -81,6 +81,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -450,7 +451,7 @@ public class MetaDataImplTest {
     @Test
     public void reindexIOExceptionTest() throws Exception {
         PowerMockito.mockStatic(IndexationHelper.class);
-        when(IndexationHelper.reindex(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(IndexationHelper.reindex(any(), any(), any(), any(), any()))
             .thenThrow(new IOException());
         when(IndexationHelper.getFullKOResult(anyObject(), anyString()))
             .thenCallRealMethod();
