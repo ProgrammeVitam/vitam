@@ -109,7 +109,7 @@ public class PreservationResource {
             return buildErrorResponse(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
             LOGGER.error("Unexpected server error {}", e);
-            return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
+            return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
         }
     }
 

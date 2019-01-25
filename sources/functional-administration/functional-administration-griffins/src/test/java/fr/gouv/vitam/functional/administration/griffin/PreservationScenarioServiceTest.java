@@ -844,7 +844,7 @@ public class PreservationScenarioServiceTest {
         assertThatThrownBy(
             () -> preservationScenarioService.importScenarios(
                 getPreservationScenarioModels("preservationScenarios/KO_scenario_unknown_value_formatList.json")))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Format is not in database");
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("List: [TOTO] does not exist in the database.");
         ;
 
     }

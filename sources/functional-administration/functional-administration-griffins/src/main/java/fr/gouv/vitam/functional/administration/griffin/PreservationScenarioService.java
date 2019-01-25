@@ -186,6 +186,67 @@ public class PreservationScenarioService {
             .setHttpCode(Response.Status.CREATED.getStatusCode());
     }
 
+    private void checkGriffinByFormatIdentifier(PreservationScenarioModel scenario, List<String> griffinsIdentifiers)
+        throws ReferentialException {
+        for (GriffinByFormat griffinByFormat : scenario.getGriffinByFormat()) {
+            if (!griffinsIdentifiers.contains(griffinByFormat.getGriffinIdentifier())) {
+                throw new ReferentialException("Griffin '"+griffinByFormat.getGriffinIdentifier()+"' is not in database");
+            }
+        }
+
+        boolean defaultGriffinDoesNotExists = scenario.getDefaultGriffin() != null &&
+            !griffinsIdentifiers.contains(scenario.getDefaultGriffin().getGriffinIdentifier());
+
+        if (defaultGriffinDoesNotExists) {
+            throw new ReferentialException("Griffin '"+scenario.getDefaultGriffin().getGriffinIdentifier()+"' is not in database");
+        }
+    }
+
+
+
+    private void saveReport(GUID guid, PreservationScenarioReport griffinReport) throws StorageException {
+
+        try (InputStream reportInputStream = JsonHandler.writeToInpustream(griffinReport)) {
+
+            final String fileName = guid.getId() + ".json";
+
+            functionalBackupService
+                .saveFile(reportInputStream, guid, SCENARIO_REPORT, DataCategory.REPORT, fileName);
+
+        } catch (IOException | VitamException e) {
+            throw new StorageException(e.getMessage(), e);
+        }
+    }
+
+    private void validate(List<PreservationScenarioModel> listToImport)
+        throws VitamException {
+
+        entryValidation(listToImport);
+
+        functionalGriffinIdentifierValidation(listToImport);
+
+        formatValidation(listToImport);
+    }
+
+    private void entryValidation(List<PreservationScenarioModel> listToImport) throws ReferentialException {
+        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+        List<String> identifiers = new ArrayList<>();
+        for (PreservationScenarioModel model : listToImport) {
+            if (identifiers.contains(model.getIdentifier())) {
+                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier()+"'");
+            }
+
+            Set<ConstraintViolation<PreservationScenarioModel>> constraints = validator.validate(model);
+            if (!constraints.isEmpty()) {
+                throw new ReferentialException(
+                    "Invalid scenario  for  : '" + model.getIdentifier() + "' : " + getConstraintsStrings(constraints));
+            }
+
+            identifiers.add(model.getIdentifier());
+        }
+    }
+
     private void functionalGriffinIdentifierValidation(List<PreservationScenarioModel> listToImport)
         throws BadRequestException, ReferentialException, InvalidParseOperationException {
 
@@ -218,65 +279,6 @@ public class PreservationScenarioService {
 
         if (!puidsToCheck.isEmpty()) {
             throw new ReferentialException(String.format("List: %s does not exist in the database.", puidsToCheck.toString()));
-        }
-    }
-
-    private void checkGriffinByFormatIdentifier(PreservationScenarioModel scenario, List<String> griffinsIdentifiers)
-        throws ReferentialException {
-        for (GriffinByFormat griffinByFormat : scenario.getGriffinByFormat()) {
-            if (!griffinsIdentifiers.contains(griffinByFormat.getGriffinIdentifier())) {
-                throw new ReferentialException("Griffin '"+griffinByFormat.getGriffinIdentifier()+"' is not in database");
-            }
-        }
-
-        if (scenario.getDefaultGriffin() != null &&
-            !griffinsIdentifiers.contains(scenario.getDefaultGriffin().getGriffinIdentifier())) {
-            throw new ReferentialException("Griffin '"+scenario.getDefaultGriffin().getGriffinIdentifier()+"' is not in database");
-        }
-    }
-
-
-
-    private void saveReport(GUID guid, PreservationScenarioReport griffinReport) throws StorageException {
-
-        try (InputStream reportInputStream = JsonHandler.writeToInpustream(griffinReport)) {
-
-            final String fileName = guid.getId() + ".json";
-
-            functionalBackupService
-                .saveFile(reportInputStream, guid, SCENARIO_REPORT, DataCategory.REPORT, fileName);
-
-        } catch (IOException | VitamException e) {
-            throw new StorageException(e.getMessage(), e);
-        }
-    }
-
-    private void validate(List<PreservationScenarioModel> listToImport)
-        throws ReferentialException, BadRequestException, InvalidParseOperationException {
-
-        entryValidation(listToImport);
-
-        functionalGriffinIdentifierValidation(listToImport);
-
-        formatValidation(listToImport);
-    }
-
-    private void entryValidation(List<PreservationScenarioModel> listToImport) throws ReferentialException {
-        Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-
-        List<String> identifiers = new ArrayList<>();
-        for (PreservationScenarioModel model : listToImport) {
-            if (identifiers.contains(model.getIdentifier())) {
-                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier()+"'");
-            }
-
-            Set<ConstraintViolation<PreservationScenarioModel>> constraints = validator.validate(model);
-            if (!constraints.isEmpty()) {
-                throw new ReferentialException(
-                    "Invalid scenario  for  : '" + model.getIdentifier() + "' : " + getConstraintsStrings(constraints));
-            }
-
-            identifiers.add(model.getIdentifier());
         }
     }
 
@@ -485,7 +487,7 @@ public class PreservationScenarioService {
                 preservationScenarioModel.setCreationDate(creationDate);
             }
         } catch (DateTimeParseException e) {
-            throw new ReferentialException("Invalid date");
+            throw new ReferentialException("Invalid date", e);
         }
     }
 

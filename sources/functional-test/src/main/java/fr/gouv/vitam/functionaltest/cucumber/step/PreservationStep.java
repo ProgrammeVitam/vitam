@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -127,7 +128,7 @@ public class PreservationStep {
         world.setResults((List<JsonNode>) ((RequestResponseOK) response).getResultsAsJsonNodes());
     }
 
-    @When("^je cherche le griffon nommé (.*) n'existe pas$")
+    @Then("^le griffon nommé (.*) n'existe pas$")
     @SuppressWarnings("unchecked")
     public void searchNotGriffinById(String identifier) throws VitamClientException {
 
@@ -138,7 +139,7 @@ public class PreservationStep {
         assertThat(response.getHttpCode()).isEqualTo(404);
     }
 
-    @When("^le scénario de preservation nommé (.*) n'existe pas$")
+    @Then("^le scénario de preservation nommé (.*) n'existe pas$")
     @SuppressWarnings("unchecked")
     public void searchNotExistantPreservationById(String identifier) throws VitamClientException {
 
