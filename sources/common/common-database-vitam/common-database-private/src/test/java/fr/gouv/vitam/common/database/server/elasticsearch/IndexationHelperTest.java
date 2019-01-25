@@ -101,8 +101,8 @@ public class IndexationHelperTest {
     @AfterClass
     public static void afterClass() {
         mongoRule.handleAfterClass();
-        elasticsearchAccess.close();
         elasticsearchRule.deleteIndexes();
+        elasticsearchAccess.close();
     }
 
     @After

@@ -263,8 +263,7 @@ public class DbRequestTest {
      */
     @AfterClass
     public static void tearDown() throws Exception {
-        MetadataCollections.afterTestClass(true, TENANT_ID_0,
-            TENANT_ID_1, TENANT_ID_2);
+        MetadataCollections.afterTestClass(true, TENANT_ID_0, TENANT_ID_1, TENANT_ID_2);
     }
 
 

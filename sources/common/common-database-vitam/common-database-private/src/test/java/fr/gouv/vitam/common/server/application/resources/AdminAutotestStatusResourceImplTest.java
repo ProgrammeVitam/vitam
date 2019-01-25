@@ -83,6 +83,7 @@ public class AdminAutotestStatusResourceImplTest {
     private static JunitHelper junitHelper;
 
     private static int serverAdminPort;
+    private static int fakePort;
 
     private static TestApplication application;
     private static TestVitamAdminClientFactory factory;
@@ -100,6 +101,7 @@ public class AdminAutotestStatusResourceImplTest {
         databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
         dataBasePort = junitHelper.findAvailablePort();
+        fakePort = junitHelper.findAvailablePort();
         MongoClient mongoClient = new MongoClient(new ServerAddress(
             HOST_NAME, mongoRule.getDataBasePort()),
             VitamCollection.getMongoClientOptions(new ArrayList<>()));
@@ -145,6 +147,7 @@ public class AdminAutotestStatusResourceImplTest {
         databaseEs.close();
         junitHelper.releasePort(serverAdminPort);
         junitHelper.releasePort(dataBasePort);
+        junitHelper.releasePort(fakePort);
         VitamClientFactory.resetConnections();
     }
 
@@ -257,7 +260,7 @@ public class AdminAutotestStatusResourceImplTest {
 
         // ES
         LOGGER.warn("TEST ELASTICSEARCH KO");
-        elasticsearchNode.setTcpPort(111111);
+        elasticsearchNode.setTcpPort(fakePort);
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
@@ -287,7 +290,7 @@ public class AdminAutotestStatusResourceImplTest {
         // MongoDB
         LOGGER.warn("TEST MONGO KO");
         databaseMd.setMongoClient(new MongoClient(new ServerAddress(
-            HOST_NAME, 111111),
+            HOST_NAME, fakePort),
             VitamCollection.getMongoClientOptions(new ArrayList<>())));
         realKO++;
         realOK--;

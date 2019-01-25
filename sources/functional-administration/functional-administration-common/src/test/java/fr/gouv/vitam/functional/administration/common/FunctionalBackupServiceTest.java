@@ -70,6 +70,7 @@ import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,15 +92,15 @@ public class FunctionalBackupServiceTest {
     public static final String BACKUP_SEQUENCE_DOC =
         "{ \"_id\" : \"aeaaaaaaaadw44zlabowqalanjdt5oaaaaaq\", \"Counter\" : 10, \"Name\" : \"BACKUP_A\", \"_tenant\" : 0 }";
 
-    private String PREFIX = GUIDFactory.newGUID().getId();
-    private String FUNCTIONAL_COLLECTION = PREFIX + "AGENCIES";
-    @Rule
-    public MongoRule mongoRule =
+    private static String PREFIX = GUIDFactory.newGUID().getId();
+    private static String FUNCTIONAL_COLLECTION = PREFIX + "AGENCIES";
+    @ClassRule
+    public static MongoRule mongoRule =
         new MongoRule(getMongoClientOptions(newArrayList(Agencies.class)),
             FUNCTIONAL_COLLECTION);
 
-    @Rule
-    public ElasticsearchRule elasticsearchRule = new ElasticsearchRule(FUNCTIONAL_COLLECTION);
+    @ClassRule
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(FUNCTIONAL_COLLECTION);
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -122,12 +123,15 @@ public class FunctionalBackupServiceTest {
 
     private MongoCollection<Document> functionalCollection;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeClass
+    public static void beforeClass() throws Exception {
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
                 Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
             Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
+    }
+    @Before
+    public void setUp() throws Exception {
         functionalCollection = FunctionalAdminCollections.AGENCIES.getCollection();
         functionalCollection.insertOne(Document.parse(DOC1_TENANT0));
         functionalCollection.insertOne(Document.parse(DOC2_TENANT1));
@@ -151,6 +155,8 @@ public class FunctionalBackupServiceTest {
     @After
     public void cleanUp() {
         FunctionalAdminCollections.afterTest(Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
+        mongoRule.handleAfter();
+        elasticsearchRule.handleAfter();
     }
 
     @Test

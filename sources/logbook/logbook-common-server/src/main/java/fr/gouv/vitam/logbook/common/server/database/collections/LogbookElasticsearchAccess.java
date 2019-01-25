@@ -84,13 +84,13 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     public final boolean deleteIndex(final LogbookCollections collection, final Integer tenantId) {
         LOGGER.debug("deleteIndex: " + getAliasName(collection, tenantId));
         try {
-            if (client.admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
+            if (getClient().admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
                 String indexName =
-                    client.admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases()
+                    getClient().admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases()
                         .iterator().next().key;
                 DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
 
-                if (!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
+                if (!getClient().admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                     return false;
                 }
@@ -128,7 +128,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      */
     public final void refreshIndex(final LogbookCollections collection, final Integer tenantId) {
         LOGGER.debug("refreshIndex: " + getAliasName(collection, tenantId));
-        client.admin().indices().prepareRefresh(getAliasName(collection, tenantId))
+        getClient().admin().indices().prepareRefresh(getAliasName(collection, tenantId))
             .execute().actionGet();
 
     }
@@ -144,13 +144,13 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
      */
     final BulkResponse addEntryIndexes(final LogbookCollections collection, final Integer tenantId,
         final Map<String, String> mapIdJson) {
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
 
         // either use client#prepare, or use Requests# to directly build index/delete requests
         final String type = getTypeUnique(collection);
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
             bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                .add(client.prepareIndex(getAliasName(collection, tenantId), type,
+                .add(getClient().prepareIndex(getAliasName(collection, tenantId), type,
                     val.getKey()).setSource(val.getValue(), XContentType.JSON));// .setSource(val.getValue()));
         }
         return bulkRequest.execute().actionGet();
@@ -168,7 +168,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
     final boolean updateEntryIndex(final LogbookCollections collection, final Integer tenantId,
         final String id, final String json) {
         final String type = LogbookOperation.TYPEUNIQUE;
-        return client.prepareUpdate(getAliasName(collection, tenantId), type, id)
+        return getClient().prepareUpdate(getAliasName(collection, tenantId), type, id)
             .setDoc(json, XContentType.JSON).setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute()
             .actionGet().getVersion() > 1;
     }
@@ -194,7 +194,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         final String type = getTypeUnique(collection);
 
         final SearchRequestBuilder request =
-            client.prepareSearch(getAliasName(collection, tenantId)).setSearchType(SearchType.DEFAULT)
+            getClient().prepareSearch(getAliasName(collection, tenantId)).setSearchType(SearchType.DEFAULT)
                 .setTypes(type).setExplain(false).setFrom(offset)
                 .setFetchSource(VitamDocument.ES_FILTER_OUT, null)
                 .setSize(GlobalDatas.LIMIT_LOAD < limit ? GlobalDatas.LIMIT_LOAD : limit);

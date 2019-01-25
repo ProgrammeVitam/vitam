@@ -69,6 +69,7 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -76,6 +77,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -122,6 +124,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         handleBeforeClass(0, 1);
         // set bulk size to 1 for tests
         VitamConfiguration.setWorkerBulkSize(1);
+        // TODO perhaps we have to delete worker.db FileUtils.forceDeleteOnExit(PropertiesUtils.fileFromDataFolder("worker.db"));
     }
 
     @AfterClass
@@ -147,7 +150,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Before
     public void setUp() throws Exception {
 
-
+        // Delete eventually exisiting workerdb file
         final WorkerBean workerBean =
                 new WorkerBean("DefaultWorker", "DefaultWorker", 1, 0, "status",
                         new WorkerRemoteConfiguration("localhost", workerMockRule.port()));

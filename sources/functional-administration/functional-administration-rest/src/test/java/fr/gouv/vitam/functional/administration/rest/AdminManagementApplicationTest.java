@@ -71,7 +71,6 @@ public class AdminManagementApplicationTest {
     static AdminManagementConfiguration configuration;
     private static File adminConfigFile;
     private static ElasticsearchAccessFunctionalAdmin esClient;
-    static MongoDbAccessReferential mongoDbAccess;
     private static int serverPort;
     private static JunitHelper junitHelper;
 

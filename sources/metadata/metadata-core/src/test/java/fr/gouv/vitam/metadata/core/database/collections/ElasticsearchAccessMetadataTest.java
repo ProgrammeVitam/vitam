@@ -243,7 +243,6 @@ public class ElasticsearchAccessMetadataTest {
     @Test
     public void testElasticsearchAccessOGMetadatas() throws MetaDataExecutionException, MetaDataNotFoundException {
 
-        elasticsearchAccessMetadata.refreshIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0);
         // add index
         Map<String, String> res = elasticsearchAccessMetadata.addIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0);
         assertThat(res).hasSize(1);
@@ -253,8 +252,11 @@ public class ElasticsearchAccessMetadataTest {
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
         assertEquals(true, elasticsearchAccessMetadata
             .addEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, id, S1_OG));
-        // delete OG
 
+        elasticsearchAccessMetadata.refreshIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0);
+
+
+        // delete OG
         elasticsearchAccessMetadata
             .deleteEntryIndex(MetadataCollections.OBJECTGROUP, TENANT_ID_0, VitamCollection.getTypeunique(), id);
 

@@ -26,6 +26,11 @@
  */
 package fr.gouv.vitam.common.mongo;
 
+import java.io.File;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.google.common.collect.Sets;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
@@ -34,23 +39,10 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.runtime.Network;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.junit.rules.ExternalResource;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Launch a single instance of Mongo database, drop collection after each test
@@ -59,26 +51,28 @@ public class MongoRule extends ExternalResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoRule.class);
     public static final String VITAM_DB = "vitam-test";
 
-    private static int dataBasePort;
+    private static int dataBasePort = 27017;
 
-    private static MongodExecutable mongodExecutable;
+    /*
+        private static MongodExecutable mongodExecutable;
 
-    static {
-        dataBasePort = JunitHelper.getInstance().findAvailablePort();
+        static {
+            dataBasePort = JunitHelper.getInstance().findAvailablePort();
 
-        final MongodStarter starter = MongodStarter.getDefaultInstance();
-        try {
-            mongodExecutable = starter.prepare(new MongodConfigBuilder()
-                .withLaunchArgument("--enableMajorityReadConcern")
-                .version(Version.Main.PRODUCTION)
-                .net(new Net(dataBasePort, Network.localhostIsIPv6()))
-                .build());
-            mongodExecutable.start();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            final MongodStarter starter = MongodStarter.getDefaultInstance();
+            try {
+                mongodExecutable = starter.prepare(new MongodConfigBuilder()
+                    .withLaunchArgument("--enableMajorityReadConcern")
+                    .version(Version.Main.PRODUCTION)
+                    .net(new Net(dataBasePort, Network.localhostIsIPv6()))
+                    .build());
+                mongodExecutable.start();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
-    }
 
+    */
     private final MongoClient mongoClient;
     private Set<String> collectionNames;
 
@@ -171,18 +165,6 @@ public class MongoRule extends ExternalResource {
     public void handleAfter(String database) {
         purge(database, collectionNames);
         handleAfter();
-    }
-
-    public void stop() {
-        mongodExecutable.stop();
-    }
-
-    public void start() {
-        try {
-            mongodExecutable.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     public static int getDataBasePort() {

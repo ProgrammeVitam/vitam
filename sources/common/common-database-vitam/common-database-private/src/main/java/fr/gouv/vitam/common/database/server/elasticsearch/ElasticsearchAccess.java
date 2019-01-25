@@ -26,6 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -55,16 +65,6 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-
 /**
  * Elasticsearch Access
  */
@@ -78,7 +78,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public Builder default_builder;
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
-    protected final TransportClient client;
+    protected Client esClient;
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;
 
@@ -86,7 +86,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Create an ElasticSearch access
      *
      * @param clusterName the name of the Cluster
-     * @param nodes the elasticsearch nodes
+     * @param nodes       the elasticsearch nodes
      * @throws VitamException when elasticseach node list is empty
      */
     public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes)
@@ -102,9 +102,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
         this.clusterName = clusterName;
         this.nodes = nodes;
 
-        final Settings settings = getSettings(clusterName);
-
-        client = getClient(settings);
         default_builder = settings();
     }
 
@@ -114,25 +111,25 @@ public class ElasticsearchAccess implements DatabaseConnection {
     }
 
     public void purgeIndex(String indexName) {
-        if (client.admin().indices().prepareExists(indexName.toLowerCase()).get().isExists()) {
+        if (getClient().admin().indices().prepareExists(indexName.toLowerCase()).get().isExists()) {
             QueryBuilder qb = matchAllQuery();
 
-            SearchResponse scrollResp = client.prepareSearch(indexName.toLowerCase())
+            SearchResponse scrollResp = getClient().prepareSearch(indexName.toLowerCase())
                 .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
                 .setScroll(new TimeValue(60000))
                 .setQuery(qb)
                 .setFetchSource(false)
                 .setSize(100).get();
 
-            BulkRequestBuilder bulkRequest = client.prepareBulk();
+            BulkRequestBuilder bulkRequest = getClient().prepareBulk();
 
             do {
                 for (SearchHit hit : scrollResp.getHits().getHits()) {
-                    bulkRequest.add(client.prepareDelete(indexName.toLowerCase(), "typeunique", hit.getId()));
+                    bulkRequest.add(getClient().prepareDelete(indexName.toLowerCase(), "typeunique", hit.getId()));
                 }
 
                 scrollResp =
-                    client.prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
+                    getClient().prepareSearchScroll(scrollResp.getScrollId()).setScroll(new TimeValue(60000)).execute()
                         .actionGet();
             } while (scrollResp.getHits().getHits().length != 0);
 
@@ -199,7 +196,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Close the ElasticSearch connection
      */
     public void close() {
-        client.close();
+        getClient().close();
     }
 
     /**
@@ -213,7 +210,19 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @return the client
      */
     public Client getClient() {
-        return client;
+        if (null == esClient) {
+            synchronized (this) {
+                if (null == esClient) {
+                    try {
+                        esClient = getClient(getSettings(clusterName));
+                    } catch (VitamException e) {
+                        LOGGER.error("Error while get ES client", e);
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        return esClient;
     }
 
     /**
@@ -242,21 +251,22 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Create an index and alias for a collection (if the alias does not exist)
      *
      * @param collectionName the name of the collection
-     * @param mapping the mapping as a string
-     * @param type the type of the collection
-     * @param tenantId the tenant on which to create the index
+     * @param mapping        the mapping as a string
+     * @param type           the type of the collection
+     * @param tenantId       the tenant on which to create the index
      * @return key aliasName value indexName or empty
      */
-    public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping, String type,
+    public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping,
+        String type,
         Integer tenantId) {
         String indexName = getUniqueIndexName(collectionName, tenantId);
         String aliasName = getAliasName(collectionName, tenantId);
         LOGGER.debug("addIndex: {}", indexName);
-        if (!client.admin().indices().prepareExists(aliasName).get().isExists()) {
+        if (!getClient().admin().indices().prepareExists(aliasName).get().isExists()) {
             try {
                 LOGGER.debug("createIndex");
                 LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-                final CreateIndexResponse response = client.admin().indices()
+                final CreateIndexResponse response = getClient().admin().indices()
                     .prepareCreate(indexName)
                     .setSettings(default_builder)
                     .addMapping(type, mapping, XContentType.JSON).get();
@@ -266,7 +276,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     return new HashMap<>();
                 }
 
-                AcknowledgedResponse indAliasesResponse = client.admin().indices()
+                AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
                     .prepareAliases().addAlias(indexName, aliasName).execute().get();
 
                 if (!indAliasesResponse.isAcknowledged()) {
@@ -300,7 +310,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
         // Retrieve alias
         LOGGER.debug("createIndex");
         LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-        final CreateIndexResponse response = client.admin().indices()
+        final CreateIndexResponse response = getClient().admin().indices()
             .prepareCreate(indexName)
             .setSettings(default_builder)
             .addMapping(type, mapping, XContentType.JSON).get();
@@ -322,18 +332,18 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public final void switchIndex(String aliasName, String indexNameToSwitchWith)
         throws DatabaseException {
         GetAliasesResponse actualIndex =
-            client.admin().indices().getAliases(new GetAliasesRequest().aliases(aliasName))
+            getClient().admin().indices().getAliases(new GetAliasesRequest().aliases(aliasName))
                 .actionGet();
         String oldIndexName = null;
         for (Iterator<String> it = actualIndex.getAliases().keysIt(); it.hasNext(); ) {
             oldIndexName = it.next();
         }
 
-        if (!client.admin().indices().prepareExists(aliasName).get().isExists()) {
+        if (!getClient().admin().indices().prepareExists(aliasName).get().isExists()) {
             throw new DatabaseException(String.format("Alias not exist : %s", aliasName));
         }
         // RemoveAlias to the old index and Add alias to new index
-        AcknowledgedResponse indAliasesResponse = client.admin().indices()
+        AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
             .prepareAliases()
             .removeAlias(oldIndexName, aliasName)
             .addAlias(indexNameToSwitchWith, aliasName)

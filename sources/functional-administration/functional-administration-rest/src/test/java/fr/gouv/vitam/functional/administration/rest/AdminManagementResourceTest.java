@@ -35,6 +35,7 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -169,19 +170,18 @@ public class AdminManagementResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        new JHades().overlappingJarsReport();
+        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
+        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+                nodesEs),
             Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES));
 
         File tempFolder = temporaryFolder.newFolder();
-        System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
+        System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
         LogbookOperationsClientFactory.changeMode(null);
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
@@ -221,6 +221,10 @@ public class AdminManagementResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        System.setProperty(VitamConfiguration.getVitamTmpProperty(), VitamConfiguration.getVitamTmpFolder());
+        SystemPropertyUtil.refresh();
+
+
         FunctionalAdminCollections
             .afterTestClass(Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES), true);
 

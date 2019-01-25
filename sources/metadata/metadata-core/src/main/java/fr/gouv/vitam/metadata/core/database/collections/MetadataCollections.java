@@ -26,6 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -34,10 +38,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import org.bson.Document;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Metadata Collection
@@ -63,16 +63,22 @@ public enum MetadataCollections {
 
     @VisibleForTesting
     public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final ElasticsearchAccessMetadata esClient, Collection<MetadataCollections> metadataCollections,
+        final ElasticsearchAccessMetadata esClient,
+        Collection<MetadataCollections> metadataCollections,
         Integer... tenants) {
         ParametersChecker.checkParameter("metadataCollections is required", metadataCollections);
         for (MetadataCollections collection : metadataCollections) {
             collection.vitamCollection
                 .setName(prefix + collection.vitamCollection.getClasz().getSimpleName());
             collection.initialize(db, false);
-            collection.initialize(esClient);
-            for (Integer tenant : tenants) {
-                esClient.addIndex(collection, tenant);
+            if (collection.getEsClient() == null) {
+                collection.initialize(esClient);
+            }
+
+            if (null != collection.getEsClient()) {
+                for (Integer tenant : tenants) {
+                    collection.getEsClient().addIndex(collection, tenant);
+                }
             }
         }
     }
@@ -88,12 +94,10 @@ public enum MetadataCollections {
         if (null == metadataCollections) {
             return;
         }
-        ElasticsearchAccessMetadata esClient = null;
         for (MetadataCollections collection : metadataCollections) {
             collection.vitamCollection.getCollection().deleteMany(new Document());
 
             if (null != collection.getEsClient()) {
-                esClient = collection.getEsClient();
                 for (Integer tenant : tenants) {
                     if (deleteEsIndex) {
                         collection.getEsClient().deleteIndex(collection, tenant);
@@ -103,30 +107,18 @@ public enum MetadataCollections {
                 }
             }
         }
-        if (null != esClient) {
-            esClient.close();
-        }
     }
+
 
 
     @VisibleForTesting
     public static void afterTest(Integer... tenants) {
-        afterTest(Lists.newArrayList(MetadataCollections.values()), tenants);
+        afterTestClass(false, tenants);
     }
 
     @VisibleForTesting
     public static void afterTest(Collection<MetadataCollections> metadataCollections, Integer... tenants) {
-        if (null == metadataCollections) {
-            return;
-        }
-        for (MetadataCollections collection : metadataCollections) {
-            collection.vitamCollection.getCollection().deleteMany(new Document());
-            if (null != collection.getEsClient()) {
-                for (Integer tenant : tenants) {
-                    collection.getEsClient().purgeIndex(collection.getName(), tenant);
-                }
-            }
-        }
+        afterTestClass(metadataCollections, false, tenants);
     }
 
     MetadataCollections(final Class<?> clasz) {
@@ -145,7 +137,7 @@ public enum MetadataCollections {
     /**
      * Initialize the collection
      *
-     * @param db database type
+     * @param db       database type
      * @param recreate true is as recreate type
      */
 

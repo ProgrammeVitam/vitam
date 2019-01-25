@@ -26,17 +26,21 @@
  */
 package fr.gouv.vitam.common.elasticsearch;
 
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.action.support.WriteRequest;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.cluster.metadata.AliasMetaData;
-import org.elasticsearch.common.collect.ImmutableOpenMap;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.unit.TimeValue;
@@ -46,15 +50,6 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 /**
  *
@@ -150,7 +145,8 @@ public class ElasticsearchRule extends ExternalResource {
 
 
     public final void deleteIndex(Client client, String collectionName) {
-        try {
+        purge(client, collectionName);
+       /* try {
             if (client.admin().indices().prepareExists(collectionName).get().isExists()) {
 
                 String indexName = collectionName;
@@ -168,23 +164,7 @@ public class ElasticsearchRule extends ExternalResource {
         } catch (final Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
 
-        }
-    }
-
-    public void stop() {
-        try {
-            //node.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void start() {
-        try {
-            //node.start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        }*/
     }
 
     public void deleteIndexesWithoutClose() {

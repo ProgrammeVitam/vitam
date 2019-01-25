@@ -17,6 +17,7 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticse
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
+import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
 import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import org.junit.ClassRule;
@@ -68,6 +69,7 @@ public class VitamRuleRunner {
             OffsetRepository.COLLECTION_NAME,
             OfferCollections.OFFER_LOG.getName(),
             PersonalRepository.PERSONAL_COLLECTION,
+            IdentityRepository.CERTIFICATE_COLLECTION,
             EliminationActionObjectGroupRepository.ELIMINATION_ACTION_OBJECT_GROUP,
             EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT);
 
@@ -96,9 +98,6 @@ public class VitamRuleRunner {
     }
 
     public static void handleAfterClass(Integer... tenants) throws Exception {
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
-
         MetadataCollections
             .afterTestClass(false, tenants);
         LogbookCollections

@@ -26,6 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -34,10 +38,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import org.bson.Document;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 
 /**
@@ -81,10 +81,15 @@ public enum LogbookCollections {
             collection.vitamCollection
                 .setName(prefix + collection.getClasz().getSimpleName());
             collection.initialize(db, false);
-            if (collection == LogbookCollections.OPERATION && null != esClient) {
-                collection.initialize(esClient);
-                for (Integer tenant : tenants) {
-                    esClient.addIndex(collection, tenant);
+            if (collection == LogbookCollections.OPERATION) {
+                if (collection.getEsClient() == null) {
+                    collection.initialize(esClient);
+                }
+
+                if (null != collection.getEsClient()) {
+                    for (Integer tenant : tenants) {
+                        collection.getEsClient().addIndex(collection, tenant);
+                    }
                 }
             }
         }
@@ -100,11 +105,9 @@ public enum LogbookCollections {
     public static void afterTestClass(Collection<LogbookCollections> logbookCollections, boolean deleteEsIndex,
         Integer... tenants) {
         ParametersChecker.checkParameter("logbookCollections is required", logbookCollections);
-        LogbookElasticsearchAccess esClient = null;
         for (LogbookCollections collection : logbookCollections) {
             collection.vitamCollection.getCollection().deleteMany(new Document());
             if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
-                esClient = collection.getEsClient();
                 for (Integer tenant : tenants) {
                     if (deleteEsIndex) {
                         collection.getEsClient().deleteIndex(collection, tenant);
@@ -114,31 +117,19 @@ public enum LogbookCollections {
                 }
             }
         }
-
-
-        if (null != esClient) {
-            esClient.close();
-        }
     }
+
 
     @VisibleForTesting
     public static void afterTest(Integer... tenants) {
-        afterTest(Lists.newArrayList(LogbookCollections.values()), tenants);
+        afterTestClass(false, tenants);
     }
+
 
     @VisibleForTesting
     public static void afterTest(Collection<LogbookCollections> logbookCollections, Integer... tenants) {
-        ParametersChecker.checkParameter("logbookCollections is required", logbookCollections);
-        for (LogbookCollections collection : logbookCollections) {
-            collection.vitamCollection.getCollection().deleteMany(new Document());
-            if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
-                for (Integer tenant : tenants) {
-                    collection.getEsClient().purgeIndex(collection.getName(), tenant);
-                }
-            }
-        }
+        afterTestClass(logbookCollections, false, tenants);
     }
-
 
     /**
      * id field
@@ -161,7 +152,7 @@ public enum LogbookCollections {
     /**
      * Initialize the collection
      *
-     * @param db the mongo database
+     * @param db       the mongo database
      * @param recreate if needs to be recreated
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {

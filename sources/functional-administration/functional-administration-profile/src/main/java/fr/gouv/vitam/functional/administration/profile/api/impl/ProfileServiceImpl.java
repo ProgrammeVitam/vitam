@@ -263,6 +263,7 @@ public class ProfileServiceImpl implements ProfileService {
                 eip.toString()
             );
         } catch (final Exception exp) {
+            LOGGER.error(exp);
             final String err = new StringBuilder("Import profiles error : ").append(exp.getMessage()).toString();
             manager.logFatalError(PROFILES_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.PROFILE_FILE_IMPORT_ERROR.getItem(), err, StatusCode.KO).setHttpCode(

@@ -61,7 +61,7 @@ public class VitamCollectionTest {
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    public static final String PREFIX = "vitamcollection" + GUIDFactory.newGUID().getId();
+    public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
@@ -101,7 +101,9 @@ public class VitamCollectionTest {
         final List<Class<?>> classList = new ArrayList<>();
         classList.add(CollectionSample.class);
         final VitamCollection vitamCollection =
-            VitamCollectionHelper.getCollection(CollectionSample.class, true, false, "VitamCollectionTest_");
+            VitamCollectionHelper
+                .getCollection(CollectionSample.class, true, false, PREFIX + CollectionSample.class.getSimpleName());
+
         assertEquals(vitamCollection.getClasz(), CollectionSample.class);
         vitamCollection.initialize(esClient);
         assertEquals(esClient, vitamCollection.getEsClient());

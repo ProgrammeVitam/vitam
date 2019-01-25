@@ -96,23 +96,23 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      * Delete one index
      *
      * @param collection
-     * @throws ReferentialException
      */
-    public final void deleteIndex(final FunctionalAdminCollections collection) throws ReferentialException {
+    public final boolean deleteIndex(final FunctionalAdminCollections collection) {
         try {
-            if (client.admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
+            if (getClient().admin().indices().prepareExists(collection.getName().toLowerCase()).get().isExists()) {
                 String indexName =
-                    client.admin().indices().prepareGetAliases(collection.getName().toLowerCase()).get().getAliases()
+                    getClient().admin().indices().prepareGetAliases(collection.getName().toLowerCase()).get().getAliases()
                         .iterator().next().key;
                 DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
 
-                if (!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
+                if (!getClient().admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
                     LOGGER.error("Error on index delete");
                 }
             }
+            return true;
         } catch (final Exception e) {
             LOGGER.error("Error while deleting index", e);
-            throw new ReferentialException(e);
+            return false;
         }
     }
 
@@ -139,7 +139,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      */
     public final void refreshIndex(final FunctionalAdminCollections collection) {
         LOGGER.debug("refreshIndex: " + collection.getName().toLowerCase());
-        client.admin().indices().prepareRefresh(collection.getName().toLowerCase())
+        getClient().admin().indices().prepareRefresh(collection.getName().toLowerCase())
             .execute().actionGet();
 
     }
@@ -154,13 +154,13 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
      */
     final BulkResponse addEntryIndexes(final FunctionalAdminCollections collection,
         final Map<String, String> mapIdJson) {
-        final BulkRequestBuilder bulkRequest = client.prepareBulk();
+        final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
 
         // either use client#prepare, or use Requests# to directly build index/delete requests
         final String type = collection.getType();
         for (final Entry<String, String> val : mapIdJson.entrySet()) {
             bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                .add(client.prepareIndex(collection.getName().toLowerCase(), type,
+                .add(getClient().prepareIndex(collection.getName().toLowerCase(), type,
                     val.getKey()).setSource(val.getValue(), XContentType.JSON));
 
         }
@@ -180,7 +180,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
         throws ReferentialException {
         final String type = collection.getType();
         final SearchRequestBuilder request =
-            client.prepareSearch(collection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
+            getClient().prepareSearch(collection.getName().toLowerCase()).setSearchType(SearchType.DEFAULT)
                 .setTypes(type).setExplain(false).setSize(GlobalDatas.LIMIT_LOAD);
         if (filter != null) {
             request.setQuery(query).setPostFilter(filter);
