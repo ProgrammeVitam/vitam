@@ -3,7 +3,6 @@ package fr.gouv.vitam.functional.administration.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -33,7 +32,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,7 +44,6 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -98,19 +95,16 @@ public class ContextResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        new JHades().overlappingJarsReport();
 
+        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
+        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
-            Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodesEs));
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        final List<ElasticsearchNode> nodesEs = new ArrayList<>();
-        nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
         LogbookOperationsClientFactory.changeMode(null);
 
 
@@ -193,7 +187,7 @@ public class ContextResourceTest {
     @After
     public void tearDown() {
         FunctionalAdminCollections
-            .afterTest(Arrays.asList(FunctionalAdminCollections.CONTEXT, FunctionalAdminCollections.SECURITY_PROFILE));
+            .afterTest();
     }
 
     @Test

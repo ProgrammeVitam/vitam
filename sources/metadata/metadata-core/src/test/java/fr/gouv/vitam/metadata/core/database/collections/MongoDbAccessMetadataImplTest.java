@@ -100,6 +100,8 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyListOf;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 @RunWithCustomExecutor
 public class MongoDbAccessMetadataImplTest {
@@ -116,14 +118,18 @@ public class MongoDbAccessMetadataImplTest {
     private static final String DEFAULT_MONGO3 = PREFIX + "Unit";
     private static final String DEFAULT_MONGO4 = PREFIX + "ObjectGroup";
     private static final String DEFAULT_MONGO5 =
-        PREFIX + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns="+MongoRule.VITAM_DB+"." + PREFIX + "Unit}}";
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=" + MongoRule.VITAM_DB + "." + PREFIX +
+            "Unit}}";
     private static final String DEFAULT_MONGO6 =
-        PREFIX + "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns="+MongoRule.VITAM_DB+"." + PREFIX + "Unit}}";
+        PREFIX + "Unit Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=" + MongoRule.VITAM_DB + "." +
+            PREFIX + "Unit}}";
     private static final String DEFAULT_MONGO7 =
-        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns="+MongoRule.VITAM_DB+"." + PREFIX +
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=1}}, name=_id_, ns=" + MongoRule.VITAM_DB + "." +
+            PREFIX +
             "ObjectGroup}}";
     private static final String DEFAULT_MONGO8 =
-        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns="+MongoRule.VITAM_DB+"." + PREFIX +
+        PREFIX + "ObjectGroup Document{{v=2, key=Document{{_id=hashed}}, name=_id_hashed, ns=" + MongoRule.VITAM_DB +
+            "." + PREFIX +
             "ObjectGroup}}";
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -318,7 +324,8 @@ public class MongoDbAccessMetadataImplTest {
     @Test
     public void should_select_accession_register_symbolic() throws Exception {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse =
             searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_1.data"));
@@ -350,7 +357,8 @@ public class MongoDbAccessMetadataImplTest {
     @Test
     public void should_fill_all_accession_register_symbolic_information() throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse =
             searchResult(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_2.data"));
@@ -392,7 +400,8 @@ public class MongoDbAccessMetadataImplTest {
     public void should_subtracts_sp_count_to_sis_in_order_to_have_number_of_symbolic_link()
         throws IOException, InvalidParseOperationException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         long numberOfOriginatingAgencies = 12;
         long numberOfOriginatingAgency = 1;
@@ -434,7 +443,8 @@ public class MongoDbAccessMetadataImplTest {
     public void should_add_number_of_binaries_and_binaries_total_size_to_related_accession_register_when_object_group_counted()
         throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse = searchResult(
             String.format(PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_4.data"))
@@ -481,7 +491,8 @@ public class MongoDbAccessMetadataImplTest {
     public void should_add_zero_binaries_and_zero_binaries_total_size_to_related_accession_register_when_object_group_NOT_counted()
         throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse = searchResult(
             PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_5.data")
@@ -528,7 +539,8 @@ public class MongoDbAccessMetadataImplTest {
     public void should_NOT_created_new_accession_register_with_object_group_information_when_no_related_accession_register()
         throws IOException {
         // Given
-        ElasticsearchAccessMetadata client = PowerMockito.mock(ElasticsearchAccessMetadata.class);
+        ElasticsearchAccessMetadata client = mock(ElasticsearchAccessMetadata.class);
+        when(client.getClient()).thenReturn(esClient.getClient());
 
         SearchResponse archiveUnitResponse = searchResult(
             PropertiesUtils.getResourceAsString("accession_register_symbolic_au_aggs_6.data")

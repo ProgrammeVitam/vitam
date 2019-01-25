@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -58,6 +54,11 @@ import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.SecurityProfile;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * All collections in functional admin module
@@ -149,10 +150,10 @@ public enum FunctionalAdminCollections {
         final ElasticsearchAccessFunctionalAdmin esClient,
         Collection<FunctionalAdminCollections> functionalAdminCollections) {
         for (FunctionalAdminCollections collection : functionalAdminCollections) {
-            collection.vitamCollection
-                .setName(prefix + collection.getClasz().getSimpleName());
-            collection.initialize(db, false);
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
+                collection.vitamCollection
+                    .setName(prefix + collection.getClasz().getSimpleName());
+                collection.initialize(db, false);
                 if (collection.getEsClient() == null) {
                     collection.initialize(esClient);
                 } else {
@@ -181,12 +182,21 @@ public enum FunctionalAdminCollections {
     }
 
     @VisibleForTesting
+    public static void cleanCollection(FunctionalAdminCollections collection) {
+        collection.vitamCollection.getCollection()
+            .updateMany(Filters.exists(VitamSequence.ID), Updates.set(VitamSequence.COUNTER, 0));
+    }
+
+    @VisibleForTesting
     public static void afterTestClass(Collection<FunctionalAdminCollections> functionalAdminCollections,
         boolean deleteEsIndex) {
         ParametersChecker.checkParameter("functionalAdminCollections is required", functionalAdminCollections);
         for (FunctionalAdminCollections collection : functionalAdminCollections) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
-                collection.vitamCollection.getCollection().deleteMany(new Document());
+                if (null != collection.vitamCollection.getCollection()) {
+                    collection.vitamCollection.getCollection().deleteMany(new Document());
+                }
+
                 if (collection.getEsClient() != null) {
                     if (deleteEsIndex) {
                         collection.getEsClient().deleteIndex(collection);
@@ -194,9 +204,6 @@ public enum FunctionalAdminCollections {
                         collection.getEsClient().purgeIndex(collection.getName());
                     }
                 }
-            } else {
-                collection.vitamCollection.getCollection()
-                    .updateMany(Filters.exists(VitamSequence.ID), Updates.set(VitamSequence.COUNTER, 0));
             }
         }
     }
@@ -250,7 +257,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db       database type
+     * @param db database type
      * @param recreate true is as recreate type
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
@@ -264,7 +271,10 @@ public enum FunctionalAdminCollections {
      */
     protected void initialize(final ElasticsearchAccessFunctionalAdmin esClient) {
         vitamCollection.initialize(esClient);
-        esClient.addIndex(this);
+        Map<String, String> map = esClient.addIndex(this);
+        if (map.isEmpty()) {
+            throw new RuntimeException("Index not created for the collection " + getName());
+        }
     }
 
     /**

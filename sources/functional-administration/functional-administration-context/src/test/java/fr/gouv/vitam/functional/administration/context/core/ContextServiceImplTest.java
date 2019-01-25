@@ -124,19 +124,16 @@ public class ContextServiceImplTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
 
+        final List<ElasticsearchNode> esNodes = new ArrayList<>();
+        esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,esNodes));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
             MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
-
-        final List<ElasticsearchNode> esNodes = new ArrayList<>();
-        esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
-        ElasticsearchAccessAdminFactory.create(ElasticsearchRule.VITAM_CLUSTER, esNodes);
 
         final List tenants = new ArrayList<>();
         tenants.add(new Integer(TENANT_ID));

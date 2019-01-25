@@ -82,9 +82,6 @@ public class AgenciesResourceTest {
     private static final String STATUS_URI = "/status";
 
     private static final int TENANT_ID = 0;
-
-    static MongodExecutable mongodExecutable;
-    static MongodProcess mongod;
     static MongoDbAccessReferential mongoDbAccess;
     private static String DATABASE_HOST = "localhost";
 

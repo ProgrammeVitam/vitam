@@ -26,10 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCollection;
@@ -38,6 +34,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.collections.VitamCollectionHelper;
 import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -85,10 +86,14 @@ public enum LogbookCollections {
                 if (collection.getEsClient() == null) {
                     collection.initialize(esClient);
                 }
-
                 if (null != collection.getEsClient()) {
                     for (Integer tenant : tenants) {
-                        collection.getEsClient().addIndex(collection, tenant);
+                        Map<String, String> map = collection.getEsClient().addIndex(collection, tenant);
+                        if (map.isEmpty()) {
+                            throw new RuntimeException(
+                                "Index not created for the collection " + collection.getName() + " and tenant :" +
+                                    tenant);
+                        }
                     }
                 }
             }
@@ -106,7 +111,11 @@ public enum LogbookCollections {
         Integer... tenants) {
         ParametersChecker.checkParameter("logbookCollections is required", logbookCollections);
         for (LogbookCollections collection : logbookCollections) {
-            collection.vitamCollection.getCollection().deleteMany(new Document());
+
+            if (null != collection.vitamCollection.getCollection()) {
+                collection.vitamCollection.getCollection().deleteMany(new Document());
+            }
+
             if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
                 for (Integer tenant : tenants) {
                     if (deleteEsIndex) {
@@ -152,7 +161,7 @@ public enum LogbookCollections {
     /**
      * Initialize the collection
      *
-     * @param db       the mongo database
+     * @param db the mongo database
      * @param recreate if needs to be recreated
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {

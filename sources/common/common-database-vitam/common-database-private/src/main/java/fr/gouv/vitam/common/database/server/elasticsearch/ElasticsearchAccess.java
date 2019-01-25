@@ -26,24 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.elasticsearch;
 
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
+import org.elasticsearch.ResourceAlreadyExistsException;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesRequest;
 import org.elasticsearch.action.admin.indices.alias.get.GetAliasesResponse;
 import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
@@ -65,6 +57,17 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+
 /**
  * Elasticsearch Access
  */
@@ -78,7 +81,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public Builder default_builder;
 
     private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
-    protected Client esClient;
+    private AtomicReference<Client> esClient = new AtomicReference<>();
     protected final String clusterName;
     protected final List<ElasticsearchNode> nodes;
 
@@ -86,7 +89,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Create an ElasticSearch access
      *
      * @param clusterName the name of the Cluster
-     * @param nodes       the elasticsearch nodes
+     * @param nodes the elasticsearch nodes
      * @throws VitamException when elasticseach node list is empty
      */
     public ElasticsearchAccess(final String clusterName, List<ElasticsearchNode> nodes)
@@ -210,11 +213,12 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @return the client
      */
     public Client getClient() {
-        if (null == esClient) {
+        final Client client = esClient.get();
+        if (null == client) {
             synchronized (this) {
-                if (null == esClient) {
+                if (null == esClient.get()) {
                     try {
-                        esClient = getClient(getSettings(clusterName));
+                        esClient.set(getClient(getSettings(clusterName)));
                     } catch (VitamException e) {
                         LOGGER.error("Error while get ES client", e);
                         throw new RuntimeException(e);
@@ -222,7 +226,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
                 }
             }
         }
-        return esClient;
+        return esClient.get();
     }
 
     /**
@@ -251,9 +255,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * Create an index and alias for a collection (if the alias does not exist)
      *
      * @param collectionName the name of the collection
-     * @param mapping        the mapping as a string
-     * @param type           the type of the collection
-     * @param tenantId       the tenant on which to create the index
+     * @param mapping the mapping as a string
+     * @param type the type of the collection
+     * @param tenantId the tenant on which to create the index
      * @return key aliasName value indexName or empty
      */
     public final Map<String, String> createIndexAndAliasIfAliasNotExists(String collectionName, String mapping,
@@ -283,6 +287,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     LOGGER.error("Error creating alias for " + type + " / collection : " + collectionName);
                     return new HashMap<>();
                 }
+            } catch (ResourceAlreadyExistsException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             } catch (final Exception e) {
                 LOGGER.error("Error while set Mapping", e);
                 return new HashMap<>();

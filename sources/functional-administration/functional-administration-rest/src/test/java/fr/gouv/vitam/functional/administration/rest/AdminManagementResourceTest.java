@@ -175,8 +175,7 @@ public class AdminManagementResourceTest {
 
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                nodesEs),
-            Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES));
+                nodesEs));
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.getAbsolutePath());
@@ -191,7 +190,7 @@ public class AdminManagementResourceTest {
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + workspacePort);
-
+        realAdminConfig.setDbName(MongoRule.VITAM_DB);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -226,7 +225,7 @@ public class AdminManagementResourceTest {
 
 
         FunctionalAdminCollections
-            .afterTestClass(Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES), true);
+            .afterTestClass( true);
 
         LOGGER.debug("Ending tests");
         try {
@@ -252,9 +251,8 @@ public class AdminManagementResourceTest {
     }
 
     @After
-    public void tearDown() throws Exception {
-        FunctionalAdminCollections
-            .afterTest(Arrays.asList(FunctionalAdminCollections.FORMATS, FunctionalAdminCollections.RULES));
+    public void tearDown() {
+        FunctionalAdminCollections.afterTest();
     }
 
     @Test
@@ -348,8 +346,7 @@ public class AdminManagementResourceTest {
 
         contractModel.initializeDefaultValue();
 
-        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT)
-            .close();
+        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT).close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
         final AccessionRegisterDetailModel register =

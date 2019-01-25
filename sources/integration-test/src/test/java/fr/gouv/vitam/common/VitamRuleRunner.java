@@ -10,6 +10,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -83,6 +84,8 @@ public class VitamRuleRunner {
 
     public static void handleBeforeClass(Integer... tenants) throws Exception {
         handleBeforeClass(Prefix.PREFIX.getPrefix(), tenants);
+        FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()
+            .setName(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().getClasz().getSimpleName());
     }
 
     public static void handleBeforeClass(String prefix, Integer... tenants) throws Exception {

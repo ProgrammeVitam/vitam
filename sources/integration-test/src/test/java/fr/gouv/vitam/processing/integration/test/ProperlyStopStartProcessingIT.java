@@ -27,16 +27,6 @@
 
 package fr.gouv.vitam.processing.integration.test;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.nio.file.Files;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
@@ -62,14 +52,12 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
-import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -77,13 +65,21 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.nio.file.Files;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
@@ -92,22 +88,22 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(ProperlyStopStartProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            WorkspaceMain.class,
-                            ProcessManagementMain.class
-                    ));
+        new VitamServerRunner(ProperlyStopStartProcessingIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                WorkspaceMain.class,
+                ProcessManagementMain.class
+            ));
     private static final Integer TENANT_ID = 0;
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
 
     public static final String INGEST_LEVEL_STACK_JSON =
-            "integration-processing/ingestLevelStack.json";
+        "integration-processing/ingestLevelStack.json";
     public static final String UNITS_LEVEL_STACK_PATH = "UnitsLevel/ingestLevelStack.json";
 
     public static final String EXISING_GOT_FILE =
-            "integration-processing/existing_object_group.json";
+        "integration-processing/existing_object_group.json";
 
     public static final String EXISTING_GOT = "UpdateObjectGroup/existing_object_group.json";
 
@@ -135,7 +131,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         VitamConfiguration.setWorkerBulkSize(10);
 
         ProcessingManagementClientFactory.getInstance().getClient()
-                .unregisterWorker("DefaultWorker", String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
+            .unregisterWorker("DefaultWorker", String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
 
         try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             workspaceClient.deleteContainer("process", true);
@@ -152,35 +148,35 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
         // Delete eventually exisiting workerdb file
         final WorkerBean workerBean =
-                new WorkerBean("DefaultWorker", "DefaultWorker", 1, 0, "status",
-                        new WorkerRemoteConfiguration("localhost", workerMockRule.port()));
+            new WorkerBean("DefaultWorker", "DefaultWorker", 1, 0, "status",
+                new WorkerRemoteConfiguration("localhost", workerMockRule.port()));
         workerBean.setWorkerId(String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
         ProcessingManagementClientFactory.getInstance().getClient()
-                .registerWorker("DefaultWorker", String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()),
-                        workerBean);
+            .registerWorker("DefaultWorker", String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()),
+                workerBean);
 
         workerInstance.stubFor(WireMock.get(urlMatching("/worker/v1/status"))
-                .willReturn(
-                        aResponse().withStatus(200).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+            .willReturn(
+                aResponse().withStatus(200).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
 
 
         workerInstance.stubFor(WireMock.post(urlMatching("/worker/v1/tasks"))
-                .willReturn(
-                        aResponse()
-                                .withStatus(200)
-                                .withBody(JsonHandler.unprettyPrint(getMockedItemStatus(StatusCode.OK)))
-                                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
-                                .withHeader("Content-Type", "application/json"))
+            .willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withBody(JsonHandler.unprettyPrint(getMockedItemStatus(StatusCode.OK)))
+                    .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+                    .withHeader("Content-Type", "application/json"))
         );
     }
 
     ItemStatus getMockedItemStatus(StatusCode statusCode) {
         return new ItemStatus("StepId")
-                .setItemsStatus("ItemId",
-                        new ItemStatus("ItemId")
-                                .setMessage("message")
-                                .increment(statusCode)
-                );
+            .setItemsStatus("ItemId",
+                new ItemStatus("ItemId")
+                    .setMessage("message")
+                    .increment(statusCode)
+            );
     }
 
 
@@ -188,6 +184,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
 
         while (processWorkflow.getSteps().get(stepId).getStepStatusCode() != StatusCode.STARTED) {
             try {
+                LOGGER.error("== Wait step :" + stepId);
                 Thread.sleep(1);
             } catch (InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -213,6 +210,12 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow() throws Exception {
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
         ProcessingIT.prepareVitamSession();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -220,21 +223,21 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         ProcessingManagementClientFactory.getInstance().getClient()
-                .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
+            .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final File resourceFile = PropertiesUtils.getResourceFile(INGEST_LEVEL_STACK_JSON);
         workspaceClient
-                .putObject(containerName, UNITS_LEVEL_STACK_PATH, Files.newInputStream(resourceFile.toPath()));
+            .putObject(containerName, UNITS_LEVEL_STACK_PATH, Files.newInputStream(resourceFile.toPath()));
 
         final File existing_got = PropertiesUtils.getResourceFile(EXISING_GOT_FILE);
         workspaceClient
-                .putObject(containerName, EXISTING_GOT, Files.newInputStream(existing_got.toPath()));
+            .putObject(containerName, EXISTING_GOT, Files.newInputStream(existing_got.toPath()));
 
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
         RequestResponse<JsonNode> resp = ProcessingManagementClientFactory.getInstance().getClient()
-                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         // wait a little bit
         assertThat(resp).isNotNull();
         assertThat(resp.getStatus()).isEqualTo(Response.Status.ACCEPTED.getStatusCode());
@@ -245,14 +248,14 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         runner.stopProcessManagementServer(false);
 
         // wait a little bit
-        LOGGER.info("After STOP");
+        LOGGER.error("=== After STOP");
 
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.PAUSE);
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
         assertThat(processWorkflow.getPauseRecover()).isEqualTo(PauseRecover.RECOVER_FROM_SERVER_PAUSE);
         DistributorIndex distributorIndex =
-                WorkspaceProcessDataManagement.getInstance()
-                        .getDistributorIndex(ProcessDistributor.DISTRIBUTOR_INDEX, containerName);
+            WorkspaceProcessDataManagement.getInstance()
+                .getDistributorIndex(ProcessDistributor.DISTRIBUTOR_INDEX, containerName);
 
         assertThat(distributorIndex).isNotNull();
         assertThat(distributorIndex.getItemStatus()).isNotNull();
@@ -266,7 +269,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);

@@ -29,6 +29,7 @@ package fr.gouv.vitam.metadata.core.database.collections;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -77,7 +78,11 @@ public enum MetadataCollections {
 
             if (null != collection.getEsClient()) {
                 for (Integer tenant : tenants) {
-                    collection.getEsClient().addIndex(collection, tenant);
+                    Map<String, String> map = collection.getEsClient().addIndex(collection, tenant);
+                    if (map.isEmpty()) {
+                        throw new RuntimeException(
+                            "Index not created for the collection " + collection.getName() + " and tenant :" + tenant);
+                    }
                 }
             }
         }
@@ -95,7 +100,9 @@ public enum MetadataCollections {
             return;
         }
         for (MetadataCollections collection : metadataCollections) {
-            collection.vitamCollection.getCollection().deleteMany(new Document());
+            if (null != collection.vitamCollection.getCollection()) {
+                collection.vitamCollection.getCollection().deleteMany(new Document());
+            }
 
             if (null != collection.getEsClient()) {
                 for (Integer tenant : tenants) {
@@ -137,7 +144,7 @@ public enum MetadataCollections {
     /**
      * Initialize the collection
      *
-     * @param db       database type
+     * @param db database type
      * @param recreate true is as recreate type
      */
 

@@ -115,12 +115,11 @@ public class ReferentialFormatFileImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
+        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes));
 
         final List<MongoDbNode> mongoDbNodes = new ArrayList<>();
         mongoDbNodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
@@ -130,9 +129,6 @@ public class ReferentialFormatFileImplTest {
             MongoDbAccessAdminFactory.create(
                 new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName())), functionalBackupService,
             logbookOperationsClient);
-        ElasticsearchAccessAdminFactory.create(
-            new AdminManagementConfiguration(mongoDbNodes, mongoRule.getMongoDatabase().getName(),
-                ElasticsearchRule.VITAM_CLUSTER, esNodes));
     }
 
     @AfterClass

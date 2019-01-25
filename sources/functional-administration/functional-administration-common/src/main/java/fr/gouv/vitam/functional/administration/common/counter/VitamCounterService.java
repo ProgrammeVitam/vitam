@@ -240,7 +240,8 @@ public class VitamCounterService {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    public VitamSequence getNextBackupSequenceDocument(Integer tenant, SequenceType sequenceType) throws ReferentialException {
+    public VitamSequence getNextBackupSequenceDocument(Integer tenant, SequenceType sequenceType)
+        throws ReferentialException {
         return getNextSequenceDocument(tenant, sequenceType, sequenceType.getBackupSequenceName());
     }
 
@@ -255,7 +256,8 @@ public class VitamCounterService {
      * @throws InvalidParseOperationException
      * @throws ReferentialException
      */
-    private VitamSequence getNextSequenceDocument(Integer tenant, SequenceType sequenceType, String name) throws ReferentialException {
+    private VitamSequence getNextSequenceDocument(Integer tenant, SequenceType sequenceType, String name)
+        throws ReferentialException {
         final BasicDBObject incQuery = new BasicDBObject();
         incQuery.append("$inc", new BasicDBObject(VitamSequence.COUNTER, 1));
         Bson query;
@@ -327,11 +329,16 @@ public class VitamCounterService {
                 FunctionalAdminCollections.VITAM_SEQUENCE.getCollection().find(query).sort(descending("Counter"))
                     .limit(1).into(new ArrayList<FunctionalAdminCollections>());
             if (result.isEmpty()) {
-                throw new ReferentialException("Document not found");
+                throw new ReferentialException(
+                    "Document not found collection : " + FunctionalAdminCollections.VITAM_SEQUENCE.getName() +
+                        " sequence: " + sequenceType.getName());
             }
             return (VitamSequence) ((Object) result.iterator().next());
         } catch (final Exception e) {
-            LOGGER.error("find Document Exception", e);
+            if (e instanceof ReferentialException) {
+                throw e;
+            }
+            LOGGER.error("find Document Exception: ", e);
             throw new ReferentialException(e);
         }
     }

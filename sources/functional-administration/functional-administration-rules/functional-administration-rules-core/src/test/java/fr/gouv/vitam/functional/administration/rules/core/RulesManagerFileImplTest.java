@@ -237,11 +237,11 @@ public class RulesManagerFileImplTest {
             new RulesManagerFileImpl(dbAccess,
                 vitamCounterService, functionalBackupService, logbookOperationsClientFactory, metaDataClientFactory);
         FunctionalAdminCollections.afterTestClass(false);
-
+        FunctionalAdminCollections.cleanCollection(FunctionalAdminCollections.VITAM_SEQUENCE);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws IOException, VitamException {
+    public static void tearDownAfterClass() {
         FunctionalAdminCollections.afterTestClass(true);
     }
 

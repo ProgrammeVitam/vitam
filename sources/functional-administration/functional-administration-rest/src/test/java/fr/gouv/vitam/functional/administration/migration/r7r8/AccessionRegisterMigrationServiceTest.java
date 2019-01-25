@@ -17,15 +17,11 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.bson.Document;
@@ -34,10 +30,14 @@ import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.FileNotFoundException;
@@ -56,7 +56,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 
-@RunWith(MockitoJUnitRunner.class)
 public class AccessionRegisterMigrationServiceTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
@@ -69,25 +68,23 @@ public class AccessionRegisterMigrationServiceTest {
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
-    private AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
+    private static AccessionRegisterMigrationRepository accessionRegisterMigrationRepository;
+
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
     @Mock
     private FunctionalBackupService functionalBackupService;
 
-    @Before
-    public void setUpBeforeClass() throws Exception {
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        final List<ElasticsearchNode> esNodes =
+            Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
+
         FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))),
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes),
             Arrays.asList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
-
-        final List<MongoDbNode> nodes = Lists.newArrayList(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
-
-        final List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
-        ElasticsearchAccessAdminFactory.create(elasticsearchRule.getClusterName(), esNodes);
-
         accessionRegisterMigrationRepository = new AccessionRegisterMigrationRepository(VitamRepositoryFactory.get());
 
     }
@@ -100,7 +97,8 @@ public class AccessionRegisterMigrationServiceTest {
 
     @AfterClass
     public static void afterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
+        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
     }
 
     @Test
