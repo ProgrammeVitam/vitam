@@ -28,9 +28,8 @@ package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
-import fr.gouv.vitam.batch.report.model.AnalyseResultPreservation;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -49,7 +48,7 @@ public class OutputPreservation {
     @JsonProperty("Status")
     private PreservationStatus status;
     @JsonProperty("AnalyseResult")
-    private AnalyseResultPreservation analyseResult;
+    private String analyseResult;
     @JsonProperty("Action")
     private ActionTypePreservation action;
 
@@ -112,11 +111,11 @@ public class OutputPreservation {
         this.action = action;
     }
 
-    public AnalyseResultPreservation getAnalyseResult() {
+    public String getAnalyseResult() {
         return analyseResult;
     }
 
-    public void setAnalyseResult(AnalyseResultPreservation analyseResult) {
+    public void setAnalyseResult(String analyseResult) {
         this.analyseResult = analyseResult;
     }
 

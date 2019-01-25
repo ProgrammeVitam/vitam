@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.preservation;
 
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
 import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
 import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
@@ -292,7 +291,7 @@ public class PreservationIT extends VitamRuleRunner {
                 OutputPreservation outputPreservation = new OutputPreservation();
 
                 outputPreservation.setStatus(OK);
-                outputPreservation.setAnalyseResult(VALID_ALL);
+                outputPreservation.setAnalyseResult("VALID_ALL");
                 outputPreservation.setAction(action);
 
                 outputPreservation.setInputPreservation(new InputPreservation(entry.getKey(), entry.getValue()));

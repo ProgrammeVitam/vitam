@@ -29,7 +29,6 @@ package fr.gouv.vitam.batch.report.rest.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.exception.BatchReportException;
-import fr.gouv.vitam.batch.report.model.AnalyseResultPreservation;
 import fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
@@ -40,7 +39,6 @@ import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
-import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -140,18 +138,17 @@ public class BatchReportServiceImpl {
         if (outputName != null && !outputName.isNull()) {
             output = outputName.asText();
         }
-        id = GUIDFactory.newGUID().toString();
-        PreservationReportModel preservationReportModel = new PreservationReportModel(id, processId, tenantId,
+        return new PreservationReportModel(
+            GUIDFactory.newGUID().toString(),
+            processId,
+            tenantId,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             PreservationStatus.valueOf(entry.get(STATUS).asText()),
             checkValuePresent("unitId", entry).asText(),
             checkValuePresent("objectGroupId", entry).asText(),
             ActionTypePreservation.valueOf(checkValuePresent("action", entry).asText()),
-            (ActionTypePreservation.ANALYSE == ActionTypePreservation.valueOf(entry.get("action").asText()) ?
-                AnalyseResultPreservation.valueOf(checkValuePresent("analyseResult", entry).asText()) :
-                AnalyseResultPreservation.VALID_ALL),
+            entry.get("analyseResult") != null && entry.get("analyseResult").isTextual() ? entry.get("analyseResult").asText() : null,
             checkValuePresent("inputName", entry).asText(), output);
-        return preservationReportModel;
     }
 
     private JsonNode checkValuePresent(String fieldName, JsonNode entry) throws BatchReportException {

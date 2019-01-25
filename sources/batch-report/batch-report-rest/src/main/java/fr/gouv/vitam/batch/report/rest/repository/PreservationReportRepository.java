@@ -44,22 +44,21 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.EXTRACT;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.WRONG_FORMAT;
+import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ACTION;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ANALYSE_RESULT;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.OBJECT_GROUP_ID;
@@ -68,6 +67,10 @@ import static fr.gouv.vitam.batch.report.model.PreservationReportModel.STATUS;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.TENANT;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.UNIT_ID;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.KO;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.EXTRACT;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 
 public class PreservationReportRepository {
     private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationReportRepository.class);
@@ -133,13 +136,25 @@ public class PreservationReportRepository {
         int nbUnits = getStats(and(eqProcessId, eqTenant), UNIT_ID);
         int nbObjectGroups = getStats(and(eqProcessId, eqTenant), OBJECT_GROUP_ID);
         int nbStatusKos = getStats(and(eqTenant, eqProcessId, eq(STATUS, KO.name())), STATUS);
+
         int nbActionsAnaylse = getStats(and(eqTenant, eqProcessId, eq(ACTION, ANALYSE.name())), ACTION);
         int nbActionsGenerate = getStats(and(eqTenant, eqProcessId, eq(ACTION, GENERATE.name())), ACTION);
         int nbActionsIdentify = getStats(and(eqTenant, eqProcessId, eq(ACTION, IDENTIFY.name())), ACTION);
         int nbActionsExtract = getStats(and(eqTenant, eqProcessId, eq(ACTION, EXTRACT.name())), ACTION);
-        int nbAnalysesValid = getStats(and(eqTenant, eqProcessId, eq(ANALYSE_RESULT, VALID_ALL.name())), ANALYSE_RESULT);
-        int nbAnalysesNotValid = getStats(and(eqTenant, eqProcessId, eq(ANALYSE_RESULT, NOT_VALID.name())), ANALYSE_RESULT);
-        int nbAnalysesWrongFormat = getStats(and(eqTenant, eqProcessId, eq(ANALYSE_RESULT, WRONG_FORMAT.name())), ANALYSE_RESULT);
+
+        Spliterator<SimpleEntry<String, Integer>> map = collection.aggregate(
+            Arrays.asList(
+                match(and(eqTenant, eqProcessId)),
+                project(include("analyseResult")),
+                group("$" + ANALYSE_RESULT, sum("count", 1))
+            )
+        ).allowDiskUse(true)
+         .batchSize(1000)
+         .map(d -> new SimpleEntry<>(d.getString("_id"), d.get("count", Integer.class)))
+         .spliterator();
+
+        Map<String, Integer> analyseResults = StreamSupport.stream(map, false)
+            .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
         return new PreservationStatsModel(
             nbUnits,
@@ -149,9 +164,7 @@ public class PreservationReportRepository {
             nbActionsGenerate,
             nbActionsIdentify,
             nbActionsExtract,
-            nbAnalysesValid,
-            nbAnalysesNotValid,
-            nbAnalysesWrongFormat
+            analyseResults
         );
     }
 

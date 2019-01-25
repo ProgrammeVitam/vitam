@@ -73,7 +73,7 @@ public class PreservationReportModel {
     private ActionTypePreservation action;
 
     @JsonProperty(ANALYSE_RESULT)
-    private AnalyseResultPreservation analyseResult;
+    private String analyseResult;
 
     @JsonProperty(INPUT_NAME)
     private String inputName;
@@ -84,7 +84,7 @@ public class PreservationReportModel {
     public PreservationReportModel() {
     }
 
-    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, AnalyseResultPreservation analyseResult, String inputName, String outputName) {
+    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputName, String outputName) {
         this.id = id;
         this.processId = processId;
         this.tenant = tenant;
@@ -178,11 +178,11 @@ public class PreservationReportModel {
         this.action = action;
     }
 
-    public AnalyseResultPreservation getAnalyseResult() {
+    public String getAnalyseResult() {
         return analyseResult;
     }
 
-    public void setAnalyseResult(AnalyseResultPreservation analyseResult) {
+    public void setAnalyseResult(String analyseResult) {
         this.analyseResult = analyseResult;
     }
 }

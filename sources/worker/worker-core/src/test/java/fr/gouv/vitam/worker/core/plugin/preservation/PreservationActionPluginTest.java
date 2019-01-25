@@ -65,7 +65,6 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.NOT_VALID;
 import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
@@ -167,7 +166,7 @@ public class PreservationActionPluginTest {
         verify(reportService).appendPreservationEntries(eq("REQUEST_ID"), captor.capture());
 
         // Then
-        assertThat(captor.getValue()).extracting(PreservationReportModel::getAnalyseResult).contains(NOT_VALID);
+        assertThat(captor.getValue()).extracting(PreservationReportModel::getAnalyseResult).contains("NOT_VALID");
     }
 
     @Test
