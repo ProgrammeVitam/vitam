@@ -284,7 +284,7 @@ export class MySelectionComponent extends PageComponent {
       case 'PRESERVATION':
         if (isOK) {
           title = 'Préservation';
-          message = 'Le process de préservation  est en cours';
+          message = 'Le processus de préservation  est en cours';
         } else {
           title = 'Erreur de lancement du process de preservation';
           message = 'Erreur lors du lancement du process de preservation';

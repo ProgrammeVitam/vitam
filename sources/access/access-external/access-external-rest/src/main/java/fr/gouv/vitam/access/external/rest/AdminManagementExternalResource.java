@@ -36,7 +36,6 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
@@ -141,7 +140,6 @@ import static fr.gouv.vitam.common.error.VitamCode.ACCESS_EXTERNAL_GET_ACCESSION
 import static fr.gouv.vitam.common.error.VitamCodeHelper.getCode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 /**
@@ -2733,9 +2731,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/griffin")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = "griffins:read", isAdminOnly = true, description = "Lister le contenu du référentiel des griffons")
-    public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select)
-        throws AdminManagementClientServerException {
+    @Secured(permission = "griffins:read", description = "Lister le contenu du référentiel des griffons")
+    public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select) throws AdminManagementClientServerException {
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);

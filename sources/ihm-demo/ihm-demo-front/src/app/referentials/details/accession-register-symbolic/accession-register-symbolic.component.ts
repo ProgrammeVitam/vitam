@@ -36,7 +36,7 @@ export class AccessionRegisterSymbolicComponent extends PageComponent {
   ctxBo: CanvasRenderingContext2D;
   ctxBos: CanvasRenderingContext2D;
   ObjectGroup = {
-    label: 'Nombre de groupe d\'object',
+    label: 'Nombre de groupe d\'objets',
     backgroundColor: this.colorFunct(this.chartColors.red).alpha(0.5).rgbString(),
     borderColor: this.chartColors.red,
     fill: false,
@@ -50,7 +50,7 @@ export class AccessionRegisterSymbolicComponent extends PageComponent {
     data: [],
   };
   BinaryObject = {
-    label: 'Nombre d\'object binaire',
+    label: 'Nombre d\'objets binaire',
     backgroundColor: this.colorFunct(this.chartColors.green).alpha(0.5).rgbString(),
     borderColor: this.chartColors.green,
     fill: false,

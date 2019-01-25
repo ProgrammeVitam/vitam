@@ -2,6 +2,8 @@ package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
 public class PreservationStatsModel {
     @JsonProperty("nbUnits")
     private int nbUnits;
@@ -24,16 +26,10 @@ public class PreservationStatsModel {
     @JsonProperty("nbActionExtracts")
     private int nbActionsExtract;
 
-    @JsonProperty("nbAnalyseValids")
-    private int nbAnalysesValid;
+    @JsonProperty("analyseResults")
+    private Map<String, Integer> analyseResults;
 
-    @JsonProperty("nbAnalyseNotValids")
-    private int nbAnalysesNotValid;
-
-    @JsonProperty("nbAnalyseWrongFormats")
-    private int nbAnalysesWrongFormat;
-
-    public PreservationStatsModel(int nbUnits, int nbObjectGroups, int nbStatusKos, int nbActionsAnaylse, int nbActionsGenerate, int nbActionsIdentify, int nbActionsExtract, int nbAnalysesValid, int nbAnalysesNotValid, int nbAnalysesWrongFormat) {
+    public PreservationStatsModel(int nbUnits, int nbObjectGroups, int nbStatusKos, int nbActionsAnaylse, int nbActionsGenerate, int nbActionsIdentify, int nbActionsExtract, Map<String, Integer> analyseResults) {
         this.nbUnits = nbUnits;
         this.nbObjectGroups = nbObjectGroups;
         this.nbStatusKos = nbStatusKos;
@@ -41,9 +37,7 @@ public class PreservationStatsModel {
         this.nbActionsGenerate = nbActionsGenerate;
         this.nbActionsIdentify = nbActionsIdentify;
         this.nbActionsExtract = nbActionsExtract;
-        this.nbAnalysesValid = nbAnalysesValid;
-        this.nbAnalysesNotValid = nbAnalysesNotValid;
-        this.nbAnalysesWrongFormat = nbAnalysesWrongFormat;
+        this.analyseResults = analyseResults;
     }
 
     public int getNbUnits() {
@@ -102,27 +96,11 @@ public class PreservationStatsModel {
         this.nbActionsExtract = nbActionsExtract;
     }
 
-    public int getNbAnalysesValid() {
-        return nbAnalysesValid;
+    public Map<String, Integer> getAnalyseResults() {
+        return analyseResults;
     }
 
-    public void setNbAnalysesValid(int nbAnalysesValid) {
-        this.nbAnalysesValid = nbAnalysesValid;
-    }
-
-    public int getNbAnalysesNotValid() {
-        return nbAnalysesNotValid;
-    }
-
-    public void setNbAnalysesNotValid(int nbAnalysesNotValid) {
-        this.nbAnalysesNotValid = nbAnalysesNotValid;
-    }
-
-    public int getNbAnalysesWrongFormat() {
-        return nbAnalysesWrongFormat;
-    }
-
-    public void setNbAnalysesWrongFormat(int nbAnalysesWrongFormat) {
-        this.nbAnalysesWrongFormat = nbAnalysesWrongFormat;
+    public void setAnalyseResults(Map<String, Integer> analyseResults) {
+        this.analyseResults = analyseResults;
     }
 }

@@ -449,7 +449,7 @@ export class SearchReferentialsComponent extends PageComponent {
           }
           this.response = data;
         },
-        error => console.log('Error - ', this.response)
+        error => console.error(error.message)
       );
 
     });

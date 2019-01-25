@@ -71,7 +71,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
@@ -201,8 +200,7 @@ public class PreservationActionPlugin extends ActionHandler {
         List<InputPreservation> inputPreservations = lines.stream()
             .map(this::mapToInput)
             .collect(Collectors.toList());
-        List<ActionPreservation> preservationActions =
-            lines.stream().flatMap(this::mapToActions).collect(Collectors.toList());
+        List<ActionPreservation> preservationActions = lines.get(0).getActionPreservationList();
 
         boolean debug = lines.get(0).isDebug();
         ParametersPreservation parametersPreservation =
@@ -213,10 +211,6 @@ public class PreservationActionPlugin extends ActionHandler {
 
     private InputPreservation mapToInput(PreservationDistributionLine entryParams) {
         return new InputPreservation(entryParams.getObjectId(), entryParams.getFormatId());
-    }
-
-    private Stream<ActionPreservation> mapToActions(PreservationDistributionLine entryParams) {
-        return entryParams.getActionPreservationList().stream();
     }
 
     private ResultPreservation launchGriffin(String griffinId, Path batchDirectory, int timeout)

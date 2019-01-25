@@ -59,8 +59,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 
-import static fr.gouv.vitam.batch.report.model.AnalyseResultPreservation.VALID_ALL;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -184,11 +184,11 @@ public class BatchReportServiceImplTest {
         String filename = String.format("preservation-Report-%s.jsonl", processId);
         Path report = initialisePathWithFileName(filename);
 
-        PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, 1, 0, 0);
+        PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>());
         PreservationReportModel preservationReportModel =
             new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
                 TENANT_ID, "2018-11-15T11:13:20.986",
-                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, VALID_ALL,
+                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
                 "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "");
         FakeMongoCursor<PreservationReportModel> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationReportModel));
 
