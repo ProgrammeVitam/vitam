@@ -711,6 +711,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             case ACCESSION_REGISTER_SYMBOLIC:
                 description.append("ACCESSION_REGISTER_SYMBOLIC ");
                 break;
+            case DISTRIBUTIONREPORTS:
+                description.append("DISTRIBUTION_REPORTS ");
+                break;
             default:
                 throw new UnsupportedOperationException(NOT_IMPLEMENTED_MSG);
         }

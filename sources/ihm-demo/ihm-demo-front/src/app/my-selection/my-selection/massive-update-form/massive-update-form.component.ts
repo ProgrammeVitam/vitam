@@ -220,7 +220,7 @@ export class MassiveUpdateFormComponent implements OnInit {
               updates[categoryKey].Rules.push({
                 OldRule: rule.OriginRule,
                 Rule: rule.Rule,
-                StartDate: DateService.dateToString(rule.StartDate),
+                StartDate: rule.StartDate ? DateService.dateToString(rule.StartDate) : null,
                 DeleteStartDate: rule.DeleteStartDate
               });
               nbUpdates++;
