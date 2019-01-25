@@ -201,24 +201,23 @@ public class PreservationScenarioService {
         }
     }
 
-    private void formatValidation(List<PreservationScenarioModel> listToImport)
-        throws BadRequestException, ReferentialException, InvalidParseOperationException {
-
-        final ObjectNode finalSelect = new Select().getFinalSelect();
+    private void formatValidation(List<PreservationScenarioModel> listToImport) throws VitamException {
+        ObjectNode finalSelect = new Select().getFinalSelect();
         DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, FORMATS);
 
-        final List<FileFormatModel> allGriffinInDatabase = result.getDocuments(FileFormat.class, FileFormatModel.class);
-        List<String> formatPuids =
-            allGriffinInDatabase.stream().map(FileFormatModel::getPuid).collect(toList());
+        Set<String> referencePuids = result.getDocuments(FileFormat.class, FileFormatModel.class)
+            .stream()
+            .map(FileFormatModel::getPuid)
+            .collect(toSet());
 
-        for (PreservationScenarioModel scenario : listToImport) {
-            for(GriffinByFormat griffinByFormat : scenario.getGriffinByFormat()) {
-                for(String format : griffinByFormat.getFormatList()) {
-                    if(!formatPuids.contains(format)) {
-                        throw new ReferentialException("Format is not in database");
-                    }
-                }
-            }
+        Set<String> puidsToCheck = listToImport.stream()
+            .flatMap(s -> s.getGriffinByFormat().stream().flatMap(g -> g.getFormatList().stream()))
+            .collect(toSet());
+
+        puidsToCheck.removeAll(referencePuids);
+
+        if (!puidsToCheck.isEmpty()) {
+            throw new ReferentialException(String.format("List: %s does not exist in the database.", puidsToCheck.toString()));
         }
     }
 
