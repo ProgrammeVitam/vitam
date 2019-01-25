@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -188,7 +189,7 @@ public class ProbativeService {
                 Contexts.LOGBOOK_TRACEABILITY.getEventType());
 
             String mostRecentLogbookSecureOperationId =
-                result.get(TAG_RESULTS).get(0).get(eventIdentifier.getDbname()).asText();
+                result.get(eventIdentifier.getDbname()).asText();
 
 
             result = client.selectOperationById(mostRecentLogbookSecureOperationId);
@@ -282,8 +283,8 @@ public class ProbativeService {
 
     private JsonNode createLastSecureObjectGroupSelect(String lastPersistedDate, String eventType)
         throws EvidenceAuditException {
-        try {
 
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
             Select select = new Select();
             BooleanQuery query = and().add(
                 eq(LogbookMongoDbName.eventType.getDbname(), eventType),
@@ -296,7 +297,15 @@ public class ProbativeService {
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter("events.evDateTime");
 
-            return logbookOperationsClientFactory.getClient().selectOperation(select.getFinalSelect());
+            RequestResponseOK requestResponseOK = RequestResponseOK.getFromJsonNode(
+                logbookOperationsClient.selectOperation(select.getFinalSelect()));
+
+            if (requestResponseOK.getResults().isEmpty()) {
+                throw new EvidenceAuditException(KO,
+                    NO_OPERATION_FOUND_MATCHING_ID + lastPersistedDate);
+            }
+
+            return (JsonNode) requestResponseOK.getResults().get(0);
         } catch (Exception e) {
             throw new EvidenceAuditException(KO,
                 NO_OPERATION_FOUND_MATCHING_ID + lastPersistedDate, e);
@@ -403,7 +412,7 @@ public class ProbativeService {
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType());
 
         String mostRecentLogbookSecureOperationId =
-            result.get(TAG_RESULTS).get(0).get(eventIdentifier.getDbname()).asText();
+            result.get(eventIdentifier.getDbname()).asText();
 
         parameter.setSecuredOperationId(mostRecentLogbookSecureOperationId);
 

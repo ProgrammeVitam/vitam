@@ -404,38 +404,32 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
 
     private byte[] findHashByTraceabilityEventExpect(LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        try {
-            RequestResponseOK<JsonNode> requestResponseOK =
-                RequestResponseOK.getFromJsonNode(
-                    logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
-            List<JsonNode> foundOperation = requestResponseOK.getResults();
-            if (foundOperation != null && !foundOperation.isEmpty()) {
-                LogbookOperation lastOperationTraceabilityLifecycle = new LogbookOperation(foundOperation.get(0));
-                if (!expectedLogbookId.contains(lastOperationTraceabilityLifecycle.getString(EVENT_ID))) {
-                    expectedLogbookId.add(lastOperationTraceabilityLifecycle.getString(EVENT_ID));
-                    return extractTimestampToken(lastOperationTraceabilityLifecycle);
-                }
+        RequestResponseOK<JsonNode> requestResponseOK =
+            RequestResponseOK.getFromJsonNode(
+                logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
+        List<JsonNode> foundOperation = requestResponseOK.getResults();
+        if (foundOperation != null && !foundOperation.isEmpty()) {
+            LogbookOperation lastOperationTraceabilityLifecycle = new LogbookOperation(foundOperation.get(0));
+            if (!expectedLogbookId.contains(lastOperationTraceabilityLifecycle.getString(EVENT_ID))) {
+                expectedLogbookId.add(lastOperationTraceabilityLifecycle.getString(EVENT_ID));
+                return extractTimestampToken(lastOperationTraceabilityLifecycle);
             }
-            return null;
-        } catch (LogbookClientNotFoundException e) {
-            LOGGER.warn("Logbook operation not found, there is no Operation");
         }
+
+        LOGGER.warn("Logbook operation not found, there is no Operation");
         return null;
     }
 
     private LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        try {
-            RequestResponseOK<JsonNode> requestResponseOK =
-                RequestResponseOK.getFromJsonNode(
-                    logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
-            List<JsonNode> foundOperation = requestResponseOK.getResults();
-            if (foundOperation != null && foundOperation.size() == 1) {
-                return new LogbookOperation(foundOperation.get(0));
-            }
-        } catch (LogbookClientNotFoundException e) {
-            LOGGER.warn("Logbook operation not found, there is no Operation");
+        RequestResponseOK<JsonNode> requestResponseOK =
+            RequestResponseOK.getFromJsonNode(
+                logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
+        List<JsonNode> foundOperation = requestResponseOK.getResults();
+        if (foundOperation != null && foundOperation.size() == 1) {
+            return new LogbookOperation(foundOperation.get(0));
         }
+        LOGGER.warn("Logbook operation not found, there is no Operation");
         return null;
     }
 

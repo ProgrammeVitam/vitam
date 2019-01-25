@@ -219,7 +219,7 @@ public class EvidenceServiceTest {
         when(logbookOperationsClient.selectOperationById(anyString())).thenReturn(logbook);
 
         when(logbookOperationsClient.selectOperation(select))
-            .thenThrow(new LogbookClientNotFoundException("not found"));
+            .thenReturn(JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>()));
 
         EvidenceAuditParameters parameters =
             evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT);
