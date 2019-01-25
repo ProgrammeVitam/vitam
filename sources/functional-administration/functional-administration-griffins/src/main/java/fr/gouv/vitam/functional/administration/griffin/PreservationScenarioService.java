@@ -271,14 +271,22 @@ public class PreservationScenarioService {
                 throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier()+"'");
             }
 
-            Set<ConstraintViolation<PreservationScenarioModel>> constraint = validator.validate(model);
-            if (!constraint.isEmpty()) {
+            Set<ConstraintViolation<PreservationScenarioModel>> constraints = validator.validate(model);
+            if (!constraints.isEmpty()) {
                 throw new ReferentialException(
-                    "Invalid scenario  for  : '" + model.getIdentifier() + "' : " + constraint.toString());
+                    "Invalid scenario  for  : '" + model.getIdentifier() + "' : " + getConstraintsStrings(constraints));
             }
 
             identifiers.add(model.getIdentifier());
         }
+    }
+
+    private String getConstraintsStrings(Set<ConstraintViolation<PreservationScenarioModel>> constraints) {
+        List<String> result = new ArrayList<>() ;
+        for (ConstraintViolation<PreservationScenarioModel> constraintViolation :constraints){
+            result.add( "'"+ constraintViolation.getPropertyPath()+ "':" +constraintViolation.getMessage());
+        }
+        return result.toString();
     }
 
     private FunctionalOperationModel retrieveOperationModel() {
