@@ -34,5 +34,4 @@ classificationLevel :
   allowList :  [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
   authorizeNotDefined: {{classificationLevelOptional}}
 
-environmentName: {{ vitam_site_name }}
-
+environmentName: {{ vitam_prefix_offer|default(vitam_site_name) }}
