@@ -247,6 +247,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             rulesToCheck.addAll(
                 category.getRules().stream()
                     .map(RuleAction::getOldRule)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toSet())
             );
         }
