@@ -2,7 +2,6 @@ package fr.gouv.vitam.common.model.administration;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import fr.gouv.vitam.common.model.ModelConstants;
 
 /**
@@ -10,6 +9,13 @@ import fr.gouv.vitam.common.model.ModelConstants;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileRulesModel {
+
+    public static final String TAG_RULE_ID = "RuleId";
+    public static final String TAG_RULE_TYPE = "RuleType";
+    public static final String TAG_RULE_VALUE = "RuleValue";
+    public static final String TAG_RULE_DESCRIPTION = "RuleDescription";
+    public static final String TAG_RULE_DURATION = "RuleDuration";
+    public static final String TAG_RULE_MEASUREMENT = "RuleMeasurement";
 
     /**
      * unique id
@@ -29,22 +35,22 @@ public class FileRulesModel {
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer version;
 
-    @JsonProperty("RuleId")
+    @JsonProperty(TAG_RULE_ID)
     private String ruleId;
 
-    @JsonProperty("RuleType")
+    @JsonProperty(TAG_RULE_TYPE)
     private String ruleType;
 
-    @JsonProperty("RuleValue")
+    @JsonProperty(TAG_RULE_VALUE)
     private String ruleValue;
 
-    @JsonProperty("RuleDescription")
+    @JsonProperty(TAG_RULE_DESCRIPTION)
     private String ruleDescription;
 
-    @JsonProperty("RuleDuration")
+    @JsonProperty(TAG_RULE_DURATION)
     private String ruleDuration;
 
-    @JsonProperty("RuleMeasurement")
+    @JsonProperty(TAG_RULE_MEASUREMENT)
     private String ruleMeasurement;
 
     @JsonProperty("CreationDate")
@@ -57,7 +63,7 @@ public class FileRulesModel {
     }
 
     public FileRulesModel(String ruleId, String ruleType, String ruleValue, String ruleDescription,
-        String ruleDuration, String ruleMeasurement) {
+                          String ruleDuration, String ruleMeasurement) {
         this.ruleId = ruleId;
         this.ruleType = ruleType;
         this.ruleValue = ruleValue;
@@ -180,7 +186,7 @@ public class FileRulesModel {
     @Override
     public String toString() {
         return "ruleId=" + ruleId + ", ruleType=" + ruleType +
-            ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
-            ", ruleMeasurement=" + ruleMeasurement;
+                ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
+                ", ruleMeasurement=" + ruleMeasurement;
     }
 }
