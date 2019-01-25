@@ -318,6 +318,8 @@ days_to_delete_logback_logfiles=
 
 # Define local Consul datacenter name
 vitam_site_name=prod-dc1
+# On offer, value is the prefix for all containers' names. If upgrading from R8, you MUST UNCOMMENT this parameter AS IS !!!
+#vitam_prefix_offer=""
 # EXAMPLE : vitam_site_name = prod-dc1
 # check whether on primary site (true) or secondary (false)
 primary_site=true
