@@ -35,6 +35,7 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -269,7 +270,7 @@ public class VitamMongoRepositoryTest {
 
         MongoCursor<Document> cursor = collection.find().iterator();
         while (cursor.hasNext()) {
-            System.err.println(cursor.next().toJson());
+            System.err.println(JSON.serialize(cursor.next()));
         }
 
         updates = new ArrayList<>();

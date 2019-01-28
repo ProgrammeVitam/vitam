@@ -30,6 +30,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -302,7 +303,7 @@ public class MasterdataRepository {
 
         documents.forEach(document -> {
             String id = (String) document.remove("_id");
-            String source = document.toJson();
+            String source = JSON.serialize(document);
             bulkRequestBuilder
                     .add(transportClient.prepareIndex(vitamDataType.getIndexName(), VitamCollection.TYPEUNIQUE, id)
                             .setSource(source, XContentType.JSON));
