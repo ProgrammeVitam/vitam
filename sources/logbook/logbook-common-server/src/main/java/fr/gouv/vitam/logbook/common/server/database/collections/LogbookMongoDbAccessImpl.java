@@ -68,6 +68,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
@@ -1156,7 +1157,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             LogbookLifeCycleUnit logbookLifeCycleUnit =
-                new LogbookLifeCycleUnit(logbookLifeCycleUnitInProcess.toJson());
+                new LogbookLifeCycleUnit(JSON.serialize(logbookLifeCycleUnitInProcess));
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
             // Update last persisted date
             logbookLifeCycleUnit.append(LAST_PERSISTED_DATE, lastPersistedDate);
@@ -1195,7 +1196,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
-                new LogbookLifeCycleObjectGroup(logbookLifeCycleObjectGroupInProcess.toJson());
+                new LogbookLifeCycleObjectGroup(JSON.serialize(logbookLifeCycleObjectGroupInProcess));
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
             // Update last persisted date
             logbookLifeCycleObjectGroup.append(LAST_PERSISTED_DATE, lastPersistedDate);
@@ -1270,10 +1271,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
             if (LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.equals(inProccessCollection)) {
                 logbookLifeCycleInProcess =
-                    new LogbookLifeCycleUnitInProcess(logbookLifeCycleInProd.toJson());
+                    new LogbookLifeCycleUnitInProcess(JSON.serialize(logbookLifeCycleInProd));
             } else if (LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.equals(inProccessCollection)) {
                 logbookLifeCycleInProcess =
-                    new LogbookLifeCycleObjectGroup(logbookLifeCycleInProd.toJson());
+                    new LogbookLifeCycleObjectGroup(JSON.serialize(logbookLifeCycleInProd));
             }
 
             if (logbookLifeCycleInProcess == null) {

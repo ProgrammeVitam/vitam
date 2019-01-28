@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -456,7 +457,7 @@ public class OntologyServiceImpl implements OntologyService {
         FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find();
         MongoCursor<Document> it = documents.iterator();
         while (it.hasNext()) {
-            response.addResult(JsonHandler.getFromString(it.next().toJson(), OntologyModel.class));
+            response.addResult(JsonHandler.getFromString(JSON.serialize(it.next()), OntologyModel.class));
         }
 
         return response;

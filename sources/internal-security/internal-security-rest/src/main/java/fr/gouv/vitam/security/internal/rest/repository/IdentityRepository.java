@@ -28,6 +28,7 @@ package fr.gouv.vitam.security.internal.rest.repository;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -82,7 +83,7 @@ public class IdentityRepository {
         if (first == null) {
             return Optional.empty();
         }
-        return Optional.of(JsonHandler.getFromString(first.toJson(), IdentityModel.class));
+        return Optional.of(JsonHandler.getFromString(JSON.serialize(first), IdentityModel.class));
     }
 
     /**
