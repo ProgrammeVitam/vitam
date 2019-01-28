@@ -79,13 +79,15 @@ Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, 
      :language: yaml
      :linenos:
 
-Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valur par défaut est ``rsyslog``.
+Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par défaut est ``rsyslog``.
 
 .. _pkiconfsection:
 
 Déclaration des secrets
 =======================
-.. warning:: Cette section décrit des fichiers contenant des données sensibles ; il convient de sécuriser ces fichiers avec un mot de passe "fort". En cas d'usage d'un fichier de mot de passe ("vault-password-file"), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
+
+
+.. warning:: Cette section décrit des fichiers contenant des données sensibles ; il convient de sécuriser ces fichiers avec un mot de passe "fort". Il est important d'implémenter une politique de mot de passe robuste. conforme à ce que l'ANSSI préconise. Par exemple: ne pas utiliser le même mot de passe pour chaque service, renouveler régulièrement son mot de passe, utiliser des majuscules, minuscules, chiffres et caractères spéciaux (Se référer à la documentation ANSSI https://www.ssi.gouv.fr/guide/mot-de-passe). En cas d'usage d'un fichier de mot de passe ("vault-password-file"), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
 
 
 Les secrets utilisés par la solution logicielle (en-dehors des certificats qui sont abordés dans une section ultérieure) sont définis dans des fichiers chiffrés par ansible-vault.
