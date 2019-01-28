@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -37,8 +38,8 @@ import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import org.assertj.core.api.Fail;
 
 import java.io.InputStream;
@@ -127,9 +128,33 @@ public class PreservationStep {
         world.setResults((List<JsonNode>) ((RequestResponseOK) response).getResultsAsJsonNodes());
     }
 
+    @Then("^le griffon nommé (.*) n'existe pas$")
+    @SuppressWarnings("unchecked")
+    public void searchNotGriffinById(String identifier) throws VitamClientException {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<GriffinModel> response = world.getAdminClient().findGriffinById(vitamContext, identifier);
+
+        assertThat(response.getHttpCode()).isEqualTo(404);
+    }
+
+    @Then("^le scénario de preservation nommé (.*) n'existe pas$")
+    @SuppressWarnings("unchecked")
+    public void searchNotExistantPreservationById(String identifier) throws VitamClientException {
+
+        VitamContext vitamContext = new VitamContext(world.getTenantId());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        RequestResponse<PreservationScenarioModel> response =
+            world.getAdminClient().findPreservationScenarioById(vitamContext, identifier);
+
+        assertThat(response.getHttpCode()).isEqualTo(404);
+    }
+
+
     @When("^je cherche le scénario de preservation nommé (.*)$")
     @SuppressWarnings("unchecked")
-    public void searchPreservationById(String identifier) throws VitamClientException, InvalidParseOperationException {
+    public void searchPreservationById(String identifier) throws Exception {
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());

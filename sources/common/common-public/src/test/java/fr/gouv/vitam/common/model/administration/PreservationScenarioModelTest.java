@@ -1,6 +1,7 @@
 package fr.gouv.vitam.common.model.administration;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +23,8 @@ public class PreservationScenarioModelTest {
     }
 
     @Test
-    public void shouldFailGriffinIdFromModel() {
+    public void shouldFailGriffinIdFromModel() throws Exception {
+        model.setDefaultGriffin(null);
 
         Optional<String> griffinIdentifierByFormat3 = model.getGriffinIdentifierByFormat("toto");
         assertThat(griffinIdentifierByFormat3).isEmpty();

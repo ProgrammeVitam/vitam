@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionPreservation;
+import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 
 import java.util.List;
 

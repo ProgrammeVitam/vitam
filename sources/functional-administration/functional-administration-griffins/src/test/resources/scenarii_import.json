@@ -9,6 +9,27 @@
       "AU_TextContent",
       "AU_NamedEntity"
     ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "TIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
+    ],
     "ActionList": [
       "GENERATE"
     ],
@@ -23,6 +44,27 @@
     "MetadataFilter": [
       "AU_TextContent",
       "AU_NamedEntity"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": ["fmt/43"],
+        "GriffinIdentifier": "GRI-000001",
+        "Timeout": 2000,
+        "MaxSize": 10000000,
+        "Debug":true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "TIF",
+              "Args": [
+                "-thumbnail",
+                "100x100"
+              ]
+            }
+          }
+        ]
+      }
     ],
     "ActionList": [
       "GENERATE"
