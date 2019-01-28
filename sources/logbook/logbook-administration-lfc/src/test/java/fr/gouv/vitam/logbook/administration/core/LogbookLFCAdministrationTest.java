@@ -23,6 +23,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.client.VitamClientFactory;

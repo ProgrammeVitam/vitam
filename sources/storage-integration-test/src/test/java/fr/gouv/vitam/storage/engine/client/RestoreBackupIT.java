@@ -46,7 +46,6 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageA
 import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -142,9 +141,6 @@ public class RestoreBackupIT {
 
         containerName = String.format("%s_%s", TENANT_ID, DataCategory.BACKUP.getCollectionName().toLowerCase());
         recoverBackupService = new RestoreBackupServiceImpl();
-
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         // prepare workspace
         workspacePort = JunitHelper.getInstance().findAvailablePort();

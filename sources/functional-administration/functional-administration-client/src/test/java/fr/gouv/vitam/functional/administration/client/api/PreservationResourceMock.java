@@ -27,8 +27,8 @@
 package fr.gouv.vitam.functional.administration.client.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 
 import javax.ws.rs.ApplicationPath;

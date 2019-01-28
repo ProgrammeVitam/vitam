@@ -92,7 +92,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
     private static ElasticsearchNode elasticsearchNode;
     private static MongoDbAccess databaseMd;
     private static ElasticsearchAccess databaseEs;
-    private static VitamServiceRegistry serviceRegistry;
+    private static VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -105,10 +105,10 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
         fakePort = junitHelper.findAvailablePort();
         MongoClient mongoClient = new MongoClient(new ServerAddress(
-            HOST_NAME, mongoRule.getDataBasePort()),
+            HOST_NAME, MongoRule.getDataBasePort()),
             VitamCollection.getMongoClientOptions(new ArrayList<>()));
 
-        databaseMd = new MyMongoDbAccess(mongoClient, ElasticsearchRule.VITAM_CLUSTER, false);
+        databaseMd = new MyMongoDbAccess(mongoClient, MongoRule.VITAM_DB, false);
 
         serviceRegistry.register(databaseMd).register(databaseEs);
         serviceRegistry.register(factory);

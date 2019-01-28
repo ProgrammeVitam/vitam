@@ -26,16 +26,14 @@
  */
 package fr.gouv.vitam.common.server.application.junit;
 
+import fr.gouv.vitam.common.SingletonUtils;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.TimeoutHandler;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.TimeoutHandler;
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.SingletonUtils;
 
 /**
  * Minimal implementation for AsyncResponse Tests in Junit

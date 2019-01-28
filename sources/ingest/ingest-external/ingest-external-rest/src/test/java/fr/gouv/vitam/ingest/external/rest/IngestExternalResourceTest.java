@@ -84,9 +84,6 @@ public class IngestExternalResourceTest {
     private static final String INGEST_EXTERNAL_CONF = "ingest-external-test.conf";
     private static final Integer TENANT_ID = 0;
     private static final String UNEXISTING_TENANT_ID = "25";
-
-    // private static VitamServer vitamServer;
-    private InputStream stream;
     private static JunitHelper junitHelper;
     private static int serverPort;
 
@@ -97,7 +94,6 @@ public class IngestExternalResourceTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        // TODO P1 verifier la compatibilité avec les test parallèle sur jenkins
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
@@ -141,49 +137,52 @@ public class IngestExternalResourceTest {
     @RunWithCustomExecutor
     public void givenRequestWithoutTenantIdThenReturnPreconditionFailed()
         throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        try(InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
+            final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+            when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-        given().contentType(ContentType.BINARY).body(stream)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            given().contentType(ContentType.BINARY).body(stream)
+                .when().post(INGEST_URI)
+                .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        RestAssured.given()
-            .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            RestAssured.given()
+                .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
+                .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        }
     }
 
     @Test
     public void givenRequestWithoutIncorrectTenantIdThenReturnUnauthorized()
         throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        try(InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
+            final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+            when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-        given().contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            given().contentType(ContentType.BINARY).body(stream)
+                .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+                .when().post(INGEST_URI)
+                .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
 
-        RestAssured.given()
-            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
-            .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            RestAssured.given()
+                .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+                .when().get(INGEST_URI + "/1/" + IngestCollection.ARCHIVETRANSFERREPLY.getCollectionName())
+                .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+        }
     }
 
     @Test
     public void givenAnInputstreamWhenUploadThenReturnOK()
         throws Exception {
-        stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
+        try(InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
+            final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+            when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
-        given().contentType(ContentType.BINARY).body(stream)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
-            .when().post(INGEST_URI)
-            .then().statusCode(Status.ACCEPTED.getStatusCode());
+            given().contentType(ContentType.BINARY).body(stream)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
+                .when().post(INGEST_URI)
+                .then().statusCode(Status.ACCEPTED.getStatusCode());
+        }
     }
 
     @Test

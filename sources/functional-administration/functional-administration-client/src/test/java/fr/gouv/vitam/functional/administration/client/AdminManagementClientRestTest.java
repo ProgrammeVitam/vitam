@@ -111,10 +111,9 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    static AdminManagementClientFactory factory = AdminManagementClientFactory.getInstance();
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(AdminManagementClientRestTest.class, factory);
+        new VitamServerTestRunner(AdminManagementClientRestTest.class, AdminManagementClientFactory.getInstance());
 
 
     @BeforeClass
@@ -174,10 +173,9 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     @Test
     public void givenInputstreamOKWhenImportThenReturnOK() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
-        final InputStream stream = PropertiesUtils.getResourceAsStream("DROID_SignatureFile_V94.xml");
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner
             .getClient()) {
-            client.importFormat(stream, "DROID_SignatureFile_V94.xml");
+            client.importFormat(new FakeInputStream(1), "DROID_SignatureFile_V94.xml");
         }
     }
 

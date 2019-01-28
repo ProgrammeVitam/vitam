@@ -42,6 +42,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.StringUtils;
+import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -122,13 +123,9 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
     @Consumes(MediaType.WILDCARD)
     public void downloadPost(@Suspended final AsyncResponse asyncResponse) {
         LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-        VitamThreadPoolExecutor.getDefaultExecutor().execute(new Runnable() {
-
-            @Override
-            public void run() {
-                LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
-                buildReponse(asyncResponse);
-            }
+        VitamThreadPoolExecutor.getDefaultExecutor().execute(() -> {
+            LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
+            buildReponse(asyncResponse);
         });
     }
 
@@ -233,8 +230,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
             LOGGER.warn("Start: " + StringUtils.getClassName(Thread.currentThread()));
             final String method = HttpMethod.POST;
             Response response = null;
-            try (final BenchmarkClientRest client =
-                BenchmarkClientFactory.getInstance().getClient()) {
+            try (final BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
                 response =
                     client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                         null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
@@ -344,6 +340,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
             BenchmarkClientFactory.getInstance().getClient()) {
             response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
             response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             return new VitamAsyncInputStreamResponse(response);
@@ -371,6 +368,7 @@ public class BenchmarkResourceProduceInputStream extends ApplicationStatusResour
             response =
                 client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                     null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
             response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_ASYNC + method,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
             return new VitamAsyncInputStreamResponse(response);

@@ -2287,7 +2287,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         // Then
         doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
-                .importOntologies(anyBoolean(), anyObject());
+                .importOntologies(anyBoolean(), any());
 
         File ontologyFile = PropertiesUtils.getResourceFile("ko_ontology_vocabular_type_unknown.json");
         JsonNode json = JsonHandler.getFromFile(ontologyFile);

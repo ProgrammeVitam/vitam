@@ -26,6 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.serverv2;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.DispatcherType;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -58,21 +71,8 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
-import javax.servlet.DispatcherType;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 public class VitamServerTestRunner {
     private final VitamServer server;
-    private final MockOrRestClient _client;
     private final VitamClientFactoryInterface<?> factory;
     private final Class<? extends Application> application;
     private final Class<? extends Application> adminAapplication;
@@ -227,10 +227,12 @@ public class VitamServerTestRunner {
             hasXsrFilter);
 
         if (null != factory) {
+            //Force host to localhost: collision between tests
+            if (null != factory.getClientConfiguration()) {
+                factory.getClientConfiguration().setServerHost("localhost");
+            }
+
             factory.changeServerPort(businessPort);
-            _client = factory.getClient();
-        } else {
-            _client = null;
         }
     }
 
@@ -316,7 +318,6 @@ public class VitamServerTestRunner {
             admin.setName("admin");
             admin.setHost("localhost");
             admin.setPort(adminPort);
-            admin.setIdleTimeout(30000);
             server.getServer().addConnector(admin);
 
             final ServletHolder servletHolderAdmin = new ServletHolder(new HttpServletDispatcher());
@@ -355,7 +356,7 @@ public class VitamServerTestRunner {
     }
 
     public MockOrRestClient getClient() {
-        return _client;
+        return factory == null ? null : factory.getClient();
     }
 
     public void runAfter() throws Throwable {

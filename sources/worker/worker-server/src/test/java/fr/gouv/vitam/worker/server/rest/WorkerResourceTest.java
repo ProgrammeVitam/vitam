@@ -44,7 +44,6 @@ import fr.gouv.vitam.worker.core.impl.WorkerImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -84,8 +83,6 @@ public class WorkerResourceTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         worker = Mockito.mock(WorkerImpl.class);
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();

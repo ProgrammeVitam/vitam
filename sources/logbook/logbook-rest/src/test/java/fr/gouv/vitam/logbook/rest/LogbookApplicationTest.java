@@ -26,6 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -44,19 +50,11 @@ import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.fail;
 
 
 public class LogbookApplicationTest {
@@ -89,8 +87,6 @@ public class LogbookApplicationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,

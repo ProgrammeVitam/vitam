@@ -106,7 +106,6 @@ public class AdminManagementExternalResourcePreservationTest {
 
         Response response = externalResource.findPreservationByID("id");
         //Then
-        @SuppressWarnings("unchecked")
         RequestResponse<GriffinModel> entity = (RequestResponse<GriffinModel>) response.getEntity();
         assertThat(toJsonNode(entity).get("$results").get(0).get("Name").textValue()).isEqualTo(scenario.getName());
     }

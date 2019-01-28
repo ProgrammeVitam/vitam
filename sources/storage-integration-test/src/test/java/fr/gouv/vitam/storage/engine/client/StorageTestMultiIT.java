@@ -73,7 +73,6 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import junit.framework.TestCase;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -148,8 +147,6 @@ public class StorageTestMultiIT {
         OfferCollections.OFFER_SEQUENCE.setPrefix(GUIDFactory.newGUID().getId());
         mongoRule.addCollectionToBePurged(OfferCollections.OFFER_LOG.getName());
         mongoRule.addCollectionToBePurged(OfferCollections.OFFER_SEQUENCE.getName());
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         ContentAddressableStorageAbstract.disableContainerCaching();
 

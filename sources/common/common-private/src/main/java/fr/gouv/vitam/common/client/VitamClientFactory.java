@@ -360,7 +360,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Specific to handle Junit tests with given Client
      *
      * @param config
-     * @param useChunkedMode
      * @return the associated client
      */
     private Client buildClient(Map<VitamRestEasyConfiguration, Object> config) {
