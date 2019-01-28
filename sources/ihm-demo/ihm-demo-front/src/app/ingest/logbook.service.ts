@@ -15,7 +15,7 @@ export class LogbookService {
   LOGBOOK_LIFECYCLE_OBJECT_GROUP_API = 'logbookobjectslifecycles';
   REPORT_DOWNLOAD_API = 'rules/report/download';
   REPORT_MASS_UPDATE_API = 'report/distribution/download';
-  REPORT_PRESERVATION_API = '/report/preservation/download/';
+  REPORT_PRESERVATION_API = 'report/preservation/download';
   REPORT_TRACEABILITY_DOWNLOAD_API = 'traceability';
   REFERENTIAL_CSV_DOWNLOAD = 'referential/download';
 
