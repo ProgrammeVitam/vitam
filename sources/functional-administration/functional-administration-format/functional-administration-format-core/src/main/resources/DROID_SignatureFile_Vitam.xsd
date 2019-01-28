@@ -34,6 +34,15 @@
 			<xsd:selector xpath="sf:FileFormatCollection/sf:FileFormat"/>
 			<xsd:field xpath="@ID"/>
 		</xsd:key>
+		<xsd:key name="PUIDIdKey"><!-- Vitam update : added key in order to insure that PUID are unique -->
+			<xsd:annotation>
+				<xsd:documentation>
+					Define PUID as key (ensuring they are also unique)
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:selector xpath="sf:FileFormatCollection/sf:FileFormat"/>
+			<xsd:field xpath="@PUID"/>
+		</xsd:key>
 		<xsd:key name="SignatureIdKey">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -107,8 +116,7 @@
 	<xsd:complexType name="FileFormatType">
 		<xsd:choice minOccurs="0" maxOccurs="unbounded">
 			<xsd:element name="InternalSignatureID" type="xsd:nonNegativeInteger"/>
-			<!-- Vitam update : Some PRONOM files have empty extension -->
-			<xsd:element name="Extension" type="xsd:string"/>
+			<xsd:element name="Extension" type="sf:NonEmptyString"/>
 			<xsd:element name="HasPriorityOverFileFormatID" type="xsd:nonNegativeInteger"/>
 		</xsd:choice>
 		<xsd:attribute name="ID" type="xsd:nonNegativeInteger" use="required"/>
@@ -206,8 +214,7 @@
            </xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<!-- Vitam update : & in pattern -->
-			<xsd:pattern value="(\[!?&amp;?([0-9A-F]{2})+(:([0-9A-F]{2})+)?\]|[0-9A-F]{2})+"/>
+			<xsd:pattern value="(\[!?&amp;?([0-9A-F]{2})+(:([0-9A-F]{2})+)?\]|[0-9A-F]{2})+"/><!-- Vitam update : & in pattern -->
 		</xsd:restriction>
 	</xsd:simpleType>
 	<xsd:complexType name="FragmentType">
