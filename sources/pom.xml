@@ -367,7 +367,7 @@
                         <parallel>classes</parallel>
                         <threadCount>1</threadCount>
                         <perCoreThreadCount>true</perCoreThreadCount>
-                        <forkCount>1C</forkCount>
+                        <forkCount>1.5C</forkCount>
                         <reuseForks>false</reuseForks>
                         <trimStackTrace>false</trimStackTrace>
                         <systemPropertyVariables>
@@ -1073,6 +1073,11 @@
                 <groupId>net.sf.opencsv</groupId>
                 <artifactId>opencsv</artifactId>
                 <version>${opencsv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${javax-validation.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>

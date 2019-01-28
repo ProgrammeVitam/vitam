@@ -186,15 +186,13 @@ public class BenchmarkResourceInputStreamIT extends ResteasyTestApplication {
 
     @Test
     public void testStreamNotAsync() throws VitamClientInternalException, IOException {
-        try (final BenchmarkClientRest client =
-            BenchmarkClientFactory.getInstance().getClient()) {
+        try (final BenchmarkClientRest client = BenchmarkClientFactory.getInstance().getClient()) {
             String method = HttpMethod.GET;
             long start = System.nanoTime();
             Response response =
                 client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD_DIRECT + method,
                     null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-            try (final InputStream inputStream =
-                StreamUtils.getRemainingReadOnCloseInputStream(response.readEntity(InputStream.class))) {
+            try (final InputStream inputStream =response.readEntity(InputStream.class)) {
                 assertEquals(BenchmarkResourceProduceInputStream.size, JunitHelper.consumeInputStream(inputStream));
             }
             client.consumeAnyEntityAndClose(response);

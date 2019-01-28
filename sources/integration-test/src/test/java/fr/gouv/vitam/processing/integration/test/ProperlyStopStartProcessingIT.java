@@ -146,7 +146,7 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Before
     public void setUp() throws Exception {
 
-        // Delete eventually exisiting workerdb file
+        // Delete eventually existing workerdb file
         final WorkerBean workerBean =
             new WorkerBean("DefaultWorker", "DefaultWorker", 1, 0, "status",
                 new WorkerRemoteConfiguration("localhost", workerMockRule.port()));

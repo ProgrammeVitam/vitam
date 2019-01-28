@@ -26,14 +26,6 @@
  */
 package fr.gouv.vitam.common.elasticsearch;
 
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
@@ -50,6 +42,14 @@ import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.rules.ExternalResource;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
 
 /**
  *

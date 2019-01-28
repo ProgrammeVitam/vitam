@@ -26,6 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
@@ -49,7 +59,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import io.restassured.RestAssured;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -57,15 +66,6 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * MetadataRawResource test
@@ -102,9 +102,6 @@ public class MetadataRawResourceTest {
         MetadataCollections.OBJECTGROUP.getVitamCollection()
             .setName(GUIDFactory.newGUID().getId() + MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
         mongoRule.addCollectionToBePurged(MetadataCollections.OBJECTGROUP.getName());
-
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
         junitHelper = JunitHelper.getInstance();
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();

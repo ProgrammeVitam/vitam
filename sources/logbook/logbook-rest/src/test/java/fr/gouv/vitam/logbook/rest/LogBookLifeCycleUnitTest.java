@@ -28,13 +28,14 @@ package fr.gouv.vitam.logbook.rest;
 
 import static io.restassured.RestAssured.given;
 
-import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
@@ -80,7 +81,6 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -141,8 +141,6 @@ public class LogBookLifeCycleUnitTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
                 new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,

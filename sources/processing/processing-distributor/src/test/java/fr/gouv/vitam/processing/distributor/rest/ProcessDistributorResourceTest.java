@@ -28,6 +28,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.rest;
 
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+
+import java.io.File;
+import java.util.Set;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -44,18 +52,10 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.util.Set;
-
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
 
 /**
  *
@@ -97,9 +97,6 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
         vitamServerTestRunner.start();
         VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
         // WorkerManager.initialize();
-
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         RestAssured.port = vitamServerTestRunner.getBusinessPort();
         RestAssured.basePath = REST_URI;

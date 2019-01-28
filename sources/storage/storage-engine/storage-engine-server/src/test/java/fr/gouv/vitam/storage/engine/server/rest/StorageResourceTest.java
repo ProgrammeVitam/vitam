@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -45,26 +48,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
-import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import org.jhades.JHades;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -83,6 +74,7 @@ import fr.gouv.vitam.common.serverv2.application.ApplicationParameter;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -92,11 +84,17 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.get;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  *
@@ -154,8 +152,6 @@ public class StorageResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();

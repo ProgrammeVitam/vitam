@@ -285,7 +285,7 @@ public class LogbookOperationsImplTest {
         PowerMockito.mockStatic(IndexationHelper.class);
         when(IndexationHelper.reindex(any(), any(), any(), any(), any()))
             .thenThrow(new IOException());
-        when(IndexationHelper.getFullKOResult(any(), anyString()))
+        when(IndexationHelper.getFullKOResult(any(), any()))
             .thenCallRealMethod();
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         LogbookCollections.OPERATION.getVitamCollection().initialize(mock(MongoDatabase.class), false);

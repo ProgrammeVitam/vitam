@@ -49,7 +49,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -122,9 +121,6 @@ public class SelectObjectGroupResourceTest {
         accessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, nodes);
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             accessMetadata, 0);
-
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
         junitHelper = JunitHelper.getInstance();
 
 
