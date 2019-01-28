@@ -26,20 +26,17 @@
  */
 package fr.gouv.vitam.common.server.application.junit;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.Map;
-import java.util.Map.Entry;
+import com.google.common.base.Strings;
+import org.mockito.Mockito;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-
-import com.google.common.base.Strings;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Helper for getting Response as Outbound Response

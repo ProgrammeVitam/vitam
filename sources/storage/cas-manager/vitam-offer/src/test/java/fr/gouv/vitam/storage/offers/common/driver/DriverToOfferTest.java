@@ -60,7 +60,6 @@ import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
 import io.restassured.RestAssured;
 import org.bson.Document;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -127,9 +126,6 @@ public class DriverToOfferTest {
             o.setPrefix(PREFIX);
             mongoRule.addCollectionToBePurged(o.getName());
         }
-
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final OfferConfiguration realWorkspaceOffer =

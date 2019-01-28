@@ -173,13 +173,7 @@ public class AsyncInputStreamHelper {
                 }
             }
             final VitamStreamingOutput vitamStreamingOutput = new VitamStreamingOutput(inputStream);
-            this.asyncResponse.register(new CompletionCallback() {
-
-                @Override
-                public void onComplete(Throwable throwable) {
-                    vitamStreamingOutput.close();
-                }
-            });
+            this.asyncResponse.register((CompletionCallback) throwable -> vitamStreamingOutput.close());
 
             asyncResponse.resume(responseBuilder.entity(vitamStreamingOutput).build());
         } finally {
@@ -198,14 +192,10 @@ public class AsyncInputStreamHelper {
      */
     public static void asyncResponseResume(AsyncResponse asyncResponse, final Response response) {
         ParametersChecker.checkParameter("ErrorResponse should not be null", response);
-        asyncResponse.register(new CompletionCallback() {
-
-            @Override
-            public void onComplete(Throwable throwable) {
-                Object entity = response.getEntity();
-                if (entity != null && entity instanceof InputStream) {
-                    StreamUtils.closeSilently((InputStream) entity);
-                }
+        asyncResponse.register((CompletionCallback) throwable -> {
+            Object entity = response.getEntity();
+            if (entity != null && entity instanceof InputStream) {
+                StreamUtils.closeSilently((InputStream) entity);
             }
         });
         asyncResponse.resume(response);

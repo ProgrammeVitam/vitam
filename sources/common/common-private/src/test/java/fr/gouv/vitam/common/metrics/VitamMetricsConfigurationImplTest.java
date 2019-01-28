@@ -34,6 +34,7 @@ import com.codahale.metrics.Meter;
 import com.codahale.metrics.Timer;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.metrics.LogbackReporter.Builder;
 import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
@@ -82,14 +83,15 @@ public class VitamMetricsConfigurationImplTest extends ResteasyTestApplication {
     private static final StringBuilder buf = new StringBuilder();
 
     private final static CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
+    private final static TestResourceImpl testResource = new TestResourceImpl();
 
     public static VitamServerTestRunner
         vitamServerTestRunner =
-        new VitamServerTestRunner(VitamMetricsConfigurationImplTest.class);
+        new VitamServerTestRunner(VitamMetricsConfigurationImplTest.class, (VitamClientFactoryInterface<?>)null, true);
 
     @Override
     public Set<Object> getResources() {
-        return Sets.newHashSet(commonBusinessApplication.getResources(), new TestResourceImpl());
+        return Sets.newHashSet(commonBusinessApplication.getResources(), testResource);
     }
 
     @Override
