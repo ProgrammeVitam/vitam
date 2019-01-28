@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functional.administration.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -44,12 +43,12 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;

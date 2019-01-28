@@ -24,13 +24,16 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.administration;
+package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.ModelConstants;
+import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import java.util.HashSet;
 import java.util.List;
@@ -96,13 +99,16 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_METADATA_FILTER)
     private List<String> metadataFilter;
 
+    @Valid
+    @NotEmpty
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
 
     @JsonProperty(TAG_DEFAULT_GRIFFIN)
-    private GriffinByFormat defaultGriffin;
+    @Valid
+    private DefaultGriffin defaultGriffin;
 
-    public PreservationScenarioModel() {
+    public PreservationScenarioModel() {//empty  constructor
     }
 
     public PreservationScenarioModel(@NotEmpty String name,
@@ -110,7 +116,7 @@ public class PreservationScenarioModel {
         @NotEmpty List<ActionTypePreservation> actionList,
         @NotEmpty List<String> metadataFilter,
         @NotEmpty List<GriffinByFormat> griffinByFormat,
-        @NotEmpty GriffinByFormat defaultGriffin) {
+        @NotEmpty DefaultGriffin defaultGriffin) {
         this.name = name;
         this.identifier = identifier;
         this.actionList = actionList;
@@ -207,49 +213,44 @@ public class PreservationScenarioModel {
         this.griffinByFormat = griffinByFormat;
     }
 
-    public GriffinByFormat getDefaultGriffin() {
+    public DefaultGriffin getDefaultGriffin() {
         return defaultGriffin;
     }
 
-    public void setDefaultGriffin(GriffinByFormat defaultGriffin) {
+    public void setDefaultGriffin(DefaultGriffin defaultGriffin) {
         this.defaultGriffin = defaultGriffin;
     }
 
     public Optional<String> getGriffinIdentifierByFormat(String format) {
+        Optional<GriffinByFormat> griffin = getGriffinByFormat(format);
 
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
-            return empty();
-        }
+        return griffin.map(GriffinByFormat::getGriffinIdentifier);
 
-        for (GriffinByFormat element : griffinByFormat) {
-            if (element.getFormatList().contains(format)) {
-                return Optional.of(element.getGriffinIdentifier());
-            }
-        }
-        return empty();
     }
 
     @JsonIgnore
     public Optional<GriffinByFormat> getGriffinByFormat(String format) {
 
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
+        boolean emptyGriffinList = griffinByFormat == null || griffinByFormat.isEmpty();
+
+        if (emptyGriffinList) {
+            if(defaultGriffin != null) {
+                return Optional.of(new GriffinByFormat(defaultGriffin));
+            }
             return empty();
         }
 
-        Optional<GriffinByFormat> first =
-            griffinByFormat.stream()
-                .filter(e -> e.getFormatList().contains(format))
-                .findFirst();
-
-        if (first.isPresent()) {
-            return first;
+        for (GriffinByFormat element : griffinByFormat) {
+            if (element.getFormatList().contains(format)) {
+                return Optional.of(element);
+            }
         }
 
-        if (defaultGriffin == null) {
-            return empty();
+        if(defaultGriffin != null) {
+            return Optional.of(new GriffinByFormat(defaultGriffin));
         }
 
-        return Optional.of(defaultGriffin);
+        return empty();
     }
 
 

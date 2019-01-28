@@ -24,38 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.administration;
+package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import java.util.List;
 import java.util.Set;
 
 /**
- * GriffinByFormat class
+ * DefaultGriffin class
  */
-public class GriffinByFormat {
-    @JsonProperty("FormatList")
-    private Set<String> formatList;
+public class DefaultGriffin {
+
+
+    @NotEmpty
     @JsonProperty("GriffinIdentifier")
     private String griffinIdentifier;
+
+    @Positive
     @JsonProperty("Timeout")
-    @NotEmpty
     private int timeOut;
+
+    @Positive
     @JsonProperty("MaxSize")
     private int maxSize;
+
+    @NotNull
     @JsonProperty("Debug")
-    private boolean debug;
+    private Boolean debug;
+
+    @NotEmpty
+    @Valid
     @JsonProperty("ActionDetail")
     private List<ActionPreservation> actionDetail;
 
-    public Set<String> getFormatList() {
-        return formatList;
+    public DefaultGriffin() {//default Constructor
     }
 
-    public void setFormatList(Set<String> formatList) {
-        this.formatList = formatList;
+    public DefaultGriffin(@NotEmpty Set<String> formatList,
+        @NotEmpty String griffinIdentifier,
+        @NotEmpty List<ActionPreservation> actionDetail) {
+        this.griffinIdentifier = griffinIdentifier;
+        this.actionDetail = actionDetail;
     }
 
     public String getGriffinIdentifier() {
@@ -82,11 +96,11 @@ public class GriffinByFormat {
         this.maxSize = maxSize;
     }
 
-    public boolean isDebug() {
+    public Boolean isDebug() {
         return debug;
     }
 
-    public void setDebug(boolean debug) {
+    public void setDebug(Boolean debug) {
         this.debug = debug;
     }
 

@@ -35,8 +35,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseError;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.griffin.GriffinService;
 import fr.gouv.vitam.functional.administration.griffin.PreservationScenarioService;
@@ -106,10 +106,10 @@ public class PreservationResource {
             return status(Status.CREATED).entity(requestResponse).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return buildErrorResponse(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR, e.getMessage());
+            return buildErrorResponse(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage());
         } catch (Exception e) {
             LOGGER.error("Unexpected server error {}", e);
-            return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
+            return buildErrorResponse(VitamCode.PRESERVATION_INTERNAL_ERROR, e.getMessage());
         }
     }
 

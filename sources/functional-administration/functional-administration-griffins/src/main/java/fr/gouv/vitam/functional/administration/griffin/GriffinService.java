@@ -46,7 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;

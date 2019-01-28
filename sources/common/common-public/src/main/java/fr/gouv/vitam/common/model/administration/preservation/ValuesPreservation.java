@@ -24,45 +24,69 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.model.administration;
+package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ActionPreservation {
-    @JsonProperty("Type")
-    private ActionTypePreservation type;
-    @JsonProperty("Values")
-    private ValuesPreservation values;
+import javax.validation.constraints.NotEmpty;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-    public ActionPreservation() {
+public class ValuesPreservation {
+
+    @JsonProperty("Extension")
+    private String extension;
+
+    @JsonProperty("Args")
+    private List<String> args;
+    @JsonProperty("DataToExtract")
+    private Map<String, String> dataToExtract;
+
+    public ValuesPreservation() {    }
+
+    public ValuesPreservation(String extension, List<String> args) {
+        this.extension = extension;
+        this.args = args;
     }
 
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
+    public ValuesPreservation(Map<String, String> dataToExtract) {
+        this.dataToExtract = dataToExtract;
     }
 
-    public ActionTypePreservation getType() {
-        return type;
+    public String getExtension() {
+        return extension;
     }
 
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
+    public void setExtension(String extension) {
+        this.extension = extension;
     }
 
-    public ValuesPreservation getValues() {
-        return values;
+    public List<String> getArgs() {
+        if (args == null) {
+            return Collections.emptyList();
+        }
+        return args;
     }
 
-    public void setValues(ValuesPreservation values) {
-        this.values = values;
+    public void setArgs(List<String> args) {
+        this.args = args;
+    }
+
+    public Map<String, String> getDataToExtract() {
+        return dataToExtract;
+    }
+
+    public void setDataToExtract(Map<String, String> dataToExtract) {
+        this.dataToExtract = dataToExtract;
     }
 
     @Override
     public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
+        return "Values{" +
+            "Extension='" + extension + '\'' +
+            ", Args=" + args +
+            ", DataToExtract=" + dataToExtract +
             '}';
     }
 }
-

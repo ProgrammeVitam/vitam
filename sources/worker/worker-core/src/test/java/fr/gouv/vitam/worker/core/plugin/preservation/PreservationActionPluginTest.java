@@ -30,7 +30,7 @@ import fr.gouv.vitam.batch.report.model.PreservationReportModel;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.administration.ActionPreservation;
+import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;

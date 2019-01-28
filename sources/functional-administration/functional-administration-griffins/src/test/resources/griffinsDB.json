@@ -1,0 +1,32 @@
+[
+  {
+    "#id": "Id1",
+    "Name": "1",
+    "Identifier": "GRI-000001",
+    "CreationDate": "25/10/2010",
+    "LastUpdateDate": "25/10/2010",
+    "ExecutableName": "exName",
+    "ExecutableVersion": "exVersion",
+    "#version": 1
+  },
+  {
+    "#id": "Id2",
+    "Name": "2",
+    "Identifier": "IDENTIFIER2",
+    "CreationDate": "25/10/2010",
+    "LastUpdateDate": "25/10/2010",
+    "ExecutableName": "exName",
+    "ExecutableVersion": "exVersion",
+    "#version": 1
+  },
+  {
+    "#id": "Id3",
+    "Name": "3",
+    "Identifier": "IDENTIFIER3",
+    "CreationDate": "25/10/2010",
+    "LastUpdateDate": "25/10/2010",
+    "ExecutableName": "exName",
+    "ExecutableVersion": "exVersion",
+    "#version": 1
+  }
+]

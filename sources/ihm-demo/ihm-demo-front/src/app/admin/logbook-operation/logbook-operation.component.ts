@@ -131,6 +131,7 @@ export class LogbookOperationComponent extends PageComponent {
       || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME'
       || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
       || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION'
+      || item.evType.toUpperCase() === 'IMPORT_PRESERVATION_SCENARIO' || item.evType.toUpperCase() === 'IMPORT_GRIFFIN'
       || item.evType.toUpperCase() === 'PRESERVATION') {
 
       if (LogbookOperationComponent.isOperationInProgress(item)) {
@@ -246,6 +247,12 @@ export class LogbookOperationComponent extends PageComponent {
         } else if (item.evType === 'STP_REFERENTIAL_FORMAT_IMPORT') {
           logbookService.downloadReport(item.evIdProc);
           break;
+        } else if (item.evType === 'IMPORT_GRIFFIN') {
+            logbookService.downloadReport(item.evIdProc);
+            break;
+        } else if (item.evType === 'IMPORT_PRESERVATION_SCENARIO') {
+            logbookService.downloadReport(item.evIdProc);
+            break;
         }
     }
   }

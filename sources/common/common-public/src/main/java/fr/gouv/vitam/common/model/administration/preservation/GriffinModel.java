@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.common.model.administration;
+package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -137,8 +137,9 @@ public class GriffinModel {
         return identifier;
     }
 
-    public void setIdentifier(String identifier) {
+    public GriffinModel setIdentifier(String identifier) {
         this.identifier = identifier;
+        return this;
     }
 
     public String getDescription() {

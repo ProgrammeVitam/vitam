@@ -97,8 +97,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
@@ -230,7 +230,8 @@ public class PreservationIT extends VitamRuleRunner {
 
         getVitamSession().setTenantId(0);
         getVitamSession().setRequestId(newGUID());
-        List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels();
+        List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels(
+            "preservation/scenarios.json");
 
         client.importPreservationScenarios(preservationScenarioModelList);
 
@@ -344,8 +345,8 @@ public class PreservationIT extends VitamRuleRunner {
         }
     }
 
-    private List<PreservationScenarioModel> getPreservationScenarioModels() throws Exception {
-        File resourceFile = PropertiesUtils.getResourceFile("preservation/scenarios.json");
+    private List<PreservationScenarioModel> getPreservationScenarioModels(String resourcesFile) throws Exception {
+        File resourceFile = PropertiesUtils.getResourceFile(resourcesFile);
         return getFromFileAsTypeRefence(resourceFile, new TypeReference<List<PreservationScenarioModel>>() {
         });
     }
@@ -457,7 +458,8 @@ public class PreservationIT extends VitamRuleRunner {
 
             guid = newGUID();
             getVitamSession().setRequestId(guid);
-            List<PreservationScenarioModel> preservationScenarioModelList = getPreservationScenarioModels();
+            List<PreservationScenarioModel> preservationScenarioModelList =
+                getPreservationScenarioModels("preservation/scenarios.json");
 
             client.importPreservationScenarios(preservationScenarioModelList);
 
