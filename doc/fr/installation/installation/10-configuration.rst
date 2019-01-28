@@ -79,13 +79,15 @@ Dans le cas du choix du :term:`COTS` d'envoi des messages syslog dans logastsh, 
      :language: yaml
      :linenos:
 
-Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valur par défaut est ``rsyslog``.
+Il faut alors modifier la valeur de la directive ``syslog.name`` ; la valeur par défaut est ``rsyslog``.
 
 .. _pkiconfsection:
 
 Déclaration des secrets
 =======================
-.. warning:: Cette section décrit des fichiers contenant des données sensibles ; il convient de sécuriser ces fichiers avec un mot de passe "fort". En cas d'usage d'un fichier de mot de passe ("vault-password-file"), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
+
+
+.. warning:: Cette section décrit des fichiers contenant des données sensibles. Il est important d'implémenter une politique de mot de passe robuste conforme à ce que l'ANSSI préconise. Par exemple: ne pas utiliser le même mot de passe pour chaque service, renouveler régulièrement son mot de passe, utiliser des majuscules, minuscules, chiffres et caractères spéciaux (Se référer à la documentation ANSSI https://www.ssi.gouv.fr/guide/mot-de-passe). En cas d'usage d'un fichier de mot de passe ("vault-password-file"), il faut renseigner ce mot de passe comme contenu du fichier et ne pas oublier de sécuriser ou supprimer ce fichier à l'issue de l'installation.
 
 
 Les secrets utilisés par la solution logicielle (en-dehors des certificats qui sont abordés dans une section ultérieure) sont définis dans des fichiers chiffrés par ansible-vault.
@@ -108,6 +110,8 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
   .. literalinclude:: ../../../../deployment/environments/group_vars/all/vault-vitam.example
      :language: ini
      :linenos:
+
+.. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l'IHM démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de  choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
 
 .. note:: Dans le cadre d'une installation avec au moins une offre "swift", il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et le mot de passe de connexion "swift" associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre swift "offer-swift-1".
 
