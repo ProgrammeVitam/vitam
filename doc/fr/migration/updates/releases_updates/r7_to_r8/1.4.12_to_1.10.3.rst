@@ -1,11 +1,11 @@
-.. _1.4.11_to_1.10.5: 
+.. _1.4.12_to_1.10.3: 
 
-Montée de version 1.4.11 vers 1.10.5
+Montée de version 1.4.12 vers 1.10.3
 ####################################
 
-La montée de version 1.4.11 (« R7.11 ») vers 1.10.5 (« R8.5 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
+La montée de version 1.4.12 (« R7.12 ») vers 1.10.3 (« R8.3 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
 
-.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R7 » (1.4.11).
+.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R7 » (1.4.12).
 
 Prérequis à l'installation
 ==========================
