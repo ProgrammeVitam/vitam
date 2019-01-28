@@ -105,7 +105,7 @@ import static java.util.stream.Collectors.toSet;
 public class PreservationScenarioService {
 
     private static final String SCENARIO_BACKUP_EVENT = "STP_BACKUP_SCENARIO";
-    private static final String SCENARIO_IMPORT_EVENT = "IMPORT_PRESERVATION_SCENARIO";
+    private static final String SCENARIO_IMPORT_EVENT = "STP_IMPORT_PRESERVATION_SCENARIO";
     private static final String SCENARIO_REPORT = "SCENARIO_REPORT";
     private static final String UND_TENANT = "_tenant";
 

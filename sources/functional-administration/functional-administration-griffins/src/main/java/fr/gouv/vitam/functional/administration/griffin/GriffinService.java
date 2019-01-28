@@ -97,7 +97,7 @@ import static java.util.stream.Collectors.toSet;
 
 public class GriffinService {
     private static final String GRIFFIN_BACKUP_EVENT = "STP_BACKUP_GRIFFIN";
-    private static final String GRIFFIN_IMPORT_EVENT = "IMPORT_GRIFFIN";
+    private static final String GRIFFIN_IMPORT_EVENT = "STP_IMPORT_GRIFFIN";
     private static final String GRIFFIN_REPORT = "GRIFFIN_REPORT";
     private static final String UND_TENANT = "_tenant";
 
@@ -167,7 +167,7 @@ public class GriffinService {
             functionalBackupService.saveCollectionAndSequence(guid, GRIFFIN_BACKUP_EVENT, GRIFFIN, operationId);
 
         } catch (InvalidCreateOperationException | VitamException e) {
-            createLogbookEventKo(logbookOperationsClientFactory, guid, GRIFFIN_BACKUP_EVENT, e.getMessage());
+            createLogbookEventKo(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT, e.getMessage());
             throw e;
         }
 
