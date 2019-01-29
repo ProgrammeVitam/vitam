@@ -1,0 +1,13 @@
+[
+  {
+    "Identifier": "_mgt",
+    "_tenant": 1,
+    "ApiField": "#management",
+    "SedaField": "Management",
+    "Origin": "INTERNAL",
+    "Type": "GEOPOINT",
+    "Description": "Internal ontology sample",
+    "CreationDate": "2016-12-10T00:00:00.000",
+    "LastUpdate": "2018-02-16T18:36:33.444"
+  }
+]
