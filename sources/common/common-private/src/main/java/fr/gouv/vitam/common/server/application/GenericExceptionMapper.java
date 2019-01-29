@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  */
 public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenericExceptionMapper.class);
+    private static String URI_HOST_PORT_PATTERN = "(https|http)://[a-zA-Z0-9.\\-_]+(:[0-9]+)?/";
 
     @Override
     public Response toResponse(Throwable exception) {
@@ -62,6 +63,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
         String description = exception.getMessage();
         if (Strings.isNullOrEmpty(description)) {
             description = StringUtils.getClassName(exception);
+        } else {
+            description = description.replaceAll(URI_HOST_PORT_PATTERN, "");
         }
         vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getMessage())
