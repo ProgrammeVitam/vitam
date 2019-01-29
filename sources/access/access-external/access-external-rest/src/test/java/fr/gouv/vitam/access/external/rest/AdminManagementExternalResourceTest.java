@@ -20,7 +20,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.model.*;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -60,10 +62,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -2275,6 +2273,30 @@ public class AdminManagementExternalResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post(ONTOLOGIES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
+    }
+    @Test
+    public void testImportOntologyWithUknownVocabularTypeThenBadRequest() throws Exception {
+        // Given
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        String result = "{\"httpCode\":0,\"code\":\"020135\",\"context\":\"ADMIN_EXTERNAL\",\"state\":\"KO\",\"message\":\"Access external client error. JSON is invalid\",\"description\":\"Access external client error. JSON is invalid\"}";
+        JsonNode resultNode = JsonHandler.getFromString(result);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        // When
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        // Then
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
+                .importOntologies(anyBoolean(), anyObject());
+
+        File ontologyFile = PropertiesUtils.getResourceFile("ko_ontology_vocabular_type_unknown.json");
+        JsonNode json = JsonHandler.getFromFile(ontologyFile);
+
+        given().contentType(ContentType.JSON).body(json)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when().post(ONTOLOGIES_URI)
+                .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json")
+                .body(  CoreMatchers.containsString(resultNode.toString()));
     }
 
 }
