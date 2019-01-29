@@ -296,7 +296,7 @@ public class FunctionalBackupService {
 
             while (mongoCursor.hasNext()) {
                 Document document = (Document) mongoCursor.next();
-                jsonGenerator.writeRawValue(document.toJson());
+                jsonGenerator.writeRawValue(JSON.serialize(document));
             }
 
             jsonGenerator.writeEndArray();
@@ -304,10 +304,10 @@ public class FunctionalBackupService {
             jsonGenerator.writeFieldName(FIELD_SEQUENCE);
             VitamSequence sequence = vitamCounterService
                 .getSequenceDocument(tenant, fromFunctionalAdminCollections(collectionToSave));
-            jsonGenerator.writeRawValue(sequence.toJson());
+            jsonGenerator.writeRawValue(JSON.serialize(sequence));
 
             jsonGenerator.writeFieldName(FIELD_BACKUP_SEQUENCE);
-            jsonGenerator.writeRawValue(backupSequence.toJson());
+            jsonGenerator.writeRawValue(JSON.serialize(backupSequence));
 
             jsonGenerator.writeEndObject();
 

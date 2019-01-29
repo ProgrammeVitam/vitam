@@ -28,6 +28,7 @@ package fr.gouv.vitam.security.internal.rest.service;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -97,7 +98,7 @@ public class CRLServiceImpl implements CRLService {
         while (crlCAIdentities.hasNext()) {
 
             Object  certificateModelObj =
-                JsonHandler.getFromString(crlCAIdentities.next().toJson(),
+                JsonHandler.getFromString(JSON.serialize(crlCAIdentities.next()),
                     crlCheckerRepositoryImplementer.getEntityModelType());
 
             CertificateBaseModel certificateModel = (CertificateBaseModel)certificateModelObj;
