@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,60 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
+ *******************************************************************************/
+
 package fr.gouv.vitam.common.model.administration.preservation;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+public class ConstraintConstants {
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-public class ActionPreservation {
-    @JsonProperty("Type")
-    @NotNull(message = ConstraintConstants.NOT_NULL_ERROR_MSG)
-    private ActionTypePreservation type;
-
-    @Valid
-    @JsonProperty("Values")
-    private ValuesPreservation values;
-
-    public ActionPreservation() {//empty constructor
-    }
-
-    public ActionPreservation(
-        @NotNull ActionTypePreservation type,
-        @Valid ValuesPreservation values) {
-        this.type = type;
-        this.values = values;
-    }
-
-    public ActionPreservation(ActionTypePreservation type) {
-        this.type = type;
-    }
-
-    public ActionTypePreservation getType() {
-        return type;
-    }
-
-    public void setType(ActionTypePreservation type) {
-        this.type = type;
-    }
-
-    public ValuesPreservation getValues() {
-        return values;
-    }
-
-    public void setValues(ValuesPreservation values) {
-        this.values = values;
-    }
-
-    @Override
-    public String toString() {
-        return "Action{" +
-            "type=" + type +
-            ", values=" + values +
-            '}';
-    }
+    public static final String NOT_EMPTY_ERROR_MSG = "this field can not be empty";
+    public static final String NOT_NULL_ERROR_MSG = "this field can not be null";
+    public static final String POSITIVE_ERROR_MSG = "this field must be strictly positive";
 }
-
