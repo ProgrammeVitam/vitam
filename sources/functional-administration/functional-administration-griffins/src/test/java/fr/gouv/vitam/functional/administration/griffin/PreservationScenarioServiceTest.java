@@ -214,9 +214,9 @@ public class PreservationScenarioServiceTest {
             .replaceDocument(any(), eq("IDENTIFIER2"), eq("Identifier"), eq(PRESERVATION_SCENARIO));
 
         assertThat(event1Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("IMPORT_PRESERVATION_SCENARIO.STARTED");
+            .isEqualTo("STP_IMPORT_PRESERVATION_SCENARIO.STARTED");
         assertThat(event2Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("IMPORT_PRESERVATION_SCENARIO.OK");
+            .isEqualTo("STP_IMPORT_PRESERVATION_SCENARIO.OK");
 
         verify(functionalBackupService)
             .saveCollectionAndSequence(guid, "STP_BACKUP_SCENARIO", PRESERVATION_SCENARIO, guid.getId());
