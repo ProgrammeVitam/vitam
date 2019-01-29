@@ -44,6 +44,7 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -177,7 +178,7 @@ public class LogbookMongoDbAccessTest {
 
         final LogbookOperation operation = new LogbookOperation(parameters);
         final LogbookOperation operation1 = new LogbookOperation(parameters, true);
-        final LogbookOperation operation2 = new LogbookOperation(operation.toJson());
+        final LogbookOperation operation2 = new LogbookOperation(JSON.serialize(operation));
         final LogbookOperation operation3 = new LogbookOperation(parameters, false);
         assertEquals(operation.getId(), operation2.getId());
         assertEquals(operation.getTenantId(), operation2.getTenantId());
@@ -201,10 +202,10 @@ public class LogbookMongoDbAccessTest {
 
         assertTrue(LogbookOperation.getIdName().equals(LogbookMongoDbName.eventIdentifierProcess));
         assertTrue(LogbookOperation.getIdParameterName().equals(LogbookParameterName.eventIdentifierProcess));
-        final LogbookLifeCycleObjectGroup lifeCycleObjectGroup = new LogbookLifeCycleObjectGroup(operation.toJson());
+        final LogbookLifeCycleObjectGroup lifeCycleObjectGroup = new LogbookLifeCycleObjectGroup(JSON.serialize(operation));
         assertTrue(LogbookLifeCycle.getIdName().equals(LogbookMongoDbName.objectIdentifier));
         assertTrue(LogbookLifeCycle.getIdParameterName().equals(LogbookParameterName.objectIdentifier));
-        final LogbookLifeCycleUnit lifeCycleUnit = new LogbookLifeCycleUnit(operation.toJson());
+        final LogbookLifeCycleUnit lifeCycleUnit = new LogbookLifeCycleUnit(JSON.serialize(operation));
         assertTrue(LogbookLifeCycle.getIdName().equals(LogbookMongoDbName.objectIdentifier));
         assertTrue(LogbookLifeCycle.getIdParameterName().equals(LogbookParameterName.objectIdentifier));
 

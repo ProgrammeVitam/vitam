@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -406,7 +407,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
         documents.forEach(document -> {
             String id = (String) document.remove("_id");
-            String source = document.toJson();
+            String source = JSON.serialize(document);
             bulkRequestBuilder
                 .add(getClient().prepareIndex(getAliasName(collection, tenantId), VitamCollection.TYPEUNIQUE, id)
                     .setSource(source, XContentType.JSON));
@@ -414,7 +415,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
 
         BulkResponse bulkRes = bulkRequestBuilder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
 
-        LOGGER.info("{}", bulkRes.getItems().length);
+        LOGGER.debug("Written document {}", bulkRes.getItems().length);
         if (bulkRes.hasFailures()) {
             LOGGER.error("##### Bulk Request failure with error: " + bulkRes.buildFailureMessage());
             throw new MetaDataExecutionException(String
