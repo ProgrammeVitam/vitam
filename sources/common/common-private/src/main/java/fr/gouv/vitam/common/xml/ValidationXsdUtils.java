@@ -74,7 +74,7 @@ public class ValidationXsdUtils {
     public static boolean checkWithXSD(InputStream xmlFile, String xsdFile)
         throws SAXException, IOException, XMLStreamException {
 
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
         try {
             final Schema schema = getSchema(xsdFile);
@@ -98,7 +98,7 @@ public class ValidationXsdUtils {
     public boolean checkFileXSD(InputStream xmlFile, File xsdFile)
         throws SAXException, IOException, XMLStreamException {
 
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
         try {
             final Schema schema = getSchema(xsdFile);

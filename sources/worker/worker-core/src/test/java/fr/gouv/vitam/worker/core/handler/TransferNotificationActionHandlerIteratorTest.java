@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
@@ -256,7 +257,7 @@ public class TransferNotificationActionHandlerIteratorTest {
             }
             assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             XMLEventReader reader = xmlInputFactory.createXMLEventReader(xmlFile);
             String archiveUnitId = null;
             boolean isEventPresent = false,

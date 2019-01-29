@@ -50,6 +50,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
@@ -173,7 +174,7 @@ public class SedaUtilsTest {
     @Test
     public void givenManifestWhenGetInfoThenGetVersionList()
         throws Exception {
-        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
         final XMLEventReader evenReader = factory.createXMLEventReader(
             new FileReader(PropertiesUtils.getResourcePath("sip.xml").toString()));
         Map<String, List<DataObjectInfo>> versionList;
@@ -195,7 +196,7 @@ public class SedaUtilsTest {
     @Test
     public void givenCompareVersionList() throws Exception {
 
-        final XMLInputFactory factory = XMLInputFactory.newInstance();
+        final XMLInputFactory factory = XMLInputFactoryUtils.newInstance();
 
         XMLEventReader evenReader = factory.createXMLEventReader(new FileReader("src/test/resources/sip.xml"));
         Map<String, Map<String, String>> versionMap = utils.compareVersionList(evenReader);
