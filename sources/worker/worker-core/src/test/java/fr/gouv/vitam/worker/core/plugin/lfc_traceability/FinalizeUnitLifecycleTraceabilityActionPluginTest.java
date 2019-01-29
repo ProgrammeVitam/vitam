@@ -28,6 +28,7 @@
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -248,7 +249,7 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
             new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LAST_OPERATION)));
-        response.addResult(JsonHandler.getFromString(lop.toJson()));
+        response.addResult(JsonHandler.getFromString(JSON.serialize(lop)));
         return JsonHandler.toJsonNode(response);
     }
 

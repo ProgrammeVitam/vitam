@@ -111,7 +111,7 @@ public class MetadataRepository {
         }
 
         try {
-            return Optional.of(this.objectMapper.readValue(first.toJson(), UnitModel.class));
+            return Optional.of(this.objectMapper.readValue(JSON.serialize(first), UnitModel.class));
         } catch (final IOException | IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
@@ -214,7 +214,7 @@ public class MetadataRepository {
 
         documents.forEach(document -> {
             String id = (String) document.remove("_id");
-            String source = document.toJson();
+            String source = JSON.serialize(document);
             bulkRequestBuilder
                 .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), VitamCollection.TYPEUNIQUE, id)
                     .setSource(source, XContentType.JSON));

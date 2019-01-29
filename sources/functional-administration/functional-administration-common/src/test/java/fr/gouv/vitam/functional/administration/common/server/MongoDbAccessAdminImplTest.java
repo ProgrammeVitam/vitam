@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -369,7 +370,7 @@ public class MongoDbAccessAdminImplTest {
         final DbRequestResult fileList =
             mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
         final FileRules f1 = (FileRules) fileList.getDocuments(FileRules.class).get(0);
-        LOGGER.debug(f1.toJson());
+        LOGGER.debug(JSON.serialize(f1));
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
         rulesCollection.getEsClient().refreshIndex(rulesCollection);
 
