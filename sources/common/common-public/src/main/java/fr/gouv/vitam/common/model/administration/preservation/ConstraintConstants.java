@@ -27,9 +27,13 @@
 
 package fr.gouv.vitam.common.model.administration.preservation;
 
-public class ConstraintConstants {
+class ConstraintConstants {
 
-    public static final String NOT_EMPTY_ERROR_MSG = "this field can not be empty";
-    public static final String NOT_NULL_ERROR_MSG = "this field can not be null";
-    public static final String POSITIVE_ERROR_MSG = "this field must be strictly positive";
+    static final String NOT_EMPTY_ERROR_MSG = "this field can not be empty";
+    static final String NOT_NULL_ERROR_MSG = "this field can not be null";
+    static final String POSITIVE_ERROR_MSG = "this field must be strictly positive";
+
+    private ConstraintConstants() {
+        throw new IllegalStateException("Utility class");
+    }
 }
