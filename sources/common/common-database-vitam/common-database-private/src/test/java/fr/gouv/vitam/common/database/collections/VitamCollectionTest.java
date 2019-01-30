@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.junit.AfterClass;
@@ -79,8 +78,6 @@ public class VitamCollectionTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        VitamThreadUtils.getVitamSession().setUsedForTests(true);
-
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode("localhost", elasticsearchRule.getTcpPort()));
 

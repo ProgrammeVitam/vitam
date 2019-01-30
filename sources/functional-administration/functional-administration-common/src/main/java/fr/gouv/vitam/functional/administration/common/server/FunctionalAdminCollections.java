@@ -173,6 +173,7 @@ public enum FunctionalAdminCollections {
                         new IndexOptions().unique(true));
             }
 
+            // TODO: 30/01/19 Add indexes of other collections
         }
 
     }
@@ -183,8 +184,8 @@ public enum FunctionalAdminCollections {
     }
 
     @VisibleForTesting
-    public static void cleanCollection(FunctionalAdminCollections collection) {
-        collection.vitamCollection.getCollection()
+    public static void resetVitamSequenceCounter() {
+        FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
             .updateMany(Filters.exists(VitamSequence.ID), Updates.set(VitamSequence.COUNTER, 0));
     }
 
@@ -336,19 +337,6 @@ public enum FunctionalAdminCollections {
      */
     public ElasticsearchAccessFunctionalAdmin getEsClient() {
         return (ElasticsearchAccessFunctionalAdmin) vitamCollection.getEsClient();
-    }
-
-    /**
-     * @param collection
-     * @return the corresponding FunctionalAdminCollections
-     */
-    public static FunctionalAdminCollections getFromVitamCollection(VitamCollection collection) {
-        for (FunctionalAdminCollections coll : FunctionalAdminCollections.values()) {
-            if (coll.getName().equals(collection.getName())) {
-                return coll;
-            }
-        }
-        return null;
     }
 
     /**
