@@ -367,7 +367,7 @@
                         <parallel>classes</parallel>
                         <threadCount>1</threadCount>
                         <perCoreThreadCount>true</perCoreThreadCount>
-                        <forkCount>1.5C</forkCount>
+                        <forkCount>1C</forkCount>
                         <reuseForks>false</reuseForks>
                         <trimStackTrace>false</trimStackTrace>
                         <systemPropertyVariables>
