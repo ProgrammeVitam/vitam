@@ -1840,6 +1840,94 @@
     ]
   },
   {
+    "Identifier": "FormatList",
+    "SedaField": "FormatList",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "FormatList",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
+    "Identifier": "GriffinIdentifier",
+    "SedaField": "GriffinIdentifier",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "GriffinIdentifier",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
+    "Identifier": "Timeout",
+    "SedaField": "Timeout",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "Timeout",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
+    "Identifier": "MaxSize",
+    "SedaField": "MaxSize",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "MaxSize",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
+    "Identifier": "Debug",
+    "SedaField": "Debug",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "BOOLEAN",
+    "Origin": "INTERNAL",
+    "ShortName": "Debug",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
+    "Identifier": "Type",
+    "SedaField": "Type",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Type",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
+    "Identifier": "Extension",
+    "SedaField": "Extension",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Extension",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
+    "Identifier": "Args",
+    "SedaField": "Args",
+    "Description": "Mapping : preservationscenario-es-mapping.json",
+    "Type": "TEXT",
+    "Origin": "Args",
+    "ShortName": "Extension",
+    "Collections": [
+      "PreservationScenarion"
+    ]
+  },
+  {
     "Identifier": "ingested",
     "ApiField": "ingested",
     "Description": "Mapping : accessionregisterdetail-es-mapping.json",
