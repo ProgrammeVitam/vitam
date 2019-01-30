@@ -296,11 +296,19 @@ public class GriffinService {
 
             Set<ConstraintViolation<GriffinModel>> constraint = validator.validate(model);
             if (!constraint.isEmpty()) {
-                throw new ReferentialException("Invalid griffin : '" + JsonHandler.toJsonNode(model));
+                throw new ReferentialException("Invalid griffin for  : '" + model.getIdentifier() + "' : " + getConstraintsStrings(constraint));
             }
 
             identifiers.add(model.getIdentifier());
         }
+    }
+
+    private String getConstraintsStrings(Set<ConstraintViolation<GriffinModel>> constraints) {
+        List<String> result = new ArrayList<>() ;
+        for (ConstraintViolation<GriffinModel> constraintViolation :constraints){
+            result.add( "'"+ constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
+        }
+        return result.toString();
     }
 
     private List<String> diff(GriffinModel griffinModel, GriffinModel newModel) {
