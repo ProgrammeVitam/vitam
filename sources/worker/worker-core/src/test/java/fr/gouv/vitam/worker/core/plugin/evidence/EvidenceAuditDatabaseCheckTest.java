@@ -49,6 +49,7 @@ import java.io.IOException;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,7 +101,7 @@ public class EvidenceAuditDatabaseCheckTest {
         assertThat(evidenceAuditParameters.getObjectStorageMetadataResultMap()).isEqualTo(evidenceAuditParameters2.getObjectStorageMetadataResultMap());
         assertThat(evidenceAuditParameters.getEvidenceStatus()).isEqualTo(evidenceAuditParameters2.getEvidenceStatus());
 
-        when(handlerIO.getNewLocalFile("test.tmp")).thenThrow(IOException.class);
+        when(handlerIO.getFileFromWorkspace(any())).thenThrow(IOException.class);
 
         execute =
             evidenceAuditDatabaseCheck.execute(defaultWorkerParameters, handlerIO);

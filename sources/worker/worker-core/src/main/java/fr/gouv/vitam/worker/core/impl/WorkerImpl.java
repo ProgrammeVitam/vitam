@@ -278,6 +278,7 @@ public class WorkerImpl implements Worker {
 
                             pluginResponse = actionPlugin.executeList(workParams, handlerIO);
 
+
                             lifecycleFromWorker
                                 .generateLifeCycle(pluginResponse, workParams, action, step.getDistribution().getType(),
                                     aggregateItemStatus);

@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
@@ -87,7 +87,7 @@ public class EliminationActionAccessionRegisterUpdatePluginTest {
     @RunWithCustomExecutor
     public void test_when_update_accession_register_then_FATAL() throws Exception {
 
-        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+        when(adminManagementClient.createorUpdateAccessionRegister(any()))
             .thenThrow(new AccessionRegisterException("Simulate FATAL"));
 
         // Given / When
@@ -109,7 +109,7 @@ public class EliminationActionAccessionRegisterUpdatePluginTest {
                 .setMessage(Response.Status.CONFLICT.getReasonPhrase())
                 .setDescription("Document already exists in database");
 
-        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+        when(adminManagementClient.createorUpdateAccessionRegister(any()))
             .thenReturn(ve);
         // Given / When
         ItemStatus itemStatus = instance.execute(params, handler);
@@ -126,7 +126,7 @@ public class EliminationActionAccessionRegisterUpdatePluginTest {
         RequestResponse<AccessionRegisterDetailModel> resp = new RequestResponseOK<>();
         resp.setHttpCode(Response.Status.OK.getStatusCode());
 
-        when(adminManagementClient.createorUpdateAccessionRegister(anyObject()))
+        when(adminManagementClient.createorUpdateAccessionRegister(any()))
             .thenReturn(resp);
 
         // Given / When

@@ -39,8 +39,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
@@ -77,7 +77,7 @@ public class EliminationActionReportGenerationHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
-        doAnswer(args -> tempFolder.newFile(args.getArgumentAt(0, String.class))).when(handler).getNewLocalFile(any());
+        doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handler).getNewLocalFile(any());
 
         params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
             .newGUID()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
@@ -118,7 +118,7 @@ public class EliminationActionReportGenerationHandlerTest {
         AtomicReference<String> reportReference = new AtomicReference<>();
         doAnswer((args) -> {
 
-            InputStream is = args.getArgumentAt(0, InputStream.class);
+            InputStream is = args.getArgument(0);
             reportReference.set(IOUtils.toString(is, StandardCharsets.UTF_8));
             return null;
         }).when(backupService)

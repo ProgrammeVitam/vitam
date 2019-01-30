@@ -2,8 +2,8 @@ package fr.gouv.vitam.worker.core.extractseda;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -87,7 +87,7 @@ public class ArchiveUnitListenerTest {
         when(parent.isGlobalScope()).thenReturn(true);
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -125,7 +125,7 @@ public class ArchiveUnitListenerTest {
         when(parent.isGlobalScope()).thenReturn(true);
 
         RequestResponseOK<JsonNode> resp = new RequestResponseOK<>();
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -173,7 +173,7 @@ public class ArchiveUnitListenerTest {
         unit.put("#unitType", UnitType.INGEST.name());
         resp.addResult(unit);
 
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -221,7 +221,7 @@ public class ArchiveUnitListenerTest {
         unit.put("#unitType", UnitType.INGEST.name());
         resp.addResult(unit);
 
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -274,7 +274,7 @@ public class ArchiveUnitListenerTest {
 
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
 
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -327,7 +327,7 @@ public class ArchiveUnitListenerTest {
 
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
 
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);
@@ -384,7 +384,7 @@ public class ArchiveUnitListenerTest {
 
         when(handlerIO.getNewLocalFile(anyString())).thenReturn(new File(""));
 
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(resp.toJsonNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(resp.toJsonNode());
 
         try {
             archiveUnitListener.afterUnmarshal(target, parent);

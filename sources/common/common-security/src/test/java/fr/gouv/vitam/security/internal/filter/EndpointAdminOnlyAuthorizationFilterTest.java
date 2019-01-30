@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.security.internal.filter;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.only;
@@ -77,7 +77,7 @@ public class EndpointAdminOnlyAuthorizationFilterTest {
             instance = new EndpointAdminOnlyAuthorizationFilter(true);
         instance.filter(containerRequestContext);
 
-        verify(containerRequestContext, only()).abortWith(anyObject());
+        verify(containerRequestContext, only()).abortWith(any());
     }
 
     @Test
@@ -93,7 +93,7 @@ public class EndpointAdminOnlyAuthorizationFilterTest {
             instance = new EndpointAdminOnlyAuthorizationFilter(true);
         instance.filter(containerRequestContext);
 
-        verify(containerRequestContext, never()).abortWith(anyObject());
+        verify(containerRequestContext, never()).abortWith(any());
     }
 
     @Test
@@ -109,6 +109,6 @@ public class EndpointAdminOnlyAuthorizationFilterTest {
             instance = new EndpointAdminOnlyAuthorizationFilter(false);
         instance.filter(containerRequestContext);
 
-        verify(containerRequestContext, never()).abortWith(anyObject());
+        verify(containerRequestContext, never()).abortWith(any());
     }
 }

@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- *
+ * <p>
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -75,9 +75,8 @@ import org.apache.http.protocol.HTTP;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.protocol.HttpCoreContext;
 import org.apache.http.util.Args;
-import org.glassfish.jersey.message.internal.Statuses;
+import org.jboss.resteasy.client.core.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.engines.SelfExpandingBufferredInputStream;
 import org.jboss.resteasy.client.jaxrs.internal.ClientInvocation;
 import org.jboss.resteasy.client.jaxrs.internal.ClientRequestHeaders;
 import org.jboss.resteasy.client.jaxrs.internal.ClientResponse;
@@ -321,10 +320,7 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
                 }
             }
 
-            // FIXME P0 : remove jersey dependancy in vitam client
-            final Response.StatusType status = response.getStatusLine().getReasonPhrase() == null
-                ? Statuses.from(response.getStatusLine().getStatusCode())
-                : Statuses.from(response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase());
+            final Response.StatusType status = Response.Status.fromStatusCode(response.getStatusLine().getStatusCode());
 
             final ClientResponse responseContext = new ClientResponse(clientInvocation.getClientConfiguration()) {
                 InputStream stream = getNativeInputStream(response);
@@ -346,12 +342,22 @@ public class VitamApacheHttpClientEngine implements ClientHttpEngine {
 
                 @Override
                 public void releaseConnection() throws IOException {
+                    releaseConnection(true);
+                }
+
+                @Override
+                public void releaseConnection(boolean consumeInputStream) throws IOException {
                     // Apache Client 4 is stupid, You have to get the InputStream and close it if there is an entity
                     // otherwise the connection is never released. There is, of course, no close() method on response
                     // to make this easier.
                     try {
                         // Another stupid thing...TCK is testing a specific exception from stream.close()
                         // so, we let it propagate up.
+                        if (consumeInputStream) {
+                            while (stream.read() > 0) {
+                            }
+                        }
+
                         stream.close();
                     } finally {
                         // just in case the input stream was entirely replaced and not wrapped, we need

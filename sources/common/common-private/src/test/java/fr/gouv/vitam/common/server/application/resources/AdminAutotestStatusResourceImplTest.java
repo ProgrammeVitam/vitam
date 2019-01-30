@@ -26,99 +26,71 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application.resources;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.DefaultAdminClient;
 import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
-import fr.gouv.vitam.common.server.application.TestApplication;
+import fr.gouv.vitam.common.server.application.TestResourceImpl;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
- *
  */
-public class AdminAutotestStatusResourceImplTest {
+public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminAutotestStatusResourceImplTest.class);
 
     // URI
-    private static final String TEST_RESOURCE_URI = TestApplication.TEST_RESOURCE_URI;
+    private static final String TEST_RESOURCE_URI = "/test/v1";
     private static final String ADMIN_STATUS_URI = "/admin/v1";
-    private static final String TEST_CONF = "test-multiple-connector.conf";
 
-    private static JunitHelper junitHelper;
 
-    private static int serverPort;
-    private static int serverAdminPort;
-    private static TestApplication application;
-    private static TestVitamAdminClientFactory factory;
+    static JunitHelper junitHelper = JunitHelper.getInstance();
+
+    private static TestVitamAdminClientFactory factory =
+        new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(AdminAutotestStatusResourceImplTest.class, factory);
+
+    private final static VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         VitamConfiguration.setConnectTimeout(100);
-        TestApplication.serviceRegistry = new VitamServiceRegistry();
-        final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestApplication>() {
 
-                @Override
-                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final TestApplication application = new TestApplication(TEST_CONF);
-                    return startAndReturn(application);
-                }
-
-            };
-
-        serverAdminPort = junitHelper.findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
-
-        final StartApplicationResponse<TestApplication> response =
-            testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
         final DatabaseConnectionImpl fakeDb = new DatabaseConnectionImpl();
-        TestApplication.serviceRegistry.register(factory).register((DatabaseConnection) null)
+        serviceRegistry.register(factory).register((DatabaseConnection) null)
             .register((VitamStatusService) null).register(fakeDb);
         LOGGER.debug("Beginning tests");
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() throws Throwable {
         VitamConfiguration.setConnectTimeout(1000);
-        LOGGER.debug("Ending tests");
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
-        junitHelper.releasePort(serverPort);
-        junitHelper.releasePort(serverAdminPort);
-        VitamClientFactory.resetConnections();
+        vitamServerTestRunner.runAfter();
     }
 
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
@@ -135,6 +107,7 @@ public class AdminAutotestStatusResourceImplTest {
 
     }
 
+
     private static class TestWrongVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
         public TestWrongVitamAdminClientFactory(int serverPort, String resourcePath) {
@@ -146,6 +119,11 @@ public class AdminAutotestStatusResourceImplTest {
             return new DefaultAdminClient(this);
         }
 
+    }
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new AdminStatusResource(serviceRegistry), new TestResourceImpl());
     }
 
     private static class DatabaseConnectionImpl implements DatabaseConnection {
@@ -169,11 +147,11 @@ public class AdminAutotestStatusResourceImplTest {
      * @throws Exception
      */
     @Test
-    public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
+    public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Throwable {
         // Test OK
         LOGGER.warn("TEST OK");
-        assertEquals(3, TestApplication.serviceRegistry.getRegisteredServices());
-        int realTotal = TestApplication.serviceRegistry.getRegisteredServices();
+        assertEquals(3, serviceRegistry.getRegisteredServices());
+        int realTotal = serviceRegistry.getRegisteredServices();
         int realOK = realTotal;
         int realKO = 0;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
@@ -197,9 +175,9 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realKO, nbKO);
             assertEquals(0, nbUbknown);
             assertEquals(realOK, nbOK);
-            assertTrue(TestApplication.serviceRegistry.getResourcesStatus());
+            assertTrue(serviceRegistry.getResourcesStatus());
             try {
-                TestApplication.serviceRegistry.checkDependencies(1, 10);
+                serviceRegistry.checkDependencies(1, 10);
             } catch (final VitamApplicationServerException e) {
                 fail("Should not raized an exception");
             }
@@ -207,11 +185,11 @@ public class AdminAutotestStatusResourceImplTest {
 
         // Test OK
         LOGGER.warn("TEST OK with one Optional KO");
-        TestApplication.serviceRegistry.registerOptional(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
+        serviceRegistry.registerOptional(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
         realKO++;
         realTotal++;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();
@@ -232,9 +210,9 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realKO, nbKO);
             assertEquals(0, nbUbknown);
             assertEquals(realOK, nbOK);
-            assertTrue(TestApplication.serviceRegistry.getResourcesStatus());
+            assertTrue(serviceRegistry.getResourcesStatus());
             try {
-                TestApplication.serviceRegistry.checkDependencies(1, 10);
+                serviceRegistry.checkDependencies(1, 10);
             } catch (final VitamApplicationServerException e) {
                 fail("Should not raized an exception");
             }
@@ -248,7 +226,7 @@ public class AdminAutotestStatusResourceImplTest {
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();
@@ -269,9 +247,9 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realKO, nbKO);
             assertEquals(0, nbUbknown);
             assertEquals(realOK, nbOK);
-            assertFalse(TestApplication.serviceRegistry.getResourcesStatus());
+            assertFalse(serviceRegistry.getResourcesStatus());
             try {
-                TestApplication.serviceRegistry.checkDependencies(1, 10);
+                serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
             } catch (final VitamApplicationServerException e) {
 
@@ -280,11 +258,11 @@ public class AdminAutotestStatusResourceImplTest {
 
         // Add a fake clientFactory
         LOGGER.warn("TEST Fake client Factory KO");
-        TestApplication.serviceRegistry.register(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
+        serviceRegistry.register(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
         realKO++;
         realTotal++;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();
@@ -305,9 +283,9 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realKO, nbKO);
             assertEquals(0, nbUbknown);
             assertEquals(realOK, nbOK);
-            assertFalse(TestApplication.serviceRegistry.getResourcesStatus());
+            assertFalse(serviceRegistry.getResourcesStatus());
             try {
-                TestApplication.serviceRegistry.checkDependencies(1, 10);
+                serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
             } catch (final VitamApplicationServerException e) {
 
@@ -316,11 +294,11 @@ public class AdminAutotestStatusResourceImplTest {
 
         // Add a fake optional clientFactory
         LOGGER.warn("TEST Fake client Factory KO");
-        TestApplication.serviceRegistry.registerOptional(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
+        serviceRegistry.registerOptional(new TestWrongVitamAdminClientFactory(1, TEST_RESOURCE_URI));
         realKO++;
         realTotal++;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();
@@ -341,9 +319,9 @@ public class AdminAutotestStatusResourceImplTest {
             assertEquals(realKO, nbKO);
             assertEquals(0, nbUbknown);
             assertEquals(realOK, nbOK);
-            assertFalse(TestApplication.serviceRegistry.getResourcesStatus());
+            assertFalse(serviceRegistry.getResourcesStatus());
             try {
-                TestApplication.serviceRegistry.checkDependencies(1, 10);
+                serviceRegistry.checkDependencies(1, 10);
                 fail("Should raized an exception");
             } catch (final VitamApplicationServerException e) {
 
@@ -352,20 +330,18 @@ public class AdminAutotestStatusResourceImplTest {
 
         // Application
         LOGGER.warn("TEST APPLICATION KO");
-        if (application != null) {
-            application.stop();
-        }
+        vitamServerTestRunner.runAfter();
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(false, message.getStatus());
             VitamError error = clientAdmin.adminAutotest();
             LOGGER.warn(JsonHandler.prettyPrint(error));
             assertEquals(Status.SERVICE_UNAVAILABLE.getStatusCode(), error.getHttpCode());
             assertEquals(0, error.getErrors().size());
-            final ObjectNode node = TestApplication.serviceRegistry.getAutotestStatus();
+            final ObjectNode node = serviceRegistry.getAutotestStatus();
             error = VitamError.getFromJsonNode(node);
             int nbOK = 0;
             int nbKO = 0;

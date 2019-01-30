@@ -86,8 +86,9 @@ import static fr.gouv.vitam.functional.administration.format.core.ReferentialFor
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.junit.Assume.assumeTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 
@@ -306,7 +307,8 @@ public class ReferentialFormatFileImplTest {
 
         ByteArrayOutputStream reportStream = new ByteArrayOutputStream();
         doAnswer((args) -> {
-            IOUtils.copy(args.getArgumentAt(0, InputStream.class), reportStream);
+            InputStream is = args.getArgument(0);
+            IOUtils.copy(is, reportStream);
             return null;
         }).when(functionalBackupService).saveFile(
             any(), any(), eq(FILE_FORMAT_REPORT), eq(DataCategory.REPORT), eq(requestId + ".json"));

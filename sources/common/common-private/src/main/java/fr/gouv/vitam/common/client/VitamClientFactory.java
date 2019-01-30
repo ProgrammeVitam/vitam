@@ -26,31 +26,7 @@
  */
 package fr.gouv.vitam.common.client;
 
-import java.io.FileNotFoundException;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import javax.net.ssl.SSLContext;
-import javax.ws.rs.client.Client;
-
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.config.Registry;
-import org.apache.http.config.SocketConfig;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
-import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
-import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
-import org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
@@ -63,12 +39,33 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutorProvider;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.config.Registry;
+import org.apache.http.config.SocketConfig;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.plugins.interceptors.encoding.AcceptEncodingGZIPFilter;
+import org.jboss.resteasy.plugins.interceptors.encoding.GZIPDecodingInterceptor;
+import org.jboss.resteasy.plugins.interceptors.encoding.GZIPEncodingInterceptor;
+
+import javax.net.ssl.SSLContext;
+import javax.ws.rs.client.Client;
+import java.io.FileNotFoundException;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * General VitamClientFactory for non SSL client
  *
  * @param <T> MockOrRestClient class
- *
  */
 public abstract class VitamClientFactory<T extends MockOrRestClient> implements VitamClientFactoryInterface<T> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamClientFactory.class);
@@ -121,7 +118,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             allManagers.add(POOLING_CONNECTION_MANAGER_NOT_CHUNKED);
         }
     }
-    
+
 
     /**
      * Global configuration for Apache: Idle Monitor
@@ -161,7 +158,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     protected VitamClientFactory(ClientConfiguration configuration, String resourcePath) {
         this(configuration, resourcePath, true, false);
     }
-    
+
     /**
      * Constructor with standard configuration
      *
@@ -230,7 +227,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     /**
      * Allow or not the GzipEncoded output from client
-     * 
+     *
      * @param allowGzipEncoded
      */
     public void setGzipEncoded(boolean allowGzipEncoded) {
@@ -248,7 +245,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     /**
      * Allow or not the GzipDecoded input from server
-     * 
+     *
      * @param allowGzipDecoded
      */
     public void setGzipdecoded(boolean allowGzipDecoded) {
@@ -265,7 +262,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     /**
      * Initialize default resource path, service Url, pool manager, ssl configuration and the VitamApacheHttpClient for
      * RestEasy
-     * 
+     *
      * @param configuration
      * @param resourcePath
      */
@@ -363,7 +360,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Specific to handle Junit tests with given Client
      *
      * @param config
-     * @param useChunkedMode
      * @return the associated client
      */
     private Client buildClient(Map<VitamRestEasyConfiguration, Object> config) {
@@ -377,7 +373,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     @Override
     public void resume(Client client, boolean chunk) {
-        if (! VitamConfiguration.isUseNewJaxrClient()) {
+        if (!VitamConfiguration.isUseNewJaxrClient()) {
             return;
         }
         client.close();
@@ -401,19 +397,19 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             return givenClient;
         } else if (!useChunkedMode && givenClientNotChunked != null) {
             return givenClientNotChunked;
-    
+
         }
         if (useChunkedMode) {
             Client client = buildClient(config);
-            if (! VitamConfiguration.isUseNewJaxrClient()) {
+            if (!VitamConfiguration.isUseNewJaxrClient()) {
                 givenClient = client;
             }
             return client;
         } else {
             Client client = buildClient(configNotChunked);
-            if (! VitamConfiguration.isUseNewJaxrClient()) {
+            if (!VitamConfiguration.isUseNewJaxrClient()) {
                 givenClientNotChunked = client;
-    
+
             }
             return client;
         }
@@ -502,9 +498,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             idleMonitor.start();
         }
     }
-       
+
     /**
-     * 
      * @param config
      * @param engine
      * @return the ResteasyClientBuilder
@@ -538,7 +533,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
 
     /**
      * Configure the configuration MAP according to chunked mode
-     * 
+     *
      * @param config
      * @param chunkedMode
      */

@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.worker.core.impl;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -34,7 +35,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.WorkspaceQueue;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
-import jersey.repackaged.com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;

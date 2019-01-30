@@ -31,9 +31,9 @@ import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComp
 import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphUnitFields;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -137,9 +137,7 @@ public class ReconstructionServiceTest {
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
-        final Bson projection = include(getComputedGraphUnitFields());
-
-        when(mongoRepository.findDocuments(anyList(), eq(projection))).thenReturn(findIterable);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
         // when
@@ -173,8 +171,7 @@ public class ReconstructionServiceTest {
                 offsetRepository);
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
-        final Bson projection = include(getComputedGraphObjectGroupFields());
-        when(mongoRepository.findDocuments(anyList(), eq(projection))).thenReturn(findIterable);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
         // when
@@ -380,7 +377,7 @@ public class ReconstructionServiceTest {
                 offsetRepository);
         FindIterable<Document> findIterable = mock(FindIterable.class);
         final MongoCursor<Document> iterator = mock(MongoCursor.class);
-        when(mongoRepository.findDocuments(anyList(), any(Bson.class))).thenReturn(findIterable);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
 
@@ -417,9 +414,7 @@ public class ReconstructionServiceTest {
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
-        final Bson projection = include(getComputedGraphUnitFields());
-
-        when(mongoRepository.findDocuments(anyList(), eq(projection))).thenReturn(findIterable);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
         // When
@@ -454,9 +449,8 @@ public class ReconstructionServiceTest {
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
-        final Bson projection = include(getComputedGraphUnitFields());
 
-        when(mongoRepository.findDocuments(anyList(), eq(projection))).thenReturn(findIterable);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
 
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
@@ -543,9 +537,7 @@ public class ReconstructionServiceTest {
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
-        final Bson projection = include(getComputedGraphUnitFields());
-
-        when(mongoRepository.findDocuments(anyList(), eq(projection))).thenReturn(findIterable);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
 

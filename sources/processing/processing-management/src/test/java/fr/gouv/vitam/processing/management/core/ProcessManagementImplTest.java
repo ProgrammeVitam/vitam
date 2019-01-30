@@ -26,23 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.core;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.eq;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import java.time.LocalDate;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessQuery;
@@ -80,11 +64,25 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore({"javax.net.ssl.*"})
@@ -117,7 +115,7 @@ public class ProcessManagementImplTest {
     public void testResumeNotInitiatedWorkflow() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
         PowerMockito.verifyNoMoreInteractions(processDataManagement);
-        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(1), Matchers.anyString()))
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(1), anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl =
             new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
@@ -134,7 +132,7 @@ public class ProcessManagementImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(2);
         // No persisted Workflow
         PowerMockito.verifyNoMoreInteractions(processDataManagement);
-        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(2), Matchers.anyString()))
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(2), anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl = new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         Assert.assertNotNull(processManagementImpl);
@@ -147,7 +145,7 @@ public class ProcessManagementImplTest {
     @Test
     public void loadPersitedPausedWorkflowTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(3);
-        PowerMockito.when(processDataManagement.getProcessWorkflowFor(Matchers.eq(3), Matchers.anyString()))
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(3), anyString()))
             .thenReturn(getPausedWorkflowMap());
 
         ServerConfiguration serverConfiguration = new ServerConfiguration();

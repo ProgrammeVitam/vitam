@@ -44,7 +44,7 @@
         <module>internal-security</module>
         <module>elastic-kibana-interceptor</module>
         <module>batch-report</module>
-        <module>hellow-world-plugin</module>
+        <module>hello-world-plugin</module>
     </modules>
 
 
@@ -95,40 +95,38 @@
         <jacoco-maven-plugin.version>0.7.9</jacoco-maven-plugin.version>
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
-        <jersey.version>2.25.1</jersey.version>
-        <resteasy.client.version>3.1.4.Final</resteasy.client.version>
-        <jclouds.version>2.0.1</jclouds.version>
-        <jclouds-ceph.version>2.0.1</jclouds-ceph.version>
+        <resteasy.client.version>3.6.2.Final</resteasy.client.version>
+        <jclouds.version>2.1.1</jclouds.version>
+        <jclouds-ceph.version>2.1.1</jclouds-ceph.version>
         <openstack4j.version>3.1.0</openstack4j.version>
         <thaiopensource.version>20091111</thaiopensource.version>
-        <guava.version>20.0</guava.version>
-        <log4j2.version>2.9.1</log4j2.version>
+        <guava.version>27.0.1-jre</guava.version>
+        <log4j2.version>2.11.1</log4j2.version>
         <commons-logging.version>1.2</commons-logging.version>
-        <commons-io.version>2.5</commons-io.version>
-        <commons-lang3>3.5</commons-lang3>
-        <easymock.version>3.4</easymock.version>
+        <commons-io.version>2.6</commons-io.version>
+        <commons-lang3>3.8.1</commons-lang3>
+        <easymock.version>4.0.1</easymock.version>
         <jackson.version>2.8.11</jackson.version>
         <jackson.databind.version>2.8.11.2</jackson.databind.version>
         <elasticsearch.version>6.5.4</elasticsearch.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
         <mongo.version>3.4.3</mongo.version>
-        <apache-shiro.version>1.3.2</apache-shiro.version>
+        <apache-shiro.version>1.4.0</apache-shiro.version>
         <jetty.version>9.4.14.v20181114</jetty.version>
-        <assertj.version>3.9.0</assertj.version>
+        <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>3.1.1</rest-assured.version>
         <junit.version>4.12</junit.version>
-        <!-- TODO: after beta, see why 2.2.12 release does not work correctly -->
-        <mockito.version>1.10.19</mockito.version>
+        <mockito.version>2.23.4</mockito.version>
         <flapdoodle.version>2.1.1</flapdoodle.version>
         <yandex.version>1.21</yandex.version>
         <staxon.version>1.3</staxon.version>
-        <org.json.version>20170516</org.json.version>
-        <json-unit-version>1.28.2</json-unit-version>
+        <org.json.version>20180813</org.json.version>
+        <json-unit-version>2.1.1</json-unit-version>
         <jhades.version>1.0.4</jhades.version>
-        <javax.servlet.version>3.1.0</javax.servlet.version>
-        <powermock.version>1.6.6</powermock.version>
-        <json-sanitize.version>1.1</json-sanitize.version>
-        <commons-collections4.version>4.1</commons-collections4.version>
+        <javax.servlet.version>4.0.1</javax.servlet.version>
+        <powermock.version>2.0.0</powermock.version>
+        <json-sanitize.version>1.2.0</json-sanitize.version>
+        <commons-collections4.version>4.2</commons-collections4.version>
         <unix.user>vitam</unix.user>
         <unix.group>vitam</unix.group>
         <esapi.version>2.1.0.1</esapi.version>
@@ -136,19 +134,18 @@
         <xerces-xsd11.version>2.12-beta-r1667115</xerces-xsd11.version>
         <xml-resolver.version>1.2</xml-resolver.version>
         <opencsv.version>2.3</opencsv.version>
-        <commons-csv.version>1.4</commons-csv.version>
-        <bouncycastle.version>1.56</bouncycastle.version>
+        <commons-csv.version>1.6</commons-csv.version>
+        <bouncycastle.version>1.60</bouncycastle.version>
         <diffutils.version>1.3.0</diffutils.version>
         <jaxb2.version>1.0.2</jaxb2.version>
-        <httpclient.version>4.5.3</httpclient.version>
-        <netty.version>4.1.9.Final</netty.version>
-        <commons-compress.version>1.12</commons-compress.version>
+        <httpclient.version>4.5.6</httpclient.version>
+        <netty.version>4.1.31.Final</netty.version>
+        <commons-compress.version>1.18</commons-compress.version>
         <easystream.version>1.2.15</easystream.version>
-        <zjsonpatch.version>0.3.0</zjsonpatch.version>
+        <zjsonpatch.version>0.4.6</zjsonpatch.version>
         <!-- Metrics -->
-        <metrics.version>3.2.2</metrics.version>
-        <metrics.jersey.version>3.2.2</metrics.jersey.version>
-        <metrics.jvm.version>3.2.2</metrics.jvm.version>
+        <metrics.version>4.1.0-rc2</metrics.version>
+        <metrics.jvm.version>4.1.0-rc2</metrics.jvm.version>
         <metrics.elastic.version>2.2.0</metrics.elastic.version>
         <jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
         <skipITs>false</skipITs>
@@ -369,18 +366,15 @@
                         <!-- Non Parallel mode -->
                         <parallel>classes</parallel>
                         <threadCount>1</threadCount>
-                        <perCoreThreadCount>true</perCoreThreadCount>
-                        <forkCount>1C</forkCount>
-                        <reuseForks>false</reuseForks>
+                        <perCoreThreadCount>false</perCoreThreadCount>
+                        <forkCount>1</forkCount>
+                        <reuseForks>true</reuseForks>
                         <trimStackTrace>false</trimStackTrace>
                         <systemPropertyVariables>
                             <log4j.configurationFile>
                                 ${project.basedir}/common/common-private/src/test/resources/log4j2-test.xml
                             </log4j.configurationFile>
                         </systemPropertyVariables>
-                        <!-- Non Parallel mode -->
-                        <!-- <parallel>classes</parallel> <threadCount>1</threadCount> <perCoreThreadCount>false</perCoreThreadCount>
-                            <forkCount>1</forkCount> <reuseForks>false</reuseForks> -->
                         <classpathDependencyExcludes>
                             <classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j
                             </classpathDependencyExclude>
@@ -996,18 +990,10 @@
                 <version>${staxon.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-server</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-
-            <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-jaxrs</artifactId>
                 <version>${resteasy.client.version}</version>
             </dependency>
-
-
             <dependency>
                 <groupId>org.jboss.resteasy</groupId>
                 <artifactId>resteasy-client</artifactId>
@@ -1018,48 +1004,11 @@
                 <artifactId>resteasy-jackson2-provider</artifactId>
                 <version>${resteasy.client.version}</version>
             </dependency>
-            <!-- <dependency> <groupId>org.glassfish.jersey.core</groupId> <artifactId>jersey-client</artifactId>
-                <version>${jersey.version}</version> </dependency> -->
             <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-servlet-core</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-jetty-http</artifactId>
-                <version>${jersey.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.eclipse.jetty</groupId>
-                        <artifactId>jetty-util</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.connectors</groupId>
-                <artifactId>jersey-jetty-connector</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.media</groupId>
-                <artifactId>jersey-media-json-jackson</artifactId>
-                <version>${jersey.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-                        <artifactId>jackson-jaxrs-base</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-                        <artifactId>jackson-jaxrs-json-provider</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.media</groupId>
-                <artifactId>jersey-media-multipart</artifactId>
-                <version>${jersey.version}</version>
+                <groupId>org.glassfish.jersey.core</groupId>
+                <artifactId>jersey-common</artifactId>
+                <version>2.27</version>
+                <scope>compile</scope>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.dataformat</groupId>
@@ -1123,6 +1072,11 @@
                 <version>${opencsv.version}</version>
             </dependency>
             <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${javax-validation.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-csv</artifactId>
                 <version>${commons-csv.version}</version>
@@ -1157,6 +1111,10 @@
                     <exclusion>
                         <artifactId>commons-fileupload</artifactId>
                         <groupId>commons-fileupload</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>commons-beanutils-core</artifactId>
+                        <groupId>commons-beanutils</groupId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1258,11 +1216,6 @@
             </dependency>
             <dependency>
                 <groupId>io.dropwizard.metrics</groupId>
-                <artifactId>metrics-jersey2</artifactId>
-                <version>${metrics.jersey.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jvm</artifactId>
                 <version>${metrics.jvm.version}</version>
             </dependency>
@@ -1278,11 +1231,26 @@
                 <artifactId>json-schema-validator</artifactId>
                 <version>${json-schema-validator.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.github.fge</groupId>
+                <artifactId>json-schema-core</artifactId>
+                <version>1.2.5</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.fge</groupId>
+                <artifactId>json-patch</artifactId>
+                <version>1.8</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.fge</groupId>
+                <artifactId>jackson-coreutils</artifactId>
+                <version>1.8</version>
+            </dependency>
 
             <dependency>
                 <groupId>io.reactivex.rxjava2</groupId>
                 <artifactId>rxjava</artifactId>
-                <version>2.1.2</version>
+                <version>2.2.4</version>
             </dependency>
 
             <!-- ####################### Tests ####################### -->
@@ -1325,29 +1293,6 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-                <artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.test-framework.providers</groupId>
-                <artifactId>jersey-test-framework-provider-jetty</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.test-framework</groupId>
-                <artifactId>jersey-test-framework-core</artifactId>
-                <version>${jersey.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.jersey.containers</groupId>
-                <artifactId>jersey-container-servlet</artifactId>
-                <version>${jersey.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
@@ -1361,13 +1306,7 @@
             </dependency>
             <dependency>
                 <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito-common</artifactId>
+                <artifactId>powermock-api-mockito2</artifactId>
                 <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
@@ -1458,26 +1397,26 @@
             <dependency>
                 <groupId>org.xmlunit</groupId>
                 <artifactId>xmlunit-core</artifactId>
-                <version>2.5.0</version>
+                <version>2.6.2</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.xmlunit</groupId>
                 <artifactId>xmlunit-matchers</artifactId>
-                <version>2.5.0</version>
+                <version>2.6.2</version>
                 <scope>test</scope>
             </dependency>
 
             <dependency>
                 <groupId>com.squareup.retrofit2</groupId>
                 <artifactId>retrofit</artifactId>
-                <version>2.3.0</version>
+                <version>2.5.0</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>com.squareup.retrofit2</groupId>
                 <artifactId>converter-jackson</artifactId>
-                <version>2.3.0</version>
+                <version>2.5.0</version>
                 <scope>test</scope>
             </dependency>
 

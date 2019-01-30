@@ -26,6 +26,8 @@
  */
 package fr.gouv.vitam.common.thread;
 
+import org.glassfish.jersey.spi.ThreadPoolExecutorProvider;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionHandler;
@@ -33,13 +35,10 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.glassfish.jersey.server.ManagedAsyncExecutor;
-import org.glassfish.jersey.spi.ThreadPoolExecutorProvider;
 
 /**
  * VItamThreadPoolExecutorProvider
  */
-@ManagedAsyncExecutor
 public class VitamThreadPoolExecutorProvider extends ThreadPoolExecutorProvider {
     VitamThreadPoolExecutor vitamThreadPoolExecutor = VitamThreadPoolExecutor.getDefaultExecutor();
 

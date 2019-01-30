@@ -27,9 +27,34 @@
 package fr.gouv.vitam.metadata.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.MongoNamespace;
 import com.mongodb.MongoWriteException;
+import com.mongodb.ReadConcern;
+import com.mongodb.ReadPreference;
 import com.mongodb.ServerAddress;
+import com.mongodb.WriteConcern;
 import com.mongodb.WriteError;
+import com.mongodb.bulk.BulkWriteResult;
+import com.mongodb.client.AggregateIterable;
+import com.mongodb.client.DistinctIterable;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.ListIndexesIterable;
+import com.mongodb.client.MapReduceIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.BulkWriteOptions;
+import com.mongodb.client.model.CountOptions;
+import com.mongodb.client.model.DeleteOptions;
+import com.mongodb.client.model.FindOneAndDeleteOptions;
+import com.mongodb.client.model.FindOneAndReplaceOptions;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.InsertManyOptions;
+import com.mongodb.client.model.InsertOneOptions;
+import com.mongodb.client.model.RenameCollectionOptions;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
@@ -53,18 +78,22 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetadata;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.BsonDocument;
+import org.bson.Document;
+import org.bson.codecs.configuration.CodecRegistry;
+import org.bson.conversions.Bson;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -81,9 +110,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -152,7 +182,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertUnitWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(request).execInsertUnitRequests(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(request).execInsertUnitRequests(any());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -160,7 +190,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenInsertObjectGroupWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(request).execInsertObjectGroupRequests(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(request).execInsertObjectGroupRequests(any());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -170,7 +200,7 @@ public class MetaDataImplTest {
     public void givenInsertUnitWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
-        doThrow(error).when(request).execInsertUnitRequests(anyObject());
+        doThrow(error).when(request).execInsertUnitRequests(any());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -180,7 +210,7 @@ public class MetaDataImplTest {
     public void givenInsertObjectGroupWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
         final MongoWriteException error =
             new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
-        doThrow(error).when(request).execInsertObjectGroupRequests(anyObject());
+        doThrow(error).when(request).execInsertObjectGroupRequests(any());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -212,7 +242,7 @@ public class MetaDataImplTest {
 
     @Test(expected = MetaDataNotFoundException.class)
     public void givenInsertUnitWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
-        doThrow(MetaDataNotFoundException.class).when(request).execInsertUnitRequests(anyObject());
+        doThrow(MetaDataNotFoundException.class).when(request).execInsertUnitRequests(any());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -234,7 +264,7 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_selectUnitquery_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        when(request.execRequest(any())).thenThrow(new InvalidParseOperationException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
@@ -260,7 +290,7 @@ public class MetaDataImplTest {
     @Test(expected = MetaDataExecutionException.class)
     public void given_selectUnits_ThenThrow_MetaDataExecutionException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(request.execRequest(any())).thenThrow(new MetaDataExecutionException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(QUERY));
@@ -272,9 +302,9 @@ public class MetaDataImplTest {
         metaDataImpl.selectUnitsByQuery(JsonHandler.getFromString(""));
     }
 
-    @Test(expected = MetaDataNotFoundException.class)
+    @Test(expected = MetaDataExecutionException.class)
     public void givenInsertObjectGroupWhenParentNotFoundThenThrowMetaDataNotFoundException() throws Exception {
-        doThrow(MetaDataNotFoundException.class).when(request).execInsertObjectGroupRequests(anyObject());
+        doThrow(MetaDataExecutionException.class).when(request).execInsertObjectGroupRequests(any());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
@@ -296,7 +326,7 @@ public class MetaDataImplTest {
     @Test(expected = MetaDataExecutionException.class)
     public void given_updateUnits_ThenThrow_MetaDataExecutionException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(request.execRequest(any())).thenThrow(new MetaDataExecutionException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
@@ -324,7 +354,7 @@ public class MetaDataImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_updateUnitbyId_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(request.execRequest(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        when(request.execRequest(any())).thenThrow(new InvalidParseOperationException(""));
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
@@ -337,7 +367,7 @@ public class MetaDataImplTest {
         final Result result = new ResultDefault(FILTERARGS.OBJECTGROUPS);
         result.addId("ogId", (float) 1);
         result.addFinal(new ObjectGroup(sampleObjectGroup));
-        when(request.execRequest(anyObject())).thenReturn(result);
+        when(request.execRequest(any())).thenReturn(result);
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         RequestResponse<JsonNode> requestResponse =
             metaDataImpl.selectObjectGroupById(JsonHandler.getFromString(QUERY), "ogId");
@@ -401,8 +431,8 @@ public class MetaDataImplTest {
         final JsonNode updateRequest = JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
             "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}");
 
-        when(request.execRequest(Matchers.isA(UpdateParserMultiple.class))).thenReturn(updateResult);
-        when(request.execRequest(Matchers.isA(SelectParserMultiple.class))).thenReturn(firstSelectResult,
+        when(request.execRequest(isA(UpdateParserMultiple.class))).thenReturn(updateResult);
+        when(request.execRequest(isA(SelectParserMultiple.class))).thenReturn(firstSelectResult,
             secondSelectResult);
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         RequestResponse<JsonNode> requestResponse = metaDataImpl.updateUnitbyId(updateRequest, "unitId");
@@ -453,10 +483,11 @@ public class MetaDataImplTest {
         PowerMockito.mockStatic(IndexationHelper.class);
         when(IndexationHelper.reindex(any(), any(), any(), any(), any()))
             .thenThrow(new IOException());
-        when(IndexationHelper.getFullKOResult(anyObject(), anyString()))
+        when(IndexationHelper.getFullKOResult(any(), any()))
             .thenCallRealMethod();
         MongoDbAccessMetadataImpl mongoDbAccess = mock(MongoDbAccessMetadataImpl.class);
         metaDataImpl = new MetaDataImpl(mongoDbAccess);
+        MetadataCollections.UNIT.getVitamCollection().initialize(mock(MongoDatabase.class), false);
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("Unit");
         List<Integer> tenants = new ArrayList<>();
@@ -476,11 +507,11 @@ public class MetaDataImplTest {
         PowerMockito.mockStatic(MongoDbAccessMetadataFactory.class);
         MongoDbAccessMetadataImpl dbAccessMetadata = PowerMockito.mock(MongoDbAccessMetadataImpl.class);
         when(dbAccessMetadata.getEsClient()).thenReturn(esClient);
-        when(MongoDbAccessMetadataFactory.create(anyObject())).thenReturn(dbAccessMetadata);
+        when(MongoDbAccessMetadataFactory.create(any())).thenReturn(dbAccessMetadata);
 
         PowerMockito.spy(IndexationHelper.class);
         PowerMockito.doThrow(new DatabaseException("erreur")).when(IndexationHelper.class,
-            "switchIndex", anyString(), anyString(), anyObject());
+            "switchIndex", anyString(), anyString(), any());
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.switchIndex("alias", "index_name");
     }
@@ -491,10 +522,10 @@ public class MetaDataImplTest {
         PowerMockito.mockStatic(MongoDbAccessMetadataFactory.class);
         MongoDbAccessMetadataImpl dbAccessMetadata = PowerMockito.mock(MongoDbAccessMetadataImpl.class);
         when(dbAccessMetadata.getEsClient()).thenReturn(esClient);
-        when(MongoDbAccessMetadataFactory.create(anyObject())).thenReturn(dbAccessMetadata);
+        when(MongoDbAccessMetadataFactory.create(any())).thenReturn(dbAccessMetadata);
 
         PowerMockito.spy(IndexationHelper.class);
-        PowerMockito.doNothing().when(IndexationHelper.class, "switchIndex", anyString(), anyString(), anyObject());
+        PowerMockito.doNothing().when(IndexationHelper.class, "switchIndex", anyString(), anyString(), any());
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.switchIndex("alias", "index_name");
     }

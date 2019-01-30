@@ -30,8 +30,8 @@ package fr.gouv.vitam.worker.core.handler;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
@@ -158,9 +158,9 @@ public class ListArchiveUnitsActionHandlerTest {
         try {
             reset(workspaceClient);
             reset(metadataClient);
-            when(workspaceClient.getObject(anyObject(), eq("PROCESSING/updatedRules.json")))
+            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
                 .thenReturn(Response.status(Status.OK).entity(updatedRules).build());
-            when(metadataClient.selectUnits(anyObject())).thenReturn(archiveUnitsToBeUpdated);
+            when(metadataClient.selectUnits(any())).thenReturn(archiveUnitsToBeUpdated);
 
             saveWorkspacePutObject(
                 UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON);            
@@ -193,14 +193,14 @@ public class ListArchiveUnitsActionHandlerTest {
 
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
-            InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
+            InputStream inputStream = invocation.getArgument(2);
             java.nio.file.Path file =
                 java.nio.file.Paths.get(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
                     action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
             java.nio.file.Files.copy(inputStream, file);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.Matchers.anyString(),
-            org.mockito.Matchers.eq(filename), org.mockito.Matchers.any(InputStream.class));
+        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.eq(filename), org.mockito.ArgumentMatchers.any(InputStream.class));
     }
 
     private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
@@ -214,14 +214,14 @@ public class ListArchiveUnitsActionHandlerTest {
         action.addOutIOParameters(out);
 
         reset(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), eq("PROCESSING/updatedRules.json")))
+        when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException("Storage not found"));
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
 
 
         reset(workspaceClient);
-        when(workspaceClient.getObject(anyObject(), eq("PROCESSING/updatedRules.json")))
+        when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
             .thenReturn(Response.status(Status.OK)
                 .entity(IOUtils.toInputStream("<root><random>Random XML tags</random></root>", "UTF-8")).build());
         final ItemStatus response2 = plugin.execute(params, action);
@@ -239,9 +239,9 @@ public class ListArchiveUnitsActionHandlerTest {
             reset(workspaceClient);
             reset(metadataClient);
 
-            when(workspaceClient.getObject(anyObject(), eq("PROCESSING/updatedRules.json")))
+            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
                 .thenReturn(Response.status(Status.OK).entity(updatedRules).build());
-            when(metadataClient.selectUnits(anyObject()))
+            when(metadataClient.selectUnits(any()))
                 .thenThrow(new MetaDataExecutionException("Error while requesting Metadata"));
             assertThatThrownBy(() -> plugin.execute(params, action)).isExactlyInstanceOf(IllegalStateException.class);
         } finally {

@@ -26,7 +26,11 @@
  */
 package fr.gouv.vitam.common.server.benchmark;
 
-import java.io.InputStream;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -41,12 +45,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import java.io.InputStream;
 
 /**
  * Benchmark Resource
@@ -59,9 +58,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     /**
      * Constructor IngestExternalResource
      *
-     * @param configuration
      */
-    public BenchmarkResource(BenchmarkConfiguration configuration) {
+    public BenchmarkResource() {
         LOGGER.info("init Ingest External Resource server");
     }
 
@@ -93,60 +91,56 @@ public class BenchmarkResource extends ApplicationStatusResource {
      * upload using POST
      *
      * @param stream data input stream
-     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.POST)
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.WILDCARD)
-    public long uploadPost(InputStream stream) {
-        return JunitHelper.consumeInputStream(stream);
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadPost(InputStream stream) {
+        return Response.ok().entity(JunitHelper.consumeInputStream(stream)).build();
     }
 
     /**
      * upload using PUT
      *
      * @param stream data input stream
-     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.PUT)
     @PUT
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.WILDCARD)
-    public long uploadPut(InputStream stream) {
-        return JunitHelper.consumeInputStream(stream);
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadPut(InputStream stream) {
+        return Response.ok().entity(JunitHelper.consumeInputStream(stream)).build();
     }
 
     /**
      * upload using GET
      *
      * @param stream data input stream
-     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.GET)
     @GET
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.WILDCARD)
-    public long uploadGet(InputStream stream) {
-        return JunitHelper.consumeInputStream(stream);
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadGet(InputStream stream) {
+        return Response.ok().entity(JunitHelper.consumeInputStream(stream)).build();
     }
 
     /**
      * upload using DELETE
      *
      * @param stream data input stream
-     * @param header method for entry data
      * @return Response
      */
     @Path("upload" + HttpMethod.DELETE)
     @DELETE
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.WILDCARD)
-    public long uploadDelete(InputStream stream) {
-        return JunitHelper.consumeInputStream(stream);
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadDelete(InputStream stream) {
+        return Response.ok().entity(JunitHelper.consumeInputStream(stream)).build();
     }
     
     /**
@@ -158,8 +152,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     @Path("download" + HttpMethod.POST)
     @POST
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public InputStream downloadPost(long size) {
-        return new FakeInputStream(size);
+    public Response downloadPost(long size) {
+        return Response.ok().entity(new FakeInputStream(size)).build();
     }
 
     /**
@@ -171,8 +165,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     @Path("download" + HttpMethod.PUT)
     @PUT
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public InputStream downloadPut(long size) {
-        return new FakeInputStream(size);
+    public Response downloadPut(long size) {
+        return Response.ok().entity(new FakeInputStream(size)).build();
     }
 
     /**
@@ -184,8 +178,8 @@ public class BenchmarkResource extends ApplicationStatusResource {
     @Path("download" + HttpMethod.GET)
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public InputStream downloadGet(long size) {
-        return new FakeInputStream(size);
+    public Response downloadGet(long size) {
+        return Response.ok().entity(new FakeInputStream(size)).build();
     }
 
     /**
@@ -197,7 +191,7 @@ public class BenchmarkResource extends ApplicationStatusResource {
     @Path("download" + HttpMethod.DELETE)
     @DELETE
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public InputStream downloadDelete(long size) {
-        return new FakeInputStream(size);
+    public Response downloadDelete(long size) {
+        return Response.ok().entity(new FakeInputStream(size)).build();
     }
 }

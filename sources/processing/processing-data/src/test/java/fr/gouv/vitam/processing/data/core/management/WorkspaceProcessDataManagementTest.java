@@ -31,8 +31,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
@@ -157,7 +157,7 @@ public class WorkspaceProcessDataManagementTest {
 
     @Test
     public void persistProcessWorkflowTestOK() throws Exception {
-        doNothing().when(workspaceClient).putObject(anyString(), anyString(), anyObject());
+        doNothing().when(workspaceClient).putObject(anyString(), anyString(), any());
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
         processDataManagement.persistProcessWorkflow("folder", "async_id", processWorkflow);
     }
@@ -165,7 +165,7 @@ public class WorkspaceProcessDataManagementTest {
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void persistProcessWorkflowTestException() throws Exception {
         doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).putObject(anyString(),
-            anyString(), anyObject());
+            anyString(), any());
         ProcessWorkflow processWorkflow = new ProcessWorkflow();
         processDataManagement.persistProcessWorkflow("folder", "async_id", processWorkflow);
     }

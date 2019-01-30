@@ -65,7 +65,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
 import java.io.File;
@@ -80,8 +80,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.AdditionalMatchers.and;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -174,7 +174,7 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA), false);
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
         handlerIO.addInIOParameters(in);
-        when(logbookOperationsClient.selectOperation(anyObject()))
+        when(logbookOperationsClient.selectOperation(any()))
             .thenThrow(new LogbookClientException("LogbookClientException"));
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -197,9 +197,9 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
 
-        Mockito.doReturn(JsonHandler.createObjectNode()).when(logbookOperationsClient).selectOperation(anyObject());
+        Mockito.doReturn(JsonHandler.createObjectNode()).when(logbookOperationsClient).selectOperation(any());
 
         saveWorkspacePutObject("LogbookObjectGroupLifecycles", ".zip");
 
@@ -227,9 +227,9 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO.addInIOParameters(in);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
 
-        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperation(anyObject());
+        Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperation(any());
 
         saveWorkspacePutObject("LogbookObjectGroupLifecycles", ".zip");
 
@@ -259,7 +259,7 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
     private void saveWorkspacePutObject(String filenameContains, String extension)
         throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
-            InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
+            InputStream inputStream = invocation.getArgument(2);
             java.nio.file.Path file =
                 java.nio.file.Paths
                     .get(System.getProperty("vitam.tmp.folder") + "/" + handlerIO.getContainerName() + "_" +
@@ -267,8 +267,8 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
             java.nio.file.Files.copy(inputStream, file);
             return null;
         }).when(workspaceClient).putObject(anyString(),
-            and(Matchers.endsWith(extension), Matchers.contains(filenameContains)),
-            Matchers.any(InputStream.class));
+            and(ArgumentMatchers.endsWith(extension), ArgumentMatchers.contains(filenameContains)),
+            ArgumentMatchers.any(InputStream.class));
     }
 
     private InputStream getSavedWorkspaceObject(String filename, String extension)

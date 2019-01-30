@@ -26,41 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
-import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
-import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
-import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
-import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
+import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 public class AdminManagementApplicationTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -68,47 +60,30 @@ public class AdminManagementApplicationTest {
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raise an exception";
     private static final String ADMIN_MANAGEMENT_CONF = "functional-administration-test.conf";
     private static final String DATABASE_HOST = "localhost";
-    static AdminManagementConfiguration configuration;
     private static File adminConfigFile;
-    private static ElasticsearchAccessFunctionalAdmin esClient;
-    private static int serverPort;
-    private static JunitHelper junitHelper;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))));
 
-        junitHelper = JunitHelper.getInstance();
         final List<ElasticsearchNode> nodesEs = new ArrayList<>();
         nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT));
-        esClient = new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, nodesEs);
+
+        final List<MongoDbNode> nodes = new ArrayList<>();
+        nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
+
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
         final AdminManagementConfiguration realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
-        realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
+        realAdminConfig.setMongoDbNodes(nodes);
+        realAdminConfig.setDbName(MongoRule.VITAM_DB);
         realAdminConfig.setElasticsearchNodes(nodesEs);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
-        final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        configuration = new AdminManagementConfiguration(nodes, "db-functional-administration",
-            ElasticsearchRule.VITAM_CLUSTER, nodesEs);
-        serverPort = junitHelper.findAvailablePort();
-        VitamServerFactory.setDefaultPort(serverPort);
-
     }
 
-    @AfterClass
-    public static void tearDownAfterClass() {
-        FunctionalAdminCollections.afterTestClass(true);
-        esClient.close();
-        junitHelper.releasePort(serverPort);
-    }
 
     @Test
     public void testFunctionnalIdConfiguration() throws Exception {
@@ -134,7 +109,7 @@ public class AdminManagementApplicationTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public final void shouldRaiseException() throws VitamException {
+    public final void shouldRaiseException() {
         new AdminManagementMain("");
     }
 }

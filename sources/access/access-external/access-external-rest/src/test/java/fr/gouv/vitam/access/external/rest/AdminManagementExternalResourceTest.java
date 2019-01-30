@@ -3,9 +3,9 @@ package fr.gouv.vitam.access.external.rest;
 import static io.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.powermock.api.mockito.PowerMockito.doReturn;
 import static org.powermock.api.mockito.PowerMockito.doThrow;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -265,7 +265,7 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doThrow(new ReferentialException("Referential Exception")).when(adminClient).checkFormat(anyObject());
+        doThrow(new ReferentialException("Referential Exception")).when(adminClient).checkFormat(any());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -386,8 +386,8 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doThrow(new ReferentialException("")).when(adminClient).importFormat(anyObject(), anyObject());
-        doReturn(Response.ok().build()).when(adminClient).checkFormat(anyObject());
+        doThrow(new ReferentialException("")).when(adminClient).importFormat(any(), any());
+        doReturn(Response.ok().build()).when(adminClient).checkFormat(any());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -395,7 +395,7 @@ public class AdminManagementExternalResourceTest {
             .when().post(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new DatabaseConflictException("")).when(adminClient).importFormat(anyObject(), anyObject());
+        doThrow(new DatabaseConflictException("")).when(adminClient).importFormat(any(), any());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -800,8 +800,8 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doThrow(new ReferentialException("")).when(adminClient).getFormats(anyObject());
-        doThrow(new ReferentialException("")).when(adminClient).getFormatByID(anyObject());
+        doThrow(new ReferentialException("")).when(adminClient).getFormats(any());
+        doThrow(new ReferentialException("")).when(adminClient).getFormatByID(any());
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
 
@@ -821,8 +821,8 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
-        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormats(anyObject());
-        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormatByID(anyObject());
+        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormats(any());
+        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormatByID(any());
 
         given()
             .accept(ContentType.JSON)
@@ -840,8 +840,8 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         RequestResponse rsp = new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode());
-        when(adminClient.getAccessionRegister(anyObject())).thenReturn(rsp);
-        when(adminClient.getAccessionRegisterDetail(anyObject(), anyObject())).thenReturn(rsp);
+        when(adminClient.getAccessionRegister(any())).thenReturn(rsp);
+        when(adminClient.getAccessionRegisterDetail(any(), any())).thenReturn(rsp);
 
         given()
             .contentType(ContentType.JSON)
@@ -877,9 +877,9 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         doThrow(new InvalidParseOperationException("")).when(adminClient)
-            .getAccessionRegister(anyObject());
+            .getAccessionRegister(any());
         doThrow(new InvalidParseOperationException("")).when(adminClient)
-            .getAccessionRegisterDetail(anyString(), anyObject());
+            .getAccessionRegisterDetail(anyString(), any());
 
         given()
             .contentType(ContentType.JSON)
@@ -900,9 +900,9 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         doThrow(new IllegalArgumentException("")).when(adminClient)
-            .getAccessionRegister(anyObject());
+            .getAccessionRegister(any());
         doThrow(new IllegalArgumentException("")).when(adminClient)
-            .getAccessionRegisterDetail(anyString(), anyObject());
+            .getAccessionRegisterDetail(anyString(), any());
 
         given()
             .contentType(ContentType.JSON)
@@ -931,7 +931,7 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doReturn(Status.BAD_REQUEST).when(adminClient).importIngestContracts(anyObject());
+        doReturn(Status.BAD_REQUEST).when(adminClient).importIngestContracts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -985,7 +985,7 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doReturn(Status.CREATED).when(adminClient).importIngestContracts(anyObject());
+        doReturn(Status.CREATED).when(adminClient).importIngestContracts(any());
         File contractFile = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         JsonNode json = JsonHandler.getFromFile(contractFile);
         given().contentType(ContentType.JSON).body(json)
@@ -1003,7 +1003,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
 
         doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminClient)
-            .findIngestContracts(anyObject());
+            .findIngestContracts(any());
 
         Select select = new Select();
         select.setQuery(eq("Status", "ACTIVE"));
@@ -1051,7 +1051,7 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doReturn(Status.BAD_REQUEST).when(adminClient).importAccessContracts(anyObject());
+        doReturn(Status.BAD_REQUEST).when(adminClient).importAccessContracts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1067,7 +1067,7 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doReturn(Status.CREATED).when(adminClient).importAccessContracts(anyObject());
+        doReturn(Status.CREATED).when(adminClient).importAccessContracts(any());
         File contractFile = PropertiesUtils.getResourceFile("contracts_access_ok.json");
         JsonNode json = JsonHandler.getFromFile(contractFile);
 
@@ -1085,7 +1085,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
-            .findAccessContracts(anyObject());
+            .findAccessContracts(any());
 
         Select select = new Select();
         select.setQuery(eq("Status", "ACTIVE"));
@@ -1134,7 +1134,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
-            .createProfiles(anyObject());
+            .createProfiles(any());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
@@ -1155,7 +1155,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
-            .createProfiles(anyObject());
+            .createProfiles(any());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profiles_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
@@ -1174,7 +1174,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
-            .findProfiles(anyObject());
+            .findProfiles(any());
 
         final Select select = new Select();
         select.setQuery(eq("Status", "ACTIVE"));
@@ -1243,7 +1243,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<AgenciesModel>().addAllResults(getAgencies()).toJsonNode()).when(adminClient)
-            .getAgencies(anyObject());
+            .getAgencies(any());
 
         final Select select = new Select();
         select.setQuery(eq("Status", "ACTIVE"));
@@ -1305,7 +1305,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<AgenciesModel>().addResult(getAgencies().get(0))).when(adminClient)
-            .getAgencyById(anyObject());
+            .getAgencyById(any());
 
         given()
             .contentType(ContentType.JSON)
@@ -1324,21 +1324,21 @@ public class AdminManagementExternalResourceTest {
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new ReferentialNotFoundException("Agency not found")).when(adminClient).getAgencyById(anyObject());
+        doThrow(new ReferentialNotFoundException("Agency not found")).when(adminClient).getAgencyById(any());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
-        doThrow(new AdminManagementClientServerException("Exception")).when(adminClient).getAgencyById(anyObject());
+        doThrow(new AdminManagementClientServerException("Exception")).when(adminClient).getAgencyById(any());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-        doThrow(new InvalidParseOperationException("Exception")).when(adminClient).getAgencyById(anyObject());
+        doThrow(new InvalidParseOperationException("Exception")).when(adminClient).getAgencyById(any());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1902,7 +1902,7 @@ public class AdminManagementExternalResourceTest {
         when(IngestInternalClientFactory.getInstance()).thenReturn(ingestClientFactory);
         when(IngestInternalClientFactory.getInstance().getClient()).thenReturn(ingestInternalClient);
         doThrow(new WorkflowNotFoundException("WorkflowNotFoundException")).when(ingestInternalClient)
-            .getOperationProcessExecutionDetails(anyObject());
+            .getOperationProcessExecutionDetails(any());
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -1954,7 +1954,7 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doReturn(Status.CREATED).when(adminClient).importContexts(anyObject());
+        doReturn(Status.CREATED).when(adminClient).importContexts(any());
         File contextFile = PropertiesUtils.getResourceFile("context.json");
         JsonNode json = JsonHandler.getFromFile(contextFile);
         given().contentType(ContentType.JSON).body(json)
@@ -1972,7 +1972,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
 
         doReturn(new RequestResponseOK<>().addAllResults(getContexts())).when(adminClient)
-            .findContexts(anyObject());
+            .findContexts(any());
 
         final Select select = new Select();
         select.setQuery(eq("STATUS", true));
@@ -2044,7 +2044,7 @@ public class AdminManagementExternalResourceTest {
         final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
-        doReturn(Status.BAD_REQUEST).when(adminClient).importContexts(anyObject());
+        doReturn(Status.BAD_REQUEST).when(adminClient).importContexts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -2052,7 +2052,7 @@ public class AdminManagementExternalResourceTest {
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
         doThrow(new ReferentialException("ReferentialException"))
-            .when(adminClient).importContexts(anyObject());
+            .when(adminClient).importContexts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -2079,7 +2079,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
-            .createArchiveUnitProfiles(anyObject());
+            .createArchiveUnitProfiles(any());
 
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("AUP_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileArchiveUnitProfiles);
@@ -2099,7 +2099,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
-            .createArchiveUnitProfiles(anyObject());
+            .createArchiveUnitProfiles(any());
 
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profiles_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileArchiveUnitProfiles);
@@ -2118,7 +2118,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
-            .findArchiveUnitProfiles(anyObject());
+            .findArchiveUnitProfiles(any());
 
         final Select select = new Select();
         select.setQuery(eq("Status", "ACTIVE"));
@@ -2245,7 +2245,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
-            .importOntologies(anyBoolean(), anyObject());
+            .importOntologies(anyBoolean(), any());
 
         File fileOntologies = PropertiesUtils.getResourceFile("ontologies_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileOntologies);
@@ -2264,7 +2264,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
-            .importOntologies(anyBoolean(), anyObject());
+            .importOntologies(anyBoolean(), any());
 
         File fileOntologies = PropertiesUtils.getResourceFile("ontologies_missing_identifier.json");
         JsonNode json = JsonHandler.getFromFile(fileOntologies);
@@ -2287,7 +2287,7 @@ public class AdminManagementExternalResourceTest {
         when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         // Then
         doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
-                .importOntologies(anyBoolean(), anyObject());
+                .importOntologies(anyBoolean(), any());
 
         File ontologyFile = PropertiesUtils.getResourceFile("ko_ontology_vocabular_type_unknown.json");
         JsonNode json = JsonHandler.getFromFile(ontologyFile);

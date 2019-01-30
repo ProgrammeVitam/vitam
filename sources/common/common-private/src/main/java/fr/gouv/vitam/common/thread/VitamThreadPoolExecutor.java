@@ -38,7 +38,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import org.eclipse.jetty.util.thread.ThreadPool;
-import org.glassfish.jersey.server.ManagedAsyncExecutor;
 import org.glassfish.jersey.spi.ExecutorServiceProvider;
 
 import fr.gouv.vitam.common.ParametersChecker;
@@ -52,7 +51,6 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
  * Vitam ThreadPoolExecutor compatible with Jersey which copy the VitamSession from the main thread to the subthread
  */
 @Named("threadpool")
-@ManagedAsyncExecutor
 public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements ThreadPool, ExecutorServiceProvider {
 
     // KWA TODO: SPLIT this class into two : the Jetty ThreadPool & the override of the ThreadPoolExecutor ; but first
@@ -86,8 +84,8 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
 
     /**
      * Create a Cached Thread Pool
-     * 
-     * @param minimumAvailableThreads minimum Available Threads kept in the pool 
+     *
+     * @param minimumAvailableThreads minimum Available Threads kept in the pool
      */
     @Inject
     @Named("threadpool")

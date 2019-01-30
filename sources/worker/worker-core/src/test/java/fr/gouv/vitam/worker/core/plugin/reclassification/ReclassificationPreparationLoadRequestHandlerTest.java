@@ -56,8 +56,8 @@ import static fr.gouv.vitam.worker.core.plugin.reclassification.Reclassification
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.NO_ACCESS_CONTRACT_PROVIDED;
 import static fr.gouv.vitam.worker.core.plugin.reclassification.ReclassificationPreparationLoadRequestHandler.NO_UNITS_TO_UPDATE;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;

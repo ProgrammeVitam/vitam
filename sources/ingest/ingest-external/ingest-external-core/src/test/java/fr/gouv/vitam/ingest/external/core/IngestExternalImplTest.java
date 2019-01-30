@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,7 +101,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        when(identifierFactory.getFormatIdentifierFor(anyObject()))
+        when(identifierFactory.getFormatIdentifierFor(any()))
             .thenThrow(new FormatIdentifierNotFoundException(""));
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -118,7 +118,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
+        when(identifierFactory.getFormatIdentifierFor(any())).thenThrow(new FormatIdentifierFactoryException(""));
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
@@ -135,7 +135,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        when(identifierFactory.getFormatIdentifierFor(anyObject()))
+        when(identifierFactory.getFormatIdentifierFor(any()))
             .thenThrow(new FormatIdentifierTechnicalException(""));
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -155,8 +155,8 @@ public class IngestExternalImplTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
 
         final FormatIdentifier formatIdentifierMock = PowerMockito.mock(FormatIdentifier.class);
-        when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(formatIdentifierMock);
-        when(formatIdentifierMock.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
+        when(identifierFactory.getFormatIdentifierFor(any())).thenReturn(formatIdentifierMock);
+        when(formatIdentifierMock.analysePath(any())).thenThrow(new FileFormatNotFoundException(""));
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
 
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
@@ -176,8 +176,8 @@ public class IngestExternalImplTest {
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
 
         final FormatIdentifier formatIdentifierMock = PowerMockito.mock(FormatIdentifier.class);
-        when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(formatIdentifierMock);
-        when(formatIdentifierMock.analysePath(anyObject())).thenThrow(new FormatIdentifierBadRequestException(""));
+        when(identifierFactory.getFormatIdentifierFor(any())).thenReturn(formatIdentifierMock);
+        when(formatIdentifierMock.analysePath(any())).thenThrow(new FormatIdentifierBadRequestException(""));
 
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -196,7 +196,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getNotSupprtedFormatIdentifierResponseList());
+        when(siegfried.analysePath(any())).thenReturn(getNotSupprtedFormatIdentifierResponseList());
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
 
@@ -215,7 +215,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
 
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
@@ -229,7 +229,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
 
@@ -248,7 +248,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierTarResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
@@ -273,7 +273,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -291,7 +291,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
                 getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("toto_manifest.xml_OK.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -309,7 +309,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
                 getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("toto-manifest.xml_OK.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -327,7 +327,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
                 getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("_manifest.xml_OK.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -345,7 +345,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
                 getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("$_manifest.xml_KO.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -363,7 +363,7 @@ public class IngestExternalImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FormatIdentifierSiegfried siegfried =
                 getMockedFormatIdentifierSiegfried();
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierZipResponse());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
         stream = PropertiesUtils.getResourceAsStream("$_manifest.xml_KO.zip");
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -395,7 +395,7 @@ public class IngestExternalImplTest {
         final FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(siegfried);
+        when(identifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
         return siegfried;
     }
 

@@ -27,31 +27,22 @@ package fr.gouv.vitam.ihmrecette.appserver;
  */
 
 
-import static io.restassured.RestAssured.given;
-import io.restassured.http.Cookie;
-import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
-import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
-import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
-import static org.hamcrest.Matchers.equalTo;
-
-import java.io.File;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import io.restassured.RestAssured;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
+import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import io.restassured.RestAssured;
+import io.restassured.http.Cookie;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -61,6 +52,13 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+
+import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
 @RunWith(PowerMockRunner.class)
 @PowerMockIgnore("javax.net.ssl.*")
@@ -99,6 +97,8 @@ public class WebApplicationResourceTest {
             PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
         realAdminConfig.setSipDirectory(Thread.currentThread().getContextClassLoader().getResource("sip").getPath());
         realAdminConfig.setAuthentication(false);
+        realAdminConfig.setEnableSession(true);
+        realAdminConfig.setEnableXsrFilter(true);
         adminConfigFile = File.createTempFile("test", "ihm-recette.conf", adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
@@ -147,26 +147,13 @@ public class WebApplicationResourceTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testGetLogbookStatisticsWithNotFoundWhenLogbookClientException()
-        throws Exception {
-        VitamContext context = new VitamContext(TENANT_ID);
-        context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-        PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
-            .thenThrow(LogbookClientException.class);
-        given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
-            .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when().get("/stat/" + FAKE_OPERATION_ID);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
     public void testGetLogbookStatisticsWithInternalServerErrorWhenInvalidParseOperationException()
         throws Exception {
         VitamContext context = new VitamContext(TENANT_ID);
         context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
         PowerMockito.when(
             UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
-            .thenThrow(InvalidParseOperationException.class);
+            .thenThrow(RuntimeException.class);
         given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()
             .get("/stat/" + FAKE_OPERATION_ID);
@@ -179,7 +166,8 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSecureMode() {
-        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/securemode").then().body(equalTo("[\"x509\"]"));
+        given().expect().statusCode(Status.OK.getStatusCode()).when().get("/securemode").then()
+            .body(equalTo("[\"x509\"]"));
     }
 
     @Test

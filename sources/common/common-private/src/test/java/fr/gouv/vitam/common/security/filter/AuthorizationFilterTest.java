@@ -27,13 +27,10 @@
 
 package fr.gouv.vitam.common.security.filter;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.Enumeration;
-import java.util.Map;
-import java.util.Vector;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.VitamConfiguration;
+import org.junit.Before;
+import org.junit.Test;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -41,13 +38,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
+import java.util.Enumeration;
+import java.util.Map;
+import java.util.Vector;
 
-import org.glassfish.grizzly.servlet.FilterConfigImpl;
-import org.junit.Before;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.VitamConfiguration;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AuthorizationFilterTest {
 
@@ -62,7 +59,6 @@ public class AuthorizationFilterTest {
     public void before() throws ServletException {
 
         filter = new AuthorizationFilter();
-        filter.init(new FilterConfigImpl(null));
 
         httpServletRequest = mock(HttpServletRequest.class);
         httpServletResponse = mock(HttpServletResponse.class);

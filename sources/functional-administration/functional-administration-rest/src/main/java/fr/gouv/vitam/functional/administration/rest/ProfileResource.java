@@ -131,7 +131,7 @@ public class ProfileResource {
      *
      * @param profileModelList as InputStream
      * @param uri the uri info
-     * @return Response jersey response
+     * @return Response
      */
     @Path(PROFILE_URI)
     @POST
@@ -169,7 +169,7 @@ public class ProfileResource {
      * @param uri used to construct the created resource and send it back as location in the response
      * @param profileMetadataId id of the profile metadata
      * @param profileFile inputStream representing the data to import
-     * @return The jersey Response
+     * @return The Response
      */
     @Path(PROFILE_URI + "/{id}")
     @PUT

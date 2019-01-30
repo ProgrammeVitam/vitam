@@ -64,7 +64,6 @@ import io.restassured.response.ResponseBody;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.hamcrest.Matchers;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

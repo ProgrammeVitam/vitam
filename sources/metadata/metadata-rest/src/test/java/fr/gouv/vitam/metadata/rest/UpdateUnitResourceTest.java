@@ -49,7 +49,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.jhades.JHades;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -113,8 +112,6 @@ public class UpdateUnitResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
         junitHelper = JunitHelper.getInstance();
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();

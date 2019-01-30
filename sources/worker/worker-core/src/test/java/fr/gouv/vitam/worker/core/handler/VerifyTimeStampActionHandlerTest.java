@@ -29,8 +29,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -139,7 +139,7 @@ public class VerifyTimeStampActionHandlerTest {
         final InputStream tokenFile = PropertiesUtils.getResourceAsStream(TOKEN);
 
 
-        when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
+        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp")))
                 .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
 
@@ -166,7 +166,7 @@ public class VerifyTimeStampActionHandlerTest {
 
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
 
-        when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
+        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp"))).thenThrow(new ContentAddressableStorageNotFoundException("Token is not existing"));
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
@@ -191,7 +191,7 @@ public class VerifyTimeStampActionHandlerTest {
             PropertiesUtils.getResourceAsStream(TOKEN_FAKE);
 
 
-        when(workspaceClient.getObject(anyObject(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
+        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp")))
                 .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
 

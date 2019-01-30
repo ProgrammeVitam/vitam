@@ -27,20 +27,29 @@
 
 package fr.gouv.vitam.common.metrics;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.SortedMap;
-import java.util.TimeZone;
-import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Histogram;
+import com.codahale.metrics.Meter;
+import com.codahale.metrics.Timer;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
+import fr.gouv.vitam.common.metrics.LogbackReporter.Builder;
+import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import io.restassured.RestAssured;
+import io.restassured.response.ValidatableResponse;
+import org.junit.AfterClass;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.management.RuntimeErrorException;
 import javax.ws.rs.GET;
@@ -48,65 +57,46 @@ import javax.ws.rs.HttpMethod;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UnsupportedEncodingException;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TimeZone;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
 
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import io.restassured.RestAssured;
-import io.restassured.response.ValidatableResponse;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.codahale.metrics.Counter;
-import com.codahale.metrics.Gauge;
-import com.codahale.metrics.Histogram;
-import com.codahale.metrics.Meter;
-import com.codahale.metrics.Timer;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.common.metrics.LogbackReporter.Builder;
-import fr.gouv.vitam.common.security.filter.AuthorizationFilterHelper;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.TestApplication;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 
 // TODO This class should test the reporting in ElasticSearch, by starting an ES database, pushing metrics and verifying
 // that the metrics are present in the database.
 // Also, the reported output should be checked, to be sure the reporters are correctly reporting metrics.
-public class VitamMetricsConfigurationImplTest {
+public class VitamMetricsConfigurationImplTest extends ResteasyTestApplication {
     private static final String BASE_PATH = "/";
     private static final String TEST_RESOURCE_URI = "/home";
     private static final String TEST_GAUGE_NAME = "Test gauge";
-    private static final String TEST_CONF = "test.conf";
-    private static int serverPort;
-    private static TestVitamApplication application;
     private static final PrintStream out = System.out; // NOSONAR since Logger test
     private static final StringBuilder buf = new StringBuilder();
-    
-    private static final List<Integer> tenants = Arrays.asList(0, 1, 2);
 
-    /**
-     * The test application that will load a test resource.
-     */
-    public static class TestVitamApplication extends TestApplication {
+    private final static CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
+    private final static TestResourceImpl testResource = new TestResourceImpl();
 
-        public TestVitamApplication(String configFile) {
-            super(configFile);
-        }
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(VitamMetricsConfigurationImplTest.class, (VitamClientFactoryInterface<?>)null, true);
 
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.register(new TestResourceImpl());
-        }
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(commonBusinessApplication.getResources(), testResource);
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        return commonBusinessApplication.getClasses();
     }
 
     /**
@@ -117,17 +107,13 @@ public class VitamMetricsConfigurationImplTest {
 
         private int counter = 0;
         // Get the business metric registry
-        final private VitamMetricRegistry registry = AbstractVitamApplication.getBusinessMetricsRegistry();
+        final private VitamMetricRegistry registry =
+            commonBusinessApplication.metrics.get(VitamMetricsType.REST).getRegistry();
 
         public TestResourceImpl() {
             super(new BasicVitamStatusServiceImpl());
             // register the gauge if it doesn't exist
-            registry.register(TEST_GAUGE_NAME, new Gauge<Integer>() {
-                @Override
-                public Integer getValue() {
-                    return counter;
-                }
-            });
+            registry.register(TEST_GAUGE_NAME, (Gauge<Integer>) () -> counter);
         }
 
         /**
@@ -143,39 +129,15 @@ public class VitamMetricsConfigurationImplTest {
     }
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        final MinimalTestVitamApplicationFactory<TestVitamApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestVitamApplication>() {
-
-                @Override
-                public StartApplicationResponse<TestVitamApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final TestVitamApplication application = new TestVitamApplication(TEST_CONF);
-                    return startAndReturn(application);
-                }
-
-            };
-        final StartApplicationResponse<TestVitamApplication> response =
-            testFactory.findAvailablePortSetToApplication();
-
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        application.startMetrics();
-        RestAssured.port = response.getServerPort();
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+        RestAssured.port = vitamServerTestRunner.getBusinessPort();
         RestAssured.basePath = BASE_PATH;
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            e.printStackTrace();
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Test
@@ -206,7 +168,7 @@ public class VitamMetricsConfigurationImplTest {
             throw new RuntimeErrorException(new Error(e));
         }
 
-        final VitamMetrics metric = AbstractVitamApplication.getVitamMetrics(VitamMetricsType.JVM);
+        final VitamMetrics metric = commonBusinessApplication.metrics.get(VitamMetricsType.JVM);
         final Builder builder = LogbackReporter.forRegistry(metric.getRegistry());
         builder.convertDurationsTo(TimeUnit.SECONDS).convertRatesTo(TimeUnit.SECONDS).formattedFor(Locale.FRENCH)
             .formattedFor(TimeZone.getDefault()).logLevel(VitamLogLevel.INFO);
@@ -215,13 +177,7 @@ public class VitamMetricsConfigurationImplTest {
         assertTrue(buf.length() > 0);
         buf.setLength(0);
         final SortedMap<String, Gauge> gauges = new TreeMap<>();
-        gauges.put("keyGauge", new Gauge<Long>() {
-
-            @Override
-            public Long getValue() {
-                return 1L;
-            }
-        });
+        gauges.put("keyGauge", (Gauge<Long>) () -> 1L);
         final SortedMap<String, Counter> counters = new TreeMap<>();
         final Counter counter = new Counter();
         counter.inc();
@@ -242,7 +198,8 @@ public class VitamMetricsConfigurationImplTest {
     @SuppressWarnings("rawtypes")
     @Test
     public final void testBusinessGaugeValue() {
-        final Map<String, Gauge> gauges = AbstractVitamApplication.getBusinessMetricsRegistry().getGauges();
+        final Map<String, Gauge> gauges =
+            commonBusinessApplication.metrics.get(VitamMetricsType.REST).getRegistry().getGauges();
         final Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
             HttpMethod.GET, TEST_RESOURCE_URI);
 
@@ -273,7 +230,7 @@ public class VitamMetricsConfigurationImplTest {
     }
 
     private void testVitamMetrics(VitamMetricsType type) {
-        final VitamMetrics metric = AbstractVitamApplication.getVitamMetrics(type);
+        final VitamMetrics metric = commonBusinessApplication.metrics.get(type);
 
         assertNotNull("Metric " + type.getName(), metric);
         assertTrue("Metric " + type.getName() + " reporting", metric.isReporting());

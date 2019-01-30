@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -115,7 +115,7 @@ public class PrepareAuditActionHandlerTest {
         register.setOriginatingAgency("originatingAgency");
         register.setTotalObjects(new RegisterValueDetailModel().setIngested(1).setRemained(1));
         registerSummary.addResult(register);
-        when(adminClient.getAccessionRegister(anyObject())).thenReturn(registerSummary);
+        when(adminClient.getAccessionRegister(any())).thenReturn(registerSummary);
 
         action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
@@ -130,9 +130,9 @@ public class PrepareAuditActionHandlerTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
         reset(workspaceClient);
         reset(metadataClient);
-        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
-        Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
-        when(metadataClient.selectObjectGroups(anyObject())).thenReturn(searchResults);
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
+        Mockito.doNothing().when(workspaceClient).putObject(any(), any(), any());
+        when(metadataClient.selectObjectGroups(any())).thenReturn(searchResults);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -144,14 +144,14 @@ public class PrepareAuditActionHandlerTest {
         register.setOriginatingAgency("originatingAgency");
         register.setTotalObjects(new RegisterValueDetailModel().setRemained(1));
         registerSummary.addResult(register);
-        when(adminClient.getAccessionRegister(anyObject())).thenReturn(registerSummary);
+        when(adminClient.getAccessionRegister(any())).thenReturn(registerSummary);
         final JsonNode searchResults =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
         reset(workspaceClient);
         reset(metadataClient);
-        Mockito.doNothing().when(workspaceClient).createContainer(anyObject());
-        Mockito.doNothing().when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
-        when(metadataClient.selectObjectGroups(anyObject())).thenReturn(searchResults);
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
+        Mockito.doNothing().when(workspaceClient).putObject(any(), any(), any());
+        when(metadataClient.selectObjectGroups(any())).thenReturn(searchResults);
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
     }
@@ -165,10 +165,10 @@ public class PrepareAuditActionHandlerTest {
         reset(workspaceClient);
         reset(metadataClient);
         Mockito.doThrow(new ContentAddressableStorageAlreadyExistException(""))
-            .when(workspaceClient).createContainer(anyObject());
+            .when(workspaceClient).createContainer(any());
         Mockito.doNothing()
-            .when(workspaceClient).putObject(anyObject(), anyObject(), anyObject());
-        when(metadataClient.selectObjectGroups(anyObject())).thenReturn(searchResults);
+            .when(workspaceClient).putObject(any(), any(), any());
+        when(metadataClient.selectObjectGroups(any())).thenReturn(searchResults);
 
         final ItemStatus response = handler.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());

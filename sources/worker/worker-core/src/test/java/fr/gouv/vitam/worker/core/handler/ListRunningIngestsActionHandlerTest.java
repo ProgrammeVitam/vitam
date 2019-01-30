@@ -28,7 +28,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -148,7 +148,7 @@ public class ListRunningIngestsActionHandlerTest {
     @Test
     public void givenRunningProcessWhenExecuteThenReturnResponseOK() throws Exception {
         action.addOutIOParameters(out);
-        when(processManagementClient.listOperationsDetails(anyObject()))
+        when(processManagementClient.listOperationsDetails(any()))
             .thenReturn(new RequestResponseOK<ProcessDetail>().addAllResults(list));
         saveWorkspacePutObject(
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
@@ -178,7 +178,7 @@ public class ListRunningIngestsActionHandlerTest {
         list.add(pw);
         list.add(pw2);
 
-        when(processManagementClient.listOperationsDetails(anyObject()))
+        when(processManagementClient.listOperationsDetails(any()))
             .thenReturn(new RequestResponseOK<ProcessDetail>().addAllResults(list));
         saveWorkspacePutObject(
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
@@ -196,14 +196,14 @@ public class ListRunningIngestsActionHandlerTest {
 
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
-            InputStream inputStream = invocation.getArgumentAt(2, InputStream.class);
+            InputStream inputStream = invocation.getArgument(2);
             java.nio.file.Path file =
                 java.nio.file.Paths.get(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
                     action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
             java.nio.file.Files.copy(inputStream, file);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.Matchers.anyString(),
-            org.mockito.Matchers.eq(filename), org.mockito.Matchers.any(InputStream.class));
+        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
+            org.mockito.ArgumentMatchers.eq(filename), org.mockito.ArgumentMatchers.any(InputStream.class));
     }
 
     private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
@@ -215,7 +215,7 @@ public class ListRunningIngestsActionHandlerTest {
     @Test
     public void givenProcessErrorWhenExecuteThenReturnResponseFATAL() throws Exception {
         action.addOutIOParameters(out);
-        when(processManagementClient.listOperationsDetails(anyObject()))
+        when(processManagementClient.listOperationsDetails(any()))
             .thenThrow(new VitamClientException("Process Management error"));
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());

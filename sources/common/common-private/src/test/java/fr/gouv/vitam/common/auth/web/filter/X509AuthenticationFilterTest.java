@@ -72,7 +72,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -171,7 +172,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
         // Needs mock subject for login call
         when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] {cert});
         Subject subjectUnderTest = mock(Subject.class);
-        Mockito.doNothing().when(subjectUnderTest).login(anyObject());
+        Mockito.doNothing().when(subjectUnderTest).login(any());
         setSubject(subjectUnderTest);
 
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();
@@ -196,7 +197,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
         // Needs mock subject for login call
         when(request.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(pem);
         Subject subjectUnderTest = mock(Subject.class);
-        Mockito.doNothing().when(subjectUnderTest).login(anyObject());
+        Mockito.doNothing().when(subjectUnderTest).login(any());
         setSubject(subjectUnderTest);
 
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();

@@ -27,15 +27,6 @@
 package fr.gouv.vitam.workspace.rest;
 
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -67,11 +58,20 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import static io.restassured.RestAssured.with;
-import static io.restassured.RestAssured.given;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
+
 import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
 
 /**
+ *
  */
 public class WorkspaceResourceTest {
 
@@ -448,7 +448,7 @@ public class WorkspaceResourceTest {
                 .contentType(CommonMediaType.ZIP)
                 .config(RestAssured.config().encoderConfig(
                     EncoderConfig.encoderConfig().appendDefaultContentCharsetToContentTypeIfUndefined(false)))
-                .content(stream).when()
+                .body(stream).when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
                 .then()
                 .statusCode(Status.NOT_FOUND.getStatusCode());
@@ -485,14 +485,11 @@ public class WorkspaceResourceTest {
             with().then()
                 .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
 
-            final VitamError
-                vitamError = getVitamError(VitamCode.WORKSPACE_BAD_REQUEST, "File is empty");
-
             given().contentType(CommonMediaType.ZIP).body(stream)
                 .when()
                 .put("/containers/" + CONTAINER_NAME + "/folders/" + FOLDER_SIP)
-                .then().body(Matchers.equalTo(OBJECT_MAPPER.writeValueAsString(vitamError)))
-                .statusCode(Status.BAD_REQUEST.getStatusCode());
+                .then().body(Matchers.equalTo("myContainer"))
+                .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         }
     }

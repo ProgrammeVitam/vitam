@@ -26,11 +26,8 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import javax.ws.rs.core.Application;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -39,6 +36,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+
+import javax.ws.rs.core.Application;
 
 /**
  * Ihm-recette application without mongo and elasticsearch
@@ -52,17 +51,18 @@ public class IhmRecetteMainWithoutMongo {
     private static final String CONF_FILE_NAME = "ihm-demo.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
-    
+
     public IhmRecetteMainWithoutMongo(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
-        vitamStarter = VitamStarter.createVitamStarterForIHM(WebApplicationConfig.class, configurationFile,
+        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
             ServerApplicationWithoutMongo.class, AdminApplication.class, Lists.newArrayList());
     }
 
     /**
      * This constructor is used for test
      * To customize ServerApplicationWithoutMongo and AdminApplication
+     *
      * @param configurationFile
      * @param testBusinessApplication
      * @param testAdminApplication
@@ -74,20 +74,20 @@ public class IhmRecetteMainWithoutMongo {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
         if (null == testBusinessApplication) {
-            testBusinessApplication =  ServerApplicationWithoutMongo.class;
+            testBusinessApplication = ServerApplicationWithoutMongo.class;
         }
 
         if (null == testAdminApplication) {
-            testAdminApplication =  AdminApplication.class;
+            testAdminApplication = AdminApplication.class;
         }
-        
-        vitamStarter = VitamStarter.createVitamStarterForIHM(WebApplicationConfig.class, configurationFile,
+
+        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
             ServerApplicationWithoutMongo.class, AdminApplication.class, Lists.newArrayList());
     }
 
     /**
      * Main method to run the application (doing start and join)
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -100,7 +100,8 @@ public class IhmRecetteMainWithoutMongo {
             IhmRecetteMain main = new IhmRecetteMain(args[0]);
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(), e);
 
             System.exit(1);
         }
@@ -117,10 +118,10 @@ public class IhmRecetteMainWithoutMongo {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-    
+
     public final VitamStarter getVitamServer() {
         return vitamStarter;
     }
-    
-    
+
+
 }

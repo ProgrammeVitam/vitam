@@ -64,8 +64,8 @@ import java.util.HashMap;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
@@ -296,7 +296,7 @@ public class BatchReportServiceImplTest {
 
     private void initialiseMockWhenPutObjectInWorkspace(Path report) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
-            InputStream argumentAt = invocation.getArgumentAt(2, InputStream.class);
+            InputStream argumentAt = invocation.getArgument(2);
             Files.copy(argumentAt, report);
             return null;
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));

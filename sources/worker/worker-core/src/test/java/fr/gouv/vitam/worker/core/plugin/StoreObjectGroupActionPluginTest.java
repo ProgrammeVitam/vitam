@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -137,7 +137,7 @@ public class StoreObjectGroupActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         Mockito.doThrow(new StorageServerClientException("Error storage")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromWorkspace(any(), any(), any(), any());
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
@@ -165,8 +165,8 @@ public class StoreObjectGroupActionPluginTest {
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
-        Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(),
-            anyObject(), anyObject(), anyObject());
+        Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(any(),
+            any(), any(), any());
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
@@ -195,8 +195,8 @@ public class StoreObjectGroupActionPluginTest {
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/" + OBJECT_GROUP_GUID_2 + ".json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup2).build());
 
-        Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(anyObject(),
-            anyObject(), anyObject(), anyObject());
+        Mockito.doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(any(),
+            any(), any(), any());
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 

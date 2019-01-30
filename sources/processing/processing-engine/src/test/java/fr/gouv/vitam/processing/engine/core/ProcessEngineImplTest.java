@@ -60,8 +60,8 @@ import org.mockito.InOrder;
 
 import java.io.FileNotFoundException;
 
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
@@ -138,15 +138,15 @@ public class ProcessEngineImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(processDistributor.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(processDistributor.distribute(any(), any(), any(), any()))
                 .thenReturn(new ItemStatus().increment(StatusCode.KO));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
         processEngine.setCallback(iEventsProcessEngine);
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.KO)).when(iEventsProcessEngine)
-                .onComplete(anyObject(), anyObject());
-        doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(anyObject());
+                .onComplete(any(), any());
+        doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
         processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
 
         // Because of start is async
@@ -158,9 +158,9 @@ public class ProcessEngineImplTest {
         }
 
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
-        inOrders.verify(iEventsProcessEngine).onUpdate(anyObject());
-        inOrders.verify(processDistributor).distribute(anyObject(), anyObject(), anyObject(), anyObject());
-        inOrders.verify(iEventsProcessEngine).onComplete(anyObject(), anyObject());
+        inOrders.verify(iEventsProcessEngine).onUpdate(any());
+        inOrders.verify(processDistributor).distribute(any(), any(), any(), any());
+        inOrders.verify(iEventsProcessEngine).onComplete(any(), any());
         Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.KO);
     }
 
@@ -175,7 +175,7 @@ public class ProcessEngineImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(processDistributor.distribute(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(processDistributor.distribute(any(), any(), any(), any()))
                 .thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         IEventsProcessEngine iEventsProcessEngine = mock(IEventsProcessEngine.class);
@@ -183,8 +183,8 @@ public class ProcessEngineImplTest {
 
         ProcessStep step = processWorkflow.getSteps().iterator().next();
         doAnswer(o -> step.setStepStatusCode(StatusCode.OK)).when(iEventsProcessEngine)
-                .onComplete(anyObject(), anyObject());
-        doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(anyObject());
+                .onComplete(any(), any());
+        doAnswer(o -> step.setStepStatusCode(StatusCode.STARTED)).when(iEventsProcessEngine).onUpdate(any());
 
         processEngine.start(step, workParams, null, PauseRecover.NO_RECOVER);
 
@@ -197,9 +197,9 @@ public class ProcessEngineImplTest {
         }
 
         InOrder inOrders = inOrder(processDistributor, iEventsProcessEngine);
-        inOrders.verify(iEventsProcessEngine).onUpdate(anyObject());
-        inOrders.verify(processDistributor).distribute(anyObject(), anyObject(), anyObject(), anyObject());
-        inOrders.verify(iEventsProcessEngine).onComplete(anyObject(), anyObject());
+        inOrders.verify(iEventsProcessEngine).onUpdate(any());
+        inOrders.verify(processDistributor).distribute(any(), any(), any(), any());
+        inOrders.verify(iEventsProcessEngine).onComplete(any(), any());
         Assertions.assertThat(step.getStepStatusCode()).isEqualTo(StatusCode.OK);
 
     }

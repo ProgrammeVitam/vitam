@@ -26,56 +26,62 @@
  */
 package fr.gouv.vitam.common.client;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.EnumSet;
-
-import javax.servlet.DispatcherType;
-import javax.ws.rs.Path;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
 import fr.gouv.vitam.common.client.configuration.SSLKey;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
+import fr.gouv.vitam.common.serverv2.SslConfig;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-public class DefaultSslClientTest {
+import javax.ws.rs.Path;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Set;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
+public class DefaultSslClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslClientTest.class);
 
     private static final String BASE_URI = "/ingest-ext/v1";
-    private static final String INGEST_EXTERNAL_CONF = "standard-application-ssl-test.conf";
-    private static final String SHIRO_FILE = "shiro.ini";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "standard-client-secure.conf";
+    private static final String INGEST_EXTERNAL_SERVER_CONF = "standard-server-secure.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED = "standard-client-secure_notgranted.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_EXPIRED = "standard-client-secure_expired.conf";
-    private static TestVitamApplication application;
-    private static int serverPort;
 
+    private final static SecureClientConfiguration configurationServer =
+        changeConfigurationFile(INGEST_EXTERNAL_SERVER_CONF);
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(DefaultSslClientTest.class, VitamServerTestRunner.AdminApp.class,
+            new SslConfig(
+                configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPath(),
+                configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPassword(),
+                configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPath(),
+                configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPassword()
+            ),
+            null,
+            false, false, false, true, false);
+
+
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new SslResource());
+    }
 
     @Path(BASE_URI)
     @javax.ws.rs.ApplicationPath("webresources")
@@ -83,88 +89,15 @@ public class DefaultSslClientTest {
         // Empty
     }
 
-    private static class TestVitamApplication
-        extends AbstractVitamApplication<TestVitamApplication, BenchmarkConfiguration> {
-
-        protected TestVitamApplication(String config) {
-            super(BenchmarkConfiguration.class, config);
-        }
-
-        protected TestVitamApplication(BenchmarkConfiguration config) {
-            super(BenchmarkConfiguration.class, config);
-        }
-
-        @Override
-        protected void configureVitamParameters() {
-            // Nothing
-            VitamConfiguration.setSecret("vitamsecret");
-            VitamConfiguration.setFilterActivation(false);
-        }
-
-        @Override
-        protected void checkJerseyMetrics(ResourceConfig resourceConfig) {
-            // Nothing
-        }
-
-        @Override
-        protected void setFilter(ServletContextHandler context, boolean isAdminConnector) throws VitamApplicationServerException {
-            File shiroFile = null;
-            try {
-                shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
-            } catch (final FileNotFoundException e) {
-                throw new VitamApplicationServerException(e.getMessage());
-            }
-            LOGGER.info("Start Shiro configuration");
-            context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
-            context.addEventListener(new EnvironmentLoaderListener());
-            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.register(new SslResource());
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            return false;
-        }
-    }
-
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        final MinimalTestVitamApplicationFactory<TestVitamApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestVitamApplication>() {
-
-                @Override
-                public StartApplicationResponse<TestVitamApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final TestVitamApplication application = new TestVitamApplication(INGEST_EXTERNAL_CONF);
-                    final StartApplicationResponse<TestVitamApplication> response = startAndReturn(application);
-                    return response;
-                }
-
-            };
-        final StartApplicationResponse<TestVitamApplication> response = testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        LOGGER.warn("Start configuration: " + serverPort);
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Test
@@ -185,8 +118,14 @@ public class DefaultSslClientTest {
 
             };
         try (DefaultClient client = factory.getClient()) {
-            // Only Apache Pool has this, not the JerseyClient
+            // Only Apache Pool has this
             assertNull(client.getHttpClient().getHostnameVerifier());
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
 
@@ -212,7 +151,7 @@ public class DefaultSslClientTest {
     @Test
     public void givenCertifValidThenReturnOK() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -224,22 +163,29 @@ public class DefaultSslClientTest {
 
             };
         factory.disableUseAuthorizationFilter();
+        factory.changeServerPort(vitamServerTestRunner.getBusinessPort());
+
         LOGGER.warn("Start Client configuration: " + factory);
-        if (application.getVitamServer().isStarted()) {
-            try (final DefaultClient client = factory.getClient()) {
-                client.checkStatus();
-            } catch (final VitamException e) {
-                LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
-                fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
+        try (final DefaultClient client = factory.getClient()) {
+            client.checkStatus();
+        } catch (final VitamException e) {
+            LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
+            fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
+
     }
 
 
     @Test
     public void givenCertifNotGrantedThenReturnForbidden() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -255,6 +201,12 @@ public class DefaultSslClientTest {
             client.checkStatus();
             fail("Should Raized an exception");
         } catch (final VitamException e) {
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
 
@@ -262,7 +214,7 @@ public class DefaultSslClientTest {
     @Test
     public void givenCertifExpiredThenRaiseAnException() throws VitamException {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -279,6 +231,12 @@ public class DefaultSslClientTest {
             fail("SHould Raized an exception");
         } catch (final VitamException e) {
 
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
         }
     }
 }

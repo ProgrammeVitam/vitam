@@ -28,8 +28,8 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -163,18 +163,18 @@ public class RunningIngestsUpdateActionPluginTest {
             eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
             .then(o -> PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON));
         when(handlerIO.getInput(0)).thenReturn(runningIngests);
-        when(processManagementClient.getOperationProcessStatus(anyObject()))
+        when(processManagementClient.getOperationProcessStatus(any()))
             .thenReturn(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
 
-        when(metadataClient.selectUnits(anyObject())).thenReturn(archiveUnitToBeUpdated);
-        when(metadataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(archiveUnitUpdated);
+        when(metadataClient.selectUnits(any())).thenReturn(archiveUnitToBeUpdated);
+        when(metadataClient.updateUnitbyId(any(), any())).thenReturn(archiveUnitUpdated);
 
         StoreMetadataObjectActionHandler storeMetadataObjectActionHandler =
             mock(StoreMetadataObjectActionHandler.class);
         plugin.setStoreMetadataObjectActionHandler(storeMetadataObjectActionHandler);
 
         List<StatusCode> statusCodeList = Lists.newArrayList(StatusCode.OK);
-        when(storeMetadataObjectActionHandler.execute(anyObject(), anyObject()))
+        when(storeMetadataObjectActionHandler.execute(any(), any()))
             .thenAnswer(o -> new ItemStatus().increment(
                 statusCodeList.get(0)));
         ItemStatus response = plugin.execute(params, handlerIO);

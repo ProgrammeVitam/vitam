@@ -27,39 +27,37 @@
 
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
-
-import java.nio.file.Paths;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.nio.file.Paths;
+import java.util.Set;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-
-public class SiegfriedClientRestTest extends VitamJerseyTest {
+public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
     private static final String HOSTNAME = "localhost";
-    private SiegfriedClientRest client;
+    private static SiegfriedClientRest client;
 
     private static final String SAMPLE_VERSION_RESPONSE = "version-response.json";
     private static final String SAMPLE_OK_RESPONSE = "ok-response.json";
@@ -67,64 +65,28 @@ public class SiegfriedClientRestTest extends VitamJerseyTest {
     private static final JsonNode JSON_NODE_VERSION = getJsonNode(SAMPLE_VERSION_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_OK = getJsonNode(SAMPLE_OK_RESPONSE);
 
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public SiegfriedClientRestTest() {
-        super(SiegfriedClientFactory.getInstance());
+    static SiegfriedClientFactory factory = SiegfriedClientFactory.getInstance();
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(SiegfriedClientRestTest.class, factory);
+
+
+    @BeforeClass
+    public static void init() throws Throwable {
+        vitamServerTestRunner.start();
+        client = (SiegfriedClientRest) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (SiegfriedClientRest) getClient();
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        SiegfriedClientFactory.changeMode(HOSTNAME, reservedPort);
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void configureVitamParameters() {
-            VitamConfiguration.setSecret("vitamsecret");
-            VitamConfiguration.setFilterActivation(false);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     private static JsonNode getJsonNode(String file) {

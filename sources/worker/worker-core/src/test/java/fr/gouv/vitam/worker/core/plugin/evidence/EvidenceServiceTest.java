@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -41,8 +42,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -54,13 +53,10 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-
-import static org.assertj.core.api.Assertions.anyOf;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceAuditException;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
+import org.jboss.resteasy.specimpl.BuiltResponse;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -71,8 +67,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
-
-
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
@@ -80,10 +75,12 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
 import static org.assertj.core.api.Assertions.assertThat;
-
-import static org.mockito.Matchers.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class EvidenceServiceTest {
@@ -127,6 +124,9 @@ public class EvidenceServiceTest {
 
     @Before
     public void setUp() throws Exception {
+        File vitamTempFolder = temporaryFolder.newFolder();
+        SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
+
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
@@ -167,13 +167,6 @@ public class EvidenceServiceTest {
 
         when(logbookOperationsClient.selectOperation(select2))
             .thenReturn(JsonHandler.getFromString(RESULT_SELECT_ISLAST));
-
-        final Response responseMock = mock(Response.class);
-        when(responseMock.readEntity(InputStream.class))
-            .thenReturn(PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"));
-
-        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
-            .thenReturn(responseMock);
         when(storageClient.getInformation(anyString(), eq(DataCategory.UNIT), anyString(), any(), eq(true)))
             .thenReturn(OFFERS_INFO);
 
@@ -235,7 +228,8 @@ public class EvidenceServiceTest {
         Select select = new Select();
         BooleanQuery query = and().add(
             QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
-            QueryHelper.in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
+            QueryHelper
+                .in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
             QueryHelper.exists("events.evDetData.FileName"),
             lte("events.evDetData.StartDate", "2018-02-20T11:14:54.872"),
             gte("events.evDetData.EndDate", "2018-02-20T11:14:54.872")
@@ -253,7 +247,8 @@ public class EvidenceServiceTest {
 
         BooleanQuery query = and().add(
             QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
-            QueryHelper.in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
+            QueryHelper
+                .in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
             QueryHelper.exists("events.evDetData.FileName")
         );
 
@@ -282,21 +277,24 @@ public class EvidenceServiceTest {
             new EvidenceService(metaDataClientFactory, logbookOperationsClientFactory, logbookLifeCyclesClientFactory,
                 storageClientFactory);
 
-        final Response responseMock = mock(Response.class);
-        when(responseMock.readEntity(InputStream.class))
-            .thenReturn(PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"));
-        when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), anyObject()))
-            .thenReturn(responseMock);
-        assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip",
-            "data.txt", ".zip",true))
-            .isNotNull();
+        try (InputStream in = PropertiesUtils.getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip")) {
+            Response responseMock = mock(BuiltResponse.class);
+            doReturn(in).when(responseMock).readEntity(eq(InputStream.class));
+            when(storageClient.getContainerAsync(anyString(), anyString(), eq(DataCategory.LOGBOOK), any()))
+                .thenReturn(responseMock);
+            assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip",
+                "data.txt", ".zip", true))
+                .isNotNull();
 
-        when(storageClient.getContainerAsync("default", "test", DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog()))
-            .thenThrow(StorageNotFoundException.class);
+            when(storageClient
+                .getContainerAsync("default", "test", DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog()))
+                .thenThrow(StorageNotFoundException.class);
 
-        assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test", "data.txt",
-            ".zip",true))
-            .isInstanceOf(EvidenceAuditException.class).hasMessage("Could not retrieve traceability zip file 'test'");
+            assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test", "data.txt",
+                ".zip", true))
+                .isInstanceOf(EvidenceAuditException.class)
+                .hasMessage("Could not retrieve traceability zip file 'test'");
+        }
 
     }
 }

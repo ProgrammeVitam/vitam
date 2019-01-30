@@ -31,5 +31,12 @@ package fr.gouv.vitam.common.server.application.configuration;
  * Common interface for all application configuration.
  */
 public interface VitamApplicationConfiguration extends VitamApplicationConfigurationInterface {
+    boolean isEnableXsrFilter();
+
+    void setEnableXsrFilter(boolean enableXsrFilter);
+
+    boolean isEnableSession();
+
+    void setEnableSession(boolean enableSession);
     // Empty
 }

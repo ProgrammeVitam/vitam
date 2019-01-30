@@ -13,8 +13,8 @@ import java.util.Map;
 
 import static fr.gouv.vitam.worker.core.plugin.lfc_traceability.DigestValidator.INVALID_HASH;
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 

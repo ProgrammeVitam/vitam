@@ -1,8 +1,8 @@
 package fr.gouv.vitam.security.internal.filter;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -123,7 +123,7 @@ public class InternalSecurityFilterTest {
         uriInfo = mock(UriInfo.class);
         when(containerRequestContext.getUriInfo()).thenReturn(uriInfo);
 
-        doThrow(new VitamSecurityException("")).when(containerRequestContext).abortWith(anyObject());
+        doThrow(new VitamSecurityException("")).when(containerRequestContext).abortWith(any());
     }
 
     @After

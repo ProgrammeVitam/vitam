@@ -46,8 +46,8 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.junit.MockitoRule;
-import org.mockito.runners.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,9 +58,9 @@ import java.util.List;
 
 import static com.google.common.io.ByteStreams.toByteArray;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -122,9 +122,7 @@ public class CRLServiceTest {
         InputStream crlRevokingSIA = getClass().getResourceAsStream(CRL_SIA_REVOKED_FILE);
 
         doNothing().when(identityRepository)
-            .updateCertificateState(anyListOf(String.class), eq(CertificateStatus.REVOKED));
-        doNothing().when(personalRepository)
-            .updateCertificateState(anyListOf(String.class), eq(CertificateStatus.REVOKED));
+            .updateCertificateState(any(), eq(CertificateStatus.REVOKED));
 
         doReturn(constructCertificateDocumentList("01", CertificateStatus.VALID, IDENTITY_CERT_FILE))
             .when(identityRepository).findCertificate(ISSUER_NAME, CertificateStatus.VALID);

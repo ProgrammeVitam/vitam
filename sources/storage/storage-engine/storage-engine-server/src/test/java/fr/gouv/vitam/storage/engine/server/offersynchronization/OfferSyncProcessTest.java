@@ -14,11 +14,13 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.internal.runners.JUnit4ClassRunner;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -29,16 +31,17 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyLong;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@RunWithCustomExecutor
 @RunWith(MockitoJUnitRunner.class)
 public class OfferSyncProcessTest {
 
@@ -49,20 +52,21 @@ public class OfferSyncProcessTest {
     private static final String DEFAULT_STRATEGY = "default";
     private static final String CONTAINER = "2_unit";
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @ClassRule
+    public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Mock RestoreOfferBackupService restoreOfferBackupService;
+    @Mock
+    private RestoreOfferBackupService restoreOfferBackupService;
 
-    @Mock StorageDistribution distribution;
+    @Mock
+    private StorageDistribution distribution;
 
     private List<OfferLog> sourceOfferLogs;
     private Map<String, byte[]> sourceDataFiles;
     private Map<String, byte[]> targetDataFiles;
 
     @Before
-    @RunWithCustomExecutor
     public void setup() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -74,9 +78,9 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            Long offsetLong = args.getArgumentAt(3, Long.class);
+            Long offsetLong = args.getArgument(3);
             long offset = (offsetLong == null) ? 0L : offsetLong;
-            int limit = args.getArgumentAt(4, Integer.class);
+            int limit = args.getArgument(4);
 
             return sourceOfferLogs.stream()
                 .filter(offerLog -> offerLog.getSequence() >= offset)
@@ -84,11 +88,11 @@ public class OfferSyncProcessTest {
                 .collect(Collectors.toList());
 
         }).when(restoreOfferBackupService).getListing(
-            eq(DEFAULT_STRATEGY), eq(SOURCE), eq(DATA_CATEGORY), anyLong(), anyInt(), eq(Order.ASC));
+            eq(DEFAULT_STRATEGY), eq(SOURCE), eq(DATA_CATEGORY), any(), anyInt(), eq(Order.ASC));
 
         doAnswer((args) -> {
 
-            String filename = args.getArgumentAt(1, String.class);
+            String filename = args.getArgument(1);
             byte[] data = sourceDataFiles.get(filename);
             if (data == null) {
                 throw new StorageNotFoundException("not found");
@@ -99,8 +103,8 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            String filename = args.getArgumentAt(1, String.class);
-            Response response = args.getArgumentAt(5, Response.class);
+            String filename = args.getArgument(1);
+            Response response = args.getArgument(5);
 
             targetDataFiles.put(filename, (byte[]) response.getEntity());
             return null;
@@ -111,7 +115,7 @@ public class OfferSyncProcessTest {
 
         doAnswer((args) -> {
 
-            DataContext dataContext = args.getArgumentAt(1, DataContext.class);
+            DataContext dataContext = args.getArgument(1);
             assertThat(dataContext.getTenantId()).isEqualTo(TENANT_ID);
             assertThat(dataContext.getRequester()).isNull();
             assertThat(dataContext.getCategory()).isEqualTo(DATA_CATEGORY);

@@ -1,25 +1,24 @@
 package fr.gouv.vitam.access.external.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.dip.DipExportRequest;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -36,17 +35,19 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class AccessExternalClientRestTest extends VitamJerseyTest {
+public class AccessExternalClientRestTest extends ResteasyTestApplication {
     private static final String QUERY_DSL = "{ $query : [ { $eq : { 'title' : 'test' } } ], " +
         " $filter : { $orderby : '#id' }," +
         " $projection : {$fields : {#id : 1, title:2, transacdate:1}}" +
         " }";
-    protected AccessExternalClientRest client;
+    protected static AccessExternalClientRest client;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -55,60 +56,32 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\" : { \"title\" : \"test\" } } ], \"$projection\" : {} }";
     final String ID = "identfier1";
-    final String USAGE = "BinaryMaster";
-    final int VERSION = 1;
     final int TENANT_ID = 0;
     final String CONTRACT = "contract";
 
-    public AccessExternalClientRestTest() {
-        super(AccessExternalClientFactory.getInstance());
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
+
+    static AccessExternalClientFactory factory = AccessExternalClientFactory.getInstance();
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(AccessExternalClientRestTest.class, factory);
+
+
+    @BeforeClass
+    public static void init() throws Throwable {
+        vitamServerTestRunner.start();
+        client = (AccessExternalClientRest) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (AccessExternalClientRest) getClient();
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new MockResource(mock));
     }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-    }
-
 
     @Path("/access-external/v1")
     public static class MockResource {
@@ -261,9 +234,6 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             return expectedResponse.post();
         }
 
-
-        // Functionalities related to TRACEABILITY operation
-
         @POST
         @Path(AccessExtAPI.TRACEABILITY_API + "/check")
         @Consumes(MediaType.APPLICATION_JSON)
@@ -348,6 +318,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     }
 
     @RunWithCustomExecutor
+    @Test
     public void givenRequestNull_whenSelectUnit_ThenErrorResponse()
         throws Exception {
         assertThat(client.selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), null).getHttpCode())
@@ -427,6 +398,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
     @RunWithCustomExecutor
     public void givenrEQUESTBlank_IDFilledwhenSelectUnitById_ThenVitamError()
         throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         assertThat(client
             .selectUnitbyId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), createDslQueryById(queryDsql), ID)
             .getHttpCode()).isEqualByComparingTo(Status.NO_CONTENT.getStatusCode());
@@ -492,9 +464,12 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
 
 
     @RunWithCustomExecutor
+    @Test
     public void givenQueryNullWhenSelectObjectByIdThenRaiseAnInvalidParseOperationException() throws Exception {
+
+        when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).build());
         assertThat(client.selectObjectMetadatasByUnitId(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-            null, ID).getHttpCode())
+            JsonHandler.createObjectNode(), ID).getHttpCode())
             .isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -716,7 +691,7 @@ public class AccessExternalClientRestTest extends VitamJerseyTest {
             .thenReturn(
                 Response.status(Status.OK).entity(ClientMockResultHelper.getLogbookOperationRequestResponse()).build());
         assertThat(client.exportDIP(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
-                JsonHandler.getFromString(queryDsql))).isNotNull();
+            JsonHandler.getFromString(queryDsql))).isNotNull();
     }
 
     @Test

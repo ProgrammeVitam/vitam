@@ -100,15 +100,13 @@ import static fr.gouv.vitam.functional.administration.contract.core.AccessContra
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-
 
 public class AccessContractImplTest {
 
@@ -712,7 +710,7 @@ public class AccessContractImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_not_exists_root_units.json");
 
-        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
@@ -732,7 +730,7 @@ public class AccessContractImplTest {
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID1"));
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
 
-        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(res.toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(res.toJsonNode());
 
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
@@ -756,7 +754,7 @@ public class AccessContractImplTest {
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID2"));
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
 
-        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(res.toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(res.toJsonNode());
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
@@ -794,7 +792,7 @@ public class AccessContractImplTest {
         final File fileContracts =
             PropertiesUtils.getResourceFile("contracts_access_not_exists_excluded_root_units.json");
 
-        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });
@@ -815,7 +813,7 @@ public class AccessContractImplTest {
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID2"));
         res.addResult(JsonHandler.createObjectNode().put("#id", "GUID3"));
 
-        when(metaDataClientMock.selectUnits(anyObject())).thenReturn(res.toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(res.toJsonNode());
         final List<AccessContractModel> accessContractModelList =
             JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
             });

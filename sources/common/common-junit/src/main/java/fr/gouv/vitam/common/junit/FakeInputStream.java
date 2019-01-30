@@ -4,8 +4,6 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Random;
 
-import com.google.common.util.concurrent.FakeTimeLimiter;
-
 /**
  * Fake InputStream: test class only
  */

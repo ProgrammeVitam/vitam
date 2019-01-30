@@ -1,9 +1,10 @@
 package fr.gouv.vitam.metadata.core.graph;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -92,20 +93,16 @@ public class StoreGraphServiceTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
-        given(unitRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableUnit);
-        given(gotRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableGot);
+        given(unitRepository.findDocuments(any(), anyInt())).willReturn(findIterableUnit);
+        given(gotRepository.findDocuments(any(), anyInt())).willReturn(findIterableGot);
 
         given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitRepository);
         given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
             .willReturn(gotRepository);
 
-        given(findIterableUnit.projection(anyObject())).willReturn(findIterableUnit);
-        given(findIterableUnit.sort(anyObject())).willReturn(findIterableUnit);
-        given(findIterableUnit.limit(anyInt())).willReturn(findIterableUnit);
+        given(findIterableUnit.projection(any())).willReturn(findIterableUnit);
         given(findIterableUnit.iterator()).willReturn(mongoCursorUnit);
-        given(findIterableGot.projection(anyObject())).willReturn(findIterableGot);
-        given(findIterableGot.sort(anyObject())).willReturn(findIterableGot);
-        given(findIterableGot.limit(anyInt())).willReturn(findIterableGot);
+        given(findIterableGot.projection(any())).willReturn(findIterableGot);
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
         when(mongoCursorUnit.next()).thenAnswer(

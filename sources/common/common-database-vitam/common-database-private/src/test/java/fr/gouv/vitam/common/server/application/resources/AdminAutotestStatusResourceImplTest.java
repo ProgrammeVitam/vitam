@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server.application.resources;
 
+import com.google.common.collect.Sets;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -39,16 +40,15 @@ import fr.gouv.vitam.common.database.server.mongodb.CollectionSample;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AdminStatusMessage;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.assertj.core.util.Lists;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -58,6 +58,7 @@ import org.junit.Test;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.junit.Assert.assertEquals;
@@ -65,12 +66,11 @@ import static org.junit.Assert.assertEquals;
 /**
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
  */
-public class AdminAutotestStatusResourceImplTest {
+public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminAutotestStatusResourceImplTest.class);
 
     // URI
     private static final String ADMIN_STATUS_URI = "/admin/v1";
-    private static final String TEST_CONF = "test-multiple-connector.conf";
     private static final String COLLECTION_NAME =
         CollectionSample.class.getSimpleName() + GUIDFactory.newGUID().getId();
     @ClassRule
@@ -78,77 +78,54 @@ public class AdminAutotestStatusResourceImplTest {
         new MongoRule(getMongoClientOptions(Lists.newArrayList(CollectionSample.class)),
             COLLECTION_NAME);
 
-    private final static String HOST_NAME = "127.0.0.1";
-    private static int dataBasePort;
-    private static JunitHelper junitHelper;
+    private static TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
 
-    private static int serverAdminPort;
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(AdminAutotestStatusResourceImplTest.class, factory);
+
+    private final static String HOST_NAME = "127.0.0.1";
+    private static JunitHelper junitHelper = JunitHelper.getInstance();
+
     private static int fakePort;
 
-    private static TestApplication application;
-    private static TestVitamAdminClientFactory factory;
     private static ElasticsearchNode elasticsearchNode;
     private static MongoDbAccess databaseMd;
     private static ElasticsearchAccess databaseEs;
+    private static VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        junitHelper = JunitHelper.getInstance();
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         VitamConfiguration.setConnectTimeout(100);
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         elasticsearchNode = new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT);
         nodes.add(elasticsearchNode);
         databaseEs = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
 
-        dataBasePort = junitHelper.findAvailablePort();
         fakePort = junitHelper.findAvailablePort();
         MongoClient mongoClient = new MongoClient(new ServerAddress(
-            HOST_NAME, mongoRule.getDataBasePort()),
+            HOST_NAME, MongoRule.getDataBasePort()),
             VitamCollection.getMongoClientOptions(new ArrayList<>()));
 
-        databaseMd = new MyMongoDbAccess(mongoClient, ElasticsearchRule.VITAM_CLUSTER, false);
+        databaseMd = new MyMongoDbAccess(mongoClient, MongoRule.VITAM_DB, false);
 
-        TestApplication.serviceRegistry = new VitamServiceRegistry();
-        TestApplication.serviceRegistry.register(databaseMd).register(databaseEs);
-        final MinimalTestVitamApplicationFactory<TestApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<TestApplication>() {
-
-                @Override
-                public StartApplicationResponse<TestApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final TestApplication application = new TestApplication(TEST_CONF);
-                    return startAndReturn(application);
-                }
-
-            };
-
-        serverAdminPort = junitHelper.findAvailablePort(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN);
-
-        final StartApplicationResponse<TestApplication> response =
-            testFactory.findAvailablePortSetToApplication();
-
-        application = response.getApplication();
-        factory = new TestVitamAdminClientFactory(serverAdminPort, ADMIN_STATUS_URI);
-        TestApplication.serviceRegistry.register(factory);
+        serviceRegistry.register(databaseMd).register(databaseEs);
+        serviceRegistry.register(factory);
         LOGGER.debug("Beginning tests");
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
         VitamConfiguration.setConnectTimeout(1000);
-        LOGGER.debug("Ending tests");
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-        }
-        databaseEs.close();
-        junitHelper.releasePort(serverAdminPort);
-        junitHelper.releasePort(dataBasePort);
         junitHelper.releasePort(fakePort);
         VitamClientFactory.resetConnections();
+    }
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new AdminStatusResource(serviceRegistry), new TestResourceImpl());
     }
 
     private static class MyMongoDbAccess extends MongoDbAccess {
@@ -162,6 +139,7 @@ public class AdminAutotestStatusResourceImplTest {
             return super.setMongoClient(mongoClient);
         }
     }
+
 
 
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
@@ -197,11 +175,11 @@ public class AdminAutotestStatusResourceImplTest {
      * @throws Exception
      */
     @Test
-    public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Exception {
+    public void givenStartedServer_WhenGetStatusModule_ThenReturnStatus() throws Throwable {
         // Test OK
         LOGGER.warn("TEST OK");
-        assertEquals(4, TestApplication.serviceRegistry.getRegisteredServices());
-        int realTotal = TestApplication.serviceRegistry.getRegisteredServices();
+        assertEquals(4, serviceRegistry.getRegisteredServices());
+        int realTotal = serviceRegistry.getRegisteredServices();
         int realOK = realTotal;
         int realKO = 0;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
@@ -231,11 +209,11 @@ public class AdminAutotestStatusResourceImplTest {
 
         // Add a fake clientFactory
         LOGGER.warn("TEST Fake client Factory KO");
-        TestApplication.serviceRegistry.register(new TestWrongVitamAdminClientFactory(1, ADMIN_STATUS_URI));
+        serviceRegistry.register(new TestWrongVitamAdminClientFactory(1, ADMIN_STATUS_URI));
         realKO++;
         realTotal++;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();
@@ -264,7 +242,7 @@ public class AdminAutotestStatusResourceImplTest {
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();
@@ -295,7 +273,7 @@ public class AdminAutotestStatusResourceImplTest {
         realKO++;
         realOK--;
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(true, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();
@@ -320,11 +298,9 @@ public class AdminAutotestStatusResourceImplTest {
 
         // Application
         LOGGER.warn("TEST APPLICATION KO");
-        if (application != null) {
-            application.stop();
-        }
+        vitamServerTestRunner.runAfter();
         try (DefaultAdminClient clientAdmin = factory.getClient()) {
-            assertEquals(realTotal, TestApplication.serviceRegistry.getRegisteredServices());
+            assertEquals(realTotal, serviceRegistry.getRegisteredServices());
             final AdminStatusMessage message = clientAdmin.adminStatus();
             assertEquals(false, message.getStatus());
             final VitamError error = clientAdmin.adminAutotest();

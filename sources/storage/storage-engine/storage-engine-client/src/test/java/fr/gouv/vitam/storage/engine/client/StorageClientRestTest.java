@@ -26,54 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.stream.IntStream;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import org.apache.commons.io.IOUtils;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Rule;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SingletonUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -89,71 +55,79 @@ import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 /**
  * StorageClientRest Test
  */
-public class StorageClientRestTest extends VitamJerseyTest {
+public class StorageClientRestTest extends ResteasyTestApplication {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    protected StorageClientRest client;
+    protected static StorageClientRest client;
     private static final Integer TENANT_ID = 0;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public StorageClientRestTest() {
-        super(StorageClientFactory.getInstance());
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
+
+    static StorageClientFactory factory = StorageClientFactory.getInstance();
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(StorageClientRestTest.class, factory);
+
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+        client = (StorageClientRest) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (StorageClientRest) getClient();
-    }
-
-    // Define the getApplication to return your Application using the correct
-    // Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-
-        return new StartApplicationResponse<AbstractApplication>().setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     @Path("/storage/v1")
@@ -420,9 +394,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.existsContainer("idStrategy"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(
             client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
@@ -433,9 +411,13 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.existsContainer("idStrategy"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(
             client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
     }
@@ -476,6 +458,7 @@ public class StorageClientRestTest extends VitamJerseyTest {
             // nothing to do
         }
 
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
             client.existsContainer("idStrategy");
@@ -491,8 +474,11 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.delete()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.delete("idStrategy", DataCategory.OBJECT, "idObject"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.delete("idStrategy", DataCategory.UNIT, "idUnits"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertTrue(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups"));
     }
 
@@ -503,8 +489,11 @@ public class StorageClientRestTest extends VitamJerseyTest {
         when(mock.delete()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
 
         assertFalse(client.delete("idStrategy", DataCategory.OBJECT, "idObject"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.delete("idStrategy", DataCategory.UNIT, "idUnits"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.delete("idStrategy", DataCategory.LOGBOOK, "idLogbooks"));
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertFalse(client.delete("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups"));
     }
 
@@ -583,8 +572,9 @@ public class StorageClientRestTest extends VitamJerseyTest {
     public void successGetContainerObjectExecutionWhenFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(StreamUtils.toInputStream("Vitam test")).build());
-        final InputStream stream = client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog())
-            .readEntity(InputStream.class);
+        final InputStream stream =
+            client.getContainerAsync("idStrategy", "guid", DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog())
+                .readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream("Vitam test");
         assertNotNull(stream);
         assertTrue(IOUtils.contentEquals(stream, stream2));
@@ -620,9 +610,11 @@ public class StorageClientRestTest extends VitamJerseyTest {
         requestResponse.setHttpCode(Status.OK.getStatusCode());
 
         when(mock.get()).thenReturn(
-            Response.status(Status.OK).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).entity(JsonHandler.writeAsString(requestResponse)).build());
+            Response.status(Status.OK).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .entity(JsonHandler.writeAsString(requestResponse)).build());
 
-        final RequestResponse<OfferLog> result = client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
+        final RequestResponse<OfferLog> result =
+            client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
         assertNotNull(result);
         assertEquals(String.valueOf(TENANT_ID), result.getHeaderString(GlobalDataRest.X_TENANT_ID));
         assertEquals(true, result.isOk());
@@ -646,7 +638,8 @@ public class StorageClientRestTest extends VitamJerseyTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.get()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_TENANT_ID, TENANT_ID).build());
-        final RequestResponse<OfferLog> result = client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
+        final RequestResponse<OfferLog> result =
+            client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, Order.ASC);
         assertNotNull(result);
         assertEquals(false, result.isOk());
         assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), result.getHttpCode());

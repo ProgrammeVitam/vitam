@@ -29,7 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -137,7 +137,7 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         action.setCurrentObjectId(objectId);
 
         PowerMockito.mockStatic(ValidationXsdUtils.class);
-        PowerMockito.when(ValidationXsdUtils.checkWithXSD(anyObject(), anyObject())).thenReturn(true);
+        PowerMockito.when(ValidationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
@@ -179,11 +179,11 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
-                .selectOperationById(anyObject());
-            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+                .selectOperationById(any());
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
@@ -211,11 +211,11 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
         try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
             Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
-                .selectOperationById(anyObject());
-            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+                .selectOperationById(any());
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(anyObject(), anyObject(), anyObject()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
