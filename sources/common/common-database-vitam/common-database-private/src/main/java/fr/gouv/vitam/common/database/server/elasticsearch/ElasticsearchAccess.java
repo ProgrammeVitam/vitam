@@ -165,6 +165,9 @@ public class ElasticsearchAccess implements DatabaseConnection {
             .put("client.transport.sniff", true)
             .put("client.transport.ping_timeout", "2s")
             .put("transport.tcp.connect_timeout", "1s")
+            // TODO: 30/01/19 alternative to .put("transport.profiles.client.connect_timeout", "1s")
+            // TODO: 30/01/19 alternative to .put("transport.profiles.tcp.connect_timeout", "1s")
+
             // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the
             // default max value. So no configuration is needed.
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
@@ -213,20 +216,20 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @return the client
      */
     public Client getClient() {
-        final Client client = esClient.get();
+        Client client = esClient.get();
         if (null == client) {
             synchronized (this) {
                 if (null == esClient.get()) {
                     try {
-                        esClient.set(getClient(getSettings(clusterName)));
+                        client = getClient(getSettings(clusterName));
+                        esClient.set(client);
                     } catch (VitamException e) {
-                        LOGGER.error("Error while get ES client", e);
-                        throw new RuntimeException(e);
+                        throw new RuntimeException("Error while get ES client", e);
                     }
                 }
             }
         }
-        return esClient.get();
+        return client;
     }
 
     /**
@@ -371,6 +374,7 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @throws IOException
      */
     public Builder settings() throws IOException {
+        // TODO: 30/01/19 post merge review : why acceptNullValues = true?
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
             ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
     }
