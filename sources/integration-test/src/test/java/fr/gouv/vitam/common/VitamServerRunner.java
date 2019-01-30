@@ -453,8 +453,8 @@ public class VitamServerRunner extends ExternalResource {
         nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
 
         SystemPropertyUtil
-                .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
-                        Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN));
+            .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+                Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN));
 
         // prepare functional admin
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);

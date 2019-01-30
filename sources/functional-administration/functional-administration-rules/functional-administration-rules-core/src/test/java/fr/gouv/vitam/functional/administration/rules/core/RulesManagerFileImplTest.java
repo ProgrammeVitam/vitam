@@ -237,7 +237,7 @@ public class RulesManagerFileImplTest {
             new RulesManagerFileImpl(dbAccess,
                 vitamCounterService, functionalBackupService, logbookOperationsClientFactory, metaDataClientFactory);
         FunctionalAdminCollections.afterTestClass(false);
-        FunctionalAdminCollections.cleanCollection(FunctionalAdminCollections.VITAM_SEQUENCE);
+        FunctionalAdminCollections.resetVitamSequenceCounter();
     }
 
     @AfterClass

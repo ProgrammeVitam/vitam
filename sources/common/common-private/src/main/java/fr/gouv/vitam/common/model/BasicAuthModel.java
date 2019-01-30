@@ -33,8 +33,8 @@ import com.google.common.annotations.VisibleForTesting;
  */
 public class BasicAuthModel {
 
-    private String userName = "";
-    private String password = "";
+    private String userName;
+    private String password;
 
     /**
      * MongodbNode empty constructor for YAMLFactory
