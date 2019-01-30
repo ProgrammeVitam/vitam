@@ -74,11 +74,11 @@ public class PreservationScenarioModel {
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer version;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_NAME)
     private String name;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
@@ -91,7 +91,7 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_ACTION_LIST)
     private List<ActionTypePreservation> actionList;
 
@@ -99,7 +99,7 @@ public class PreservationScenarioModel {
     private List<String> metadataFilter;
 
     @Valid
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
 

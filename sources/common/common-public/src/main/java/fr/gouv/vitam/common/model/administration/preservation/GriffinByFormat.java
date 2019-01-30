@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model.administration.preservation;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -40,27 +39,27 @@ import java.util.Set;
  * GriffinByFormat class
  */
 public class GriffinByFormat {
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty("FormatList")
     private Set<String> formatList;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty("GriffinIdentifier")
     private String griffinIdentifier;
 
-    @Positive
+    @Positive(message = ConstraintConstants.POSITIVE_ERROR_MSG)
     @JsonProperty("Timeout")
     private int timeOut;
 
-    @Positive
+    @Positive(message = ConstraintConstants.POSITIVE_ERROR_MSG)
     @JsonProperty("MaxSize")
     private int maxSize;
 
-    @NotNull
+    @NotNull(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty("Debug")
     private Boolean debug;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @Valid
     @JsonProperty("ActionDetail")
     private List<ActionPreservation> actionDetail;

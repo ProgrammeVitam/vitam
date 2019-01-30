@@ -8,6 +8,7 @@ import {PageComponent} from '../../../common/page/page-component';
 import {Griffin} from './griffin';
 import {ErrorService} from '../../../common/error.service';
 import {plainToClass} from 'class-transformer';
+import {ReferentialHelper} from '../../referential.helper';
 
 @Component({
   selector: 'vitam-griffins',
@@ -20,12 +21,22 @@ export class GriffinsComponent extends PageComponent {
   griffin: Griffin;
   id: string;
   panelHeader: string;
+  keyToLabel :  (x: string) => string;
 
   constructor(private activatedRoute: ActivatedRoute, public router: Router,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService: ReferentialsService, private errorService: ErrorService) {
+              private searchReferentialsService: ReferentialsService, private errorService: ErrorService, private referentialHelper: ReferentialHelper) {
     super('Détail du Griffon', [], titleService, breadcrumbService);
 
+    const translations = this.referentialHelper.getGriffinTranslations();
+    this.keyToLabel = (field: string) => {
+      const value = translations[field];
+      if (translations[field]) {
+        return value;
+      } else {
+        return field.split('.').pop();
+      }
+    };
   }
 
   pageOnInit() {

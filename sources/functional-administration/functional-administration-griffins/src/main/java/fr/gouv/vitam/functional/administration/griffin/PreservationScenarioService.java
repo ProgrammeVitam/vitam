@@ -105,7 +105,7 @@ import static java.util.stream.Collectors.toSet;
 public class PreservationScenarioService {
 
     private static final String SCENARIO_BACKUP_EVENT = "STP_BACKUP_SCENARIO";
-    private static final String SCENARIO_IMPORT_EVENT = "IMPORT_PRESERVATION_SCENARIO";
+    private static final String SCENARIO_IMPORT_EVENT = "STP_IMPORT_PRESERVATION_SCENARIO";
     private static final String SCENARIO_REPORT = "SCENARIO_REPORT";
     private static final String UND_TENANT = "_tenant";
 
@@ -285,7 +285,7 @@ public class PreservationScenarioService {
     private String getConstraintsStrings(Set<ConstraintViolation<PreservationScenarioModel>> constraints) {
         List<String> result = new ArrayList<>() ;
         for (ConstraintViolation<PreservationScenarioModel> constraintViolation :constraints){
-            result.add( "'"+ constraintViolation.getPropertyPath()+ "':" +constraintViolation.getMessage());
+            result.add( "'"+ constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
         }
         return result.toString();
     }
@@ -456,14 +456,15 @@ public class PreservationScenarioService {
     }
 
     private void updateScenarios(@NotNull List<PreservationScenarioModel> listToImport, Set<String> identifierToUpdate)
-        throws InvalidParseOperationException, DatabaseException {
+        throws InvalidParseOperationException, DatabaseException, ReferentialException {
 
         for (PreservationScenarioModel preservationScenarioModel : listToImport) {
 
             if (identifierToUpdate.contains(preservationScenarioModel.getIdentifier())) {
                 preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(now()));
-                preservationScenarioModel
-                    .setCreationDate(getFormattedDateForMongo(preservationScenarioModel.getCreationDate()));
+
+                formatDateForMongo(preservationScenarioModel);
+
                 preservationScenarioModel.setTenant(getVitamSession().getTenantId());
                 ObjectNode scenario = (ObjectNode) toJsonNode(preservationScenarioModel);
 

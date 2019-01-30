@@ -50,23 +50,48 @@ export class ReferentialHelper {
       return this.selectionOptions[field];
     }
   }
+  getGriffinTranslations() {
+    return {
+      'Identifier': 'Identifiant',
+      'Name': 'Intitulé',
+      'Description': 'Description',
+      'CreationDate': 'Date de création',
+      'LastUpdate': 'Dernière modification',
+      'ExecutableName': 'Nom de l’outil\n',
+      'ExecutableVersion': 'Version de l’outil'
+    }
+  }
 
   getScenarioTranslations() {
     return {
       'Identifier': 'Identifiant',
       'Name': 'Intitulé',
-      'MetadataFilter': 'MetadataFilter',
-      'GriffinByFormat': 'GriffinByFormat',
-      'GriffinByFormat.FormatList': 'FormatList',
-      'GriffinByFormat.GriffinIdentifier':'GriffinIdentifier',
-      'GriffinByFormat.Timeout' :'Timeout',
-      'GriffinByFormat.MaxSize' : 'MaxSize',
+      'Description': 'Description',
+      'CreationDate': 'Date de création',
+      'LastUpdate': 'Dernière modification',
+      'ActionList': 'Action(s) couverte(s)',
+      'DefaultGriffin': 'Action par défaut',
+      'MetadataFilter': 'Filtre de métadonnées',
+      'GriffinByFormat': 'Action(s) à réaliser',
+      'GriffinByFormat.FormatList': 'Format(s) concerné(s)',
+      'GriffinByFormat.GriffinIdentifier':'Identifiant du griffon à exécuter',
+      'DefaultGriffin.GriffinIdentifier':'Identifiant du griffon à exécuter',
+      'GriffinByFormat.Timeout' :'Temps maximal de traitement',
+      'DefaultGriffin.Timeout' :'Temps maximal de traitement',
+      'GriffinByFormat.MaxSize' : 'Taille maximale des objets',
+      'DefaultGriffin.MaxSize' : 'Taille maximale des objets',
       'GriffinByFormat.Debug'  :'Debug',
-      'GriffinByFormat.ActionDetail'  :'ActionDetail',
+      'DefaultGriffin.Debug'  :'Debug',
+      'GriffinByFormat.ActionDetail'  :'Commande(s)',
+      'DefaultGriffin.ActionDetail'  :'Commande(s)',
       'GriffinByFormat.ActionDetail.Type'  :'Type',
-      'GriffinByFormat.ActionDetail.Values'  :'Values',
-      'GriffinByFormat.ActionDetail.Args'  :'Args',
-      'GriffinByFormat.ActionDetail.DataToExtract'  :'DataToExtract',
+      'DefaultGriffin.ActionDetail.Type'  :'Type',
+      'GriffinByFormat.ActionDetail.Values'  :'Valeur(s)',
+      'DefaultGriffin.ActionDetail.Values'  :'Valeur(s)',
+      'DefaultGriffin.ActionDetail.Values.Args'  :'Argument(s)',
+      'GriffinByFormat.ActionDetail.Values.Args'  :'Argument(s)',
+      'GriffinByFormat.ActionDetail.Values.DataToExtract'  :'Données à Extraire',
+      'DefaultGriffin.ActionDetail.Values.DataToExtract'  :'Données à Extraire'
 
     };
   }

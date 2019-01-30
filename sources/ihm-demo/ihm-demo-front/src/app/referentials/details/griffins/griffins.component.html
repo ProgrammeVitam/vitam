@@ -2,19 +2,19 @@
 
   <div class="ui-g">
     <div class="ui-g-8 ui-g-offset-2 textAlignLeft" *ngIf="griffin">
-      <vitam-metadata-field [title]="'Identifiant'" [originalTitle]="'Identifier'"  [value]="griffin.Identifier" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('Identifier')" [originalTitle]="'Identifier'"  [value]="griffin.Identifier" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
-      <vitam-metadata-field [title]="'Intitulé'" [originalTitle]="'Name'"  [value]="griffin.Name" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('Name')" [originalTitle]="'Name'"  [value]="griffin.Name" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false" ></vitam-metadata-field>
-      <vitam-metadata-field [title]="'Description'" [originalTitle]="'Description'"  [value]="griffin.Description" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('Description')" [originalTitle]="'Description'"  [value]="griffin.Description" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
-      <vitam-metadata-field [title]="'CreationDate'" [originalTitle]="'CreationDate'"  [value]="griffin.CreationDate" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('CreationDate')" [originalTitle]="'CreationDate'"  [value]="griffin.CreationDate" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
-      <vitam-metadata-field [title]="'LastUpdate'" [originalTitle]="'LastUpdate'"  [value]="griffin.LastUpdate" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('LastUpdate')" [originalTitle]="'LastUpdate'"  [value]="griffin.LastUpdate" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
-      <vitam-metadata-field [title]="'ExecutableName'" [originalTitle]="'ExecutableName'"  [value]="griffin.ExecutableName" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('ExecutableName')" [originalTitle]="'ExecutableName'"  [value]="griffin.ExecutableName" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
-      <vitam-metadata-field [title]="'ExecutableVersion'" [originalTitle]="'ExecutableVersion'"  [value]="griffin.ExecutableVersion" [labelSize]="4"
+      <vitam-metadata-field [title]="keyToLabel('ExecutableVersion')" [originalTitle]="'ExecutableVersion'"  [value]="griffin.ExecutableVersion" [labelSize]="4"
                             class="ui-g-12 " [updateMode]="false"></vitam-metadata-field>
     </div>
   </div>

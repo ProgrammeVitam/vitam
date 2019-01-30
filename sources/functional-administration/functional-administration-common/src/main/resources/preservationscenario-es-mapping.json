@@ -10,7 +10,6 @@
     "Description": {
       "type": "text"
     },
-
     "CreationDate": {
       "type": "date",
       "format": "strict_date_optional_time"
@@ -28,6 +27,88 @@
     "_score": {
       "type": "object",
       "enabled": false
+    },
+    "ActionList": {
+      "type": "text"
+    },
+    "MetadataFilter": {
+      "type": "text"
+    },
+
+    "GriffinByFormat": {
+      "properties": {
+        "FormatList": {
+          "type": "text"
+        },
+        "GriffinIdentifier": {
+          "type": "text"
+        },
+        "MaxSize": {
+          "type": "long"
+        },
+        "Timeout": {
+          "type": "long"
+        },
+        "Debug": {
+          "type": "boolean"
+        },
+        "ActionDetail": {
+          "properties": {
+            "Type": {
+              "type": "keyword"
+            },
+            "Values": {
+              "properties": {
+                "Extension": {
+                  "type": "text"
+                },
+                "Args": {
+                  "type": "text"
+                },
+                "DataToExtract": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "DefaultGriffin": {
+      "properties": {
+        "GriffinIdentifier": {
+          "type": "text"
+        },
+        "MaxSize": {
+          "type": "long"
+        },
+        "Timeout": {
+          "type": "long"
+        },
+        "Debug": {
+          "type": "boolean"
+        },
+        "ActionDetail": {
+          "properties": {
+            "Type": {
+              "type": "keyword"
+            },
+            "Values": {
+              "properties": {
+                "Extension": {
+                  "type": "text"
+                },
+                "Args": {
+                  "type": "text"
+                },
+                "DataToExtract": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

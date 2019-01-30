@@ -257,9 +257,9 @@ public class GriffinServiceTest {
         verify(logbookOperationsClient, times(1)).update(event2Captor.capture());
 
         assertThat(event1Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("IMPORT_GRIFFIN.STARTED");
+            .isEqualTo("STP_IMPORT_GRIFFIN.STARTED");
         assertThat(event2Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("IMPORT_GRIFFIN.OK");
+            .isEqualTo("STP_IMPORT_GRIFFIN.OK");
 
         verify(functionalBackupService).saveCollectionAndSequence(getGUID(requestId), "STP_BACKUP_GRIFFIN", GRIFFIN,
             requestId);
