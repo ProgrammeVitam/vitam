@@ -107,7 +107,6 @@ public class FormatIdentificationActionPluginTest {
         "formatIdentificationActionPlugin/referentialIngestContractRestrictedFormatListOK.json";
 
     private final InputStream objectGroup;
-    private final InputStream objectGroup2;
     private final InputStream objectGroup3;
     private final JsonNode og;
     private final JsonNode og3;
@@ -118,7 +117,7 @@ public class FormatIdentificationActionPluginTest {
 
     public FormatIdentificationActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
+        InputStream objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
         objectGroup3 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_3);
 
         og = JsonHandler.getFromInputStream(objectGroup);
