@@ -1,7 +1,7 @@
-R7 vers R8
-##########
+R7 (V1 LTS) vers R8
+###################
 
-.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R7 » (1.4.12).
+.. caution:: La migration doit être réalisée en partant de la version « R7 » la plus récente, à savoir la version « R7.12 » (1.4.12) lors de la publication de la version « R8.3 » (1.10.3).
 
 .. toctree::
    :glob:
