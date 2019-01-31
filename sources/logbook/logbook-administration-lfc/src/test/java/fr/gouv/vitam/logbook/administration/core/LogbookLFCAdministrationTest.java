@@ -156,7 +156,7 @@ public class LogbookLFCAdministrationTest {
         RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
         req.setHttpCode(Status.ACCEPTED.getStatusCode());
         when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
-        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
@@ -186,7 +186,7 @@ public class LogbookLFCAdministrationTest {
 
         doThrow(new ContentAddressableStorageAlreadyExistException("ContentAddressableStorageAlreadyExistException"))
             .when(workspaceClient).createContainer(anyString());
-        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
@@ -213,7 +213,7 @@ public class LogbookLFCAdministrationTest {
         RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
         req.setHttpCode(Status.ACCEPTED.getStatusCode());
         when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
-        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
