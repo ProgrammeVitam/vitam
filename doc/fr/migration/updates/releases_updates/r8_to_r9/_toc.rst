@@ -1,7 +1,7 @@
 R8 vers R9
 ##########
 
-.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R8 » (1.10.3).
+.. caution:: La migration doit être réalisée en partant de la version « R8 » la plus récente, à savoir la version « R8.3 » lors de la publication de la version « R9.1 » (2.1.1).
 
 .. toctree::
    :glob:
