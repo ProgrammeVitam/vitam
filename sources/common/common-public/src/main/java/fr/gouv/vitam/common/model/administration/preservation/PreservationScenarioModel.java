@@ -99,7 +99,6 @@ public class PreservationScenarioModel {
     private List<String> metadataFilter;
 
     @Valid
-    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
 
