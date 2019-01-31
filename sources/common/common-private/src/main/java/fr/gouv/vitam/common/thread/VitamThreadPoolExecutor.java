@@ -26,32 +26,23 @@
  */
 package fr.gouv.vitam.common.thread;
 
-import java.util.Arrays;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-
-import org.eclipse.jetty.util.thread.ThreadPool;
-import org.glassfish.jersey.spi.ExecutorServiceProvider;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
+import org.eclipse.jetty.util.thread.ThreadPool;
 
-/**
- * Vitam ThreadPoolExecutor compatible with Jersey which copy the VitamSession from the main thread to the subthread
- */
-@Named("threadpool")
-public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements ThreadPool, ExecutorServiceProvider {
+import java.util.Arrays;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+
+public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements ThreadPool {
 
     // KWA TODO: SPLIT this class into two : the Jetty ThreadPool & the override of the ThreadPoolExecutor ; but first
     // understand how jetty uses this.
@@ -59,27 +50,15 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     private static final VitamThreadPoolExecutor VITAM_THREAD_POOL_EXECUTOR = new VitamThreadPoolExecutor();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamThreadPoolExecutor.class);
 
-    /**
-     * @param corePoolSize
-     * @param maximumPoolSize
-     * @param keepAliveTime
-     * @param unit
-     * @param workQueue
-     */
-    @Inject
-    @Named("threadpool")
+
     public VitamThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
         BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, VitamThreadFactory.getInstance());
     }
 
-    /**
-     * Create a Cached Thread Pool
-     */
-    @Inject
-    @Named("threadpool")
     public VitamThreadPoolExecutor() {
-        this(VitamConfiguration.getMinimumThreadPoolSize(), Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<>());
+        this(VitamConfiguration.getMinimumThreadPoolSize(), Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
+            new SynchronousQueue<>());
     }
 
     /**
@@ -87,8 +66,6 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
      *
      * @param minimumAvailableThreads minimum Available Threads kept in the pool
      */
-    @Inject
-    @Named("threadpool")
     public VitamThreadPoolExecutor(int minimumAvailableThreads) {
         this(minimumAvailableThreads, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
     }
@@ -117,12 +94,12 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
 
         final Thread currentThread = Thread.currentThread();
 
-        if(LOGGER.isDebugEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             final String formattedStack = Arrays.stream(currentThread.getStackTrace())
-                    .map(StackTraceElement::toString)
-                    .skip(2)
-                    .limit(3)
-                    .collect(Collectors.joining(" -> ", "[", "]"));
+                .map(StackTraceElement::toString)
+                .skip(2)
+                .limit(3)
+                .collect(Collectors.joining(" -> ", "[", "]"));
             LOGGER.debug(command.toString() + " from " + formattedStack);
         }
 
@@ -152,10 +129,9 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
         private final VitamSession session;
 
         /**
-         *
          * @param command Command to run. Should not be null.
          * @param session VitamSession to attach to the thread that will run the command. Can be null (if no session
-         *        should be propagated)
+         * should be propagated)
          */
         public VitamRunnable(Runnable command, VitamSession session) {
             ParametersChecker.checkParameter("command should not be null", command);
@@ -271,20 +247,6 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     @Override
     public boolean isLowOnThreads() {
         return false;
-    }
-
-    //////// jetty SPI part of this class ////////
-
-
-    @Override
-    public ExecutorService getExecutorService() {
-        return this;
-    }
-
-    @Override
-    public void dispose(ExecutorService executorService) {
-        // Empty ? It seems that with the current usage of Jetty in Vitam (embedded) the "dispose" method could only be
-        // called at the shutdown of the application.
     }
 
 }

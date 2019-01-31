@@ -160,21 +160,19 @@ public enum FunctionalAdminCollections {
                     collection.initialize(collection.getEsClient());
                 }
             }
-
-            if (collection == FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL) {
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
-                    .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                        new IndexOptions().unique(true));
-            }
-
-            if (collection == FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY) {
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
-                        new IndexOptions().unique(true));
-            }
-
-            // TODO: 30/01/19 Add indexes of other collections
         }
+        if (null != FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()) {
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
+                .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
+                    new IndexOptions().unique(true));
+        }
+
+        if (null != FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()) {
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
+                    new IndexOptions().unique(true));
+        }
+        // TODO: 30/01/19 Add indexes of other collections
 
     }
 
@@ -259,7 +257,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db       database type
+     * @param db database type
      * @param recreate true is as recreate type
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {

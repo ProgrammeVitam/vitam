@@ -253,7 +253,7 @@ public class IndexationHelperTest {
 
             String aliasName = AGENCIES + "_" + indexOK.getTenant();
 
-            Thread.sleep(5);
+            Thread.sleep(10);
             IndexationHelper.switchIndex(aliasName, indexName, elasticsearchAccess);
             GetAliasesResponse actualAliases =
                 elasticsearchRule.getClient().admin().indices().getAliases(new GetAliasesRequest().indices(indexName))

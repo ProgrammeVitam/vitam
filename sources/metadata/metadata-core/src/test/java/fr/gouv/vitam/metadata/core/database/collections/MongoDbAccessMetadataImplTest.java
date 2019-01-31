@@ -590,7 +590,6 @@ public class MongoDbAccessMetadataImplTest {
 
     private SearchResponse searchResult(String content) throws IOException {
         NamedXContentRegistry registry = new NamedXContentRegistry(getDefaultNamedXContents());
-        // FIXME: 30/01/19 what ? DeprecationHandler.THROW_UNSUPPORTED_OPERATION
         return SearchResponse.fromXContent(
             JsonXContent.jsonXContent.createParser(registry, DeprecationHandler.THROW_UNSUPPORTED_OPERATION, content));
     }

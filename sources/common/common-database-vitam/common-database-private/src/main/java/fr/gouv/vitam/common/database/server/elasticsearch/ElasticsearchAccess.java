@@ -163,11 +163,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public static Settings getSettings(String clusterName) {
         return Settings.builder().put("cluster.name", clusterName)
             .put("client.transport.sniff", true)
-            .put("client.transport.ping_timeout", "2s")
-            .put("transport.tcp.connect_timeout", "1s")
-            // TODO: 30/01/19 alternative to .put("transport.profiles.client.connect_timeout", "1s")
-            // TODO: 30/01/19 alternative to .put("transport.profiles.tcp.connect_timeout", "1s")
-
+            .put("client.transport.ping_timeout", "1s")
+            .put("transport.tcp.connect_timeout", "30s")
             // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the
             // default max value. So no configuration is needed.
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
@@ -374,7 +371,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @throws IOException
      */
     public Builder settings() throws IOException {
-        // TODO: 30/01/19 post merge review : why acceptNullValues = true?
         return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
             ElasticsearchAccess.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
     }

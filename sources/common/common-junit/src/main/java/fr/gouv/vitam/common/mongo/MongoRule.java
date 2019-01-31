@@ -87,7 +87,7 @@ public class MongoRule extends ExternalResource {
                     Updates.set(COUNTER, 0));
                 continue;
             }
-            mongoClient.getDatabase(database).getCollection(collectionName).drop();
+            mongoClient.getDatabase(database).getCollection(collectionName).deleteMany(new Document());
         }
     }
 
