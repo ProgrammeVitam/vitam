@@ -1,7 +1,7 @@
-R6 vers R7
-##########
+R6 vers R7 (V1 LTS)
+###################
 
-.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R6 » (1.0.13).
+.. caution:: La migration doit être réalisée en partant de la version « R6 » la plus récente, à savoir la version « R6.13 » (1.0.13) lors de la publication de la version « R7.12 » (1.4.12).
 
 .. toctree::
    :glob:
