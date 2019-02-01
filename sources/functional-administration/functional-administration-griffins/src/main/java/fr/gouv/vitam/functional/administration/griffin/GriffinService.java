@@ -68,6 +68,7 @@ import javax.validation.constraints.NotNull;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -291,7 +292,7 @@ public class GriffinService {
         List<String> identifiers = new ArrayList<>();
         for (GriffinModel model : listToImport) {
             if (identifiers.contains(model.getIdentifier())) {
-                throw new ReferentialException("Duplicate griffin : '" + model.getIdentifier());
+                throw new ReferentialException("Duplicate griffin : '" + model.getIdentifier() + "'");
             }
 
             Set<ConstraintViolation<GriffinModel>> constraint = validator.validate(model);
@@ -419,7 +420,7 @@ public class GriffinService {
     }
 
     private void updateGriffins(@NotNull List<GriffinModel> listToUpdate)
-        throws InvalidParseOperationException, DatabaseException {
+        throws InvalidParseOperationException, DatabaseException, ReferentialException {
 
         for (GriffinModel griffinModel : listToUpdate) {
 
@@ -434,18 +435,23 @@ public class GriffinService {
         }
     }
 
-    private void formatDateForMongo(GriffinModel griffinModel) {
+    private void formatDateForMongo(GriffinModel griffinModel) throws ReferentialException {
 
-        String lastUpdate = getFormattedDateForMongo(now());
-        griffinModel.setLastUpdate(lastUpdate);
+        try {
+            String lastUpdate = getFormattedDateForMongo(now());
+            griffinModel.setLastUpdate(lastUpdate);
 
-        String creationDate = griffinModel.getCreationDate();
+            String creationDate = griffinModel.getCreationDate();
 
-        if (creationDate == null) {
-            creationDate = now().toString();
+            if (creationDate == null) {
+                creationDate = now().toString();
+            }
+            creationDate = getFormattedDateForMongo(creationDate);
+            griffinModel.setCreationDate(creationDate);
+        } catch (
+        DateTimeParseException e) {
+            throw new ReferentialException("Invalid date", e);
         }
-        creationDate = getFormattedDateForMongo(creationDate);
-        griffinModel.setCreationDate(creationDate);
     }
 
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
