@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
 import {BaseInheritedItem, InheritedRule, ManagementModel} from '../management-model';
 import { ArchiveUnitHelper } from '../../../archive-unit.helper';
 import { ComputeRulesUtilsService } from '../compute-rules-utils.service';
@@ -12,7 +12,7 @@ import {ArchiveUnitService} from '../../../archive-unit.service';
   templateUrl: './rules-update-mode.component.html',
   styleUrls: ['./rules-update-mode.component.css']
 })
-export class RulesUpdateModeComponent implements OnInit {
+export class RulesUpdateModeComponent implements OnInit, OnChanges{
   @Input() computedData: ManagementModel;
   @Input() management: any;
   @Input() unitId: string;
@@ -36,7 +36,17 @@ export class RulesUpdateModeComponent implements OnInit {
   constructor(public archiveUnitHelper: ArchiveUnitHelper, public computeRulesUtilsService: ComputeRulesUtilsService,
               public archiveUnitService: ArchiveUnitService) { }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if(changes.computedData){
+      this.init();
+    }
+  }
+
   ngOnInit() {
+    this.init();
+  }
+
+  init(){
     const updateStructure = this.computeRulesUtilsService.getUpdateStructure(this.computedData, this.unitId);
     this.updateValues = updateStructure.updateStructure;
     this.localProperties = updateStructure.localProperties;
