@@ -412,19 +412,6 @@ public class PreservationScenarioServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void KO_scenario_absent_field_griffinByFormat() throws Exception {
-        //Given
-
-        List<PreservationScenarioModel> scenarios =
-            getPreservationScenarioModels("preservationScenarios/KO_scenario_absent_field_griffinByFormat.json");
-        //When / Then
-
-        assertThatThrownBy(() -> preservationScenarioService.importScenarios(scenarios))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid scenario");
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void KO_scenario_absent_field_griffinByFormat_actionDetail() throws Exception {
         List<PreservationScenarioModel> scenarios =
             getPreservationScenarioModels(

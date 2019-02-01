@@ -1921,7 +1921,7 @@
     "SedaField": "Args",
     "Description": "Mapping : preservationscenario-es-mapping.json",
     "Type": "TEXT",
-    "Origin": "Args",
+    "Origin": "INTERNAL",
     "ShortName": "Extension",
     "Collections": [
       "PreservationScenarion"
