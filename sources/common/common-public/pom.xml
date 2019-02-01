@@ -96,8 +96,12 @@
 			<groupId>javax.validation</groupId>
 			<artifactId>validation-api</artifactId>
 		</dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-afterburner</artifactId>
+        </dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<!-- Try to fix Jenkins issue -->
 	<build>

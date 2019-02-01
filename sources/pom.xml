@@ -108,7 +108,6 @@
         <commons-lang3>3.8.1</commons-lang3>
         <easymock.version>4.0.2</easymock.version>
         <jackson.version>2.9.8</jackson.version>
-        <jackson.databind.version>2.9.8</jackson.databind.version>
         <elasticsearch.version>6.5.4</elasticsearch.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
         <mongo.version>3.4.3</mongo.version>
@@ -910,7 +909,29 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
-                <version>${jackson.databind.version}</version>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-afterburner</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-json-provider</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.jaxrs</groupId>
+                <artifactId>jackson-jaxrs-base</artifactId>
+                <version>${jackson.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.fasterxml.jackson.module</groupId>
+                <artifactId>jackson-module-jaxb-annotations</artifactId>
+                <version>${jackson.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.thaiopensource</groupId>
