@@ -1,9 +1,8 @@
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 import org.junit.Test;
 
 import java.io.File;

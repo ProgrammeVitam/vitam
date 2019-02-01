@@ -74,10 +74,10 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.PreservationScenarioModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -2862,7 +2862,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.warn(e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialNotFoundException e) {
-            LOGGER.error(e);
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.REFERENTIAL_NOT_FOUND, e.getMessage());
         } catch (ReferentialException e) {

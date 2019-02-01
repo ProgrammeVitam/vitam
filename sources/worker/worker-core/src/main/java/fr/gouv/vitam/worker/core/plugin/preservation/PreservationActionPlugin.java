@@ -38,7 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.administration.ActionPreservation;
+import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;

@@ -79,7 +79,7 @@
           "fmt/130"
         ],
         "GriffinIdentifier": "GRI-000003",
-        "TimeOut": 20,
+        "Timeout": 20,
         "MaxSize": 10000000,
         "Debug": true,
         "ActionDetail": [
@@ -138,13 +138,13 @@
           "fmt/566"
         ],
         "GriffinIdentifier": "GRI-000001",
-        "TimeOut": 10,
+        "Timeout": 10,
         "MaxSize": 10000000,
         "Debug": true,
         "ActionDetail": [
           {
-            "type": "GENERATE",
-            "values": {
+            "Type": "GENERATE",
+            "Values": {
               "Extension": "pdf",
               "Args": [
                 "-quality",
@@ -161,7 +161,7 @@
     ],
     "DefaultGriffin": {
       "GriffinIdentifier": "GRI-000005",
-      "TimeOut": 10,
+      "Timeout": 10,
       "MaxSize": 10000000,
       "Debug": true,
       "ActionDetail": [
@@ -205,13 +205,13 @@
           "fmt/297"
         ],
         "GriffinIdentifier": "GRI-000023",
-        "TimeOut": 20,
+        "Timeout": 20,
         "MaxSize": 10000000,
         "Debug": true,
         "ActionDetail": [
           {
-            "type": "ANALYSE",
-            "values": {
+            "Type": "ANALYSE",
+            "Values": {
               "args": [
                 "-strict"
               ]
@@ -263,7 +263,7 @@
           "fmt/566"
         ],
         "GriffinIdentifier": "GRI-000012",
-        "TimeOut": 10,
+        "Timeout": 10,
         "MaxSize": 10000000,
         "Debug": true,
         "ActionDetail": [
@@ -286,7 +286,7 @@
     ],
     "DefaultGriffin": {
       "GriffinIdentifier": "GRI-000005",
-      "TimeOut": 10,
+      "Timeout": 10,
       "MaxSize": 10000000,
       "Debug": true,
       "ActionDetail": [
@@ -330,8 +330,8 @@
           "fmt/293",
           "fmt/297"
         ],
-        "GriffinIdentifier": "GRI-000034",
-        "TimeOut": 20,
+        "GriffinIdentifier": "GRI-000003",
+        "Timeout": 20,
         "MaxSize": 10000000,
         "Debug": true,
         "ActionDetail": [
@@ -349,7 +349,7 @@
     ],
     "DefaultGriffin": {
       "GriffinIdentifier": "GRI-000005",
-      "TimeOut": 10,
+      "Timeout": 10,
       "MaxSize": 10000000,
       "Debug": true,
       "ActionDetail": [
