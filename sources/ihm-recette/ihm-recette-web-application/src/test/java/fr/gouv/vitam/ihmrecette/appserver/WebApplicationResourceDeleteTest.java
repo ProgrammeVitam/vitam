@@ -178,6 +178,8 @@ public class WebApplicationResourceDeleteTest {
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setBaseUrl(DEFAULT_WEB_APP_CONTEXT);
         realAdminConfig.setAuthentication(false);
+        realAdminConfig.setEnableSession(true);
+        realAdminConfig.setEnableXsrFilter(true);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         VitamConfiguration.setTenants(tenantList);
 

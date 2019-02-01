@@ -30,9 +30,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -184,16 +184,16 @@ public class StorageTraceabilityAdministrationTest {
         doAnswer(invocation -> {
             int call = atomicInteger.incrementAndGet();
             if (call == 1) {
-                InputStream argumentAt = invocation.getArgumentAt(2, InputStream.class);
+                InputStream argumentAt = invocation.getArgument(2);
                 Files.copy(argumentAt, archive);
             } else {
-                InputStream argumentAt = invocation.getArgumentAt(2, InputStream.class);
+                InputStream argumentAt = invocation.getArgument(2);
                 Files.copy(argumentAt, archive2);
             }
             return null;
         }).when(workspaceClient).putObject(anyString(), anyString(), any(InputStream.class));
         doAnswer(invocation -> {
-            String container = invocation.getArgumentAt(0, String.class);
+            String container = invocation.getArgument(0);
             System.out.println("Test in createContainer: " + container);
             return null;
         }).when(workspaceClient).createContainer(anyString());

@@ -26,7 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.management.client;
 
-import static org.mockito.Mockito.when;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
+import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
+import fr.gouv.vitam.processing.common.model.WorkerBean;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -38,67 +48,41 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
-import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
-import fr.gouv.vitam.processing.common.model.WorkerBean;
-
-public class WorkerFamilyProcessingManagementClientTest extends VitamJerseyTest {
+public class WorkerFamilyProcessingManagementClientTest extends ResteasyTestApplication {
     private static ProcessingManagementClient client;
 
-    public WorkerFamilyProcessingManagementClientTest() {
-        super(ProcessingManagementClientFactory.getInstance());
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
+
+    static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(WorkerFamilyProcessingManagementClientTest.class, factory);
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+        client = (ProcessingManagementClientRest) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
+    @Before
+    public void before() {
+        reset(mock);
     }
 
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (ProcessingManagementClient) getClient();
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     @Path("/processing/v1/worker_family")

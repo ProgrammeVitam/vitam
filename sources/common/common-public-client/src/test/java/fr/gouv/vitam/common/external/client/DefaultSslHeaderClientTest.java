@@ -26,63 +26,55 @@
  */
 package fr.gouv.vitam.common.external.client;
 
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.junit.MinimalTestVitamApplicationFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.server.benchmark.BenchmarkConfiguration;
-import org.apache.shiro.web.env.EnvironmentLoaderListener;
-import org.apache.shiro.web.servlet.ShiroFilter;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.glassfish.jersey.server.ResourceConfig;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import sun.misc.BASE64Encoder;
 import sun.security.provider.X509Factory;
 
-import javax.servlet.DispatcherType;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MultivaluedHashMap;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.KeyStore;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.fail;
 
-
-public class DefaultSslHeaderClientTest {
+public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslHeaderClientTest.class);
 
     private static final String BASE_URI = "/ingest-ext/v1";
-    private static final String INGEST_EXTERNAL_CONF = "standard-application-ssl-header-test.conf";
-    private static final String SHIRO_FILE = "shiro.ini";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_NOKEY = "standard-client-secure_nokey.conf";
-    private static TestVitamApplication application;
-    private static int serverPort;
+
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(DefaultSslHeaderClientTest.class, false, false, false, true);
 
 
 
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new SslResource());
+    }
 
     private static String pem = null;
     private static String pemExpired = null;
@@ -95,57 +87,8 @@ public class DefaultSslHeaderClientTest {
         // Empty
     }
 
-    private static class TestVitamApplication
-        extends AbstractVitamApplication<DefaultSslHeaderClientTest.TestVitamApplication, BenchmarkConfiguration> {
-
-        protected TestVitamApplication(String config) {
-            super(BenchmarkConfiguration.class, config);
-        }
-
-        protected TestVitamApplication(BenchmarkConfiguration config) {
-            super(BenchmarkConfiguration.class, config);
-        }
-
-        @Override
-        protected void configureVitamParameters() {
-            // Nothing
-            VitamConfiguration.setSecret("vitamsecret");
-            VitamConfiguration.setFilterActivation(false);
-        }
-
-        @Override
-        protected void checkJerseyMetrics(ResourceConfig resourceConfig) {
-            // Nothing
-        }
-
-        @Override
-        protected void setFilter(ServletContextHandler context, boolean isAdminConnector) throws VitamApplicationServerException {
-            File shiroFile = null;
-            try {
-                shiroFile = PropertiesUtils.findFile(SHIRO_FILE);
-            } catch (final FileNotFoundException e) {
-                throw new VitamApplicationServerException(e.getMessage());
-            }
-            LOGGER.info("Start Shiro configuration");
-            context.setInitParameter("shiroConfigLocations", "file:" + shiroFile.getAbsolutePath());
-            context.addEventListener(new EnvironmentLoaderListener());
-            context.addFilter(ShiroFilter.class, "/*", EnumSet.of(
-                DispatcherType.INCLUDE, DispatcherType.REQUEST,
-                DispatcherType.FORWARD, DispatcherType.ERROR, DispatcherType.ASYNC));
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.register(new DefaultSslHeaderClientTest.SslResource());
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-           return false;
-        }
-    }
-
-    private static String x509CertificateToPemWithWiteSpaceApacheFormat(X509Certificate cert) throws CertificateEncodingException {
+    private static String x509CertificateToPemWithWiteSpaceApacheFormat(X509Certificate cert)
+        throws CertificateEncodingException {
         BASE64Encoder encoder = new BASE64Encoder();
 
         StringWriter sw = new StringWriter();
@@ -159,7 +102,8 @@ public class DefaultSslHeaderClientTest {
 
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
 
         KeyStore p12 = KeyStore.getInstance("pkcs12");
         p12.load(PropertiesUtils.getConfigAsStream("tls/client/client.p12"), "azerty4".toCharArray());
@@ -169,14 +113,6 @@ public class DefaultSslHeaderClientTest {
             X509Certificate c = (X509Certificate) p12.getCertificate(alias);
             pem = x509CertificateToPemWithWiteSpaceApacheFormat(c);
             break;
-            /*Principal subject = c.getSubjectDN();
-            String subjectArray[] = subject.toString().split(",");
-            for (String s : subjectArray) {
-                String[] str = s.trim().split("=");
-                String key = str[0];
-                String value = str[1];
-                System.out.println(key + " - " + value);
-            }*/
         }
 
         p12.load(PropertiesUtils.getConfigAsStream("tls/client/client_expired.p12"), "vitam2016".toCharArray());
@@ -196,36 +132,11 @@ public class DefaultSslHeaderClientTest {
             pemNotGranted = x509CertificateToPemWithWiteSpaceApacheFormat(c);
             break;
         }
-
-        final MinimalTestVitamApplicationFactory<DefaultSslHeaderClientTest.TestVitamApplication> testFactory =
-            new MinimalTestVitamApplicationFactory<DefaultSslHeaderClientTest.TestVitamApplication>() {
-
-                @Override
-                public StartApplicationResponse<DefaultSslHeaderClientTest.TestVitamApplication> startVitamApplication(int reservedPort)
-                    throws IllegalStateException {
-                    final DefaultSslHeaderClientTest.TestVitamApplication
-                        application = new DefaultSslHeaderClientTest.TestVitamApplication(INGEST_EXTERNAL_CONF);
-                    final StartApplicationResponse<DefaultSslHeaderClientTest.TestVitamApplication> response = startAndReturn(application);
-                    return response;
-                }
-
-            };
-        final StartApplicationResponse<DefaultSslHeaderClientTest.TestVitamApplication> response = testFactory.findAvailablePortSetToApplication();
-        serverPort = response.getServerPort();
-        application = response.getApplication();
-        LOGGER.warn("Start configuration: " + serverPort);
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        try {
-            if (application != null) {
-                application.stop();
-            }
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-        JunitHelper.getInstance().releasePort(serverPort);
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     /**
@@ -250,7 +161,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithoutHeaderCertificateThenRaizeShiroException() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -261,14 +172,16 @@ public class DefaultSslHeaderClientTest {
                 }
 
             };
-        //factory.disableUseAuthorizationFilter();
-
-        if (application.getVitamServer().isStarted()) {
-            try (final DefaultClient client = factory.getClient()) {
-                client.checkStatus();
-                LOGGER.error("THIS SHOULD RAIZED AN EXCEPTION");
-                fail("THIS SHOULD NOT RAIZED EXCEPTION");
-            } catch (final VitamException e) {
+        try (final DefaultClient client = factory.getClient()) {
+            client.checkStatus();
+            LOGGER.error("THIS SHOULD RAIZED AN EXCEPTION");
+            fail("THIS SHOULD NOT RAIZED EXCEPTION");
+        } catch (final VitamException e) {
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
     }
@@ -281,7 +194,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithHeaderCertificateThenOK() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -291,22 +204,25 @@ public class DefaultSslHeaderClientTest {
                 }
 
             };
-        //factory.disableUseAuthorizationFilter();
+        try (final DefaultClient client = factory.getClient()) {
 
-        if (application.getVitamServer().isStarted()) {
-            try (final DefaultClient client = factory.getClient()) {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            List<Object> objectList = new ArrayList<>();
+            objectList.add(pem);
 
-                MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-                List<Object> objectList = new ArrayList<>();
-                objectList.add(pem);
-
-                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
-                client.checkStatus(headers);
-            } catch (final VitamException e) {
-                LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
-                fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
+            headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
+            client.checkStatus(headers);
+        } catch (final VitamException e) {
+            LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
+            fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
+
     }
 
 
@@ -317,7 +233,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithHeaderCertificateExpiredThenRaiseAnException() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -328,21 +244,24 @@ public class DefaultSslHeaderClientTest {
                 }
 
             };
-        //factory.disableUseAuthorizationFilter();
+        try (final DefaultClient client = factory.getClient()) {
 
-        if (application.getVitamServer().isStarted()) {
-            try (final DefaultClient client = factory.getClient()) {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            List<Object> objectList = new ArrayList<>();
+            objectList.add(pemExpired);
 
-                MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-                List<Object> objectList = new ArrayList<>();
-                objectList.add(pemExpired);
-
-                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
-                client.checkStatus(headers);
-                fail("SHould Raized an exception");
-            } catch (final VitamException e) {
+            headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
+            client.checkStatus(headers);
+            fail("SHould Raized an exception");
+        } catch (final VitamException e) {
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
+
     }
 
     /**
@@ -351,7 +270,7 @@ public class DefaultSslHeaderClientTest {
     @Test
     public void givenHttpCallWithHeaderCertificateNotGrantedThenReturnForbidden() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
-        configuration.setServerPort(serverPort);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         final VitamClientFactory<DefaultClient> factory =
             new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
@@ -362,19 +281,21 @@ public class DefaultSslHeaderClientTest {
                 }
 
             };
-        //factory.disableUseAuthorizationFilter();
+        try (final DefaultClient client = factory.getClient()) {
 
-        if (application.getVitamServer().isStarted()) {
-            try (final DefaultClient client = factory.getClient()) {
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            List<Object> objectList = new ArrayList<>();
+            objectList.add(pemNotGranted);
 
-                MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-                List<Object> objectList = new ArrayList<>();
-                objectList.add(pemNotGranted);
-
-                headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
-                client.checkStatus(headers);
-                fail("SHould Raized an exception");
-            } catch (final VitamException e) {
+            headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
+            client.checkStatus(headers);
+            fail("SHould Raized an exception");
+        } catch (final VitamException e) {
+        } finally {
+            try {
+                factory.shutdown();
+            } catch (Exception e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
     }

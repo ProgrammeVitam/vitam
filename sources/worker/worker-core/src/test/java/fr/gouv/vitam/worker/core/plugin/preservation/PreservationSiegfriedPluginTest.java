@@ -62,7 +62,7 @@ import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPl
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PreservationSiegfriedPluginTest {

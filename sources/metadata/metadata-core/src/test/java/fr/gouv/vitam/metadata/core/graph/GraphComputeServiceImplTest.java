@@ -1,9 +1,10 @@
 package fr.gouv.vitam.metadata.core.graph;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
@@ -88,33 +89,20 @@ public class GraphComputeServiceImplTest {
     public void setup() throws DatabaseException {
 
 
-        given(unitRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableUnit);
-        given(gotRepository.findDocuments(anyObject(), anyInt())).willReturn(findIterableGot);
+        given(unitRepository.findDocuments(any(), anyInt())).willReturn(findIterableUnit);
+        given(gotRepository.findDocuments(any(), anyInt())).willReturn(findIterableGot);
 
 
-        given(unitRepository.findDocuments(anyObject(), anyObject())).willReturn(findIterableUnit);
-        given(gotRepository.findDocuments(anyObject(), anyObject())).willReturn(findIterableGot);
-
-
-        doNothing().when(unitEsRepository).update(anyObject());
-        doNothing().when(gotEsRepository).update(anyObject());
+        given(unitRepository.findDocuments(any(), any())).willReturn(findIterableUnit);
+        given(gotRepository.findDocuments(any(), any())).willReturn(findIterableGot);
 
         given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitRepository);
         given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
             .willReturn(gotRepository);
 
-        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())).willReturn(unitEsRepository);
-        given(vitamRepositoryProvider.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
-            .willReturn(gotEsRepository);
-
-
-        given(findIterableUnit.projection(anyObject())).willReturn(findIterableUnit);
-        given(findIterableUnit.sort(anyObject())).willReturn(findIterableUnit);
-        given(findIterableUnit.limit(anyInt())).willReturn(findIterableUnit);
+        given(findIterableUnit.projection(any())).willReturn(findIterableUnit);
         given(findIterableUnit.iterator()).willReturn(mongoCursorUnit);
-        given(findIterableGot.projection(anyObject())).willReturn(findIterableGot);
-        given(findIterableGot.sort(anyObject())).willReturn(findIterableGot);
-        given(findIterableGot.limit(anyInt())).willReturn(findIterableGot);
+        given(findIterableGot.projection(any())).willReturn(findIterableGot);
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
         Answer<Object> objectAnswer = o -> new Document("_id", GUIDFactory.newGUID().getId())
@@ -206,10 +194,6 @@ public class GraphComputeServiceImplTest {
     @RunWithCustomExecutor
     public void whenBuildGraphThenQueryResultIsEmpty() {
         // given
-        when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);
-        when(mongoCursorGot.hasNext()).thenAnswer(o -> false);
-
-
         GraphComputeResponse response = graphBuilderService.computeGraph(MetadataCollections.UNIT,
             Sets.newHashSet(), false);
         assertThat(response.getUnitCount()).isEqualTo(0);

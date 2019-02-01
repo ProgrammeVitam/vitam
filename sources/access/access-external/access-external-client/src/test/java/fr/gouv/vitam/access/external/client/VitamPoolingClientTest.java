@@ -38,8 +38,7 @@ import org.junit.Test;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -54,7 +53,7 @@ public class VitamPoolingClientTest {
     public void testWaitThenVitamException() throws Exception {
 
         OperationStatusClient operationStatusClient = mock(OperationStatusClient.class);
-        when(operationStatusClient.getOperationProcessStatus(anyObject(), anyString())).thenReturn(new VitamError(""));
+        when(operationStatusClient.getOperationProcessStatus(any(), any())).thenReturn(new VitamError(""));
         VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(operationStatusClient);
         vitamPoolingClient.wait(TENANT_ID, GUID, 30, 1000L, TimeUnit.MILLISECONDS);
     }
@@ -64,7 +63,7 @@ public class VitamPoolingClientTest {
 
         OperationStatusClient operationStatusClient = mock(OperationStatusClient.class);
         doThrow(new VitamClientException("")).when(operationStatusClient)
-            .getOperationProcessStatus(anyObject(), anyString());
+            .getOperationProcessStatus(any(), any());
         VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(operationStatusClient);
         vitamPoolingClient.wait(TENANT_ID, GUID, 30, 1000L, TimeUnit.MILLISECONDS);
     }
@@ -78,7 +77,7 @@ public class VitamPoolingClientTest {
         RequestResponseOK<ItemStatus> completed =
             new RequestResponseOK<ItemStatus>().addResult(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
         OperationStatusClient operationStatusClient = mock(OperationStatusClient.class);
-        when(operationStatusClient.getOperationProcessStatus(anyObject(), anyString()))
+        when(operationStatusClient.getOperationProcessStatus(any(), any()))
             .thenReturn(running)
             .thenReturn(running)
             .thenReturn(running)
@@ -98,7 +97,7 @@ public class VitamPoolingClientTest {
         RequestResponseOK<ItemStatus> completed =
             new RequestResponseOK<ItemStatus>().addResult(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
         OperationStatusClient operationStatusClient = mock(OperationStatusClient.class);
-        when(operationStatusClient.getOperationProcessStatus(anyObject(), anyString()))
+        when(operationStatusClient.getOperationProcessStatus(any(), any()))
             .thenReturn(completed);
         VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(operationStatusClient);
         boolean wait = vitamPoolingClient.wait(TENANT_ID, GUID, null);
@@ -112,7 +111,7 @@ public class VitamPoolingClientTest {
             new RequestResponseOK<ItemStatus>().addResult(new ItemStatus().setGlobalState(ProcessState.PAUSE).increment(
                 StatusCode.OK));
         OperationStatusClient operationStatusClient = mock(OperationStatusClient.class);
-        when(operationStatusClient.getOperationProcessStatus(anyObject(), anyString()))
+        when(operationStatusClient.getOperationProcessStatus(any(), any()))
             .thenReturn(pause);
         VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(operationStatusClient);
         boolean wait = vitamPoolingClient.wait(TENANT_ID, GUID, null);
@@ -126,7 +125,7 @@ public class VitamPoolingClientTest {
         RequestResponseOK<ItemStatus> completed =
             new RequestResponseOK<ItemStatus>().addResult(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
         OperationStatusClient operationStatusClient = mock(OperationStatusClient.class);
-        when(operationStatusClient.getOperationProcessStatus(anyObject(), anyString()))
+        when(operationStatusClient.getOperationProcessStatus(any(), any()))
             .thenReturn(completed);
         VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(operationStatusClient);
         boolean wait = vitamPoolingClient.wait(TENANT_ID, GUID);
@@ -140,7 +139,7 @@ public class VitamPoolingClientTest {
             new RequestResponseOK<ItemStatus>().addResult(new ItemStatus().setGlobalState(ProcessState.PAUSE).increment(
                 StatusCode.OK));
         OperationStatusClient operationStatusClient = mock(OperationStatusClient.class);
-        when(operationStatusClient.getOperationProcessStatus(anyObject(), anyString()))
+        when(operationStatusClient.getOperationProcessStatus(any(), any()))
             .thenReturn(paused);
         VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(operationStatusClient);
         boolean wait = vitamPoolingClient.wait(TENANT_ID, GUID);

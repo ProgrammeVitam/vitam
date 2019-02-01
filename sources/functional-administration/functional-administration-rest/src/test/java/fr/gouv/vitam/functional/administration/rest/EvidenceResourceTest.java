@@ -3,9 +3,9 @@ package fr.gouv.vitam.functional.administration.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response;
@@ -41,6 +41,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
@@ -129,7 +130,7 @@ public class EvidenceResourceTest {
         selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
 
 
-        willThrow(VitamClientException.class).given(workspaceClient).putObject(anyString(), any(), any());
+        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient).putObject(anyString(), any(), any());
         Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 

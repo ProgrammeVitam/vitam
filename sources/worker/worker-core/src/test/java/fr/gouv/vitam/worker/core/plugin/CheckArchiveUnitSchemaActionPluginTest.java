@@ -30,8 +30,8 @@ package fr.gouv.vitam.worker.core.plugin;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -177,7 +177,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Ontology/ontology.json")));
 
-        when(workspaceClient.getObject(anyObject(), eq("Ontology/ontology.json")))
+        when(workspaceClient.getObject(any(), eq("Ontology/ontology.json")))
             .thenReturn(Response.status(Status.OK).entity(new ByteArrayInputStream("[]".getBytes())).build());
         action.addInIOParameters(in);
 
@@ -204,7 +204,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     @Test
     public void givenCorrectArchiveUnitJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -212,7 +212,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     @Test
     public void givenFinalArchiveUnitJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitFinal).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -220,7 +220,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     @Test
     public void givenFinalArchiveUnitFinalActionWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitFinalAction).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -228,7 +228,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     @Test
     public void givenArchiveUnitWithSignatureJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitWithSignature).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -236,7 +236,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     @Test
     public void givenArchiveUnitWithNumberTitleJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitNumber).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
@@ -245,7 +245,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     @Test
     public void givenInvalidArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
         // invalid archive unit -> missing title in it
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalid).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -256,7 +256,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     @Test
     public void givenArchiveUnitWithSpecialCharactersJsonWhenExecuteThenReturnResponseKO() throws Exception {
         // invalid archive unit -> missing title in it
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidChar).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -267,7 +267,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     @Test
     public void givenInvalidArchiveUnitXMLWhenExecuteThenReturnResponseKO() throws Exception {
         // invalid archive unit -> XML File
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidXml).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -280,7 +280,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     public void givenInvalidDateArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
         // invalid archive unit -> year is > 9000
         // need to be fixed
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -292,7 +292,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     @Test
     public void givenInvalidContentArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
         // invalid content
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidContent).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -303,7 +303,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     @Test
     public void givenInvalidDescLevelArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
         // invalid desc level
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitInvalidDescLevel).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -314,7 +314,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     @Test
     public void givenStartDateAfterEndDateWhenExecuteThenReturnResponseKO() throws Exception {
         // invalid desc level
-        when(workspaceClient.getObject(anyObject(), eq("Units/archiveUnit.json")))
+        when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnitStartDateAfterEndDate).build());
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);

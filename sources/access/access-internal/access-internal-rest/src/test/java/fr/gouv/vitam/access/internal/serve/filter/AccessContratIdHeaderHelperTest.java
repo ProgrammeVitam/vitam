@@ -58,7 +58,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -102,7 +102,7 @@ public class AccessContratIdHeaderHelperTest {
         RequestResponse<AccessContractModel> mockedResponse = new VitamError("KO");
         mockedResponse.setHttpCode(500);
 
-        when(adminManagementClient.findAccessContracts(anyObject()))
+        when(adminManagementClient.findAccessContracts(any()))
             .thenReturn(mockedResponse);
 
         // launch test
@@ -127,7 +127,7 @@ public class AccessContratIdHeaderHelperTest {
         RequestResponseOK<AccessContractModel> mockedResponse = new RequestResponseOK<>();
         mockedResponse.setHttpCode(200);
 
-        when(adminManagementClient.findAccessContracts(anyObject()))
+        when(adminManagementClient.findAccessContracts(any()))
             .thenReturn(mockedResponse);
 
         // launch test
@@ -160,7 +160,7 @@ public class AccessContratIdHeaderHelperTest {
         mockedResponse.setHttpCode(200);
         mockedResponse.addResult(mockedContract);
 
-        when(adminManagementClient.findAccessContracts(anyObject()))
+        when(adminManagementClient.findAccessContracts(any()))
             .thenReturn(mockedResponse);
 
         // launch test
@@ -199,7 +199,7 @@ public class AccessContratIdHeaderHelperTest {
         mockedResponse.setHttpCode(200);
         mockedResponse.addResult(mockedContract);
 
-        when(adminManagementClient.findAccessContracts(anyObject()))
+        when(adminManagementClient.findAccessContracts(any()))
             .thenReturn(mockedResponse);
 
         // launch test

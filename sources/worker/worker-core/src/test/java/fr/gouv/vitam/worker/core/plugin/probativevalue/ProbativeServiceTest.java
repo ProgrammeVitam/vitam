@@ -56,7 +56,7 @@ import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class ProbativeServiceTest {

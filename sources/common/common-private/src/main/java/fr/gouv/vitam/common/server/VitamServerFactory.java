@@ -87,6 +87,12 @@ public class VitamServerFactory {
         return new BasicVitamServer(port);
     }
 
+
+    public static VitamServer newVitamServerWithoutConnector(int port) {
+        ParametersChecker.checkValue("Port", port, 1);
+        return new BasicVitamServer(port, false);
+    }
+
     /**
      * Create a Vitam Server by jetty config
      *

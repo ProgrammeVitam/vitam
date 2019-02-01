@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -89,7 +89,7 @@ public class CheckOriginatingAgencyHandlerTest {
         serviceAgent.put(TAG_ORIGINATINGAGENCYIDENTIFIER, ORIGINATING_AGENCY_IDENTIFIER);
         // When
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
-        when(adminClient.getAgencies(anyObject())).thenReturn(ClientMockResultHelper.getAgency().toJsonNode());
+        when(adminClient.getAgencies(any())).thenReturn(ClientMockResultHelper.getAgency().toJsonNode());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
@@ -109,7 +109,7 @@ public class CheckOriginatingAgencyHandlerTest {
         serviceAgent.put(TAG_ORIGINATINGAGENCYIDENTIFIER, ORIGINATING_AGENCY_IDENTIFIER);
         // When
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
-        when(adminClient.getAgencies(anyObject())).thenReturn(createReponse(AGENCY).toJsonNode());
+        when(adminClient.getAgencies(any())).thenReturn(createReponse(AGENCY).toJsonNode());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
@@ -136,7 +136,7 @@ public class CheckOriginatingAgencyHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Map<String, Object> serviceAgent = new HashMap<>();
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
-        when(adminClient.getAgencies(anyObject())).thenReturn(createReponse(AGENCY).toJsonNode());
+        when(adminClient.getAgencies(any())).thenReturn(createReponse(AGENCY).toJsonNode());
         // When
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)

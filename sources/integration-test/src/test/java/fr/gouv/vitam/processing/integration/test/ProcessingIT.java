@@ -217,7 +217,6 @@ public class ProcessingIT extends VitamRuleRunner {
 
 
     private static String SIP_FILE_OK_NAME = "integration-processing/SIP-test.zip";
-    private static String OK_RATTACHEMENT = "integration-processing/OK_Rattachement.zip";
     private static String SIP_RATP = "integration-processing/RATP-base.zip";
 
     private static String SIP_FILE_OK_BIRTH_PLACE = "integration-processing/unit_schema_validation_ko.zip";

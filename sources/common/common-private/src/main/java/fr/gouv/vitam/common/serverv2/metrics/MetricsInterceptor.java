@@ -47,7 +47,7 @@ public class MetricsInterceptor implements ContainerRequestFilter, ContainerResp
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         // Called when a request is received
-        requestContext.setProperty("context", timer.time());
+        requestContext.setProperty(CONTEXT_KEY, timer.time());
         meter.mark();
     }
 

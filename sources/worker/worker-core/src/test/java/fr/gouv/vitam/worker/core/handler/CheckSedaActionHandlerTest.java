@@ -28,7 +28,7 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,8 +90,8 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenXmlNotExistThenReturnResponseKO()
             throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(anyObject(), anyObject());
-        when(sedaUtils.getMandatoryValues(anyObject())).thenThrow(new ProcessingException(""));
+        Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(any(), any());
+        when(sedaUtils.getMandatoryValues(any())).thenThrow(new ProcessingException(""));
         assertNotNull(CheckSedaActionHandler.getId());
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
@@ -110,7 +110,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenXmlExistThenReturnResponseOK()
             throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(CheckSedaValidationStatus.VALID).when(sedaUtils).checkSedaValidation(anyObject(), anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.VALID).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                         .setUrlMetadata("http://localhost:8083")
@@ -123,7 +123,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenXmlIsEmptyThenReturnResponseKO()
             throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(CheckSedaValidationStatus.NOT_XSD_VALID).when(sedaUtils).checkSedaValidation(anyObject(), anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.NOT_XSD_VALID).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                         .setUrlMetadata("http://localhost:8083")
@@ -140,7 +140,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenFileNotXmlThenReturnResponseKO()
             throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(CheckSedaValidationStatus.NOT_XML_FILE).when(sedaUtils).checkSedaValidation(anyObject(), anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.NOT_XML_FILE).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                         .setUrlMetadata("http://localhost:8083")
@@ -157,7 +157,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenXmlNotThereThenReturnResponseKO()
             throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(anyObject(), anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                         .setUrlMetadata("http://localhost:8083")
@@ -174,7 +174,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenThereAreManyManifestThenReturnResponseKO()
             throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST).when(sedaUtils).checkSedaValidation(anyObject(), anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                         .setUrlMetadata("http://localhost:8083")
@@ -191,7 +191,7 @@ public class CheckSedaActionHandlerTest {
     @Test
     public void givenWorkspaceWhenThereAreManyFolderThenReturnResponseKO()
             throws XMLStreamException, IOException, ProcessingException {
-        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT).when(sedaUtils).checkSedaValidation(anyObject(), anyObject());
+        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
                 WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                         .setUrlMetadata("http://localhost:8083")

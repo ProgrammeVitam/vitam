@@ -26,11 +26,23 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.client.DefaultClient;
+import fr.gouv.vitam.common.client.TestVitamClientFactory;
+import fr.gouv.vitam.common.client.VitamRestTestClient;
+import fr.gouv.vitam.common.client.VitamRestTestClient.VitamRestTest;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -46,105 +58,48 @@ import javax.ws.rs.container.Suspended;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.util.Set;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
-
-import fr.gouv.vitam.common.client.AbstractMockClient;
-import fr.gouv.vitam.common.client.BasicClient;
-import fr.gouv.vitam.common.client.DefaultClient;
-import fr.gouv.vitam.common.client.TestVitamClientFactory;
-import fr.gouv.vitam.common.client.VitamRestTestClient;
-import fr.gouv.vitam.common.client.VitamRestTestClient.VitamRestTest;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServerFactory;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Model for equivalent to JerseyTest and/or usage of restassured like VitamRestTestClient
  */
-public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
+public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRestApplicationAndClientTest.class);
 
     private static final String RESOURCE_PATH = "/vitam-test/v1";
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    private BasicClient client;
-    private VitamRestTestClient testClient;
+    private static BasicClient client;
+    private static VitamRestTestClient testClient;
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public VitamRestApplicationAndClientTest() {
-        super(new TestVitamClientFactory<DefaultClient>(VitamServerFactory.getDefaultPort(), RESOURCE_PATH));
+    static TestVitamClientFactory factory = new TestVitamClientFactory<>(1, RESOURCE_PATH);
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(VitamRestApplicationAndClientTest.class, factory);
+
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+        client = (DefaultClient) vitamServerTestRunner.getClient();
+        testClient = new VitamRestTestClient(factory);
+
     }
 
-    // Override the beforeTest if necessary
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (BasicClient) getClient();
-        testClient = new VitamRestTestClient(getFactory());
-    }
-
-    // Override the afterTest if necessary
-    @Override
-    public void afterTest() throws VitamApplicationServerException {
-        // Nothing
-        if (null != testClient) testClient.close();
-    }
-
-    // Create the setup application to setup anything necessary, among the factory
-    @Override
-    public void setup() {
-        // Empty
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig("jetty-config-benchmark-test.xml");
-
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-                .setServerPort(application.getVitamServer().getPort())
-                .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-            extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new MockResource(mock));
     }
 
     // Define your Resource class if necessary
@@ -222,17 +177,13 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
                 throw new IllegalArgumentException("Error");
             } else if (response.getStatus() >= 400) {
                 helper.writeErrorResponse(Response.status(response.getStatus())
-                        .entity("Error")
-                        .build());
+                    .entity("Error")
+                    .build());
             } else {
                 helper.writeResponse(Response.status(response.getStatus()));
             }
         }
     }
-    // ************************************ //
-    // End of VitamJerseyTest configuration //
-    // ************************************ //
-
 
     // Now write your tests
     @Test
@@ -245,23 +196,23 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
     public void statusUsingVitamRestTestClient() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NO_CONTENT).build());
         final VitamRestTest restTest =
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE).addHeader("X-Request-Id", "abcd")
-                        .status(Status.NO_CONTENT).when().then();
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE).addHeader("X-Request-Id", "abcd")
+                .status(Status.NO_CONTENT).when().then();
         LOGGER.warn(restTest.toString());
         assertEquals(Status.NO_CONTENT.getStatusCode(),
-                restTest.get(ApplicationStatusResource.STATUS_URL));
+            restTest.get(ApplicationStatusResource.STATUS_URL));
         when(mock.head()).thenReturn(Response.status(Status.NO_CONTENT).build());
         assertEquals(Status.NO_CONTENT.getStatusCode(),
-                restTest.accept(MediaType.APPLICATION_JSON_TYPE).addHeader("X-Request-Id", "abcd")
-                        .status(Status.NO_CONTENT).when().head(ApplicationStatusResource.STATUS_URL));
+            restTest.accept(MediaType.APPLICATION_JSON_TYPE).addHeader("X-Request-Id", "abcd")
+                .status(Status.NO_CONTENT).when().head(ApplicationStatusResource.STATUS_URL));
     }
 
     @Test
     public void badStatusUsingVitamRestTestClient() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.SERVICE_UNAVAILABLE).build());
         final VitamRestTest restTest =
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE).addHeader("X-Request-Id", "abcd")
-                        .status(Status.NO_CONTENT).when().then();
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE).addHeader("X-Request-Id", "abcd")
+                .status(Status.NO_CONTENT).when().then();
         try {
             restTest.get(ApplicationStatusResource.STATUS_URL);
             fail("Should raized an exception");
@@ -274,107 +225,107 @@ public class VitamRestApplicationAndClientTest extends VitamJerseyTest {
     public void variousCommandRestTestClient() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                .addHeader("X-Request-Id", "abcd")
-                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                .status(Status.OK).when().get("resource");
+            .addHeader("X-Request-Id", "abcd")
+            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+            .status(Status.OK).when().get("resource");
         when(mock.post()).thenReturn(Response.status(Status.OK).build());
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                .addHeader("X-Request-Id", "abcd")
-                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                .status(Status.OK).when().post("resource");
+            .addHeader("X-Request-Id", "abcd")
+            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+            .status(Status.OK).when().post("resource");
         when(mock.put()).thenReturn(Response.status(Status.OK).build());
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                .addHeader("X-Request-Id", "abcd")
-                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                .status(Status.OK).when().put("resource");
+            .addHeader("X-Request-Id", "abcd")
+            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+            .status(Status.OK).when().put("resource");
         when(mock.delete()).thenReturn(Response.status(Status.OK).build());
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                .addHeader("X-Request-Id", "abcd")
-                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                .statusCode(Status.OK.getStatusCode()).when().delete("resource");
+            .addHeader("X-Request-Id", "abcd")
+            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+            .statusCode(Status.OK.getStatusCode()).when().delete("resource");
         when(mock.options()).thenReturn(Response.status(Status.OK).build());
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                .addHeader("X-Request-Id", "abcd")
-                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                .status(Status.OK).when().options("resource");
+            .addHeader("X-Request-Id", "abcd")
+            .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+            .status(Status.OK).when().options("resource");
     }
 
     @Test
     public void variousCommandWithBodyRestTestClient() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                        .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                        .status(Status.OK).when().get("resource", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().get("resource", String.class));
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                        .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                        .status(Status.OK).when().post("resource", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().post("resource", String.class));
         when(mock.put()).thenReturn(Response.status(Status.OK).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                        .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                        .status(Status.OK).when().put("resource", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().put("resource", String.class));
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                        .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                        .status(Status.OK).when().delete("resource", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().delete("resource", String.class));
         when(mock.options()).thenReturn(Response.status(Status.OK).entity(DEFAULT_XML_CONFIGURATION_FILE).build());
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
-                        .status(Status.OK).when().options("resource", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .addPathParameter("path1", "monid1").addPathParameter("path2", "monid2")
+                .status(Status.OK).when().options("resource", String.class));
     }
 
     @Test
     public void asyncCommandWithBodyRestTestClient() throws Exception {
         Response response = ResponseHelper.getOutboundResponse(Status.OK,
-                new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN, null);
+            new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN, null);
         when(mock.post()).thenReturn(response);
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                        .status(Status.OK).when().post("resourceasync", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().post("resourceasync", String.class));
         response = new AbstractMockClient.FakeInboundResponse(Status.OK,
-                new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN_TYPE, null);
+            new ByteArrayInputStream(DEFAULT_XML_CONFIGURATION_FILE.getBytes()), MediaType.TEXT_PLAIN_TYPE, null);
         when(mock.post()).thenReturn(response);
         assertEquals(DEFAULT_XML_CONFIGURATION_FILE,
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                        .status(Status.OK).when().post("resourceasync", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.OK).when().post("resourceasync", String.class));
         response = ResponseHelper.getOutboundResponse(Status.BAD_REQUEST, DEFAULT_XML_CONFIGURATION_FILE,
-                MediaType.TEXT_PLAIN, null);
+            MediaType.TEXT_PLAIN, null);
         when(mock.post()).thenReturn(response);
         assertEquals("Error",
-                testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                        .addHeader("X-Request-Id", "abcd")
-                        .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                        .status(Status.BAD_REQUEST).when().post("resourceasync", String.class));
+            testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
+                .addHeader("X-Request-Id", "abcd")
+                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+                .status(Status.BAD_REQUEST).when().post("resourceasync", String.class));
         response = ResponseHelper.getOutboundResponse(Status.INTERNAL_SERVER_ERROR, DEFAULT_XML_CONFIGURATION_FILE,
-                MediaType.TEXT_PLAIN, null);
+            MediaType.TEXT_PLAIN, null);
         when(mock.post()).thenReturn(response);
         // Here no equality since an exception raises a 500 error
         testClient.given().accept(MediaType.APPLICATION_JSON_TYPE)
-                .addHeader("X-Request-Id", "abcd")
-                .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
-                .status(Status.INTERNAL_SERVER_ERROR).when().post("resourceasync", String.class);
+            .addHeader("X-Request-Id", "abcd")
+            .body(DEFAULT_XML_CONFIGURATION_FILE, MediaType.TEXT_PLAIN_TYPE)
+            .status(Status.INTERNAL_SERVER_ERROR).when().post("resourceasync", String.class);
     }
 
 }

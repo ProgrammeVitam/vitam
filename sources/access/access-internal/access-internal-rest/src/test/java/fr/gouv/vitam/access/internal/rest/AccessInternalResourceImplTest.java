@@ -29,10 +29,10 @@ package fr.gouv.vitam.access.internal.rest;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -189,7 +189,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void givenStartedServer_WhenUpdateUnitError_ThenReturnError() throws Exception {
         reset(mock);
-        when(mock.updateUnitbyId(anyObject(), anyObject(), anyObject()))
+        when(mock.updateUnitbyId(any(), any(), any()))
             .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
         given().contentType(ContentType.JSON).body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
@@ -439,7 +439,7 @@ public class AccessInternalResourceImplTest {
         reset(mock);
 
         doThrow(new ParseException("Parse Exception Test", 0)).when(mock)
-            .getAccessLog(anyObject());
+            .getAccessLog(any());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")
@@ -456,7 +456,7 @@ public class AccessInternalResourceImplTest {
         reset(mock);
 
         doThrow(new AccessInternalExecutionException("Internal Error")).when(mock)
-            .getAccessLog(anyObject());
+            .getAccessLog(any());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0").body("{}")
@@ -473,7 +473,7 @@ public class AccessInternalResourceImplTest {
         reset(mock);
 
         doThrow(new StorageNotFoundException("Storage Not Found")).when(mock)
-            .getAccessLog(anyObject());
+            .getAccessLog(any());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")
@@ -492,7 +492,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectGroupOk() throws Exception {
         reset(mock);
-        when(mock.selectObjectGroupById(anyObject(), eq(OBJECT_ID))).thenReturn(JsonHandler
+        when(mock.selectObjectGroupById(any(), eq(OBJECT_ID))).thenReturn(JsonHandler
             .getFromString(DATA));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -528,7 +528,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectGroupNotFound() throws Exception {
         reset(mock);
-        when(mock.selectObjectGroupById(anyObject(), eq(OBJECT_ID)))
+        when(mock.selectObjectGroupById(any(), eq(OBJECT_ID)))
             .thenThrow(new NotFoundException());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -541,7 +541,7 @@ public class AccessInternalResourceImplTest {
     @Test
     public void getObjectGroupInternalServerError() throws Exception {
         reset(mock);
-        when(mock.selectObjectGroupById(anyObject(), eq(OBJECT_ID)))
+        when(mock.selectObjectGroupById(any(), eq(OBJECT_ID)))
             .thenThrow(new AccessInternalExecutionException("Wanted exception"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -589,7 +589,7 @@ public class AccessInternalResourceImplTest {
         reset(mock);
 
         doThrow(new StorageNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt(), anyString());
+            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -599,7 +599,7 @@ public class AccessInternalResourceImplTest {
 
         reset(mock);
         doThrow(new MetaDataNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt(), anyString());
+            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -616,7 +616,7 @@ public class AccessInternalResourceImplTest {
 
         reset(mock);
         doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt(), anyString());
+            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -642,7 +642,7 @@ public class AccessInternalResourceImplTest {
         doAnswer(invocation -> {
             return null;
         }).when(mock)
-            .getOneObjectFromObjectGroup(anyObject(), anyString(), anyInt(), anyString());
+            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())
@@ -659,7 +659,7 @@ public class AccessInternalResourceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(resourceAsStream);
         requestResponse.addResult(jsonNode);
 
-        given(mock.selectUnitbyId(anyObject(), anyString()))
+        given(mock.selectUnitbyId(any(), anyString()))
             .willReturn(JsonHandler.toJsonNode(requestResponse));
 
         ArchiveUnitModel archiveUnitModel = buildObjectMapper().treeToValue(jsonNode, ArchiveUnitModel.class);

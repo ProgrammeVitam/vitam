@@ -37,9 +37,8 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.powermock.api.mockito.PowerMockito.doAnswer;
@@ -87,13 +86,13 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
             .setObjectName(objectId).setCurrentStep("StepName");
 
         doAnswer((args) -> {
-            String path = args.getArgumentAt(0, String.class);
-            InputStream is = args.getArgumentAt(1, InputStream.class);
+            String path = args.getArgument(0);
+            InputStream is = args.getArgument(1);
             File file = tempFolder.newFile();
             Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
             transferredFiles.put(path, file);
             return null;
-        }).when(handlerIO).transferInputStreamToWorkspace(anyString(), any(), any(null), eq(false));
+        }).when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), eq(false));
 
         reclassificationPreparationLoadHandlerPlugin =
             new ReclassificationPreparationUpdateDistributionHandler(metaDataClientFactory);
@@ -111,7 +110,7 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
         doReturn(reclassificationOrders).when(handlerIO).getInput(0);
 
         doThrow(MetaDataExecutionException.class).when(metaDataClient)
-            .exportReclassificationChildNodes(any(), anyString(), anyString());
+            .exportReclassificationChildNodes(any(), any(), any());
 
         // When
         ItemStatus itemStatus = reclassificationPreparationLoadHandlerPlugin.execute(parameters, handlerIO);
@@ -154,6 +153,6 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
             .containsExactlyInAnyOrder("id3", "id4");
 
         verify(metaDataClient)
-            .exportReclassificationChildNodes(eq(new HashSet<>(Arrays.asList("id1", "id2", "id3"))), anyString(), anyString());
+            .exportReclassificationChildNodes(eq(new HashSet<>(Arrays.asList("id1", "id2", "id3"))), any(), any());
     }
 }

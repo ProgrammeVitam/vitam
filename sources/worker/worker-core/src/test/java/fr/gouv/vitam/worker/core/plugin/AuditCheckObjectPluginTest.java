@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -94,7 +94,7 @@ public class AuditCheckObjectPluginTest {
         final JsonNode searchResults =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
         reset(metadataClient);
-        when(metadataClient.selectObjectGrouptbyId(anyObject(), anyObject())).thenReturn(searchResults);
+        when(metadataClient.selectObjectGrouptbyId(any(), any())).thenReturn(searchResults);
         
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());

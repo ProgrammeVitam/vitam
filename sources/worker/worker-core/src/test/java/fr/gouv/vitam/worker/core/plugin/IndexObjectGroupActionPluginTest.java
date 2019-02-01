@@ -28,7 +28,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -115,7 +115,7 @@ public class IndexObjectGroupActionPluginTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
         throws Exception {
-        when(metadataClient.insertObjectGroup(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metadataClient.insertObjectGroup(any())).thenReturn(JsonHandler.createObjectNode());
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
         final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
@@ -136,7 +136,7 @@ public class IndexObjectGroupActionPluginTest {
     @Test
     public void testMetadataException()
         throws Exception {
-        when(metadataClient.insertObjectGroups(anyObject())).thenThrow(new MetaDataExecutionException(""));
+        when(metadataClient.insertObjectGroups(any())).thenThrow(new MetaDataExecutionException(""));
         
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -157,7 +157,7 @@ public class IndexObjectGroupActionPluginTest {
     @Test
     public void testMetadataParseException()
         throws Exception {
-        when(metadataClient.insertObjectGroups(anyObject())).thenThrow(new InvalidParseOperationException(""));
+        when(metadataClient.insertObjectGroups(any())).thenThrow(new InvalidParseOperationException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);

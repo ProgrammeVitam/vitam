@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class CheckVersionActionHandlerTest {
 
         versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
         versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
-        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
+        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -105,7 +105,7 @@ public class CheckVersionActionHandlerTest {
         invalidVersionMap.put("PhysicalMaste", "PhysicalMaste");
         versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
         versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
-        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
+        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -114,7 +114,7 @@ public class CheckVersionActionHandlerTest {
     @Test
     public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal()
             throws ProcessingException, IOException, URISyntaxException {
-        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());

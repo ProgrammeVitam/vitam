@@ -28,53 +28,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.rest;
 
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+
+import java.io.File;
+import java.util.Set;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
-import io.restassured.RestAssured;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.VitamServer;
-import fr.gouv.vitam.common.server.VitamServerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.glassfish.jersey.jackson.JacksonFeature;
-import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.servlet.ServletContainer;
-import org.jhades.JHades;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.get;
-
 /**
  *
  */
-public class ProcessDistributorResourceTest {
+public class ProcessDistributorResourceTest extends ResteasyTestApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResourceTest.class);
-
-    private static VitamServer vitamServer;
-
-    private static int serverPort;
     private final String JSON_INVALID_FILE = "json";
 
     private static final String REST_URI = "/processing/v1";
@@ -86,44 +74,37 @@ public class ProcessDistributorResourceTest {
 
     private final String FAMILY_ID_E = "/error";
 
-    private static final String JSON_REGISTER = "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10, \"storage\" : 100," +
-        "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
+    private static final String JSON_REGISTER =
+        "{ \"name\" : \"workername\", \"family\" : \"idFamily\", \"capacity\" : 10, \"storage\" : 100," +
+            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"89102\" } }";
 
-    private static JunitHelper junitHelper;
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    private static VitamServerTestRunner vitamServerTestRunner =
+        new VitamServerTestRunner(ProcessDistributorResourceTest.class);
+
+    private final static WorkerManager workerManager = new WorkerManager();
+
+    @Override
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new ProcessDistributorResource(workerManager));
+    }
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
         VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
         // WorkerManager.initialize();
-        
-        // Identify overlapping in particular jsr311
-        new JHades().overlappingJarsReport();
 
-        junitHelper = JunitHelper.getInstance();
-        serverPort = junitHelper.findAvailablePort();
-
-        RestAssured.port = serverPort;
+        RestAssured.port = vitamServerTestRunner.getBusinessPort();
         RestAssured.basePath = REST_URI;
-
-        try {
-            vitamServer = buildTestServer();
-            vitamServer.start();
-        } catch (final VitamApplicationServerException e) {
-            LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Process Distributor Application Server", e);
-        }
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        vitamServer.stop();
-        junitHelper.releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
     }
 
     @Test
@@ -181,7 +162,7 @@ public class ProcessDistributorResourceTest {
     @Test
     @RunWithCustomExecutor
     public final void testDeleteFamilyWorkers() {
-    	given().contentType(ContentType.JSON).body("")
+        given().contentType(ContentType.JSON).body("")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID).when()
             .delete(WORKER_FAMILY_URI + ID_FAMILY_URI + WORKERS_URI).then()
             .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
@@ -239,28 +220,5 @@ public class ProcessDistributorResourceTest {
             .delete(WORKER_FAMILY_URI + FAMILY_ID_E + WORKERS_URI + ID_WORKER_URI).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
-
-    private static VitamServer buildTestServer() throws VitamApplicationServerException {
-        final VitamServer vitamServer = VitamServerFactory.newVitamServer(serverPort);
-        WorkerManager workerManager = new WorkerManager();
-
-        final ResourceConfig resourceConfig = new ResourceConfig();
-        resourceConfig.register(JacksonFeature.class);
-        final ProcessDistributorResourceTest outer = new ProcessDistributorResourceTest();
-
-        resourceConfig.register(new ProcessDistributorResource(workerManager));
-
-        final ServletContainer servletContainer = new ServletContainer(resourceConfig);
-        final ServletHolder sh = new ServletHolder(servletContainer);
-        final ServletContextHandler contextHandler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        contextHandler.setContextPath("/");
-        contextHandler.addServlet(sh, "/*");
-
-        final HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[] {contextHandler});
-        vitamServer.configure(contextHandler);
-        return vitamServer;
-    }
-
 }
 

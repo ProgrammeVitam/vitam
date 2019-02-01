@@ -1,23 +1,22 @@
 package fr.gouv.vitam.security.internal.filter;
 
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import fr.gouv.vitam.common.security.rest.Secured;
+import org.junit.Assert;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
-
-import fr.gouv.vitam.common.security.rest.Secured;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class AuthorizationFilterTest {
 
@@ -47,11 +46,11 @@ public class AuthorizationFilterTest {
             ArgumentCaptor.forClass(EndpointAdminOnlyAuthorizationFilter.class);
 
         verify(context)
-            .register(endpointAdminOnlyAuthorizationFilterArgumentCaptor.capture(), Matchers.eq(Priorities.AUTHORIZATION + 10));
+            .register(endpointAdminOnlyAuthorizationFilterArgumentCaptor.capture(), eq(Priorities.AUTHORIZATION + 10));
         verify(context)
-            .register(endpointAuthorizationFilterArgumentCaptor.capture(), Matchers.eq(Priorities.AUTHORIZATION + 20));
+            .register(endpointAuthorizationFilterArgumentCaptor.capture(), eq(Priorities.AUTHORIZATION + 20));
         verify(context).register(endpointPersonalCertificateAuthorizationFilterArgumentCaptor.capture(),
-            Matchers.eq(Priorities.AUTHORIZATION + 30));
+            eq(Priorities.AUTHORIZATION + 30));
         verifyNoMoreInteractions(context);
         Assert.assertEquals(MY_PERMISSION, endpointAuthorizationFilterArgumentCaptor.getValue().getPermission());
         Assert.assertEquals(MY_PERMISSION,
@@ -70,7 +69,7 @@ public class AuthorizationFilterTest {
         AuthorizationFilter instance = new AuthorizationFilter();
         instance.configure(resourceInfo, context);
 
-        verify(context, never()).register(anyObject(), anyInt());
+        verify(context, never()).register(any(), anyInt());
     }
 
     @Secured(permission = MY_PERMISSION, description = "description")

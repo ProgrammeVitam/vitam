@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -93,8 +93,8 @@ public class CheckIngestContractActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(anyObject())).thenReturn(createIngestContract(ActivationStatus.ACTIVE));
-        when(adminClient.findContextById(anyObject())).thenReturn(ClientMockResultHelper.getContexts(200));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(createIngestContract(ActivationStatus.ACTIVE));
+        when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
         handler = new CheckIngestContractActionHandler();
@@ -104,7 +104,7 @@ public class CheckIngestContractActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         reset(adminClient);
-        when(adminClient.findIngestContractsByID(anyObject()))
+        when(adminClient.findIngestContractsByID(any()))
             .thenReturn(createIngestContract(ActivationStatus.INACTIVE));
         response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "CONTRACT_INACTIVE");

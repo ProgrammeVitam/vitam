@@ -26,10 +26,10 @@
  */
 package fr.gouv.vitam.common.server.application.configuration;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.BasicAuthModel;
+
+import java.util.List;
 
 /**
  * Default minimal Vitam Application Configuration
@@ -39,6 +39,8 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
     protected String jettyConfig;
     private boolean authentication = false;
     private boolean tenantFilter = false;
+    private boolean enableXsrFilter = false;
+    private boolean enableSession = false;
 
     /**
      * Vitam Basic authentication -> username & password
@@ -68,7 +70,6 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
 
     /**
      * @param authentication the authentication to set
-     *
      * @return this
      */
     @Override
@@ -88,7 +89,6 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
 
     /**
      * @param tenantFilter the tenantFilter to set
-     *
      * @return this
      */
     @Override
@@ -117,4 +117,23 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         return this;
     }
 
+    @Override
+    public boolean isEnableXsrFilter() {
+        return enableXsrFilter;
+    }
+
+    @Override
+    public void setEnableXsrFilter(boolean enableXsrFilter) {
+        this.enableXsrFilter = enableXsrFilter;
+    }
+
+    @Override
+    public boolean isEnableSession() {
+        return enableSession;
+    }
+
+    @Override
+    public void setEnableSession(boolean enableSession) {
+        this.enableSession = enableSession;
+    }
 }

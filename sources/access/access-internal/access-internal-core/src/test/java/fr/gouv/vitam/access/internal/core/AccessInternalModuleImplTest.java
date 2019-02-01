@@ -86,7 +86,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -109,10 +109,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -303,7 +303,7 @@ public class AccessInternalModuleImplTest {
     @Test
     public void given_correct_dsl_When_select_thenOK()
         throws Exception {
-        when(metaDataClient.selectUnits(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metaDataClient.selectUnits(any())).thenReturn(JsonHandler.createObjectNode());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
@@ -316,14 +316,14 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException()
         throws Exception {
-        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(anyObject());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_select_units_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnits(anyObject());
+        PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
 
     }
@@ -331,21 +331,21 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void given__DSLWhen_select_units_ThenThrows_MetadataInvalidSelectException()
         throws Exception {
-        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(anyObject());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_DSLWhen_select_units_ThenThrows_MetaDataDocumentSizeException()
         throws Exception {
-        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnits(anyObject());
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_clientProblem_When_select_units_ThenThrows_AccessExecutionException()
         throws Exception {
-        Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectUnits(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
@@ -353,7 +353,7 @@ public class AccessInternalModuleImplTest {
     @Test
     public void given_correct_dsl_When_selectunitById_thenOK()
         throws Exception {
-        when(metaDataClient.selectUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(JsonHandler.createObjectNode());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
@@ -366,23 +366,23 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException_unitById()
         throws Exception {
-        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnitbyId(anyObject(), anyObject());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnitbyId(any(), any());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_select_unitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnitbyId(anyObject(),
-            anyObject());
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnitbyId(any(),
+            any());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given__DSLWhen_select_unitById_ThenThrows_MetadataInvalidSelectException()
         throws Exception {
-        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnitbyId(anyObject(),
-            anyObject());
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnitbyId(any(),
+            any());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
@@ -459,9 +459,9 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
-            anyObject());
+            any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
@@ -475,10 +475,10 @@ public class AccessInternalModuleImplTest {
             .setHttpCode(Status.OK.getStatusCode());
 
         // Mock select unit response
-        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         // mock get lifecyle
-        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
                 "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
                 "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
@@ -486,7 +486,7 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
@@ -519,9 +519,9 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
-            anyObject());
+            any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
@@ -535,10 +535,10 @@ public class AccessInternalModuleImplTest {
             .setHttpCode(Status.OK.getStatusCode());
 
         // Mock select unit response
-        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         // mock get lifecyle
-        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
                 "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
                 "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
@@ -546,7 +546,7 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
@@ -577,9 +577,9 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
-            anyObject());
+            any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
@@ -593,10 +593,10 @@ public class AccessInternalModuleImplTest {
             .setHttpCode(Status.OK.getStatusCode());
 
         // Mock select unit response
-        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         // mock get lifecyle
-        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
                 "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
                 "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
@@ -604,7 +604,7 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
@@ -635,9 +635,9 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
-            anyObject());
+            any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
@@ -648,8 +648,8 @@ public class AccessInternalModuleImplTest {
             .setHttpCode(Status.OK.getStatusCode());
 
         // Mock select unit response
-        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
 
         accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(QUERY_STRING), id, REQUEST_ID);
 
@@ -670,9 +670,9 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
-            anyObject());
+            any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
@@ -685,10 +685,10 @@ public class AccessInternalModuleImplTest {
             .addResult(jsonResult)
             .setHttpCode(Status.OK.getStatusCode());
         // Mock select unit response
-        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         // mock get lifecyle
-        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
                 "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
                 "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
@@ -696,7 +696,7 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject()))
+        when(metaDataClient.updateUnitbyId(any(), any()))
             .thenThrow(new InvalidParseOperationException("InvalidParseOperationException"));
 
         accessModuleImpl.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(), id, REQUEST_ID);
@@ -718,9 +718,9 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
-            anyObject());
+            any());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
@@ -733,10 +733,10 @@ public class AccessInternalModuleImplTest {
             .addResult(jsonResult)
             .setHttpCode(Status.OK.getStatusCode());
         // Mock select unit response
-        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         // mock get lifecyle
-        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
                 "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
                 "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
@@ -744,7 +744,7 @@ public class AccessInternalModuleImplTest {
                 "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
                 "\"events\":[\"val1\",\"val2\"],\"#tenant\":0}]}"));
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\"}]}"));
 
@@ -761,8 +761,8 @@ public class AccessInternalModuleImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_dsl_When_updateUnitById_thenTrows_IllegalArgumentException()
         throws Exception {
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(any());
 
         accessModuleImpl.updateUnitbyId(fromStringToJson(""), ID, REQUEST_ID);
     }
@@ -772,8 +772,8 @@ public class AccessInternalModuleImplTest {
     public void given_test_AccessExecutionException_updateUnitById()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(any());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(fromStringToJson(QUERY), ID);
 
@@ -794,10 +794,10 @@ public class AccessInternalModuleImplTest {
     public void given_empty_DSLWhen_updateUnitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(any());
         Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
-            .updateUnitbyId(anyObject(), anyObject());
+            .updateUnitbyId(any(), any());
 
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY_UPDATE), ID, REQUEST_ID);
     }
@@ -813,16 +813,16 @@ public class AccessInternalModuleImplTest {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(any());
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
             "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
             "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenThrow(new MetaDataDocumentSizeException(""));
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
+        when(metaDataClient.updateUnitbyId(any(), any())).thenThrow(new MetaDataDocumentSizeException(""));
 
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
     }
@@ -838,18 +838,18 @@ public class AccessInternalModuleImplTest {
             });
         accessContractModel.setIdentifier("FakeIdentifier");
         VitamThreadUtils.getVitamSession().setContract(accessContractModel);
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.createObjectNode());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(any());
+        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.createObjectNode());
         JsonNode jsonResult = JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"Title\":\"MyTitle\"," +
             "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
             "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient)
-            .updateUnitbyId(anyObject(), anyObject());
+            .updateUnitbyId(any(), any());
 
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
     }
@@ -870,7 +870,7 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        Mockito.doThrow(new LogbookClientNotFoundException("")).when(logbookOperationClient).update(anyObject());
+        Mockito.doThrow(new LogbookClientNotFoundException("")).when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
@@ -884,9 +884,9 @@ public class AccessInternalModuleImplTest {
             .setHttpCode(Status.OK.getStatusCode());
 
         // Mock select unit response
-        when(metaDataClient.getUnitByIdRaw(anyObject())).thenReturn(requestResponseUnit);
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
         // mock get lifecyle
-        when(logbookLifeCycleClient.selectUnitLifeCycleById(anyObject(), anyObject(), anyObject()))
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
             .thenReturn(JsonHandler.getFromString("{\"$hits" +
                 "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false}," +
                 "\"$results\":[{\"_id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"evType\":\"Process_SIP_unitary\"," +
@@ -899,9 +899,9 @@ public class AccessInternalModuleImplTest {
             "\"Description\":\"Ma description est bien détaillée\",\"CreatedDate\":\"2016-09-28T11:44:28.548\"," +
             "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString())).thenReturn(jsonResult);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
         // Mock update unit response
-        when(metaDataClient.updateUnitbyId(anyObject(), anyObject())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
             "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
             "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
             "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
@@ -914,8 +914,8 @@ public class AccessInternalModuleImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void given_emptyOrNullIdUnit_when_updateUnitbyId_thenthrows_IllegalArgumentException() throws Exception {
-        Mockito.doNothing().when(logbookOperationClient).update(anyObject());
-        Mockito.doNothing().when(logbookLifeCycleClient).update(anyObject());
+        Mockito.doNothing().when(logbookOperationClient).update(any());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(any());
         Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(fromStringToJson(QUERY), "");
 
@@ -933,12 +933,12 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+        when(metaDataClient.selectObjectGrouptbyId(any(), any()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+        when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenReturn(responseMock);
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
         assertNotNull(reponseFinal);
@@ -956,12 +956,12 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroupRealData_OK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+        when(metaDataClient.selectObjectGrouptbyId(any(), any()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_PATH)));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_PATH));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+        when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenReturn(responseMock);
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
 
@@ -987,12 +987,12 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroupRealData_WARN() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+        when(metaDataClient.selectObjectGrouptbyId(any(), any()))
             .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(REAL_DATA_RESULT_MULTI_PATH)));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(PropertiesUtils.getResourceAsStream(REAL_DATA_RESULT_MULTI_PATH));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+        when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenReturn(responseMock);
         Response reponseFinal = accessModuleImpl.getOneObjectFromObjectGroup(ID, "Thumbnail", 0, "unit0");
         assertNotNull(reponseFinal);
@@ -1022,12 +1022,12 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_One_Result() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+        when(metaDataClient.selectObjectGrouptbyId(any(), any()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+        when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenReturn(responseMock);
         Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
         assertNotNull(response);
@@ -1039,12 +1039,12 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_ObjectMapping_Result() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+        when(metaDataClient.selectObjectGrouptbyId(any(), any()))
             .thenReturn(fromStringToJson(FAKE_METADATA_MULTIPLE_RESULT));
         final Response responseMock = mock(Response.class);
         when(responseMock.readEntity(InputStream.class))
             .thenReturn(new ByteArrayInputStream(FAKE_METADATA_MULTIPLE_RESULT.getBytes()));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+        when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenReturn(responseMock);
         Response response = accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
         assertNotNull(response);
@@ -1055,7 +1055,7 @@ public class AccessInternalModuleImplTest {
     @RunWithCustomExecutor
     public void testGetOneObjectFromObjectGroup_With_Result_Null() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString())).thenReturn(null);
+        when(metaDataClient.selectObjectGrouptbyId(any(), any())).thenReturn(null);
         accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
     }
 
@@ -1064,9 +1064,9 @@ public class AccessInternalModuleImplTest {
     public void testGetOneObjectFromObjectGroup_With_StorageClient_Error() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         setAccessLogInfoInVitamSession();
-        when(metaDataClient.selectObjectGrouptbyId(anyObject(), anyString()))
+        when(metaDataClient.selectObjectGrouptbyId(any(), any()))
             .thenReturn(fromStringToJson(FAKE_METADATA_RESULT));
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+        when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenThrow(new StorageServerClientException("Test wanted exception"));
         accessModuleImpl.getOneObjectFromObjectGroup(ID, "BinaryMaster", 0, "unit0");
     }
@@ -1076,7 +1076,7 @@ public class AccessInternalModuleImplTest {
     public void testCheckRulesOnUpdateAU() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        when(metaDataClient.selectUnitbyId(anyObject(), anyString()))
+        when(metaDataClient.selectUnitbyId(any(), any()))
             .thenReturn(fromStringToJson("{\"$hits" +
                 "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
                 "\"$results\":[" + SELECT_AU_RESPONSE + "]}"));
@@ -1155,7 +1155,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode unitArchiveWithRules = fromStringToJson(
             "{\"$results\":[{\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"batman\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"SedaVersion\":\"2.1\",\"#id\":\"aeaqaaaaaaftu7s5aakq6alerwedliqaaabq\",\"#tenant\":0,\"#unitups\":[],\"#min\":1,\"#max\":1,\"#allunitups\":[],\"#management\":{\"StorageRule\":{\"Rules\":[{\"Rule\":\"STO-00001\",\"StartDate\":\"2002-01-01\",\"EndDate\":\"2003-01-01\"}],\"FinalAction\":\"Copy\"}},\"#unitType\":\"INGEST\",\"#operations\":[\"aeeaaaaaacftu7s5aakr6alerwebi4aaaaaq\"],\"#opi\":\"aeeaaaaaacftu7s5aakr6alerwebi4aaaaaq\",\"#originating_agency\":\"FRAN_NP_009913\",\"#originating_agencies\":[\"FRAN_NP_009913\"],\"#storage\":{\"offerIds\":[\"offer-fs-1.service.consul\"],\"strategyId\":\"default\",\"#nbc\":1},\"#version\":48}]}");
-        when(metaDataClient.selectUnitbyId(any(), anyString())).thenReturn(unitArchiveWithRules);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(unitArchiveWithRules);
 
         // When
         accessModuleImpl.checkAndUpdateRuleQuery(parser);
@@ -1176,7 +1176,7 @@ public class AccessInternalModuleImplTest {
 
         JsonNode unitArchiveWithRules = fromStringToJson(
             "{\"$results\":[{\"DescriptionLevel\":\"RecordGrp\",\"Title\":\"dossier2\",\"Description\":\"batman\",\"StartDate\":\"2016-06-03T15:28:00\",\"EndDate\":\"2016-06-03T15:28:00\",\"SedaVersion\":\"2.1\",\"#id\":\"aeaqaaaaaaftu7s5aakq6alerwedliqaaabq\",\"#tenant\":0,\"#unitups\":[],\"#min\":1,\"#max\":1,\"#allunitups\":[],\"#management\":{},\"#unitType\":\"INGEST\",\"#operations\":[\"aeeaaaaaacftu7s5aakr6alerwebi4aaaaaq\"],\"#opi\":\"aeeaaaaaacftu7s5aakr6alerwebi4aaaaaq\",\"#originating_agency\":\"FRAN_NP_009913\",\"#originating_agencies\":[\"FRAN_NP_009913\"],\"#storage\":{\"offerIds\":[\"offer-fs-1.service.consul\"],\"strategyId\":\"default\",\"#nbc\":1},\"#version\":48}]}");
-        when(metaDataClient.selectUnitbyId(any(), anyString())).thenReturn(unitArchiveWithRules);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(unitArchiveWithRules);
 
         // When
         accessModuleImpl.checkAndUpdateRuleQuery(parser);
@@ -1205,7 +1205,7 @@ public class AccessInternalModuleImplTest {
     @Test
     public void givenCorrectDslWhenSelectObjectsThenOK()
         throws Exception {
-        when(metaDataClient.selectObjectGroups(anyObject())).thenReturn(JsonHandler.createObjectNode());
+        when(metaDataClient.selectObjectGroups(any())).thenReturn(JsonHandler.createObjectNode());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
@@ -1218,7 +1218,7 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenSelectObjectsTestAccessExecutionException()
         throws Exception {
-        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
@@ -1226,7 +1226,7 @@ public class AccessInternalModuleImplTest {
     public void givenEmptyDSLWhenSelectObjectsThenThrowsInvalidParseOperationException()
         throws Exception {
         PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
-            .selectObjectGroups(anyObject());
+            .selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
 
     }
@@ -1234,21 +1234,21 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenDSLWhenSelectObjectsThenThrowsMetadataInvalidSelectException()
         throws Exception {
-        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void givenDSLWhenSelectObjectsThenThrowsMetaDataDocumentSizeException()
         throws Exception {
-        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void givenClientProblemWhenSelectObjectsThenThrowsAccessExecutionException()
         throws Exception {
-        Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectObjectGroups(anyObject());
+        Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
@@ -1308,16 +1308,16 @@ public class AccessInternalModuleImplTest {
     }
 
     private void initMocksForAccessLog() throws Exception {
-        when(storageClient.listContainer(anyString(), anyObject())).thenReturn(getMockedResponseForListContainer());
-        when(storageClient.getContainerAsync(anyString(), anyString(), anyObject(), anyObject()))
+        when(storageClient.listContainer(any(), any())).thenReturn(getMockedResponseForListContainer());
+        when(storageClient.getContainerAsync(any(), any(), any(), any()))
             .thenReturn(Response.ok(null).build());
-        when(workspaceClient.isExistingContainer(anyString())).thenReturn(true);
-        doNothing().when(workspaceClient).putObject(anyString(), anyString(), anyObject());
-        doNothing().when(workspaceClient).compress(anyString(), anyObject());
-        doNothing().when(workspaceClient).createContainer(anyString());
+        when(workspaceClient.isExistingContainer(any())).thenReturn(true);
+        doNothing().when(workspaceClient).putObject(any(), any(), any());
+        doNothing().when(workspaceClient).compress(any(), any());
+        doNothing().when(workspaceClient).createContainer(any());
         Response response =
             Response.ok(new ByteArrayInputStream("ResponseOK".getBytes())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(anyString(), anyString())).thenReturn(response);
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
     }
 
     @Test
@@ -1329,7 +1329,7 @@ public class AccessInternalModuleImplTest {
         ObjectNode params = JsonHandler.createObjectNode();
 
         accessModuleImpl.getAccessLog(params);
-        verify(workspaceClient, times(3)).putObject(anyString(), anyString(), anyObject());
+        verify(workspaceClient, times(3)).putObject(any(), any(), any());
     }
 
 
@@ -1344,7 +1344,7 @@ public class AccessInternalModuleImplTest {
         params.set("StartDate", new TextNode("2018-08-10T12:00:00.000Z"));
 
         accessModuleImpl.getAccessLog(params);
-        verify(workspaceClient, times(2)).putObject(anyString(), anyString(), anyObject());
+        verify(workspaceClient, times(2)).putObject(any(), any(), any());
     }
 
 
@@ -1358,7 +1358,7 @@ public class AccessInternalModuleImplTest {
         params.set("EndDate", new TextNode("2018-08-10T12:00:00.000Z"));
 
         accessModuleImpl.getAccessLog(params);
-        verify(workspaceClient, times(2)).putObject(anyString(), anyString(), anyObject());
+        verify(workspaceClient, times(2)).putObject(any(), any(), any());
     }
 
     @Test

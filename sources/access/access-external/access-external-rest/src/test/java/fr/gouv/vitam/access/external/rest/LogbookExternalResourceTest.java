@@ -3,7 +3,7 @@ package fr.gouv.vitam.access.external.rest;
 import static io.restassured.RestAssured.given;
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.reset;
 import static org.powermock.api.mockito.PowerMockito.mock;
 import static org.powermock.api.mockito.PowerMockito.when;
@@ -115,16 +115,16 @@ public class LogbookExternalResourceTest {
         when(AccessInternalClientFactory.getInstance().getClient())
             .thenReturn(accessInternalClient);
 
-        when(accessInternalClient.selectOperation(anyObject()))
+        when(accessInternalClient.selectOperation(any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
 
-        when(accessInternalClient.selectOperationById(anyObject(), anyObject()))
+        when(accessInternalClient.selectOperationById(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
-        when(accessInternalClient.selectUnitLifeCycleById(anyObject(), anyObject()))
+        when(accessInternalClient.selectUnitLifeCycleById(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
-        when(accessInternalClient.selectObjectGroupLifeCycleById(anyObject(), anyObject()))
+        when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
 
         // Mock AccessInternal response for check TRACEABILITY operation request
@@ -222,11 +222,11 @@ public class LogbookExternalResourceTest {
     @Test
     public void testSelect_NotFound() throws Exception {
         reset(accessInternalClient);
-        when(accessInternalClient.selectUnitLifeCycleById(anyObject(), anyObject()))
+        when(accessInternalClient.selectUnitLifeCycleById(any(), any()))
             .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectObjectGroupLifeCycleById(anyObject(), anyObject()))
+        when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any()))
             .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectOperationById(anyObject(), anyObject()))
+        when(accessInternalClient.selectOperationById(any(), any()))
             .thenThrow(new LogbookClientNotFoundException(""));
 
         given()

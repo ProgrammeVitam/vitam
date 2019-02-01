@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.client;
 
+import com.google.common.base.Objects;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
-import jersey.repackaged.com.google.common.base.Objects;
 
 /**
  * worker client configuration

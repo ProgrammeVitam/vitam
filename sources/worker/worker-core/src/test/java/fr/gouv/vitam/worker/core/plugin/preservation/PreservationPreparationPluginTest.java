@@ -40,8 +40,8 @@ import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationPreparationPlugin.OBJECT_GROUPS_TO_PRESERVE_JSONL;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -107,7 +107,7 @@ public class PreservationPreparationPluginTest {
         Map<String, File> files = new HashMap<>();
         doAnswer((args) -> {
             File file = temporaryFolder.newFile();
-            files.put(args.getArgumentAt(0, String.class), file);
+            files.put(args.getArgument(0), file);
             return file;
         }).when(handler).getNewLocalFile(anyString());
 

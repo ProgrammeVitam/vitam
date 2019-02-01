@@ -77,7 +77,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -195,7 +195,7 @@ public class StoreMetaDataUnitActionPluginTest {
             DataCategory.UNIT.name() + "/" + params.getObjectName()))
             .thenReturn(Response.status(Status.OK).entity(unit).build());
 
-        when(storageClient.storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject()))
+        when(storageClient.storeFileFromWorkspace(any(), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
 
         plugin = new StoreMetaDataUnitActionPlugin();
@@ -252,9 +252,9 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
-            .getUnitByIdRaw(anyObject());
+            .getUnitByIdRaw(any());
 
-        when(logbookClient.getRawUnitLifeCycleById(anyObject()))
+        when(logbookClient.getRawUnitLifeCycleById(any()))
             .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
@@ -275,7 +275,7 @@ public class StoreMetaDataUnitActionPluginTest {
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
             .getUnitByIdRaw(UNIT_GUID);
 
-        when(logbookClient.getRawUnitLifeCycleById(anyObject()))
+        when(logbookClient.getRawUnitLifeCycleById(any()))
             .thenReturn(lfcResponse);
 
         plugin = new StoreMetaDataUnitActionPlugin();
@@ -293,10 +293,10 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setObjectNameList(Lists.newArrayList(UNIT_GUID + ".json"))
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
-        when(metadataClient.getUnitByIdRaw(anyObject())).thenReturn(unitResponse);
+        when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
 
         Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookClient)
-            .getRawUnitLifeCycleById(anyObject());
+            .getRawUnitLifeCycleById(any());
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -323,7 +323,7 @@ public class StoreMetaDataUnitActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromWorkspace(any(), any(), any(), any());
 
         plugin = new StoreMetaDataUnitActionPlugin();
 
@@ -350,7 +350,7 @@ public class StoreMetaDataUnitActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(unit).build());
 
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
-            .storeFileFromWorkspace(anyObject(), anyObject(), anyObject(), anyObject());
+            .storeFileFromWorkspace(any(), any(), any(), any());
 
         plugin = new StoreMetaDataUnitActionPlugin();
 

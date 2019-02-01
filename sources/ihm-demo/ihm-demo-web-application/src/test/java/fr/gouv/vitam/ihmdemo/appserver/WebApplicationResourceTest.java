@@ -32,7 +32,6 @@ import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
-import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -81,7 +80,6 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -106,11 +104,10 @@ import java.util.Map;
 import static io.restassured.RestAssured.given;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -123,10 +120,10 @@ import static org.mockito.Mockito.when;
 public class WebApplicationResourceTest {
 
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-demo";
-    private static final String DEFAULT_STATIC_CONTENT = "webapp";
     private static final String DEFAULT_WEB_APP_CONTEXT_V2 = "/ihm-demo-v2";
     private static final String DEFAULT_STATIC_CONTENT_V2 = "webapp/v2";
-    private static final String OPTIONS = "{\"dslRequest\": {\"$query\": [{\"$eq\": {\"#id\": \"toto\"}}],\"$filter\": {},\"$projection\": {}},\"dataObjectVersionToExport\": { }}";
+    private static final String OPTIONS =
+        "{\"dslRequest\": {\"$query\": [{\"$eq\": {\"#id\": \"toto\"}}],\"$filter\": {},\"$projection\": {}},\"dataObjectVersionToExport\": { }}";
     private static final String AUDIT_OPTION = "{serviceProducteur: \"Service Producteur 1\"}";
     private static final Cookie COOKIE = new Cookie.Builder("JSESSIONID", "testId").build();
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"myName\", \"credentials\": \"myName\"}}";
@@ -138,11 +135,9 @@ public class WebApplicationResourceTest {
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
     private static final String TREE_QUERY = "{\"$query\": [{" + "\"$and\": [{" +
         "\"$in\": {\"#id\": [\"P1\",\"P2\",\"P3\"]}},{" + "\"$eq\": {\"#max\": 1}" + "}]}], \"$projection\": {}}";
-    private static final String FAKE_STRING_RETURN = "{Fake: \"String\"}";
     private static final JsonNode FAKE_JSONNODE_RETURN = JsonHandler.createObjectNode();
     private static final String FAKE_UNIT_LF_ID = "1";
     private static final String FAKE_OBG_LF_ID = "1";
-    private static final String SIP_DIRECTORY = "sip";
     private static final String INGEST_URI = "/ingests";
     private static JunitHelper junitHelper;
     private static int port;
@@ -176,6 +171,8 @@ public class WebApplicationResourceTest {
                 .setBaseUrl(DEFAULT_WEB_APP_CONTEXT)
                 .setStaticContent(DEFAULT_STATIC_CONTENT_V2).setBaseUri(DEFAULT_WEB_APP_CONTEXT_V2)
                 .setJettyConfig(JETTY_CONFIG);
+        webApplicationConfig.setEnableSession(true);
+        webApplicationConfig.setEnableXsrFilter(true);
         VitamConfiguration.setTenants(tenants);
         VitamConfiguration.setAdminTenant(1);
         final File conf = PropertiesUtils.findFile(IHM_DEMO_CONF);
@@ -230,11 +227,11 @@ public class WebApplicationResourceTest {
 
     @Test
     public void givenNoArchiveUnitWhenSearchOperationsThenReturnOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(anyObject(), anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(any(), any()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON)
@@ -275,7 +272,7 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalFactory);
 
         JsonNode jsonNode = JsonHandler.createObjectNode();
-        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
+        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(any());
         Mockito.doReturn(200).when(mockResponse).getStatus();
         Mockito.doReturn(mockResponse).when(adminExternalClient).updateAccessContract(eq(new VitamContext(TENANT_ID)),
             eq("azercdsqsdf"), eq(jsonNode));
@@ -325,8 +322,8 @@ public class WebApplicationResourceTest {
         final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
         PowerMockito.when(DslQueryHelper.createSingleQueryDSL(searchCriteriaMap)).thenReturn(preparedDslQuery);
 
-        PowerMockito.when(UserInterfaceTransactionManager.selectOperation(anyObject(), anyObject()))
-            .thenThrow(Exception.class);
+        PowerMockito.when(UserInterfaceTransactionManager.selectOperation(any(), any()))
+            .thenThrow(new RuntimeException());
         given().contentType(ContentType.JSON).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/logbook/operations");
@@ -352,7 +349,7 @@ public class WebApplicationResourceTest {
         throws Exception {
         String contractName = "test_contract";
         PowerMockito.when(UserInterfaceTransactionManager.selectOperationbyId(any(), any()))
-            .thenThrow(Exception.class);
+            .thenThrow(RuntimeException.class);
 
         given().param("idOperation", "1").header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .header(new Header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractName)).cookie(COOKIE).expect()
@@ -397,32 +394,11 @@ public class WebApplicationResourceTest {
 
         // UserInterfaceTransactionManager Exception 1 :
         // AccessExternalClientServerException
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(any(), any()))
-            .thenThrow(AccessExternalClientServerException.class);
+        when(UserInterfaceTransactionManager.searchUnits(any(), any())).thenThrow(new VitamClientException(""));
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when().post("/archivesearch/units");
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void testArchiveSearchResultAccessExternalClientNotFoundException()
-        throws Exception {
-        final Map<String, Object> searchCriteriaMap = JsonHandler.getMapFromString(OPTIONS);
-        final JsonNode preparedDslQuery = JsonHandler.createObjectNode();
-
-        PowerMockito.when(DslQueryHelper.createSelectElasticsearchDSLQuery(searchCriteriaMap))
-            .thenReturn(preparedDslQuery);
-        PowerMockito.when(UserInterfaceTransactionManager.searchUnits(any(), any()))
-            .thenThrow(AccessExternalClientNotFoundException.class);
-
-        given().contentType(ContentType.JSON).body(OPTIONS).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_NAME).expect()
-            .statusCode(Status.NOT_FOUND.getStatusCode())
-            .when()
-            .post("/archivesearch/units");
     }
 
     @SuppressWarnings("unchecked")
@@ -437,7 +413,7 @@ public class WebApplicationResourceTest {
         // UserInterfaceTransactionManager Exception 1 :
         // AccessExternalClientServerException
         PowerMockito.when(UserInterfaceTransactionManager.searchUnits(any(), any()))
-            .thenThrow(Exception.class);
+            .thenThrow(VitamClientException.class);
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
             .contentType(ContentType.JSON).body(OPTIONS).cookie(COOKIE).expect()
@@ -500,7 +476,7 @@ public class WebApplicationResourceTest {
         PowerMockito
             .when(
                 UserInterfaceTransactionManager.getArchiveUnitDetails(any(), any(), any()))
-            .thenThrow(AccessExternalClientServerException.class);
+            .thenThrow(VitamClientException.class);
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -546,7 +522,7 @@ public class WebApplicationResourceTest {
         PowerMockito
             .when(
                 UserInterfaceTransactionManager.getArchiveUnitDetails(any(), any(), any()))
-            .thenThrow(Exception.class);
+            .thenThrow(VitamClientException.class);
 
         given().param("id", "1").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -593,9 +569,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
-        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
+        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(any());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(ingestClient).ingest(anyObject(), anyObject(), anyObject(), anyObject());
+        Mockito.doReturn(mockResponse).when(ingestClient).ingest(any(), any(), any(), any());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
@@ -623,9 +599,9 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
-        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(anyObject());
+        Mockito.doReturn("Atr").when(mockResponse).getHeaderString(any());
         Mockito.doReturn(200).when(mockResponse).getStatus();
-        Mockito.doReturn(mockResponse).when(ingestClient).ingest(anyObject(), anyObject(), anyObject(), anyObject());
+        Mockito.doReturn(mockResponse).when(ingestClient).ingest(any(), any(), any(), any());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("SIP.zip");
         // Need for test
@@ -706,7 +682,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient)
-            .createFormats(anyObject(), anyObject(), anyObject());
+            .createFormats(any(), any(), any());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -731,8 +707,8 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()))
-            .when(adminManagementClient).createFormats(anyObject(),
-                anyObject(), anyObject());
+            .when(adminManagementClient).createFormats(any(),
+            any(), any());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -757,8 +733,8 @@ public class WebApplicationResourceTest {
         final IngestExternalClient ingestClient = PowerMockito.mock(IngestExternalClient.class);
         final IngestExternalClientFactory ingestFactory = PowerMockito.mock(IngestExternalClientFactory.class);
         doThrow(new IngestExternalException("IngestExternalException")).when(ingestClient).ingest(
-            anyObject(), anyObject(),
-            anyObject(), anyObject());
+            any(), any(),
+            any(), any());
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
 
@@ -782,15 +758,15 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getFormatList()).when(adminClient).findFormats(
-            anyObject(), anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            any(), any());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -803,14 +779,14 @@ public class WebApplicationResourceTest {
     public void testSearchFormatBadRequest() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON)
@@ -825,15 +801,15 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new VitamClientException("")).when(adminClient).findFormats(
-            anyObject(), anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            any(), any());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().contentType(ContentType.JSON)
@@ -848,7 +824,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getFormat()).when(adminClient).findFormatById(
-            anyObject(), anyObject());
+            any(), any());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
@@ -865,7 +841,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new VitamClientException("VitamClientException"))
-            .when(adminClient).findFormatById(anyObject(), anyObject());
+            .when(adminClient).findFormatById(any(), any());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
@@ -881,9 +857,9 @@ public class WebApplicationResourceTest {
     public void testCheckFormatOK() throws Exception {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        PowerMockito.when(adminClient.checkFormats(anyObject(), anyObject()))
+        PowerMockito.when(adminClient.checkFormats(any(), any()))
             .thenReturn(Response.ok().build());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
@@ -914,7 +890,7 @@ public class WebApplicationResourceTest {
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .setDescription(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_BY_ID_ERROR.getMessage() + " Cause : " +
                     Status.NOT_FOUND.getReasonPhrase());
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), any())).thenReturn(vitamError);
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(any(), any(), any())).thenReturn(vitamError);
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.NOT_FOUND.getStatusCode()).when()
@@ -927,7 +903,7 @@ public class WebApplicationResourceTest {
         final RequestResponseOK<JsonNode> sampleObjectGroup = RequestResponseOK.getFromJsonNode(node);
         sampleObjectGroup.setHttpCode(Status.OK.getStatusCode());
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), any()))
+            .when(UserInterfaceTransactionManager.selectObjectbyId(any(), any(), any()))
             .thenReturn(sampleObjectGroup);
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -938,9 +914,9 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testBadRequestGetArchiveObjectGroup() throws Exception {
-        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(anyObject()))
+        PowerMockito.when(DslQueryHelper.createSelectDSLQuery(any()))
             .thenThrow(new InvalidParseOperationException(""));
-        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), any()))
+        PowerMockito.when(UserInterfaceTransactionManager.selectObjectbyId(any(), any(), any()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN).setHttpCode(400));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -952,7 +928,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testInternalServerErrorGetArchiveObjectGroup() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), any()))
+            .when(UserInterfaceTransactionManager.selectObjectbyId(any(), any(), any()))
             .thenThrow(new VitamClientException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -964,7 +940,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testUnknownErrorGetArchiveObjectGroup() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.selectObjectbyId(anyObject(), anyObject(), any()))
+            .when(UserInterfaceTransactionManager.selectObjectbyId(any(), any(), any()))
             .thenThrow(new NullPointerException(""));
 
         given().accept(MediaType.APPLICATION_JSON).contentType(MediaType.APPLICATION_JSON)
@@ -977,7 +953,7 @@ public class WebApplicationResourceTest {
     public void testVitamExceptionGetObjectAsInputStream() throws Exception {
 
         PowerMockito.when(
-            UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyString(), anyString(),
+            UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(), anyString(),
                 anyInt(), anyString(), any()))
             .thenThrow(new VitamClientException(""));
 
@@ -999,7 +975,7 @@ public class WebApplicationResourceTest {
     public void testOKGetObjectAsInputStream() throws Exception {
 
         PowerMockito
-            .when(UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyString(),
+            .when(UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(),
                 anyString(), anyInt(), anyString(), any()))
             .thenReturn(true);
 
@@ -1015,7 +991,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testBadRequestGetObjectAsInputStream() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyString(),
+            .when(UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(),
                 anyString(), anyInt(), anyString(), any()))
             .thenReturn(true);
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1029,7 +1005,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testAccessUnknownExceptionGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
-            UserInterfaceTransactionManager.getObjectAsInputStream(anyObject(), anyString(), anyString(),
+            UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(), anyString(),
                 anyInt(), anyString(), any()))
             .thenThrow(new NullPointerException());
         given()
@@ -1046,7 +1022,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testUnitTreeOk() throws InvalidCreateOperationException, VitamException {
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), any()))
+            UserInterfaceTransactionManager.searchUnits(any(), any()))
             .thenReturn(RequestResponseOK.getFromJsonNode(FAKE_JSONNODE_RETURN));
 
         given().contentType(ContentType.JSON).body(TREE_QUERY)
@@ -1060,8 +1036,8 @@ public class WebApplicationResourceTest {
     public void testUnitTreeWithAccessExternalClientServerException()
         throws Exception {
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), any()))
-            .thenThrow(AccessExternalClientServerException.class);
+            UserInterfaceTransactionManager.searchUnits(any(), any()))
+            .thenThrow(VitamClientException.class);
 
         given().contentType(ContentType.JSON).body(TREE_QUERY)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1074,8 +1050,8 @@ public class WebApplicationResourceTest {
     public void testUnitTreeWithAccessExternalClientNotFoundException()
         throws Exception {
         PowerMockito.when(
-            UserInterfaceTransactionManager.searchUnits(anyObject(), any()))
-            .thenThrow(AccessExternalClientNotFoundException.class);
+            UserInterfaceTransactionManager.searchUnits(any(), any()))
+            .thenThrow(VitamClientException.class);
 
         given().contentType(ContentType.JSON).body(TREE_QUERY)
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1094,7 +1070,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminExternalClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new AccessExternalClientException("")).when(adminManagementClient)
-            .createRules(anyObject(), anyObject(), anyObject());
+            .createRules(any(), any(), any());
         PowerMockito.when(adminExternalClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
 
@@ -1119,7 +1095,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClientFactory adminManagementClientFactory =
             PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()))
-            .when(adminManagementClient).createRules(anyObject(), anyObject(), anyObject());
+            .when(adminManagementClient).createRules(any(), any(), any());
         PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
 
@@ -1144,15 +1120,15 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getRuleList()).when(adminClient).findRules(
-            anyObject(), anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            any(), any());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1166,15 +1142,15 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         doReturn(ClientMockResultHelper.getRuleList()).when(adminClient).findRules(
-            anyObject(), anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            any(), any());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenThrow(new InvalidParseOperationException(""));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1188,15 +1164,15 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new VitamClientException("")).when(adminClient)
-            .findRules(anyObject(), anyObject());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+            .findRules(any(), any());
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1210,7 +1186,7 @@ public class WebApplicationResourceTest {
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
         PowerMockito.doThrow(new VitamClientException("VitamClientException"))
-            .when(adminClient).findRuleById(anyObject(), anyObject());
+            .when(adminClient).findRuleById(any(), any());
 
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
@@ -1226,9 +1202,9 @@ public class WebApplicationResourceTest {
         String jsonReturn = "{test: \"ok\"}";
         final AdminExternalClient adminClient = PowerMockito.mock(AdminExternalClient.class);
         final AdminExternalClientFactory adminFactory = PowerMockito.mock(AdminExternalClientFactory.class);
-        when(adminClient.checkRules(anyObject(), anyObject()))
+        when(adminClient.checkRules(any(), any()))
             .thenReturn(ClientMockResultHelper.getObjectStream());
-        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(anyObject()))
+        PowerMockito.when(DslQueryHelper.createSingleQueryDSL(any()))
             .thenReturn(JsonHandler.getFromString(OPTIONS));
         PowerMockito.when(adminFactory.getClient()).thenReturn(adminClient);
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminFactory);
@@ -1333,11 +1309,11 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFundsRegisterOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), any()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(any(), any()))
             .thenReturn(ClientMockResultHelper.getAccessionRegisterSummary());
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1358,10 +1334,11 @@ public class WebApplicationResourceTest {
                 .setDescription(VitamCode.ADMIN_EXTERNAL_FIND_DOCUMENT_ERROR.getMessage() + " Cause : " +
                     Status.NOT_FOUND.getReasonPhrase());
 
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), any())).thenReturn(vitamError);
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(any(), any()))
+            .thenReturn(vitamError);
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1372,11 +1349,11 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testSearchFundsRegisterBadRequest() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(anyObject(), any()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterSummary(any(), any()))
             .thenThrow(new InvalidParseOperationException(""));
 
-        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), anyObject());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
+        PowerMockito.doNothing().when(PaginationHelper.class, "setResult", anyString(), any());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
             .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF)
@@ -1387,10 +1364,10 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testGetAccessionRegisterDetailOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterDetail(anyObject(), any(), any()))
+        PowerMockito.when(UserInterfaceTransactionManager.findAccessionRegisterDetail(any(), any(), any()))
             .thenReturn(ClientMockResultHelper.getAccessionRegisterDetail());
-        PowerMockito.when(PaginationHelper.getResult(Matchers.any(JsonNode.class), anyObject()))
-                .thenReturn(JsonHandler.createObjectNode());
+        PowerMockito.when(PaginationHelper.getResult(any(JsonNode.class), any()))
+            .thenReturn(JsonHandler.createObjectNode());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .contentType(ContentType.JSON).body(OPTIONS).expect()
@@ -1401,7 +1378,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testGetAccessionRegisterDetailBadRequest() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.findAccessionRegisterDetail(anyObject(), anyObject(), any()))
+            .when(UserInterfaceTransactionManager.findAccessionRegisterDetail(any(), any(), any()))
             .thenThrow(new InvalidParseOperationException(""));
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1418,8 +1395,8 @@ public class WebApplicationResourceTest {
         PowerMockito.when(ingestFactory.getClient()).thenReturn(ingestClient);
         PowerMockito.when(IngestExternalClientFactory.getInstance()).thenReturn(ingestFactory);
         Mockito.doReturn(ClientMockResultHelper.getObjectStream()).when(ingestClient).downloadObjectAsync(
-            anyObject(), anyObject(),
-            anyObject());
+            any(), any(),
+            any());
 
         RestAssured.given()
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1437,16 +1414,16 @@ public class WebApplicationResourceTest {
                 MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
 
         Mockito.doReturn(fakeResponse).when(ingestClient).downloadObjectAsync(
-            anyObject(), anyObject(),
-            anyObject());
+            any(), any(),
+            any());
         RestAssured.given()
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
         Mockito.doThrow(new VitamClientException("")).when(ingestClient).downloadObjectAsync(
-            anyObject(), anyObject(),
-            anyObject());
+            any(), any(),
+            any());
         RestAssured.given()
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .when().get(INGEST_URI + "/1/" + IngestCollection.MANIFESTS.getCollectionName())
@@ -1459,7 +1436,7 @@ public class WebApplicationResourceTest {
         // Mock AccessExternal response
         PowerMockito
             .when(
-                UserInterfaceTransactionManager.checkTraceabilityOperation(Mockito.anyObject(), any()))
+                UserInterfaceTransactionManager.checkTraceabilityOperation(any(), any()))
             .thenReturn(ClientMockResultHelper.getLogbooksRequestResponse());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1484,7 +1461,7 @@ public class WebApplicationResourceTest {
         when(adminExternalClient.downloadTraceabilityOperationFile(
             any(),
             eq("1")))
-                .thenReturn(ClientMockResultHelper.getObjectStream());
+            .thenReturn(ClientMockResultHelper.getObjectStream());
 
         RestAssured.given()
             .header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1495,7 +1472,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testExtractTimestampInformation() throws Exception {
 
-        PowerMockito.when(UserInterfaceTransactionManager.extractInformationFromTimestamp(anyObject()))
+        PowerMockito.when(UserInterfaceTransactionManager.extractInformationFromTimestamp(any()))
             .thenCallRealMethod();
 
         final InputStream tokenFile =
@@ -1531,7 +1508,7 @@ public class WebApplicationResourceTest {
 
         JsonNode auditOption = JsonHandler.getFromString(AUDIT_OPTION);
         PowerMockito
-            .when(adminExternalClient.launchAudit(anyObject(), Mockito.anyObject()))
+            .when(adminExternalClient.launchAudit(any(), any()))
             .thenReturn(ClientMockResultHelper.checkOperationTraceability());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1551,13 +1528,13 @@ public class WebApplicationResourceTest {
         PowerMockito.when(AdminExternalClientFactory.getInstance()).thenReturn(adminExternalClientFactory);
 
         PowerMockito
-            .when(adminExternalClient.createAgencies(anyObject(), anyObject(), anyObject()))
+            .when(adminExternalClient.createAgencies(any(), any(), any()))
             .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Status.OK.getStatusCode()));
         PowerMockito
-            .when(adminExternalClient.findAgencies(anyObject(), anyObject()))
+            .when(adminExternalClient.findAgencies(any(), any()))
             .thenReturn(ClientMockResultHelper.getAgenciesList());
         PowerMockito
-            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .when(adminExternalClient.findAgencyByID(any(), any()))
             .thenReturn(ClientMockResultHelper.getAgency());
 
         final InputStream stream = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
@@ -1589,7 +1566,7 @@ public class WebApplicationResourceTest {
             .get("/agencies/id");
 
         PowerMockito
-            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .when(adminExternalClient.findAgencyByID(any(), any()))
             .thenReturn(VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, "NOT FOUND"));
 
         // find agencies by Id
@@ -1601,7 +1578,7 @@ public class WebApplicationResourceTest {
             .get("/agencies/id");
 
         PowerMockito
-            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .when(adminExternalClient.findAgencyByID(any(), any()))
             .thenReturn(VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, "BAD REQUEST"));
 
         // find agencies by Id
@@ -1614,13 +1591,13 @@ public class WebApplicationResourceTest {
 
 
         PowerMockito
-            .when(adminExternalClient.createAgencies(anyObject(), anyObject(), anyObject()))
+            .when(adminExternalClient.createAgencies(any(), any(), any()))
             .thenThrow(new AccessExternalClientException(""));
         PowerMockito
-            .when(adminExternalClient.findAgencies(anyObject(), anyObject()))
+            .when(adminExternalClient.findAgencies(any(), any()))
             .thenThrow(new VitamClientException(""));
         PowerMockito
-            .when(adminExternalClient.findAgencyByID(anyObject(), anyObject()))
+            .when(adminExternalClient.findAgencyByID(any(), any()))
             .thenThrow(new VitamClientException(""));
         final InputStream stream2 = PropertiesUtils.getResourceAsStream("FF-vitam-ko.fake");
         // import agencies
@@ -1653,7 +1630,7 @@ public class WebApplicationResourceTest {
 
     @Test
     public void testCreateDipOK() throws Exception {
-        PowerMockito.when(UserInterfaceTransactionManager.exportDIP(anyObject(), any()))
+        PowerMockito.when(UserInterfaceTransactionManager.exportDIP(any(), any()))
             .thenReturn(ClientMockResultHelper.getDipInfo());
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
@@ -1665,7 +1642,7 @@ public class WebApplicationResourceTest {
     @Test
     public void testCreateDipBadRequest() throws Exception {
         PowerMockito
-            .when(UserInterfaceTransactionManager.exportDIP(anyObject(), any()))
+            .when(UserInterfaceTransactionManager.exportDIP(any(), any()))
             .thenThrow(new VitamClientException(""));
 
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)

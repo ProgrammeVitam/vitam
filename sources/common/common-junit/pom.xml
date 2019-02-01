@@ -79,7 +79,6 @@
 			<artifactId>de.flapdoodle.embed.mongo</artifactId>
 			<scope>compile</scope>
 		</dependency>
-
 	</dependencies>
 
 </project>

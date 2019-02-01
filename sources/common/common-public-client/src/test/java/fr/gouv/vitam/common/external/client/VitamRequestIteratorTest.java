@@ -26,18 +26,19 @@
  */
 package fr.gouv.vitam.common.external.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
@@ -53,98 +54,60 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
-import org.glassfish.jersey.server.ResourceConfig;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-
-public class VitamRequestIteratorTest extends VitamJerseyTest {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIteratorTest.class);
+public class VitamRequestIteratorTest extends ResteasyTestApplication {
 
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
-    private DefaultClient client;
     private static boolean startup = true;
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    // ************************************** //
-    // Start of VitamJerseyTest configuration //
-    // ************************************** //
-    public VitamRequestIteratorTest() {
-        super(new TestVitamClientFactory<DefaultClient>(1234, RESOURCE_PATH));
+    private static DefaultClient client;
+
+    static TestVitamClientFactory
+        factory = new TestVitamClientFactory<>(1, RESOURCE_PATH);
+
+    public static VitamServerTestRunner
+        vitamServerTestRunner = new VitamServerTestRunner(VitamRequestIteratorTest.class, factory);
+
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+        client = (DefaultClient) vitamServerTestRunner.getClient();
     }
 
-    // Override the beforeTest if necessary
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
+    @Before
+    public void before() {
+        reset(mock);
+    }
+
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (DefaultClient) getClient();
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new MockResource(mock));
     }
 
-    // Override the afterTest if necessary
-    @Override
-    public void afterTest() throws VitamApplicationServerException {
-        // Nothing
-    }
-
-    // Create the setup application to setup anything necessary
-    @Override
-    public void setup() {
-        // nothing
-    }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig("jetty-config-benchmark-test.xml");
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new MockResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-
-    }
 
     // Define your Resource class if necessary
     @Path(RESOURCE_PATH)
@@ -170,9 +133,6 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
 
 
     }
-    // ************************************ //
-    // End of VitamJerseyTest configuration //
-    // ************************************ //
 
     @Test
     public void testIterator() {
@@ -183,8 +143,8 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
-            response.addResult(node1);
             final List<ObjectNode> list = new ArrayList<>();
+            list.add(node1);
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -252,8 +212,8 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
             final ObjectNode node1 = JsonHandler.createObjectNode().put("val", 1);
             final ObjectNode node2 = JsonHandler.createObjectNode().put("val", 2);
             final ObjectNode node3 = JsonHandler.createObjectNode().put("val", 3);
-            response.addResult(node1);
             final List<ObjectNode> list = new ArrayList<>();
+            list.add(node1);
             list.add(node2);
             list.add(node3);
             response.addAllResults(list);
@@ -427,20 +387,24 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         try {
             VitamRequestIterator.isEndOfCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         try {
             VitamRequestIterator.isNewCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         map.add(GlobalDataRest.X_CURSOR, "");
         try {
             VitamRequestIterator.isEndOfCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         try {
             VitamRequestIterator.isNewCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         map.clear();
         map.add(GlobalDataRest.X_CURSOR, "true");
         assertTrue(VitamRequestIterator.isNewCursor(headers));
@@ -455,10 +419,12 @@ public class VitamRequestIteratorTest extends VitamJerseyTest {
         try {
             VitamRequestIterator.isNewCursor(headers);
             fail("Should raized an exception");
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         try {
             assertTrue(VitamRequestIterator.isEndOfCursor(headers));
-        } catch (final IllegalStateException e) {}
+        } catch (final IllegalStateException e) {
+        }
         map.clear();
         map.add(GlobalDataRest.X_CURSOR, "false");
         map.add(GlobalDataRest.X_CURSOR_ID, "value");

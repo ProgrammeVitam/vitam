@@ -29,7 +29,7 @@ package fr.gouv.vitam.worker.core.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -205,7 +205,7 @@ public class CheckObjectsNumberActionHandlerTest {
                 new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
                 .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
@@ -226,7 +226,7 @@ public class CheckObjectsNumberActionHandlerTest {
                 new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractDuplicatedUriResponseKO);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
                 .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
@@ -247,7 +247,7 @@ public class CheckObjectsNumberActionHandlerTest {
                 new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractOutNumberUriResponseKO);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
                 .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
@@ -276,7 +276,7 @@ public class CheckObjectsNumberActionHandlerTest {
                 new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
                 .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
@@ -299,7 +299,7 @@ public class CheckObjectsNumberActionHandlerTest {
                 new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
                 .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);

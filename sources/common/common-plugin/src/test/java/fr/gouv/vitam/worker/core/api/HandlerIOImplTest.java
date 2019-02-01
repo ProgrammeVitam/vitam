@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -100,7 +100,7 @@ public class HandlerIOImplTest {
     @Test
     public void testGetFileFromHandlerIO() throws Exception {
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
 
         try (final HandlerIO io = new HandlerIOImpl(workspaceClient, "containerName", "workerId", OBJECT_IDS)) {
@@ -122,7 +122,7 @@ public class HandlerIOImplTest {
 
     @Test
     public void testConcurrentGetFileFromHandlerIO() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
 
         assertTrue(handlerIO.checkHandlerIO(0, new ArrayList<>()));
@@ -138,7 +138,7 @@ public class HandlerIOImplTest {
         assertEquals(File.class, object.getClass());
         assertTrue(((File) object).exists());
 
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
         io2.addInIOParameters(in);
         final Object object2 = io2.getInput(0);
@@ -153,7 +153,7 @@ public class HandlerIOImplTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testGetFileError() throws Exception {
-        when(workspaceClient.getObject(anyObject(), anyObject()))
+        when(workspaceClient.getObject(any(), any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
 
         try (final HandlerIO io = new HandlerIOImpl(workspaceClient, "containerName", "workerId", OBJECT_IDS)) {

@@ -161,17 +161,18 @@ public enum FunctionalAdminCollections {
                 }
             }
 
-        }
-        if (FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection() != null) {
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
-                .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                    new IndexOptions().unique(true));
-        }
+            if (collection == FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL) {
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
+                    .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
+                        new IndexOptions().unique(true));
+            }
 
-        if (FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection() != null) {
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
-                    new IndexOptions().unique(true));
+            if (collection == FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY) {
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
+                        new IndexOptions().unique(true));
+            }
+
         }
 
     }
@@ -257,7 +258,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db database type
+     * @param db       database type
      * @param recreate true is as recreate type
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {

@@ -80,7 +80,7 @@ import static junit.framework.TestCase.assertTrue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -107,7 +107,6 @@ public class FormatIdentificationActionPluginTest {
         "formatIdentificationActionPlugin/referentialIngestContractRestrictedFormatListOK.json";
 
     private final InputStream objectGroup;
-    private final InputStream objectGroup2;
     private final InputStream objectGroup3;
     private final JsonNode og;
     private final JsonNode og3;
@@ -118,7 +117,7 @@ public class FormatIdentificationActionPluginTest {
 
     public FormatIdentificationActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
-        objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
+        InputStream objectGroup2 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_2);
         objectGroup3 = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_3);
 
         og = JsonHandler.getFromInputStream(objectGroup);
@@ -149,7 +148,7 @@ public class FormatIdentificationActionPluginTest {
         getMockedAdminManagementClient();
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        when(identifierFactory.getFormatIdentifierFor(anyObject()))
+        when(identifierFactory.getFormatIdentifierFor(any()))
             .thenThrow(new FormatIdentifierNotFoundException(""));
 
         plugin = new FormatIdentificationActionPlugin();
@@ -170,7 +169,7 @@ public class FormatIdentificationActionPluginTest {
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        when(identifierFactory.getFormatIdentifierFor(anyObject())).thenThrow(new FormatIdentifierFactoryException(""));
+        when(identifierFactory.getFormatIdentifierFor(any())).thenThrow(new FormatIdentifierFactoryException(""));
 
         handlerIO.getInput().add(null);
         handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
@@ -187,7 +186,7 @@ public class FormatIdentificationActionPluginTest {
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        when(identifierFactory.getFormatIdentifierFor(anyObject()))
+        when(identifierFactory.getFormatIdentifierFor(any()))
             .thenThrow(new FormatIdentifierTechnicalException(""));
 
         handlerIO.getInput().add(null);
@@ -202,13 +201,13 @@ public class FormatIdentificationActionPluginTest {
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierResponseList());
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
         handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
 
         final AdminManagementClient adminManagementClient = getMockedAdminManagementClient();
-        when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson2Result());
+        when(adminManagementClient.getFormats(any())).thenReturn(getAdminManagementJson2Result());
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -241,7 +240,7 @@ public class FormatIdentificationActionPluginTest {
     public void formatIdentificationWarning() throws Exception {
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierResponseList());
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -250,7 +249,7 @@ public class FormatIdentificationActionPluginTest {
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
-        when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
+        when(adminManagementClient.getFormats(any())).thenReturn(getAdminManagementJson());
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -280,7 +279,7 @@ public class FormatIdentificationActionPluginTest {
     public void formatIdentificationWithPhysicalDataObject() throws Exception {
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierResponseList());
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og3);
@@ -289,7 +288,7 @@ public class FormatIdentificationActionPluginTest {
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
-        when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
+        when(adminManagementClient.getFormats(any())).thenReturn(getAdminManagementJson());
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -302,7 +301,7 @@ public class FormatIdentificationActionPluginTest {
     public void formatIdentificationWithoutFormat() throws Exception {
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierResponseList());
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -311,7 +310,7 @@ public class FormatIdentificationActionPluginTest {
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
-        when(adminManagementClient.getFormats(anyObject())).thenReturn(getAdminManagementJson());
+        when(adminManagementClient.getFormats(any())).thenReturn(getAdminManagementJson());
 
         plugin = new FormatIdentificationActionPlugin();
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -326,7 +325,7 @@ public class FormatIdentificationActionPluginTest {
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
+        when(siegfried.analysePath(any())).thenThrow(new FileFormatNotFoundException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -352,7 +351,7 @@ public class FormatIdentificationActionPluginTest {
     public void formatUnidentifiedAuthorized() throws Exception {
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
+        when(siegfried.analysePath(any())).thenThrow(new FileFormatNotFoundException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -378,7 +377,7 @@ public class FormatIdentificationActionPluginTest {
     public void formatUnidentifiedAuthorizedRestrictedFormatListKO() throws Exception {
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenThrow(new FileFormatNotFoundException(""));
+        when(siegfried.analysePath(any())).thenThrow(new FileFormatNotFoundException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -415,7 +414,7 @@ public class FormatIdentificationActionPluginTest {
         final String literal[] = {"OpenDocument Presentation", "Acrobat PDF 1.4 - Portable Document Format",
             "Portable Network Graphics", "Plain Text File"};
 
-        when(siegfried.analysePath(anyObject())).thenAnswer(new Answer() {
+        when(siegfried.analysePath(any())).thenAnswer(new Answer() {
             private int count = 0;
 
             public List<FormatIdentifierResponse> answer(InvocationOnMock invocation) {
@@ -429,7 +428,7 @@ public class FormatIdentificationActionPluginTest {
             }
         });
 
-        when(adminManagementClient.getFormats(anyObject())).thenAnswer(new Answer() {
+        when(adminManagementClient.getFormats(any())).thenAnswer(new Answer() {
             private int count = 0;
 
             public RequestResponse<FileFormatModel> answer(InvocationOnMock invocation) {
@@ -469,7 +468,7 @@ public class FormatIdentificationActionPluginTest {
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenReturn(getFormatIdentifierResponseList());
+        when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierResponseList());
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -478,7 +477,7 @@ public class FormatIdentificationActionPluginTest {
         final AdminManagementClient adminManagementClient =
             getMockedAdminManagementClient();
 
-        when(adminManagementClient.getFormats(anyObject()))
+        when(adminManagementClient.getFormats(any()))
             .thenThrow(new ReferentialException("Test Referential Exception"));
 
         plugin = new FormatIdentificationActionPlugin();
@@ -503,7 +502,7 @@ public class FormatIdentificationActionPluginTest {
         final FormatIdentifierSiegfried siegfried =
             getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierTechnicalException(""));
+        when(siegfried.analysePath(any())).thenThrow(new FormatIdentifierTechnicalException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -521,7 +520,7 @@ public class FormatIdentificationActionPluginTest {
         getMockedAdminManagementClient();
         final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
 
-        when(siegfried.analysePath(anyObject())).thenThrow(new FormatIdentifierNotFoundException(""));
+        when(siegfried.analysePath(any())).thenThrow(new FormatIdentifierNotFoundException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
@@ -539,7 +538,7 @@ public class FormatIdentificationActionPluginTest {
         final FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
         final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
         when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        when(identifierFactory.getFormatIdentifierFor(anyObject())).thenReturn(siegfried);
+        when(identifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
         return siegfried;
     }
 

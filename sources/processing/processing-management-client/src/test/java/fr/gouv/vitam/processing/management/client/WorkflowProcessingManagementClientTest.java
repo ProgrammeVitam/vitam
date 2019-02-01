@@ -27,340 +27,397 @@
 package fr.gouv.vitam.processing.management.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProcessPause;
+import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
-import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
-import fr.gouv.vitam.common.server.application.junit.VitamJerseyTest;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import org.glassfish.jersey.server.ResourceConfig;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
-public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
-    private static ProcessingManagementClient client;
+public class WorkflowProcessingManagementClientTest extends ResteasyTestApplication {
     private static final String WORKFLOWID = "json1";
     private static final String CONTAINER = "c1";
     private static final String ACTION_ID = "action1";
     private static final String ID = "id1";
 
+    protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    public WorkflowProcessingManagementClientTest() {
-        super(ProcessingManagementClientFactory.getInstance());
+    static ProcessingManagementClientFactory factory = ProcessingManagementClientFactory.getInstance();
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(WorkflowProcessingManagementClientTest.class, factory);
+
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
+    @Before
+    public void before() {
+        reset(mock);
     }
 
     @Override
-    public void beforeTest() throws VitamApplicationServerException {
-        client = (ProcessingManagementClient) getClient();
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new ProcessingResource(mock));
     }
-
-    // Define the getApplication to return your Application using the correct Configuration
-    @Override
-    public StartApplicationResponse<AbstractApplication> startVitamApplication(int reservedPort) {
-        final TestVitamApplicationConfiguration configuration = new TestVitamApplicationConfiguration();
-        configuration.setJettyConfig(DEFAULT_XML_CONFIGURATION_FILE);
-        final AbstractApplication application = new AbstractApplication(configuration);
-        try {
-            application.start();
-        } catch (final VitamApplicationServerException e) {
-            throw new IllegalStateException("Cannot start the application", e);
-        }
-        return new StartApplicationResponse<AbstractApplication>()
-            .setServerPort(application.getVitamServer().getPort())
-            .setApplication(application);
-    }
-
-    // Define your Application class if necessary
-    public final class AbstractApplication
-        extends AbstractVitamApplication<AbstractApplication, TestVitamApplicationConfiguration> {
-        protected AbstractApplication(TestVitamApplicationConfiguration configuration) {
-            super(TestVitamApplicationConfiguration.class, configuration);
-        }
-
-        @Override
-        protected void registerInResourceConfig(ResourceConfig resourceConfig) {
-            resourceConfig.registerInstances(new ProcessingResource(mock));
-        }
-
-        @Override
-        protected boolean registerInAdminConfig(ResourceConfig resourceConfig) {
-            // do nothing as @admin is not tested here
-            return false;
-        }
-    }
-
-
-    // Define your Configuration class if necessary
-    public static class TestVitamApplicationConfiguration extends DefaultVitamApplicationConfiguration {
-    }
-
 
     @Path("/processing/v1")
     public static class ProcessingResource {
-        private final ExpectedResults expectedResponse;
+        private final ExpectedResults mock;
 
-        public ProcessingResource(ExpectedResults expectedResponse) {
-            this.expectedResponse = expectedResponse;
+        public ProcessingResource(ExpectedResults mock) {
+            this.mock = mock;
         }
 
-        @Path("/workflows")
+        @Path("workflows")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Response getWorkflowDefinitions() {
-            return expectedResponse.get();
+            return mock.get();
         }
 
-        @Path("operations")
+        @Path("workflows/{workfowId}")
+        @GET
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getWorkflowDefinitions(@PathParam("workfowId") String workfowId) {
+            return mock.get();
+        }
+
+        @Path("operations/{id}")
         @POST
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response executeVitamProcess(ProcessingEntry workflow) {
-            return expectedResponse.get();
+        public Response executeWorkFlow(@Context HttpHeaders headers, @PathParam("id") String id,
+            ProcessingEntry process) {
+            return mock.post();
         }
 
-        @Path("operations")
-        @PUT
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response updateVitamProcess(@HeaderParam("X-CONTEXT-ID") String contextId,
-            @HeaderParam("X-ACTION") String actionId, ProcessingEntry workflow) {
-            return expectedResponse.put();
-        }
-
-        @Path("/operations/{id}")
-        @PUT
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response updateOperationProcess(@HeaderParam("X-CONTEXT-ID") String contextId,
-            @HeaderParam("X-ACTION") String actionId, ProcessingEntry workflow, @PathParam("id") String id) {
-            return expectedResponse.put();
-        }
-
-        @Path("/operations/{id}")
-        @POST
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response executeOperationProcess(@HeaderParam("X-CONTEXT-ID") String contextId,
-            @HeaderParam("X-ACTION") String actionId, ProcessingEntry workflow, @PathParam("id") String id) {
-            return expectedResponse.post();
-        }
-
-        @Path("/operations/{id}")
+        @Path("operations/{id}")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
         public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
-            return expectedResponse.get();
+            return mock.get();
         }
 
-        @Path("/operations/{id}")
+        @Path("operations/{id}")
+        @PUT
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
+            return mock.put();
+        }
+
+        @Path("operations/{id}")
         @DELETE
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response cancelOperationProcessExecution(@PathParam("id") String id) {
-            return expectedResponse.delete();
+        public Response interruptWorkFlowExecution(@PathParam("id") String id) {
+            return mock.delete();
         }
 
-        @Path("/operations/{id}")
+        @Path("operations/{id}")
         @HEAD
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getOperationProcessStatus(@PathParam("id") String id) {
-            return expectedResponse.head();
+        public Response getWorkFlowState(@PathParam("id") String id) {
+            return mock.head();
+        }
+
+        @GET
+        @Path("/operations")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response findProcessWorkflows(ProcessQuery query) {
+            return mock.get();
+        }
+
+        @Path("/forcepause")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response forcePause(ProcessPause info) {
+            return mock.post();
+        }
+
+        @Path("/removeforcepause")
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response removeForcePause(ProcessPause info) {
+            return mock.post();
         }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenNotFoundWorkflowWhenUpdatingByIdThenReturnNotFound() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.updateOperationActionProcess(ACTION_ID, ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.updateOperationActionProcess(ACTION_ID, ID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenUpdatingByIdThenReturnIllegalPrecondtionFailed() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.updateOperationActionProcess(ACTION_ID, ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.updateOperationActionProcess(ACTION_ID, ID);
+        }
     }
 
     @Test
     public void givenUnauthorizedOperationWhenUpdatingByIdThenReturnUnauthorized() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        assertThatThrownBy(() -> client.updateOperationActionProcess(ACTION_ID, ID))
-            .isInstanceOf(InternalServerException.class);
-
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            assertThatThrownBy(() -> client.updateOperationActionProcess(ACTION_ID, ID))
+                .isInstanceOf(InternalServerException.class);
+        }
     }
 
     @Test
     public void givenBadRequestWhenUpdatingByIdWorkFlowThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        RequestResponse<ItemStatus> response = client.updateOperationActionProcess(ACTION_ID, ID);
-        assertNotNull(response);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            RequestResponse<ItemStatus> response = client.updateOperationActionProcess(ACTION_ID, ID);
+            assertNotNull(response);
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenInternalServerErrorWhenUpdatingByIdThenReturnInternalServerError() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.updateOperationActionProcess(ACTION_ID, ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.updateOperationActionProcess(ACTION_ID, ID);
+        }
     }
 
     @Test
     public void updateOperationByIdProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.put()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        RequestResponse<ItemStatus> response = client.updateOperationActionProcess(ACTION_ID, ID);
-        assertNotNull(response);
-        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            RequestResponse<ItemStatus> response = client.updateOperationActionProcess(ACTION_ID, ID);
+            assertNotNull(response);
+            assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenNotFoundWorkflowWhenProcessingOperationThenReturnNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenProcessingOperationThenReturnIllegalPrecondtionFailed() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+        }
     }
 
     @Test(expected = NotAuthorizedException.class)
     public void givenUnauthorizedOperationWhenProcessingOperationThenReturnUnauthorized() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+        }
     }
 
     @Test()
     public void givenBadRequestWhenProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
-        assertNotNull(ret);
-        assertTrue(ret.isOk());
-
-
-        assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getHttpCode());
-        // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+            assertNotNull(ret);
+            assertTrue(ret.isOk());
+            assertEquals(Status.BAD_REQUEST.getStatusCode(), ret.getHttpCode());
+        }
     }
 
     @Test
     public void executeOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
-        assertNotNull(ret);
-        assertTrue(ret.isOk());
-
-        // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            final RequestResponse<JsonNode> ret = client.executeOperationProcess(ID, WORKFLOWID, ACTION_ID);
+            assertNotNull(ret);
+            assertTrue(ret.isOk());
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenNotFoundWorkflowWhenCancelProcessingOperationThenReturnNotFound() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.cancelOperationProcessExecution(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.cancelOperationProcessExecution(ID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenCancelProcessingOperationThenReturnIllegalPrecondtionFailed()
         throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.cancelOperationProcessExecution(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.cancelOperationProcessExecution(ID);
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenIllegalOperationWhenCancelProcessingOperationThenReturnUnauthorized() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.cancelOperationProcessExecution(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.cancelOperationProcessExecution(ID);
+        }
     }
 
     @Test
     public void givenBadRequestWhenCancelProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.UNAUTHORIZED).entity(desired).build());
-        assertThatThrownBy(() -> client.cancelOperationProcessExecution(ID))
-            .isInstanceOf(InternalServerException.class);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            assertThatThrownBy(() -> client.cancelOperationProcessExecution(ID))
+                .isInstanceOf(InternalServerException.class);
+        }
     }
 
     @Test(expected = InternalServerException.class)
-    public void givenInternalServerErrorWhenCancelProcessingOperationThenReturnInternalServerError() throws Exception {
+    public void givenInternalServerErrorWhenCancelProcessingOperationThenReturnInternalServerError() throws
+        Exception {
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.cancelOperationProcessExecution(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.cancelOperationProcessExecution(ID);
+        }
     }
 
     @Test
     public void CancelOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final ItemStatus ret = client.cancelOperationProcessExecution(ID);
-        assertNotNull(ret);
-        // assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            final ItemStatus ret = client.cancelOperationProcessExecution(ID);
+            assertNotNull(ret);
+        }
     }
 
     @Test(expected = WorkflowNotFoundException.class)
     public void givenNotFoundWorkflowWhenHeadProcessingOperationStatusThenReturnNotFound() throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getOperationProcessStatus(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessStatus(ID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenHeadProcessingOperationStatusThenReturnIllegalPrecondtionFailed()
         throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getOperationProcessStatus(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessStatus(ID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenUnauthorizedOperationWhenHeadProcessingOperationStatusThenReturnUnauthorized() throws Exception {
+    public void givenUnauthorizedOperationWhenHeadProcessingOperationStatusThenReturnUnauthorized() throws
+        Exception {
         when(mock.head()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.getOperationProcessStatus(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessStatus(ID);
+        }
     }
 
     @Test(expected = BadRequestException.class)
     public void givenBadRequestWhenHeadProcessingOperationStatusThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.head()).thenReturn(Response.status(Status.BAD_REQUEST).build());
-        final ItemStatus ret = client.getOperationProcessStatus(ID);
-        assertNotNull(ret);
-        assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            final ItemStatus ret = client.getOperationProcessStatus(ID);
+            assertNotNull(ret);
+            assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenInternalServerErrorWhenHeadProcessingOperationStatusThenReturnInternalServerError()
         throws Exception {
         when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getOperationProcessStatus(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessStatus(ID);
+        }
     }
 
     @Test
@@ -370,77 +427,110 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
             .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
             .header(GlobalDataRest.X_CONTEXT_ID, "Fake")
             .build());
-
-        client.getOperationProcessStatus(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessStatus(ID);
+        }
     }
 
     @Test(expected = WorkflowNotFoundException.class)
     public void givenNotFoundWorkflowWhenGETProcessingOperationStatusThenReturnNotFound() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.getOperationProcessExecutionDetails(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessExecutionDetails(ID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenIllegalArgumementWhenGETProcessingOperationStatusThenReturnIllegalPrecondtionFailed()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.getOperationProcessExecutionDetails(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessExecutionDetails(ID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void givenUnauthorizedOperationWhenGETProcessingOperationStatusThenReturnUnauthorized() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        client.getOperationProcessExecutionDetails(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessExecutionDetails(ID);
+        }
     }
 
     @Test(expected = BadRequestException.class)
     public void givenBadRequestWhenGETProcessingOperationStatusThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        final ItemStatus ret = client.getOperationProcessExecutionDetails(ID);
-        assertNotNull(ret);
-        assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            final ItemStatus ret = client.getOperationProcessExecutionDetails(ID);
+            assertNotNull(ret);
+            assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenInternalServerErrorWhenGETProcessingOperationStatusThenReturnInternalServerError()
         throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.getOperationProcessExecutionDetails(ID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.getOperationProcessExecutionDetails(ID);
+        }
     }
 
     @Test
     public void GETProcessingOperationStatusOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        final ItemStatus ret = client.getOperationProcessExecutionDetails(ID);
-        assertNotNull(ret);
-        assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            final ItemStatus ret = client.getOperationProcessExecutionDetails(ID);
+            assertNotNull(ret);
+            assertEquals(desired.getGlobalStatus(), ret.getGlobalStatus());
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenInitProcessingOperationThenReturnNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initVitamProcess(CONTAINER, WORKFLOWID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.initVitamProcess(CONTAINER, WORKFLOWID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenIllegalArgumementWhenInitProcessingOperationThenReturnIllegalPrecondtionFailed() throws Exception {
+    public void givenIllegalArgumementWhenInitProcessingOperationThenReturnIllegalPrecondtionFailed() throws
+        Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.initVitamProcess(CONTAINER, WORKFLOWID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.initVitamProcess(CONTAINER, WORKFLOWID);
+        }
     }
 
     @Test(expected = BadRequestException.class)
     public void givenBadRequestWhenInitProcessingOperationThenReturnBadRequest() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST).entity(desired).build());
-        client.initVitamProcess(CONTAINER, WORKFLOWID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.initVitamProcess(CONTAINER, WORKFLOWID);
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void givenInternalServerErrorWhenInitProcessingOperationThenReturnInternalServerError() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        client.initVitamProcess(CONTAINER, WORKFLOWID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.initVitamProcess(CONTAINER, WORKFLOWID);
+        }
 
     }
 
@@ -448,19 +538,29 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
     public void initOperationProcessOk() throws Exception {
         final ItemStatus desired = new ItemStatus("ID");
         when(mock.post()).thenReturn(Response.status(Status.OK).entity(desired).build());
-        client.initVitamProcess(CONTAINER, WORKFLOWID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.initVitamProcess(CONTAINER, WORKFLOWID);
+        }
     }
 
     @Test(expected = InternalServerException.class)
     public void giveninitWorkFlowOperationThenReturnNotFound() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        client.initVitamProcess(CONTAINER, WORKFLOWID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.initVitamProcess(CONTAINER, WORKFLOWID);
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void givenIllegalArgumementWheninitWorkFlowOperationThenReturnIllegalPrecondtionFailed() throws Exception {
+    public void givenIllegalArgumementWheninitWorkFlowOperationThenReturnIllegalPrecondtionFailed() throws
+        Exception {
         when(mock.post()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        client.initVitamProcess(CONTAINER, WORKFLOWID);
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            client.initVitamProcess(CONTAINER, WORKFLOWID);
+        }
     }
 
     @Test
@@ -472,36 +572,51 @@ public class WorkflowProcessingManagementClientTest extends VitamJerseyTest {
         expected.setHits(1, 0, 1, 1);
         expected.setHttpCode(Status.OK.getStatusCode());
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(expected).build());
-        RequestResponse<WorkFlow> requestResponse = client.getWorkflowDefinitions();
-        assertEquals(expected.getHttpCode(), requestResponse.getHttpCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            RequestResponse<WorkFlow> requestResponse = client.getWorkflowDefinitions();
+            assertEquals(expected.getHttpCode(), requestResponse.getHttpCode());
+        }
     }
 
     @Test
     public void givenNotFoundWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.NOT_FOUND.getStatusCode(), requestReponse.getHttpCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+            assertEquals(Status.NOT_FOUND.getStatusCode(), requestReponse.getHttpCode());
+        }
     }
 
     @Test
     public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.PRECONDITION_FAILED.getStatusCode(), requestReponse.getHttpCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+            assertEquals(Status.PRECONDITION_FAILED.getStatusCode(), requestReponse.getHttpCode());
+        }
     }
 
     @Test
     public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.UNAUTHORIZED.getStatusCode(), requestReponse.getHttpCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+            assertEquals(Status.UNAUTHORIZED.getStatusCode(), requestReponse.getHttpCode());
+        }
     }
 
     @Test
     public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
-        assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), requestReponse.getHttpCode());
+        try (ProcessingManagementClientRest client = (ProcessingManagementClientRest) vitamServerTestRunner
+            .getClient()) {
+            RequestResponse<WorkFlow> requestReponse = client.getWorkflowDefinitions();
+            assertEquals(Status.INTERNAL_SERVER_ERROR.getStatusCode(), requestReponse.getHttpCode());
+        }
 
     }
 

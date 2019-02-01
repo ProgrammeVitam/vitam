@@ -193,21 +193,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-			<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-			<artifactId>jersey-test-framework-provider-jetty</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-json-jackson</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-annotations</artifactId>
 			<scope>test</scope>
@@ -234,7 +219,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

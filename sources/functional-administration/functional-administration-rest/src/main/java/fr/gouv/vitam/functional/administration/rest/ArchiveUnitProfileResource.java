@@ -109,7 +109,7 @@ public class ArchiveUnitProfileResource {
      *
      * @param archiveUnitProfileModelList as InputStream
      * @param uri                         the uri info
-     * @return Response jersey response
+     * @return Response
      */
     @Path(ARCHIVE_UNIT_PROFILE_URI)
     @POST

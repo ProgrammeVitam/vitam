@@ -27,34 +27,6 @@
 package fr.gouv.vitam.functional.administration.rules.core;
 
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.flipkart.zjsonpatch.JsonDiff;
@@ -70,7 +42,6 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -125,6 +96,39 @@ import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory.create;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Warning : To avoid error on import rules (actually we cannot update) and to be able to test each case, the tenant ID
@@ -252,7 +256,7 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
 
@@ -317,7 +321,7 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         Map<Integer, List<ErrorReport>> errors = new HashMap<>();
@@ -343,7 +347,7 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         try {
@@ -373,12 +377,12 @@ public class RulesManagerFileImplTest {
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
 
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+        when(client.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getEmptyJsonResponse());
+        when(client.selectOperation(any())).thenReturn(getEmptyJsonResponse());
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
     }
@@ -393,7 +397,7 @@ public class RulesManagerFileImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(3);
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(
+        when(client.selectOperation(any())).thenReturn(
             getJsonResult("COMMIT_RULES", 60));
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_ID));
         rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)), FILE_TO_TEST_OK);
@@ -483,7 +487,7 @@ public class RulesManagerFileImplTest {
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+        when(client.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -531,7 +535,7 @@ public class RulesManagerFileImplTest {
         try {
             LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
             when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-            when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+            when(logbookOperationsclient.selectOperation(any()))
                 .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
             MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -594,7 +598,7 @@ public class RulesManagerFileImplTest {
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+        when(client.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
@@ -652,7 +656,7 @@ public class RulesManagerFileImplTest {
 
         LogbookOperationsClient client = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(client);
-        when(client.selectOperation(Matchers.anyObject())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
+        when(client.selectOperation(any())).thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         assertThatThrownBy(
             () -> rulesFileManager.importFile(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_KO)),
@@ -862,7 +866,7 @@ public class RulesManagerFileImplTest {
 
 
 
-        assertThatCode(() -> when(client.selectOperation(Matchers.anyObject()))
+        assertThatCode(() -> when(client.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, 0))).doesNotThrowAnyException();
 
         Map<Integer, List<ErrorReport>> errorsMap = new HashMap<>();
@@ -897,7 +901,7 @@ public class RulesManagerFileImplTest {
         // given
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -973,7 +977,7 @@ public class RulesManagerFileImplTest {
         // given
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -1075,7 +1079,7 @@ public class RulesManagerFileImplTest {
         // init data with first import
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(Matchers.anyObject()))
+        when(logbookOperationsclient.selectOperation(any()))
             .thenReturn(getJsonResult(STP_IMPORT_RULES, tenantId));
 
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -1123,7 +1127,7 @@ public class RulesManagerFileImplTest {
         throws Exception {
 
         doAnswer(invocation -> {
-            InputStream argumentAt = invocation.getArgumentAt(0, InputStream.class);
+            InputStream argumentAt = invocation.getArgument(0);
             Files.copy(argumentAt, report);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), anyString(),

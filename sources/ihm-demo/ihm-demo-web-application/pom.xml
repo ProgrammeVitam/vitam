@@ -61,11 +61,14 @@
 			<artifactId>jetty-webapp</artifactId>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.apache.shiro/shiro-all -->
 		<dependency>
-			<groupId>org.secnod.shiro</groupId>
-			<artifactId>shiro-jersey</artifactId>
-			<version>0.2.0</version>
+			<groupId>org.apache.shiro</groupId>
+			<artifactId>shiro-all</artifactId>
+			<version>1.4.0</version>
+			<type>pom</type>
 		</dependency>
+
 
 		<!-- Servlet API -->
 		<dependency>
@@ -102,7 +105,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

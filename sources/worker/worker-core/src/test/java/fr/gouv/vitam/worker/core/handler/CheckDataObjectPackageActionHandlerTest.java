@@ -29,9 +29,10 @@ package fr.gouv.vitam.worker.core.handler;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
@@ -84,7 +85,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
@@ -216,16 +217,16 @@ public class CheckDataObjectPackageActionHandlerTest {
             PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         final InputStream storageInfo =
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
-        PowerMockito.when(SedaUtilsFactory.create(anyObject())).thenReturn(sedaUtils);
+        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
-        when(workspaceClient.getObject(anyObject(), eq("SIP/manifest.xml")))
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
-        when(workspaceClient.getListUriDigitalObjectFromFolder(anyObject(), anyObject()))
+        when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
-        when(workspaceClient.getObject(anyObject(), eq("StorageInfo/storageInfo.json")))
+        when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
-        when(adminManagementClient.findIngestContractsByID(Matchers.anyString()))
+        when(adminManagementClient.findIngestContractsByID(anyString()))
             .thenReturn(ClientMockResultHelper.getIngestContracts());
         when(adminManagementClient.findIngestContracts(any())).thenReturn(ClientMockResultHelper.getIngestContracts());
         action.addOutIOParameters(out);
@@ -250,7 +251,7 @@ public class CheckDataObjectPackageActionHandlerTest {
         versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION, invalidVersionMap);
         versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION, validVersionMap);
 
-        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(anyObject());
+        Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(any());
         final ItemStatus response2 = handler.execute(params, action);
         assertEquals(StatusCode.KO, response2.getGlobalStatus());
     }

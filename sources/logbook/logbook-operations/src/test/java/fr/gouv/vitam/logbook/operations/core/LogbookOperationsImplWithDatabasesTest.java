@@ -28,6 +28,13 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -86,6 +93,32 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+import static org.mockito.ArgumentMatchers.any;
 
 @RunWithCustomExecutor
 public class LogbookOperationsImplWithDatabasesTest {
@@ -346,9 +379,9 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     private void mockWorkspaceClient() throws Exception {
         Mockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        Mockito.doNothing().when(workspaceClient).createContainer(Matchers.anyString());
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
         Mockito.doNothing().when(workspaceClient)
-            .putObject(Matchers.anyString(), Matchers.anyString(), Matchers.anyObject());
+            .putObject(any(), any(), any());
     }
 
     private static void assertDateBetween(LocalDateTime localDateTime, LocalDateTime gte, LocalDateTime lte) {

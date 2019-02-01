@@ -32,7 +32,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
@@ -195,7 +195,7 @@ public class UnitGraphInfoLoaderTest {
         when(metaDataClient.selectUnits(any())).then(args -> {
 
             // Parse { $in: "#id": [] } query
-            JsonNode dsl = args.getArgumentAt(0, JsonNode.class);
+            JsonNode dsl = args.getArgument(0);
             SelectParserMultiple parserMultiple = new SelectParserMultiple();
             parserMultiple.parse(dsl);
             ArrayNode jsonIds = (ArrayNode) parserMultiple.getRequest().getQueries().get(0).getNode("$in").get(VitamFieldsHelper.id());

@@ -27,18 +27,13 @@
 
 package fr.gouv.vitam.common.junit;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.net.ServerSocket;
-
-import fr.gouv.vitam.common.junit.VitamApplicationTestFactory.StartApplicationResponse;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 public class JunitHelperTest {
 
@@ -51,83 +46,27 @@ public class JunitHelperTest {
         try {
             junitFindAvailablePort0.isListeningOn("znN>", -4608);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             junitFindAvailablePort0.isListeningOn("znN>", 65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             junitFindAvailablePort0.isListeningOn(-4608);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         try {
             junitFindAvailablePort0.isListeningOn(65536);
             fail("Expecting exception: IllegalArgumentException");
 
-        } catch (final IllegalArgumentException e) {}
+        } catch (final IllegalArgumentException e) {
+        }
         assertFalse(junitFindAvailablePort0.isListeningOn("znN>", 1025));
-    }
-
-    @Test
-    public void testActivatePort() throws Throwable {
-        final JunitHelper junitFindAvailablePort0 = JunitHelper.getInstance();
-        int port = junitFindAvailablePort0.findAvailablePort();
-        try (ServerSocket serverSocket = new ServerSocket(port)) {
-            serverSocket.setReuseAddress(true);
-            assertTrue(junitFindAvailablePort0.isListeningOn(port));
-            assertTrue(junitFindAvailablePort0.isListeningOn(null, port));
-        }
-        junitFindAvailablePort0.releasePort(port);
-        port = junitFindAvailablePort0.findAvailablePort();
-        assertFalse(junitFindAvailablePort0.isListeningOn(port));
-        assertFalse(junitFindAvailablePort0.isListeningOn(null, port));
-        junitFindAvailablePort0.releasePort(port);
-        StartApplicationResponse<?> response = junitFindAvailablePort0.findAvailablePortSetToApplication(
-            new VitamApplicationTestFactory<Object>() {
-
-                @Override
-                public StartApplicationResponse startVitamApplication(int reservedPort) {
-                    return new StartApplicationResponse<>().setServerPort(reservedPort)
-                        .setApplication(null);
-                }
-            });
-        assertFalse(junitFindAvailablePort0.isListeningOn(response.getServerPort()));
-        assertFalse(junitFindAvailablePort0.isListeningOn(null, response.getServerPort()));
-        assertNull(response.getApplication());
-        junitFindAvailablePort0.releasePort(response.getServerPort());
-        final int reservedPortPrevious = response.getServerPort();
-        response = junitFindAvailablePort0.findAvailablePortSetToApplication(
-            new VitamApplicationTestFactory<Object>() {
-
-                @Override
-                public StartApplicationResponse startVitamApplication(int reservedPort) {
-                    return new StartApplicationResponse<>().setServerPort(reservedPortPrevious);
-                }
-            });
-        assertFalse(junitFindAvailablePort0.isListeningOn(response.getServerPort()));
-        assertFalse(junitFindAvailablePort0.isListeningOn(null, response.getServerPort()));
-        junitFindAvailablePort0.releasePort(response.getServerPort());
-        try {
-            response = junitFindAvailablePort0.findAvailablePortSetToApplication(
-                new VitamApplicationTestFactory<Object>() {
-
-                    @Override
-                    public StartApplicationResponse startVitamApplication(int reservedPort) {
-                        return new StartApplicationResponse<>().setServerPort(-1);
-                    }
-                });
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {
-            // nothing to do
-        }
-        try {
-            response = junitFindAvailablePort0.findAvailablePortSetToApplication(null);
-            fail("Should raized an exception");
-        } catch (final IllegalStateException e) {
-            // nothing to do
-        }
     }
 
     private static class ToNotAllocate {

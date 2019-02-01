@@ -28,8 +28,8 @@ package fr.gouv.vitam.worker.core.handler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -122,11 +122,11 @@ public class UpdateObjectGroupPluginTest {
         final InputStream guid1 =
             PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_GUID_1);
         when(workspaceClient
-            .getObject(anyObject(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid1.json")))
+            .getObject(any(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid1.json")))
             .thenReturn(Response.status(Response.Status.OK).entity(guid1).build());
 
         when(workspaceClient
-            .getObject(anyObject(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid2.json")))
+            .getObject(any(), eq(IngestWorkflowConstants.UPDATE_OBJECT_GROUP_FOLDER + "/guid2.json")))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
     }
 

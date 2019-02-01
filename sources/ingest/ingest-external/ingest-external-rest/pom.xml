@@ -43,17 +43,6 @@
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-			<artifactId>jersey-test-framework-provider-grizzly2</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.test-framework.providers</groupId>
-			<artifactId>jersey-test-framework-provider-jetty</artifactId>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-junit</artifactId>
@@ -72,7 +61,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
+			<artifactId>powermock-api-mockito2</artifactId>
 			<scope>test</scope>
 		</dependency>
         <dependency>

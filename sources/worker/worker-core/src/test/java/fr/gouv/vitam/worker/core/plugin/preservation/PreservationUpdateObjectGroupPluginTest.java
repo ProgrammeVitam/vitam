@@ -48,7 +48,7 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -125,7 +125,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         JsonNode objectGroupNode = JsonHandler.getFromInputStream(objectGroupStream);
         RequestResponse<JsonNode> responseOK =
             new RequestResponseOK<JsonNode>().addResult(objectGroupNode).setHttpCode(Response.Status.OK.getStatusCode());
-        given(metaDataClient.getObjectGroupByIdRaw(Matchers.any())).willReturn(responseOK);
+        given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, handlerIO);

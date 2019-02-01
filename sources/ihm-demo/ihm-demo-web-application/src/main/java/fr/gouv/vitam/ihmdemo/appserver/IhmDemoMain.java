@@ -59,7 +59,7 @@ public class IhmDemoMain {
     public IhmDemoMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
-        vitamStarter = VitamStarter.createVitamStarterForIHM(WebApplicationConfig.class, configurationFile,
+        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
             BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
     }
 
@@ -78,7 +78,8 @@ public class IhmDemoMain {
             IhmDemoMain main = new IhmDemoMain(args[0]);
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(), e);
 
             System.exit(1);
         }
@@ -95,10 +96,10 @@ public class IhmDemoMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-    
+
     public final VitamStarter getVitamServer() {
         return vitamStarter;
     }
-    
-    
+
+
 }

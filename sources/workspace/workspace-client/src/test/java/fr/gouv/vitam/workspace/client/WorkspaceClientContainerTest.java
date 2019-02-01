@@ -26,10 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -41,29 +50,52 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Set;
 
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 
-public class WorkspaceClientContainerTest extends WorkspaceClientTest {
+public class WorkspaceClientContainerTest extends ResteasyTestApplication {
+
+    protected static WorkspaceClient client;
 
     private static final String CONTAINER_NAME = "myContainer" + GUIDFactory.newGUID().toString();
+    static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
+
+    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    public static VitamServerTestRunner
+        vitamServerTestRunner =
+        new VitamServerTestRunner(WorkspaceClientContainerTest.class, factory);
+
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Throwable {
+        vitamServerTestRunner.start();
+        client = (WorkspaceClient) vitamServerTestRunner.getClient();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Throwable {
+        vitamServerTestRunner.runAfter();
+    }
+
+    @Before
+    public void before() {
+        reset(mock);
+    }
 
     @Override
-    MockResource getMockResource() {
-        return new MockContainerResource(mock);
+    public Set<Object> getResources() {
+        return Sets.newHashSet(new MockContainerResource(mock));
     }
 
     @Path("workspace/v1/containers")
-    public static class MockContainerResource extends MockResource {
+    public static class MockContainerResource {
 
         private final ExpectedResults expectedResponse;
 

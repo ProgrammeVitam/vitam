@@ -26,19 +26,17 @@
  */
 package fr.gouv.vitam.common.server.application.junit;
 
-import static org.mockito.Mockito.when;
-
-import java.util.Map;
-import java.util.Map.Entry;
+import com.google.common.base.Strings;
+import org.mockito.Mockito;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import java.util.Map;
+import java.util.Map.Entry;
 
-import org.mockito.Matchers;
-import org.mockito.Mockito;
-
-import com.google.common.base.Strings;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /**
  * Helper for getting Response as Outbound Response
@@ -67,9 +65,9 @@ public class ResponseHelper {
         final Response response = Mockito.mock(Response.class);
         when(response.getStatus()).thenReturn(status.getStatusCode());
         if (entity == null) {
-            when(response.readEntity(Matchers.any(Class.class))).thenReturn("");
+            when(response.readEntity(any(Class.class))).thenReturn("");
         } else {
-            when(response.readEntity(Matchers.any(Class.class))).thenReturn(entity);
+            when(response.readEntity(any(Class.class))).thenReturn(entity);
         }
         boolean contentTypeFound = false;
         if (!Strings.isNullOrEmpty(contentType)) {

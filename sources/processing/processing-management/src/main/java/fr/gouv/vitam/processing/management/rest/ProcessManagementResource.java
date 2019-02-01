@@ -46,8 +46,8 @@ import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.common.server.application.AbstractVitamApplication;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
@@ -121,7 +121,7 @@ public class ProcessManagementResource extends ApplicationStatusResource {
 
         processMonitoring = ProcessMonitoringImpl.getInstance();
         LOGGER.info("init Process Management Resource server");
-        AbstractVitamApplication.getBusinessMetricsRegistry().register("Running workflows",
+        CommonBusinessApplication.getBusinessMetricsRegistry().register("Running workflows",
                 (Gauge<Long>) () -> runningWorkflows.get());
     }
 
