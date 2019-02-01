@@ -54,6 +54,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDReader;
@@ -656,7 +657,7 @@ public class IngestInternalIT {
                 collection.find(com.mongodb.client.model.Filters.eq("_id", unit.get("#id").asText()));
             Document first = documents.iterator().next();
 
-            final JsonNode uds = JsonHandler.getFromString(first.toJson()).get(Unit.UNITDEPTHS);
+            final JsonNode uds = JsonHandler.getFromString(JSON.serialize(first)).get(Unit.UNITDEPTHS);
 
             assertNotNull(uds);
             assertEquals(udsIds.size(), uds.size());

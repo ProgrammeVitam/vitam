@@ -49,6 +49,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -194,7 +195,7 @@ public class PronomParser {
                             pronomFormat.cleanNullValues();
 
                             copyAttributesFromFileFormat(pronomFormat, fileFormat0);
-                            jsonPronom = JsonHandler.getFromString(pronomFormat.toJson());
+                            jsonPronom = JsonHandler.getFromString(JSON.serialize(pronomFormat));
                             jsonFileFormatList.add(jsonPronom);
                             bFileFormat = false;
                         }

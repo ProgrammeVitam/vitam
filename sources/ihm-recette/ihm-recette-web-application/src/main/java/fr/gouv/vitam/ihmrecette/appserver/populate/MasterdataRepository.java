@@ -32,18 +32,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.mongodb.MongoException;
-import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.util.JSON;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
-import com.mongodb.client.model.InsertOneModel;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -306,7 +304,7 @@ public class MasterdataRepository {
 
         documents.forEach(document -> {
             String id = (String) document.remove("_id");
-            String source = document.toJson();
+            String source = JSON.serialize(document);
             bulkRequestBuilder
                     .add(transportClient.prepareIndex(vitamDataType.getIndexName(), VitamCollection.TYPEUNIQUE, id)
                             .setSource(source, XContentType.JSON));

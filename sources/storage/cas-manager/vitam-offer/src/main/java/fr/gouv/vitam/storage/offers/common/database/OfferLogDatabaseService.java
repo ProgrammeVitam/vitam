@@ -43,6 +43,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -141,7 +142,7 @@ public class OfferLogDatabaseService {
             }
             FindIterable<Document> result = mongoCollection.find(searchFilter).limit(limit).sort(sequenceSort);
             for (Document document : result) {
-                offerLog.add(JsonHandler.getFromString(document.toJson(), OfferLog.class));
+                offerLog.add(JsonHandler.getFromString(JSON.serialize(document), OfferLog.class));
             }
             return offerLog;
         } catch (MongoException e) {

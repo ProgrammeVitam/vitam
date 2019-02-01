@@ -38,6 +38,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -173,7 +174,7 @@ public class RestoreBackupService {
         final LogbookOperation logbookOperationDocument)
         throws InvalidParseOperationException {
         fr.gouv.vitam.common.model.logbook.LogbookOperation logbookOperation =
-            JsonHandler.getFromString(logbookOperationDocument.toJson(),
+            JsonHandler.getFromString(JSON.serialize(logbookOperationDocument),
                 fr.gouv.vitam.common.model.logbook.LogbookOperation.class);
         Optional<LogbookEventOperation> accessionRegisterValidEvent = logbookOperation.getEvents().stream()
             .filter(event -> "INGEST".equals(event.getEvTypeProc()))
