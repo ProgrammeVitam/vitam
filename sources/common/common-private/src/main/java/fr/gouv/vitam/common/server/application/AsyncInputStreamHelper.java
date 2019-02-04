@@ -26,14 +26,6 @@
  */
 package fr.gouv.vitam.common.server.application;
 
-import java.io.InputStream;
-
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.CompletionCallback;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -42,6 +34,13 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.CompletionCallback;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
 
 /**
  * Async Response for InputStream Helper</br>
@@ -52,22 +51,22 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  *
  * <pre>
  * <code>
-    &#64;Path(DOWNLOAD + HttpMethod.GET)
-    &#64;GET
-    &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
-    &#64;Consumes(MediaType.WILDCARD)
-    public void downloadDirectGet(@Suspended final AsyncResponse asyncResponse) {
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
-
-            &#64;Override
-            public void run() {
-                File file = new File(...)
-                FileInputStream inputStream = new FileInputStream(file);
-                new AsyncInputStreamHelper(asyncResponse, inputStream)
-                    .writeResponse(Response.ok());
-            }
-        });
-    }
+ * &#64;Path(DOWNLOAD + HttpMethod.GET)
+ * &#64;GET
+ * &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
+ * &#64;Consumes(MediaType.WILDCARD)
+ * public void downloadDirectGet(@Suspended final AsyncResponse asyncResponse) {
+ * VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+ *
+ * &#64;Override
+ * public void run() {
+ * File file = new File(...)
+ * FileInputStream inputStream = new FileInputStream(file);
+ * new AsyncInputStreamHelper(asyncResponse, inputStream)
+ * .writeResponse(Response.ok());
+ * }
+ * });
+ * }
  * </code>
  * </pre>
  *
@@ -76,29 +75,29 @@ import fr.gouv.vitam.common.stream.StreamUtils;
  *
  * <pre>
  * <code>
-    &#64;Path(DOWNLOAD_INDIRECT + HttpMethod.GET)
-    &#64;GET
-    &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
-    &#64;Consumes(MediaType.WILDCARD)
-    public void downloadIndirectGet(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
-        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
-
-            &#64;Override
-            public void run() {
-                String method = HttpMethod.GET;
-                Response response = null;
-                try (final BenchmarkClientRest client =
-                    BenchmarkClientFactory.getInstance().getClient()) {
-                    response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
-                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-                    buildReponse(asyncResponse, response); // Using AsyncInputStreamHelper
-                } catch (VitamClientInternalException e) {
-                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
-                        Response.status(Status.INTERNAL_SERVER_ERROR).build());
-                }
-            }
-        });
-    }
+ * &#64;Path(DOWNLOAD_INDIRECT + HttpMethod.GET)
+ * &#64;GET
+ * &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
+ * &#64;Consumes(MediaType.WILDCARD)
+ * public void downloadIndirectGet(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
+ * VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+ *
+ * &#64;Override
+ * public void run() {
+ * String method = HttpMethod.GET;
+ * Response response = null;
+ * try (final BenchmarkClientRest client =
+ * BenchmarkClientFactory.getInstance().getClient()) {
+ * response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
+ * null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+ * buildReponse(asyncResponse, response); // Using AsyncInputStreamHelper
+ * } catch (VitamClientInternalException e) {
+ * AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+ * Response.status(Status.INTERNAL_SERVER_ERROR).build());
+ * }
+ * }
+ * });
+ * }
  * </code>
  * </pre>
  */
@@ -211,19 +210,10 @@ public class AsyncInputStreamHelper {
      * @param response the fully prepared ErrorResponse
      * @param stream an inputStream to close anyway
      */
-    public static void asyncResponseResume(AsyncResponse asyncResponse, final Response response, final InputStream stream) {
+    public static void asyncResponseResume(AsyncResponse asyncResponse, final Response response,
+        final InputStream stream) {
+        StreamUtils.closeSilently(stream);
         ParametersChecker.checkParameter("ErrorResponse should not be null", response);
-        asyncResponse.register(new CompletionCallback() {
-
-            @Override
-            public void onComplete(Throwable throwable) {
-                StreamUtils.closeSilently(stream);
-                Object entity = response.getEntity();
-                if (entity != null && entity instanceof InputStream) {
-                    StreamUtils.closeSilently((InputStream) entity);
-                }
-            }
-        });
         asyncResponse.resume(response);
     }
 
