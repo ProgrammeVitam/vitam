@@ -38,12 +38,14 @@ import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -106,9 +108,9 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
     private boolean checkNoObjectInManifest() throws ProcessingException {
 
         InputStream xmlFile = null;
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-        final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
 
+        final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
         xmlOutputFactory.setProperty(SedaConstants.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
         final QName binaryDataObject = new QName(SedaConstants.NAMESPACE_URI, SedaConstants.TAG_BINARY_DATA_OBJECT);

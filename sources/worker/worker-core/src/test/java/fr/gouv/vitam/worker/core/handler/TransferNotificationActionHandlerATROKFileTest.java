@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -174,7 +175,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
             }
             assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             XMLEventReader reader = xmlInputFactory.createXMLEventReader(xmlFile);
             String objectGroupGuid = null;
             String objectGuid = null;

@@ -75,6 +75,7 @@ import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -725,7 +726,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
          * Retrieves SEDA
          **/
 
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         XMLEventReader reader = null;
 
         final QName dataObjectGroupName = new QName(SedaConstants.NAMESPACE_URI, DATA_OBJECT_GROUP);

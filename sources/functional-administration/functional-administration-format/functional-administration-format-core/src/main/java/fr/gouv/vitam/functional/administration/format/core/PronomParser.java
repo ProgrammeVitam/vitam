@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.functional.administration.common.exception.FileFormatException;
 import fr.gouv.vitam.functional.administration.common.exception.InvalidFileFormatParseException;
 import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
@@ -109,7 +110,7 @@ public class PronomParser {
 
         try (InputStream xmlPronom = new FileInputStream(xmlPronomFile)) {
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
 
             final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(xmlPronom);
             while (eventReader.hasNext()) {

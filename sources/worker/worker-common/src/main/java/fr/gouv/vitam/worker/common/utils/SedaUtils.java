@@ -64,6 +64,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
+import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -193,7 +194,7 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             }
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             final QName messageObjectName = new QName(NAMESPACE_URI, SedaConstants.TAG_MESSAGE_IDENTIFIER);
             final QName originatingAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
             final QName submissionAgencyName = new QName(NAMESPACE_URI, SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
@@ -436,7 +437,7 @@ public class SedaUtils {
         extractUriResponse.setErrorNumber(listMessages.size());
 
         // Create the XML input factory
-        final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         // Create the XML output factory
         final XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newInstance();
 
@@ -550,7 +551,7 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             }
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             versionMap = compareVersionList(reader);
         } catch (final XMLStreamException e) {
@@ -806,7 +807,7 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             }
 
-            final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             sedaUtilInfo = getDataObjectInfo(reader);
             return sedaUtilInfo;
