@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.server.storagelog;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameterName;
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 import org.apache.commons.collections4.MultiValuedMap;
@@ -35,9 +36,8 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.assertj.core.api.AbstractLongAssert;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -45,7 +45,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,12 +70,11 @@ public class StorageLogServiceTest {
 
     private List<Integer> tenants;
 
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
+    @ClassRule
+    public static TempFolderRule folder = new TempFolderRule();
 
     @Before
     public void setUp() throws IOException {
-        folder.create();
         tenants = new ArrayList<>();
 
         for (int i = 0; i < TENANTS; i++) {
@@ -103,7 +106,8 @@ public class StorageLogServiceTest {
 
         Path file1 = files.get(0);
         assertThat(file1.getFileName().toString()).matches("0_\\d+_.*\\.log");
-        assertFileContent(file1, "{\"objectIdentifier\":\"tenant0-param1\"}\n{\"objectIdentifier\":\"tenant0-param2\"}\n");
+        assertFileContent(file1,
+            "{\"objectIdentifier\":\"tenant0-param1\"}\n{\"objectIdentifier\":\"tenant0-param2\"}\n");
 
         Path file2 = files.get(1);
         assertThat(file2.getFileName().toString()).matches("1_\\d+_.*\\.log");
@@ -152,7 +156,8 @@ public class StorageLogServiceTest {
         assertThat(logInformation.get(0).getPath().toAbsolutePath().toString())
             .isEqualTo(files.get(0).toAbsolutePath().toString());
 
-        assertFileContent(files.get(0), "{\"objectIdentifier\":\"tenant0-param1\"}\n{\"objectIdentifier\":\"tenant0-param2\"}\n");
+        assertFileContent(files.get(0),
+            "{\"objectIdentifier\":\"tenant0-param1\"}\n{\"objectIdentifier\":\"tenant0-param2\"}\n");
         assertFileContent(files.get(1), "");
         assertFileContent(files.get(2), "{\"objectIdentifier\":\"tenant1-param1\"}\n");
 
@@ -186,7 +191,8 @@ public class StorageLogServiceTest {
 
         CountDownLatch stopSignal = new CountDownLatch(1);
 
-        ExecutorService executorService = Executors.newFixedThreadPool(NB_THREADS_PER_TENANT * TENANTS, VitamThreadFactory.getInstance());
+        ExecutorService executorService =
+            Executors.newFixedThreadPool(NB_THREADS_PER_TENANT * TENANTS, VitamThreadFactory.getInstance());
 
         // Threads for appending messages
         for (int i = 0; i < NB_THREADS_PER_TENANT * NB_THREADS_PER_TENANT; i++) {
@@ -261,14 +267,16 @@ public class StorageLogServiceTest {
         for (int tenant = 0; tenant < TENANTS; tenant++) {
 
             List<String> sortedTenantLog = loggedDataByTenant.get(tenant).stream()
-                .sorted(Comparator.comparing((String s) -> Integer.parseInt(s.substring(s.lastIndexOf("-param") + 6, s.lastIndexOf("\"")))))
+                .sorted(Comparator.comparing(
+                    (String s) -> Integer.parseInt(s.substring(s.lastIndexOf("-param") + 6, s.lastIndexOf("\"")))))
                 .collect(Collectors.toList());
 
             assertThat(sortedTenantLog).hasSize(tenantCpt.get(tenant).get());
             System.out.println("Nb message for tenant " + tenant + "=" + sortedTenantLog.size());
 
             for (int i = 0; i < sortedTenantLog.size(); i++) {
-                assertThat(sortedTenantLog.get(i)).isEqualTo("{\"objectIdentifier\":\"tenant" + tenant + "-param" + i + "\"}");
+                assertThat(sortedTenantLog.get(i))
+                    .isEqualTo("{\"objectIdentifier\":\"tenant" + tenant + "-param" + i + "\"}");
             }
         }
     }
