@@ -49,7 +49,41 @@
       "type": "string"
     },
     "Collections": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "ObjectGroup",
+          "Unit",
+          "FileFormat",
+          "FileRules",
+          "AccessionRegisterSummary",
+          "AccessionRegisterDetail",
+          "IngestContract",
+          "AccessContract",
+          "Profile",
+          "ArchiveUnitProfile",
+          "Agencies",
+          "Context",
+          "SecurityProfile",
+          "Griffin",
+          "VitamSequence",
+          "OfferLog",
+          "OfferSequence",
+          "Ontology",
+          "LogbookOperation",
+          "LogbookLifeCycleObjectGroup",
+          "LogbookLifeCycleObjectGroupInProcess",
+          "LogbookLifeCycleUnit",
+          "LogbookLifeCycleUnitInProcess",
+          "EliminationActionObjectGroup",
+          "EliminationActionUnit",
+          "PreservationReport",
+          "Certificate",
+          "PersonalCertificate",
+          "_history"
+        ]
+      }
     },
     "CreationDate": {
       "description": "pattern: Date",

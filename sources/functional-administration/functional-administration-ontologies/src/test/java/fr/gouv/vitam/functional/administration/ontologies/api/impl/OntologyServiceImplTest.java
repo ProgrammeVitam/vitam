@@ -28,6 +28,7 @@
 package fr.gouv.vitam.functional.administration.ontologies.api.impl;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -529,6 +530,31 @@ public class OntologyServiceImplTest {
         assertThat(response2.isOk()).isTrue();
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void importOntologyWithNotFoundCollectionThenKO() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
 
+        final File fileOntology = PropertiesUtils.getResourceFile("ok_ontology.json");
+        final List<OntologyModel> ontologyModelListOk =
+                JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
+                });
+
+        final File fileOntologyKo = PropertiesUtils.getResourceFile("KO_ontology_unknown_collection.json");
+        final List<OntologyModel> ontologyModelListKo =
+                JsonHandler.getFromFileAsTypeRefence(fileOntologyKo, new TypeReference<List<OntologyModel>>() {
+                });
+        // When
+        final RequestResponse response = ontologyService.importOntologies(true, ontologyModelListOk);
+        assertThat(response.isOk()).isTrue();
+        // Then
+        String resultToExpect = "{\"httpCode\":400,\"code\":\"18\",\"context\":\"FunctionalModule-Ontology\",\"state\":\"KO\",\"message\":\"Ontology service error\",\"description\":\"Import ontologies schema error > {\\\"validateJson\\\":[{\\\"level\\\":\\\"error\\\",\\\"schema\\\":{\\\"loadingURI\\\":\\\"#\\\",\\\"pointer\\\":\\\"/properties/Collections/items\\\"},\\\"instance\\\":{\\\"pointer\\\":\\\"/Collections/0\\\"},\\\"domain\\\":\\\"validation\\\",\\\"keyword\\\":\\\"enum\\\",\\\"message\\\":\\\"instance value (\\\\\\\"BlablaCollection\\\\\\\") not found in enum (possible values: [\\\\\\\"ObjectGroup\\\\\\\",\\\\\\\"Unit\\\\\\\",\\\\\\\"FileFormat\\\\\\\",\\\\\\\"FileRules\\\\\\\",\\\\\\\"AccessionRegisterSummary\\\\\\\",\\\\\\\"AccessionRegisterDetail\\\\\\\",\\\\\\\"IngestContract\\\\\\\",\\\\\\\"AccessContract\\\\\\\",\\\\\\\"Profile\\\\\\\",\\\\\\\"ArchiveUnitProfile\\\\\\\",\\\\\\\"Agencies\\\\\\\",\\\\\\\"Context\\\\\\\",\\\\\\\"SecurityProfile\\\\\\\",\\\\\\\"Griffin\\\\\\\",\\\\\\\"VitamSequence\\\\\\\",\\\\\\\"OfferLog\\\\\\\",\\\\\\\"OfferSequence\\\\\\\",\\\\\\\"Ontology\\\\\\\",\\\\\\\"LogbookOperation\\\\\\\",\\\\\\\"LogbookLifeCycleObjectGroup\\\\\\\",\\\\\\\"LogbookLifeCycleObjectGroupInProcess\\\\\\\",\\\\\\\"LogbookLifeCycleUnit\\\\\\\",\\\\\\\"LogbookLifeCycleUnitInProcess\\\\\\\",\\\\\\\"EliminationActionObjectGroup\\\\\\\",\\\\\\\"EliminationActionUnit\\\\\\\",\\\\\\\"PreservationReport\\\\\\\",\\\\\\\"Certificate\\\\\\\",\\\\\\\"PersonalCertificate\\\\\\\",\\\\\\\"_history\\\\\\\"])\\\",\\\"value\\\":\\\"BlablaCollection\\\",\\\"enum\\\":[\\\"ObjectGroup\\\",\\\"Unit\\\",\\\"FileFormat\\\",\\\"FileRules\\\",\\\"AccessionRegisterSummary\\\",\\\"AccessionRegisterDetail\\\",\\\"IngestContract\\\",\\\"AccessContract\\\",\\\"Profile\\\",\\\"ArchiveUnitProfile\\\",\\\"Agencies\\\",\\\"Context\\\",\\\"SecurityProfile\\\",\\\"Griffin\\\",\\\"VitamSequence\\\",\\\"OfferLog\\\",\\\"OfferSequence\\\",\\\"Ontology\\\",\\\"LogbookOperation\\\",\\\"LogbookLifeCycleObjectGroup\\\",\\\"LogbookLifeCycleObjectGroupInProcess\\\",\\\"LogbookLifeCycleUnit\\\",\\\"LogbookLifeCycleUnitInProcess\\\",\\\"EliminationActionObjectGroup\\\",\\\"EliminationActionUnit\\\",\\\"PreservationReport\\\",\\\"Certificate\\\",\\\"PersonalCertificate\\\",\\\"_history\\\"]}]}\"}";
+        JsonNode resultNodeToExpect = JsonHandler.getFromString(resultToExpect);
+
+        final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelListKo);
+        assertThat(response2.toJsonNode()).isEqualTo(resultNodeToExpect);
+        assertThat(response2.isOk()).isFalse();
+    }
 
 }
