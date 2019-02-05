@@ -97,6 +97,7 @@
         <logback.version>1.2.3</logback.version>
         <resteasy.client.version>3.6.2.Final</resteasy.client.version>
         <jclouds.version>2.1.1</jclouds.version>
+        <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
         <jclouds-ceph.version>2.1.1</jclouds-ceph.version>
         <openstack4j.version>3.1.0</openstack4j.version>
         <awssdk.v1.version>1.11.488</awssdk.v1.version>
@@ -857,7 +858,7 @@
             <dependency>
                 <groupId>javax.ws.rs</groupId>
                 <artifactId>javax.ws.rs-api</artifactId>
-                <version>2.1.1</version>
+                <version>${javax.ws.rs.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.jclouds.api</groupId>
