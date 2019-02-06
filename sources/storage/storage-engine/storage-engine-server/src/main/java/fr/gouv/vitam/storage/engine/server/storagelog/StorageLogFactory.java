@@ -83,6 +83,11 @@ public class StorageLogFactory implements StorageLog {
         return instance;
     }
 
+    public static synchronized StorageLog getInstanceForTest(List<Integer> tenants, Path basePath) throws IOException {
+        instance = new StorageLogFactory(tenants, basePath);
+        return instance;
+    }
+
     /**
      * Creates storage directory if not exists.
      *
