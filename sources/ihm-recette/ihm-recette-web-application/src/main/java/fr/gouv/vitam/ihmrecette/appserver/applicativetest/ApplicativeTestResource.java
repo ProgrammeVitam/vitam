@@ -162,6 +162,21 @@ public class ApplicativeTestResource {
     }
 
     /**
+     * list git branches
+     *
+     * @return list of git branches
+     * @throws IOException
+     */
+    @GET
+    @Path("/gitBranches")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listGitBranches() throws IOException, InterruptedException {
+        List<String> branchList = applicativeTestService.getBranches(Paths.get(testSystemSipDirectory));
+
+        return Response.ok(branchList).build();
+    }
+
+    /**
      * PDL
      * return a specific report according to his name.
      *
@@ -202,6 +217,29 @@ public class ApplicativeTestResource {
 
 
         return Response.ok().entity(status).build();
+    }
+
+    /**
+     * launch cucumber test
+     *
+     * @return 200 if the previous test are done
+     */
+    @POST
+    @Path("/syncTnrPiecesWithBranch")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response synchronizedPiecesTestDirectoryWithBranch(String branch) throws IOException, InterruptedException {
+        LOGGER.debug("synchronise " + branch);
+
+        applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
+        int resetStatus = applicativeTestService.reset(Paths.get(testSystemSipDirectory), branch);
+        int checkoutStatus = applicativeTestService.checkout(Paths.get(testSystemSipDirectory), branch);
+
+        if (resetStatus == 0 && checkoutStatus == 0) {
+            return Response.status(Response.Status.OK).entity(0).build();
+        }
+
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(1).build();
+
     }
 
     private Response synchronizeGit(String tnr_master) throws IOException, InterruptedException {

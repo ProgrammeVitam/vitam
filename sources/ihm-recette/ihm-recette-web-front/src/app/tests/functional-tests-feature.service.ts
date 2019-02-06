@@ -7,6 +7,9 @@ import {Observable} from 'rxjs/Observable';
 export class FunctionalTestsFeatureService {
   FEATURE_TNR='applicative-test/testFeature';
   SYNC='applicative-test/syncTnrPieces';
+  SYNC_WITH_BRANCH='applicative-test/syncTnrPiecesWithBranch';
+  GET_BRANCHES='applicative-test/gitBranches';
+  GET_CURRENT_BRANCH='applicative-test/currentGitBranch';
 
   constructor(private resourceService: ResourcesService) {
   }
@@ -19,4 +22,11 @@ export class FunctionalTestsFeatureService {
     return this.resourceService.post(`${this.SYNC}`);
 
   }
+  public syncWithBranch(branch: string): Observable<any> {
+    return this.resourceService.post(`${this.SYNC_WITH_BRANCH}`,null,branch);
+  }
+  public getAllBranches(): Observable<any> {
+    return this.resourceService.get(`${this.GET_BRANCHES}`);
+  }
+
 }
