@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -245,7 +246,7 @@ public class OfferSyncServiceTest {
         doAnswer((args) -> {
             countDownLatch.countDown();
             return null;
-        }).when(offerSyncProcess).synchronize(any(), any(), any(), anyLong());
+        }).when(offerSyncProcess).synchronize(any(), any(), any(), eq(OFFSET));
 
         OfferSyncService instance = new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16);
 
@@ -254,6 +255,6 @@ public class OfferSyncServiceTest {
         countDownLatch.await(1, TimeUnit.MINUTES);
 
         // Then
-        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
+        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DATA_CATEGORY,OFFSET);
     }
 }

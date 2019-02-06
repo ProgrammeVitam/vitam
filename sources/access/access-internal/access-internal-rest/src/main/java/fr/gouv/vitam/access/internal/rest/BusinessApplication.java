@@ -1,23 +1,20 @@
 package fr.gouv.vitam.access.internal.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import fr.gouv.vitam.access.internal.api.AccessInternalModule;
+import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
+import fr.gouv.vitam.access.internal.serve.filter.AccessContractIdContainerFilter;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
-import fr.gouv.vitam.access.internal.api.AccessInternalModule;
-import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
-import fr.gouv.vitam.access.internal.serve.filter.AccessContractIdContainerFilter;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfigurationParameters;
-import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Business application for access internal declaring resources and filters
