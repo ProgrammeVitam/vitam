@@ -27,18 +27,21 @@ package fr.gouv.vitam.ihmrecette.appserver;
  */
 
 
-import static io.restassured.RestAssured.given;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.File;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.junit.JunitHelper;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -46,38 +49,44 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 // FIXME Think about Unit tests
 public class WebApplicationResourceAuthTest {
     // Take it from conf file
-    private static final String DEFAULT_WEB_APP_CONTEXT = "/test-admin";
-    private static final String OPTIONS = "{name: \"myName\"}";
+    private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"user\", \"credentials\": \"user\"}}";
 
     private static JunitHelper junitHelper;
     private static int port;
-    private static String sessionId;
     private static IhmRecetteMainWithoutMongo application;
 
     @BeforeClass
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
         application = new IhmRecetteMainWithoutMongo(adminConfig.getAbsolutePath());
         application.start();
-        RestAssured.port = port;
-        RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
-
-        sessionId = given()
-            .contentType(ContentType.JSON)
-            .body(CREDENTIALS)
-            .post("/login")
-            .getCookie("JSESSIONID");
-
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        application.stop();
+    public static void afterClass() {
+        VitamClientFactory.resetConnections();
+        try {
+            application.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
         junitHelper.releasePort(port);
+    }
+
+    @Test
+    public void test() {
+        RestAssured.port = port;
+        RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
+
+        Response response = given()
+            .contentType(ContentType.JSON)
+            .body(CREDENTIALS)
+            .post("/login");
+        assertThat(response.getCookie("JSESSIONID")).isNotEmpty();
+        assertThat(response.getBody().prettyPrint()).contains("tokenCSRF");
     }
 
 }
