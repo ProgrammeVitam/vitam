@@ -45,6 +45,7 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 
@@ -99,6 +100,11 @@ public class AmazonS3V1MockedServerTest {
         configuration.setS3AccessKey(S3_ACCESSKEY);
         configuration.setS3SecretKey(S3_SECRETKEY);
         configuration.setS3PathStyleAccessEnabled(true);
+        configuration.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
+        configuration.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);
+        configuration.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
+        configuration.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
+        configuration.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
         amazonS3V1 = new AmazonS3V1(configuration);
         s3WireMockRule.resetAll();
     }

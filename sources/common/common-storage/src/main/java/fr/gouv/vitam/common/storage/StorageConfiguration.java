@@ -50,7 +50,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private int swiftConnectionTimeout;
     private int swiftReadTimeout;
     /**
-     * swiftRenewTokenDelayBeforeExpireTime is the time in seconds to handle a token renew before a token expiration occurs
+     * swiftRenewTokenDelayBeforeExpireTime is the time in seconds to handle a token
+     * renew before a token expiration occurs
      */
     private long swiftSoftRenewTokenDelayBeforeExpireTime;
     private long swiftHardRenewTokenDelayBeforeExpireTime;
@@ -96,6 +97,18 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
      * S3 connection timeout
      */
     private int s3ConnectionTimeout;
+    /**
+     * S3 socket timeout
+     */
+    private int s3SocketTimeout;
+    /**
+     * S3 request timeout
+     */
+    private int s3RequestTimeout;
+    /**
+     * S3 client execution timeout
+     */
+    private int s3ClientExecutionTimeout;
 
     /**
      * @return the swiftUrl
@@ -105,8 +118,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftUrl
-     *            the swiftUrl to set
+     * @param swiftUrl the swiftUrl to set
      *
      * @return this
      */
@@ -123,8 +135,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param provider
-     *            the provider to set
+     * @param provider the provider to set
      *
      * @return this
      */
@@ -141,8 +152,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftKeystoneAuthUrl
-     *            the swiftKeystoneAuthUrl to set
+     * @param swiftKeystoneAuthUrl the swiftKeystoneAuthUrl to set
      *
      * @return this
      */
@@ -159,8 +169,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftDomain
-     *            the tenantName to set
+     * @param swiftDomain the tenantName to set
      *
      * @return this
      */
@@ -177,8 +186,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftUser
-     *            the userName to set
+     * @param swiftUser the userName to set
      *
      * @return this
      */
@@ -195,8 +203,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftPassword
-     *            the swiftPassword to set
+     * @param swiftPassword the swiftPassword to set
      *
      * @return this
      */
@@ -213,8 +220,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param storagePath
-     *            the storagePath to set
+     * @param storagePath the storagePath to set
      *
      * @return this
      */
@@ -231,8 +237,7 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param contextPath
-     *            the contextPath to set
+     * @param contextPath the contextPath to set
      *
      * @return this
      */
@@ -351,21 +356,21 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     public String getS3TrustStore() {
         return s3TrustStore;
     }
-    
+
     public StorageConfiguration setS3TrustStore(String s3TrustStore) {
         this.s3TrustStore = s3TrustStore;
         return this;
     }
-    
+
     public String getS3TrustStorePassword() {
         return s3TrustStorePassword;
     }
-    
+
     public StorageConfiguration setS3TrustStorePassword(String s3TrustStorePassword) {
         this.s3TrustStorePassword = s3TrustStorePassword;
         return this;
     }
-    
+
     public String getS3AccessKey() {
         return s3AccessKey;
     }
@@ -417,6 +422,33 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public StorageConfiguration setS3ConnectionTimeout(int s3ConnectionTimeout) {
         this.s3ConnectionTimeout = s3ConnectionTimeout;
+        return this;
+    }
+
+    public int getS3SocketTimeout() {
+        return s3SocketTimeout;
+    }
+
+    public StorageConfiguration setS3SocketTimeout(int s3SocketTimeout) {
+        this.s3SocketTimeout = s3SocketTimeout;
+        return this;
+    }
+
+    public int getS3RequestTimeout() {
+        return s3RequestTimeout;
+    }
+
+    public StorageConfiguration setS3RequestTimeout(int s3RequestTimeout) {
+        this.s3RequestTimeout = s3RequestTimeout;
+        return this;
+    }
+
+    public int getS3ClientExecutionTimeout() {
+        return s3ClientExecutionTimeout;
+    }
+
+    public StorageConfiguration setS3ClientExecutionTimeout(int s3ClientExecutionTimeout) {
+        this.s3ClientExecutionTimeout = s3ClientExecutionTimeout;
         return this;
     }
 

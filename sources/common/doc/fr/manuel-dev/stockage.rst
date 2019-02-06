@@ -121,7 +121,9 @@ Pour une offre S3 les paramétres de configuration sont :
     - signature v2 : 'S3SignerType'
   - s3MaxConnections :: Integer : nombre maximum de connection HTTP ouvertes
   - s3ConnectionTimeout :: Integer : temps maximum pour l'établissement d'une connection avant d'abandonner (en millisecondes)
-  - s3S3PathStyleAccessEnabled  :: Boolean : activer l'accès en "path-style" à la place du "virtual-hosted-style" 
+  - s3SocketTimeout :: Integer : temps maximum pour le transfert de la donnée avant d'abandonner (en millisecondes)
+  - s3RequestTimeout :: Integer : temps maximum pour l'execution de la requête avant d'abandonner (en millisecondes)
+  - s3ClientExecutionTimeout :: Integer : temps maximum pour l'execution de la requête par le client java avant d'abandonner (en millisecondes)
   
 
 2.1 - Configuration par code:

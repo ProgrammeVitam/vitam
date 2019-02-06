@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +43,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -91,6 +93,11 @@ public class AmazonS3V1ITTest {
         configurationMinio.setS3AccessKey(S3_MINIO_ACCESSKEY);
         configurationMinio.setS3SecretKey(S3_MINIO_SECRETKEY);
         configurationMinio.setS3PathStyleAccessEnabled(true);
+        configurationMinio.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
+        configurationMinio.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);
+        configurationMinio.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
+        configurationMinio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
+        configurationMinio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
 
         configurationMinioSsl = new StorageConfiguration();
         configurationMinioSsl.setProvider(PROVIDER);
@@ -101,19 +108,30 @@ public class AmazonS3V1ITTest {
         configurationMinioSsl.setS3PathStyleAccessEnabled(true);
         configurationMinioSsl.setS3TrustStore(S3_MINIO_TRUSTSTORE);
         configurationMinioSsl.setS3TrustStorePassword(S3_MINIO_TRUSTSTORE_PASS);
-        
+        configurationMinioSsl.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
+        configurationMinioSsl.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);
+        configurationMinioSsl.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
+        configurationMinioSsl.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
+        configurationMinioSsl.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
+
         configurationOpenio = new StorageConfiguration();
         configurationOpenio.setProvider(PROVIDER);
         configurationOpenio.setS3RegionName(Regions.US_WEST_1.getName());
         configurationOpenio.setS3Endpoint(S3_OPENIO_ENDPOINT);
         configurationOpenio.setS3AccessKey(S3_OPENIO_ACCESSKEY);
         configurationOpenio.setS3SecretKey(S3_OPENIO_SECRETKEY);
+        configurationOpenio.setS3ConnectionTimeout(200);
         configurationOpenio.setS3PathStyleAccessEnabled(true);
+        configurationOpenio.setS3ConnectionTimeout(ClientConfiguration.DEFAULT_CONNECTION_TIMEOUT);
+        configurationOpenio.setS3SocketTimeout(ClientConfiguration.DEFAULT_SOCKET_TIMEOUT);
+        configurationOpenio.setS3MaxConnections(ClientConfiguration.DEFAULT_MAX_CONNECTIONS);
+        configurationOpenio.setS3RequestTimeout(ClientConfiguration.DEFAULT_REQUEST_TIMEOUT);
+        configurationOpenio.setS3ClientExecutionTimeout(ClientConfiguration.DEFAULT_CLIENT_EXECUTION_TIMEOUT);
     }
 
     @Test
     public void minio_ssl_minio_main_scenario() throws Exception {
-        
+
         AmazonS3V1 amazonS3V1 = new AmazonS3V1(configurationMinioSsl);
         mainScenario(amazonS3V1);
 
@@ -141,6 +159,12 @@ public class AmazonS3V1ITTest {
     public void openio_listing_scenario() throws Exception {
         AmazonS3V1 amazonS3V1 = new AmazonS3V1(configurationOpenio);
         listingScenario(amazonS3V1);
+    }
+
+    @Test
+    public void openio_grossip_main_scenario() throws Exception {
+        AmazonS3V1 amazonS3V1 = new AmazonS3V1(configurationOpenio);
+        grosSipScenario(amazonS3V1);
     }
 
     private void mainScenario(AmazonS3V1 amazonS3V1) throws Exception {
@@ -305,6 +329,35 @@ public class AmazonS3V1ITTest {
 
     private InputStream getInputStream(String file) throws IOException {
         return PropertiesUtils.getResourceAsStream(file);
+    }
+
+    private void grosSipScenario(AmazonS3V1 amazonS3V1) throws Exception {
+        String containerName = "11_Unit";
+        String objectName = "object_11";
+
+        assertThatCode(() -> {
+            amazonS3V1.createContainer(containerName);
+        }).doesNotThrowAnyException();
+
+        File file = new File("/home/gafou/Bureau/SIP_Gabriel_big2/Content/ID5.zip");
+        InputStream file1Stream = new FileInputStream(file);
+        amazonS3V1.putObject(containerName, objectName, file1Stream, DigestType.SHA512, 4_198_763_914L);
+
+        // download an existing file
+        ObjectContent response = amazonS3V1.getObject(containerName, objectName);
+        try (InputStream is = response.getInputStream()) {
+            File fileDownloaded = tempFolder.newFile();
+            try (FileOutputStream fileOutputStream = new FileOutputStream(fileDownloaded)) {
+
+                byte[] buffer = new byte[8 * 1024];
+                int bytesRead;
+                while ((bytesRead = is.read(buffer)) != -1) {
+                    fileOutputStream.write(buffer, 0, bytesRead);
+                }
+            }
+            System.out.println(fileDownloaded.getPath());
+        }
+        
     }
 
 }

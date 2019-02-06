@@ -133,6 +133,11 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         if (configuration.getS3ConnectionTimeout() >= 0) {
             clientConfig.setConnectionTimeout(configuration.getS3ConnectionTimeout());
         }
+        if (configuration.getS3SocketTimeout() >= 0) {
+            clientConfig.setSocketTimeout(configuration.getS3SocketTimeout());
+        }
+        clientConfig.setRequestTimeout(configuration.getS3RequestTimeout());
+        clientConfig.setClientExecutionTimeout(configuration.getS3ClientExecutionTimeout());
 
         if (configuration.getS3Endpoint().startsWith("https")) {
             ApacheHttpClientConfig apacheClient = clientConfig.getApacheHttpClientConfig();
