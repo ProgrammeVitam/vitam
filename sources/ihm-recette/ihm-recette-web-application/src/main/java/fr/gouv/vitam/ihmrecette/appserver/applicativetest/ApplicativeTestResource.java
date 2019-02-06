@@ -199,30 +199,9 @@ public class ApplicativeTestResource {
     }
 
     /**
-     * synchronize tnr directory
+     * synchronize git branch
      *
-     * @return status of the command
-     */
-
-    @POST
-    @Path("/syncTnrPieces")
-    public Response synchronizedPiecesTestDirectory() throws IOException, InterruptedException {
-        LOGGER.debug("synchronise tnr_master");
-
-        applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
-
-        int status = applicativeTestService.resetTnrMaster(Paths.get(testSystemSipDirectory));
-
-        applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "tnr_master");
-
-
-        return Response.ok().entity(status).build();
-    }
-
-    /**
-     * launch cucumber test
-     *
-     * @return 200 if the previous test are done
+     * @return Status of the command
      */
     @POST
     @Path("/syncTnrPiecesWithBranch")

@@ -7,7 +7,6 @@
     <select [(ngModel)]="branch" #ctrl="ngModel" style="display: inline; margin: 0 0 0 10px">
         <option *ngFor='let branchName of branches' value="{{branchName}}">{{branchName}}</option>
     </select>
-    <!--<input type="text" label='Branche' [(ngModel)]="branch" />-->
 </div>
 <div class="ui-g-12">
 <textarea class="textarea-dsl ui-g-12" id="query" rows="25" cols="12" pInputTextarea [(ngModel)]="featureText"></textarea>

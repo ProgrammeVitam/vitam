@@ -6,7 +6,6 @@ import {Observable} from 'rxjs/Observable';
 @Injectable()
 export class FunctionalTestsFeatureService {
   FEATURE_TNR='applicative-test/testFeature';
-  SYNC='applicative-test/syncTnrPieces';
   SYNC_WITH_BRANCH='applicative-test/syncTnrPiecesWithBranch';
   GET_BRANCHES='applicative-test/gitBranches';
 
@@ -15,10 +14,6 @@ export class FunctionalTestsFeatureService {
 
   public launchFeature(text: string): Observable<any> {
     return this.resourceService.post(`${this.FEATURE_TNR}`,null,text);
-
-  }
-  public sync(): Observable<any> {
-    return this.resourceService.post(`${this.SYNC}`);
 
   }
   public syncWithBranch(branch: string): Observable<any> {

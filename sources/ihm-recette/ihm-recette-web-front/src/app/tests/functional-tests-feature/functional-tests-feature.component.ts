@@ -46,16 +46,12 @@ export class FunctionalTestsFeatureComponent extends PageComponent {
       });
   };
 
-  sync() {
-    this.service.sync().subscribe(() => this.updateOk = true);
-  };
-
   syncWithBranch() {
     this.service.syncWithBranch(this.branch).subscribe(
       () => this.updateOk = true,
       () => this.updateKo = true
     );
-  }
+  };
 
 
   pageOnInit(): Subscription {
@@ -64,7 +60,7 @@ export class FunctionalTestsFeatureComponent extends PageComponent {
     });
 
     return null;
-  }
+  };
 
 
 }
