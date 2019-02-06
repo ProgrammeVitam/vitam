@@ -9,7 +9,6 @@ export class FunctionalTestsFeatureService {
   SYNC='applicative-test/syncTnrPieces';
   SYNC_WITH_BRANCH='applicative-test/syncTnrPiecesWithBranch';
   GET_BRANCHES='applicative-test/gitBranches';
-  GET_CURRENT_BRANCH='applicative-test/currentGitBranch';
 
   constructor(private resourceService: ResourcesService) {
   }
