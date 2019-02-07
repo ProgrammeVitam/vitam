@@ -74,7 +74,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 /**
  * Mock client implementation for storage
  */
-class StorageClientMock extends AbstractMockClient implements StorageClient {
+public class StorageClientMock extends AbstractMockClient implements StorageClient {
     static final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
         "838860800, \"nbc\": 2}," + "{\"offerId\": " + "\"offer2\",\"usableSpace\": 838860800, \"nbc\": 2}]}";
     static final String MOCK_INFOS_EMPTY_RESULT_ARRAY = "{\"capacities\": []}";
@@ -94,7 +94,7 @@ class StorageClientMock extends AbstractMockClient implements StorageClient {
 
     @Override
     public JsonNode getStorageInformation(String strategyId)
-        throws StorageNotFoundClientException, StorageServerClientException {
+        throws StorageServerClientException {
         Integer tenantId = 0;
         try {
             tenantId = ParameterHelper.getTenantParameter();

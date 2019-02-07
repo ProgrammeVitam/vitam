@@ -62,6 +62,11 @@ public class ValidationXsdUtils {
      */
     private static final String CATALOG_FILENAME = "xsd_validation/catalog.xml";
 
+    private static final ValidationXsdUtils instance = new ValidationXsdUtils();
+    public static ValidationXsdUtils getInstance() {
+        return instance;
+    }
+
     /**
      * @param xmlFile the file to validate
      * @param xsdFile the xsd schema to validate with the file
@@ -71,7 +76,7 @@ public class ValidationXsdUtils {
      * @throws SAXException if the file is not valid with the XSD, or the file is not an xml file
      * @throws IOException if the schema file could not be found
      */
-    public static boolean checkWithXSD(InputStream xmlFile, String xsdFile)
+    public boolean checkWithXSD(InputStream xmlFile, String xsdFile)
         throws SAXException, IOException, XMLStreamException {
 
         final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
@@ -118,7 +123,7 @@ public class ValidationXsdUtils {
      * @throws SAXException
      * @throws IOException
      */
-    public static boolean checkFileRNG(InputStream xmlFile, File xsdFile) throws SAXException, IOException {
+    public boolean checkFileRNG(InputStream xmlFile, File xsdFile) throws SAXException, IOException {
         try {
             final Schema schema = getSchema(xsdFile);
             final Validator validator = schema.newValidator();
@@ -129,7 +134,7 @@ public class ValidationXsdUtils {
         }
     }
 
-    private static Schema getSchema(String xsdFile) throws SAXException {
+    private Schema getSchema(String xsdFile) throws SAXException {
         // Was XMLConstants.W3C_XML_SCHEMA_NS_URI
         final SchemaFactory factory =
             SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
@@ -141,7 +146,7 @@ public class ValidationXsdUtils {
         return factory.newSchema(ValidationXsdUtils.class.getClassLoader().getResource(xsdFile));
     }
 
-    private static Schema getSchema(File file) throws SAXException {
+    private Schema getSchema(File file) throws SAXException {
         SchemaFactory factory;
         if (file.getName().endsWith(RNG_SUFFIX)) {
             System.setProperty(RNG_PROPERTY_KEY,

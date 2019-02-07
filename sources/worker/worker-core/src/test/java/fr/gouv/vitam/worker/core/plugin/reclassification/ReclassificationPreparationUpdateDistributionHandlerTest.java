@@ -39,10 +39,10 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.doAnswer;
-import static org.powermock.api.mockito.PowerMockito.doReturn;
 
 @RunWithCustomExecutor
 public class ReclassificationPreparationUpdateDistributionHandlerTest {
@@ -130,7 +130,7 @@ public class ReclassificationPreparationUpdateDistributionHandlerTest {
         detachments.put("id1", "id5");
         detachments.put("id3", "id5");
         ReclassificationOrders reclassificationOrders = new ReclassificationOrders(attachments, detachments);
-        Mockito.doReturn(reclassificationOrders).when(handlerIO).getInput(0);
+        doReturn(reclassificationOrders).when(handlerIO).getInput(0);
 
         // When
         ItemStatus itemStatus = reclassificationPreparationLoadHandlerPlugin.execute(parameters, handlerIO);

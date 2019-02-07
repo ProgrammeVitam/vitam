@@ -212,13 +212,14 @@ public class ExtractSedaActionHandlerTest {
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        handler = new ExtractSedaActionHandler(metadataClientFactory, logbookLifeCyclesClientFactory,
-            adminManagementClientFactory);
+        handler = new ExtractSedaActionHandler(metadataClientFactory, adminManagementClientFactory);
 
 
         String objectId = "SIP/manifest.xml";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest", "workerId",
-            Lists.newArrayList(objectId));
+        handlerIO =
+            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest",
+                "workerId",
+                Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 
         out = new ArrayList<>();

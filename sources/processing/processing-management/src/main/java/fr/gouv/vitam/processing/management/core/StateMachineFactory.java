@@ -27,10 +27,13 @@
 
 package fr.gouv.vitam.processing.management.core;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.processing.common.automation.IEventsState;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Class StateMachineFactory Goal : create an instance of StateMachine
@@ -39,14 +42,14 @@ public class StateMachineFactory {
 
     private final static StateMachineFactory INSTANCE = new StateMachineFactory();
 
-    private StateMachineFactory(){}
+    private StateMachineFactory() {
+    }
 
     public static StateMachineFactory get() {
         return INSTANCE;
     }
 
     /**
-     * @return StateMachine object created
      * @param processWorkflow
      * @param processEngine
      * @return StateMachine
@@ -56,4 +59,19 @@ public class StateMachineFactory {
         ParametersChecker.checkParameter("ProcessEngine cannot be null", processEngine);
         return new StateMachine(processWorkflow, processEngine);
     }
+
+    @VisibleForTesting
+    public StateMachine create(ProcessWorkflow processWorkflow, ProcessEngine processEngine,
+        ProcessDataManagement dataManagement,
+        WorkspaceClientFactory workspaceClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        ParametersChecker.checkParameter("ProcessWorkflow cannot be null", processWorkflow);
+        ParametersChecker.checkParameter("ProcessEngine cannot be null", processEngine);
+        ParametersChecker.checkParameter("dataManagement cannot be null", dataManagement);
+        ParametersChecker.checkParameter("workspaceClientFactory cannot be null", workspaceClientFactory);
+        ParametersChecker
+            .checkParameter("logbookOperationsClientFactory cannot be null", logbookOperationsClientFactory);
+        return new StateMachine(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
+            logbookOperationsClientFactory);
+    }
+
 }

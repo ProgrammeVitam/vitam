@@ -26,30 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -66,8 +42,8 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -84,28 +60,43 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, SedaUtilsFactory.class,
-    AdminManagementClientFactory.class})
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class CheckDataObjectPackageActionHandlerTest {
-    CheckDataObjectPackageActionHandler handler = new CheckDataObjectPackageActionHandler();
     private static final String SIP_ARBORESCENCE = "SIP_Arborescence.xml";
     private static final String STORAGE_INFO_JSON = "storageInfo.json";
     private AdminManagementClient adminManagementClient;
-    private WorkspaceClient workspaceClient;
-    private MetaDataClient metadataClient;
-    private WorkspaceClientFactory workspaceClientFactory;
     private AdminManagementClientFactory adminManagementClientFactory;
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;
     private MetaDataClientFactory metadataClientFactory;
+    private MetaDataClient metadataClient;
+    private SedaUtilsFactory sedaUtilsFactory;
+
     private SedaUtils sedaUtils;
     private ExtractUriResponse extractUriResponseOK;
     private HandlerIOImpl action;
@@ -121,6 +112,8 @@ public class CheckDataObjectPackageActionHandlerTest {
             .setLogbookTypeProcess(LogbookTypeProcess.INGEST)
             .setContainerName("ExtractSedaActionHandlerTest");
 
+    private CheckDataObjectPackageActionHandler handler;
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -135,33 +128,30 @@ public class CheckDataObjectPackageActionHandlerTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        LogbookOperationsClientFactory.changeMode(null);
-        LogbookLifeCyclesClientFactory.changeMode(null);
-
-        mockStatic(WorkspaceClientFactory.class);
+        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+        sedaUtilsFactory = mock(SedaUtilsFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        mockStatic(AdminManagementClientFactory.class);
         adminManagementClient = mock(AdminManagementClient.class);
-
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
-        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
-        mockStatic(MetaDataClientFactory.class);
         metadataClient = mock(MetaDataClient.class);
         metadataClientFactory = mock(MetaDataClientFactory.class);
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
-        PowerMockito.when(MetaDataClientFactory.getInstance().getClient()).thenReturn(metadataClient);
+        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
 
-        mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
 
+        handler = new CheckDataObjectPackageActionHandler(metadataClientFactory, adminManagementClientFactory, sedaUtilsFactory);
+
+
         String objectId = "objectId";
-        action = new HandlerIOImpl("ExtractSedaActionHandlerTest", "workerId", newArrayList(objectId));
+        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
+            "ExtractSedaActionHandlerTest", "workerId", newArrayList(objectId));
         action.setCurrentObjectId(objectId);
 
         out = new ArrayList<>();
@@ -184,8 +174,9 @@ public class CheckDataObjectPackageActionHandlerTest {
 
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Ontology/ontology.json")));
 
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json")));
-        
+        out.add(new IOParameter().setUri(
+            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json")));
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.VALUE, "true")));
@@ -217,7 +208,7 @@ public class CheckDataObjectPackageActionHandlerTest {
             PropertiesUtils.getResourceAsStream(SIP_ARBORESCENCE);
         final InputStream storageInfo =
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
-        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
+        when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))

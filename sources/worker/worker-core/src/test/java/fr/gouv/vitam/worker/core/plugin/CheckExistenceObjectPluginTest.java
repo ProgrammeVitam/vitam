@@ -1,22 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -39,18 +24,25 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({StorageClientFactory.class})
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+
 public class CheckExistenceObjectPluginTest {
 
-    CheckExistenceObjectPlugin plugin = new CheckExistenceObjectPlugin();
+    private CheckExistenceObjectPlugin plugin;
     private StorageClient storageClient;
     private StorageClientFactory storageClientFactory;
 
@@ -88,14 +80,11 @@ public class CheckExistenceObjectPluginTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        PowerMockito.mockStatic(StorageClientFactory.class);
         storageClient = mock(StorageClient.class);
         storageClientFactory = mock(StorageClientFactory.class);
 
-        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        PowerMockito.when(StorageClientFactory.getInstance().getClient())
-            .thenReturn(storageClient);
-
+       when(storageClientFactory.getClient()) .thenReturn(storageClient);
+        plugin = new CheckExistenceObjectPlugin(storageClientFactory);
         action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "shouldWriteLFC")));

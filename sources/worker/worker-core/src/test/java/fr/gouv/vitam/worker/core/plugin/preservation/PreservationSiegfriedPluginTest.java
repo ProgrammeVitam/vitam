@@ -42,11 +42,12 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.O
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -61,13 +62,14 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.OUTPUT_FILES;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
 
-@RunWith(MockitoJUnitRunner.class)
 public class PreservationSiegfriedPluginTest {
 
     private HandlerIO handler = new TestHandlerIO();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @InjectMocks
     private PreservationSiegfriedPlugin siegriedPlugin;
@@ -90,8 +92,9 @@ public class PreservationSiegfriedPluginTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.ANALYSE);
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -130,8 +133,9 @@ public class PreservationSiegfriedPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -147,7 +151,8 @@ public class PreservationSiegfriedPluginTest {
         // Then
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
         String binaryGUID =
-            ((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults().get(0).getOutputExtras().get(0).getBinaryGUID();
+            ((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults().get(0).getOutputExtras().get(0)
+                .getBinaryGUID();
 
         assertThat(itemStatuses).extracting(ItemStatus::getItemsStatus).
             extracting(itemStatus -> itemStatus.get(PreservationSiegfriedPlugin.ITEM_ID))
@@ -163,14 +168,17 @@ public class PreservationSiegfriedPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
-        FormatIdentifierResponse formatIdentifierResponse = new FormatIdentifierResponse("fmt/trololo", "application/trololo", "42", PRONOM_NAMESPACE);
-        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName()))).willReturn(Collections.singletonList(formatIdentifierResponse));
+        FormatIdentifierResponse formatIdentifierResponse =
+            new FormatIdentifierResponse("fmt/trololo", "application/trololo", "42", PRONOM_NAMESPACE);
+        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName())))
+            .willReturn(Collections.singletonList(formatIdentifierResponse));
 
         // When
         siegriedPlugin.executeList(null, handler);
@@ -191,13 +199,15 @@ public class PreservationSiegfriedPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
-        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName()))).willReturn(Collections.emptyList());
+        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName())))
+            .willReturn(Collections.emptyList());
 
         // When
         List<ItemStatus> itemStatuses = siegriedPlugin.executeList(null, handler);
@@ -214,13 +224,15 @@ public class PreservationSiegfriedPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
-        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName()))).willThrow(new FileFormatNotFoundException("trololo"));
+        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName())))
+            .willThrow(new FileFormatNotFoundException("trololo"));
 
         // When
         List<ItemStatus> itemStatuses = siegriedPlugin.executeList(null, handler);
@@ -237,8 +249,9 @@ public class PreservationSiegfriedPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
@@ -250,7 +263,8 @@ public class PreservationSiegfriedPluginTest {
         ThrowingCallable siegfriedError = () -> siegriedPlugin.executeList(null, handler);
 
         // Then
-        assertThatThrownBy(siegfriedError).isInstanceOf(RuntimeException.class).hasMessageContaining("FATAL - FILE_FORMAT_TOOL_DOES_NOT_ANSWER");
+        assertThatThrownBy(siegfriedError).isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("FATAL - FILE_FORMAT_TOOL_DOES_NOT_ANSWER");
     }
 
     @Test
@@ -261,13 +275,15 @@ public class PreservationSiegfriedPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
-        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName()))).willThrow(new FormatIdentifierTechnicalException("trololo"));
+        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName())))
+            .willThrow(new FormatIdentifierTechnicalException("trololo"));
 
         // When
         ThrowingCallable siegfriedError = () -> siegriedPlugin.executeList(null, handler);
@@ -285,13 +301,15 @@ public class PreservationSiegfriedPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-            ""));
+        List<WorkflowBatchResult> workflowBatchResults =
+            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
+                ""));
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
-        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName()))).willThrow(new IllegalStateException("trololo"));
+        given(siegfried.analysePath(batchDirectory.resolve(OUTPUT_FILES).resolve(output.getOutputName())))
+            .willThrow(new IllegalStateException("trololo"));
 
         // When
         ThrowingCallable siegfriedError = () -> siegriedPlugin.executeList(null, handler);

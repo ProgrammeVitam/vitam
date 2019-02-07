@@ -646,4 +646,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         }
     }
 
+    @Override
+    public WorkspaceClientFactory getWorkspaceClientFactory() {
+        return workspaceClientFactory;
+    }
 }

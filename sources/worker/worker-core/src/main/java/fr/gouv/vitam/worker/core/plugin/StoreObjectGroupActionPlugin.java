@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
@@ -51,7 +52,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
  * StoreObjectGroupAction Plugin.<br>
- *
  */
 public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
@@ -63,10 +63,13 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
 
-    /**
-     * Constructor
-     */
-    public StoreObjectGroupActionPlugin() {}
+    public StoreObjectGroupActionPlugin() {
+        this(StorageClientFactory.getInstance());
+    }
+
+    public StoreObjectGroupActionPlugin(StorageClientFactory storageClientFactory) {
+        super(storageClientFactory);
+    }
 
 
     @Override
@@ -80,7 +83,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             // get list of object group's objects
             final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params);
             // get list of object uris
-            if(LOGGER.isDebugEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
             }
             for (final Map.Entry<String, String> objectGuid : mapOfObjects.binaryObjectsToStore.entrySet()) {
@@ -96,7 +99,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
                 // create ItemStatus for subtask
                 ItemStatus subTaskItemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-                
+
                 // store object
                 StoredInfoResult result = storeObject(description, subTaskItemStatus);
 
@@ -110,18 +113,19 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                     storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result);
                 }
 
-                if(LOGGER.isDebugEnabled()) {
+                if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
                 }
 
                 // increment itemStatus with subtask 
-                itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus).increment(subTaskItemStatus.getGlobalStatus());
+                itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus)
+                    .increment(subTaskItemStatus.getGlobalStatus());
 
             }
             // store OG to workspace
             //((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
             // why is that ?
-            if(LOGGER.isDebugEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
             }
             try {

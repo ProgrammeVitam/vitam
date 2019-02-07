@@ -106,7 +106,6 @@ public class IngestExternalImpl implements IngestExternal {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalImpl.class);
 
-    private static final String UNDERSCORE = "_";
     private static final String INGEST_EXT = "STP_SANITY_CHECK_SIP";
     private static final String SANITY_CHECK_SIP = "SANITY_CHECK_SIP";
     private static final String CHECK_CONTAINER = "CHECK_CONTAINER";
@@ -138,6 +137,8 @@ public class IngestExternalImpl implements IngestExternal {
     private static final String PRONOM_NAMESPACE = "pronom";
     private final IngestExternalConfiguration config;
 
+    private final FormatIdentifierFactory formatIdentifierFactory;
+    private final IngestInternalClientFactory ingestInternalClientFactory;
 
     /**
      * Constructor IngestExternalImpl with parameter IngestExternalConfi guration
@@ -145,8 +146,16 @@ public class IngestExternalImpl implements IngestExternal {
      * @param config
      */
     public IngestExternalImpl(IngestExternalConfiguration config) {
-        this.config = config;
+        this(config, FormatIdentifierFactory.getInstance(), IngestInternalClientFactory.getInstance());
 
+    }
+
+    public IngestExternalImpl(IngestExternalConfiguration config,
+        FormatIdentifierFactory formatIdentifierFactory,
+        IngestInternalClientFactory ingestInternalClientFactory) {
+        this.config = config;
+        this.formatIdentifierFactory = formatIdentifierFactory;
+        this.ingestInternalClientFactory = ingestInternalClientFactory;
     }
 
     @Override
@@ -161,9 +170,9 @@ public class IngestExternalImpl implements IngestExternal {
 
         LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         WorkspaceFileSystem workspaceFileSystem;
-        LogbookOperationParameters startedParameters = null;
+        LogbookOperationParameters startedParameters;
         WorkFlow workflow;
-        try (IngestInternalClient ingestClient = IngestInternalClientFactory.getInstance().getClient()) {
+        try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
 
             // Load workflow information from processing
             Optional<WorkFlow> optional = ingestClient.getWorkflowDetails(workflowIdentifier);
@@ -299,7 +308,6 @@ public class IngestExternalImpl implements IngestExternal {
             boolean isSupportedMedia = false;
             ManifestFileName manifestFileName = null;
 
-            // TODO P1 : add fileName to KO_VIRUS string. Cf. todo in IngestExternalResource
             switch (executionOutput.getExitCode()) {
                 case STATUS_ANTIVIRUS_OK:
                     LOGGER.info(IngestExternalOutcomeMessage.OK_VIRUS.toString());
@@ -358,8 +366,9 @@ public class IngestExternalImpl implements IngestExternal {
                 // CHECK_CONTAINER.STARTED
 
                 // instantiate SiegFried final
-                try (FormatIdentifier formatIdentifier =
-                    FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID)) {
+                try {
+                    final FormatIdentifier formatIdentifier =
+                        formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
                     LOGGER.debug(BEGIN_SIEG_FRIED_FORMAT_IDENTIFICATION);
 
                     // call siegFried
@@ -501,7 +510,7 @@ public class IngestExternalImpl implements IngestExternal {
             }
 
             try (IngestInternalClient ingestClient =
-                IngestInternalClientFactory.getInstance().getClient()) {
+                ingestInternalClientFactory.getClient()) {
                 // FIXME P1 one should finalize the Logbook Operation with new entries like
                 // before calling the ingestClient: LogbookOperationParameters as Ingest-Internal started
                 // after calling the ingestClient: LogbookOperationParameters as Ingest-Internal "status"
@@ -526,7 +535,7 @@ public class IngestExternalImpl implements IngestExternal {
                     INGEST_INT_UPLOAD, "");
 
                 try (IngestInternalClient ingestClient =
-                    IngestInternalClientFactory.getInstance().getClient()) {
+                    ingestInternalClientFactory.getClient()) {
                     ingestClient.uploadFinalLogbook(helper.removeUpdateDelegate(containerName.getId()));
                 } catch (VitamException ex) {
                     throw new IngestExternalException(ex);
@@ -539,7 +548,7 @@ public class IngestExternalImpl implements IngestExternal {
                 logbookAndGenerateATR(preUploadResume, operationId, StatusCode.FATAL, isFileInfected, helper,
                     INGEST_INT_UPLOAD, "");
                 try (IngestInternalClient ingestClient =
-                    IngestInternalClientFactory.getInstance().getClient()) {
+                    ingestInternalClientFactory.getClient()) {
                     ingestClient.uploadFinalLogbook(helper.removeUpdateDelegate(containerName.getId()));
                 } catch (VitamException ex) {
                     throw new IngestExternalException(ex);
@@ -571,7 +580,7 @@ public class IngestExternalImpl implements IngestExternal {
     }
 
     private void cancelOperation(GUID guid) throws IngestExternalException {
-        try (IngestInternalClient ingestClient = IngestInternalClientFactory.getInstance().getClient()) {
+        try (IngestInternalClient ingestClient = ingestInternalClientFactory.getClient()) {
             ingestClient.cancelOperationProcessExecution(guid.getId());
         } catch (final Exception e) {
             throw new IngestExternalException(e);
@@ -700,7 +709,7 @@ public class IngestExternalImpl implements IngestExternal {
      * @throws IngestExternalException
      */
     private void storeATR(GUID ingestGuid, String atrKo) throws IngestExternalException {
-        try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
+        try (IngestInternalClient client = ingestInternalClientFactory.getClient()) {
             client.storeATR(ingestGuid, new ByteArrayInputStream(atrKo.getBytes(CharsetUtils.UTF8)));
         } catch (VitamClientException e) {
             LOGGER.error(e.getMessage());
@@ -798,7 +807,7 @@ public class IngestExternalImpl implements IngestExternal {
 
 
         try (IngestInternalClient ingestClient =
-            IngestInternalClientFactory.getInstance().getClient()) {
+            ingestInternalClientFactory.getClient()) {
             ingestClient.uploadInitialLogbook(helper.removeCreateDelegate(operationId.getId()));
         } finally {
             String atr = AtrKoBuilder.buildAtrKo(operationId.getId(), "ArchivalAgencyToBeDefined",

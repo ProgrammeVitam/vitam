@@ -152,8 +152,6 @@ public class AccessInternalResourceImplTest {
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        mock = mock(AccessInternalModule.class);
-        BusinessApplication.mock = mock;
         try {
             application = new AccessInternalMain(ACCESS_CONF);
             application.start();
