@@ -71,13 +71,16 @@ import org.bouncycastle.util.encoders.DecoderException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
@@ -271,15 +274,21 @@ public class UserInterfaceTransactionManager {
         String unitId, String usage, int version, String filename, VitamContext context)
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
+        String downloadMethod = "attachment";
+        List<MediaType> mediaTypeAllowedToVisualize = new ArrayList<>();
+        mediaTypeAllowedToVisualize.add(new MediaType("application", "pdf"));
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             response = client.getObjectStreamByUnitId(
                 context,
                 unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
+            if(mediaTypeAllowedToVisualize.contains(response.getMediaType())) {
+                downloadMethod = "inline";
+            }
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
                 .header(GlobalDataRest.X_VERSION, response.getHeaderString(GlobalDataRest.X_VERSION))
-                .header("Content-Disposition", "filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
+                .header("Content-Disposition", downloadMethod+"; filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
                 .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
         } finally {
