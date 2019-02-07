@@ -67,9 +67,6 @@
           "Context",
           "SecurityProfile",
           "Griffin",
-          "VitamSequence",
-          "OfferLog",
-          "OfferSequence",
           "Ontology",
           "LogbookOperation",
           "LogbookLifeCycleObjectGroup",
@@ -78,9 +75,7 @@
           "LogbookLifeCycleUnitInProcess",
           "EliminationActionObjectGroup",
           "EliminationActionUnit",
-          "PreservationReport",
-          "Certificate",
-          "PersonalCertificate"
+          "PreservationReport"
         ]
       }
     },

@@ -242,7 +242,7 @@ public class DbRequestSingle {
             }
             //Validate the document against the collection's json schema
             //TODO extends json schema validation to other collections
-            if ("Ontology".equals(vitamCollection.getName())) {
+            if (vitamCollection.getName().contains("Ontology")) {
                 try {
                     SchemaValidationUtils validator = new SchemaValidationUtils();
                     JsonNode jsonDocument = JsonHandler.toJsonNode(obj);
