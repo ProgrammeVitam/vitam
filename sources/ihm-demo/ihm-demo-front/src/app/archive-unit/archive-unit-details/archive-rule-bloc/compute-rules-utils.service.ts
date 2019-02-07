@@ -198,6 +198,9 @@ export class ComputeRulesUtilsService {
           isCategoryUpdated = true;
           const updatedRule = ObjectsService.clone(rule);
           delete updatedRule.EndDate;
+          delete updatedRule.Paths;
+          delete updatedRule.OriginatingAgency;
+          delete updatedRule.UnitId;
           newCategory.Rules.push(updatedRule);
           updateInfo.updated++;
         } else {
@@ -206,6 +209,9 @@ export class ComputeRulesUtilsService {
           delete updatedRule.newRule;
           delete updatedRule.EndDate;
           delete updatedRule.editionStartDate;
+          delete updatedRule.Paths;
+          delete updatedRule.OriginatingAgency;
+          delete updatedRule.UnitId;
           newCategory.Rules.push(updatedRule);
         }
       }
@@ -261,7 +267,7 @@ export class ComputeRulesUtilsService {
             newCategory[propertyName] = property;
             isCategoryUpdated = true;
             updateInfo.updated++;
-          } else if(propertyName === "FinalAction") {
+          } else if (propertyName === 'FinalAction') {
             newCategory[propertyName] = property;
           }
         }
