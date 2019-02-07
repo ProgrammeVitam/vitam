@@ -105,14 +105,14 @@ public class MultiplePipedInputStreamHandlerTest {
                 MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
             mish.getInputStream(-1);
             fail("Should raized illegal argument");
-        } catch (final IllegalArgumentException | IOException e) {
+        } catch (final IllegalArgumentException e) {
             // nothing
         }
         try (FakeInputStream fakeInputStream = new FakeInputStream(INPUTSTREAM_SIZE);
                 MultiplePipedInputStream mish = new MultiplePipedInputStream(fakeInputStream, 1)) {
             mish.getInputStream(1);
             fail("Should raized illegal argument");
-        } catch (final IllegalArgumentException | IOException e) {
+        } catch (final IllegalArgumentException e) {
             // ignore
         }
     }

@@ -26,39 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import fr.gouv.vitam.common.stream.StreamUtils;
+public class TransfertTimeoutHelper {
 
-import java.io.InputStream;
+    private static final int DEFAULT_MINIMUM_TIMEOUT = 60000;
+    private final long millisecondsPerKB;
 
-/**
- * StreamAndInfo class
- */
-public class StreamAndInfo implements AutoCloseable {
-
-    private InputStream stream;
-    private Long size;
-
-    public StreamAndInfo(InputStream stream, Long size) {
-        this.stream = stream;
-        this.size = size;
+    public TransfertTimeoutHelper(long millisecondsPerKB) {
+        this.millisecondsPerKB = millisecondsPerKB;
     }
 
-    /**
-     * getter for stream
-     **/
-    public InputStream getStream() {
-        return stream;
-    }
-
-    /**
-     * getter for size
-     **/
-    public Long getSize() {
-        return size;
-    }
-
-    @Override
-    public void close() {
-        StreamUtils.closeSilently(this.stream);
+    public long getTransferTimeout(long sizeToTransfer) {
+        long timeout = (sizeToTransfer / 1024) * millisecondsPerKB;
+        if (timeout < DEFAULT_MINIMUM_TIMEOUT) {
+            return DEFAULT_MINIMUM_TIMEOUT;
+        }
+        return timeout;
     }
 }

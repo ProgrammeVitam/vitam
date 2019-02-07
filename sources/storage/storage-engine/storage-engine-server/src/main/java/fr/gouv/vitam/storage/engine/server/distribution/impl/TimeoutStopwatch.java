@@ -26,39 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.lang3.time.StopWatch;
 
-import java.io.InputStream;
+public class TimeoutStopwatch {
 
-/**
- * StreamAndInfo class
- */
-public class StreamAndInfo implements AutoCloseable {
+    private final long totalTimeoutInMilliseconds;
+    private final StopWatch stopWatch;
 
-    private InputStream stream;
-    private Long size;
-
-    public StreamAndInfo(InputStream stream, Long size) {
-        this.stream = stream;
-        this.size = size;
+    public TimeoutStopwatch(long totalTimeoutInMilliseconds) {
+        this.totalTimeoutInMilliseconds = totalTimeoutInMilliseconds;
+        this.stopWatch = StopWatch.createStarted();
     }
 
-    /**
-     * getter for stream
-     **/
-    public InputStream getStream() {
-        return stream;
-    }
-
-    /**
-     * getter for size
-     **/
-    public Long getSize() {
-        return size;
-    }
-
-    @Override
-    public void close() {
-        StreamUtils.closeSilently(this.stream);
+    public long getRemainingDelayInMilliseconds() {
+        return Math.max(0L, totalTimeoutInMilliseconds - stopWatch.getTime());
     }
 }
