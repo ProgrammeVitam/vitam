@@ -80,8 +80,7 @@
           "EliminationActionUnit",
           "PreservationReport",
           "Certificate",
-          "PersonalCertificate",
-          "_history"
+          "PersonalCertificate"
         ]
       }
     },
