@@ -28,27 +28,8 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.model.RequestResponse;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -56,6 +37,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
@@ -66,6 +48,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -82,19 +66,25 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, LogbookOperationsClientFactory.class,
-    StorageClientFactory.class})
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class PrepareTraceabilityCheckProcessActionHandlerTest {
-    PrepareTraceabilityCheckProcessActionHandler prepareTraceabilityCheckProcessActionHandler;
+    private PrepareTraceabilityCheckProcessActionHandler prepareTraceabilityCheckProcessActionHandler;
     private static final String SAMPLE_TRACEABILITY_FILENAME = "SAMPLE_TRACEABILITY_FILENAME.txt";
     private static final String SAMPLE_TRACEABILITY_FILENAME_WRONG_TYPE =
         "SAMPLE_TRACEABILITY_FILENAME_WRONG_TYPE.txt";
@@ -105,6 +95,10 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
     private static final Integer TENANT_ID = 0;
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private LogbookOperationsClient logbookOperationsClient;
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private StorageClient storageClient;
@@ -134,20 +128,20 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         storageClient = mock(StorageClient.class);
         workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(StorageClientFactory.class);
+        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         storageClientFactory = mock(StorageClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        PowerMockito.when(storageClientFactory.getClient()).thenReturn(storageClient);
+        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
+        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
+            Lists.newArrayList());
         final List<IOParameter> in = new ArrayList<>();
         out = new ArrayList<>();
         out.add(new IOParameter()
@@ -165,7 +159,8 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
     public void testPrepareTraceabilityOK()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
+        prepareTraceabilityCheckProcessActionHandler =
+            new PrepareTraceabilityCheckProcessActionHandler(logbookOperationsClientFactory, storageClientFactory);
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME)).when(logbookOperationsClient)
             .selectOperation(any());
@@ -187,7 +182,8 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
     public void testPrepareTraceabilityWithWrongOperationTypeKO()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
+        prepareTraceabilityCheckProcessActionHandler =
+            new PrepareTraceabilityCheckProcessActionHandler(logbookOperationsClientFactory, storageClientFactory);
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME_WRONG_TYPE)).when(logbookOperationsClient)
             .selectOperation(any());
@@ -200,7 +196,8 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
     public void testPrepareTraceabilityWithLogbookExceptionFATAL()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
+        prepareTraceabilityCheckProcessActionHandler =
+            new PrepareTraceabilityCheckProcessActionHandler(logbookOperationsClientFactory, storageClientFactory);
         action.addOutIOParameters(out);
         Mockito.doThrow(new LogbookClientException("Error with Logbook")).when(logbookOperationsClient)
             .selectOperation(any());
@@ -213,7 +210,8 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
     public void testPrepareTraceabilityWithStorageExceptionFATAL()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
+        prepareTraceabilityCheckProcessActionHandler =
+            new PrepareTraceabilityCheckProcessActionHandler(logbookOperationsClientFactory, storageClientFactory);
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME)).when(logbookOperationsClient)
             .selectOperation(any());
@@ -228,7 +226,8 @@ public class PrepareTraceabilityCheckProcessActionHandlerTest {
     public void testPrepareTraceabilityWithAlreadyExistingContainerFATAL()
         throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        prepareTraceabilityCheckProcessActionHandler = new PrepareTraceabilityCheckProcessActionHandler();
+        prepareTraceabilityCheckProcessActionHandler =
+            new PrepareTraceabilityCheckProcessActionHandler(logbookOperationsClientFactory, storageClientFactory);
         action.addOutIOParameters(out);
         Mockito.doReturn(getTraceabilityDetails(SAMPLE_TRACEABILITY_FILENAME)).when(logbookOperationsClient)
             .selectOperation(any());

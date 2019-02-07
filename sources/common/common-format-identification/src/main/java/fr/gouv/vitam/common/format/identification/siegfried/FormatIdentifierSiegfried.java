@@ -27,19 +27,9 @@
 
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
@@ -51,6 +41,15 @@ import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
+
+import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Siegfried implementation of format identifier
@@ -64,10 +63,12 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
      * Unknown namespace
      */
     public static final String UNKNOW_NAMESPACE = "UNKNOWN";
-    private final SiegfriedClient client;
     private final Path versionPath;
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentifierSiegfried.class);
+
+    private final SiegfriedClientFactory siegfriedClientFactory;
+
 
     /**
      * Configuration should come with 'client', 'rootPath' and 'versionPath' mandatory parameters. If client is 'http':
@@ -87,8 +88,7 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         final String root = (String) configurationProperties.get("rootPath");
         final String version = (String) configurationProperties.get("versionPath");
 
-        final SiegfriedClientFactory factory = SiegfriedClientFactory.getInstance();
-
+        this.siegfriedClientFactory = SiegfriedClientFactory.getInstance();
         if ("http".equals(clientType)) {
             ParametersChecker.checkParameter("Host cannot be null", configurationProperties.get("host"));
             ParametersChecker.checkParameter("Port cannot be null", configurationProperties.get("port"));
@@ -96,25 +96,22 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             final String host = (String) configurationProperties.get("host");
             final int port = (Integer) configurationProperties.get("port");
 
-            factory.changeConfiguration(host, port);
-            client = factory.getClient();
+            siegfriedClientFactory.changeConfiguration(host, port);
             versionPath = Paths.get(version);
 
             final Boolean createVersionPath = (Boolean) configurationProperties.get("createVersionPath");
             if (createVersionPath == null || createVersionPath) {
                 try {
-                    // Create directory already check for file existance and possibility to create the directory.
+                    // Create directory already check for file existence and possibility to create the directory.
                     Files.createDirectories(versionPath);
                 } catch (final IOException e) {
                     throw new FormatIdentifierTechnicalException(e);
                 }
             }
-
         } else {
             // Mock configuration
             LOGGER.info("Bad value of client. Use mock");
-            factory.changeConfiguration(null, 0);
-            client = factory.getClient();
+            siegfriedClientFactory.changeConfiguration(null, 0);
             versionPath = Paths.get(version);
         }
     }
@@ -122,11 +119,12 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
     /**
      * For JUnit ONLY
      *
-     * @param mockedClient a custom instance of siegfried client
+     * @param siegfriedClientFactory a custom instance of siegfried client
      * @param versionPath the version request path
      */
-    FormatIdentifierSiegfried(SiegfriedClient mockedClient, Path versionPath) {
-        client = mockedClient;
+    @VisibleForTesting
+    public FormatIdentifierSiegfried(SiegfriedClientFactory siegfriedClientFactory, Path versionPath) {
+        this.siegfriedClientFactory = siegfriedClientFactory;
         this.versionPath = versionPath;
     }
 
@@ -135,23 +133,25 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Check Siegfried status");
         }
+        try (SiegfriedClient siegfriedClient = siegfriedClientFactory.getClient()) {
+            final RequestResponse<JsonNode> response = siegfriedClient.status(versionPath);
 
-        final RequestResponse<JsonNode> response = client.status(versionPath);
-
-        final String version = response.toJsonNode().get("$results").get(0).get("siegfried").asText();
-        return new FormatIdentifierInfo(version, "Siegfried");
+            final String version = response.toJsonNode().get("$results").get(0).get("siegfried").asText();
+            return new FormatIdentifierInfo(version, "Siegfried");
+        }
     }
 
     @Override
     public List<FormatIdentifierResponse> analysePath(Path path)
-        throws FileFormatNotFoundException, FormatIdentifierTechnicalException, FormatIdentifierBadRequestException,
+        throws FileFormatNotFoundException, FormatIdentifierBadRequestException, FormatIdentifierTechnicalException,
         FormatIdentifierNotFoundException {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("identify format for " + path);
         }
-        final RequestResponse<JsonNode> response = client.analysePath(path);
-
-        return extractFormat(response.toJsonNode().get("$results").get(0), path);
+        try (SiegfriedClient siegfriedClient = siegfriedClientFactory.getClient()) {
+            final RequestResponse<JsonNode> response = siegfriedClient.analysePath(path);
+            return extractFormat(response.toJsonNode().get("$results").get(0), path);
+        }
     }
 
     private List<FormatIdentifierResponse> extractFormat(JsonNode siegfriedResponse, Path path)
@@ -230,10 +230,5 @@ public class FormatIdentifierSiegfried implements FormatIdentifier {
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void close() {
-        client.close();
     }
 }

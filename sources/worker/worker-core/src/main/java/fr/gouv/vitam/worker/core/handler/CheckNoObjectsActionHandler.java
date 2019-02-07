@@ -26,19 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -52,9 +40,18 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import javax.xml.namespace.QName;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.StartElement;
+import javax.xml.stream.events.XMLEvent;
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
- * Handler checking that no objects in manifest 
- *
+ * Handler checking that no objects in manifest
  */
 public class CheckNoObjectsActionHandler extends ActionHandler {
 
@@ -65,11 +62,6 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
      */
     private static final String HANDLER_ID = "CHECK_NO_OBJECT";
 
-    private HandlerIO handlerIO;
-
-    /**
-     * Default Constructor
-     */
     public CheckNoObjectsActionHandler() {
         // Nothing
     }
@@ -89,10 +81,9 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try {
             checkMandatoryIOParameter(handlerIO);
-            this.handlerIO = handlerIO;
-            
-            if (!checkNoObjectInManifest()) {
-                itemStatus.increment(StatusCode.KO); 
+
+            if (!checkNoObjectInManifest(handlerIO)) {
+                itemStatus.increment(StatusCode.KO);
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
@@ -105,7 +96,7 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private boolean checkNoObjectInManifest() throws ProcessingException {
+    private boolean checkNoObjectInManifest(HandlerIO handlerIO) throws ProcessingException {
 
         InputStream xmlFile = null;
         final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
@@ -118,7 +109,7 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
         XMLEventReader eventReader = null;
         try {
             try {
-                xmlFile = this.handlerIO.getInputStreamFromWorkspace(
+                xmlFile = handlerIO.getInputStreamFromWorkspace(
                     IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
             } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
                 IOException e1) {
@@ -133,12 +124,12 @@ public class CheckNoObjectsActionHandler extends ActionHandler {
                 final XMLEvent event = eventReader.nextEvent();
                 if (event.isStartElement()) {
                     final StartElement element = event.asStartElement();
-                    
+
                     // reach the start of an BinaryDataObject or PhysicalDataObject
                     if (element.getName().equals(binaryDataObject) || element.getName().equals(physicalDataObject)) {
                         return false;
                     }
-                    
+
                 }
                 if (event.isEndDocument()) {
                     LOGGER.debug("data : " + event);

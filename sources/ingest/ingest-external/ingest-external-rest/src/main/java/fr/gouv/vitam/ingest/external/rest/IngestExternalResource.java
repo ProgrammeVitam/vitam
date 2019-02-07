@@ -53,6 +53,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.ingest.external.core.AtrKoBuilder;
 import org.apache.commons.io.FilenameUtils;
 
@@ -102,7 +103,8 @@ public class IngestExternalResource extends ApplicationStatusResource {
     private final IngestExternalConfiguration ingestExternalConfiguration;
 
     private final SecureEndpointRegistry secureEndpointRegistry;
-
+    private final FormatIdentifierFactory formatIdentifierFactory;
+    private final IngestInternalClientFactory ingestInternalClientFactory;
     /**
      * Constructor IngestExternalResource
      *
@@ -111,9 +113,13 @@ public class IngestExternalResource extends ApplicationStatusResource {
      */
     public IngestExternalResource(
         IngestExternalConfiguration ingestExternalConfiguration,
-        SecureEndpointRegistry secureEndpointRegistry) {
+        SecureEndpointRegistry secureEndpointRegistry,
+        FormatIdentifierFactory formatIdentifierFactory,
+        IngestInternalClientFactory ingestInternalClientFactory ) {
         this.ingestExternalConfiguration = ingestExternalConfiguration;
         this.secureEndpointRegistry = secureEndpointRegistry;
+        this.formatIdentifierFactory = formatIdentifierFactory;
+        this.ingestInternalClientFactory = ingestInternalClientFactory;
         LOGGER.info("init Ingest External Resource server");
     }
 
@@ -236,7 +242,7 @@ public class IngestExternalResource extends ApplicationStatusResource {
     private void uploadAsync(InputStream uploadedInputStream, AsyncResponse asyncResponse,
         Integer tenantId, String contextId, String xAction, GUID operationId, Optional<LocalFile> localFile) {
 
-        final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration);
+        final IngestExternalImpl ingestExternal = new IngestExternalImpl(ingestExternalConfiguration, formatIdentifierFactory, ingestInternalClientFactory);
         final LocalFileAction afterUploadAction =
             LocalFileAction.getLocalFileAction(ingestExternalConfiguration.getFileActionAfterUpload().name());
         try {

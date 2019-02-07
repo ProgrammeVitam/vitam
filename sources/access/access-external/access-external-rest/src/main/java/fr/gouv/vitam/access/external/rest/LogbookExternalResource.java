@@ -26,17 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -47,10 +37,8 @@ import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -58,6 +46,15 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Logbook external resource
@@ -68,19 +65,24 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 @javax.ws.rs.ApplicationPath("webresources")
 public class LogbookExternalResource {
 
-    public static final String LOGBOOK = "Logbook";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String OB_ID = "obId";
-    public static final String VITAM_CODE = "vitam-code";
     private static final String INVALID_ARGUMENT = "Invalid argument: ";
     private static final String CONTRACT_ACCESS_DOES_NOT_ALLOW = "Contract access does not allow ";
     private static final String COULD_NOT_MODIFY_QUERY = "Could not modify search query: ";
+
+    private final AccessInternalClientFactory accessInternalClientFactory;
 
     /**
      * Constructor
      */
     public LogbookExternalResource() {
+        this(AccessInternalClientFactory.getInstance());
+    }
+
+    public LogbookExternalResource(AccessInternalClientFactory accessInternalClientFactory) {
+        this.accessInternalClientFactory = accessInternalClientFactory;
         LOGGER.debug("LogbookExternalResource initialized");
     }
 
@@ -99,7 +101,7 @@ public class LogbookExternalResource {
     @Secured(permission = "logbookoperations:read", description = "Lister toutes les opérations")
     public Response selectOperation(@Dsl(value = DslSchema.SELECT_SINGLE) JsonNode query) {
         Status status;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(query);
             RequestResponse<JsonNode> result = client.selectOperation(query);
 
@@ -147,7 +149,7 @@ public class LogbookExternalResource {
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
 
         Status status;
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(operationId);
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
@@ -203,7 +205,7 @@ public class LogbookExternalResource {
     public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
 
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
@@ -254,7 +256,7 @@ public class LogbookExternalResource {
     public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryDsl) {
 
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();

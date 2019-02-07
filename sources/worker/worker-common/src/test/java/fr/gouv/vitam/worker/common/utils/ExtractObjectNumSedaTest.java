@@ -26,39 +26,25 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
-
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class})
 public class ExtractObjectNumSedaTest {
 
     @Rule
@@ -69,8 +55,6 @@ public class ExtractObjectNumSedaTest {
     private WorkspaceClientFactory workspaceClientFactory;
     private final InputStream seda;
     private SedaUtils utils;
-    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setContainerName("id")
-        .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083");
 
     public ExtractObjectNumSedaTest() throws FileNotFoundException {
         seda = PropertiesUtils.getResourceAsStream(SIP);
@@ -78,18 +62,16 @@ public class ExtractObjectNumSedaTest {
 
     @Before
     public void setUp() {
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         client = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(client);
+        when(workspaceClientFactory.getClient()).thenReturn(client);
     }
 
     @Test
-    public void givenListUriNotEmpty()
-        throws FileNotFoundException, XMLStreamException, ProcessingException, Exception, Exception {
+    public void givenListUriNotEmpty() throws Exception {
         when(client.getObject(any(), any())).thenReturn(Response.status(Status.OK).entity(seda).build());
         final HandlerIO handlerIO = mock(HandlerIO.class);
+        when(handlerIO.getWorkspaceClientFactory()).thenReturn(workspaceClientFactory);
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
         utils = SedaUtilsFactory.create(handlerIO);
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest();

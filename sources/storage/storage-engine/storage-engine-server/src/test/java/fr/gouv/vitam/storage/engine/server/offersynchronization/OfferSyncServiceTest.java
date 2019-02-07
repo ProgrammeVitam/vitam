@@ -10,9 +10,9 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +29,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
 public class OfferSyncServiceTest {
 
     private static final String SOURCE = "source";
@@ -41,6 +40,9 @@ public class OfferSyncServiceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock RestoreOfferBackupService restoreOfferBackupService;
     @Mock StorageDistribution distribution;
@@ -255,6 +257,6 @@ public class OfferSyncServiceTest {
         countDownLatch.await(1, TimeUnit.MINUTES);
 
         // Then
-        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DATA_CATEGORY,OFFSET);
+        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
     }
 }
