@@ -217,7 +217,7 @@ public class PronomParser {
     private static void validateSchema(File xmlPronomFile) throws InvalidFileFormatParseException {
 
         try (FileInputStream fis = new FileInputStream(xmlPronomFile)) {
-            if (!ValidationXsdUtils.checkWithXSD(fis, "DROID_SignatureFile_Vitam.xsd")) {
+            if (!ValidationXsdUtils.getInstance().checkWithXSD(fis, "DROID_SignatureFile_Vitam.xsd")) {
                 throw new InvalidFileFormatParseException("Schema validation failed for xml file format");
             }
         } catch (SAXException | XMLStreamException e) {

@@ -27,20 +27,11 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.NBCHILD;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
@@ -74,6 +65,15 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.NBCHILD;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
+
 /**
  * IndexObjectGroupAction Plugin
  */
@@ -83,20 +83,22 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     private static final String AGENCY_CHECK = "AGENCY_CHECK";
 
     private static final int OG_INPUT_RANK = 0;
-    private HandlerIO handlerIO;
+    private final MetaDataClientFactory metaDataClientFactory;
 
-    /**
-     * Constructor with parameter SedaUtilsFactory
-     */
     public IndexObjectGroupActionPlugin() {
-        // empty constructor
+        this(MetaDataClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public IndexObjectGroupActionPlugin(MetaDataClientFactory metaDataClientFactory) {
+        this.metaDataClientFactory = metaDataClientFactory;
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
 
-        handlerIO = handler;
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             List<ItemStatus> aggregateItemStatus = new ArrayList<>();
             List<JsonNode> objectGroups = new ArrayList<>();
             for (String objectId : workerParameters.getObjectNameList()) {
@@ -111,7 +113,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                 try {
                     checkMandatoryIOParameter(handler);
 
-                    JsonNode objectNode = indexObjectGroup(workerParameters, itemStatus);
+                    JsonNode objectNode = indexObjectGroup(handler, workerParameters, itemStatus);
                     if (objectNode != null) {
                         objectGroups.add(objectNode);
                     }
@@ -167,15 +169,14 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     /**
      * The function is used for retrieving ObjectGroup in workspace and use metadata client to index ObjectGroup
      *
-     * @param params     work parameters
+     * @param params work parameters
      * @param itemStatus item status
-     *
      * @throws ProcessingException when error in execution
      */
-    private ObjectNode indexObjectGroup(WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
+    private ObjectNode indexObjectGroup(HandlerIO handlerIO, WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
-        try (MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             final ObjectNode json = (ObjectNode) handlerIO.getInput(OG_INPUT_RANK);
 
             return handleExistingObjectGroup(json, metadataClient, params, itemStatus);
@@ -186,7 +187,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         }
     }
 
-    private ObjectNode handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient, WorkerParameters params, ItemStatus itemStatus)
+    private ObjectNode handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient,
+        WorkerParameters params, ItemStatus itemStatus)
         throws MetaDataExecutionException,
         MetaDataClientServerException, InvalidParseOperationException,
         InvalidCreateOperationException, VitamClientException {

@@ -26,29 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -69,12 +46,25 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({LogbookLifeCyclesClientFactory.class, WorkspaceClientFactory.class})
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+
 public class SedaUtilsLifeCycleExceptionsTest {
     static final String UNIT_LIFE_CYCLE_CREATION_EVENT_TYPE =
         "Check SIP – Units – Lifecycle Logbook Creation – Création du journal du cycle de vie des units";
@@ -82,15 +72,8 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
-
-    private static final String SIP = "sip1.xml";
-    private static final String SIP_ARCHIVE_BEFORE_BDO = "SIP_Archive_Before_BDO.xml";
     private static final String OBJ = "obj";
-    private WorkspaceClient workspaceClient;
-    private final InputStream seda;
-    private final InputStream seda_2;
     private final HandlerIO handlerIO = mock(HandlerIO.class);
-    private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083").setObjectName(OBJ)
         .setContainerName(OBJ)
@@ -101,36 +84,24 @@ public class SedaUtilsLifeCycleExceptionsTest {
     private final ItemStatus itemStatus = new ItemStatus("TEST");
     private LogbookLifeCyclesClientHelper helper;
 
-    public SedaUtilsLifeCycleExceptionsTest() throws FileNotFoundException {
-        seda = PropertiesUtils.getResourceAsStream(SIP);
-        seda_2 = PropertiesUtils.getResourceAsStream(SIP_ARCHIVE_BEFORE_BDO);
-    }
-
     @BeforeClass
     public static void setup() {
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
-
-        logbookLifeCyclesClientFactory = PowerMockito.mock(LogbookLifeCyclesClientFactory.class);
-        logbookLifeCycleClient = org.mockito.Mockito.mock(LogbookLifeCyclesClient.class);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCyclesClientFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCycleClient);
+        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
+        logbookLifeCycleClient = mock(LogbookLifeCyclesClient.class);
+        when(logbookLifeCyclesClientFactory.getClient()) .thenReturn(logbookLifeCycleClient);
     }
 
     @Before
     public void setUp()
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
         LogbookClientNotFoundException, IOException {
-        workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-
-        PowerMockito.doNothing().when(logbookLifeCycleClient).create(any());
-        PowerMockito.doNothing().when(logbookLifeCycleClient).update(any());
-        Mockito.when(handlerIO.getLifecyclesClient()).thenReturn(logbookLifeCycleClient);
+        doNothing().when(logbookLifeCycleClient).create(any());
+        doNothing().when(logbookLifeCycleClient).update(any());
+        when(handlerIO.getLifecyclesClient()).thenReturn(logbookLifeCycleClient);
 
         helper = mock(LogbookLifeCyclesClientHelper.class);
-        Mockito.when(handlerIO.getHelper()).thenReturn(helper);
-        Mockito.when(handlerIO.getHelper()).thenReturn(helper);
+        when(handlerIO.getHelper()).thenReturn(helper);
+        when(handlerIO.getHelper()).thenReturn(helper);
 
         final Map<String, String> binaryDataObjectIdToObjectGroupId = new HashMap<>();
         final Map<String, String> objectGroupIdToGuid = new HashMap<>();
@@ -163,7 +134,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
         final LogbookLifeCycleParameters logbookLifecycleUnitParameters = createLogbookParametersInstance();
 
-        PowerMockito.doThrow(new LogbookClientNotFoundException("LogbookClientServerException"))
+        doThrow(new LogbookClientNotFoundException("LogbookClientServerException"))
             .when(helper).updateDelegate(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
@@ -180,7 +151,7 @@ public class SedaUtilsLifeCycleExceptionsTest {
 
         final LogbookLifeCycleParameters logbookLifecycleUnitParameters = createLogbookParametersInstance();
 
-        PowerMockito.doThrow(new LogbookClientNotFoundException("LogbookClientServerException"))
+        doThrow(new LogbookClientNotFoundException("LogbookClientServerException"))
             .when(helper).updateDelegate(logbookLifecycleUnitParameters);
 
         params.setCurrentStep("TEST");
@@ -196,7 +167,6 @@ public class SedaUtilsLifeCycleExceptionsTest {
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, OBJ);
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventIdentifier,
             GUIDFactory.newEventGUID(0).getId());
-        // TODO P2 to be passed within the parameters since multiple workflow types could exist
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventTypeProcess,
             LogbookTypeProcess.INGEST.name());
         logbookLifecycleUnitParameters.putParameterValue(LogbookParameterName.eventType,

@@ -26,20 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -48,6 +35,8 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -61,28 +50,41 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class})
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+
 public class IndexObjectGroupActionPluginTest {
 
-    IndexObjectGroupActionPlugin plugin;
-    private WorkspaceClient workspaceClient;
-    private MetaDataClient metadataClient;
-    private static final String HANDLER_ID = "OG_METADATA_INDEXATION";
+
     private static final String OBJECT_GROUP = "objectGroup.json";
     private final InputStream objectGroup;
+    private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
+
+
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    private MetaDataClient metadataClient;
+    private MetaDataClientFactory metaDataClientFactory;
     private List<IOParameter> in;
     private JsonNode og;
-    
+
     HandlerIOImpl handlerIO;
+
+    IndexObjectGroupActionPlugin plugin;
+
 
     public IndexObjectGroupActionPluginTest() throws FileNotFoundException, InvalidParseOperationException {
         objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
@@ -91,14 +93,20 @@ public class IndexObjectGroupActionPluginTest {
 
     @Before
     public void setUp() throws URISyntaxException {
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        PowerMockito.mockStatic(MetaDataClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        handlerIO = new HandlerIOImpl("IndexObjectGroupActionPluginTest", "workerId", newArrayList("objectName.json"));
         metadataClient = mock(MetaDataClientRest.class);
+        metaDataClientFactory = mock(MetaDataClientFactory.class);
+
+        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
+
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(metaDataClientFactory.getClient()).thenReturn(metadataClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
+        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "IndexObjectGroupActionPluginTest", "workerId",
+            newArrayList("objectName.json"));
 
         handlerIO.setCurrentObjectId("objectName.json");
         in = new ArrayList<>();
@@ -118,10 +126,7 @@ public class IndexObjectGroupActionPluginTest {
         when(metadataClient.insertObjectGroup(any())).thenReturn(JsonHandler.createObjectNode());
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
-        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
-        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        plugin = new IndexObjectGroupActionPlugin();
+        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -137,13 +142,10 @@ public class IndexObjectGroupActionPluginTest {
     public void testMetadataException()
         throws Exception {
         when(metadataClient.insertObjectGroups(any())).thenThrow(new MetaDataExecutionException(""));
-        
+
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
-        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
-        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        plugin = new IndexObjectGroupActionPlugin();
+        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
@@ -161,10 +163,7 @@ public class IndexObjectGroupActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
-        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
-        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
-        plugin = new IndexObjectGroupActionPlugin();
+        plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")

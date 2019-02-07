@@ -33,9 +33,6 @@ import fr.gouv.vitam.common.client.IngestCollection;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
-import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -44,7 +41,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LocalFile;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -52,13 +51,9 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -69,12 +64,11 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({IngestInternalClientFactory.class, FormatIdentifierFactory.class})
 public class IngestExternalResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalResourceTest.class);
 
@@ -87,13 +81,24 @@ public class IngestExternalResourceTest {
     private static JunitHelper junitHelper;
     private static int serverPort;
 
-    private static IngestExternalMain application;
+    private static FormatIdentifierFactory formatIdentifierFactory = mock(FormatIdentifierFactory.class);
+    private static IngestInternalClientFactory ingestInternalClientFactory = mock(IngestInternalClientFactory.class);
 
+    private static IngestExternalMain application;
+    private static FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
+        IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
+        when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
+        when(ingestInternalClient.getWorkflowDetails(anyString()))
+            .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
+        // TODO: 08/02/19 remove static (no time)
+        BusinessApplicationTest.formatIdentifierFactory = formatIdentifierFactory;
+        BusinessApplicationTest.ingestInternalClientFactory = ingestInternalClientFactory;
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
@@ -117,6 +122,11 @@ public class IngestExternalResourceTest {
         VitamClientFactory.resetConnections();
     }
 
+    @Before
+    public void before() {
+        reset(siegfried);
+    }
+
     @Test
     public final void testGetStatus() {
         // test with header on
@@ -137,8 +147,7 @@ public class IngestExternalResourceTest {
     @RunWithCustomExecutor
     public void givenRequestWithoutTenantIdThenReturnPreconditionFailed()
         throws Exception {
-        try(InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
-            final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
             when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
             given().contentType(ContentType.BINARY).body(stream)
@@ -154,8 +163,7 @@ public class IngestExternalResourceTest {
     @Test
     public void givenRequestWithoutIncorrectTenantIdThenReturnUnauthorized()
         throws Exception {
-        try(InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
-            final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
             when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
             given().contentType(ContentType.BINARY).body(stream)
@@ -173,8 +181,7 @@ public class IngestExternalResourceTest {
     @Test
     public void givenAnInputstreamWhenUploadThenReturnOK()
         throws Exception {
-        try(InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
-            final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("no-virus.txt")) {
             when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
             given().contentType(ContentType.BINARY).body(stream)
@@ -190,7 +197,6 @@ public class IngestExternalResourceTest {
         throws Exception {
         String path = PropertiesUtils.getResourcePath("no-virus.txt").toString();
         LocalFile localFile = new LocalFile(path);
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFile)
@@ -199,13 +205,12 @@ public class IngestExternalResourceTest {
             .when().post(INGEST_URI)
             .then().statusCode(Status.ACCEPTED.getStatusCode());
     }
-    
+
     @Test
     public void givenAnIncorrectLocalFilePathWhenUploadedThenReturnBadRequest()
         throws Exception {
         // this is incorrect, this will be rejected
         LocalFile localFile = new LocalFile("../no-virus.txt");
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFile)
@@ -219,7 +224,6 @@ public class IngestExternalResourceTest {
     public void givenANonExistingPathWhenUploadedThenReturnInternalServerError()
         throws Exception {
         LocalFile localFileWithNonExistingPath = new LocalFile("NonExistingPath");
-        final FormatIdentifierSiegfried siegfried = getMockedFormatIdentifierSiegfried();
         when(siegfried.analysePath(any())).thenReturn(getFormatIdentifierZipResponse());
 
         given().contentType(ContentType.JSON).body(localFileWithNonExistingPath)
@@ -227,16 +231,6 @@ public class IngestExternalResourceTest {
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
             .when().post(INGEST_URI)
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
-    private FormatIdentifierSiegfried getMockedFormatIdentifierSiegfried()
-        throws FormatIdentifierNotFoundException, FormatIdentifierFactoryException, FormatIdentifierTechnicalException {
-        PowerMockito.mockStatic(FormatIdentifierFactory.class);
-        final FormatIdentifierFactory identifierFactory = PowerMockito.mock(FormatIdentifierFactory.class);
-        when(FormatIdentifierFactory.getInstance()).thenReturn(identifierFactory);
-        final FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
-        when(identifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
-        return siegfried;
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
@@ -302,7 +296,8 @@ public class IngestExternalResourceTest {
                 }
 
                 @Override
-                public void describeTo(Description description) {}
+                public void describeTo(Description description) {
+                }
             });
     }
 }

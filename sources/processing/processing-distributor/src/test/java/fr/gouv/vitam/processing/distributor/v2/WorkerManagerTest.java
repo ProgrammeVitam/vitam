@@ -26,19 +26,6 @@
  */
 package fr.gouv.vitam.processing.distributor.v2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-
-import javax.validation.constraints.NotNull;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
@@ -53,53 +40,59 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
+import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.common.DescriptionStep;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-/**
- *
- */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkerClientFactory.class})
+import javax.validation.constraints.NotNull;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 public class WorkerManagerTest {
 
     private static final String WORKER_DESCRIPTION =
-        "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker\", \"capacity\" : 10, \"storage\" : 100," +
+        "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker1\", \"capacity\" : 2, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
 
-
+    private static final String WORKER_DESCRIPTION_2 =
+        "{ \"name\" : \"workername\", \"family\" : \"DefaultWorker2\", \"capacity\" : 2, \"storage\" : 100," +
+            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
     private static final String BIG_WORKER_DESCRIPTION =
-        "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 10, \"storage\" : 100," +
+        "{ \"name\" : \"workername2\", \"family\" : \"BigWorker\", \"capacity\" : 4, \"storage\" : 100," +
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
 
     private static String registeredWorkerFile = "worker.db";
     private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
 
     private WorkerManager workerManager;
+    private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
+    private static final WorkerClient workerClient = mock(WorkerClient.class);
 
     @Before
     public void setup() throws Exception {
-        WorkerClientFactory.changeMode(null);
-        WorkerClientFactory workerClientFactory = WorkerClientFactory.getInstance(null);
+        reset(workerClientFactory);
+        reset(workerClient);
 
-        PowerMockito.mockStatic(WorkerClientFactory.class);
+        when(workerClientFactory.getClient()).thenReturn(workerClient);
 
-        when(WorkerClientFactory.getInstance(any(WorkerClientConfiguration.class))).thenReturn(workerClientFactory);
-
+        doNothing().when(workerClient).checkStatus();
         VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
 
-        workerManager = new WorkerManager();
+        workerManager = new WorkerManager(workerClientFactory);
         workerManager.initialize();
     }
 
@@ -137,7 +130,9 @@ public class WorkerManagerTest {
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
 
-        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId");
+        final WorkerTask task =
+            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
+                workerClientFactory);
 
         workerManager.registerWorker(familyId, workerId, BIG_WORKER_DESCRIPTION);
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
@@ -153,7 +148,7 @@ public class WorkerManagerTest {
         final Step step = new Step().setStepName("TEST");
         final List<Action> actions = new ArrayList<>();
         final Action action = new Action();
-        final String familyId = "DefaultWorker";
+        final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId";
 
         action.setActionDefinition(
@@ -162,7 +157,9 @@ public class WorkerManagerTest {
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
         DescriptionStep descriptionStep =
             new DescriptionStep(step, params);
-        final WorkerTask task = new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId");
+        final WorkerTask task =
+            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
+                workerClientFactory);
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
 
         WorkerFamilyManager workerFamilyManager = workerManager.findWorkerBy(familyId);
@@ -173,7 +170,7 @@ public class WorkerManagerTest {
 
     @Test
     public void givenProcessDistributorWhenRegisterWorkerThenOK() throws Exception {
-        final String familyId = "DefaultWorker";
+        final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         assertTrue(workerManager.findWorkerBy(familyId) != null);
@@ -181,7 +178,7 @@ public class WorkerManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenProcessDistributorWhenRegisterWorkerThenAlreadyExists() throws Exception {
-        final String familyId = "DefaultWorker";
+        final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         assertTrue(workerManager.findWorkerBy(familyId) != null);
@@ -190,9 +187,9 @@ public class WorkerManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenProcessDistributorWhenRegisterExistingWorkerThenProcessingException() throws Exception {
-        final String familyId = "DefaultWorker";
+        final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId1" + GUIDFactory.newGUID().getId();
-        ;
+
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
     }
@@ -200,9 +197,9 @@ public class WorkerManagerTest {
 
     @Test
     public void givenProcessDistributorWhenUnRegisterExistingWorkerThenOK() throws Exception {
-        final String familyId = "DefaultWorker";
+        final String familyId = "DefaultWorker2";
         final String workerId = "NewWorkerId2" + GUIDFactory.newGUID().getId();
-        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);
+        workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION_2);
         WorkerFamilyManager workerfamily = workerManager.findWorkerBy(familyId);
         assertNotNull(workerfamily);
         assertEquals(workerfamily.getWorkers().size(), 1);
@@ -222,7 +219,7 @@ public class WorkerManagerTest {
 
     @Test
     public void givenProcessDistributorWhenUnRegisterNonExistingWorkerThenProcessingException() throws Exception {
-        final String familyId = "DefaultWorker";
+        final String familyId = "DefaultWorker1";
         final String workerId = "NewWorkerId3" + GUIDFactory.newGUID().getId();
         final String workerUnknownId = "UnknownWorkerId";
         workerManager.registerWorker(familyId, workerId, WORKER_DESCRIPTION);

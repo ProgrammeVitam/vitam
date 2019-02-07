@@ -28,14 +28,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.rest;
 
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-
-import java.io.File;
-import java.util.Set;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -56,6 +48,13 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.Set;
+
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
 
 /**
  *

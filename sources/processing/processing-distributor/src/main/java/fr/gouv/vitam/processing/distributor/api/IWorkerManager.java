@@ -17,11 +17,7 @@
  */
 package fr.gouv.vitam.processing.distributor.api;
 
-import java.io.File;
-import java.util.List;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -34,9 +30,9 @@ import fr.gouv.vitam.processing.common.exception.WorkerNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.common.model.WorkerRemoteConfiguration;
 import fr.gouv.vitam.processing.distributor.v2.WorkerFamilyManager;
-import fr.gouv.vitam.worker.client.WorkerClient;
-import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
-import fr.gouv.vitam.worker.client.WorkerClientFactory;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * Manage the parallelism calls to worker in the same distributor
@@ -77,7 +73,8 @@ public interface IWorkerManager {
         // for now it is a file content json data
         try {
             List<WorkerBean> workerBeans =
-                JsonHandler.getFromFileAsTypeRefence(registerWorkerFile, new TypeReference<List<WorkerBean>>() {});
+                JsonHandler.getFromFileAsTypeRefence(registerWorkerFile, new TypeReference<List<WorkerBean>>() {
+                });
             for (WorkerBean workerBean : workerBeans) {
                 String workerId = workerBean.getWorkerId();
                 String familyId = workerBean.getFamily();
@@ -106,26 +103,8 @@ public interface IWorkerManager {
         marshallToDB();
     }
 
-    /**
-     * Check status
-     *
-     * @param serverHost the server host
-     * @param serverPort the server post
-     * @return worker status (true if ok / false is not)
-     */
-    default boolean checkStatusWorker(String serverHost, int serverPort) {
-        WorkerClientConfiguration workerClientConfiguration =
-            new WorkerClientConfiguration(serverHost, serverPort);
-        WorkerClientFactory.changeMode(workerClientConfiguration);
-        WorkerClient workerClient = WorkerClientFactory.getInstance(workerClientConfiguration).getClient();
-        try {
-            workerClient.checkStatus();
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("Worker server [" + serverHost + ":" + serverPort + "] is not active.", e);
-            return false;
-        }
-    }
+
+    boolean checkStatusWorker(String serverHost, int serverPort);
 
     /**
      * To register a worker in the processing
@@ -142,7 +121,7 @@ public interface IWorkerManager {
 
     /**
      * Register a worker
-     * 
+     *
      * @param workerBean the worker description as a WorkerBean object
      * @throws WorkerAlreadyExistsException thrown if the worker already exists
      */
@@ -167,6 +146,7 @@ public interface IWorkerManager {
 
     /**
      * Find a worker by its family
+     *
      * @param workerFamily the worker family
      * @return a WorkerFamilyManager object
      */

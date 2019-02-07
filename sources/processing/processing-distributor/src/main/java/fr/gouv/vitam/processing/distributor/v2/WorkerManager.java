@@ -18,15 +18,6 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -37,6 +28,18 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
+import fr.gouv.vitam.worker.client.WorkerClient;
+import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
+import fr.gouv.vitam.worker.client.WorkerClientFactory;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * WorkerManager class contains methods to manage workers
@@ -51,12 +54,21 @@ public class WorkerManager implements IWorkerManager {
     private ConcurrentMap<String, WorkerFamilyManager> workersFamily;
 
 
+    private WorkerClientFactory workerClientFactory = null;
+
     /**
      * Constructor
      */
     public WorkerManager() {
         workersFamily = new ConcurrentHashMap<>();
     }
+
+    public WorkerManager(WorkerClientFactory workerClientFactory) {
+        workersFamily = new ConcurrentHashMap<>();
+        this.workerClientFactory = workerClientFactory;
+    }
+
+
 
     @Override
     public synchronized void marshallToDB() {
@@ -129,6 +141,29 @@ public class WorkerManager implements IWorkerManager {
         workerManager.unregisterWorker(worker);
 
         marshallToDB();
+    }
+
+    @Override
+    public boolean checkStatusWorker(String serverHost, int serverPort) {
+        if (null == workerClientFactory) {
+            WorkerClientConfiguration workerClientConfiguration = new WorkerClientConfiguration(serverHost, serverPort);
+            WorkerClientFactory.changeMode(workerClientConfiguration);
+            return checkStatus(serverHost, serverPort, WorkerClientFactory.getInstance(workerClientConfiguration));
+        } else {
+            return checkStatus(serverHost, serverPort, workerClientFactory);
+        }
+
+
+    }
+
+    private boolean checkStatus(String serverHost, int serverPort, WorkerClientFactory workerClientFactory) {
+        try (WorkerClient workerClient = workerClientFactory.getClient()) {
+            workerClient.checkStatus();
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Worker server [" + serverHost + ":" + serverPort + "] is not active.", e);
+            return false;
+        }
     }
 
     @Override

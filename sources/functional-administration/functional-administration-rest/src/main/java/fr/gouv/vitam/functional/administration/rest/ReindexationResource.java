@@ -101,6 +101,7 @@ public class ReindexationResource {
      */
     private final MetaDataClient metadataClient;
 
+    private final IndexationHelper indexationHelper;
     /**
      * Constructor
      *
@@ -109,9 +110,10 @@ public class ReindexationResource {
      */
     @VisibleForTesting
     public ReindexationResource(LogbookOperationsClient logbookClient,
-        MetaDataClient metadataClient) {
+        MetaDataClient metadataClient, IndexationHelper indexationHelper) {
         this.logbookClient = logbookClient;
         this.metadataClient = metadataClient;
+        this.indexationHelper = indexationHelper;
         LOGGER.debug("init Reindexation Resource server");
     }
 
@@ -123,6 +125,7 @@ public class ReindexationResource {
     public ReindexationResource() {
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         metadataClient = MetaDataClientFactory.getInstance().getClient();
+        this.indexationHelper = IndexationHelper.getInstance();
         LOGGER.debug("init Reindexation Resource server");
     }
 
@@ -164,7 +167,7 @@ public class ReindexationResource {
                             String message = String
                                 .format("Try to reindex a multi tenant collection %s on multiple indexes", index
                                     .getCollectionName());
-                            results.add(IndexationHelper.getFullKOResult(index, message));
+                            results.add(indexationHelper.getFullKOResult(index, message));
                             atLeastOneKO.set(true);
                         } else {
                             MongoCollection<Document> mongoCollection = collectionToReindex.getCollection();
@@ -172,7 +175,7 @@ public class ReindexationResource {
                                 ElasticsearchCollections.valueOf(index.getCollectionName().toUpperCase())
                                     .getMappingAsInputStream()) {
 
-                                results.add(IndexationHelper.reindex(mongoCollection, collectionToReindex.getName(), collectionToReindex.getEsClient(),
+                                results.add(indexationHelper.reindex(mongoCollection, collectionToReindex.getName(), collectionToReindex.getEsClient(),
                                     index.getTenants(), mappingStream));
 
                                 atLeastOneOK.set(true);
@@ -181,14 +184,14 @@ public class ReindexationResource {
                                     collectionToReindex.name(),
                                     index.getTenants().stream().map(Object::toString)
                                         .collect(Collectors.joining(", ")));
-                                results.add(IndexationHelper.getFullKOResult(index, exc.getMessage()));
+                                results.add(indexationHelper.getFullKOResult(index, exc.getMessage()));
                                 atLeastOneKO.set(true);
                             }
                         }
                     } catch (IllegalArgumentException ex) {
                         String message = String.format("Try to reindex an unknown collection %s", index
                             .getCollectionName());
-                        results.add(IndexationHelper.getFullKOResult(index, message));
+                        results.add(indexationHelper.getFullKOResult(index, message));
                         atLeastOneKO.set(true);
                         LOGGER.error(message, ex);
                     }
@@ -196,7 +199,7 @@ public class ReindexationResource {
 
             } catch (LogbookClientServerException | MetaDataClientServerException |
                 MetaDataNotFoundException | InvalidParseOperationException e) {
-                results.add(IndexationHelper.getFullKOResult(index, REINDEXATION_EXCEPTION_MSG));
+                results.add(indexationHelper.getFullKOResult(index, REINDEXATION_EXCEPTION_MSG));
                 atLeastOneKO.set(true);
                 LOGGER.error(REINDEXATION_EXCEPTION_MSG, e);
             }
@@ -255,15 +258,15 @@ public class ReindexationResource {
                     atLeastOneOK.set(true);
                 } else {
                     try {
-                        
-                        IndexationHelper.switchIndex(switchIndex.getIndexName().split("_")[0],
+
+                        indexationHelper.switchIndex(switchIndex.getIndexName().split("_")[0],
                             switchIndex.getIndexName().toLowerCase(),
                             FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient());//We need an Es client, we take this one
                         atLeastOneOK.set(true);
                     } catch (IllegalArgumentException e) {
                         String message = String.format("Try to switch indexes on unknown collection %s", switchIndex
                             .getAlias());
-                        results.add(IndexationHelper.getKOResult(switchIndex, message));
+                        results.add(indexationHelper.getKOResult(switchIndex, message));
                         atLeastOneKO.set(true);
                         LOGGER.error(message, e);
                     }
@@ -273,7 +276,7 @@ public class ReindexationResource {
                 atLeastOneKO.set(true);
                 String message = String.format("Error while switching indexes on collection %s", switchIndex
                     .getAlias());
-                results.add(IndexationHelper.getKOResult(switchIndex, message));
+                results.add(indexationHelper.getKOResult(switchIndex, message));
                 LOGGER.error(message, e);
             }
         });

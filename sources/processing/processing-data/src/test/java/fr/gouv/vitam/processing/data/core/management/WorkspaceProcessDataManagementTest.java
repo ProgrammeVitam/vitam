@@ -14,7 +14,7 @@
  * users are provided only with a limited warranty and the software's author, the holder of the economic rights, and the
  * successive licensors have only limited liability.
  *
- *  In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
+ * In this respect, the user's attention is drawn to the risks associated with loading, using, modifying and/or
  * developing or reproducing the software by the user in light of its specific status of free software, that may mean
  * that it is complicated to manipulate, and that also therefore means that it is reserved for developers and
  * experienced professionals having in-depth computer knowledge. Users are therefore encouraged to load and test the
@@ -27,6 +27,18 @@
 
 package fr.gouv.vitam.processing.data.core.management;
 
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
+import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.junit.Before;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -37,29 +49,9 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import java.io.ByteArrayInputStream;
 
-import javax.ws.rs.core.Response;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class})
 public class WorkspaceProcessDataManagementTest {
 
     private WorkspaceClient workspaceClient;
@@ -69,17 +61,9 @@ public class WorkspaceProcessDataManagementTest {
     @Before
     public void setUp() {
         workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        processDataManagement = WorkspaceProcessDataManagement.getInstance();
-    }
-
-    @Test
-    public void getInstanceTest() {
-        ProcessDataManagement pdm2 = WorkspaceProcessDataManagement.getInstance();
-        assertEquals(processDataManagement, pdm2);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        processDataManagement = new WorkspaceProcessDataManagement(workspaceClientFactory);
     }
 
     @Test
@@ -91,13 +75,13 @@ public class WorkspaceProcessDataManagementTest {
     @Test
     public void createContainerTestAlreadyExists() throws Exception {
         doReturn(true).when(workspaceClient).isExistingContainer(anyString());
-        ProcessDataManagement pdm = WorkspaceProcessDataManagement.getInstance();
-        assertFalse(pdm.createProcessContainer());
+        assertFalse(processDataManagement.createProcessContainer());
     }
 
     @Test(expected = ProcessingStorageWorkspaceException.class)
     public void createContainerTestException() throws Exception {
-        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient).createContainer(anyString());
+        doThrow(new ContentAddressableStorageServerException("fail")).when(workspaceClient)
+            .createContainer(anyString());
         processDataManagement.createProcessContainer();
     }
 

@@ -30,6 +30,7 @@ import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContractIdExce
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
@@ -51,7 +52,9 @@ public class AccessContractIdContainerFilter implements ContainerRequestFilter {
         }
         try {
             HeaderIdHelper.putVitamIdFromHeaderInSession(requestContext.getHeaders(), HeaderIdHelper.Context.REQUEST);
-            AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestContext.getHeaders());
+            AccessContratIdHeaderHelper
+                .manageAccessContratFromHeader(requestContext.getHeaders(), AdminManagementClientFactory
+                    .getInstance());
         } catch (MissingAccessContractIdException e) {
             LOGGER.warn(e);
             requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());

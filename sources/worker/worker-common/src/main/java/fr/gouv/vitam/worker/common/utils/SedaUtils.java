@@ -288,7 +288,7 @@ public class SedaUtils {
             if (!checkFolderContentNumber()) {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
             }
-            ValidationXsdUtils.checkWithXSD(input, SEDA_VALIDATION_FILE);
+            ValidationXsdUtils.getInstance().checkWithXSD(input, SEDA_VALIDATION_FILE);
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
             return CheckSedaValidationStatus.NO_FILE;
@@ -870,12 +870,12 @@ public class SedaUtils {
      * @return the size of the manifest
      * @throws ProcessingException if json seda data is null or seda does not contain size attribute
      */
-    public long getManifestSize(WorkerParameters params)
+    public long getManifestSize(WorkerParameters params, WorkspaceClientFactory workspaceClientFactory)
         throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
-        try (final WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (final WorkspaceClient client = workspaceClientFactory.getClient()) {
             final JsonNode jsonSeda = getObjectInformation(client, containerId,
                 IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
             if (jsonSeda == null || jsonSeda.get("size") == null) {

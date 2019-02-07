@@ -26,9 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
+import fr.gouv.vitam.common.model.administration.FileRulesModel;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,41 +61,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.io.IOUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import fr.gouv.vitam.common.database.builder.query.CompareQuery;
-import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamDBException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
-import fr.gouv.vitam.common.model.administration.FileRulesModel;
-import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 
 /**
  * ListArchiveUnitsAction Handler.<br>
- *
  */
 
 public class ListArchiveUnitsActionHandler extends ActionHandler {
@@ -85,25 +78,25 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     private static final String JSON = ".json";
     private static final int AU_TO_BE_UPDATED_RANK = 0;
     private boolean asyncIO = false;
-    private HandlerIO handlerIO;
+    private final MetaDataClientFactory metaDataClientFactory;
 
-    /**
-     * Empty constructor UnitsRulesComputePlugin
-     *
-     */
     public ListArchiveUnitsActionHandler() {
+        this(MetaDataClientFactory.getInstance());
+    }
+
+    public ListArchiveUnitsActionHandler(MetaDataClientFactory metaDataClientFactory) {
+        this.metaDataClientFactory = metaDataClientFactory;
         archiveUnitGuidAndRulesToBeUpdated = new HashMap<>();
-        archiveUnitsToBeUpdated = new ArrayList<String>();
+        archiveUnitsToBeUpdated = new ArrayList<>();
     }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
-        handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         try {
             // Task number one, lets get the list of archive units to be updated
-            selectListOfArchiveUnitsForUpdate();
-            exportToWorkspace();
+            selectListOfArchiveUnitsForUpdate(handler);
+            exportToWorkspace(handler);
             itemStatus.increment(StatusCode.OK);
         } catch (ProcessingException e) {
             LOGGER.error("Fatal : ", e);
@@ -113,11 +106,11 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
     }
 
 
-    private void selectListOfArchiveUnitsForUpdate() throws ProcessingException {
+    private void selectListOfArchiveUnitsForUpdate(HandlerIO handlerIO) throws ProcessingException {
         InputStream input = null;
-    	try {
-    		input = this.handlerIO.getInputStreamFromWorkspace(
-    			UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON);
+        try {
+            input = handlerIO.getInputStreamFromWorkspace(
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON);
             JsonNode rulesUpdated = JsonHandler.getFromInputStream(input);
             if (rulesUpdated.isArray() && rulesUpdated.size() > 0) {
                 for (final JsonNode objNode : rulesUpdated) {
@@ -131,30 +124,27 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Cannot parse json", e);
             throw new ProcessingException(e);
-        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException |
-            InvalidCreateOperationException | VitamDBException e) {
+        } catch (InvalidCreateOperationException e) {
             LOGGER.error("Metadata error: Cannot request Metadata", e);
             throw new ProcessingException(e);
         } finally {
-        	IOUtils.closeQuietly(input);
+            StreamUtils.closeSilently(input);
         }
     }
 
 
     private void searchForInvolvedArchiveUnit(FileRulesModel fileRule)
-        throws InvalidCreateOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
-        MetaDataClientServerException, InvalidParseOperationException, VitamDBException {
-        ArrayNode resultUnitsArray = null;
+        throws InvalidCreateOperationException {
         final SelectMultiQuery selectMultiple = new SelectMultiQuery();
         StringBuffer sb = new StringBuffer();
         sb.append("#management.").append(fileRule.getRuleType()).append(".Rules").append(".Rule");
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             ObjectNode projectionNode = JsonHandler.createObjectNode();
             // FIXME Add limit when Dbrequest is Fix and when distinct is implement in DbRequest
             ObjectNode objectNode = JsonHandler.createObjectNode();
             objectNode.put("#id", 1);
             projectionNode.set("$fields", objectNode);
-            ArrayNode arrayNode = JsonHandler.createArrayNode();            
+            ArrayNode arrayNode = JsonHandler.createArrayNode();
             CompareQuery ruleQuery = eq(sb.toString(), fileRule.getRuleId());
             StringBuffer sbexists = new StringBuffer();
             sbexists.append("#management.").append(fileRule.getRuleType()).append(".Rules").append(".StartDate");
@@ -165,29 +155,29 @@ public class ListArchiveUnitsActionHandler extends ActionHandler {
             LOGGER.debug("Selected Query For linked unit: " + selectMultiple.getFinalSelect().toString());
 
             ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(metaDataClient,selectMultiple);
+                .createUnitScrollSplitIterator(metaDataClient, selectMultiple);
 
             StreamSupport.stream(scrollRequest, false).forEach(
-                    item -> {
-                        String auGuid = item.get("#id").asText();
-                        if (!archiveUnitsToBeUpdated.contains(auGuid)) {
-                            archiveUnitsToBeUpdated.add(auGuid);
-                        }
-                        if (archiveUnitGuidAndRulesToBeUpdated.get(auGuid) == null) {
-                            final List<FileRulesModel> rulesList = new ArrayList<>();
-                            rulesList.add(fileRule);
-                            archiveUnitGuidAndRulesToBeUpdated.put(auGuid, rulesList);
-                        } else {
-                            final List<FileRulesModel> rulesList = archiveUnitGuidAndRulesToBeUpdated.get(auGuid);
-                            rulesList.add(fileRule);
-                            archiveUnitGuidAndRulesToBeUpdated.put(auGuid, rulesList);
-                        }
+                item -> {
+                    String auGuid = item.get("#id").asText();
+                    if (!archiveUnitsToBeUpdated.contains(auGuid)) {
+                        archiveUnitsToBeUpdated.add(auGuid);
                     }
+                    if (archiveUnitGuidAndRulesToBeUpdated.get(auGuid) == null) {
+                        final List<FileRulesModel> rulesList = new ArrayList<>();
+                        rulesList.add(fileRule);
+                        archiveUnitGuidAndRulesToBeUpdated.put(auGuid, rulesList);
+                    } else {
+                        final List<FileRulesModel> rulesList = archiveUnitGuidAndRulesToBeUpdated.get(auGuid);
+                        rulesList.add(fileRule);
+                        archiveUnitGuidAndRulesToBeUpdated.put(auGuid, rulesList);
+                    }
+                }
             );
         }
     }
 
-    private void exportToWorkspace() throws ProcessingException {
+    private void exportToWorkspace(HandlerIO handlerIO) throws ProcessingException {
         File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(AU_TO_BE_UPDATED_RANK).getPath());
         try {
             final ArrayNode guidArrayNode = JsonHandler.createArrayNode();
