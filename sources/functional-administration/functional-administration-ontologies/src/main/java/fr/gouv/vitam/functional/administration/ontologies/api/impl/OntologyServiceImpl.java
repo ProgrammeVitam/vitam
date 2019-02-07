@@ -269,18 +269,6 @@ public class OntologyServiceImpl implements OntologyService {
                     }
                 }
 
-
-
-               /* //validate that the INTERNAL ontologies creation or update are done by the admin tenant
-                if (OntologyOrigin.INTERNAL.equals(ontm.getOrigin())) {
-                    if (!ADMIN_TENANT.equals(tenant)) {
-                        manager
-                            .addError(ontm.getIdentifier(), new ErrorReportOntologies(OntologyErrorCode.STP_IMPORT_ONTOLOGIES_NOT_AUTHORIZED_FOR_TENANT, OntologyModel.TAG_ORIGIN,
-                            "INTERNAL origin not authorized for tenant ", ontm), errors);
-                        continue;
-
-                    }
-                }*/
                 //ontologies to create validation
                 if (create) {
 
@@ -416,7 +404,7 @@ public class OntologyServiceImpl implements OntologyService {
             exception.put(err, Arrays.asList(errorReport));
             InputStream errorStream = generateErrorReport(exception, StatusCode.KO, eip);
             backupReport(errorStream, eip);
-            manager.logValidationError(CTR_SCHEMA, null, err);
+            manager.logKoError(ONTOLOGY_IMPORT_EVENT, null, err);
             return getVitamError(VitamCode.ONTOLOGY_VALIDATION_ERROR.getItem(), e.getMessage(),
                 StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
