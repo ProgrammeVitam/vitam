@@ -55,9 +55,11 @@ La configuration des droits d'accès à VITAM est réalisée dans le fichier |re
 Fichier ``offers_opts.yml``
 ----------------------------
 
-Enfin, la déclaration des configuration des offres de stockage est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
+.. hint:: Fichier à créer depuis ``offers_opts.yml.example`` et à paramétrer selon le besoin.
 
- .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml
+La déclaration de configuration des offres de stockage associées est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
+
+ .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml.example
      :language: yaml
      :linenos:
 
