@@ -26,21 +26,6 @@
  */
 package fr.gouv.vitam.common.database.server;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getConcernedDiffLines;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getUnifiedDiff;
-
-import java.io.FileNotFoundException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
