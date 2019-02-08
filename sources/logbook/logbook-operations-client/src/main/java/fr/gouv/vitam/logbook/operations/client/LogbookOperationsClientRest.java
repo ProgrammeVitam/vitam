@@ -157,18 +157,15 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
             response = performRequest(HttpMethod.GET, OPERATIONS_URL, null,
                 select, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
-            if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.debug(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            if (response.getStatus() == Status.OK.getStatusCode()) {
+                return JsonHandler.getFromString(response.readEntity(String.class));
             } else if (response.getStatus() == Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.debug("Illegal Entry Parameter");
                 throw new LogbookClientException("Request procondition failed");
-            } else if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
+            } else {
                 LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
                 throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
             }
 
-            return JsonHandler.getFromString(response.readEntity(String.class));
         } catch (final VitamClientInternalException e) {
             LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
