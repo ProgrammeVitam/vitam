@@ -2801,6 +2801,17 @@
     "Collections": [
       "Unit"
     ]
+  },
+  {
+    "Identifier": "OriginatingAgenciesInConflict",
+    "ApiField": "OriginatingAgenciesInConflict",
+    "Description": "Mapping : unit-es-mapping.json. Services producteurs en conflit",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "OriginatingAgenciesInConflict",
+    "Collections": [
+      "Unit"
+    ]
   }
 ]
 

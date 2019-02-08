@@ -26,22 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
-public enum EliminationExtendedInfoType {
+public enum EliminationAnalysisStatusForOriginatingAgency {
+    DESTROY, /* Destroyable */
+    KEEP, /* Not destroyable, no conflict */
+    FINAL_ACTION_INCONSISTENCY; /* Not destroyable with conflict */
 
-    /**
-     * The originating agency of the unit cannot has a "DESTROY" status, because one or more symbolic originating
-     * agencies have a "KEEP" status.
-     */
-    KEEP_ACCESS_SP,
-
-    /**
-     * DESTROY & KEEP originating agencies inherited through the same direct parent unit. Removing the link to the parent
-     * would impact a KEEP originating agency.
-     */
-    ACCESS_LINK_INCONSISTENCY,
-
-    /**
-     * The same originating agency have a KEEP and a DESTROY status.
-     */
-    FINAL_ACTION_INCONSISTENCY
+    public static EliminationAnalysisStatusForOriginatingAgency getValue(boolean isDestroyable, boolean isFinalActionInconsistency) {
+        if (isDestroyable) {
+            return DESTROY;
+        }
+        if (isFinalActionInconsistency) {
+            return FINAL_ACTION_INCONSISTENCY;
+        }
+        return KEEP;
+    }
 }

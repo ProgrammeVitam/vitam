@@ -26,22 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
-public enum EliminationExtendedInfoType {
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    /**
-     * The originating agency of the unit cannot has a "DESTROY" status, because one or more symbolic originating
-     * agencies have a "KEEP" status.
-     */
-    KEEP_ACCESS_SP,
+import java.util.Set;
 
-    /**
-     * DESTROY & KEEP originating agencies inherited through the same direct parent unit. Removing the link to the parent
-     * would impact a KEEP originating agency.
-     */
-    ACCESS_LINK_INCONSISTENCY,
+public class EliminationExtendedInfoFinalActionInconsistencyDetails {
 
-    /**
-     * The same originating agency have a KEEP and a DESTROY status.
-     */
-    FINAL_ACTION_INCONSISTENCY
+    @JsonProperty("OriginatingAgenciesInConflict")
+    private Set<String> originatingAgencies;
+
+    public EliminationExtendedInfoFinalActionInconsistencyDetails() {
+        // Empty constructor for deserialization
+    }
+
+    public EliminationExtendedInfoFinalActionInconsistencyDetails(Set<String> originatingAgency) {
+        this.originatingAgencies = originatingAgency;
+    }
+
+
+    public Set<String> getOriginatingAgencies() {
+        return originatingAgencies;
+    }
+
+    public void setOriginatingAgencies(Set<String> originatingAgencies) {
+        this.originatingAgencies = originatingAgencies;
+    }
 }
