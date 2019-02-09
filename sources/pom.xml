@@ -125,7 +125,6 @@
         <json-unit-version>2.3.0</json-unit-version>
         <jhades.version>1.0.4</jhades.version>
         <javax.servlet.version>4.0.1</javax.servlet.version>
-        <powermock.version>2.0.0</powermock.version>
         <json-sanitize.version>1.2.0</json-sanitize.version>
         <commons-collections4.version>4.2</commons-collections4.version>
         <unix.user>vitam</unix.user>
@@ -369,7 +368,7 @@
                         <threadCount>1</threadCount>
                         <perCoreThreadCount>false</perCoreThreadCount>
                         <forkCount>1</forkCount>
-                        <reuseForks>false</reuseForks>
+                        <reuseForks>true</reuseForks>
                         <trimStackTrace>false</trimStackTrace>
                         <systemPropertyVariables>
                             <log4j.configurationFile>
@@ -1334,18 +1333,6 @@
                 <groupId>org.mockito</groupId>
                 <artifactId>mockito-core</artifactId>
                 <version>${mockito.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-module-junit4</artifactId>
-                <version>${powermock.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.powermock</groupId>
-                <artifactId>powermock-api-mockito2</artifactId>
-                <version>${powermock.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>

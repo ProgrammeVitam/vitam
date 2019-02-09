@@ -301,17 +301,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         return jsonNode;
     }
 
-    /**
-     * select Unit by Id
-     *
-     * @param jsonQuery as String { $query : query}
-     * @param idUnit as String
-     * @throws IllegalArgumentException Throw if json format is not correct
-     * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
-     */
+
     @Override
     public JsonNode selectUnitbyId(JsonNode jsonQuery, String idUnit)
-        throws IllegalArgumentException, InvalidParseOperationException, AccessInternalExecutionException {
+        throws InvalidParseOperationException, AccessInternalExecutionException, MetaDataNotFoundException {
         // Check correctness of request
         final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
@@ -322,7 +315,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     private JsonNode selectMetadataDocumentById(JsonNode jsonQuery, String idDocument, DataCategory dataCategory)
-        throws InvalidParseOperationException, AccessInternalExecutionException {
+        throws InvalidParseOperationException, AccessInternalExecutionException, MetaDataNotFoundException {
         JsonNode jsonNode;
 
         ParametersChecker.checkParameter(DATA_CATEGORY, dataCategory);
@@ -380,7 +373,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     @Override
     public JsonNode selectObjectGroupById(JsonNode jsonQuery, String idObjectGroup)
-        throws InvalidParseOperationException, AccessInternalExecutionException {
+        throws InvalidParseOperationException, AccessInternalExecutionException, MetaDataNotFoundException {
         // Check correctness of request
         final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
         parser.getRequest().reset();
@@ -392,7 +385,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     @Override
     public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version, String idUnit)
-        throws StorageNotFoundException, AccessInternalExecutionException,
+        throws StorageNotFoundException, AccessInternalExecutionException,MetaDataNotFoundException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
         ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier);
@@ -1245,7 +1238,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     public void checkAndUpdateRuleQuery(UpdateParserMultiple updateParser)
-        throws AccessInternalRuleExecutionException, AccessInternalExecutionException {
+        throws AccessInternalRuleExecutionException, AccessInternalExecutionException, MetaDataNotFoundException {
         UpdateMultiQuery request = updateParser.getRequest();
         List<String> deletedCategoryRules = new LinkedList<>();
         Map<String, JsonNode> updatedCategoryRules = new HashMap<>();
@@ -1521,7 +1514,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
     }
 
-    private JsonNode getUnitArchiveUnitProfile(String unitId) throws AccessInternalExecutionException {
+    private JsonNode getUnitArchiveUnitProfile(String unitId)
+        throws AccessInternalExecutionException, MetaDataNotFoundException {
         JsonNode jsonUnit = null;
         try {
             Select selectAUPforUnit = new Select();
@@ -1542,7 +1536,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         return jsonUnit.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
     }
 
-    private JsonNode getUnitManagement(String unitId) throws AccessInternalExecutionException {
+    private JsonNode getUnitManagement(String unitId)
+        throws AccessInternalExecutionException, MetaDataNotFoundException {
         JsonNode jsonUnit = null;
         try {
             // TODO Do it cleaner
@@ -1783,7 +1778,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String idUnit)
-        throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
+        throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException, MetaDataNotFoundException,
         InvalidCreateOperationException, InvalidParseOperationException,
         AdminManagementClientServerException, AccessInternalExecutionException,
         ArchiveUnitProfileEmptyControlSchemaException {
