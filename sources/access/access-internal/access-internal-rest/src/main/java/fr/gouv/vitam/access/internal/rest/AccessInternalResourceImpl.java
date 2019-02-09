@@ -722,6 +722,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -757,6 +761,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -833,6 +841,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(exc);
             status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -864,6 +876,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -900,6 +916,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
+        } catch (final MetaDataNotFoundException e) {
+            LOGGER.error(e.getMessage(), e);
+            status = Status.NOT_FOUND;
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -951,7 +971,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
                 exc.getMessage())).build();
-        } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
+        } catch (StorageNotFoundException | MetaDataNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
         }

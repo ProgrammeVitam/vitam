@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
@@ -270,14 +269,19 @@ public class ElasticsearchAccess implements DatabaseConnection {
             try {
                 LOGGER.debug("createIndex");
                 LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-                final CreateIndexResponse response = getClient().admin().indices()
-                    .prepareCreate(indexName)
-                    .setSettings(default_builder)
-                    .addMapping(type, mapping, XContentType.JSON).get();
+                try {
+                    final CreateIndexResponse response = getClient().admin().indices()
+                        .prepareCreate(indexName)
+                        .setSettings(default_builder)
+                        .addMapping(type, mapping, XContentType.JSON).get();
 
-                if (!response.isAcknowledged()) {
-                    LOGGER.error("Error creating index for " + type + " / collection : " + collectionName);
-                    return new HashMap<>();
+                    if (!response.isAcknowledged()) {
+                        LOGGER.error("Error creating index for " + type + " / collection : " + collectionName);
+                        return new HashMap<>();
+                    }
+                } catch (ResourceAlreadyExistsException e) {
+                    // Continue if index already exists
+                    LOGGER.warn(e);
                 }
 
                 AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
@@ -287,8 +291,6 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     LOGGER.error("Error creating alias for " + type + " / collection : " + collectionName);
                     return new HashMap<>();
                 }
-            } catch (ResourceAlreadyExistsException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             } catch (final Exception e) {
                 LOGGER.error("Error while set Mapping", e);
                 return new HashMap<>();
