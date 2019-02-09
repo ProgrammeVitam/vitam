@@ -76,6 +76,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -543,6 +544,22 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         public Response createLifeCycleObjectGroupBulkRaw(List<JsonNode> logbookLifecycles) {
             return mock.post();
+        }
+
+        @GET
+        @Path("/raw/unitlifecycles/byids")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getRawUnitLifeCycleById(List<String> ids) {
+            return mock.get();
+        }
+
+        @GET
+        @Path("/raw/objectgrouplifecycles/byids")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response getRawObjectGroupLifeCycleById(List<String> ids) {
+            return mock.get();
         }
     }
 
@@ -1204,6 +1221,37 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertThatThrownBy(() -> {
             client.getRawObjectGroupLifeCycleById("id");
+        }).isInstanceOf(LogbookClientNotFoundException.class);
+    }
+
+
+    @Test
+    public void getRawUnitLifeCyclesByIds_OK() throws LogbookClientException, InvalidParseOperationException {
+        when(mock.get())
+            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
+        client.getRawUnitLifeCycleByIds(Arrays.asList("id1", "id2"));
+    }
+
+    @Test
+    public void getRawUnitLifeCycleByIds_NotFound() {
+        when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        assertThatThrownBy(() -> {
+            client.getRawUnitLifeCycleByIds(Arrays.asList("id1", "id2"));
+        }).isInstanceOf(LogbookClientNotFoundException.class);
+    }
+
+    @Test
+    public void getRawObjectGroupLifeCycleByIds_OK() throws LogbookClientException, InvalidParseOperationException {
+        when(mock.get())
+            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(Response.Status.OK.getStatusCode()).toResponse());
+        client.getRawObjectGroupLifeCycleByIds(Arrays.asList("id1", "id2"));
+    }
+
+    @Test
+    public void getRawObjectGroupLifeCycleByIds_NotFound() {
+        when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        assertThatThrownBy(() -> {
+            client.getRawObjectGroupLifeCycleByIds(Arrays.asList("id1", "id2"));
         }).isInstanceOf(LogbookClientNotFoundException.class);
     }
 }

@@ -177,7 +177,17 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     }
 
     @Override
+    public List<JsonNode> getRawUnitLifeCycleByIds(List<String> ids) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
     public JsonNode getRawObjectGroupLifeCycleById(String id) {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public List<JsonNode> getRawObjectGroupLifeCycleByIds(List<String> ids) {
         throw new IllegalStateException("Stop using mocks in production");
     }
 

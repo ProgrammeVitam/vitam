@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.lifecycles.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
@@ -448,9 +449,21 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
+    public List<JsonNode> getRawUnitLifeCycleByIds(List<String> ids)
+        throws LogbookNotFoundException, InvalidParseOperationException {
+        return getRawLifecycleByIds(ids, LogbookCollections.LIFECYCLE_UNIT);
+    }
+
+    @Override
     public JsonNode getRawObjectGroupLifeCycleById(String id)
         throws LogbookNotFoundException, InvalidParseOperationException {
         return getRawLifecycleById(id, LogbookCollections.LIFECYCLE_OBJECTGROUP);
+    }
+
+    @Override
+    public List<JsonNode> getRawObjectGroupLifeCycleByIds(List<String> ids)
+        throws LogbookNotFoundException, InvalidParseOperationException {
+        return getRawLifecycleByIds(ids, LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
 
     @Override
@@ -491,6 +504,28 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         }
 
         return JsonHandler.getFromString(JSON.serialize(document));
+    }
+
+    private List<JsonNode> getRawLifecycleByIds(List<String> ids, LogbookCollections collection)
+        throws InvalidParseOperationException, LogbookNotFoundException {
+        VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
+
+        try(MongoCursor<Document> documents = vitamMongoRepository.findDocuments(
+            Filters.and(
+                Filters.in(LogbookDocument.ID, ids),
+                Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            ), ids.size()).iterator()) {
+
+            List<JsonNode> results = new ArrayList<>();
+            while (documents.hasNext()) {
+                results.add(JsonHandler.getFromString(JSON.serialize(documents.next())));
+            }
+
+            if(results.size() < ids.size()) {
+                throw new LogbookNotFoundException("Could not find raw lifecycle by ids " + ids);
+            }
+            return results;
+        }
     }
 }
 

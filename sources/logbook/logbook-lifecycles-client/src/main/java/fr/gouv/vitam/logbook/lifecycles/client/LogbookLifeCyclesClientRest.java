@@ -82,7 +82,9 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BULK_URL = "/raw/objectgrouplifecycles/bulk";
     private static final String UNIT_LIFECYCLES_RAW_BULK_URL = "/raw/unitlifecycles/bulk";
     private static final String UNIT_LIFECYCLES_RAW_BY_ID_URL = "/raw/unitlifecycles/byid/";
+    private static final String UNIT_LIFECYCLES_RAW_BY_IDS_URL = "/raw/unitlifecycles/byids";
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL = "/raw/objectgrouplifecycles/byid/";
+    private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_IDS_URL = "/raw/objectgrouplifecycles/byids";
     private static final String UNIT_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/unitlifecycles/bylastpersisteddate";
     private static final String OBJECT_GROUP_LIFECYCLES_RAW_BY_LAST_PERSISTED_DATE_URL = "/raw/objectgrouplifecycles/bylastpersisteddate";
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
@@ -831,7 +833,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
     @Override
     public JsonNode getRawUnitLifeCycleById(String id)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException {
         Response response = null;
         try {
 
@@ -844,10 +846,42 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                LOGGER.error(INTERNAL_SERVER_ERROR + " " + response.getStatus());
+                throw new LogbookClientException(INTERNAL_SERVER_ERROR);
             }
-            JsonNode jsonResponse = JsonHandler.getFromString(response.readEntity(String.class));
 
-            return jsonResponse.get("$results").get(0);
+            return ((RequestResponseOK<JsonNode>)RequestResponse.parseFromResponse(response)).getFirstResult();
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public List<JsonNode> getRawUnitLifeCycleByIds(List<String> ids)
+        throws LogbookClientException {
+        Response response = null;
+        try {
+
+            response = performRequest(HttpMethod.GET, UNIT_LIFECYCLES_RAW_BY_IDS_URL, null,
+                ids, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                LOGGER.error(INTERNAL_SERVER_ERROR + " " + response.getStatus());
+                throw new LogbookClientException(INTERNAL_SERVER_ERROR);
+            }
+
+            return ((RequestResponseOK<JsonNode>)RequestResponse.parseFromResponse(response)).getResults();
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
@@ -859,7 +893,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
 
     @Override
     public JsonNode getRawObjectGroupLifeCycleById(String id)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException {
         Response response = null;
         try {
 
@@ -872,10 +906,42 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
                 throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                LOGGER.error(INTERNAL_SERVER_ERROR + " " + response.getStatus());
+                throw new LogbookClientException(INTERNAL_SERVER_ERROR);
             }
-            JsonNode jsonResponse = JsonHandler.getFromString(response.readEntity(String.class));
 
-            return jsonResponse.get("$results").get(0);
+            return ((RequestResponseOK<JsonNode>)RequestResponse.parseFromResponse(response)).getFirstResult();
+
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public List<JsonNode> getRawObjectGroupLifeCycleByIds(List<String> ids)
+        throws LogbookClientException {
+        Response response = null;
+        try {
+
+            response = performRequest(HttpMethod.GET, OBJECT_GROUP_LIFECYCLES_RAW_BY_IDS_URL, null,
+                ids, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
+                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
+            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
+                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
+                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
+            } else if (response.getStatus() != Response.Status.OK.getStatusCode()) {
+                LOGGER.error(INTERNAL_SERVER_ERROR + " " + response.getStatus());
+                throw new LogbookClientException(INTERNAL_SERVER_ERROR);
+            }
+
+            return ((RequestResponseOK<JsonNode>)RequestResponse.parseFromResponse(response)).getResults();
 
         } catch (final VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);

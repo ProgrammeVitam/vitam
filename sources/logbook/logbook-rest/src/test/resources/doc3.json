@@ -1,0 +1,13 @@
+{
+  "_id": "aeaqaaaaaahoii7cab2ggalizruhbzqaaaba",
+  "_tenant": 2,
+  "array": [
+    {
+      "str": "value",
+      "int": 2,
+      "long": 1000000000000,
+      "double": 1.0,
+      "bool": false
+    }
+  ]
+}

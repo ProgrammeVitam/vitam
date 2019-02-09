@@ -430,6 +430,17 @@ public interface LogbookLifeCyclesClient extends BasicClient {
         throws LogbookClientException, InvalidParseOperationException;
 
     /**
+     * returns the raw unit life cycles
+     *
+     * @param ids the id to retrieve
+     * @return the unit life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    List<JsonNode> getRawUnitLifeCycleByIds(List<String> ids)
+        throws LogbookClientException;
+
+    /**
      * returns the raw object group life cycle
      *
      * @param id the id to retrieve
@@ -439,6 +450,17 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      */
     JsonNode getRawObjectGroupLifeCycleById(String id)
         throws LogbookClientException, InvalidParseOperationException;
+
+    /**
+     * returns the raw object group life cycle
+     *
+     * @param ids the id to retrieve
+     * @return the object group life cycle
+     * @throws LogbookClientException
+     * @throws InvalidParseOperationException
+     */
+    List<JsonNode> getRawObjectGroupLifeCycleByIds(List<String> ids)
+        throws LogbookClientException;
 
     /**
      * Create lifecycle objectgroup
