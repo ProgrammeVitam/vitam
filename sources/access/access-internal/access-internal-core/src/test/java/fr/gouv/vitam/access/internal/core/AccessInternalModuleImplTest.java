@@ -1277,7 +1277,8 @@ public class AccessInternalModuleImplTest {
     }
 
     private RequestParserMultiple executeCheck(String queryString)
-        throws InvalidParseOperationException, AccessInternalRuleExecutionException, AccessInternalExecutionException {
+        throws InvalidParseOperationException, AccessInternalRuleExecutionException, AccessInternalExecutionException,
+        MetaDataNotFoundException {
         JsonNode queryJson = JsonHandler.getFromString(queryString);
 
         final RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);

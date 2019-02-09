@@ -184,11 +184,10 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
-        throws StorageServerClientException {
+    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CURSOR, true);
-        return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, null);
+        return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, JsonHandler.createObjectNode());
     }
 
     @Override

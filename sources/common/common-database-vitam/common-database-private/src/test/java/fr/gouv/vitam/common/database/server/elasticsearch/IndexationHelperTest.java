@@ -233,13 +233,17 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         String mapping = ElasticsearchUtil
             .transferJsonToMapping(new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON)));
+        Map<String, String> aliasesWithIndexesMap = new HashMap<>();
         tenants.forEach(o -> {
             Map<String, String> res = elasticsearchAccess
                 .createIndexAndAliasIfAliasNotExists(AGENCIES, mapping, TYPEUNIQUE, o);
+            aliasesWithIndexesMap.putAll(res);
             Assertions.assertThat(res).hasSize(1);
             elasticsearchRule.addIndexToBePurged(res.keySet().iterator().next());
             elasticsearchRule.addIndexToBePurged(res.values().iterator().next());
         });
+
+        Assertions.assertThat(aliasesWithIndexesMap).hasSize(2);
 
         // Waite one second
         Thread.sleep(1000);
@@ -254,7 +258,6 @@ public class IndexationHelperTest {
 
             String aliasName = AGENCIES + "_" + indexOK.getTenant();
 
-            Thread.sleep(10);
             indexationHelper.switchIndex(aliasName, indexName, elasticsearchAccess);
             GetAliasesResponse actualAliases =
                 elasticsearchRule.getClient().admin().indices().getAliases(new GetAliasesRequest().indices(indexName))
