@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.tmp;
 
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
@@ -36,7 +37,9 @@ public class TempFolderRule extends TemporaryFolder {
     @Override
     public void create() throws IOException {
         super.create();
-        System.setProperty("vitam.tmp.folder", super.newFolder().getAbsolutePath());
-        SystemPropertyUtil.refresh();
+        SystemPropertyUtil.set("vitam.tmp.folder", super.newFolder().getAbsolutePath());
+        SystemPropertyUtil.set("vitam.data.folder", super.newFolder().getAbsolutePath());
+        SystemPropertyUtil.set("vitam.log.folder", super.newFolder().getAbsolutePath());
+        VitamConfiguration.reinit();
     }
 }
