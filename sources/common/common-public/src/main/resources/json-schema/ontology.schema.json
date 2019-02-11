@@ -75,7 +75,8 @@
           "LogbookLifeCycleUnitInProcess",
           "EliminationActionObjectGroup",
           "EliminationActionUnit",
-          "PreservationReport"
+          "PreservationReport",
+          "PreservationScenario"
         ]
       }
     },

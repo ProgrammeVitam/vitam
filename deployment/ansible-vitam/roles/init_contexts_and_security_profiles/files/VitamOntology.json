@@ -930,7 +930,7 @@
     "Collections": [
       "Unit",
       "Ontology",
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1848,7 +1848,7 @@
     "Origin": "INTERNAL",
     "ShortName": "FormatList",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1859,7 +1859,7 @@
     "Origin": "INTERNAL",
     "ShortName": "GriffinIdentifier",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1870,7 +1870,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Timeout",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1881,7 +1881,7 @@
     "Origin": "INTERNAL",
     "ShortName": "MaxSize",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1892,7 +1892,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Debug",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1903,7 +1903,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Extension",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -2161,7 +2161,7 @@
     "ShortName": "Extension(s)",
     "Collections": [
       "FileFormat",
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
