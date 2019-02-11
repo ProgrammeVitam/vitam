@@ -111,20 +111,24 @@ Pour une offre Swift les paramétres de configuration sont :
   - swiftKeystoneAuthUrl* :: String : URL d'authentification keystone
   - swiftUser* :: String : le nom de l'utilisateur (sur rados, il prend la forme <tenant>$<user>)
 
-Pour une offre S3 les paramétres de configuration sont :
+Pour une offre S3 les paramètres de configuration sont :
   - s3AccessKey :: String : Access Key ID
   - s3SecretKey :: String : Secret Access key
-  - s3RegionName :: String : region (pour les requêtes signée en algorithme V4)
+  - s3RegionName :: String : region (pour les requêtes signées en algorithme V4)
   - s3Endpoint :: String : URL du stockage
-  - s3SignerType :: String : type de signtature utilisé. Valeurs possibles :
-    - signature V4 : 'AWSS3V4SignerType' (valeur par défaut si chaîne vide). 
-    - signature v2 : 'S3SignerType'
-  - s3MaxConnections :: Integer : nombre maximum de connection HTTP ouvertes
+  - s3SignerType :: String : type de signature utilisé (cf documentation officielle Amazon sur la `signature des requêtes <https://docs.aws.amazon.com/fr_fr/AmazonS3/latest/dev/UsingAWSSDK.html#specify-signature-version>`_). Valeurs possibles :
+     - 'AWSS3V4SignerType' : signature V4 (valeur par défaut si chaîne vide)
+     - 'S3SignerType' : signature V2
+  - s3TrustStore :: String : chemin vers le fichier TrustStore contenant le certificat racine de l'autorité du certificat du stockage (obligatoire en cas de SSL)
+  - s3PathStyleEnabled :: Boolean : type d'accès aux buckets S3 (cf documentation officielle Amazon sur l'`hébergement virtuel de compartiments <https://docs.aws.amazon.com/fr_fr/AmazonS3/latest/dev/VirtualHosting.html>`_). Valeurs possibles :
+     - 'true' : l'accès en mode "path-style" (exemple d'URI : ``http://mys3domain/mybucket/``)
+     - 'false' : l'accès en "virtual-hosted-style" (exemple d'URI : ``http://mybucket.mys3domain/``)
+  - s3MaxConnections :: Integer : nombre maximum de connections HTTP ouvertes
   - s3ConnectionTimeout :: Integer : temps maximum pour l'établissement d'une connection avant d'abandonner (en millisecondes)
   - s3SocketTimeout :: Integer : temps maximum pour le transfert de la donnée avant d'abandonner (en millisecondes)
-  - s3RequestTimeout :: Integer : temps maximum pour l'execution de la requête avant d'abandonner (en millisecondes)
-  - s3ClientExecutionTimeout :: Integer : temps maximum pour l'execution de la requête par le client java avant d'abandonner (en millisecondes)
-  
+  - s3RequestTimeout :: Integer : temps maximum pour l'exécution de la requête avant d'abandonner (en millisecondes)
+  - s3ClientExecutionTimeout :: Integer : temps maximum pour l'exécution de la requête par le client java avant d'abandonner (en millisecondes)
+
 
 2.1 - Configuration par code:
 
