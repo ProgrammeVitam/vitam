@@ -31,9 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
-import io.restassured.RestAssured;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -76,7 +73,6 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -92,6 +88,7 @@ import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -105,7 +102,6 @@ import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
@@ -120,21 +116,20 @@ import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
-import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
+import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
@@ -145,7 +140,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -166,10 +160,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static io.restassured.RestAssured.get;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -187,18 +181,18 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            MetadataMain.class,
-                            WorkerMain.class,
-                            AdminManagementMain.class,
-                            LogbookMain.class,
-                            WorkspaceMain.class,
-                            ProcessManagementMain.class,
-                            AccessInternalMain.class,
-                            IngestInternalMain.class
-                    ));
+        new VitamServerRunner(IngestInternalIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class,
+                AccessInternalMain.class,
+                IngestInternalMain.class
+            ));
 
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
@@ -228,75 +222,76 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_OK_WITH_MGT_META_DATA_ONLY_RULES = "integration-ingest-internal/SIP-MGTMETADATA-ONLY.zip";
     private static String SIP_OK_WITH_ADDRESSEE = "integration-ingest-internal/SIP_MAIL.zip";
     private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES =
-            "integration-ingest-internal/SIP-BOTH-UNITMGT-MGTMETADATA.zip";
+        "integration-ingest-internal/SIP-BOTH-UNITMGT-MGTMETADATA.zip";
     private static String SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS =
-            "integration-ingest-internal/SIP-BOTH-RULES-TYPES-WITHOUT-OBJECTS.zip";
+        "integration-ingest-internal/SIP-BOTH-RULES-TYPES-WITHOUT-OBJECTS.zip";
 
     private static String SIP_KO_WITH_EMPTY_TITLE =
-            "integration-processing/SIP_FILE_1791_CA1.zip";
+        "integration-processing/SIP_FILE_1791_CA1.zip";
 
     private static String SIP_KO_WITH_SPECIAL_CHARS =
-            "integration-processing/SIP-2182-KO.zip";
+        "integration-processing/SIP-2182-KO.zip";
 
     private static String SIP_KO_WITH_INCORRECT_DATE =
-            "integration-processing/SIP_FILE_1791_CA2.zip";
+        "integration-processing/SIP_FILE_1791_CA2.zip";
 
     private static String SIP_OK_WITH_SERVICE_LEVEL =
-            "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
+        "integration-processing/SIP_2467_SERVICE_LEVEL.zip";
     private static String SIP_OK_WITHOUT_SERVICE_LEVEL =
-            "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
+        "integration-processing/SIP_2467_WITHOUT_SERVICE_LEVEL.zip";
     private static final String FILE_RULES_OK = "functional-admin/file-rules/jeu_donnees_OK_regles_CSV.csv";
     private static final String FILE_AGENCIES_OK = "functional-admin/agencies/agencies.csv";
     private static final String FILE_AGENCIES_AU_update = "functional-admin/agencies/agencies_update.csv";
 
     private static final String FILE_RULES_KO_DUPLICATED_REFERENCE =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_DuplicatedReference.csv";
     private static final String FILE_RULES_KO_UNKNOWN_DURATION =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_UNKNOWN_Duration.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_UNKNOWN_Duration.csv";
     private static final String FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_ReferenceWithWrongComma.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_ReferenceWithWrongComma.csv";
     private static final String FILE_RULES_KO_NEGATIVE_DURATION =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_Negative_Duration.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_Negative_Duration.csv";
     private static final String FILE_RULES_KO_DECADE_MEASURE =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_Decade_Measure.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_Decade_Measure.csv";
     private static final String FILE_RULES_KO_ANARCHY_RULE =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_AnarchyRule.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_AnarchyRule.csv";
     private static final String FILE_RULES_KO_90000_YEAR =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_90000_YEAR.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_CSV_90000_YEAR.csv";
     private static final String FILE_RULES_KO_600000_DAY =
-            "functional-admin/file-rules/jeu_donnees_KO_regles_600000_DAY.csv";
+        "functional-admin/file-rules/jeu_donnees_KO_regles_600000_DAY.csv";
 
     private static final String ERROR_REPORT_CONTENT = "functional-admin/file-rules/error_report_content.json";
     private static final String ERROR_REPORT_6000_DAYS = "functional-admin/file-rules/error_report_6000_days.json";
     private static final String ERROR_REPORT_9000_YEARS = "functional-admin/file-rules/error_report_9000_years.json";
     private static final String ERROR_REPORT_ANARCHY_RULE =
-            "functional-admin/file-rules/error_report_anarchy_rules.json";
+        "functional-admin/file-rules/error_report_anarchy_rules.json";
     private static final String ERROR_REPORT_DECADE_MEASURE =
-            "functional-admin/file-rules/error_report_decade_measure.json";
+        "functional-admin/file-rules/error_report_decade_measure.json";
     private static final String ERROR_REPORT_NEGATIVE_DURATION =
-            "functional-admin/file-rules/error_report_negative_duration.json";
+        "functional-admin/file-rules/error_report_negative_duration.json";
     private static final String ERROR_REPORT_REFERENCE_WITH_WRONG_COMA =
-            "functional-admin/file-rules/error_report_reference_with_wrong_coma.json";
+        "functional-admin/file-rules/error_report_reference_with_wrong_coma.json";
     private static final String ERROR_REPORT_UNKNOW_DURATION =
-            "functional-admin/file-rules/error_report_unknow_duration.json";
+        "functional-admin/file-rules/error_report_unknow_duration.json";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE = "integration-ingest-internal/OK_ArchivesPhysiques.zip";
-    private static String SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC = "integration-ingest-internal/OK_ArchivesPhysiques_for_LFC.zip";
+    private static String SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC =
+        "integration-ingest-internal/OK_ArchivesPhysiques_for_LFC.zip";
     private static String SIP_KO_PHYSICAL_ARCHIVE_BINARY_IN_PHYSICAL =
-            "integration-ingest-internal/KO_ArchivesPhysiques_BinaryInPhysical.zip";
+        "integration-ingest-internal/KO_ArchivesPhysiques_BinaryInPhysical.zip";
     private static String SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY =
-            "integration-ingest-internal/KO_ArchivesPhysiques_PhysicalInBinary.zip";
+        "integration-ingest-internal/KO_ArchivesPhysiques_PhysicalInBinary.zip";
     private static String SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY =
-            "integration-ingest-internal/KO_ArchivesPhysiques_EmptyPhysicalId.zip";
+        "integration-ingest-internal/KO_ArchivesPhysiques_EmptyPhysicalId.zip";
 
     private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT = "integration-ingest-internal/" +
-            "OK_ArchivesPhysiques_With_Attachment_Contract.zip";
+        "OK_ArchivesPhysiques_With_Attachment_Contract.zip";
     private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
 
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
 
     private static String OK_RULES_COMPLEX_COMPLETE_SIP =
-            "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
+        "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
 
     private static LogbookElasticsearchAccess esClient;
 
@@ -304,7 +299,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
         CONFIG_SIEGFRIED_PATH =
-                PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
@@ -382,15 +377,15 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.error(initParameters.toString());
 
@@ -425,17 +420,19 @@ public class IngestInternalIT extends VitamRuleRunner {
             select.addRoots(og);
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
-            RequestResponseOK<ObjectGroup> objectGroupResponse = JsonHandler.getFromJsonNode(jsonResponse, RequestResponseOK.class, ObjectGroup.class);
+            RequestResponseOK<ObjectGroup> objectGroupResponse =
+                JsonHandler.getFromJsonNode(jsonResponse, RequestResponseOK.class, ObjectGroup.class);
             assertThat(objectGroupResponse).isNotNull();
             List<ObjectGroup> objectGroupList = objectGroupResponse.getResults();
             assertThat(objectGroupList).hasSize(1);
             ObjectGroup objectGroup = objectGroupList.iterator().next();
             // Bug 5159: check that all ObjectGroup _up are in _us
-            assertThat(objectGroup.get(VitamFieldsHelper.allunitups(), List.class)).containsAll(objectGroup.get(VitamFieldsHelper.unitups(), List.class));
+            assertThat(objectGroup.get(VitamFieldsHelper.allunitups(), List.class))
+                .containsAll(objectGroup.get(VitamFieldsHelper.unitups(), List.class));
             final String objectId = objectGroup.getId();
             final StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response responseStorage = storageClient.getContainerAsync("default", objectId,
-                    DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+                DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
             InputStream inputStream = responseStorage.readEntity(InputStream.class);
             SizedInputStream sizedInputStream = new SizedInputStream(inputStream);
             final long size = StreamUtils.closeSilently(sizedInputStream);
@@ -453,7 +450,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitBeforeUpdate =
-                    (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
             assertNotNull(responseUnitBeforeUpdate.getFirstResult().get("#management").get("AccessRule"));
 
             // execute update -> rules to be 'unset'
@@ -463,35 +460,35 @@ public class IngestInternalIT extends VitamRuleRunner {
             UpdateMultiQuery updateQuery = new UpdateMultiQuery().addActions(new SetAction(action));
             updateQuery.addRoots(unitId);
             RequestResponse response = accessClient
-                    .updateUnitbyId(updateQuery.getFinalUpdate(), unitId);
+                .updateUnitbyId(updateQuery.getFinalUpdate(), unitId);
             assertEquals(response.toJsonNode().get("$hits").get("size").asInt(), 1);
 
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             // execute update -> rules to be 'unset'
             UpdateMultiQuery updateQuery2 =
-                    new UpdateMultiQuery().addActions(new SetAction("ArchiveUnitProfile", "ArchiveUnitProfile"));
+                new UpdateMultiQuery().addActions(new SetAction("ArchiveUnitProfile", "ArchiveUnitProfile"));
             updateQuery.addRoots(unitId);
             RequestResponse response3 = accessClient
-                    .updateUnitbyId(updateQuery2.getFinalUpdate(), unitId);
+                .updateUnitbyId(updateQuery2.getFinalUpdate(), unitId);
             assertTrue(!response3.isOk());
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =
-                    (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
 
             // check version incremented in lfc
             assertEquals(6, checkAndRetrieveLfcVersionForUnit(unitId, accessClient));
             assertEquals(responseUnitBeforeUpdate.getFirstResult().get("#opi"),
-                    responseUnitAfterUpdate.getFirstResult().get("#opi"));
+                responseUnitAfterUpdate.getFirstResult().get("#opi"));
 
             // execute update -> classification rules without classification owner
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
             UpdateMultiQuery updateQueryClassification = new UpdateMultiQuery()
-                    .addActions(new UnsetAction("#management.ClassificationRule.ClassificationOwner"));
+                .addActions(new UnsetAction("#management.ClassificationRule.ClassificationOwner"));
             updateQueryClassification.addRoots(unitId);
             RequestResponse responseClassification = accessClient
-                    .updateUnitbyId(updateQueryClassification.getFinalUpdate(), unitId);
+                .updateUnitbyId(updateQueryClassification.getFinalUpdate(), unitId);
             assertTrue(!responseClassification.isOk());
             assertEquals(responseClassification.getHttpCode(), Status.BAD_REQUEST.getStatusCode());
 
@@ -499,22 +496,22 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
 
             String queryUpdate =
-                    "{\"$roots\":[\"" + unitId + "\"],\"$query\":[],\"$filter\":{}," +
-                            "\"$action\":[{\"$set\": {\"#management.AccessRule.Inheritance\" : {\"PreventRulesId\": [\"ACC-00004\",\"ACC-00005\"], \"PreventInheritance\": false}}}]}";
+                "{\"$roots\":[\"" + unitId + "\"],\"$query\":[],\"$filter\":{}," +
+                    "\"$action\":[{\"$set\": {\"#management.AccessRule.Inheritance\" : {\"PreventRulesId\": [\"ACC-00004\",\"ACC-00005\"], \"PreventInheritance\": false}}}]}";
             RequestResponse responsePreventInheritance = accessClient
-                    .updateUnitbyId(JsonHandler.getFromString(queryUpdate), unitId);
+                .updateUnitbyId(JsonHandler.getFromString(queryUpdate), unitId);
             assertTrue(responsePreventInheritance.isOk());
             assertEquals(responsePreventInheritance.getHttpCode(), Status.OK.getStatusCode());
 
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitAfterUpdatePreventInheritance =
-                    (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
+                (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
             assertEquals(2,
-                    responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
-                            .get("Inheritance").get("PreventRulesId").size());
+                responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
+                    .get("Inheritance").get("PreventRulesId").size());
             assertEquals(false,
-                    responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
-                            .get("Inheritance").get("PreventInheritance").asBoolean());
+                responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
+                    .get("Inheritance").get("PreventInheritance").asBoolean());
 
             sizedInputStream = new SizedInputStream(inputStream);
             final long size2 = StreamUtils.closeSilently(sizedInputStream);
@@ -522,8 +519,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertTrue(size2 == size);
 
             JsonNode logbookOperation =
-                    accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                            .toJsonNode();
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                    .toJsonNode();
 
             Set<String> eventIds = new HashSet<>();
             eventIds.add(logbookOperation.get("$results").get(0).get("evId").asText());
@@ -539,7 +536,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
             SearchResponse elasticSearchResponse =
-                    esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
+                esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
             assertEquals(1, elasticSearchResponse.getHits().getTotalHits());
             assertNotNull(elasticSearchResponse.getHits().getAt(0));
             SearchHit hit = elasticSearchResponse.getHits().iterator().next();
@@ -550,7 +547,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             try {
                 VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
                 response = accessClient.updateUnitbyId(new UpdateMultiQuery().getFinalUpdate(),
-                        "aedqaaaaacfscicjabgwoak7xpw5pwyaaaaq");
+                    "aedqaaaaacfscicjabgwoak7xpw5pwyaaaaq");
                 fail("should raized an exception");
             } catch (AccessInternalClientNotFoundException ex) {
                 LOGGER.error(ex + " | " + response.toString());
@@ -558,11 +555,11 @@ public class IngestInternalIT extends VitamRuleRunner {
         } catch (final Exception e) {
             LOGGER.error(e);
             SearchResponse elasticSearchResponse =
-                    esClient.search(LogbookCollections.OPERATION, tenantId, null, null, null, 0, 25);
+                esClient.search(LogbookCollections.OPERATION, tenantId, null, null, null, 0, 25);
             LOGGER.error("Total:" + (elasticSearchResponse.getHits().getTotalHits()));
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -618,15 +615,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.debug(initParameters.toString());
 
@@ -669,7 +666,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -698,7 +695,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         select.setLimitFilter(0, 1);
         select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
         select.setQuery(eq(LogbookMongoDbName.eventType.getDbname(),
-                "IMPORT_AGENCIES"));
+            "IMPORT_AGENCIES"));
 
         JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
         assertThat(logbookResult).isNotNull();
@@ -708,7 +705,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // When
         IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient();
         Response responseInputStream =
-                ingestInternalClient.downloadObjectAsync(operationId, IngestCollection.REFERENTIAL_AGENCIES_CSV);
+            ingestInternalClient.downloadObjectAsync(operationId, IngestCollection.REFERENTIAL_AGENCIES_CSV);
         // Then
         assertThat(responseInputStream.getStatus()).isEqualTo(Status.OK.getStatusCode());
         InputStream inputStream = responseInputStream.readEntity(InputStream.class);
@@ -755,15 +752,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT);
+                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.debug(initParameters.toString());
 
@@ -800,12 +797,12 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertTrue(checkManifestEvent.get("evType").asText().equals("LFC.CHECK_MANIFEST"));
             assertNotNull(checkManifestEvent.get("_lastPersistedDate"));
             assertTrue(
-                    checkManifestEvent.get("evDetData").asText().equals("{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}"));
+                checkManifestEvent.get("evDetData").asText().equals("{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}"));
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -821,15 +818,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_ARBRE);
+                PropertiesUtils.getResourceAsStream(SIP_ARBRE);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.error(initParameters.toString());
 
@@ -889,15 +886,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_BINARY_IN_PHYSICAL);
+                PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_BINARY_IN_PHYSICAL);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.debug(initParameters.toString());
 
@@ -918,7 +915,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -935,16 +932,16 @@ public class IngestInternalIT extends VitamRuleRunner {
             prepareVitamSession();
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY);
+                PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_IN_BINARY);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.debug(initParameters.toString());
 
@@ -965,7 +962,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -983,15 +980,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY);
+                PropertiesUtils.getResourceAsStream(SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.debug(initParameters.toString());
 
@@ -1012,7 +1009,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -1021,53 +1018,20 @@ public class IngestInternalIT extends VitamRuleRunner {
         }
     }
 
-    @Ignore("To be fixed by @Auhtor (IMA)")
-    @RunWithCustomExecutor
-    @Test
-    public void testMigrationAfterIngestOk() throws Exception {
-        GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        prepareVitamSession();
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
-        // LAUNCH Migration
-
-        operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-
-        GUID guid = GUIDReader.getGUID(operationGuid.getId());
-
-        VitamThreadUtils.getVitamSession().setRequestId(guid.getId());
-
-        createOperation(guid, LogbookOperationsClientFactory.getInstance());
-
-        WorkspaceClientFactory.getInstance().getClient().createContainer(guid.getId());
-
-        ProcessingManagementClient processingManagementClient =
-                ProcessingManagementClientFactory.getInstance().getClient();
-        processingManagementClient.initVitamProcess(guid.getId(), Contexts.DATA_MIGRATION.name());
-
-        RequestResponse<JsonNode> jsonNodeRequestResponse =
-                processingManagementClient.executeOperationProcess(guid.getId(), Contexts.DATA_MIGRATION.name(), ProcessAction.RESUME.getValue());
-        jsonNodeRequestResponse.toResponse();
-
-
-        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
-
-    }
-
     private void createOperation(GUID guid, LogbookOperationsClientFactory logbookOperationsClientFactory)
-            throws LogbookClientBadRequestException {
+        throws LogbookClientBadRequestException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
 
             final LogbookOperationParameters initParameter =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                            guid,
-                            "DATA_MIGRATION",
-                            guid,
-                            LogbookTypeProcess.DATA_MIGRATION,
-                            StatusCode.STARTED,
-                            VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
-                            guid);
+                LogbookParametersFactory.newLogbookOperationParameters(
+                    guid,
+                    "DATA_MIGRATION",
+                    guid,
+                    LogbookTypeProcess.DATA_MIGRATION,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
+                    guid);
             client.create(initParameter);
         } catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
             throw new VitamRuntimeException("Internal server error ", e);
@@ -1082,15 +1046,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_WITH_SPECIAL_CHARS);
+            PropertiesUtils.getResourceAsStream(SIP_KO_WITH_SPECIAL_CHARS);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1109,17 +1073,17 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                        .toJsonNode();
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
         boolean checkDataObject = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
         final List<Document> logbookOperationEvents =
-                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
             if (StatusCode.KO.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.eventType.getDbname())
-                            .equals("CHECK_UNIT_SCHEMA")) {
+                .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                event.get(LogbookMongoDbName.eventType.getDbname())
+                    .equals("CHECK_UNIT_SCHEMA")) {
                 checkDataObject = false;
                 break;
             }
@@ -1137,15 +1101,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_WITH_EMPTY_TITLE);
+            PropertiesUtils.getResourceAsStream(SIP_KO_WITH_EMPTY_TITLE);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1165,16 +1129,16 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                        .toJsonNode();
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
         boolean checkUnitSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
         final List<Document> logbookOperationEvents =
-                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
             if (StatusCode.KO.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
+                .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                 checkUnitSuccess = false;
                 break;
             }
@@ -1191,15 +1155,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_WITH_INCORRECT_DATE);
+            PropertiesUtils.getResourceAsStream(SIP_KO_WITH_INCORRECT_DATE);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1219,16 +1183,16 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                        .toJsonNode();
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
         boolean checkUnitSuccess = true;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
         final List<Document> logbookOperationEvents =
-                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
             if (StatusCode.KO.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
+                .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                event.get(LogbookMongoDbName.eventType.getDbname()).equals("CHECK_UNIT_SCHEMA")) {
                 checkUnitSuccess = false;
                 break;
             }
@@ -1248,14 +1212,14 @@ public class IngestInternalIT extends VitamRuleRunner {
         final GUID objectGuid = GUIDFactory.newManifestGUID(0);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
 
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1285,15 +1249,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         // ProcessAction.INIT, LogbookTypeProcess.INGEST, tenantId);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_MGT_META_DATA_ONLY_RULES);
+            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_MGT_META_DATA_ONLY_RULES);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1338,15 +1302,15 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES);
+            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1361,10 +1325,10 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
-        waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
+        waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
@@ -1400,15 +1364,15 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS);
+            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_BOTH_UNITMGT_MGTMETADATA_RULES_WiTHOUT_OBJECTS);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1453,15 +1417,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_ADDRESSEE);
+            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_ADDRESSEE);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1480,17 +1444,17 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                        .toJsonNode();
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
         boolean checkUnitSuccess = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
         final List<Document> logbookOperationEvents =
-                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
             if (StatusCode.KO.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.eventType.getDbname())
-                            .equals("CHECK_UNIT_SCHEMA")) {
+                .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                event.get(LogbookMongoDbName.eventType.getDbname())
+                    .equals("CHECK_UNIT_SCHEMA")) {
                 checkUnitSuccess = true;
                 break;
             }
@@ -1508,15 +1472,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_WITH_SERVICE_LEVEL);
+            PropertiesUtils.getResourceAsStream(SIP_OK_WITH_SERVICE_LEVEL);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1535,19 +1499,19 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                        .toJsonNode();
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
         boolean checkServiceLevel = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
         final List<Document> logbookOperationEvents =
-                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
             if (StatusCode.OK.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
+                .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
                 if ("ServiceLevel0".equals(
-                        JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
-                                .get("ServiceLevel").asText())) {
+                    JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
+                        .get("ServiceLevel").asText())) {
                     checkServiceLevel = true;
                 }
                 break;
@@ -1565,15 +1529,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_OK_WITHOUT_SERVICE_LEVEL);
+            PropertiesUtils.getResourceAsStream(SIP_OK_WITHOUT_SERVICE_LEVEL);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
         LOGGER.error(initParameters.toString());
 
@@ -1592,18 +1556,18 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
         JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
-                        .toJsonNode();
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
         boolean checkServiceLevel = false;
         final JsonNode elmt = logbookOperation.get("$results").get(0);
         final List<Document> logbookOperationEvents =
-                (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
+            (List<Document>) new LogbookOperation(elmt).get(LogbookDocument.EVENTS.toString());
         for (final Document event : logbookOperationEvents) {
             if (StatusCode.OK.toString()
-                    .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
-                    event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
+                .equals(event.get(LogbookMongoDbName.outcome.getDbname()).toString()) &&
+                event.get(LogbookMongoDbName.outcomeDetail.getDbname()).equals("CHECK_DATAOBJECTPACKAGE.OK")) {
                 if (JsonHandler.getFromString(event.get(LogbookMongoDbName.eventDetailData.getDbname()).toString())
-                        .get("ServiceLevel") instanceof NullNode) {
+                    .get("ServiceLevel") instanceof NullNode) {
                     checkServiceLevel = true;
                 }
                 break;
@@ -1622,15 +1586,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.error(initParameters.toString());
 
@@ -1674,15 +1638,15 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             final GUID operationGuid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
             final InputStream zipInputStreamSipObject2 =
-                    PropertiesUtils.getResourceAsStream(SIP_TREE);
+                PropertiesUtils.getResourceAsStream(SIP_TREE);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params2 = new ArrayList<>();
             final LogbookOperationParameters initParameters2 = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid2, "Process_SIP_unitary", operationGuid2,
-                    LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
-                    operationGuid2 != null ? operationGuid2.toString() : "outcomeDetailMessage",
-                    operationGuid2);
+                operationGuid2, "Process_SIP_unitary", operationGuid2,
+                LogbookTypeProcess.MASTERDATA, StatusCode.STARTED,
+                operationGuid2 != null ? operationGuid2.toString() : "outcomeDetailMessage",
+                operationGuid2);
             params2.add(initParameters2);
 
             final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
@@ -1695,9 +1659,9 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             VitamThreadUtils.getVitamSession().setContractId("aName4");
 
-            waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
+            waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
             processWorkflow =
-                    ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -1713,7 +1677,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -1729,8 +1693,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
         final Status status = client.importRulesFile(
-                PropertiesUtils.getResourceAsStream(FILE_RULES_OK),
-                JEU_DONNEES_OK_REGLES_CSV_CSV);
+            PropertiesUtils.getResourceAsStream(FILE_RULES_OK),
+            JEU_DONNEES_OK_REGLES_CSV_CSV);
         ResponseBuilder ResponseBuilder = Response.status(status);
         Response response = ResponseBuilder.build();
         assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
@@ -1755,7 +1719,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         select.setLimitFilter(0, 1);
         select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
         select.setQuery(eq(LogbookMongoDbName.eventType.getDbname(),
-                "IMPORT_AGENCIES"));
+            "IMPORT_AGENCIES"));
 
         JsonNode logbookResult = operationsClient.selectOperation(select.getFinalSelect());
         assertThat(logbookResult).isNotNull();
@@ -1766,8 +1730,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         // import contrat
         File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
         List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
+            });
         client.importAccessContracts(accessContractModelList);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
@@ -1812,7 +1776,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession();
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_ANARCHY_RULE));
         FileInputStream streamErrorReport =
-                new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_ANARCHY_RULE));
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_ANARCHY_RULE));
         checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
@@ -1822,7 +1786,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession();
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_DECADE_MEASURE));
         FileInputStream streamErrorReport =
-                new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_DECADE_MEASURE));
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_DECADE_MEASURE));
         checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
@@ -1832,7 +1796,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         prepareVitamSession();
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_NEGATIVE_DURATION));
         FileInputStream streamErrorReport =
-                new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_NEGATIVE_DURATION));
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_NEGATIVE_DURATION));
         checkFileRulesWithCustomReferential(stream, streamErrorReport, LINE_2);
     }
 
@@ -1841,11 +1805,11 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void shouldRetrieveReportWhenCheckFileRulesErrorWrongComa() throws Exception {
         prepareVitamSession();
         FileInputStream stream =
-                new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
+            new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_REFERENCE_WITH_WRONG_COMMA));
         FileInputStream streamErrorReport =
-                new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_REFERENCE_WITH_WRONG_COMA));
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_REFERENCE_WITH_WRONG_COMA));
         checkFileRulesWithCustomReferential(stream, streamErrorReport,
-                LINE_3);
+            LINE_3);
     }
 
     @Test
@@ -1853,22 +1817,22 @@ public class IngestInternalIT extends VitamRuleRunner {
     public void shouldRetrieveReportWhenCheckFileRulesErrorUnknowDuration() throws Exception {
         prepareVitamSession();
         final FileInputStream stream =
-                new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_UNKNOWN_DURATION));
+            new FileInputStream(PropertiesUtils.findFile(FILE_RULES_KO_UNKNOWN_DURATION));
         final FileInputStream expectedStreamErrorReport =
-                new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_UNKNOW_DURATION));
+            new FileInputStream(PropertiesUtils.findFile(ERROR_REPORT_UNKNOW_DURATION));
         checkFileRulesWithCustomReferential(stream, expectedStreamErrorReport,
-                LINE_2);
+            LINE_2);
     }
 
     /**
      * Check error report
      *
-     * @param fileInputStreamToImport   the given FileInputStream
+     * @param fileInputStreamToImport the given FileInputStream
      * @param expectedStreamErrorReport expected Stream error report
      */
     private void checkFileRulesWithCustomReferential(final FileInputStream fileInputStreamToImport,
-                                                     final FileInputStream expectedStreamErrorReport, String lineNumber)
-            throws Exception {
+        final FileInputStream expectedStreamErrorReport, String lineNumber)
+        throws Exception {
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.checkRulesFile(fileInputStreamToImport);
             final String readEntity = response.readEntity(String.class);
@@ -1892,15 +1856,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
+                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.debug(initParameters.toString());
 
@@ -1919,13 +1883,13 @@ public class IngestInternalIT extends VitamRuleRunner {
             waitStep(operationGuid.toString(), client2);
 
             ProcessWorkflow processWorkflow =
-                    ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
             ItemStatus itemStatus1 =
-                    client2.getOperationProcessExecutionDetails(operationGuid.toString());
+                client2.getOperationProcessExecutionDetails(operationGuid.toString());
             assertEquals(StatusCode.OK, itemStatus1.getGlobalStatus());
 
             assertNotNull(client2.getWorkflowDefinitions());
@@ -1939,7 +1903,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -1975,15 +1939,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_4396);
+            PropertiesUtils.getResourceAsStream(SIP_4396);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -2001,7 +1965,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "monSIP"))
-                .add(QueryHelper.in("#operations", operationGuid.toString())));
+            .add(QueryHelper.in("#operations", operationGuid.toString())));
         // Get AU
         final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
         final JsonNode node = metadataClient.selectUnits(select.getFinalSelect());
@@ -2014,11 +1978,11 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertNotNull(node.get("$results").get(0).get("Title"));
         assertNotNull(node.get("$results").get(0).get("#management"));
         assertEquals("Secret Défense",
-                node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationLevel")
-                        .asText());
+            node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationLevel")
+                .asText());
         assertEquals("ClassOWn",
-                node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationOwner")
-                        .asText());
+            node.get("$results").get(0).get("#management").get("ClassificationRule").get("ClassificationOwner")
+                .asText());
 
     }
 
@@ -2026,8 +1990,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testApplyAccessContractSecurityFilter()
-            throws FileNotFoundException, InvalidParseOperationException, DatabaseException,
-            InvalidCreateOperationException {
+        throws FileNotFoundException, InvalidParseOperationException, DatabaseException,
+        InvalidCreateOperationException {
 
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
@@ -2035,18 +1999,18 @@ public class IngestInternalIT extends VitamRuleRunner {
         // UniqueTitleParent : aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq
         // UniqueTitleChild : aeaqaaaaaahmtusqabktwaldc34sm5iaaabq
         final List<Document> unitList =
-                JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
-                                .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
-                        new TypeReference<List<Unit>>() {
-                        });
+            JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
+                    .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
+                new TypeReference<List<Unit>>() {
+                });
 
         // Save units in Mongo
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
-                .save(unitList);
+            .save(unitList);
 
         // Save units in Elasticsearch
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection())
-                .save(unitList);
+            .save(unitList);
 
 
         AccessContractModel accessContractModel = new AccessContractModel();
@@ -2064,10 +2028,10 @@ public class IngestInternalIT extends VitamRuleRunner {
             AccessInternalModuleImpl accessInternalModule = new AccessInternalModuleImpl();
 
             CompareQuery query_1 =
-                    QueryHelper.eq("Title", "UniqueTitleParent");
+                QueryHelper.eq("Title", "UniqueTitleParent");
 
             CompareQuery query_2 =
-                    QueryHelper.eq("Title", "UniqueTitleChild");
+                QueryHelper.eq("Title", "UniqueTitleChild");
             query_2.setDepthLimit(1);
 
             SelectMultiQuery selectMultiple = new SelectMultiQuery();
@@ -2075,15 +2039,16 @@ public class IngestInternalIT extends VitamRuleRunner {
 
 
             JsonNode newJson =
-                    AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(),
+                        accessContractModel);
 
             assertThat(newJson).isNotNull();
 
             JsonNode result = accessInternalModule.selectUnit(newJson);
             assertThat(result).isNotNull();
             RequestResponseOK<JsonNode> res =
-                    JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
+                JsonHandler.getFromString(result.toString(), RequestResponseOK.class, JsonNode.class);
             // UniqueTitleChild found
             assertThat(res.getResults()).hasSize(1);
             assertThat(res.getResults().iterator().next().toString()).contains("UniqueTitleChild");
@@ -2093,8 +2058,9 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getOriginatingAgencies().add("Identifier0");
 
             newJson =
-                    AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(),
+                        accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("Identifier0")).hasSize(3);
 
@@ -2107,8 +2073,9 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Add Originating Agency Identifier1 then recheck. Should return one result
             accessContractModel.getOriginatingAgencies().add("Identifier1");
             newJson =
-                    AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(),
+                        accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("Identifier0")).hasSize(3);
 
@@ -2122,8 +2089,9 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Set rootUnit to UniqueTitleParent guid. Should return result
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq");
             newJson =
-                    AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(),
+                        accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("aeaqaaaaaahmtusqabktwaldc34sm5yaaaaq")).hasSize(5);
 
@@ -2139,8 +2107,9 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getRootUnits().clear();
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
             newJson =
-                    AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(),
+                        accessContractModel);
             assertThat(newJson).isNotNull();
             assertThat(newJson.toString().split("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq")).hasSize(5);
 
@@ -2154,10 +2123,10 @@ public class IngestInternalIT extends VitamRuleRunner {
             ///   Test Depth negative
             /////////////////////////
             query_1 =
-                    QueryHelper.eq("Title", "UniqueTitleChild");
+                QueryHelper.eq("Title", "UniqueTitleChild");
 
             query_2 =
-                    QueryHelper.eq("Title", "UniqueTitleChild");
+                QueryHelper.eq("Title", "UniqueTitleChild");
             query_2.setDepthLimit(-1);
 
             selectMultiple = new SelectMultiQuery();
@@ -2171,8 +2140,9 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Get UniqueTitleChild then Get parent UniqueTitleParent even AccessContract restrict access only UniqueTitleChild
             // => should not return result
             newJson =
-                    AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(), accessContractModel);
+                AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForSelect(selectMultiple.getFinalSelect(),
+                        accessContractModel);
             assertThat(newJson).isNotNull();
 
             result = accessInternalModule.selectUnit(newJson);
@@ -2196,15 +2166,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
+            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "Process_SIP_unitary", operationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                operationGuid);
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -2224,11 +2194,11 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         SelectMultiQuery select1 = new SelectMultiQuery();
         select1.addQueries(QueryHelper.and().add(QueryHelper.match("Title", "Buttes-Chaumont"))
-                .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), operationGuid.toString())));
+            .add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), operationGuid.toString())));
         // Get AU
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
         final RequestResponseOK<JsonNode> results1 =
-                (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select1.getFinalSelect());
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select1.getFinalSelect());
 
         assertThat(results1.getResults()).hasSize(1);
         JsonNode unitButtesChaumont1 = results1.getFirstResult();
@@ -2242,7 +2212,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // Get AU
 
         final RequestResponseOK<JsonNode> results2 =
-                (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
 
         assertThat(results2.getResults()).hasSize(28);
 
@@ -2260,26 +2230,26 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         VitamThreadUtils.getVitamSession().setContractId("aName4");
         final RequestResponseOK<JsonNode> results3 =
-                (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnitsWithInheritedRules(select2.getFinalSelect());
 
         assertThat(results3.getResults()).hasSize(0);
     }
 
     private void validateButtesChaumontInheritedRules(JsonNode unitButtesChaumont)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
 
         assertThat(unitButtesChaumont.get("Title").asText()).isEqualTo("Buttes-Chaumont");
         UnitInheritedRulesResponseModel unitInheritedRules =
-                JsonHandler.getFromJsonNode(unitButtesChaumont.get("InheritedRules"),
-                        UnitInheritedRulesResponseModel.class);
+            JsonHandler.getFromJsonNode(unitButtesChaumont.get("InheritedRules"),
+                UnitInheritedRulesResponseModel.class);
 
         InheritedRuleCategoryResponseModel storageRuleCategory =
-                unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_STORAGE);
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_STORAGE);
         assertThat(storageRuleCategory.getProperties()).hasSize(0);
         assertThat(storageRuleCategory.getRules()).hasSize(0);
 
         InheritedRuleCategoryResponseModel appraisalRuleCategory =
-                unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
         assertThat(appraisalRuleCategory.getProperties()).hasSize(1);
         assertThat(appraisalRuleCategory.getProperties().get(0).getPropertyName()).isEqualTo("FinalAction");
         assertThat(appraisalRuleCategory.getProperties().get(0).getPropertyValue()).isEqualTo("Keep");
@@ -2290,18 +2260,18 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertThat(appraisalRuleCategory.getRules()).hasSize(0);
 
         InheritedRuleCategoryResponseModel reuseRuleCategory =
-                unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_REUSE);
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_REUSE);
         assertThat(reuseRuleCategory.getProperties()).hasSize(0);
         assertThat(reuseRuleCategory.getRules()).hasSize(0);
 
         InheritedRuleCategoryResponseModel classificationRuleCategory =
-                unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_CLASSIFICATION);
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_CLASSIFICATION);
         assertThat(classificationRuleCategory.getProperties()).hasSize(0);
         assertThat(classificationRuleCategory.getRules()).hasSize(0);
 
 
         InheritedRuleCategoryResponseModel disseminationRuleCategory =
-                unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_DISSEMINATION);
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_DISSEMINATION);
         assertThat(disseminationRuleCategory.getProperties()).hasSize(0);
         assertThat(disseminationRuleCategory.getRules()).hasSize(1);
         assertThat(disseminationRuleCategory.getRules().get(0).getPaths()).hasSize(2);
@@ -2310,7 +2280,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertThat(disseminationRuleCategory.getRules().get(0).getEndDate()).isEqualTo("2025-01-01");
 
         InheritedRuleCategoryResponseModel accessRuleCategory =
-                unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_ACCESS);
+            unitInheritedRules.getRuleCategories().get(VitamConstants.TAG_RULE_ACCESS);
         assertThat(accessRuleCategory.getProperties()).hasSize(0);
         assertThat(accessRuleCategory.getRules()).hasSize(3);
     }
@@ -2323,15 +2293,15 @@ public class IngestInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
+            PropertiesUtils.getResourceAsStream(OK_RULES_COMPLEX_COMPLETE_SIP);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                ingestOperationGuid != null ? ingestOperationGuid.toString() : "outcomeDetailMessage",
-                ingestOperationGuid);
+            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            ingestOperationGuid != null ? ingestOperationGuid.toString() : "outcomeDetailMessage",
+            ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -2354,14 +2324,14 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
         analysisDslRequest
-                .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
+            .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-                "2018-01-01", analysisDslRequest.getFinalSelect());
+            "2018-01-01", analysisDslRequest.getFinalSelect());
 
         final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
         final RequestResponse<JsonNode> analysisResult =
-                accessInternalClient.startEliminationAnalysis(eliminationRequestBody);
+            accessInternalClient.startEliminationAnalysis(eliminationRequestBody);
 
         assertThat(analysisResult.isOk()).isTrue();
 
@@ -2370,36 +2340,36 @@ public class IngestInternalIT extends VitamRuleRunner {
         // Check indexation querying
         SelectMultiQuery checkAnalysisDslRequest = new SelectMultiQuery();
         checkAnalysisDslRequest.addQueries(
-                QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()))
-                        .add(QueryHelper
-                                .eq(VitamFieldsHelper.elimination() + ".OperationId", eliminationAnalysisOperationGuid.toString()))
-                        .add(QueryHelper.eq(VitamFieldsHelper.elimination() + ".GlobalStatus", "DESTROY")));
+            QueryHelper.and().add(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()))
+                .add(QueryHelper
+                    .eq(VitamFieldsHelper.elimination() + ".OperationId", eliminationAnalysisOperationGuid.toString()))
+                .add(QueryHelper.eq(VitamFieldsHelper.elimination() + ".GlobalStatus", "DESTROY")));
 
         checkAnalysisDslRequest.addUsedProjection(
-                "Title", VitamFieldsHelper.elimination(), VitamFieldsHelper.version());
+            "Title", VitamFieldsHelper.elimination(), VitamFieldsHelper.version());
 
         final RequestResponseOK<JsonNode> indexedUnitsResponse =
-                (RequestResponseOK<JsonNode>) accessInternalClient.selectUnits(checkAnalysisDslRequest.getFinalSelect());
+            (RequestResponseOK<JsonNode>) accessInternalClient.selectUnits(checkAnalysisDslRequest.getFinalSelect());
 
         assertThat(indexedUnitsResponse.isOk()).isTrue();
 
         List<String> indexedUnitTitles = indexedUnitsResponse.getResults()
-                .stream()
-                .map(node -> node.get("Title").asText())
-                .collect(Collectors.toList());
+            .stream()
+            .map(node -> node.get("Title").asText())
+            .collect(Collectors.toList());
 
         assertThat(indexedUnitTitles)
-                .containsExactlyInAnyOrder("Porte de Pantin", "Eglise de Pantin", "Stalingrad.txt");
+            .containsExactlyInAnyOrder("Porte de Pantin", "Eglise de Pantin", "Stalingrad.txt");
 
         // Check access to #elimination field
         assertThat(indexedUnitsResponse.getFirstResult()
-                .get(VitamFieldsHelper.elimination())
-                .get(0)
-                .get("OperationId").asText()).isEqualTo(eliminationAnalysisOperationGuid.toString());
+            .get(VitamFieldsHelper.elimination())
+            .get(0)
+            .get("OperationId").asText()).isEqualTo(eliminationAnalysisOperationGuid.toString());
 
         // Ensure document version has not been updated during indexation process
         assertThat(indexedUnitsResponse.getFirstResult().get(VitamFieldsHelper.version()).asInt())
-                .isEqualTo(0);
+            .isEqualTo(0);
     }
 
     @RunWithCustomExecutor
@@ -2412,15 +2382,15 @@ public class IngestInternalIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             // workspace client unzip SIP in workspace
             final InputStream zipInputStreamSipObject =
-                    PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC);
+                PropertiesUtils.getResourceAsStream(SIP_OK_PHYSICAL_ARCHIVE_FOR_LFC);
 
             // init default logbook operation
             final List<LogbookOperationParameters> params = new ArrayList<>();
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                    operationGuid, "Process_SIP_unitary", operationGuid,
-                    LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                    operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
-                    operationGuid);
+                operationGuid, "Process_SIP_unitary", operationGuid,
+                LogbookTypeProcess.INGEST, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
             params.add(initParameters);
             LOGGER.debug(initParameters.toString());
 
@@ -2484,7 +2454,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
                 fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                        new fr.gouv.vitam.common.database.builder.request.single.Select();
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
                 selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
                 JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
                 LOGGER.error(JsonHandler.prettyPrint(logbookResult));
@@ -2495,10 +2465,10 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode ok) {
 
-        waitOperation(NB_TRY, SLEEP_TIME,operationGuid.toString());
+        waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
