@@ -275,14 +275,13 @@ public class UserInterfaceTransactionManager {
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
         String downloadMethod = "attachment";
-        List<MediaType> mediaTypeAllowedToVisualize = new ArrayList<>();
-        mediaTypeAllowedToVisualize.add(new MediaType("application", "pdf"));
+
         try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
             response = client.getObjectStreamByUnitId(
                 context,
                 unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            if(mediaTypeAllowedToVisualize.contains(response.getMediaType())) {
+            if(AllowedMediaTypeToVisualize.isAllowedMediaTypeToVsualize(response.getMediaType())) {
                 downloadMethod = "inline";
             }
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
