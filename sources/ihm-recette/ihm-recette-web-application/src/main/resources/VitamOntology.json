@@ -1847,7 +1847,7 @@
     "Origin": "INTERNAL",
     "ShortName": "FormatList",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1858,7 +1858,7 @@
     "Origin": "INTERNAL",
     "ShortName": "GriffinIdentifier",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1869,7 +1869,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Timeout",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1880,7 +1880,7 @@
     "Origin": "INTERNAL",
     "ShortName": "MaxSize",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1891,7 +1891,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Debug",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1902,7 +1902,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Type",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1913,7 +1913,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Extension",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1924,7 +1924,7 @@
     "Origin": "Args",
     "ShortName": "Extension",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
