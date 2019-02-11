@@ -19,6 +19,7 @@
 package fr.gouv.vitam.processing.distributor.v2;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -32,6 +33,7 @@ import fr.gouv.vitam.worker.client.WorkerClient;
 import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -72,14 +74,14 @@ public class WorkerManager implements IWorkerManager {
 
     @Override
     public synchronized void marshallToDB() {
-        if (!WORKER_DB_FILE.exists()) {
+        if (!getWorkerDbFile().exists()) {
             try {
                 if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder()))) {
                     Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder()));
                 }
-                Files.createFile(WORKER_DB_FILE.toPath());
+                Files.createFile(getWorkerDbFile().toPath());
             } catch (IOException e) {
-                LOGGER.warn("Cannot create worker list serialization file : " + WORKER_DB_FILE.getName(), e);
+                LOGGER.warn("Cannot create worker list serialization file : " + getWorkerDbFile().getName(), e);
             }
         }
         List<WorkerBean> registeredWorkers = new ArrayList<>();
@@ -92,7 +94,7 @@ public class WorkerManager implements IWorkerManager {
         }
 
         try {
-            JsonHandler.writeAsFile(registeredWorkers, WORKER_DB_FILE);
+            JsonHandler.writeAsFile(registeredWorkers, getWorkerDbFile());
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Cannot update database worker", e);
         }
@@ -169,5 +171,10 @@ public class WorkerManager implements IWorkerManager {
     @Override
     public WorkerFamilyManager findWorkerBy(String workerFamily) {
         return workersFamily.get(workerFamily);
+    }
+
+    @Override
+    public File getWorkerDbFile() {
+        return PropertiesUtils.fileFromDataFolder(WORKER_DB_PATH);
     }
 }

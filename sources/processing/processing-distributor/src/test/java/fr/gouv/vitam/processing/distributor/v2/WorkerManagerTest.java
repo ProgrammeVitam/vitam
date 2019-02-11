@@ -28,14 +28,12 @@ package fr.gouv.vitam.processing.distributor.v2;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.processing.Action;
 import fr.gouv.vitam.common.model.processing.ActionDefinition;
 import fr.gouv.vitam.common.model.processing.ProcessBehavior;
 import fr.gouv.vitam.common.model.processing.Step;
-import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
@@ -46,9 +44,9 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
-import javax.validation.constraints.NotNull;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,7 +74,9 @@ public class WorkerManagerTest {
             "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }";
 
     private static String registeredWorkerFile = "worker.db";
-    private static String defautDataFolder = VitamConfiguration.getVitamDataFolder();
+
+    @Rule
+    public TempFolderRule tempFolderRule = new TempFolderRule();
 
     private WorkerManager workerManager;
     private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
@@ -90,8 +90,6 @@ public class WorkerManagerTest {
         when(workerClientFactory.getClient()).thenReturn(workerClient);
 
         doNothing().when(workerClient).checkStatus();
-        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
-
         workerManager = new WorkerManager(workerClientFactory);
         workerManager.initialize();
     }
@@ -106,11 +104,6 @@ public class WorkerManagerTest {
         if (null != WORKKER_DB_FILE && WORKKER_DB_FILE.exists()) {
             WORKKER_DB_FILE.delete();
         }
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        VitamConfiguration.getConfiguration().setData(defautDataFolder);
     }
 
     @Test
@@ -232,57 +225,4 @@ public class WorkerManagerTest {
         final String workerId = "NewWorkerId4" + GUIDFactory.newGUID().getId();
         workerManager.registerWorker(familyId, workerId, "{\"fakeKey\" : \"fakeValue\"}");
     }
-
-    private class RunnableMock implements Runnable {
-        public RunnableMock() {
-
-        }
-
-        @Override
-        public void run() {
-
-        }
-    }
-
-
-    private class VitamSessionMock extends VitamSession {
-        /**
-         * @param owningThread
-         */
-        public VitamSessionMock(VitamThread owningThread) {
-            super(owningThread);
-        }
-
-        @Override
-        public String getRequestId() {
-            return "";
-        }
-
-        @Override
-        public void setRequestId(String newRequestId) {
-        }
-
-        @Override
-        public void setRequestId(GUID guid) {
-        }
-
-        @Override
-        public void mutateFrom(@NotNull VitamSession newSession) {
-        }
-
-        @Override
-        public void erase() {
-        }
-
-        @Override
-        public void checkValidRequestId() {
-        }
-
-
-        @Override
-        public String toString() {
-            return "";
-        }
-    }
-
 }

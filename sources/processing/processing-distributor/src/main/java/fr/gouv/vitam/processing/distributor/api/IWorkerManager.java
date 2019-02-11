@@ -33,6 +33,7 @@ import fr.gouv.vitam.processing.distributor.v2.WorkerFamilyManager;
 
 import java.io.File;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Manage the parallelism calls to worker in the same distributor
@@ -47,19 +48,15 @@ public interface IWorkerManager {
      * Path to database
      */
     String WORKER_DB_PATH = "worker.db";
-    /**
-     * Database file
-     */
-    File WORKER_DB_FILE = PropertiesUtils.fileFromDataFolder(WORKER_DB_PATH);
 
     /**
      * Do the initialization Load worker from worker.db
      */
     default void initialize() {
-        if (WORKER_DB_FILE.exists()) {
-            loadWorkerList(WORKER_DB_FILE);
+        if (getWorkerDbFile().exists()) {
+            loadWorkerList(getWorkerDbFile());
         } else {
-            LOGGER.warn("No worker list serialization file : " + WORKER_DB_FILE.getName());
+            LOGGER.warn("No worker list serialization file : " + getWorkerDbFile().getName());
         }
     }
 
@@ -151,4 +148,6 @@ public interface IWorkerManager {
      * @return a WorkerFamilyManager object
      */
     WorkerFamilyManager findWorkerBy(String workerFamily);
+
+    File getWorkerDbFile();
 }
