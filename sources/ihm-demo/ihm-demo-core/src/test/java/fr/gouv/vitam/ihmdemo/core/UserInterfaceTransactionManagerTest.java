@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
@@ -239,8 +240,9 @@ public class UserInterfaceTransactionManagerTest {
             eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
-        assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null));
+        UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
+            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null);
+        assertNotNull(asynResponse);
     }
 
     @Test
