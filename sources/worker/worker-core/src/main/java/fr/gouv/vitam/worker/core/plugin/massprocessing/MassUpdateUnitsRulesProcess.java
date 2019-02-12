@@ -386,17 +386,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) && ruleMeasurement != null) {
                 bindRuleDuration.put(ruleId, new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
             }
-
-            // Never compute any endDate if no correct StartDate is given
-            if (startDateString == null) {
-                continue;
-            }
-            LocalDate startDate = LocalDate.parse(startDateString);
-            if (startDate.getYear() >= 9000) {
-                throw new IllegalStateException("Wrong Start Date: Year should be lower than 9000 but get " + startDate.getYear());
-            }
         }
-
     }
 
     /**
