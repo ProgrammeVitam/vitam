@@ -30,6 +30,8 @@ import java.util.List;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamIHMApplicationConfiguration;
 
+import javax.ws.rs.core.MediaType;
+
 /**
  * Web Application Configuration class
  */
@@ -37,6 +39,7 @@ public class WebApplicationConfig extends DefaultVitamIHMApplicationConfiguratio
 
     private String staticContent;
     private String baseUri;
+    private List<MediaType> allowedMediaTypes;
     private List<String> secureMode;
 
     @Override
@@ -67,6 +70,15 @@ public class WebApplicationConfig extends DefaultVitamIHMApplicationConfiguratio
 
     public WebApplicationConfig setSecureMode(List<String> secureMode) {
         this.secureMode = secureMode;
+        return this;
+    }
+
+    public List<MediaType> getAllowedMediaTypes() {
+        return allowedMediaTypes;
+    }
+
+    public WebApplicationConfig setAllowedMediaTypes(List<MediaType> allowedMediaTypes) {
+        this.allowedMediaTypes = allowedMediaTypes;
         return this;
     }
 }

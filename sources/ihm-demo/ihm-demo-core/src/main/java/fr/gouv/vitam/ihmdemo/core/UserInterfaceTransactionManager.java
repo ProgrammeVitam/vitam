@@ -71,6 +71,7 @@ import org.bouncycastle.util.encoders.DecoderException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -79,6 +80,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
@@ -262,6 +264,7 @@ public class UserInterfaceTransactionManager {
      * @param version the requested version of the usage
      * @param filename the name od the file
      * @param context Vitamcontext
+     * @param allowedMediaTypes
      * @return boolean for test purpose (solve mock issue)
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
      * @throws VitamClientException         if the client encountered an exception
@@ -269,7 +272,8 @@ public class UserInterfaceTransactionManager {
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
     public static boolean getObjectAsInputStream(AsyncResponse asyncResponse,
-        String unitId, String usage, int version, String filename, VitamContext context)
+        String unitId, String usage, int version, String filename, VitamContext context,
+        List<MediaType> allowedMediaTypes)
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
         String downloadMethod = "attachment";
@@ -279,7 +283,7 @@ public class UserInterfaceTransactionManager {
                 context,
                 unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            if(AllowedMediaTypeToVisualize.isAllowedMediaTypeToVisualize(response.getMediaType())) {
+            if(isAllowedToVisualize(allowedMediaTypes, response.getMediaType())) {
                 downloadMethod = "inline";
             }
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
@@ -306,6 +310,18 @@ public class UserInterfaceTransactionManager {
             }
         }
         return true;
+    }
+
+    private static boolean isAllowedToVisualize(List<MediaType> allowedMediaTypes, MediaType mediaType) {
+        if(allowedMediaTypes == null || mediaType == null) {
+            return false;
+        }
+        for(MediaType amt : allowedMediaTypes) {
+            if(amt.getType().equals(mediaType.getType()) && amt.getSubtype().equals(mediaType.getSubtype())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void buildOnePathForOneParent(ArrayNode path, JsonNode parent, ArrayNode allPaths,

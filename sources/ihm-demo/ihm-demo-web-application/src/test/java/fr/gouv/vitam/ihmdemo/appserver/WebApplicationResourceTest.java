@@ -954,7 +954,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(), anyString(),
-                anyInt(), anyString(), any()))
+                anyInt(), anyString(), any(), any()))
             .thenThrow(new VitamClientException(""));
 
         given()
@@ -976,7 +976,7 @@ public class WebApplicationResourceTest {
 
         PowerMockito
             .when(UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(),
-                anyString(), anyInt(), anyString(), any()))
+                anyString(), anyInt(), anyString(), any(), any()))
             .thenReturn(true);
 
         given()
@@ -992,7 +992,7 @@ public class WebApplicationResourceTest {
     public void testBadRequestGetObjectAsInputStream() throws Exception {
         PowerMockito
             .when(UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(),
-                anyString(), anyInt(), anyString(), any()))
+                anyString(), anyInt(), anyString(), any(), any()))
             .thenReturn(true);
         given().header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .accept(MediaType.APPLICATION_OCTET_STREAM).expect()
@@ -1006,7 +1006,7 @@ public class WebApplicationResourceTest {
     public void testAccessUnknownExceptionGetObjectAsInputStream() throws Exception {
         PowerMockito.when(
             UserInterfaceTransactionManager.getObjectAsInputStream(any(), anyString(), anyString(),
-                anyInt(), anyString(), any()))
+                anyInt(), anyString(), any(), any()))
             .thenThrow(new NullPointerException());
         given()
             .accept(MediaType.APPLICATION_OCTET_STREAM)

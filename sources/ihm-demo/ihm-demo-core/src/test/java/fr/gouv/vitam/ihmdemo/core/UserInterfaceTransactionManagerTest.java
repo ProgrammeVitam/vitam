@@ -240,7 +240,7 @@ public class UserInterfaceTransactionManagerTest {
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context));
+            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null));
     }
 
     @Test
