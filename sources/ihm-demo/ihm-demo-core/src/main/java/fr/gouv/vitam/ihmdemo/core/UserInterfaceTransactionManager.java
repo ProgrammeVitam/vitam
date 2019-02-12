@@ -278,7 +278,7 @@ public class UserInterfaceTransactionManager {
                 context,
                 unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            if(AllowedMediaTypeToVisualize.isAllowedMediaTypeToVsualize(response.getMediaType())) {
+            if(AllowedMediaTypeToVisualize.isAllowedMediaTypeToVisualize(response.getMediaType())) {
                 downloadMethod = "inline";
             }
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
