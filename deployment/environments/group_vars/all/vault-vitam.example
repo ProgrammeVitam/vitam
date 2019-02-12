@@ -64,6 +64,17 @@ mongodb:
     offer:
       user: offer
       password: azerty5
+  offer-s3-1:
+    passphrase: mongogo
+    admin:
+      user: vitamdb-admin
+      password: azerty
+    localadmin:
+      user: vitamdb-localadmin
+      password: qwerty
+    offer:
+      user: offer
+      password: azerty5
 
 vitam_users:
   - vitam_aadmin:
@@ -91,3 +102,6 @@ admin_basic_auth_password: adminPassword
 vitam_offers:
     offer-swift-1:
         swiftPassword: password
+    offer-s3-1:
+        s3AccessKey: accessKey
+        s3SecretKey: secretKey
