@@ -77,6 +77,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.Map;
 
@@ -284,7 +285,7 @@ public class UserInterfaceTransactionManager {
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
                 .header(GlobalDataRest.X_VERSION, response.getHeaderString(GlobalDataRest.X_VERSION))
-                .header("Content-Disposition", downloadMethod+"; filename=\"" + URLDecoder.decode(filename, "UTF-8") + "\"")
+                .header("Content-Disposition", downloadMethod+"; filename=\"" + URLEncoder.encode(filename, "UTF-8") + "\"")
                 .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
         } finally {
