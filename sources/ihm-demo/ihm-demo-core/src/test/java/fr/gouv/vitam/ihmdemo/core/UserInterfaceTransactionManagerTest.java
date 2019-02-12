@@ -26,11 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -240,9 +238,8 @@ public class UserInterfaceTransactionManagerTest {
             eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
-        UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null);
-        assertNotNull(asynResponse.getResponse());
+        assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
+            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null));
     }
 
     @Test

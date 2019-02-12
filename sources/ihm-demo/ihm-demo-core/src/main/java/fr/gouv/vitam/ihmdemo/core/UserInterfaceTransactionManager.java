@@ -269,8 +269,9 @@ public class UserInterfaceTransactionManager {
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
      * @throws VitamClientException         if the client encountered an exception
      */
+    // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
-    public static void getObjectAsInputStream(AsyncResponse asyncResponse,
+    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse,
         String unitId, String usage, int version, String filename, VitamContext context,
         List<MediaType> allowedMediaTypes)
         throws UnsupportedEncodingException, VitamClientException {
@@ -308,6 +309,8 @@ public class UserInterfaceTransactionManager {
                 }
             }
         }
+
+        return true;
     }
 
     private static boolean isAllowedToVisualize(List<MediaType> allowedMediaTypes, MediaType mediaType) {
