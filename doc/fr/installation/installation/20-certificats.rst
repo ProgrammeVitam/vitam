@@ -8,6 +8,5 @@ Une vue d'ensemble de la gestion des certificats est présentée :doc:`dans l'an
 
    certificats/pki_vitam
    certificats/pki_externe
-   certificats/swift
-   certificats/s3
+   certificats/object_storage
    certificats/keystores
