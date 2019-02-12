@@ -42,6 +42,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 
 public class WorkflowBatchResult {
     private final String gotId;
@@ -232,6 +233,10 @@ public class WorkflowBatchResult {
 
         public boolean isInError() {
             return this.error.isPresent();
+        }
+
+        public boolean isOkAndIdentify() {
+            return this.getOutput().getAction().equals(IDENTIFY) && this.getOutput().getStatus().equals(PreservationStatus.OK);
         }
     }
 }

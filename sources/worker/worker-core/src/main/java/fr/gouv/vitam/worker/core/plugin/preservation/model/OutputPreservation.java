@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
+import fr.gouv.vitam.common.model.objectgroup.DbFormatIdentificationModel;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
@@ -51,6 +52,8 @@ public class OutputPreservation {
     private String analyseResult;
     @JsonProperty("Action")
     private ActionTypePreservation action;
+    @JsonProperty("FormatIdentification")
+    private DbFormatIdentificationModel formatIdentification;
 
     public OutputPreservation() {
     }
@@ -119,6 +122,14 @@ public class OutputPreservation {
         this.analyseResult = analyseResult;
     }
 
+    public DbFormatIdentificationModel getFormatIdentification() {
+        return formatIdentification;
+    }
+
+    public void setFormatIdentification(DbFormatIdentificationModel formatIdentification) {
+        this.formatIdentification = formatIdentification;
+    }
+
     @Override
     public String toString() {
         return "Output{" +
@@ -128,8 +139,9 @@ public class OutputPreservation {
             ", input=" + input +
             ", outputName='" + outputName + '\'' +
             ", status=" + status +
-            ", analyseResult=" + analyseResult +
+            ", analyseResult='" + analyseResult + '\'' +
             ", action=" + action +
+            ", formatIdentification=" + formatIdentification +
             '}';
     }
 }

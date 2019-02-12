@@ -26,26 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
-import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.digestPreservationGeneration;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
-import static java.util.Arrays.asList;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -76,11 +57,30 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
+import org.apache.commons.collections4.CollectionUtils;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
+import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.digestPreservationGeneration;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
 
 public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
-    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
-
     private static final String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
+    private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
     private final MetaDataClientFactory metaDataClientFactory;
 
     public PreservationUpdateObjectGroupPlugin() {
@@ -112,115 +112,160 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             .filter(OutputExtra::isOkAndGenerated)
             .collect(Collectors.toList());
 
-        if (generateOkActions.isEmpty()) {
+        List<OutputExtra> identifyOkActions = batchResult.getOutputExtras()
+            .stream()
+            .filter(OutputExtra::isOkAndIdentify)
+            .collect(Collectors.toList());
+
+        if (generateOkActions.isEmpty() && identifyOkActions.isEmpty()) {
             return new ItemStatus(PLUGIN_NAME).disableLfc();
         }
 
+        Stream<String> subItemIds = Stream.concat(
+            identifyOkActions.stream().map(OutputExtra::getBinaryGUID),
+            generateOkActions.stream().map(OutputExtra::getBinaryGUID)
+        ).distinct();
+
         try {
-            String gotId = batchResult.getGotId();
-            RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(gotId);
+            RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(batchResult.getGotId());
             if (!requestResponse.isOk()) {
-                return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(String.format("ObjectGroup not found %s", gotId)));
+                return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(String.format("ObjectGroup not found %s", batchResult.getGotId())));
             }
             JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
             DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
-            DbQualifiersModel qualifierModel;
-            Integer lastVersion;
 
-            if (batchResult.getSourceUse().equals(batchResult.getTargetUse())) {
-                qualifierModel = dbObjectGroupModel
-                    .getQualifiers()
-                    .stream()
-                    .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getSourceUse()))
-                    .findFirst()
-                    .orElseThrow(
-                        () -> new VitamRuntimeException(
-                            String.format("No 'Qualifier' %s for 'ObjectGroup' %s.", batchResult.getSourceUse(), gotId)));
-                lastVersion = extractLastVersionOfQualifier(batchResult, qualifierModel) + 1;
-            } else {
-                qualifierModel = dbObjectGroupModel.getQualifiers()
-                    .stream()
-                    .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getTargetUse()))
-                    .findFirst()
-                    .orElse(new DbQualifiersModel());
-                boolean firstQualifier = isFirstQualifier(qualifierModel, batchResult);
-                lastVersion = getLastVersion(batchResult, qualifierModel, firstQualifier);
+            List<DbQualifiersModel> qualifiersWithIdentification = dbObjectGroupModel.getQualifiers()
+                .stream()
+                .map(qualifier -> mapQualifierIdentifiedBinary(batchResult, qualifier, identifyOkActions))
+                .collect(Collectors.toList());
+
+            List<DbQualifiersModel> finalQualifiersToUpdate = addGeneratedQualifiersIfUpdate(batchResult, generateOkActions, qualifiersWithIdentification);
+            if (!isQualifiersUpdated(dbObjectGroupModel.getQualifiers(), finalQualifiersToUpdate))  {
+                return new ItemStatus(PLUGIN_NAME).disableLfc();
             }
 
-
-            List<DbVersionsModel> versionsModelToInsert = IntStream.range(0, generateOkActions.size())
-                .mapToObj(i -> buildVersionModel(generateOkActions.get(i), batchResult, lastVersion + i))
-                .collect(Collectors.toList());
-
-            qualifierModel.getVersions().addAll(versionsModelToInsert);
-            qualifierModel.setNbc(lastVersion);
-
-            List<DbQualifiersModel> finalQualifiersModelToUpdate = dbObjectGroupModel.getQualifiers().stream()
-                .filter(qualifier -> !qualifier.getQualifier().equals(batchResult.getTargetUse()))
-                .collect(Collectors.toList());
-            finalQualifiersModelToUpdate.add(qualifierModel);
-
-            final Optional<Integer> totalBinaries =
-                finalQualifiersModelToUpdate.stream()
-                    .map(DbQualifiersModel::getNbc)
-                    .reduce(Integer::sum);
-
-            if (!totalBinaries.isPresent()) {
+            final Optional<Integer> totalBinarySize = finalQualifiersToUpdate.stream()
+                .map(DbQualifiersModel::getNbc)
+                .reduce(Integer::sum);
+            if (!totalBinarySize.isPresent()) {
                 throw new IllegalStateException("total binaries for objectGroup nbc is absent");
             }
 
             Map<String, JsonNode> action = new HashMap<>();
-            action.put(QUALIFIERS.exactToken(), JsonHandler.toJsonNode(finalQualifiersModelToUpdate));
+            action.put(QUALIFIERS.exactToken(), JsonHandler.toJsonNode(finalQualifiersToUpdate));
             SetAction setQualifier = new SetAction(action);
 
             UpdateMultiQuery query = new UpdateMultiQuery();
             query.addHintFilter(OBJECTGROUPS.exactToken());
-            JsonNode newUpdateQuery = query.addActions(
+            query.addActions(
                 UpdateActionHelper.push(VitamFieldsHelper.operations(), batchResult.getRequestId()),
-                UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), totalBinaries.get()),
-                setQualifier).getFinalUpdate();
+                UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), totalBinarySize.get()),
+                setQualifier
+            );
 
-            metaDataClient.updateObjectGroupById(newUpdateQuery, gotId);
-            ObjectNode gotIdNode = JsonHandler.createObjectNode();
-            gotIdNode.put("gotId", gotId);
-            return buildItemStatus(PLUGIN_NAME, OK, gotIdNode);
+            metaDataClient.updateObjectGroupById(query.getFinalUpdate(), batchResult.getGotId());
+
+            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, OK, EventDetails.of("Update completed."));
         } catch (Exception e) {
             logger.error(e);
-            return buildItemStatus(PLUGIN_NAME, FATAL, e)
-                .disableLfc();
+            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, FATAL, EventDetails.of(String.format("FATAL ERROR IN %s ACTION.", PLUGIN_NAME))).disableLfc();
         }
     }
 
-    private boolean isFirstQualifier(DbQualifiersModel qualifierModel, WorkflowBatchResult batchResult) {
-        if (qualifierModel.getQualifier() == null) {
-            qualifierModel.setNbc(1);
-            qualifierModel.setQualifier(batchResult.getTargetUse());
-            qualifierModel.setVersions(new ArrayList<>());
-            return true;
-        }
-        return false;
+    private boolean isQualifiersUpdated(List<DbQualifiersModel> qualifiers, List<DbQualifiersModel> updatedQualifier) {
+        return !CollectionUtils.isEqualCollection(qualifiers, updatedQualifier);
     }
 
-    private Integer getLastVersion(WorkflowBatchResult batchResult, DbQualifiersModel qualifierModel, boolean firstQualifier) {
-        if (!firstQualifier) {
-            return extractLastVersionOfQualifier(batchResult, qualifierModel) + 1;
+    private List<DbQualifiersModel> addGeneratedQualifiersIfUpdate(WorkflowBatchResult batchResult, List<OutputExtra> generateOkActions, List<DbQualifiersModel> qualifiers) {
+        if (generateOkActions.isEmpty()) {
+            return qualifiers;
         }
-        return 1;
+
+        DbQualifiersModel qualifierModelToUpdate = findQualifier(batchResult, qualifiers);
+        int lastVersion = getLastVersion(qualifierModelToUpdate);
+
+        List<DbVersionsModel> versionsModelToInsert = IntStream.range(0, generateOkActions.size())
+            .mapToObj(i -> createVersion(generateOkActions.get(i), batchResult, lastVersion + i))
+            .collect(Collectors.toList());
+
+        List<DbVersionsModel> versions = qualifierModelToUpdate.getVersions();
+        versions.addAll(versionsModelToInsert);
+        qualifierModelToUpdate.setNbc(versions.size());
+
+        List<DbQualifiersModel> updatedQualifiers = qualifiers.stream()
+            .filter(qualifier -> !qualifier.getQualifier().equals(qualifierModelToUpdate.getQualifier()))
+            .collect(Collectors.toList());
+
+        updatedQualifiers.add(qualifierModelToUpdate);
+
+        return updatedQualifiers;
     }
 
-    private Integer extractLastVersionOfQualifier(WorkflowBatchResult workflowBatchResult, DbQualifiersModel qualifiersModel) {
-            return qualifiersModel.getVersions()
+    private int getLastVersion(DbQualifiersModel qualifierModelToUpdate) {
+        return qualifierModelToUpdate.getVersions()
+            .stream()
+            .map(DbVersionsModel::getDataObjectVersion)
+            .map(dataObjectVersion -> dataObjectVersion.split("_")[1])
+            .map(Integer::parseInt)
+            .max(Comparator.naturalOrder())
+            .orElse(1);
+    }
+
+    private DbQualifiersModel findQualifier(WorkflowBatchResult batchResult, List<DbQualifiersModel> qualifiers) {
+        if (batchResult.getSourceUse().equals(batchResult.getTargetUse())) {
+            return qualifiers
                 .stream()
-                .map(DbVersionsModel::getDataObjectVersion)
-                .map(dataObjectVersion -> asList(dataObjectVersion.split("_")).get(1))
-                .map(Integer::parseInt)
-                .max(Comparator.naturalOrder())
-                .orElseThrow(
-                    () -> new VitamRuntimeException(
-                        String.format("Error extracting 'DataObjectVersion' for %s", workflowBatchResult.getGotId())));
+                .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getSourceUse()))
+                .map(q -> new DbQualifiersModel(q.getQualifier(), q.getNbc(), new ArrayList<>(q.getVersions())))
+                .findFirst()
+                .orElseThrow(() -> new VitamRuntimeException(String.format("No 'Qualifier' %s for 'ObjectGroup' %s.", batchResult.getSourceUse(), batchResult.getGotId())));
+        }
+        return qualifiers.stream()
+            .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getTargetUse()))
+            .findFirst()                    
+            .orElse(new DbQualifiersModel(batchResult.getTargetUse(), 0, new ArrayList<>()));
     }
 
-    private DbVersionsModel buildVersionModel(OutputExtra outputExtra, WorkflowBatchResult workflowBatchResult, Integer newDataObjectVersion) {
+    private DbQualifiersModel mapQualifierIdentifiedBinary(WorkflowBatchResult batchResult, DbQualifiersModel qualifier, List<OutputExtra> identifyOkActions) {
+        if (identifyOkActions.isEmpty() || !qualifier.getQualifier().equals(batchResult.getSourceUse())) {
+            return qualifier;
+        }
+
+        List<DbVersionsModel> versions = qualifier.getVersions()
+            .stream()
+            .map(v -> mapVersionModel(identifyOkActions, v))
+            .collect(Collectors.toList());
+        return new DbQualifiersModel(qualifier.getQualifier(), qualifier.getNbc(), versions);
+    }
+
+    private DbVersionsModel mapVersionModel(List<OutputExtra> identifyOkActions, DbVersionsModel versions) {
+        return identifyOkActions.stream()
+            .filter(o -> o.getOutput().getInputPreservation().getName().equals(versions.getId()))
+            .findFirst()
+            .map(o -> newIdentification(versions, o))
+            .orElse(versions);
+    }
+
+    private DbVersionsModel newIdentification(DbVersionsModel versions, OutputExtra output) {
+        DbFormatIdentificationModel format = output.getOutput().getFormatIdentification();
+        if (format == null) {
+            throw new VitamRuntimeException("FormatIdentification cannot be null.");
+        }
+        return DbVersionsModel.newVersionsFrom(versions, format);
+    }
+
+    private DbVersionsModel createVersion(OutputExtra outputExtra, WorkflowBatchResult workflowBatchResult, Integer newDataObjectVersion) {
+        Optional<FormatIdentifierResponse> formatIdentifierResponse = outputExtra.getBinaryFormat();
+
+        boolean allInformationNeeded = formatIdentifierResponse.isPresent()
+            && outputExtra.getBinaryHash().isPresent()
+            && outputExtra.getSize().isPresent()
+            && outputExtra.getStoredInfo().isPresent();
+
+        if (!allInformationNeeded) {
+            throw new VitamRuntimeException("Cannot update this version model, mission information.");
+        }
+
         DbVersionsModel versionModel = new DbVersionsModel();
         versionModel.setId(outputExtra.getBinaryGUID());
         versionModel.setDataObjectGroupId(workflowBatchResult.getGotId());
@@ -228,26 +273,10 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         versionModel.setOpi(workflowBatchResult.getRequestId());
         versionModel.setAlgorithm(digestPreservationGeneration.getName());
 
-        Optional<FormatIdentifierResponse> formatIdentifierResponse = outputExtra.getBinaryFormat();
-
-        if (!formatIdentifierResponse.isPresent()) {
-            throw new IllegalStateException("format not found");
-        }
-
         DbFileInfoModel fileInfoModel = new DbFileInfoModel();
         fileInfoModel.setFilename(outputExtra.getOutput().getOutputName());
         fileInfoModel.setLastModified(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
         versionModel.setFileInfoModel(fileInfoModel);
-
-        boolean allInformationNeeded = outputExtra.getBinaryFormat().isPresent()
-            && outputExtra.getBinaryHash().isPresent()
-            && outputExtra.getSize().isPresent()
-            && outputExtra.getStoredInfo().isPresent();
-
-
-        if (!allInformationNeeded) {
-            throw new VitamRuntimeException("Cannot update this version model, mission information.");
-        }
 
         StoredInfoResult storedInfoResult = outputExtra.getStoredInfo().get();
         DbStorageModel dbStorageModel = new DbStorageModel();
