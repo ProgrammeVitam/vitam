@@ -27,14 +27,13 @@
 
 package fr.gouv.vitam.common.model.objectgroup;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.collections4.CollectionUtils;
 
-/**
- * DbQualifiersModel
- */
+import java.util.List;
+import java.util.Objects;
+
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class DbQualifiersModel {
 
@@ -46,6 +45,16 @@ public class DbQualifiersModel {
 
     @JsonProperty("versions")
     private List<DbVersionsModel> versions;
+
+    public DbQualifiersModel(String qualifier, int nbc, List<DbVersionsModel> versions) {
+        this.qualifier = qualifier;
+        this.nbc = nbc;
+        this.versions = versions;
+    }
+
+    public DbQualifiersModel() {
+        // empty constructor for deserialization
+    }
 
     public String getQualifier() {
         return qualifier;
@@ -69,5 +78,22 @@ public class DbQualifiersModel {
 
     public void setVersions(List<DbVersionsModel> versions) {
         this.versions = versions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        DbQualifiersModel that = (DbQualifiersModel) o;
+        return nbc == that.nbc
+            && qualifier.equals(that.qualifier)
+            && CollectionUtils.isEqualCollection(versions, that.versions);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(qualifier, nbc, versions);
     }
 }

@@ -26,11 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * DbVersionsModel
@@ -82,6 +84,64 @@ public class DbVersionsModel {
 
     @JsonProperty("_opi")
     private String opi;
+
+    public DbVersionsModel() {
+        // empty constructor for deserialization
+    }
+
+    public DbVersionsModel(
+        String id,
+        String dataObjectVersion,
+        String dataObjectGroupId,
+        DbFormatIdentificationModel formatIdentificationModel,
+        DbFileInfoModel fileInfoModel,
+        MetadataModel metadata,
+        long size,
+        String uri,
+        String messageDigest,
+        String algorithm,
+        DbStorageModel storage,
+        PhysicalDimensionsModel physicalDimensionsModel,
+        String physicalId,
+        Map<String, Object> otherMetadata,
+        String opi) {
+
+        this.id = id;
+        this.dataObjectVersion = dataObjectVersion;
+        this.dataObjectGroupId = dataObjectGroupId;
+        this.formatIdentificationModel = formatIdentificationModel;
+        this.fileInfoModel = fileInfoModel;
+        this.metadata = metadata;
+        this.size = size;
+        this.uri = uri;
+        this.messageDigest = messageDigest;
+        this.algorithm = algorithm;
+        this.storage = storage;
+        this.physicalDimensionsModel = physicalDimensionsModel;
+        this.physicalId = physicalId;
+        this.otherMetadata = otherMetadata;
+        this.opi = opi;
+    }
+
+    @JsonIgnore
+    public static DbVersionsModel newVersionsFrom(DbVersionsModel versions, DbFormatIdentificationModel format) {
+        return new DbVersionsModel(
+            versions.id,
+            versions.dataObjectVersion,
+            versions.dataObjectGroupId,
+            format,
+            versions.fileInfoModel,
+            versions.metadata,
+            versions.size,
+            versions.uri,
+            versions.messageDigest,
+            versions.algorithm,
+            versions.storage,
+            versions.physicalDimensionsModel,
+            versions.physicalId,
+            versions.otherMetadata,
+            versions.opi);
+    }
 
     public String getId() {
         return id;
@@ -201,5 +261,23 @@ public class DbVersionsModel {
 
     public void setOpi(String opi) {
         this.opi = opi;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        DbVersionsModel that = (DbVersionsModel) o;
+        return id.equals(that.id)
+            && dataObjectVersion.equals(that.dataObjectVersion)
+            && dataObjectGroupId.equals(that.dataObjectGroupId)
+            && formatIdentificationModel.equals(that.formatIdentificationModel);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, dataObjectVersion, dataObjectGroupId, formatIdentificationModel);
     }
 }

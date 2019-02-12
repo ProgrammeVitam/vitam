@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,11 +23,13 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.objectgroup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Objects;
 
 /**
  * DbFormatIdentificationModel
@@ -47,6 +49,14 @@ public class DbFormatIdentificationModel {
     @JsonProperty("Encoding")
     private String encoding;
 
+    public DbFormatIdentificationModel(String formatLitteral, String mimeType, String formatId) {
+        this.formatLitteral = formatLitteral;
+        this.mimeType = mimeType;
+        this.formatId = formatId;
+    }
+
+    public DbFormatIdentificationModel() {
+    }
 
     public String getFormatLitteral() {
         return formatLitteral;
@@ -78,5 +88,23 @@ public class DbFormatIdentificationModel {
 
     public void setEncoding(String encoding) {
         this.encoding = encoding;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        DbFormatIdentificationModel that = (DbFormatIdentificationModel) o;
+        return formatLitteral.equals(that.formatLitteral)
+            && mimeType.equals(that.mimeType)
+            && formatId.equals(that.formatId)
+            && Objects.equals(encoding, that.encoding);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(formatLitteral, mimeType, formatId, encoding);
     }
 }
