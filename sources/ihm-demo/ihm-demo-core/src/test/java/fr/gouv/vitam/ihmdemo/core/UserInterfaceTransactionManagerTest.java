@@ -242,7 +242,7 @@ public class UserInterfaceTransactionManagerTest {
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
             ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null);
-        assertNotNull(asynResponse);
+        assertNotNull(asynResponse.getResponse());
     }
 
     @Test
