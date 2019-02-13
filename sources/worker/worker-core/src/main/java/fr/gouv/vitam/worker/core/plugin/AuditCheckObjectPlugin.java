@@ -18,7 +18,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -120,7 +119,7 @@ public class AuditCheckObjectPlugin extends ActionHandler {
             }
         }
 
-        writeLfcFromItemStatus(param, itemStatus);
+        writeLfcFromItemStatus(handlerIO, param, itemStatus);
 
         if (actionType != null && itemStatus.getGlobalStatus().isGreaterOrEqualToKo()) {
             itemStatus.setGlobalOutcomeDetailSubcode(actionType);
@@ -136,9 +135,9 @@ public class AuditCheckObjectPlugin extends ActionHandler {
      * @param param
      * @param itemStatus
      */
-    private void writeLfcFromItemStatus(WorkerParameters param, ItemStatus itemStatus) {
+    private void writeLfcFromItemStatus(HandlerIO handlerIO, WorkerParameters param, ItemStatus itemStatus) {
         if (itemStatus.getGlobalStatus().isGreaterOrEqualToKo()) {
-            try (LogbookLifeCyclesClient lfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+            try (LogbookLifeCyclesClient lfcClient = handlerIO.getLifecyclesClient()) {
                 for (ItemStatus subtask : itemStatus.getItemsStatus().values()) {
                     if (subtask.getGlobalStatus().isGreaterOrEqualToKo()) {
                         LogbookLifeCycleParameters logbookLfcParam =
