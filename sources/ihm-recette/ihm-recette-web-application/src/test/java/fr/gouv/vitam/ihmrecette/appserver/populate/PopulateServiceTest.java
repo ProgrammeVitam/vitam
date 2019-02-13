@@ -155,14 +155,14 @@ public class PopulateServiceTest {
     public void should_populate_logbook_collections() throws Exception {
         // Given
         PopulateModel populateModel = new PopulateModel();
-        populateModel.setBulkSize(1000);
-        populateModel.setNumberOfUnit(10);
+        populateModel.setBulkSize(100);
+        populateModel.setNumberOfUnit(5);
         populateModel.setRootId("1234");
         populateModel.setSp("vitam");
         populateModel.setTenant(0);
         populateModel.setWithGots(true);
         populateModel.setWithRules(true);
-        populateModel.setObjectSize(1024);
+        populateModel.setObjectSize(256);
         populateModel.setWithLFCGots(true);
         populateModel.setWithLFCUnits(true);
         Map<String, Integer> ruleMap = new HashMap<>();
@@ -195,9 +195,9 @@ public class PopulateServiceTest {
         }
 
         assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).count())
-            .isEqualTo(10);
+            .isEqualTo(5);
         assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).count())
-            .isEqualTo(10);
+            .isEqualTo(5);
         mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) doc -> {
                 assertThat(doc.getInteger("_tenant").equals(0)).isTrue();
