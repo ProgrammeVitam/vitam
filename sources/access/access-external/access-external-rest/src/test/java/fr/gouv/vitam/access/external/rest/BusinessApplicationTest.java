@@ -34,9 +34,7 @@ public class BusinessApplicationTest extends Application {
     private final IngestInternalClientFactory ingestInternalClientFactory;
     private final VitamStatusService vitamStatusService;
 
-    private final boolean mockMode;
     public BusinessApplicationTest() {
-        mockMode = true;
         this.accessInternalClientFactory = mock(AccessInternalClientFactory.class);
         this.adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         this.ingestInternalClientFactory = mock(IngestInternalClientFactory.class);
@@ -50,7 +48,6 @@ public class BusinessApplicationTest extends Application {
         this.adminManagementClientFactory = AdminManagementClientFactory.getInstance();
         this.ingestInternalClientFactory = IngestInternalClientFactory.getInstance();
         this.vitamStatusService = new BasicVitamStatusServiceImpl();
-        mockMode = false;
         commonBusinessApplication = new CommonBusinessApplication(true);
         prepare();
     }
@@ -91,11 +88,6 @@ public class BusinessApplicationTest extends Application {
     @Override
     public Set<Object> getSingletons() {
         return singletons;
-    }
-
-
-    public boolean isMockMode() {
-        return mockMode;
     }
 
     public AccessInternalClientFactory getAccessInternalClientFactory() {

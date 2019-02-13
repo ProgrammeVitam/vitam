@@ -51,22 +51,22 @@ import java.io.InputStream;
  *
  * <pre>
  * <code>
- * &#64;Path(DOWNLOAD + HttpMethod.GET)
- * &#64;GET
- * &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
- * &#64;Consumes(MediaType.WILDCARD)
- * public void downloadDirectGet(@Suspended final AsyncResponse asyncResponse) {
- * VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
- *
- * &#64;Override
- * public void run() {
- * File file = new File(...)
- * FileInputStream inputStream = new FileInputStream(file);
- * new AsyncInputStreamHelper(asyncResponse, inputStream)
- * .writeResponse(Response.ok());
- * }
- * });
- * }
+    &#64;Path(DOWNLOAD + HttpMethod.GET)
+    &#64;GET
+    &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
+    &#64;Consumes(MediaType.WILDCARD)
+    public void downloadDirectGet(@Suspended final AsyncResponse asyncResponse) {
+        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+
+            &#64;Override
+            public void run() {
+                File file = new File(...)
+                FileInputStream inputStream = new FileInputStream(file);
+                new AsyncInputStreamHelper(asyncResponse, inputStream)
+                    .writeResponse(Response.ok());
+            }
+        });
+    }
  * </code>
  * </pre>
  *
@@ -75,29 +75,29 @@ import java.io.InputStream;
  *
  * <pre>
  * <code>
- * &#64;Path(DOWNLOAD_INDIRECT + HttpMethod.GET)
- * &#64;GET
- * &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
- * &#64;Consumes(MediaType.WILDCARD)
- * public void downloadIndirectGet(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
- * VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
- *
- * &#64;Override
- * public void run() {
- * String method = HttpMethod.GET;
- * Response response = null;
- * try (final BenchmarkClientRest client =
- * BenchmarkClientFactory.getInstance().getClient()) {
- * response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
- * null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
- * buildReponse(asyncResponse, response); // Using AsyncInputStreamHelper
- * } catch (VitamClientInternalException e) {
- * AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
- * Response.status(Status.INTERNAL_SERVER_ERROR).build());
- * }
- * }
- * });
- * }
+    &#64;Path(DOWNLOAD_INDIRECT + HttpMethod.GET)
+    &#64;GET
+    &#64;Produces(MediaType.APPLICATION_OCTET_STREAM)
+    &#64;Consumes(MediaType.WILDCARD)
+    public void downloadIndirectGet(@Suspended final AsyncResponse asyncResponse) throws VitamClientInternalException {
+        VitamThreadPoolExecutor.getInstance().execute(new Runnable() {
+
+            &#64;Override
+            public void run() {
+                String method = HttpMethod.GET;
+                Response response = null;
+                try (final BenchmarkClientRest client =
+                    BenchmarkClientFactory.getInstance().getClient()) {
+                    response = client.performRequest(method, BenchmarkResourceProduceInputStream.DOWNLOAD + method,
+                        null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    buildReponse(asyncResponse, response); // Using AsyncInputStreamHelper
+                } catch (VitamClientInternalException e) {
+                    AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
+                        Response.status(Status.INTERNAL_SERVER_ERROR).build());
+                }
+            }
+        });
+    }
  * </code>
  * </pre>
  */
