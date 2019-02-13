@@ -26,27 +26,14 @@
  */
 package fr.gouv.vitam.common.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Sets;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
-import fr.gouv.vitam.common.client.configuration.SSLKey;
-import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
-import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.common.serverv2.SslConfig;
-import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import javax.ws.rs.BadRequestException;
 import javax.ws.rs.GET;
@@ -64,14 +51,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.configuration.SSLConfiguration;
+import fr.gouv.vitam.common.client.configuration.SSLKey;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfiguration;
+import fr.gouv.vitam.common.client.configuration.SecureClientConfigurationImpl;
+import fr.gouv.vitam.common.exception.VitamApplicationServerDisconnectException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.serverv2.SslConfig;
+import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRequestIteratorSslTest.class);
@@ -80,10 +81,14 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
     private static final String BASE_URI = "/ingest-ext/v1";
     private static final String INGEST_EXTERNAL_CLIENT_CONF = "standard-client-secure.conf";
     private static final String INGEST_EXTERNAL_SERVER_CONF = "standard-server-secure.conf";
+    private static final String INGEST_EXTERNAL_CLIENT_CONF_TLS_V1 = "standard-client-secure_tlsv1.conf";
+    private static final String INGEST_EXTERNAL_CLIENT_CONF_TLS_V11 = "standard-client-secure_tlsv11.conf";
+    private static final String INGEST_EXTERNAL_CLIENT_CONF_TLS_V12 = "standard-client-secure_tlsv12.conf";
 
     private static boolean startup = true;
     private final static ExpectedResults mock = mock(ExpectedResults.class);
     private static VitamClientFactory<DefaultClient> factory;
+    private static VitamClientFactory<DefaultClient> customFactory;
 
 
     private final static SecureClientConfiguration configurationServer =
@@ -146,6 +151,23 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
 
             };
         factory.disableUseAuthorizationFilter();
+        LOGGER.warn("Start ClientFactory: " + factory);
+    }
+
+    public static void initClientFactoryWithSpecificProtocolVersion(String configFile) {
+        final SecureClientConfiguration configuration = changeConfigurationFile(configFile);
+        configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
+
+        customFactory =
+                new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
+
+                    @Override
+                    public DefaultClient getClient() {
+                        return new DefaultClient(this);
+                    }
+
+                };
+        customFactory.disableUseAuthorizationFilter();
         LOGGER.warn("Start ClientFactory: " + factory);
     }
 
@@ -219,6 +241,43 @@ public class VitamRequestIteratorSslTest extends ResteasyTestApplication {
         }
     }
 
+    @Test
+    public void givenTlsProtocolVersion12ThenShouldNotThrownException() {
+        initClientFactoryWithSpecificProtocolVersion(INGEST_EXTERNAL_CLIENT_CONF_TLS_V12);
+        LOGGER.warn("Start Client configuration: " + customFactory);
+        try (final DefaultClient client = customFactory.getClient()) {
+            client.checkStatus();
+        } catch (final VitamException e) {
+            LOGGER.error("THIS SHOULD NOT RAIZED AN EXCEPTION", e);
+            fail("THIS SHOULD NOT RAIZED AN EXCEPTION");
+        }
+    }
+
+    @Test
+    public void givenTlsProtocolVersion1ThenThrownException() {
+        initClientFactoryWithSpecificProtocolVersion(INGEST_EXTERNAL_CLIENT_CONF_TLS_V1);
+        LOGGER.warn("Start Client configuration: " + customFactory);
+        try (final DefaultClient client = customFactory.getClient()) {
+            client.checkStatus();
+            fail("THIS SHOULD RAIZED AN EXCEPTION");
+        } catch (final VitamException e) {
+            assertTrue(e instanceof VitamApplicationServerDisconnectException);
+            assertTrue(e.getMessage().contains("SSLHandshakeException"));
+        }
+    }
+
+    @Test
+    public void givenTlsProtocolVersion11ThenThrownException() {
+        initClientFactoryWithSpecificProtocolVersion(INGEST_EXTERNAL_CLIENT_CONF_TLS_V11);
+        LOGGER.warn("Start Client configuration: " + customFactory);
+        try (final DefaultClient client = customFactory.getClient()) {
+            client.checkStatus();
+            fail("THIS SHOULD RAIZED AN EXCEPTION");
+        } catch (final VitamException e) {
+            assertTrue(e instanceof VitamApplicationServerDisconnectException);
+            assertTrue(e.getMessage().contains("SSLHandshakeException"));
+        }
+    }
 
     @Test
     public void testIterator() {

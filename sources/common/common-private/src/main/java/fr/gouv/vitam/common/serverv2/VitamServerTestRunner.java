@@ -255,7 +255,7 @@ public class VitamServerTestRunner {
         sslContextFactory.setNeedClientAuth(false);
         sslContextFactory.setWantClientAuth(true);
         sslContextFactory.setIncludeCipherSuites("TLS_ECDHE.*", "TLS_DHE_RSA.*");
-        sslContextFactory.setIncludeProtocols("TLSv1", "TLSv1.1", "TLSv1.2");
+        sslContextFactory.setIncludeProtocols("TLSv1.2");
         sslContextFactory.setExcludeCipherSuites(".*NULL.*", ".*RC4.*", ".*MD5.*", ".*DES.*", ".*DSS.");
         sslContextFactory.setUseCipherSuitesOrder(true);
         sslContextFactory.setRenegotiationAllowed(true);
