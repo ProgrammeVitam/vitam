@@ -212,6 +212,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private final Set<String> permissions;
     private final List<String> secureMode;
+    private final List<MediaType> allowedToVisualizeMediaTypes;
 
     /**
      * Constructor
@@ -225,6 +226,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         this.permissions = permissions;
 
         this.secureMode = webApplicationConfig.getSecureMode();
+        this.allowedToVisualizeMediaTypes = webApplicationConfig.getAllowedMediaTypes();
     }
 
     /**
@@ -1378,7 +1380,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             UserInterfaceTransactionManager.getObjectAsInputStream(asyncResponse, unitId, usageAndVersion[0],
                     Integer.parseInt(usageAndVersion[1]), filename,
                     new VitamContext(tenantId).setAccessContract(contractId)
-                            .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()));
+                            .setApplicationSessionId(UserInterfaceTransactionManager.getAppSessionId()),
+                this.allowedToVisualizeMediaTypes);
         } catch (final VitamClientException exc) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, exc);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,

@@ -30,7 +30,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -240,7 +239,7 @@ public class UserInterfaceTransactionManagerTest {
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
         assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
-            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context));
+            ID_OBJECT_GROUP, "usage", 1, "vitam_test", context, null));
     }
 
     @Test
