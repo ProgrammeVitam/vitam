@@ -451,35 +451,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
-        VitamThreadUtils.getVitamSession().checkValidRequestId();
-        Response response = null;
-
-        try {
-            response = performRequest(HttpMethod.GET, LOGBOOK_UNIT_LIFECYCLE_URL, null, queryDsl,
-                APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE, false);
-
-            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
-                LOGGER.error(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-                throw new LogbookClientNotFoundException(ErrorMessage.LOGBOOK_NOT_FOUND.getMessage());
-            } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
-                LOGGER.error(ILLEGAL_ENTRY_PARAMETER);
-                throw new LogbookClientException(REQUEST_PRECONDITION_FAILED);
-            } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
-                throw new AccessUnauthorizedException(ACCESS_CONTRACT_EXCEPTION);
-            }
-
-            return RequestResponse.parseFromResponse(response);
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
     public RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();

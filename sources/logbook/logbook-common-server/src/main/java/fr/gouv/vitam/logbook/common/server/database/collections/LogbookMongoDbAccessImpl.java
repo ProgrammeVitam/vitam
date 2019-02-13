@@ -371,10 +371,25 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             return select(LogbookCollections.OPERATION, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
         }
     }
-
+    
     @SuppressWarnings("unchecked")
     @Override
-    public MongoCursor<LogbookLifeCycle> getLogbookLifeCycleUnits(JsonNode select, boolean sliced,
+    public LogbookLifeCycle getOneLogbookLifeCycle(JsonNode select, boolean sliced, LogbookCollections collection)
+        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
+        MongoCursor<LogbookLifeCycle> result = getLogbookLifeCycles(select, sliced, collection);
+        if(result.hasNext()) {
+            LogbookLifeCycle logbookLifeCycle = result.next();
+            if(result.hasNext()) {
+                throw new LogbookDatabaseException("Result size more than 1."); 
+            } else {
+                return logbookLifeCycle;
+            }
+        }
+        throw new LogbookNotFoundException("Logbook lifecycle was not found");
+    }    
+    @SuppressWarnings("unchecked")
+    @Override
+    public MongoCursor<LogbookLifeCycle> getLogbookLifeCycles(JsonNode select, boolean sliced,
         LogbookCollections collection)
         throws LogbookDatabaseException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
@@ -398,16 +413,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         } catch (final InvalidParseOperationException e) {
             throw new LogbookDatabaseException(e);
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public MongoCursor<LogbookLifeCycle> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced,
-        LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
-        ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
-        return select(collection, select, sliced);
-
     }
 
     @SuppressWarnings("unchecked")
@@ -501,67 +506,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     public LogbookOperation getLogbookOperation(String eventIdentifierProcess)
         throws LogbookDatabaseException, LogbookNotFoundException {
         return (LogbookOperation) getLogbook(LogbookCollections.OPERATION, eventIdentifierProcess);
-    }
-
-    @Override
-    public LogbookLifeCycleUnit getLogbookLifeCycleUnit(String unitId)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        return (LogbookLifeCycleUnit) getLogbook(LogbookCollections.LIFECYCLE_UNIT, unitId);
-    }
-
-    @Override
-    public LogbookLifeCycle getLogbookLifeCycleUnit(JsonNode queryDsl, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        return (LogbookLifeCycle) getLogbook(collection, queryDsl.findValue(
-            LogbookMongoDbName.objectIdentifier.getDbname()).asText());
-    }
-
-    @Override
-    public LogbookLifeCycleObjectGroup getLogbookLifeCycleObjectGroup(String objectGroupId)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        return (LogbookLifeCycleObjectGroup) getLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP, objectGroupId);
-    }
-
-    @SuppressWarnings("rawtypes")
-    final VitamDocument getLogbookPerOperation(final LogbookCollections collection, String idOperation, String id)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        ParametersChecker.checkParameter(LIFECYCLE_ITEM, idOperation, id);
-        VitamDocument lifecycle = null;
-        try {
-            lifecycle = (VitamDocument) collection.getCollection().find(and(eq(LogbookDocument.ID, id),
-                or(eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), idOperation),
-                    eq(LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
-                        idOperation))))
-                .first();
-        } catch (final MongoException e) {
-            switch (getErrorCategory(e)) {
-                case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(SELECT_ISSUE + TIMEOUT_OPERATION, e);
-                case UNCATEGORIZED:
-                default:
-                    throw new LogbookDatabaseException(
-                        SELECT_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
-            }
-        }
-        if (lifecycle == null) {
-            throw new LogbookNotFoundException(LOGBOOK_LIFE_CYCLE_NOT_FOUND);
-        }
-        return lifecycle;
-    }
-
-    @Override
-    public LogbookLifeCycleUnit getLogbookLifeCycleUnit(String idOperation, String unitId)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        return (LogbookLifeCycleUnit) getLogbookPerOperation(LogbookCollections.LIFECYCLE_UNIT, idOperation, unitId);
-    }
-
-    @Override
-    public LogbookLifeCycleObjectGroup getLogbookLifeCycleObjectGroup(String idOperation, String objectGroupId)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        return (LogbookLifeCycleObjectGroup) getLogbookPerOperation(LogbookCollections.LIFECYCLE_OBJECTGROUP,
-            idOperation, objectGroupId);
     }
 
     /**

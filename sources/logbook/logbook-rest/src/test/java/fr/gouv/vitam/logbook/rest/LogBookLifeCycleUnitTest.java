@@ -558,7 +558,9 @@ public class LogBookLifeCycleUnitTest {
             FAKE_UNIT_LF_ID));
         JsonNode query = select.getFinalSelect();
 
-        given().contentType(ContentType.JSON).body(query)
+        given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(query)
             .param("id_lc", FAKE_UNIT_LF_ID).expect().statusCode(Status.NOT_FOUND.getStatusCode())
             .when().get(SELECT_UNIT_BY_ID_URI);
     }

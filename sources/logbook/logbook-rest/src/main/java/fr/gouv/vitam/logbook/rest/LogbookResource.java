@@ -101,7 +101,6 @@ import fr.gouv.vitam.logbook.operations.core.LogbookOperationsImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
-import javax.annotation.PostConstruct;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -1027,13 +1026,13 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/unitlifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response getUnitLifeCycleById(@PathParam("id_lc") String unitLifeCycleId,
-        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl) {
+        @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode queryDsl) 
+        throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
-            final LogbookLifeCycle result =
-                logbookLifeCycle.getUnitById(queryDsl, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
-
+            LogbookLifeCycle result = logbookLifeCycle.selectLifeCycleById(unitLifeCycleId, queryDsl, false,
+                    fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
                     .addResult(result)
@@ -1047,7 +1046,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setHits(0, 0, 1)
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
-        } catch (final LogbookException exc) {
+        } catch (final LogbookException | InvalidParseOperationException | InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -1125,14 +1124,13 @@ public class LogbookResource extends ApplicationStatusResource {
     @Path("/unitlifecycles")
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycle(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
+    public Response getUnitLifeCycles(JsonNode queryDsl, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus)
         throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode lifeCycleStatusCode = getSelectLifeCycleStatusCode(evtStatus);
             final List<LogbookLifeCycle> result =
-                logbookLifeCycle.selectUnit(queryDsl, true, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
-
+                logbookLifeCycle.selectLifeCycles(queryDsl, true, fromLifeCycleStatusToUnitCollection(lifeCycleStatusCode));
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
                     .addAllResults(result)
@@ -1700,25 +1698,23 @@ public class LogbookResource extends ApplicationStatusResource {
         Status status;
         try {
             LifeCycleStatusCode requiredLifeCycleStatus = getSelectLifeCycleStatusCode(evtStatus);
-
-            List<LogbookLifeCycle> result = new ArrayList<>();
-            result = logbookLifeCycle.selectObjectGroup(queryDsl, false,
-                fromLifeCycleStatusToObjectGroupCollection(requiredLifeCycleStatus));
-            if (result.size() != 1) {
-                throw new LogbookDatabaseException("Result size different than 1.");
-            }
+            LogbookLifeCycle result = logbookLifeCycle.selectLifeCycleById(objectGroupLifeCycleId, queryDsl, false,
+                    fromLifeCycleStatusToObjectGroupCollection(requiredLifeCycleStatus));
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)
-                    .addResult(result.iterator().next())
+                    .addResult(result)
                     .setHttpCode(Status.OK.getStatusCode()))
                 .build();
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             return Response.status(Status.NOT_FOUND)
-                .entity(new RequestResponseOK(queryDsl)
-                    .setHttpCode(Status.NOT_FOUND.getStatusCode()))
-                .build();
-        } catch (final LogbookException | InvalidParseOperationException exc) {
+                    .entity(new RequestResponseOK()
+                        .addResult(JsonHandler.createArrayNode())
+                        .setHits(0, 0, 1)
+                        .setHttpCode(Status.NOT_FOUND.getStatusCode()))
+                    .build();
+        } catch (final LogbookException | InvalidParseOperationException |
+                InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
@@ -1752,15 +1748,14 @@ public class LogbookResource extends ApplicationStatusResource {
     @GET
     @Path("/objectgrouplifecycles")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycle(@HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+    public Response getObjectGroupLifeCycles(@HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
         JsonNode queryDsl)
         throws VitamDBException {
         Status status;
         try {
             LifeCycleStatusCode requiredLifeCycleStatus = getSelectLifeCycleStatusCode(evtStatus);
 
-            final List<LogbookLifeCycle> result;
-            result = logbookLifeCycle.selectObjectGroup(queryDsl, false,
+            final List<LogbookLifeCycle> result = logbookLifeCycle.selectLifeCycles(queryDsl, false,
                 fromLifeCycleStatusToObjectGroupCollection(requiredLifeCycleStatus));
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<LogbookLifeCycle>(queryDsl)

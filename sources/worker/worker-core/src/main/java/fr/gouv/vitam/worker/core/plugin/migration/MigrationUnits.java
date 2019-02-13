@@ -79,9 +79,7 @@ public class MigrationUnits extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
     private static final String UNIT_UPDATE_MIGRATION = "UPDATE_MIGRATION_UNITS";
     private static final String JSON = ".json";
-    private static final String OB_ID = "obId";
     private static final String $RESULTS = "$results";
-    private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
     private static final String DEFAULT_STRATEGY = "default";
 
     private static final String MIGRATION_UNITS = "MIGRATION_UNITS";

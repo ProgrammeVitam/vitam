@@ -26,16 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.lifecycles.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.bson.Document;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.util.JSON;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -44,6 +55,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -55,18 +67,13 @@ import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroupInProcess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnitInProcess;
+import fr.gouv.vitam.logbook.common.server.database.collections.request.LogbookVarNameAdapter;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.logbook.lifecycles.api.LogbookLifeCycles;
-import org.bson.Document;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Logbook LifeCycles implementation base class
@@ -136,52 +143,28 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public LogbookLifeCycleUnit getUnitByOperationIdAndByUnitId(String idOperation, String idLc)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException {
-        return mongoDbAccess.getLogbookLifeCycleUnit(idOperation, idLc);
+    public LogbookLifeCycle selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced, LogbookCollections collection)
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException, InvalidCreateOperationException {
+        final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
+        if (queryDsl != null) {
+            parser.parse(queryDsl);
+        }
+        Select select = parser.getRequest();
+        select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), lifecycleId));
+        return mongoDbAccess.getOneLogbookLifeCycle(select.getFinalSelect(), sliced, collection);
     }
-
+    
     @Override
-    public LogbookLifeCycleObjectGroup getObjectGroupByOperationIdAndByObjectGroupId(String idOperation, String idLc)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
-        IllegalArgumentException {
-        return mongoDbAccess.getLogbookLifeCycleObjectGroup(idOperation, idLc);
-    }
-
-    @Override
-    public List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
+    public List<LogbookLifeCycle> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
         final List<LogbookLifeCycle> result = new ArrayList<>();
         try (final MongoCursor<LogbookLifeCycle> logbook =
-            mongoDbAccess.getLogbookLifeCycleUnits(select, sliced, collection)) {
+            mongoDbAccess.getLogbookLifeCycles(select, sliced, collection)) {
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
             while (logbook.hasNext()) {
                 result.add(logbook.next());
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        return selectObjectGroup(select, true, collection);
-    }
-
-    @Override
-    public List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced,
-        LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException {
-        final List<LogbookLifeCycle> result = new ArrayList<>();
-        try (final MongoCursor<LogbookLifeCycle> logbookCursor =
-            mongoDbAccess.getLogbookLifeCycleObjectGroups(select, sliced, collection)) {
-            if (!logbookCursor.hasNext()) {
-                throw new LogbookNotFoundException("Logbook entry not found");
-            }
-            while (logbookCursor.hasNext()) {
-                result.add(logbookCursor.next());
             }
         }
         return result;
@@ -201,23 +184,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         if (VitamConfiguration.isPurgeTemporaryLFC()) {
             mongoDbAccess.rollbackLogbookLifeCycleObjectGroup(idOperation, idLc);
         }
-    }
-
-    @Override
-    public LogbookLifeCycleUnit getUnitById(String idUnit) throws LogbookDatabaseException, LogbookNotFoundException {
-        return mongoDbAccess.getLogbookLifeCycleUnit(idUnit);
-    }
-
-    @Override
-    public LogbookLifeCycle getUnitById(JsonNode queryDsl, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        return mongoDbAccess.getLogbookLifeCycleUnit(queryDsl, collection);
-    }
-
-    @Override
-    public LogbookLifeCycleObjectGroup getObjectGroupById(String idObjectGroup)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        return mongoDbAccess.getLogbookLifeCycleObjectGroup(idObjectGroup);
     }
 
     private void checkLifeCyclesUnitArgument(String idOperation, String idLcUnit,

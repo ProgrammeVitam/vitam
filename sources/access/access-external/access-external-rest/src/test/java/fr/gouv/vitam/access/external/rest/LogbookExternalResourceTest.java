@@ -277,10 +277,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     }
 
     @Test
-    public void testSelectLifecycleUnits_PreconditionFailed() throws Exception {
+    public void testSelectLifecycleUnitById_PreconditionFailed() throws Exception {
         when(accessInternalClient.selectUnitLifeCycleById(bad_id, JsonHandler.getFromString(BODY_TEST)))
-            .thenThrow(new LogbookClientException(""));
-        when(accessInternalClient.selectUnitLifeCycle(JsonHandler.getFromString(BODY_TEST)))
             .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)

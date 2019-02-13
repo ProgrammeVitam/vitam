@@ -79,9 +79,7 @@ public class MigrationObjectGroups extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
     private static final String OBJECT_GROUPS_UPDATE_MIGRATION = "UPDATE_MIGRATION_OBJECT_GROUPS";
     private static final String JSON = ".json";
-    private static final String OB_ID = "obId";
     private static final String $RESULTS = "$results";
-    private static final String LIFE_CYCLE_NOT_FOUND = "LifeCycle not found";
     private static final String DEFAULT_STRATEGY = "default";
 
     private static final String MIGRATION_OBJECT_GROUPS = "MIGRATION_OBJECT_GROUPS";

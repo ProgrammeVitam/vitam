@@ -128,70 +128,6 @@ public interface LogbookDbAccess {
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
-     * Get one Lifecycle
-     *
-     * @param objectIdentifier
-     * @return the corresponding LogbookLibeCycle if it exists
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    LogbookLifeCycleUnit getLogbookLifeCycleUnit(final String objectIdentifier)
-        throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
-     * Get one Lifecycle
-     *
-     * @param queryDsl the DSL query
-     * @param collection the collection on which the select operation will be done : Production collection
-     * (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
-     * @return the corresponding LogbookLibeCycle if it exists
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    LogbookLifeCycle getLogbookLifeCycleUnit(final JsonNode queryDsl, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
-     * Get one Lifecycle
-     *
-     * @param objectIdentifier
-     * @return the full corresponding LogbookLibeCycle if it exists
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    LogbookLifeCycleObjectGroup getLogbookLifeCycleObjectGroup(final String objectIdentifier)
-        throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
-     * Get one Lifecycle
-     *
-     * @param idOperation
-     * @param idLc
-     * @return the full corresponding LogbookLibeCycle if it exists and linked to the given operation
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    LogbookLifeCycleUnit getLogbookLifeCycleUnit(final String idOperation, final String idLc)
-        throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
-     * Get one Lifecycle
-     *
-     * @param idOperation
-     * @param idLc
-     * @return the corresponding LogbookLibeCycle if it exists and linked to the given operation
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    LogbookLifeCycleObjectGroup getLogbookLifeCycleObjectGroup(final String idOperation, final String idLc)
-        throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
      * Create one Logbook Operation
      *
      * @param operationItem
@@ -427,20 +363,35 @@ public interface LogbookDbAccess {
      */
     VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
-
+    
     /**
-     * Get a list of Logbook LifeCycle through Closeable MongoCursor
+     * Get a list of Logbook LifeCycles through Closeable MongoCursor
      *
      * @param select
      * @param sliced
      * @param collection the collection on which the select operation will be done : Production collection
-     * (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     * (LIFECYCLE_UNIT/LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_UNIT_IN_PROCESS/LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
+     * @return the Closeable MongoCursor of LogbookLifeCycle
+     * @throws IllegalArgumentException if argument is null or empty
+     * @throws LogbookDatabaseException if more than one result
+     * @throws LogbookNotFoundException if no result
+     */
+    LogbookLifeCycle getOneLogbookLifeCycle(JsonNode select, boolean sliced, LogbookCollections collection)
+            throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
+    
+    /**
+     * Get a list of Logbook LifeCycles through Closeable MongoCursor
+     *
+     * @param select
+     * @param sliced
+     * @param collection the collection on which the select operation will be done : Production collection
+     * (LIFECYCLE_UNIT/LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_UNIT_IN_PROCESS/LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
      * @return the Closeable MongoCursor of LogbookLifeCycle
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycle> getLogbookLifeCycleUnits(JsonNode select, boolean sliced,
+    MongoCursor<LogbookLifeCycle> getLogbookLifeCycles(JsonNode select, boolean sliced,
         LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
 
@@ -456,23 +407,6 @@ public interface LogbookDbAccess {
      */
     MongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(LogbookCollections collection, Select select)
         throws LogbookDatabaseException;
-
-    /**
-     * Get a list of Logbook LifeCycle through Closeable MongoCursor
-     *
-     * @param select
-     * @param sliced
-     * @param collection the collection on which the select operation will be done : Production collection
-     * (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
-     * @return the Closeable MongoCursor of LogbookLifeCycle
-     * @throws IllegalArgumentException if argument is null or empty
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     */
-    MongoCursor<LogbookLifeCycle> getLogbookLifeCycleObjectGroups(JsonNode select, boolean sliced,
-        LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
-
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
