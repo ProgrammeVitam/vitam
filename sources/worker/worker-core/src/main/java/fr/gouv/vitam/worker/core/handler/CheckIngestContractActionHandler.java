@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -42,8 +39,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -55,6 +52,10 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Handler class used to check the ingest contract of SIP. </br>
@@ -257,7 +258,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     Integer tenant = ParameterHelper.getTenantParameter();
 
                     long count = context.getPermissions().stream()
-                        .filter(p -> p.getTenant() == tenant)
+                        .filter(p -> Objects.equals(p.getTenant(), tenant))
                         .filter(p -> p.getIngestContract() != null)
                         .filter(p -> p.getIngestContract().contains(ingestContract))
                         .count();
