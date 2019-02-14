@@ -55,6 +55,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Handler class used to check the ingest contract of SIP. </br>
@@ -248,7 +249,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     Integer tenant = ParameterHelper.getTenantParameter();
 
                     long count = context.getPermissions().stream()
-                        .filter(p -> p.getTenant() == tenant)
+                        .filter(p -> Objects.equals(p.getTenant(), tenant))
                         .filter(p -> p.getIngestContract() != null)
                         .filter(p -> p.getIngestContract().contains(ingestContract))
                         .count();
