@@ -1,4 +1,4 @@
-%define version 6.5.4
+%define version 6.6.0
 
 Name:          vitam-elasticsearch-data
 Version:       %{version}
