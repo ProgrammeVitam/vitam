@@ -1,13 +1,16 @@
+
 provider: {{ vitam_offers[offer_conf]["provider"] }}
-{% if vitam_offers[offer_conf]["provider"] != "openstack-swift" %}
+
+{% if vitam_offers[offer_conf]["provider"] in ["filesystem","filesystem-hash"] %}
 storagePath: {{vitam_folder_data}}
 {% endif %}
+
+{% if vitam_offers[offer_conf]["provider"] in ["openstack-swift","openstack-swift-v2","openstack-swift-v3"] %}
 swiftKeystoneAuthUrl: {{ vitam_offers[offer_conf]["swiftKeystoneAuthUrl"] | default("") }}
 swiftDomain: {{ vitam_offers[offer_conf]["swiftDomain"] | default("") }}
 swiftProjectName: {{ vitam_offers[offer_conf]["swiftProjectName"] | default("") }}
 swiftUser: {{ vitam_offers[offer_conf]["swiftUser"] | default("") }}
 swiftPassword: {{ vitam_offers[offer_conf]["swiftPassword"] | default("") }}
-
 swiftUrl: {{ vitam_offers[offer_conf]["swiftUrl"] | default("") }}
 swiftTrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
 swiftTrustStorePassword: {{ password_truststore }}
@@ -17,6 +20,7 @@ swiftConnectionTimeout: {{ vitam_offers[offer_conf]["swiftConnectionTimeout"] | 
 swiftReadTimeout: {{ vitam_offers[offer_conf]["swiftReadTimeout"] | default(200000) }}
 swiftHardRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftHardRenewTokenDelayBeforeExpireTime"] | default(60) }}
 swiftSoftRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftSoftRenewTokenDelayBeforeExpireTime"] | default(300) }}
+{% endif %}
 
 {% if vitam_offers[offer_conf]["provider"] == "amazon-s3-v1" %}
 s3RegionName: {{ vitam_offers[offer_conf]["s3RegionName"] }}
