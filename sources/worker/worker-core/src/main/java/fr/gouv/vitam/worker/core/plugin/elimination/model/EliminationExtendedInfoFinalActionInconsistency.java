@@ -35,6 +35,10 @@ public class EliminationExtendedInfoFinalActionInconsistency extends Elimination
     @JsonProperty("ExtendedInfoDetails")
     private EliminationExtendedInfoFinalActionInconsistencyDetails details;
 
+    public EliminationExtendedInfoFinalActionInconsistency() {
+        // Empty constructor for deserialization
+    }
+
     public EliminationExtendedInfoFinalActionInconsistency(Set<String> finalActionIncosistencyAgencies) {
         this.details = new EliminationExtendedInfoFinalActionInconsistencyDetails(finalActionIncosistencyAgencies);
     }
