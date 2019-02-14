@@ -1,5 +1,6 @@
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -83,6 +84,7 @@ public class StorageLogFactory implements StorageLog {
         return instance;
     }
 
+    @VisibleForTesting
     public static synchronized StorageLog getInstanceForTest(List<Integer> tenants, Path basePath) throws IOException {
         instance = new StorageLogFactory(tenants, basePath);
         return instance;

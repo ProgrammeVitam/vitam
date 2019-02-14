@@ -257,6 +257,6 @@ public class OfferSyncServiceTest {
         countDownLatch.await(1, TimeUnit.MINUTES);
 
         // Then
-        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DATA_CATEGORY, OFFSET);
+        verify(offerSyncProcess).synchronize(SOURCE, TARGET, DATA_CATEGORY,OFFSET);
     }
 }
