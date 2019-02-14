@@ -31,6 +31,10 @@ import fr.gouv.vitam.common.model.processing.Step;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.worker.client.WorkerClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * interface ProcessDistributor</br>
@@ -40,10 +44,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  */
 public interface ProcessDistributor extends AutoCloseable {
 
-    String UNITS_LEVEL = "UnitsLevel";
     String JSON_EXTENSION = ".json";
     String EXCEPTION_MESSAGE = "runtime exceptions thrown by the Process distributor during runnig...";
-    String INGEST_LEVEL_STACK = "ingestLevelStack.json";
     String OBJECTS_LIST_EMPTY = "OBJECTS_LIST_EMPTY";
     String ELEMENT_UNITS = "Units";
     String DISTRIBUTOR_INDEX = "distributorIndex";
@@ -81,4 +83,13 @@ public interface ProcessDistributor extends AutoCloseable {
      */
     boolean cancel(String operationId);
 
+    ProcessDataAccess getProcessDataAccess();
+
+    ProcessDataManagement getProcessDataManagement();
+
+    IWorkerManager getWorkerManager();
+
+    WorkspaceClientFactory getWorkspaceClientFactory();
+
+    WorkerClientFactory getWorkerClientFactory();
 }

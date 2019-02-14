@@ -106,6 +106,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                 DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
 
                 if (!getClient().admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
+                    // TODO: 30/01/19 return false?
                     LOGGER.error("Error on index delete");
                 }
             }

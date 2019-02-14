@@ -28,27 +28,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.processing.distributor.rest;
 
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-
-import java.io.File;
-import java.util.Set;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
@@ -57,12 +47,18 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.util.Set;
+
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+
 /**
  *
  */
 public class ProcessDistributorResourceTest extends ResteasyTestApplication {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResourceTest.class);
     private final String JSON_INVALID_FILE = "json";
 
     private static final String REST_URI = "/processing/v1";
@@ -82,6 +78,9 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @Rule
+    public TempFolderRule tempFolderRule = new TempFolderRule();
+
     private static VitamServerTestRunner vitamServerTestRunner =
         new VitamServerTestRunner(ProcessDistributorResourceTest.class);
 
@@ -95,7 +94,6 @@ public class ProcessDistributorResourceTest extends ResteasyTestApplication {
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
         vitamServerTestRunner.start();
-        VitamConfiguration.getConfiguration().setData(PropertiesUtils.getResourcePath("").toString());
         // WorkerManager.initialize();
 
         RestAssured.port = vitamServerTestRunner.getBusinessPort();

@@ -27,14 +27,14 @@
 package fr.gouv.vitam.ihmdemo.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
-import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2Factory;
 import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2;
+import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2Factory;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -91,6 +91,34 @@ import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CE
 public class UserInterfaceTransactionManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UserInterfaceTransactionManager.class);
 
+    private final AccessExternalClientFactory accessExternalClientFactory;
+    private final AdminExternalClientFactory adminExternalClientFactory;
+    private final AccessExternalClientV2Factory accessExternalClientV2Factory;
+    private final DslQueryHelper dslQueryHelper;
+
+    private static final UserInterfaceTransactionManager instance = new UserInterfaceTransactionManager();
+
+    public UserInterfaceTransactionManager() {
+        this(AccessExternalClientFactory.getInstance(), AdminExternalClientFactory.getInstance(),
+            AccessExternalClientV2Factory.getInstance(), DslQueryHelper.getInstance());
+    }
+
+    public static UserInterfaceTransactionManager getInstance() {
+        return instance;
+    }
+
+    @VisibleForTesting
+    public UserInterfaceTransactionManager(
+        AccessExternalClientFactory accessExternalClientFactory,
+        AdminExternalClientFactory adminExternalClientFactory,
+        AccessExternalClientV2Factory accessExternalClientV2Factory,
+        DslQueryHelper dslQueryHelper) {
+        this.accessExternalClientFactory = accessExternalClientFactory;
+        this.adminExternalClientFactory = adminExternalClientFactory;
+        this.accessExternalClientV2Factory = accessExternalClientV2Factory;
+        this.dslQueryHelper = dslQueryHelper;
+    }
+
     /**
      * Gets search units result
      *
@@ -99,9 +127,9 @@ public class UserInterfaceTransactionManager {
      * @return result
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> searchUnits(JsonNode parameters, VitamContext context)
+    public RequestResponse<JsonNode> searchUnits(JsonNode parameters, VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectUnits(context, parameters);
         }
     }
@@ -109,14 +137,14 @@ public class UserInterfaceTransactionManager {
     /**
      * Gets search objects result
      *
-     * @param parameters   search criteria as DSL query
-     * @param context   Vitamcontext
+     * @param parameters search criteria as DSL query
+     * @param context Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> searchObjects(JsonNode parameters, VitamContext context)
-            throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+    public RequestResponse<JsonNode> searchObjects(JsonNode parameters, VitamContext context)
+        throws VitamClientException {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectObjects(context, parameters);
         }
     }
@@ -130,10 +158,10 @@ public class UserInterfaceTransactionManager {
      * @return result
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> getArchiveUnitDetails(JsonNode preparedDslQuery, String unitId,
+    public RequestResponse<JsonNode> getArchiveUnitDetails(JsonNode preparedDslQuery, String unitId,
         VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectUnitbyId(
                 context,
                 preparedDslQuery,
@@ -149,10 +177,10 @@ public class UserInterfaceTransactionManager {
      * @return result
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode preparedDslQuery,
+    public RequestResponse<JsonNode> selectUnitsWithInheritedRules(JsonNode preparedDslQuery,
         VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectUnitsWithInheritedRules(context, preparedDslQuery);
         }
     }
@@ -165,10 +193,10 @@ public class UserInterfaceTransactionManager {
      * @return result    HTTP response
      * @throws VitamClientException VitamClientException
      */
-    public static RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody parameters,
+    public RequestResponse<JsonNode> startEliminationAnalysis(EliminationRequestBody parameters,
         VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.startEliminationAnalysis(context, parameters);
         }
     }
@@ -181,10 +209,10 @@ public class UserInterfaceTransactionManager {
      * @return result    HTTP response
      * @throws VitamClientException
      */
-    public static RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody parameters,
+    public RequestResponse<JsonNode> startEliminationAction(EliminationRequestBody parameters,
         VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.startEliminationAction(context, parameters);
         }
     }
@@ -197,9 +225,9 @@ public class UserInterfaceTransactionManager {
      * @return result
      * @throws VitamClientException
      */
-    public static RequestResponse<JsonNode> massiveUnitsUpdate(JsonNode parameters, VitamContext context)
+    public RequestResponse<JsonNode> massiveUnitsUpdate(JsonNode parameters, VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.massUpdateUnits(context, parameters);
         }
     }
@@ -212,9 +240,9 @@ public class UserInterfaceTransactionManager {
      * @return result
      * @throws VitamClientException
      */
-    public static RequestResponse<JsonNode> massiveRulesUpdate(JsonNode parameters, VitamContext context)
+    public RequestResponse<JsonNode> massiveRulesUpdate(JsonNode parameters, VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.massUpdateUnitsRules(context, parameters);
         }
     }
@@ -228,9 +256,9 @@ public class UserInterfaceTransactionManager {
      * @return result
      * @throws VitamClientException
      */
-    public static RequestResponse<JsonNode> updateUnits(JsonNode parameters, String unitId, VitamContext context)
+    public RequestResponse<JsonNode> updateUnits(JsonNode parameters, String unitId, VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.updateUnitbyId(context, parameters, unitId);
         }
     }
@@ -244,10 +272,10 @@ public class UserInterfaceTransactionManager {
      * @return JsonNode object including DSL queries, context and results
      * @throws VitamClientException if the client encountered an exception
      */
-    public static RequestResponse<JsonNode> selectObjectbyId(JsonNode preparedDslQuery, String objectId,
+    public RequestResponse<JsonNode> selectObjectbyId(JsonNode preparedDslQuery, String objectId,
         VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectObjectMetadatasByUnitId(
                 context,
                 preparedDslQuery,
@@ -267,29 +295,28 @@ public class UserInterfaceTransactionManager {
      * @param allowedMediaTypes
      * @return boolean for test purpose (solve mock issue)
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
-     * @throws VitamClientException         if the client encountered an exception
+     * @throws VitamClientException if the client encountered an exception
      */
-    // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
-    // web application resource
-    public static boolean getObjectAsInputStream(AsyncResponse asyncResponse,
+    public boolean getObjectAsInputStream(AsyncResponse asyncResponse,
         String unitId, String usage, int version, String filename, VitamContext context,
         List<MediaType> allowedMediaTypes)
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
         String downloadMethod = "attachment";
 
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             response = client.getObjectStreamByUnitId(
                 context,
                 unitId, usage, version);
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
-            if(isAllowedToVisualize(allowedMediaTypes, response.getMediaType())) {
+            if (isAllowedToVisualize(allowedMediaTypes, response.getMediaType())) {
                 downloadMethod = "inline";
             }
             final Response.ResponseBuilder responseBuilder = Response.status(response.getStatus())
                 .header(GlobalDataRest.X_QUALIFIER, response.getHeaderString(GlobalDataRest.X_QUALIFIER))
                 .header(GlobalDataRest.X_VERSION, response.getHeaderString(GlobalDataRest.X_VERSION))
-                .header("Content-Disposition", downloadMethod+"; filename=\"" + URLEncoder.encode(filename, "UTF-8") + "\"")
+                .header("Content-Disposition",
+                    downloadMethod + "; filename=\"" + URLEncoder.encode(filename, "UTF-8") + "\"")
                 .type(response.getMediaType());
             helper.writeResponse(responseBuilder);
         } finally {
@@ -314,57 +341,31 @@ public class UserInterfaceTransactionManager {
     }
 
     private static boolean isAllowedToVisualize(List<MediaType> allowedMediaTypes, MediaType mediaType) {
-        if(allowedMediaTypes == null || mediaType == null) {
+        if (allowedMediaTypes == null || mediaType == null) {
             return false;
         }
-        for(MediaType amt : allowedMediaTypes) {
-            if(amt.getType().equals(mediaType.getType()) && amt.getSubtype().equals(mediaType.getSubtype())) {
+        for (MediaType amt : allowedMediaTypes) {
+            if (amt.getType().equals(mediaType.getType()) && amt.getSubtype().equals(mediaType.getSubtype())) {
                 return true;
             }
         }
         return false;
     }
 
-    private static void buildOnePathForOneParent(ArrayNode path, JsonNode parent, ArrayNode allPaths,
-        JsonNode allParentsRef) {
-        final ArrayNode immediateParents = (ArrayNode) parent.get(UiConstants.UNITUPS.getResultCriteria());
-
-        if (immediateParents.size() == 0) {
-            // it is a root
-            // update allPaths
-            allPaths.add(path);
-        } else if (immediateParents.size() == 1) {
-            // One immediate parent
-            final JsonNode oneImmediateParent = allParentsRef.get(immediateParents.get(0).asText());
-            path.add(oneImmediateParent);
-            buildOnePathForOneParent(path, oneImmediateParent, allPaths, allParentsRef);
-        } else {
-            // More than one immediate parent
-            // Duplicate path so many times as parents
-            for (final JsonNode currentParentNode : immediateParents) {
-                final String currentParentId = currentParentNode.asText();
-                final JsonNode currentParentDetails = allParentsRef.get(currentParentId);
-
-                final ArrayNode pathDuplicate = path.deepCopy();
-                pathDuplicate.add(currentParentDetails);
-                buildOnePathForOneParent(pathDuplicate, currentParentDetails, allPaths, allParentsRef);
-            }
-        }
-    }
 
     /**
      * @param unitLifeCycleId the unit lifecycle id to select
      * @param context Vitamcontext
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientException         if the request with illegal parameter
+     * @throws LogbookClientException if the request with illegal parameter
      * @throws AccessUnauthorizedException
      */
 
-    public static RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(String unitLifeCycleId,
+    public RequestResponse<LogbookLifecycle> selectUnitLifeCycleById(String unitLifeCycleId,
         VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectUnitLifeCycleById(
                 context,
                 unitLifeCycleId, new Select().getFinalSelectById());
@@ -378,9 +379,9 @@ public class UserInterfaceTransactionManager {
      * @return logbook operation result
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse<LogbookOperation> selectOperation(JsonNode query, VitamContext context)
+    public RequestResponse<LogbookOperation> selectOperation(JsonNode query, VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectOperations(context, query);
         }
     }
@@ -391,9 +392,9 @@ public class UserInterfaceTransactionManager {
      * @return logbook operation result
      * @throws VitamClientException
      */
-    public static RequestResponse<LogbookOperation> selectOperationbyId(String operationId, VitamContext context)
+    public RequestResponse<LogbookOperation> selectOperationbyId(String operationId, VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectOperationbyId(
                 context,
                 operationId,
@@ -407,10 +408,10 @@ public class UserInterfaceTransactionManager {
      * @throws VitamClientException if the request with illegal parameter
      */
 
-    public static RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(String objectGroupLifeCycleId,
+    public RequestResponse<LogbookLifecycle> selectObjectGroupLifeCycleById(String objectGroupLifeCycleId,
         VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             return client.selectObjectGroupLifeCycleById(
                 context,
                 objectGroupLifeCycleId, new Select().getFinalSelectById());
@@ -421,16 +422,16 @@ public class UserInterfaceTransactionManager {
      * @param options for creating query
      * @param context Vitamcontext
      * @return AccessionRegisterSummaryModel result
-     * @throws VitamClientException            if the request with illegal parameter
-     * @throws InvalidParseOperationException  if json data not well-formed
+     * @throws VitamClientException if the request with illegal parameter
+     * @throws InvalidParseOperationException if json data not well-formed
      * @throws InvalidCreateOperationException if error when create query
      */
-    public static RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterSummary(String options,
+    public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterSummary(String options,
         VitamContext context)
         throws VitamClientException, InvalidParseOperationException, InvalidCreateOperationException {
-        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient adminExternalClient = adminExternalClientFactory.getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
-            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
             return adminExternalClient.findAccessionRegister(
                 context,
                 query);
@@ -441,18 +442,18 @@ public class UserInterfaceTransactionManager {
      * @param options for creating query
      * @param context Vitamcontext
      * @return AccessionRegisterSummaryModel result
-     * @throws VitamClientException            if the request with illegal parameter
-     * @throws InvalidParseOperationException  if json data not well-formed
+     * @throws VitamClientException if the request with illegal parameter
+     * @throws InvalidParseOperationException if json data not well-formed
      * @throws InvalidCreateOperationException if error when create query
      */
-    public static RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(String options,
+    public RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(String options,
         VitamContext context)
         throws VitamClientException, InvalidParseOperationException, InvalidCreateOperationException {
-        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient adminExternalClient = adminExternalClientFactory.getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
             final JsonNode query = optionsMap.containsKey("startDate")
-                ? DslQueryHelper.createSearchQueryAccessionRegister(optionsMap)
-                : DslQueryHelper.createSingleQueryDSL(optionsMap);
+                ? dslQueryHelper.createSearchQueryAccessionRegister(optionsMap)
+                : dslQueryHelper.createSingleQueryDSL(optionsMap);
             return adminExternalClient.findAccessionRegisterSymbolic(
                 context,
                 query);
@@ -464,19 +465,18 @@ public class UserInterfaceTransactionManager {
      * @param options for creating query
      * @param context Vitamcontext
      * @return JsonNode result
-     * @throws InvalidParseOperationException        if json data not well-formed
-     * @throws AccessExternalClientServerException   if access internal server error
+     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws AccessExternalClientServerException if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
-     * @throws InvalidCreateOperationException       if error when create query
-     * @throws AccessUnauthorizedException
+     * @throws InvalidCreateOperationException if error when create query
      */
-    public static RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, VitamContext context)
+    public RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, VitamContext context)
         throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException, InvalidCreateOperationException, AccessUnauthorizedException {
+        AccessExternalClientNotFoundException, InvalidCreateOperationException {
 
-        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient adminExternalClient = adminExternalClientFactory.getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
-            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
             return adminExternalClient
                 .getAccessionRegisterDetail(
                     context, id,
@@ -495,10 +495,9 @@ public class UserInterfaceTransactionManager {
      * @throws InvalidParseOperationException
      * @throws AccessUnauthorizedException
      */
-    @SuppressWarnings("unchecked")
-    public static RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, VitamContext context)
+    public RequestResponse<JsonNode> checkTraceabilityOperation(JsonNode query, VitamContext context)
         throws AccessExternalClientServerException, InvalidParseOperationException, AccessUnauthorizedException {
-        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient adminExternalClient = adminExternalClientFactory.getClient()) {
             return adminExternalClient
                 .checkTraceabilityOperation(
                     context,
@@ -514,7 +513,7 @@ public class UserInterfaceTransactionManager {
      * @return json node containing genTime and issuer certificate information
      * @throws BadRequestException if the timestamp cant be extracted
      */
-    public static JsonNode extractInformationFromTimestamp(String timestamp) throws BadRequestException {
+    public JsonNode extractInformationFromTimestamp(String timestamp) throws BadRequestException {
         final ObjectNode result = JsonHandler.createObjectNode();
         try {
             ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(
@@ -542,8 +541,8 @@ public class UserInterfaceTransactionManager {
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse evidenceAudit(JsonNode query, VitamContext context) throws VitamClientException {
-        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
+    public RequestResponse evidenceAudit(JsonNode query, VitamContext context) throws VitamClientException {
+        try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
             return client.evidenceAudit(context, query);
         }
     }
@@ -557,10 +556,10 @@ public class UserInterfaceTransactionManager {
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
      */
-    public static RequestResponse exportProbativeValue(JsonNode query, VitamContext context)
+    public RequestResponse exportProbativeValue(JsonNode query, VitamContext context)
         throws VitamClientException {
 
-        try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
+        try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
             ProbativeValueRequest probativeValueRequest =
                 new ProbativeValueRequest(query, Collections.singletonList("BinaryMaster"));
             return client.exportProbativeValue(context, probativeValueRequest);
@@ -576,11 +575,11 @@ public class UserInterfaceTransactionManager {
      * @param context VitamContext
      * @return a JsonNode for dip results
      * @throws InvalidParseOperationException unable to parse query
-     * @throws VitamClientException           access client exception
+     * @throws VitamClientException access client exception
      */
-    public static RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context)
+    public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context)
         throws VitamClientException {
-        try (AccessExternalClientV2 client = AccessExternalClientV2Factory.getInstance().getClient()) {
+        try (AccessExternalClientV2 client = accessExternalClientV2Factory.getClient()) {
             return client.exportDIP(context, dipExportRequest);
         }
     }
@@ -593,10 +592,10 @@ public class UserInterfaceTransactionManager {
      * @throws UnsupportedEncodingException
      * @throws VitamClientException
      */
-    public static boolean downloadDIP(AsyncResponse asyncResponse, String dipId, VitamContext context)
+    public boolean downloadDIP(AsyncResponse asyncResponse, String dipId, VitamContext context)
         throws UnsupportedEncodingException, VitamClientException {
         Response response = null;
-        try (AccessExternalClient client = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
             response = client.getDIPById(
                 context,
                 dipId);
@@ -626,18 +625,18 @@ public class UserInterfaceTransactionManager {
         return true;
     }
 
-    public static VitamContext getVitamContext(HttpServletRequest request) {
+    public VitamContext getVitamContext(HttpServletRequest request) {
         return getVitamContext(getTenantId(request), getContractId(request), request);
     }
 
-    public static VitamContext getVitamContext(Integer tenantId, String contractId, String personalCert) {
+    public VitamContext getVitamContext(Integer tenantId, String contractId, String personalCert) {
         return new VitamContext(tenantId)
             .setAccessContract(contractId)
             .setApplicationSessionId(getAppSessionId())
             .setPersonalCertificate(personalCert);
     }
 
-    public static VitamContext getVitamContext(Integer tenantId, String contractId, HttpServletRequest request) {
+    public VitamContext getVitamContext(Integer tenantId, String contractId, HttpServletRequest request) {
         String personalCert = getPersonalCertificate(request);
         if (personalCert != null) {
             return new VitamContext(tenantId)
@@ -651,15 +650,15 @@ public class UserInterfaceTransactionManager {
         }
     }
 
-    public static String getPersonalCertificate(HttpServletRequest request) {
+    public String getPersonalCertificate(HttpServletRequest request) {
         return (String) request.getAttribute(REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE);
     }
 
-    public static String getContractId(HttpServletRequest request) {
+    public String getContractId(HttpServletRequest request) {
         return request.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID);
     }
 
-    public static Integer getTenantId(HttpServletRequest request) {
+    public Integer getTenantId(HttpServletRequest request) {
         Integer tenantId = 0;
         String tenantIdHeader = request.getHeader(GlobalDataRest.X_TENANT_ID);
         if (tenantIdHeader != null) {
@@ -684,7 +683,7 @@ public class UserInterfaceTransactionManager {
      *
      * @return application session id
      */
-    public static String getAppSessionId() {
+    public String getAppSessionId() {
         // TODO : Implement session id -> user mapping persistence (login activity journal / logs...).
         return "MyApplicationId-ChangeIt";
     }

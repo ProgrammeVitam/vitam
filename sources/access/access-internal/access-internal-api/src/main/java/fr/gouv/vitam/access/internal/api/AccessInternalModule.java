@@ -28,16 +28,15 @@ package fr.gouv.vitam.access.internal.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
 import javax.ws.rs.core.Response;
 import java.text.ParseException;
-import java.util.Date;
 
 /**
  * AccessModule interface for database operations in select
@@ -62,13 +61,12 @@ public interface AccessInternalModule {
      * @param queryJson as String { $query : query}
      * @param idUnit as String
      * @return the corresponding JsonNode
-     *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      */
     JsonNode selectUnitbyId(JsonNode queryJson, String idUnit)
-        throws InvalidParseOperationException, AccessInternalExecutionException;
+        throws InvalidParseOperationException, AccessInternalExecutionException, MetaDataNotFoundException;
 
     /**
      * update Unit by id
@@ -77,7 +75,6 @@ public interface AccessInternalModule {
      * @param idUnit as String
      * @param requestId the request id
      * @return the result of the update on Unit
-     *
      * @throws InvalidParseOperationException Throw if json format is not correct
      * @throws AccessInternalExecutionException Throw if error occurs when send Unit to database
      * @throws AccessInternalRuleExecutionException Throw When error occures on rules update check
@@ -86,7 +83,7 @@ public interface AccessInternalModule {
      */
     JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
         throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException,
-        IllegalArgumentException,UpdatePermissionException, AccessInternalRuleExecutionException;
+        IllegalArgumentException, UpdatePermissionException, AccessInternalRuleExecutionException;
 
     /**
      * Retrieve an ObjectGroup by its id with results fields filtered based on given query
@@ -97,9 +94,10 @@ public interface AccessInternalModule {
      * @throws IllegalArgumentException in case of null/incorrect parameters
      * @throws InvalidParseOperationException thrown if json query is not syntactically correct
      * @throws AccessInternalExecutionException in case of access failure
+     * @throws MetaDataNotFoundException
      */
     JsonNode selectObjectGroupById(JsonNode queryJson, String idObjectGroup)
-        throws InvalidParseOperationException, AccessInternalExecutionException;
+        throws InvalidParseOperationException, AccessInternalExecutionException, MetaDataNotFoundException;
 
     /**
      * Retrieve an object as InputStream based on the associated ObjectGroupId and qualifier + version requested
@@ -109,29 +107,30 @@ public interface AccessInternalModule {
      * @param version the version number to get
      * @param idUnit identifier of the parent archiveunit used to have access to the object
      * @return response
-     *
-     * @throws MetaDataNotFoundException If the ObjectGroup could not be find
      * @throws StorageNotFoundException If the object is not found in storage
      * @throws InvalidParseOperationException when a query is badly structured
      * @throws AccessInternalExecutionException For other technical errors
+     * @throws MetaDataNotFoundException
      */
     Response getOneObjectFromObjectGroup(String idObjectGroup,
         String qualifier, int version, String idUnit)
-        throws MetaDataNotFoundException, StorageNotFoundException, InvalidParseOperationException,
+        throws StorageNotFoundException, InvalidParseOperationException, MetaDataNotFoundException,
         AccessInternalExecutionException;
 
     /**
      * Retrieve all accessLog by the concatenation of all accesslog files as InputStream
+     *
      * @param params a json containing query on StartDate or EndDate
      * @return the Storage response for the asked file
      * @throws StorageNotFoundException
      * @throws AccessInternalExecutionException
      */
-    Response getAccessLog(JsonNode params) throws AccessInternalExecutionException, StorageNotFoundException, ParseException;
+    Response getAccessLog(JsonNode params)
+        throws AccessInternalExecutionException, StorageNotFoundException, ParseException;
 
     /**
      * retrieve a DIP file according to an operationId
-     * 
+     *
      * @param id operation id
      * @return zip file containing a DIP
      * @throws AccessInternalExecutionException
@@ -148,7 +147,7 @@ public interface AccessInternalModule {
      * @throws AccessInternalExecutionException Throw if error occurs when send Object to database
      */
     JsonNode selectObjects(JsonNode queryJson)
-            throws InvalidParseOperationException, AccessInternalExecutionException, VitamDBException;
+        throws InvalidParseOperationException, AccessInternalExecutionException, VitamDBException;
 
     /**
      * Select units by DSL and computes inherited rules for matching units
@@ -164,6 +163,7 @@ public interface AccessInternalModule {
 
     /**
      * check ClassificationLevel in update Unit
+     *
      * @param query query
      * @throws IllegalArgumentException IllegalArgumentException
      * @throws InvalidParseOperationException InvalidParseOperationException

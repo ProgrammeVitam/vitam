@@ -2,7 +2,6 @@ package fr.gouv.vitam.security.internal.filter;
 
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.AuthenticationLevel;
 import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -11,20 +10,20 @@ import fr.gouv.vitam.functional.administration.common.server.AdminManagementConf
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,7 +36,6 @@ import static org.mockito.Mockito.when;
  * Enpoint authentication filter tests.
  */
 @RunWithCustomExecutor
-@RunWith(MockitoJUnitRunner.class)
 public class EndpointAuthenticationFilterTest {
 
     /**
@@ -45,11 +43,12 @@ public class EndpointAuthenticationFilterTest {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EndpointAuthenticationFilterTest.class);
 
-    private static final AuthenticationLevel AUTHENTICATION_LEVEL = AuthenticationLevel.BASIC_AUTHENT;
-
     @ClassRule
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private AdminManagementConfiguration configuration;

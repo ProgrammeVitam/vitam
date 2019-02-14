@@ -32,9 +32,9 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.io.FileNotFoundException;
 import java.io.InputStream;
@@ -48,7 +48,6 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
 public class DataMigrationServiceTest {
 
     private static final String UNIT_COLLECTION = "Unit" + GUIDFactory.newGUID().getId();
@@ -59,6 +58,8 @@ public class DataMigrationServiceTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -86,8 +87,9 @@ public class DataMigrationServiceTest {
     public void befor() {
         graphLoader = new GraphLoader(new MongoDbMetadataRepository(() -> MetadataCollections.UNIT.getCollection()));
     }
+
     @AfterClass
-    public static  void afterClass() {
+    public static void afterClass() {
         mongoRule.handleAfterClass();
     }
 

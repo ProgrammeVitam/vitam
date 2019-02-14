@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,38 +23,23 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.external.client;
+ *******************************************************************************/
+package fr.gouv.vitam.common.tmp;
 
-import javax.ws.rs.client.Client;
+import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.VitamConfiguration;
+import org.junit.rules.TemporaryFolder;
 
+import java.io.IOException;
 
-/**
- * Abstract client class for all vitam client not using SSL
- */
-public abstract class AbstractBenchmarkClientFactory<T extends BasicClient> extends TestVitamClientFactory<T> {
+public class TempFolderRule extends TemporaryFolder {
 
-    /**
-     * Constructor with standard configuration
-     *
-     * @param serverPort
-     * @param resourcePath the resource path of the server for the client calls
-     * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
-     * @throws UnsupportedOperationException HTTPS not implemented yet
-     */
-    protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath) {
-        super(serverPort, resourcePath);
-    }
-
-    /**
-     * ONLY use this constructor in unit test Remove this when JerseyTest will be fully compatible with Jetty
-     *
-     * @param serverPort
-     * @param resourcePath the resource path of the server for the client calls
-     * @param client the HTTP client to use
-     * @throws UnsupportedOperationException HTTPS not implemented yet
-     */
-    protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath, Client client) {
-        super(serverPort, resourcePath, client);
+    @Override
+    public void create() throws IOException {
+        super.create();
+        SystemPropertyUtil.set("vitam.tmp.folder", super.newFolder().getAbsolutePath());
+        SystemPropertyUtil.set("vitam.data.folder", super.newFolder().getAbsolutePath());
+        SystemPropertyUtil.set("vitam.log.folder", super.newFolder().getAbsolutePath());
+        VitamConfiguration.reinit();
     }
 }

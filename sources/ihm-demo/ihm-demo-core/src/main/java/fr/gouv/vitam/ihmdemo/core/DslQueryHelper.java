@@ -27,28 +27,6 @@
 
 package fr.gouv.vitam.ihmdemo.core;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nestedSearch;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static java.time.ZoneOffset.UTC;
-import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -81,11 +59,33 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestFacetItem;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lt;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.missing;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.nestedSearch;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static java.time.ZoneOffset.UTC;
+import static java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+
 
 /**
  * Helper class to create DSL queries
  */
-public final class DslQueryHelper {
+public class DslQueryHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DslQueryHelper.class);
     /**
@@ -195,24 +195,24 @@ public final class DslQueryHelper {
     private static final String SCENARIO_ID = "ScenarioID";
     private static final String GRIFFIN_ID = "GriffinID";
 
+    private static final DslQueryHelper instance = new DslQueryHelper();
 
-
-    // empty constructor
-    private DslQueryHelper() {
-        // empty constructor
+    public static DslQueryHelper getInstance() {
+        return instance;
     }
 
+    public DslQueryHelper() {
+    }
 
     /**
      * generate the DSL query after receiving the search criteria
      *
      * @param searchCriteriaMap the map containing the criteria
      * @return DSL request
-     * @throws InvalidParseOperationException  if a parse exception is encountered
+     * @throws InvalidParseOperationException if a parse exception is encountered
      * @throws InvalidCreateOperationException if an Invalid create operation is encountered
      */
-    @SuppressWarnings("unchecked")
-    public static JsonNode createSingleQueryDSL(Map<String, Object> searchCriteriaMap)
+    public JsonNode createSingleQueryDSL(Map<String, Object> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
@@ -334,7 +334,7 @@ public final class DslQueryHelper {
                         if ("true".equals(searchValue)) {
                             InQuery checkStatus = in(EVENT_OUT_DETAIL,
                                 "STP_OP_SECURISATION.OK",
-                                 "STP_STORAGE_SECURISATION.OK",
+                                "STP_STORAGE_SECURISATION.OK",
                                 "LOGBOOK_UNIT_LFC_TRACEABILITY.OK",
                                 "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING",
                                 "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK",
@@ -454,11 +454,11 @@ public final class DslQueryHelper {
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
 
-    public static JsonNode createSelectDSLQuery(Map<String, String> searchCriteriaMap)
+    public JsonNode createSelectDSLQuery(Map<String, String> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final SelectMultiQuery select = new SelectMultiQuery();
@@ -512,10 +512,10 @@ public final class DslQueryHelper {
      *
      * @param projectionCriteriaMap the given projection parameters
      * @return request with projection
-     * @throws InvalidParseOperationException  null key or value parameters
+     * @throws InvalidParseOperationException null key or value parameters
      * @throws InvalidCreateOperationException queryDsl create operation
      */
-    public static JsonNode createGetByIdDSLSelectMultipleQuery(Map<String, String> projectionCriteriaMap)
+    public JsonNode createGetByIdDSLSelectMultipleQuery(Map<String, String> projectionCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final SelectMultiQuery select = new SelectMultiQuery();
@@ -541,11 +541,10 @@ public final class DslQueryHelper {
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    @SuppressWarnings("unchecked")
-    public static JsonNode createSelectElasticsearchDSLQuery(Map<String, Object> searchCriteriaMap)
+    public JsonNode createSelectElasticsearchDSLQuery(Map<String, Object> searchCriteriaMap)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
         final SelectMultiQuery select = new SelectMultiQuery();
@@ -597,7 +596,7 @@ public final class DslQueryHelper {
 
                                 select.addFacets(
                                     new DateRangeFacet(facetItem.getName(), facetItem.getField(),
-                                            facetItem.getSubobject(), facetItem.getFormat(), ranges));
+                                        facetItem.getSubobject(), facetItem.getFormat(), ranges));
                                 break;
 
                             case FILTERS:
@@ -697,14 +696,14 @@ public final class DslQueryHelper {
             }
 
             if (searchKeys.equalsIgnoreCase(GOT_FILE_FORMAT_ID)) {
-                if(nestedSubQuery == null) {
+                if (nestedSubQuery == null) {
                     nestedSubQuery = and();
                 }
                 nestedSubQuery.add(eq(FILE_FORMAT_ID_GOT_FIELD, (String) searchValue));
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(GOT_FILE_USAGE)) {
-                if(nestedSubQuery == null) {
+                if (nestedSubQuery == null) {
                     nestedSubQuery = and();
                 }
                 nestedSubQuery.add(eq(FILE_USAGE_GOT_FIELD, (String) searchValue));
@@ -712,14 +711,14 @@ public final class DslQueryHelper {
             }
             if (searchKeys.equalsIgnoreCase(GOT_FILE_SIZE)) {
                 fileSize = (String) searchValue;
-                if(fileSizeOperator != null) {
-                    if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
-                        if(nestedSubQuery == null) {
+                if (fileSizeOperator != null) {
+                    if (fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
+                        if (nestedSubQuery == null) {
                             nestedSubQuery = and();
                         }
                         nestedSubQuery.add(lt(FILE_SIZE_GOT_FIELD, (String) searchValue));
-                    } else if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
-                        if(nestedSubQuery == null) {
+                    } else if (fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
+                        if (nestedSubQuery == null) {
                             nestedSubQuery = and();
                         }
                         nestedSubQuery.add(gte(FILE_SIZE_GOT_FIELD, (String) searchValue));
@@ -729,14 +728,14 @@ public final class DslQueryHelper {
             }
             if (searchKeys.equalsIgnoreCase(GOT_FILE_SIZE_OPERATOR)) {
                 fileSizeOperator = (String) searchValue;
-                if(fileSize != null) {
-                    if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
-                        if(nestedSubQuery == null) {
+                if (fileSize != null) {
+                    if (fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_LOWER)) {
+                        if (nestedSubQuery == null) {
                             nestedSubQuery = and();
                         }
                         nestedSubQuery.add(lt(FILE_SIZE_GOT_FIELD, fileSize));
-                    } else if(fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
-                        if(nestedSubQuery == null) {
+                    } else if (fileSizeOperator.equals(GOT_FILE_SIZE_OPERATOR_GREATER_OR_EQUAL)) {
+                        if (nestedSubQuery == null) {
                             nestedSubQuery = and();
                         }
                         nestedSubQuery.add(gte(FILE_SIZE_GOT_FIELD, fileSize));
@@ -835,7 +834,7 @@ public final class DslQueryHelper {
             }
         }
 
-        if(nestedSubQuery != null) {
+        if (nestedSubQuery != null) {
             andQuery.add(nestedSearch("#qualifiers.versions", nestedSubQuery.getCurrentQuery()));
         }
 
@@ -881,12 +880,12 @@ public final class DslQueryHelper {
 
     /**
      * @param searchCriteriaMap Criteria received from The IHM screen Empty Keys or Value is not allowed
-     * @param updateRules       rules that must be updated in the AU.
+     * @param updateRules rules that must be updated in the AU.
      * @return the JSONDSL File
-     * @throws InvalidParseOperationException  thrown when an error occurred during parsing
+     * @throws InvalidParseOperationException thrown when an error occurred during parsing
      * @throws InvalidCreateOperationException thrown when an error occurred during creation
      */
-    public static JsonNode createUpdateByIdDSLQuery(Map<String, JsonNode> searchCriteriaMap,
+    public JsonNode createUpdateByIdDSLQuery(Map<String, JsonNode> searchCriteriaMap,
         Map<String, JsonNode> updateRules)
         throws InvalidParseOperationException, InvalidCreateOperationException {
 
@@ -920,7 +919,7 @@ public final class DslQueryHelper {
         return update.getFinalUpdateById();
     }
 
-    public static ObjectNode createMassiveUpdateDSLBaseQuery(JsonNode modifiedFields) {
+    public ObjectNode createMassiveUpdateDSLBaseQuery(JsonNode modifiedFields) {
 
         JsonNode query = modifiedFields.get("query");
         JsonNode threshold = modifiedFields.get("threshold");
@@ -935,7 +934,7 @@ public final class DslQueryHelper {
         return fullQuery;
     }
 
-    public static UpdateMultiQuery getFullMetadataActionQuery(JsonNode metadataModifications, ObjectNode fullQuery)
+    public UpdateMultiQuery getFullMetadataActionQuery(JsonNode metadataModifications, ObjectNode fullQuery)
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateMultiQuery update = new UpdateMultiQuery();
 
@@ -992,7 +991,7 @@ public final class DslQueryHelper {
         return update;
     }
 
-    private static BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)
+    private BooleanQuery createSearchUntisQueryByDate(String startDate, String endDate)
         throws InvalidCreateOperationException {
 
         LOGGER.debug("in createSearchUntisQueryByDate / beginDate:" + startDate + "/ endDate:" + endDate);
@@ -1015,7 +1014,7 @@ public final class DslQueryHelper {
 
     }
 
-    public static JsonNode createSearchQueryAccessionRegister(Map<String, Object> options)
+    public JsonNode createSearchQueryAccessionRegister(Map<String, Object> options)
         throws InvalidCreateOperationException {
         String startDate = (String) options.get("startDate");
         String endDate = (String) options.get("endDate");
@@ -1037,29 +1036,27 @@ public final class DslQueryHelper {
      * Create a JsonNode similar to a composed Select/Update DSL query<br/>
      * Input: {parentId: 'id', childId: 'id', action: 'ADD'} (action can be DELETE)<br/>
      * Output:
-     *  [{
-     *   "$query": [
-     *     {
-     *       "$eq": {
-     *         "#id": "childId"
-     *       }
-     *     }
-     *   ],
-     *   "$action": [
-     *     {
-     *       "$add": { (action can be $pull if input ask for DELETE)
-     *         "#up": ["parentId"]
-     *       }
-     *     }
-     *   ]
+     * [{
+     * "$query": [
+     * {
+     * "$eq": {
+     * "#id": "childId"
+     * }
+     * }
+     * ],
+     * "$action": [
+     * {
+     * "$add": { (action can be $pull if input ask for DELETE)
+     * "#up": ["parentId"]
+     * }
+     * }
+     * ]
      * }]
      *
      * @param optionsMap input options given by frontend application
      * @return jsonQuery for adminClient
-     * @throws InvalidCreateOperationException
      */
-    public static JsonNode createSelectAndUpdateDSLQuery(Map<String, Object> optionsMap)
-        throws InvalidCreateOperationException {
+    public JsonNode createSelectAndUpdateDSLQuery(Map<String, Object> optionsMap) {
 
         // Select part
         ArrayNode queryArray = JsonHandler.createArrayNode();

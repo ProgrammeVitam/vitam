@@ -27,28 +27,9 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -66,6 +47,8 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
@@ -78,27 +61,32 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, AdminManagementClientFactory.class})
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 public class UnitsRulesComputePluginTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-
-    UnitsRulesComputePlugin plugin = new UnitsRulesComputePlugin();
-
-    private WorkspaceClient workspaceClient;
-    private AdminManagementClientFactory adminManagementClientFactory;
-    private AdminManagementClient adminManagementClient;
 
     private static final String ARCHIVE_UNIT_RULE = "unitsRulesComputePlugin/AU_COMPUTE_ENDDATE_SAMPLE.json";
     private static final String ARCHIVE_UNIT_RULE_MGT_ONLY =
@@ -119,27 +107,47 @@ public class UnitsRulesComputePluginTest {
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
     private Integer tenantId = 0;
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
+
+    @Mock
+    private AdminManagementClient adminManagementClient;
+
+    @Mock
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    @Mock
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+
+
+    private UnitsRulesComputePlugin plugin;
+
+
     @Before
     public void setUp() throws Exception {
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        PowerMockito.mockStatic(AdminManagementClientFactory.class);
-        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
-
-        workspaceClient = mock(WorkspaceClient.class);
-
-        adminManagementClient = mock(AdminManagementClient.class);
-
-        action = new HandlerIOImpl(workspaceClient, GUIDFactory.newGUID().toString(), GUIDFactory.newGUID().toString(), com.google.common.collect.Lists.newArrayList());
-
-        when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+        plugin = new UnitsRulesComputePlugin(adminManagementClientFactory);
+        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, GUIDFactory.newGUID().toString(), GUIDFactory.newGUID().toString(),
+            com.google.common.collect.Lists.newArrayList());
 
         input = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE);
         archiveUnit = JsonHandler.getFromInputStream(input);
-        
+
         in = new ArrayList<>();
         in.add(new IOParameter()
             .setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId")));
@@ -159,10 +167,10 @@ public class UnitsRulesComputePluginTest {
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        
+
         action.getInput().clear();
         action.getInput().add(archiveUnit);
-        
+
         when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
         when(adminManagementClient.getRuleByID("ID101"))
             .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
@@ -191,7 +199,7 @@ public class UnitsRulesComputePluginTest {
 
         action.getInput().clear();
         action.getInput().add(archiveUnit);
-        
+
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialPartial());
 
         final WorkerParameters params =
@@ -207,11 +215,12 @@ public class UnitsRulesComputePluginTest {
 
     @Test
     public void givenWorkspaceExistAndEmptyRulesButManagementRulesWhenExecuteThenReturnResponseOK() throws Exception {
-        
-        JsonNode archiveUnit_MGT_only = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY));
+
+        JsonNode archiveUnit_MGT_only =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_RULE_MGT_ONLY));
         action.getInput().clear();
         action.getInput().add(archiveUnit_MGT_only);
-        
+
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferential());
 
         final WorkerParameters params =
@@ -233,10 +242,10 @@ public class UnitsRulesComputePluginTest {
     @Test
     public void givenWorkspaceArchiveUnitFileExistWhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
- 
+
         action.getInput().clear();
         action.getInput().add(archiveUnit);
-        
+
         when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
         when(adminManagementClient.getRuleByID("ID101"))
             .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
@@ -263,7 +272,8 @@ public class UnitsRulesComputePluginTest {
     public void givenArboMdRgComplexeROOTWhenExecuteThenReturnResponseOK() throws Exception {
         reset(adminManagementClient);
 
-        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARBO_MD_RG_COMPLEXE_ROOT));
+        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARBO_MD_RG_COMPLEXE_ROOT));
         action.getInput().clear();
         action.getInput().add(archiveUnit_ARBO_MD_RG_COMPLEXE);
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForArboMdRgComplexe());
@@ -278,7 +288,8 @@ public class UnitsRulesComputePluginTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // check objectName file updated
-        JsonNode accessRule0 = archiveUnit_ARBO_MD_RG_COMPLEXE.get("ArchiveUnit").get("Management").get("AccessRule").get("Rules").get(0);
+        JsonNode accessRule0 =
+            archiveUnit_ARBO_MD_RG_COMPLEXE.get("ArchiveUnit").get("Management").get("AccessRule").get("Rules").get(0);
         assertNotNull(accessRule0);
         assertNotNull(accessRule0.get("EndDate"));
         assertEquals("2120-01-01", accessRule0.get("EndDate").asText());
@@ -288,10 +299,11 @@ public class UnitsRulesComputePluginTest {
     public void givenNonExistingRuleWhenExecuteThenReturnResponseKO() throws Exception {
         reset(adminManagementClient);
 
-        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARBO_MD_NON_EXISTING_RULE));
+        JsonNode archiveUnit_ARBO_MD_RG_COMPLEXE =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ARBO_MD_NON_EXISTING_RULE));
         action.getInput().clear();
         action.getInput().add(archiveUnit_ARBO_MD_RG_COMPLEXE);
-        
+
         when(adminManagementClient.getRules(any())).thenReturn(getRulesInReferentialForNonExistingRule());
 
         final WorkerParameters params =
@@ -318,7 +330,7 @@ public class UnitsRulesComputePluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         action.getInput().clear();
         action.getInput().add(archiveUnit);
-        
+
         when(adminManagementClient.getRuleByID("ID100")).thenReturn(getRulesInReferential("ID100", "StorageRule"));
         when(adminManagementClient.getRuleByID("ID101"))
             .thenReturn(getRulesInReferential("ID101", "ClassificationRule"));
@@ -335,7 +347,8 @@ public class UnitsRulesComputePluginTest {
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-        assertEquals(response.getItemsStatus().get(CHECK_RULES_TASK_ID).getGlobalOutcomeDetailSubcode(), "REF_INCONSISTENCY");
+        assertEquals(response.getItemsStatus().get(CHECK_RULES_TASK_ID).getGlobalOutcomeDetailSubcode(),
+            "REF_INCONSISTENCY");
     }
 
     @RunWithCustomExecutor
@@ -343,8 +356,9 @@ public class UnitsRulesComputePluginTest {
     public void givenArchiveUnitMgtMdOk1WhenExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         reset(adminManagementClient);
-        
-        JsonNode archiveUnit_MGT_MD = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_SIP_MGT_MD_OK1));
+
+        JsonNode archiveUnit_MGT_MD =
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_SIP_MGT_MD_OK1));
         action.getInput().clear();
         action.getInput().add(archiveUnit_MGT_MD);
         saveWorkspacePutObject("Units/objectName");
@@ -368,7 +382,8 @@ public class UnitsRulesComputePluginTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         // check objectName file updated
-        JsonNode storageRule1 = archiveUnit_MGT_MD.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(1);
+        JsonNode storageRule1 =
+            archiveUnit_MGT_MD.get("ArchiveUnit").get("Management").get("StorageRule").get("Rules").get(1);
         assertNotNull(storageRule1);
         assertNotNull(storageRule1.get("EndDate"));
         assertEquals("2016-04-10", storageRule1.get("EndDate").asText());

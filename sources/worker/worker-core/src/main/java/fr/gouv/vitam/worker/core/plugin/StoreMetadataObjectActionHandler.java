@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 /**
@@ -50,6 +51,10 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
 
     private static final String $RESULTS = "$results";
     private static final String DOCUMENT_NOT_FOUND = "Document not found";
+
+    public StoreMetadataObjectActionHandler(StorageClientFactory storageClientFactory) {
+        super(storageClientFactory);
+    }
 
     /**
      * selectMetadataDocumentById, Retrieve Metadata Document from DB
