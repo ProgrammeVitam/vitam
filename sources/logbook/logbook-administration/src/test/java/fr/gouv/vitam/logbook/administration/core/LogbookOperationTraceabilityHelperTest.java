@@ -152,7 +152,7 @@ public class LogbookOperationTraceabilityHelperTest {
         file.close();
 
         // Then
-        assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5766);
+        assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5534L);
     }
 
     @Test
@@ -182,7 +182,7 @@ public class LogbookOperationTraceabilityHelperTest {
         file.close();
 
         // Then
-        assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5766L);
+        assertThat(Files.size(Paths.get(zipFile.getPath()))).isEqualTo(5534L);
     }
 
     @Test

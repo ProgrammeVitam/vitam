@@ -26,10 +26,86 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
+import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.AccessContractModel;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.TextByLang;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientMock;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
+import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientMock;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.apache.shiro.util.Assert;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -39,61 +115,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-import java.io.InputStream;
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.apache.shiro.util.Assert;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.vitam.access.internal.api.AccessInternalModule;
-import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
-import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeDeserializer;
-import fr.gouv.vitam.common.mapping.serializer.LevelTypeDeserializer;
-import fr.gouv.vitam.common.mapping.serializer.TextByLangDeserializer;
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamApplicationServerException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.JunitHelper;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.common.model.unit.TextByLang;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-
-public class AccessInternalResourceImplTest {
+public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -114,7 +136,6 @@ public class AccessInternalResourceImplTest {
     private static AccessInternalMain application;
 
     // QUERIES AND DSL
-    // TODO P1
     // Create a "GET" query inspired by DSL, exemple from tech design story 76
     private static final String QUERY_TEST =
         "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
@@ -146,16 +167,53 @@ public class AccessInternalResourceImplTest {
     private static final String OBJECT_ID = "objectId";
     private static final String OBJECTS_URI = "/objects/";
 
-    private static AccessInternalModule mock;
+    private final static ProcessingManagementClientFactory processingManagementClientFactory =
+        mock(ProcessingManagementClientFactory.class);
+    private final static ProcessingManagementClient processingManagementClient = mock(ProcessingManagementClient.class);
+
+    private final static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
+        mock(LogbookLifeCyclesClientFactory.class);
+    private final static LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+
+    private final static LogbookOperationsClientFactory logbookOperationsClientFactory =
+        mock(LogbookOperationsClientFactory.class);
+    private final static LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
+
+    private final static WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+    private final static WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+
+    private final static AdminManagementClientFactory adminManagementClientFactory =
+        mock(AdminManagementClientFactory.class);
+    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+
+    private final static StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+    private final static StorageClient storageClient = mock(StorageClient.class);
+
+    private final static MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
+    private final static MetaDataClient metaDataClient = mock(MetaDataClient.class);
+
+    private final static BusinessApplication businessApplication =
+        new BusinessApplication(logbookLifeCyclesClientFactory, logbookOperationsClientFactory, storageClientFactory,
+            workspaceClientFactory, adminManagementClientFactory, metaDataClientFactory,
+            processingManagementClientFactory);
+
+    @Override
+    public Set<Object> getResources() {
+        return businessApplication.getSingletons();
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        return businessApplication.getClasses();
+    }
+
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        mock = mock(AccessInternalModule.class);
-        BusinessApplication.mock = mock;
         try {
-            application = new AccessInternalMain(ACCESS_CONF);
+            application = new AccessInternalMain(ACCESS_CONF, AccessInternalResourceImplTest.class, null);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
@@ -168,7 +226,7 @@ public class AccessInternalResourceImplTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
@@ -177,6 +235,26 @@ public class AccessInternalResourceImplTest {
             LOGGER.error(e);
         }
         VitamClientFactory.resetConnections();
+    }
+
+    @Before
+    public void setUp() {
+        reset(logbookOperationsClient);
+        reset(workspaceClient);
+        reset(processingManagementClient);
+        reset(metaDataClient);
+        reset(storageClient);
+        reset(adminManagementClient);
+        reset(logbookLifeCyclesClient);
+
+
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
     }
 
     // Error cases
@@ -188,9 +266,8 @@ public class AccessInternalResourceImplTest {
      */
     @Test
     public void givenStartedServer_WhenUpdateUnitError_ThenReturnError() throws Exception {
-        reset(mock);
-        when(mock.updateUnitbyId(any(), any(), any()))
-            .thenThrow(new AccessInternalExecutionException("Wanted exception"));
+        when(metaDataClient.updateUnitbyId(any(), any()))
+            .thenThrow(new MetaDataExecutionException("Wanted exception"));
 
         given().contentType(ContentType.JSON).body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -383,16 +460,19 @@ public class AccessInternalResourceImplTest {
     }
 
     @Test
-    public void given_queryThatThrowException_when_updateByID() throws InvalidParseOperationException {
+    public void given_queryThatThrowException_when_updateByID()
+        throws InvalidParseOperationException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
+        LogbookClientServerException {
+        doThrow(new LogbookClientServerException("Error")).when(logbookOperationsClient).create(any());
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7cabmgeak2mfjfikiaaaaq")
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newGUID().getId())
             .when()
-            .put("/units/" + ID)
+            .put("/units/" + GUIDFactory.newGUID().getId())
             .then()
-            .statusCode(Status.OK.getStatusCode());
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -436,14 +516,10 @@ public class AccessInternalResourceImplTest {
     public void getAccessLogFilesBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        reset(mock);
-
-        doThrow(new ParseException("Parse Exception Test", 0)).when(mock)
-            .getAccessLog(any());
-
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body(JsonHandler.createObjectNode().put("StartDate", "M108-20-12"))
             .when().get(ACCESS_ACCESS_LOG_FILE).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -453,10 +529,8 @@ public class AccessInternalResourceImplTest {
     public void getAccessLogFilesInternalError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        reset(mock);
-
-        doThrow(new AccessInternalExecutionException("Internal Error")).when(mock)
-            .getAccessLog(any());
+        doThrow(new StorageServerClientException("Internal Error")).when(storageClient)
+            .listContainer(any(), any());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0").body("{}")
@@ -470,14 +544,18 @@ public class AccessInternalResourceImplTest {
     public void getAccessLogFilesNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        reset(mock);
+        doThrow(new StorageNotFoundException("Storage Not Found")).when(storageClient)
+            .getContainerAsync(any(), anyString(), any(), any());
+        VitamRequestIterator<JsonNode> vitamRequestIterator = mock(VitamRequestIterator.class);
+        when(vitamRequestIterator.hasNext()).thenReturn(true);
+        when(vitamRequestIterator.next()).thenReturn(JsonHandler.createObjectNode().put("objectId", "guid"));
 
-        doThrow(new StorageNotFoundException("Storage Not Found")).when(mock)
-            .getAccessLog(any());
+        when(storageClient.listContainer(anyString(), any())).thenReturn(vitamRequestIterator);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .body(JsonHandler.createObjectNode())
             .when().get(ACCESS_ACCESS_LOG_FILE).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -491,8 +569,7 @@ public class AccessInternalResourceImplTest {
 
     @Test
     public void getObjectGroupOk() throws Exception {
-        reset(mock);
-        when(mock.selectObjectGroupById(any(), eq(OBJECT_ID))).thenReturn(JsonHandler
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID))).thenReturn(JsonHandler
             .getFromString(DATA));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -527,8 +604,7 @@ public class AccessInternalResourceImplTest {
 
     @Test
     public void getObjectGroupNotFound() throws Exception {
-        reset(mock);
-        when(mock.selectObjectGroupById(any(), eq(OBJECT_ID)))
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID)))
             .thenThrow(new NotFoundException());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -540,9 +616,8 @@ public class AccessInternalResourceImplTest {
 
     @Test
     public void getObjectGroupInternalServerError() throws Exception {
-        reset(mock);
-        when(mock.selectObjectGroupById(any(), eq(OBJECT_ID)))
-            .thenThrow(new AccessInternalExecutionException("Wanted exception"));
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID)))
+            .thenThrow(new MetaDataClientServerException("Wanted exception"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -570,7 +645,8 @@ public class AccessInternalResourceImplTest {
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -585,11 +661,11 @@ public class AccessInternalResourceImplTest {
     @RunWithCustomExecutor
     public void getObjectStreamNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+        when(metaDataClient.selectObjectGrouptbyId(any(), anyString()))
+            .thenReturn(new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id"));
 
-        reset(mock);
-
-        doThrow(new StorageNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
+        when(storageClient.getContainerAsync(anyString(), eq(null), any(), any()))
+            .thenThrow(new StorageNotFoundException("test"));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -597,9 +673,8 @@ public class AccessInternalResourceImplTest {
             .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
-        reset(mock);
-        doThrow(new MetaDataNotFoundException("test")).when(mock)
-            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
+        doThrow(new MetaDataNotFoundException("test")).when(metaDataClient)
+            .selectObjectGrouptbyId(any(), anyString());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -613,10 +688,8 @@ public class AccessInternalResourceImplTest {
     @RunWithCustomExecutor
     public void getObjectStreamInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-
-        reset(mock);
-        doThrow(new AccessInternalExecutionException("Wanted exception")).when(mock)
-            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
+        doThrow(new MetaDataExecutionException("Wanted exception")).when(metaDataClient)
+            .selectObjectGrouptbyId(any(), anyString());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
@@ -637,12 +710,11 @@ public class AccessInternalResourceImplTest {
     @Test
     @RunWithCustomExecutor
     public void testGetObjectStreamUnauthorized() throws Exception {
-        reset(mock);
 
         doAnswer(invocation -> {
             return null;
-        }).when(mock)
-            .getOneObjectFromObjectGroup(any(), anyString(), anyInt(), anyString());
+        }).when(metaDataClient)
+            .selectObjectGrouptbyId(any(), anyString());
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())
@@ -659,8 +731,8 @@ public class AccessInternalResourceImplTest {
         JsonNode jsonNode = JsonHandler.getFromInputStream(resourceAsStream);
         requestResponse.addResult(jsonNode);
 
-        given(mock.selectUnitbyId(any(), anyString()))
-            .willReturn(JsonHandler.toJsonNode(requestResponse));
+        when(metaDataClient.selectUnitbyId(any(), anyString()))
+            .thenReturn(JsonHandler.toJsonNode(requestResponse));
 
         ArchiveUnitModel archiveUnitModel = buildObjectMapper().treeToValue(jsonNode, ArchiveUnitModel.class);
 

@@ -1,16 +1,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
@@ -45,20 +36,20 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class, StorageClientFactory.class,
-    LogbookOperationsClientFactory.class, LogbookLifeCyclesClientFactory.class, AdminManagementClientFactory.class})
+import java.io.File;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+
 public class GenerateAuditReportActionHandlerTest {
 
-    GenerateAuditReportActionHandler handler = new GenerateAuditReportActionHandler();
+    private GenerateAuditReportActionHandler handler;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private LogbookOperationsClient logbookOperationsClient;
@@ -101,43 +92,31 @@ public class GenerateAuditReportActionHandlerTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
 
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
         logbookOperationsClient = mock(LogbookOperationsClient.class);
         logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
 
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
-        PowerMockito.mockStatic(StorageClientFactory.class);
         storageClient = mock(StorageClient.class);
         storageClientFactory = mock(StorageClientFactory.class);
 
-        PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminManagementClient = mock(AdminManagementClient.class);
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
 
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCyclesClientFactory);
-        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient())
-            .thenReturn(logbookLifeCyclesClient);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient())
-            .thenReturn(logbookOperationsClient);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
-            .thenReturn(workspaceClient);
-        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
-        PowerMockito.when(StorageClientFactory.getInstance().getClient())
-            .thenReturn(storageClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient())
-            .thenReturn(adminManagementClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
+        handler = new GenerateAuditReportActionHandler(storageClientFactory, adminManagementClientFactory,
+            logbookOperationsClientFactory);
+        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
+            Lists.newArrayList());
     }
 
     @RunWithCustomExecutor

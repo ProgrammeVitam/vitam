@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -63,11 +64,15 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
     public static final String UNITS_UPS = "#unitups";
     private static final String PHYSICAL_MASTER = "PhysicalMaster";
 
-    /**
-     * Empty constructor CheckExistenceObjectPlugin
-     */
+    private final StorageClientFactory storageClientFactory;
+
     public CheckExistenceObjectPlugin() {
-        // Empty
+       this(StorageClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public CheckExistenceObjectPlugin(StorageClientFactory storageClientFactory) {
+        this.storageClientFactory = storageClientFactory;
     }
 
     @Override
@@ -80,7 +85,7 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
         int nbObjectOK = 0;
         int nbObjectKO = 0;
         int nbObjectPhysicalKO = 0;
-        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
+        try (final StorageClient storageClient = storageClientFactory.getClient()) {
             JsonNode ogNode = (JsonNode) handler.getInput(OG_NODE_RANK);
             JsonNode qualifiersList = ogNode.get(QUALIFIERS);
             JsonNode unitsUpsList = ogNode.get(UNITS_UPS);

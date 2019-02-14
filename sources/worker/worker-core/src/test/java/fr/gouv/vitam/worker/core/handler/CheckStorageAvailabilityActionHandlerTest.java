@@ -26,14 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -43,29 +36,35 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClientMock;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({SedaUtils.class, SedaUtilsFactory.class})
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+
 public class CheckStorageAvailabilityActionHandlerTest {
 
-    CheckStorageAvailabilityActionHandler handler = new CheckStorageAvailabilityActionHandler();
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
     private GUID guid;
     private HandlerIOImpl handlerIO;
@@ -74,12 +73,34 @@ public class CheckStorageAvailabilityActionHandlerTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
+    private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
+        mock(LogbookLifeCyclesClientFactory.class);
+    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+    private static final StorageClient storageClient = mock(StorageClient.class);
+    private static final LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+    private static final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+
+
+    private static final SedaUtils sedaUtils = mock(SedaUtils.class);
+
+    private CheckStorageAvailabilityActionHandler handler =
+        new CheckStorageAvailabilityActionHandler(storageClientFactory, sedaUtils);
+
     @Before
     public void setUp() {
-        PowerMockito.mockStatic(SedaUtilsFactory.class);
-        PowerMockito.mockStatic(SedaUtils.class);
+        reset(storageClient);
+        reset(workspaceClient);
+        reset(logbookLifeCyclesClient);
+        reset(sedaUtils);
+
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+
         guid = GUIDFactory.newGUID();
-        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
+            com.google.common.collect.Lists.newArrayList());
     }
 
     @After
@@ -89,8 +110,6 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     @Test
     public void givenSedaNotExistWhenCheckStorageThenReturnResponseFatal() throws Exception {
-        final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenThrow(new ProcessingException(""));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
@@ -104,18 +123,24 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseKO() throws Exception {
-        final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(838860800));
-        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(83886800));
+        when(sedaUtils.getManifestSize(any(), any())).thenReturn(new Long(83886800));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+
+
+        final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
+            "838860800,\"totalSizeToBeStored\":922747600,  \"nbc\": 2}," + "{\"offerId\": " +
+            "\"offer2\",\"usableSpace\": 838860800,\"totalSizeToBeStored\":922747600,  \"nbc\": 2}]}";
+
+        when(storageClient.getStorageInformation(anyString()))
+            .thenReturn(JsonHandler.getFromString(MOCK_INFOS_RESULT_ARRAY));
+
         final ItemStatus response = handler.execute(params, handlerIO);
-        System.out.println(JsonHandler.prettyPrint(response));
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         JsonNode evDetData = JsonHandler.getFromString(response.getEvDetailData());
         assertEquals(evDetData.get("offer1").textValue(), "KO");
@@ -129,11 +154,11 @@ public class CheckStorageAvailabilityActionHandlerTest {
 
     @Test
     public void givenSedaExistWhenCheckStorageExecuteThenReturnResponseOK() throws Exception {
-        final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
-        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(1024));
+        when(sedaUtils.getManifestSize(any(), any())).thenReturn(new Long(1024));
 
+        when(storageClient.getStorageInformation(anyString()))
+            .thenReturn(new StorageClientMock().getStorageInformation("str"));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -157,10 +182,8 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenProblemWithOfferCheckStorageExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-1);
-        final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
-        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(1024));
+        when(sedaUtils.getManifestSize(any(), any())).thenReturn(new Long(1024));
 
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
@@ -178,12 +201,8 @@ public class CheckStorageAvailabilityActionHandlerTest {
     @Test
     public void givenProblemWithOffersCheckStorageExecuteThenReturnResponseOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(-2);
-        final SedaUtils sedaUtils = mock(SedaUtils.class);
-        PowerMockito.when(SedaUtilsFactory.create(any())).thenReturn(sedaUtils);
         when(sedaUtils.computeTotalSizeOfObjectsInManifest(any())).thenReturn(new Long(1024));
-
-        when(sedaUtils.getManifestSize(any())).thenReturn(new Long(1024));
-
+        when(sedaUtils.getManifestSize(any(), any())).thenReturn(new Long(1024));
         assertEquals(CheckStorageAvailabilityActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")

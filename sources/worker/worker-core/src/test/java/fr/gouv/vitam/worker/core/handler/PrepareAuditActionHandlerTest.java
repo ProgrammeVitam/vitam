@@ -1,18 +1,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
@@ -30,6 +19,7 @@ import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -43,19 +33,21 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class, AdminManagementClientFactory.class})
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 public class PrepareAuditActionHandlerTest {
 
-    PrepareAuditActionHandler handler = new PrepareAuditActionHandler();
+    private PrepareAuditActionHandler handler;
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataClientFactory;
     private WorkspaceClient workspaceClient;
@@ -86,29 +78,21 @@ public class PrepareAuditActionHandlerTest {
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
-        PowerMockito.mockStatic(MetaDataClientFactory.class);
 
         metadataClient = mock(MetaDataClient.class);
         metadataClientFactory = mock(MetaDataClientFactory.class);
 
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
-
-        PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminClient = mock(AdminManagementClient.class);
         adminClientFactory = mock(AdminManagementClientFactory.class);
 
-        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
-        PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
-            .thenReturn(metadataClient);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
-            .thenReturn(workspaceClient);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient())
-            .thenReturn(adminClient);
+        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(adminClientFactory.getClient()).thenReturn(adminClient);
+
+        handler = new PrepareAuditActionHandler(metadataClientFactory, adminClientFactory);
 
         RequestResponseOK<AccessionRegisterSummaryModel> registerSummary = new RequestResponseOK<>();
         AccessionRegisterSummaryModel register = new AccessionRegisterSummaryModel();
@@ -117,7 +101,8 @@ public class PrepareAuditActionHandlerTest {
         registerSummary.addResult(register);
         when(adminClient.getAccessionRegister(any())).thenReturn(registerSummary);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
+        action = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(),
+            "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON)));
@@ -139,7 +124,8 @@ public class PrepareAuditActionHandlerTest {
 
     @Test
     public void executeWARNING() throws Exception {
-        action.addOutIOParameters(out);RequestResponseOK<AccessionRegisterSummaryModel> registerSummary = new RequestResponseOK<>();
+        action.addOutIOParameters(out);
+        RequestResponseOK<AccessionRegisterSummaryModel> registerSummary = new RequestResponseOK<>();
         AccessionRegisterSummaryModel register = new AccessionRegisterSummaryModel();
         register.setOriginatingAgency("originatingAgency");
         register.setTotalObjects(new RegisterValueDetailModel().setRemained(1));

@@ -26,28 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Sets;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -64,6 +50,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -76,9 +63,22 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.InvalidRuleException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
 
 /**
  * UnitsRulesCompute Plugin.<br>
@@ -103,12 +103,18 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     private static final int UNIT_INPUT_RANK = 0;
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
+    private AdminManagementClientFactory adminManagementClientFactory;
 
     /**
      * Empty constructor UnitsRulesComputePlugin
      */
     public UnitsRulesComputePlugin() {
-        // Empty
+        this(AdminManagementClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public UnitsRulesComputePlugin(AdminManagementClientFactory adminManagementClientFactory) {
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     @Override
@@ -212,7 +218,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
         select.setQuery(query);
 
-        try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
             return adminManagementClient.getRules(select.getFinalSelect());
         } catch (final VitamException e) {
             throw new ProcessingException(e);
@@ -223,8 +229,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     /**
      * Check archiveUnit json file and add end date for rules.
      *
-     * @param archiveUnit   archiveUnit json file
-     * @param objectName    json file name
+     * @param archiveUnit archiveUnit json file
+     * @param objectName json file name
      * @param containerName
      * @throws IOException
      * @throws ProcessingException
@@ -335,7 +341,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         }
         final StringBuffer report = new StringBuffer();
         ManagementModel managementModel = JsonHandler.getFromJsonNode(managementNode, ManagementModel.class);
-        try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
             if (null != managementModel.getAccess()) {
                 if (null != managementModel.getAccess().getInheritance() &&
                     null != managementModel.getAccess().getInheritance().getPreventRulesId()) {
@@ -402,7 +408,7 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         Collection<String> ruleIds,
         AdminManagementClient adminManagementClient)
         throws FileRulesException, InvalidParseOperationException, InvalidFormatException,
-            AdminManagementClientServerException {
+        AdminManagementClientServerException {
 
         if (null == ruleIds) {
             return;
@@ -447,9 +453,9 @@ public class UnitsRulesComputePlugin extends ActionHandler {
     /**
      * Compute enddate for rule node
      *
-     * @param ruleNode     current ruleNode from archive unit
+     * @param ruleNode current ruleNode from archive unit
      * @param rulesResults rules referential
-     * @param ruleType     current rule type
+     * @param ruleType current rule type
      * @throws FileRulesException
      * @throws InvalidParseOperationException
      * @throws ProcessingException
@@ -506,7 +512,8 @@ public class UnitsRulesComputePlugin extends ActionHandler {
         throw new InvalidRuleException(UnitRulesComputeStatus.UNKNOWN, JsonHandler.unprettyPrint(json), unitId);
     }
 
-    private LocalDate getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType, String unitId)
+    private LocalDate getEndDate(String startDateString, String ruleId, JsonNode rulesResults, String currentRuleType,
+        String unitId)
         throws FileRulesException, InvalidParseOperationException, ParseException, ProcessingException {
 
         if (!ParametersChecker.isNotEmpty(startDateString)) {

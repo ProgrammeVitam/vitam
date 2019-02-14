@@ -1,40 +1,30 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
 import com.mongodb.Block;
 import com.mongodb.client.model.Filters;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.elasticsearch.client.transport.TransportClient;
-import org.elasticsearch.common.settings.Settings;
-import org.elasticsearch.common.transport.TransportAddress;
-import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class PopulateServiceTest {
 
@@ -70,16 +60,9 @@ public class PopulateServiceTest {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
 
-        StoragePopulateImpl storagePopulateService;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(STORAGE_CONF_FILE)) {
-            final fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration
-                configuration =
-                PropertiesUtils.readYaml(yamlIS, fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration.class);
-            storagePopulateService = new StoragePopulateImpl(configuration);
-        }
-
+        StoragePopulateImpl storagePopulateService = mock(StoragePopulateImpl.class);
         this.metadataRepository =
             new MetadataRepository(mongoRule.getMongoDatabase(), elasticsearchRule.getClient(), storagePopulateService);
         this.masterdataRepository =
@@ -172,14 +155,14 @@ public class PopulateServiceTest {
     public void should_populate_logbook_collections() throws Exception {
         // Given
         PopulateModel populateModel = new PopulateModel();
-        populateModel.setBulkSize(1000);
-        populateModel.setNumberOfUnit(10);
+        populateModel.setBulkSize(100);
+        populateModel.setNumberOfUnit(5);
         populateModel.setRootId("1234");
         populateModel.setSp("vitam");
         populateModel.setTenant(0);
         populateModel.setWithGots(true);
         populateModel.setWithRules(true);
-        populateModel.setObjectSize(1024);
+        populateModel.setObjectSize(256);
         populateModel.setWithLFCGots(true);
         populateModel.setWithLFCUnits(true);
         Map<String, Integer> ruleMap = new HashMap<>();
@@ -212,9 +195,9 @@ public class PopulateServiceTest {
         }
 
         assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).count())
-            .isEqualTo(10);
+            .isEqualTo(5);
         assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).count())
-            .isEqualTo(10);
+            .isEqualTo(5);
         mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).find().skip(1).
             forEach((Block<? super Document>) doc -> {
                 assertThat(doc.getInteger("_tenant").equals(0)).isTrue();

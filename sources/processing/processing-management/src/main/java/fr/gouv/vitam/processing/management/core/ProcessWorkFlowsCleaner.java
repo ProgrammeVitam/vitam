@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -52,17 +53,22 @@ public class ProcessWorkFlowsCleaner implements Runnable {
 
     private Integer period = VitamConfiguration.getVitamCleanPeriod();
     private LocalDateTime timeLimit;
-    final private ProcessManagement processManagement;
+    private final ProcessManagement processManagement;
 
+    private final  ProcessDataManagement processDataManagement;
     private TimeUnit timeUnit;
 
     public ProcessWorkFlowsCleaner(ProcessManagement processManagement, TimeUnit timeunit) {
-        this.timeUnit = timeunit;
-        this.processManagement = processManagement;
-        processDataManagement = WorkspaceProcessDataManagement.getInstance();
-        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(this, period, period, timeUnit);
+        this(processManagement,  WorkspaceProcessDataManagement.getInstance(), timeunit);
     }
 
+    @VisibleForTesting
+    public ProcessWorkFlowsCleaner(ProcessManagement processManagement, ProcessDataManagement processDataManagement, TimeUnit timeunit) {
+        this.timeUnit = timeunit;
+        this.processManagement = processManagement;
+        this.processDataManagement =processDataManagement;
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(this, period, period, timeUnit);
+    }
 
     @Override
     public void run() {
@@ -71,8 +77,6 @@ public class ProcessWorkFlowsCleaner implements Runnable {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
         this.cleanProcessingByTenants();
     }
-
-    ProcessDataManagement processDataManagement;
 
     // clean workflow by tenant
     private void cleanProcessingByTenants() {
