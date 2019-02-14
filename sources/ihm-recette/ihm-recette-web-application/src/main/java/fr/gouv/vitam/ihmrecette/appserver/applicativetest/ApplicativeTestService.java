@@ -253,10 +253,6 @@ public class ApplicativeTestService {
         return process.exitValue();
     }
 
-    int resetTnrMaster(Path featurePath) throws InterruptedException, IOException {
-        return reset(featurePath, "tnr_master");
-    }
-
     void fetch(Path featurePath) throws InterruptedException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder("git", "fetch");
         processBuilder.directory(featurePath.toFile());
