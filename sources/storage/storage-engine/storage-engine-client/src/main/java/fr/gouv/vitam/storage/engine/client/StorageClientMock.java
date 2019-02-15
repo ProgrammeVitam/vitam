@@ -26,34 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
-import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
-import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -61,6 +42,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -68,8 +50,29 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import org.apache.commons.io.IOUtils;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Mock client implementation for storage
@@ -150,6 +153,20 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     public boolean exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         return true;
+    }
+
+    @Override
+    public BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest) {
+
+        Map<String, String> dummyDigests = bulkObjectStoreRequest.getObjectNames().stream()
+            .collect(Collectors.toMap(objectId -> objectId, objectId -> "dummy-digest"));
+
+        return new BulkObjectStoreResponse(
+            Collections.singletonList("fakeOfferId"),
+            DigestType.SHA512.getName(),
+            dummyDigests
+        );
     }
 
     private StoredInfoResult generateStoredInfoResult(String guid) {

@@ -26,12 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -52,8 +54,10 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
@@ -62,6 +66,7 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -78,6 +83,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.IntStream;
 
@@ -265,6 +271,16 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         public Response getOfferLogs(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
             @PathParam("type") String type, OfferLogRequest offerLogRequest) {
             return expectedResponse.get();
+        }
+
+
+        @Path("/bulk/{folder}")
+        @POST
+        @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response bulkCreateFromWorkspace(@Context HttpServletRequest httpServletRequest,
+            @PathParam("folder") String folder, BulkObjectStoreRequest bulkObjectStoreRequest) {
+            return expectedResponse.post();
         }
     }
 
@@ -657,6 +673,102 @@ public class StorageClientRestTest extends ResteasyTestApplication {
     public void getOfferLogInvalidRequestOrder() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         client.getOfferLogs("idStrategy", DataCategory.OBJECT, 2L, 10, null);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void bulkCreateFromWorkspaceOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).entity(
+                new BulkObjectStoreResponse(
+                    Arrays.asList("offer1", "offer2"),
+                    DigestType.SHA512.getName(),
+                    ImmutableMap.of("ob1", "digest1", "ob2", "digest2"))
+            ).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", getBulkObjectStoreRequest());
+    }
+
+
+    @RunWithCustomExecutor
+    @Test(expected = StorageNotFoundClientException.class)
+    public void bulkCreateFromWorkspaceNotFound() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", getBulkObjectStoreRequest());
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = StorageAlreadyExistsClientException.class)
+    public void bulkCreateFromWorkspaceAlreadyExist() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", getBulkObjectStoreRequest());
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = StorageServerClientException.class)
+    public void bulkCreateFromWorkspaceInternalServerError() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", getBulkObjectStoreRequest());
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void bulkCreateFromWorkspaceWithTenantIllegalArgumentException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(null);
+        client.bulkStoreFilesFromWorkspace("idStrategy", getBulkObjectStoreRequest());
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void bulkCreateFromWorkspaceWithStrategyIllegalArgumentException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.bulkStoreFilesFromWorkspace(null, getBulkObjectStoreRequest());
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void bulkCreateFromWorkspaceWithoutRequestIllegalArgumentException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", null);
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void bulkCreateFromWorkspaceWithBadWorkspaceContainerIllegalArgumentException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", new BulkObjectStoreRequest("",
+            Arrays.asList("uri1", "uri2"), DataCategory.UNIT, Arrays.asList("ob1", "ob2")));
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void bulkCreateFromWorkspaceWithBadWorkspaceUrisIllegalArgumentException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", new BulkObjectStoreRequest("workspaceContainer",
+            Arrays.asList("uri1", ""), DataCategory.UNIT, Arrays.asList("ob1", "ob2")));
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void bulkCreateFromWorkspaceWithBadObjectIdsIllegalArgumentException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", new BulkObjectStoreRequest("workspaceContainer",
+            Arrays.asList("uri1", "uri2"), DataCategory.UNIT, Arrays.asList("ob1", "")));
+    }
+
+    @RunWithCustomExecutor
+    @Test(expected = IllegalArgumentException.class)
+    public void bulkCreateFromWorkspaceWithBadDataCategoryIllegalArgumentException() throws Exception {
+        when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
+        client.bulkStoreFilesFromWorkspace("idStrategy", new BulkObjectStoreRequest("workspaceContainer",
+            Arrays.asList("uri1", "uri2"), null, Arrays.asList("ob1", "ob2")));
+    }
+
+    private BulkObjectStoreRequest getBulkObjectStoreRequest() {
+        return new BulkObjectStoreRequest("workspaceContainer",
+            Arrays.asList("uri1", "uri2"), DataCategory.UNIT, Arrays.asList("ob1", "ob2"));
     }
 
 }

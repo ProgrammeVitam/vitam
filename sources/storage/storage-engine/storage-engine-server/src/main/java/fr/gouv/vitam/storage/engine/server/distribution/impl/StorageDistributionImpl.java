@@ -79,8 +79,10 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
@@ -91,6 +93,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
@@ -201,6 +204,7 @@ public class StorageDistributionImpl implements StorageDistribution {
     private final ExecutorService batchExecutorService;
     private final int batchDigestComputationTimeout;
     private final WorkspaceClientFactory workspaceClientFactory;
+    private final BulkStorageDistribution bulkStorageDistribution;
 
     /**
      * Constructs the service with a given configuration
@@ -220,11 +224,13 @@ public class StorageDistributionImpl implements StorageDistribution {
                 1L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(), VitamThreadFactory.getInstance());
         batchDigestComputationTimeout = configuration.getBatchDigestComputationTimeout();
         this.transfertTimeoutHelper = new TransfertTimeoutHelper(configuration.getTimeoutMsPerKB());
+        this.bulkStorageDistribution = new BulkStorageDistribution(NB_RETRY, this.workspaceClientFactory,
+            this.storageLogService, this.transfertTimeoutHelper);
     }
 
     @VisibleForTesting
     StorageDistributionImpl(WorkspaceClientFactory workspaceClientFactory, DigestType digestType, StorageLog storageLogService,
-        ExecutorService batchExecutorService, int batchDigestComputationTimeout) {
+        ExecutorService batchExecutorService, int batchDigestComputationTimeout, BulkStorageDistribution bulkStorageDistribution) {
         urlWorkspace = null;
         this.transfertTimeoutHelper = new TransfertTimeoutHelper(100L);
         this.workspaceClientFactory = workspaceClientFactory;
@@ -232,6 +238,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         this.storageLogService = storageLogService;
         this.batchExecutorService = batchExecutorService;
         this.batchDigestComputationTimeout = batchDigestComputationTimeout;
+        this.bulkStorageDistribution = bulkStorageDistribution;
     }
 
     @Override
@@ -456,6 +463,33 @@ public class StorageDistributionImpl implements StorageDistribution {
         return offerReferences.stream()
             .map(StorageDistributionImpl::apply)
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public BulkObjectStoreResponse bulkCreateFromWorkspace(String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest, String requester)
+        throws StorageException {
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        List<String> offerIds =
+            getStorageOffers(strategyId).stream().map(StorageOffer::getId).collect(Collectors.toList());
+
+        Map<String, Driver> storageDrivers = new HashMap<>();
+        for (String offerId : offerIds) {
+            storageDrivers.put(offerId, retrieveDriverInternal(offerId));
+        }
+
+        Map<String, StorageOffer> storageOffers = new HashMap<>();
+        for (String offerId : offerIds) {
+            storageOffers.put(offerId, OFFER_PROVIDER.getStorageOffer(offerId));
+        }
+
+        Map<String, String> objectDigests =
+            bulkStorageDistribution.bulkCreateFromWorkspaceWithRetries(tenantId, offerIds, storageDrivers, storageOffers,
+                bulkObjectStoreRequest.getType(), bulkObjectStoreRequest.getWorkspaceContainerGUID(),
+                bulkObjectStoreRequest.getWorkspaceObjectURIs(), bulkObjectStoreRequest.getObjectNames(), requester);
+
+        return new BulkObjectStoreResponse(offerIds, digestType.getName(), objectDigests);
     }
 
     @Override

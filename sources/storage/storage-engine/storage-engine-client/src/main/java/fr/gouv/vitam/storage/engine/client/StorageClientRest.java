@@ -49,9 +49,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 import javax.ws.rs.HttpMethod;
@@ -167,6 +169,41 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
+    public BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest)
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
+        ParametersChecker.checkParameter("Expected valid request", bulkObjectStoreRequest);
+        ParametersChecker.checkParameter("Invalid digest type", bulkObjectStoreRequest.getType());
+        ParametersChecker.checkParameter("Invalid workspace URIs", bulkObjectStoreRequest.getWorkspaceObjectURIs());
+        ParametersChecker.checkParameter("Invalid workspace URIs",
+            bulkObjectStoreRequest.getWorkspaceObjectURIs().toArray());
+        ParametersChecker.checkParameter("Invalid object ids", bulkObjectStoreRequest.getObjectNames());
+        ParametersChecker.checkParameter("Invalid object ids", bulkObjectStoreRequest.getObjectNames().toArray());
+        if(bulkObjectStoreRequest.getObjectNames().size() != bulkObjectStoreRequest.getWorkspaceObjectURIs().size()) {
+            throw new IllegalArgumentException("Object uris count do not match object ids count");
+        }
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, "/bulk/" + bulkObjectStoreRequest.getType().getCollectionName(),
+                getDefaultHeaders(tenantId, strategyId, null, null), bulkObjectStoreRequest,
+                MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return handlePostResponseStatus(response, BulkObjectStoreResponse.class);
+        } catch (final VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
     public boolean existsContainer(String strategyId) throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -242,7 +279,8 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type, Collection<String> offerIds,
+    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId,
+        DataCategory type, Collection<String> offerIds,
         Collection<String> objectIds)
         throws StorageServerClientException {
 

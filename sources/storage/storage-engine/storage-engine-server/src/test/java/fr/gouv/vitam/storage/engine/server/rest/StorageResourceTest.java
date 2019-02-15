@@ -26,28 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -71,6 +49,7 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.common.serverv2.application.ApplicationParameter;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
@@ -82,9 +61,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
@@ -95,6 +76,35 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -931,6 +941,172 @@ public class StorageResourceTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public final void bulkCreateFromWorkspaceOK() throws Exception {
+
+        // Given
+        int tenantId = 2;
+        String strategyId = "strategyId";
+        String workspaceContainer = "workspaceContainer";
+        List<String> uris = Arrays.asList("uri1", "uri2");
+        DataCategory dataCategory = DataCategory.UNIT;
+        List<String> objectNames = Arrays.asList("ob1", "ob2");
+        String requester = "requester";
+
+        BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
+            workspaceContainer, uris, dataCategory, objectNames);
+
+        BulkObjectStoreResponse bulkObjectStoreResponse = mock(BulkObjectStoreResponse.class);
+
+
+        HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
+
+        HttpHeaders headers = getHttpHeaders(tenantId, strategyId);
+
+        StorageDistribution storageDistribution = mock(StorageDistribution.class);
+        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
+
+        doReturn(bulkObjectStoreResponse)
+            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
+
+        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
+
+        // When
+        Response response = storageResource.bulkCreateFromWorkspace(
+            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
+        assertThat(response.getEntity()).isEqualTo(bulkObjectStoreResponse);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public final void bulkCreateFromWorkspaceIllegalArguments() {
+
+        // Given
+        int tenantId = 2;
+        String strategyId = "strategyId";
+        String workspaceContainer = "workspaceContainer";
+        List<String> uris = Arrays.asList("uri1", "uri2");
+        DataCategory dataCategory = DataCategory.UNIT;
+        List<String> objectNames = Arrays.asList("ob1", "ob2");
+        String requester = "requester";
+
+        // Missing tenant
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(null, strategyId),
+            dataCategory.getCollectionName());
+
+        // Missing strategy
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, null),
+            dataCategory.getCollectionName());
+
+        // Missing workspace container
+        checkBackRequest(
+            new BulkObjectStoreRequest("", uris, dataCategory, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        checkBackRequest(
+            new BulkObjectStoreRequest(null, uris, dataCategory, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        // Missing uri
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer,  null, dataCategory, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer,  Arrays.asList("uri1", null), dataCategory, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        // Missing data category
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, uris, null, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        // Missing object name
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, null),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, Collections.emptyList()),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, Arrays.asList("ob1", null)),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+
+        // Invalid folder
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            "invalid folder");
+
+        // Uri / object name mismatch
+        checkBackRequest(
+            new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", "uri2", "uri3"), dataCategory, Arrays.asList("ob1", "ob2")),
+            getHttpServletRequest(requester),
+            getHttpHeaders(tenantId, strategyId),
+            dataCategory.getCollectionName());
+    }
+
+    private void checkBackRequest(BulkObjectStoreRequest bulkObjectStoreRequest,
+        HttpServletRequest httpServletRequest, HttpHeaders headers, String folder) {
+
+        StorageDistribution storageDistribution = mock(StorageDistribution.class);
+        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
+
+        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
+
+        Response response = storageResource.bulkCreateFromWorkspace(
+            httpServletRequest, headers, folder, bulkObjectStoreRequest);
+
+        assertThat(response.getStatus()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    private HttpServletRequest getHttpServletRequest(String requester) {
+        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+        doReturn(requester).when(httpServletRequest).getRemoteAddr();
+        return httpServletRequest;
+    }
+
+    private HttpHeaders getHttpHeaders(Integer tenantId, String strategyId) {
+        HttpHeaders headers = mock(HttpHeaders.class);
+        if(strategyId != null) {
+            doReturn(Collections.singletonList(strategyId)).when(headers)
+                .getRequestHeader(VitamHttpHeader.STRATEGY_ID.getName());
+        }
+        if(tenantId != null) {
+            doReturn(Collections.singletonList(Integer.toString(tenantId))).when(headers)
+                .getRequestHeader(VitamHttpHeader.TENANT_ID.getName());
+        }
+        return headers;
+    }
 
     private static VitamStarter buildTestServer() {
         return new VitamStarter(StorageConfiguration.class, "storage-engine.conf",
@@ -1191,6 +1367,11 @@ public class StorageResourceTest {
             return new RequestResponseOK<OfferLog>().setHttpCode(Status.OK.getStatusCode());
         }
 
+        @Override
+        public BulkObjectStoreResponse bulkCreateFromWorkspace(String strategyId,
+            BulkObjectStoreRequest bulkObjectStoreRequest, String requester) {
+            throw new UnsupportedOperationException("UnsupportedOperationException");
+        }
     }
 
 }

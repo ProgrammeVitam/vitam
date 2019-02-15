@@ -68,9 +68,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
@@ -2249,5 +2251,59 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
         }
         return buildErrorResponse(vitamCode);
+    }
+
+    @Path("/bulk/{folder}")
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response bulkCreateFromWorkspace(@Context HttpServletRequest httpServletRequest,
+        @Context HttpHeaders headers,
+        @PathParam("folder") String folder, BulkObjectStoreRequest bulkObjectStoreRequest) {
+
+        try {
+            // check headers
+            VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+            if (vitamCode != null) {
+                return buildErrorResponse(vitamCode);
+            }
+
+            String requester = httpServletRequest.getRemoteAddr();
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
+            // Basic checks
+            ParametersChecker.checkParameter("Strategy id is mandatory", strategyId);
+            ParametersChecker.checkParameter("Request is mandatory", bulkObjectStoreRequest);
+            ParametersChecker.checkParameter("DataCategory is mandatory", bulkObjectStoreRequest.getType());
+            ParametersChecker.checkParameter("Object names are mandatory",
+                bulkObjectStoreRequest.getObjectNames());
+            ParametersChecker.checkParameter("Object names are mandatory",
+                bulkObjectStoreRequest.getObjectNames().toArray());
+            ParametersChecker.checkParameter("Workspace container is mandatory",
+                bulkObjectStoreRequest.getWorkspaceContainerGUID());
+            ParametersChecker.checkParameter("Workspace object URIs are mandatory",
+                bulkObjectStoreRequest.getWorkspaceObjectURIs());
+            ParametersChecker.checkParameter("Workspace object URIs are mandatory",
+                bulkObjectStoreRequest.getWorkspaceObjectURIs().toArray());
+            if (bulkObjectStoreRequest.getObjectNames().isEmpty()) {
+                throw new IllegalArgumentException("Empty object ids set");
+            }
+            if (bulkObjectStoreRequest.getObjectNames().size() != bulkObjectStoreRequest.getWorkspaceObjectURIs().size()) {
+                throw new IllegalArgumentException("Object ids must match workspace URIs");
+            }
+            if (!folder.equals(bulkObjectStoreRequest.getType().getCollectionName())) {
+                throw new IllegalArgumentException("Folder do not match collection name");
+            }
+
+            BulkObjectStoreResponse result =
+                distribution.bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
+            return Response.status(Status.CREATED).entity(result).build();
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
+        } catch (final Exception exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
     }
 }

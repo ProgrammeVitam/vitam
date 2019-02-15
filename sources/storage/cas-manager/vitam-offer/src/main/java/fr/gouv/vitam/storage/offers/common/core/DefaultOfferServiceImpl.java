@@ -243,38 +243,46 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         MultiplexedStreamReader multiplexedStreamReader, DataCategory type, DigestType digestType)
         throws ContentAddressableStorageException, IOException {
 
-        ensureContainerExists(containerName);
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        try {
+            ensureContainerExists(containerName);
 
-        bulkLogObjectWriteInOfferLog(containerName, objectIds);
+            bulkLogObjectWriteInOfferLog(containerName, objectIds);
 
-        List<StorageBulkPutResultEntry> entries = new ArrayList<>();
+            List<StorageBulkPutResultEntry> entries = new ArrayList<>();
 
-        for (String objectId : objectIds) {
+            for (String objectId : objectIds) {
 
-            Optional<ExactSizeInputStream> entryInputStream = multiplexedStreamReader.readNextEntry();
-            if (!entryInputStream.isPresent()) {
-                throw new IllegalStateException("No entry not found for object id " + objectId);
+                Optional<ExactSizeInputStream> entryInputStream = multiplexedStreamReader.readNextEntry();
+                if (!entryInputStream.isPresent()) {
+                    throw new IllegalStateException("No entry not found for object id " + objectId);
+                }
+
+                LOGGER.info("Writing object '" + objectId + "' of container " + containerName);
+
+                ExactSizeInputStream inputStream = entryInputStream.get();
+
+                String digest;
+                String existingDigest =
+                    checkNonRewritableObjects(containerName, objectId, inputStream, type, digestType);
+                if (existingDigest != null) {
+                    digest = existingDigest;
+                } else {
+                    digest = putObject(containerName, objectId, inputStream, inputStream.getSize(), digestType, type);
+                }
+                entries.add(new StorageBulkPutResultEntry(objectId, digest, inputStream.getSize()));
             }
 
-            LOGGER.info("Writing object '" + objectId + "' of container " + containerName);
-
-            ExactSizeInputStream inputStream = entryInputStream.get();
-
-            String digest;
-            String existingDigest = checkNonRewritableObjects(containerName, objectId, inputStream, type, digestType);
-            if (existingDigest != null) {
-                digest = existingDigest;
-            } else {
-                digest = putObject(containerName, objectId, inputStream, inputStream.getSize(), digestType, type);
+            if (multiplexedStreamReader.readNextEntry().isPresent()) {
+                throw new IllegalStateException("No more entries expected");
             }
-            entries.add(new StorageBulkPutResultEntry(objectId, digest, inputStream.getSize()));
-        }
 
-        if (multiplexedStreamReader.readNextEntry().isPresent()) {
-            throw new IllegalStateException("No more entries expected");
-        }
+            return new StorageBulkPutResult(entries);
 
-        return new StorageBulkPutResult(entries);
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
+                "BULK_PUT_OBJECTS", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        }
     }
 
     private void bulkLogObjectWriteInOfferLog(String containerName, List<String> objectIds)
@@ -282,9 +290,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         // Log in offer log
         Stopwatch times = Stopwatch.createStarted();
         offerDatabaseService.bulkSave(containerName, objectIds, OfferLogAction.WRITE);
-        PerformanceLogger
-            .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "LOG_CREATE_IN_DB", times.elapsed(
-            TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
+            "BULK_LOG_CREATE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
     }
 
     @Override

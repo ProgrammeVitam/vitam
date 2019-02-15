@@ -40,8 +40,10 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 
 import javax.ws.rs.core.Response;
@@ -92,6 +94,19 @@ public interface StorageClient extends BasicClient {
      */
     StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
         ObjectDescription description)
+        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
+
+    /**
+     * Store objects available in workspace into offers
+     *
+     * @param strategyId the storage strategy id
+     * @param bulkObjectStoreRequest request
+     * @return the result status of object creation
+     * @throws StorageAlreadyExistsClientException if the Server got a CONFLICT status result
+     * @throws StorageNotFoundClientException if the Server got a NotFound result
+     * @throws StorageServerClientException if the Server got an internal error
+     */
+    BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId, BulkObjectStoreRequest bulkObjectStoreRequest)
         throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException;
 
     /**
