@@ -104,4 +104,24 @@ public class OfferSequenceServiceTest {
             service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
         }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
     }
+
+    @Test
+    public void testNextSequenceForBulkPut() throws ContentAddressableStorageDatabaseException {
+        OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(mongoRule.getMongoDatabase());
+
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
+            .hasSize(0);
+
+        long nextSequence1 = service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 5L);
+        assertThat(nextSequence1).isEqualTo(1L);
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
+            .hasSize(1)
+            .extracting("Counter").containsExactly(5L);
+
+        long nextSequence2 = service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 3L);
+        assertThat(nextSequence2).isEqualTo(6L);
+        assertThat(mongoRule.getMongoCollection(OfferCollections.OFFER_SEQUENCE.getName()).find())
+            .hasSize(1)
+            .extracting("Counter").containsExactly(8L);
+    }
 }

@@ -49,19 +49,22 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.ExactSizeInputStream;
+import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
+import fr.gouv.vitam.storage.offers.common.core.NonUpdatableContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.storage.offers.common.core.NonUpdatableContentAddressableStorageException;
 import org.apache.commons.lang3.StringUtils;
 import org.openstack4j.api.exceptions.ConnectionException;
 
@@ -85,6 +88,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Default offer REST Resource
@@ -371,8 +375,70 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         } catch (NonUpdatableContentAddressableStorageException e) {
             LOGGER.error("Object overriding forbidden", e);
             return Response.status(Status.CONFLICT).build();
+        } catch (Exception exc) {
+            LOGGER.error("Cannot create object", exc);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            StreamUtils.closeSilently(input);
         }
-        catch (Exception exc) {
+    }
+
+    /**
+     * Bulk create or update objects.
+     *
+     * @param type Object's type
+     * @param headers http header
+     * @return structured response with the object id
+     */
+    @PUT
+    @Path("/bulk/objects/{type}")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response bulkPutObjects(@PathParam("type") DataCategory type,
+        @Context HttpHeaders headers, InputStream input) {
+
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        if (Strings.isNullOrEmpty(xTenantId)) {
+            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        final String containerName = buildContainerName(type, xTenantId);
+
+        final String size = headers.getHeaderString(GlobalDataRest.VITAM_CONTENT_LENGTH);
+        Long inputStreamSize;
+        try {
+            inputStreamSize = Long.valueOf(size);
+        } catch (NumberFormatException e) {
+            LOGGER.error("Bad or missing size '" + size + "'");
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        try {
+            MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(
+                new ExactSizeInputStream(input, inputStreamSize));
+
+            Optional<ExactSizeInputStream> headerEntry = multiplexedStreamReader.readNextEntry();
+            if (!headerEntry.isPresent()) {
+                throw new IllegalStateException("Header entry not found");
+            }
+            List<String> objectIds = JsonHandler.getFromInputStream(headerEntry.get(), List.class);
+
+            String xDigestAlgorithm = headers.getHeaderString(GlobalDataRest.X_DIGEST_ALGORITHM);
+            if (StringUtils.isEmpty(xDigestAlgorithm)) {
+                LOGGER.error("Missing digest");
+                return Response.status(Response.Status.BAD_REQUEST).build();
+            }
+            DigestType digestType = DigestType.fromValue(xDigestAlgorithm);
+
+            StorageBulkPutResult storageBulkPutResult = defaultOfferService
+                .bulkPutObjects(containerName, objectIds, multiplexedStreamReader, type, digestType);
+
+            return Response.status(Status.CREATED).entity(storageBulkPutResult).build();
+
+        } catch (NonUpdatableContentAddressableStorageException e) {
+            LOGGER.error("Object overriding forbidden", e);
+            return Response.status(Status.CONFLICT).build();
+        } catch (Exception exc) {
             LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } finally {

@@ -42,6 +42,8 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -53,7 +55,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
@@ -227,6 +228,46 @@ public class ConnectionImpl extends AbstractConnection {
             }
 
             return result;
+        } catch (final IllegalArgumentException exc) {
+            throw new StorageDriverPreconditionFailedException(getDriverName(), exc);
+        } catch (final VitamClientInternalException e) {
+            throw new StorageDriverException(getDriverName(), true, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public StorageBulkPutResult bulkPutObjects(StorageBulkPutRequest request) throws StorageDriverException {
+        Response response = null;
+        try {
+            ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+            ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getObjectIds());
+            ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getObjectIds().toArray());
+            ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+            ParametersChecker.checkParameter(ALGORITHM_IS_A_MANDATORY_PARAMETER, request.getDigestType());
+            ParametersChecker.checkParameter(TYPE_IS_A_MANDATORY_PARAMETER, request.getType());
+            ParametersChecker.checkParameter(TYPE_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+            ParametersChecker.checkParameter(STREAM_IS_A_MANDATORY_PARAMETER, request.getDataStream());
+
+            final InputStream stream = request.getDataStream();
+            // init
+            response = performRequest(HttpMethod.PUT,
+                "/bulk/objects/" + DataCategory.getByFolder(request.getType()),
+                getDefaultHeaders(request.getTenantId(), null,
+                    request.getDigestType().getName(), request.getSize(), null),
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
+
+            StorageBulkPutResult result = handleResponseStatus(response, StorageBulkPutResult.class);
+
+            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
+                throw new StorageDriverException(getDriverName(),
+                    "Error while performing bulk put object operation for objects " + request.getObjectIds() + " (" +
+                        request.getType() + ")", true);
+            }
+
+            return result;
+
         } catch (final IllegalArgumentException exc) {
             throw new StorageDriverPreconditionFailedException(getDriverName(), exc);
         } catch (final VitamClientInternalException e) {

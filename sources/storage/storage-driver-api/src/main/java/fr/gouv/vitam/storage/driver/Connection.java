@@ -33,6 +33,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
@@ -93,6 +95,12 @@ public interface Connection extends AutoCloseable {
      */
 
     StoragePutResult putObject(StoragePutRequest request) throws StorageDriverException;
+
+    /**
+     * Bulk put object files into the storage offer.
+     * @throws StorageDriverException if any problem occurs during request
+     */
+    StorageBulkPutResult bulkPutObjects(StorageBulkPutRequest request) throws StorageDriverException;
 
     /**
      * Delete an object on the distant storage offer.

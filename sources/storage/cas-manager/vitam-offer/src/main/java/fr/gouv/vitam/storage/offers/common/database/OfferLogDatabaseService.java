@@ -31,6 +31,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.InsertManyOptions;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -100,6 +101,45 @@ public class OfferLogDatabaseService {
         } catch (MongoException e) {
             throw new ContentAddressableStorageDatabaseException(String.format(
                 "Database Error while saving %s in OfferLog collection", fileName), e);
+        }
+    }
+
+    /**
+     * Save on offerLog.
+     *
+     * @param containerName name of the container
+     * @param fileNames file names
+     * @param action action
+     * @throws ContentAddressableStorageServerException parsing error
+     * @throws ContentAddressableStorageDatabaseException database error
+     */
+    public void bulkSave(String containerName, List<String> fileNames, OfferLogAction action)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        try {
+            long nextSequence = offerSequenceDatabaseService
+                .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, fileNames.size());
+
+            List<Document> documents = new ArrayList<>();
+            for (String fileName : fileNames) {
+                OfferLog offerLog = new OfferLog(containerName, fileName, action);
+                offerLog.setSequence(nextSequence);
+
+                String json;
+                try {
+                    json = JsonHandler.writeAsString(offerLog);
+                } catch (InvalidParseOperationException exc) {
+                    throw new ContentAddressableStorageServerException("Cannot parse storage log", exc);
+                }
+
+                documents.add(Document.parse(json));
+                nextSequence++;
+            }
+
+            mongoCollection.insertMany(documents, new InsertManyOptions().ordered(false));
+
+        } catch (MongoException e) {
+            throw new ContentAddressableStorageDatabaseException(String.format(
+                "Database Error while saving %s in OfferLog collection", fileNames), e);
         }
     }
 

@@ -30,6 +30,7 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -38,6 +39,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.After;
@@ -52,6 +54,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -351,5 +354,34 @@ public class OfferLogDatabaseServiceTest {
         assertThatCode(() -> {
             offerLogDatabaseService.searchOfferLog(CONTAINER_OBJECT_0, 0L, 1, Order.ASC);
         }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
+    }
+
+    @Test
+    public void should_append_sequence_when_bulk_save()
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        // given
+        List<String> fileNames = Arrays.asList("object_name_1.json", "object_name_2.json", "object_name_3.json");
+        long longSequence = Integer.MAX_VALUE + 10L;
+        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, (long)fileNames.size()))
+            .thenReturn(longSequence);
+
+        // when
+        offerLogDatabaseService.bulkSave(CONTAINER_OBJECT_0, fileNames, OfferLogAction.WRITE);
+
+        // then
+        verify(offerSequenceDatabaseService, Mockito.times(1))
+            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, (long)fileNames.size());
+
+        List<Document> documents =
+            IteratorUtils.toList(mongoRule.getMongoCollection(OfferCollections.OFFER_LOG.getName())
+                .find(Filters.and(Filters.in("FileName", fileNames))).sort(Sorts.ascending("FileName")).iterator());
+
+        assertThat(documents).hasSize(fileNames.size());
+        for (int i = 0; i < fileNames.size(); i++) {
+            Document document = documents.get(i);
+            assertThat(document.get("FileName")).isEqualTo(fileNames.get(i));
+            assertThat(document.get("Sequence")).isEqualTo(longSequence + i);
+            assertThat(document.get("Container")).isEqualTo(CONTAINER_OBJECT_0);
+        }
     }
 }

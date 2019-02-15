@@ -65,9 +65,13 @@ public class OfferSequenceDatabaseService {
      * @throws ContentAddressableStorageDatabaseException database error
      */
     public long getNextSequence(String sequenceId) throws ContentAddressableStorageDatabaseException {
+        return getNextSequence(sequenceId, 1L);
+    }
+
+    public long getNextSequence(String sequenceId, long inc) throws ContentAddressableStorageDatabaseException {
         try {
             final BasicDBObject incQuery = new BasicDBObject();
-            incQuery.append("$inc", new BasicDBObject(OfferSequence.COUNTER_FIELD, 1l));
+            incQuery.append("$inc", new BasicDBObject(OfferSequence.COUNTER_FIELD, inc));
             Bson query = eq(OfferSequence.ID_FIELD, sequenceId);
             FindOneAndUpdateOptions findOneAndUpdateOptions = new FindOneAndUpdateOptions();
             findOneAndUpdateOptions.returnDocument(ReturnDocument.AFTER);
@@ -75,7 +79,7 @@ public class OfferSequenceDatabaseService {
 
             Document sequence = mongoCollection.findOneAndUpdate(query, incQuery, findOneAndUpdateOptions);
             if (sequence != null) {
-                return sequence.getLong(OfferSequence.COUNTER_FIELD);
+                return sequence.getLong(OfferSequence.COUNTER_FIELD) + 1L - inc;
             } else {
                 throw new ContentAddressableStorageDatabaseException(
                     String.format("Database Error sequence %s not found", sequenceId));

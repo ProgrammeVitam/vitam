@@ -54,6 +54,8 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -62,6 +64,7 @@ import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.bson.Document;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -78,6 +81,8 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -673,5 +678,181 @@ public class DefaultOfferResourceTest {
             .find(Filters.and(Filters.eq("Container", container), Filters.eq("FileName", filename)));
 
         assertThat(results).hasSize(count);
+    }
+
+    @Test
+    public void bulkPutObjectsTest() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        File file = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        byte[] multiplexedStreamBody = getMultiplexedStreamBody(Arrays.asList("id1", "id"), Arrays.asList(file, file));
+
+        // no tenant id
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, multiplexedStreamBody.length)
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(multiplexedStreamBody).when()
+            .put("/bulk/objects/{type}", UNIT_CODE).then().statusCode(400);
+
+        // no size
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(multiplexedStreamBody).when()
+            .put("/bulk/objects/{type}", UNIT_CODE).then().statusCode(400);
+
+        // no digest type
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, multiplexedStreamBody.length)
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(multiplexedStreamBody).when()
+            .put("/bulk/objects/{type}", UNIT_CODE).then().statusCode(400);
+
+        // bad size (size smaller than content size)
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, multiplexedStreamBody.length - 50)
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(multiplexedStreamBody).when()
+            .put("/bulk/objects/{type}", UNIT_CODE).then().statusCode(500);
+
+        // bad size (size greater than content size)
+        given().contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "1")
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, multiplexedStreamBody.length + 50)
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(multiplexedStreamBody).when()
+            .put("/bulk/objects/{type}", UNIT_CODE).then().statusCode(500);
+
+        // ok
+        given().header(GlobalDataRest.X_TENANT_ID, "2")
+            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, multiplexedStreamBody.length)
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(multiplexedStreamBody).when()
+            .put("/bulk/objects/{type}", UNIT_CODE).then().statusCode(201);
+
+        // check
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File container = new File(conf.getStoragePath() + "/2_unit");
+        assertTrue(container.exists());
+        assertTrue(container.isDirectory());
+        final File object = new File(container.getAbsolutePath(), "/id1");
+        assertTrue(object.exists());
+        assertFalse(object.isDirectory());
+
+        checkOfferDatabaseExistingDocument("2_unit", "id1");
+
+        assertThat(object).hasSameContentAs(file);
+    }
+
+    @Test
+    public void bulkPutObjectsOverrideExistingInRewritableContainer() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        // Given
+        File testFileV1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        File testFileV2 = PropertiesUtils.findFile(ARCHIVE_FILE_V2_TXT);
+
+        // When (try override file1 & file2 with new content)
+        bulkPutObjects(DataCategory.UNIT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
+        bulkPutObjects(DataCategory.UNIT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV2, testFileV2), Status.CREATED);
+
+        // Then
+        checkWrittenFile(testFileV2, "2_unit", "file1");
+        checkWrittenFile(testFileV2, "2_unit", "file2");
+        checkOfferDatabaseExistingDocument("2_unit", "file1", 2);
+        checkOfferDatabaseExistingDocument("2_unit", "file2", 2);
+    }
+
+    @Test
+    public void bulkPutObjectsOverrideExistingWithSameContentInNonRewritableContainer() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        // Given
+        File testFileV1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+
+        // When (try override file1 & file2 with same content)
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
+
+        // Then
+        checkWrittenFile(testFileV1, "2_object", "file1");
+        checkWrittenFile(testFileV1, "2_object", "file2");
+        checkOfferDatabaseExistingDocument("2_object", "file1", 2);
+        checkOfferDatabaseExistingDocument("2_object", "file2", 2);
+    }
+
+    @Test
+    public void bulkPutObjectsOverrideExistingWitNewContentInNonRewritableContainer() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        // Given
+        File testFileV1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        File testFileV2 = PropertiesUtils.findFile(ARCHIVE_FILE_V2_TXT);
+
+        // When (try override file2 with different content)
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file3", "file2", "file4"), Arrays.asList(testFileV1, testFileV2, testFileV1), Status.CONFLICT);
+
+        // Then
+        checkWrittenFile(testFileV1, "2_object", "file2");
+        checkOfferDatabaseExistingDocument("2_object", "file1", 1);
+        checkOfferDatabaseExistingDocument("2_object", "file2", 2);
+        checkOfferDatabaseExistingDocument("2_object", "file3", 1);
+        checkOfferDatabaseExistingDocument("2_object", "file4", 1);
+    }
+
+    private void bulkPutObjects(DataCategory dataCategory, List<String> ids, List<File> files, Status expectedStatus)
+        throws IOException, InvalidParseOperationException {
+
+        byte[] content = getMultiplexedStreamBody(ids, files);
+        InputStream inputStream = new ByteArrayInputStream(content);
+
+        io.restassured.response.Response response = given().header(GlobalDataRest.X_TENANT_ID, "2")
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, content.length)
+                .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(inputStream).when()
+                .put("/bulk/objects/{type}", dataCategory.name())
+                .andReturn();
+
+        assertThat(response.statusCode()).isEqualTo(expectedStatus.getStatusCode());
+
+        if (expectedStatus == Status.CREATED) {
+            StorageBulkPutResult result =
+                JsonHandler.getFromInputStream(response.body().asInputStream(), StorageBulkPutResult.class);
+
+            assertThat(result.getEntries()).hasSize(files.size());
+
+            for (int i = 0; i < files.size(); i++) {
+                File file = files.get(i);
+                assertThat(result.getEntries().get(i).getObjectId()).isEqualTo(ids.get(i));
+                assertThat(result.getEntries().get(i).getSize()).isEqualTo(files.get(i).length());
+
+                Digest digest = new Digest(DigestType.SHA512);
+                digest.update(file);
+                assertThat(result.getEntries().get(i).getDigest()).isEqualTo(digest.digestHex());
+            }
+        }
+    }
+
+    private byte[] getMultiplexedStreamBody(List<String> ids, List<File> files)
+        throws InvalidParseOperationException, IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(byteArrayOutputStream);
+
+        // Serialize Ids as header entry
+        ByteArrayOutputStream headerOutputStream = new ByteArrayOutputStream();
+        JsonHandler.writeAsOutputStream(ids, headerOutputStream);
+        multiplexedStreamWriter.appendEntry(headerOutputStream.size(), headerOutputStream.toInputStream());
+
+        // Append content entries
+        for (File file : files) {
+            try(FileInputStream fis = new FileInputStream(file)) {
+                multiplexedStreamWriter.appendEntry(file.length(), fis);
+            }
+        }
+        multiplexedStreamWriter.appendEndOfFile();
+        return byteArrayOutputStream.toByteArray();
     }
 }

@@ -31,6 +31,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
+import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -90,6 +92,9 @@ public interface DefaultOfferService {
     String createObject(String containerName, String objectId, InputStream objectPart, DataCategory
         type, Long size, DigestType digestType) throws ContentAddressableStorageException;
 
+    StorageBulkPutResult bulkPutObjects(String containerName, List<String> objectIds,
+        MultiplexedStreamReader multiplexedStreamReader, DataCategory type, DigestType digestType)
+        throws ContentAddressableStorageException, IOException;
 
     /**
      * Check if object exists
