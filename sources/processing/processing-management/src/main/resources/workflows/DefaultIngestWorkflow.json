@@ -342,7 +342,8 @@
       "distribution": {
         "kind": "LIST_IN_DIRECTORY",
         "element": "ObjectGroup",
-        "type": "ObjectGroup"
+        "type": "ObjectGroup",
+        "bulkSize": 128
       },
       "actions": [
         {
@@ -367,7 +368,8 @@
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
         "type": "Units",
-        "element": "UnitsLevel/ingestLevelStack.json"
+        "element": "UnitsLevel/ingestLevelStack.json",
+        "bulkSize": 128
       },
       "actions": [
         {
@@ -393,7 +395,8 @@
         "kind": "LIST_IN_FILE",
         "element": "UpdateObjectGroup/existing_object_group.json",
         "type": "ObjectGroup",
-        "statusOnEmptyDistribution": "OK"
+        "statusOnEmptyDistribution": "OK",
+        "bulkSize": 128
       },
       "actions": [
         {
