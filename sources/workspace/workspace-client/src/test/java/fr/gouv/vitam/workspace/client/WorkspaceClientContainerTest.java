@@ -159,7 +159,6 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
     public void givenContainerNotFoundWhenCreateContainerThenReturnCreated() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.createContainer(CONTAINER_NAME);
-        assertTrue(true);
     }
 
     // delete
@@ -189,7 +188,6 @@ public class WorkspaceClientContainerTest extends ResteasyTestApplication {
     public void givenContainerAlreadyExistsWhenDeleteContainerThenReturnNotContent() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.deleteContainer(CONTAINER_NAME, true);
-        assertTrue(true);
     }
 
     // check existence

@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
@@ -63,17 +64,22 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.StreamingOutput;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
 /**
  * The Workspace Resource.
@@ -138,7 +144,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * deletes a container in the workspace
      *
      * @param containerName path param of container name
-     * @param recursive     true if the container should be deleted recursively
+     * @param recursive true if the container should be deleted recursively
      * @return Response
      */
     @Path("/containers/{containerName}")
@@ -255,7 +261,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * creates a folder into a container
      *
      * @param containerName path param of container name
-     * @param folderName    path param of folder
+     * @param folderName path param of folder
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -288,7 +294,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * deletes a folder in a container
      *
      * @param containerName path param for container name
-     * @param folderName    path param for folder name
+     * @param folderName path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -319,7 +325,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * checks if a folder exists in a container
      *
      * @param containerName path param for container name
-     * @param folderName    path param for folder name
+     * @param folderName path param for folder name
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -348,15 +354,16 @@ public class WorkspaceResource extends ApplicationStatusResource {
     /**
      * uncompress a sip into the workspace
      *
-     * @param stream        data input stream
+     * @param stream data input stream
      * @param containerName name of container
-     * @param folderName    name of folder
-     * @param archiveType   the type of archive
+     * @param folderName name of folder
+     * @param archiveType the type of archive
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @PUT
-    @Consumes({CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2})
+    @Consumes({CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
+        CommonMediaType.BZIP2})
     @Produces(MediaType.APPLICATION_JSON)
     public Response uncompressObject(InputStream stream,
         @PathParam(CONTAINER_NAME) String containerName,
@@ -437,7 +444,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * gets the list of object from folder
      *
      * @param containerName name of container
-     * @param folderName    name of folder
+     * @param folderName name of folder
      * @return Response
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
@@ -473,8 +480,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
     /**
      * puts an object into a container
      *
-     * @param stream        data input stream
-     * @param objectName    name of data object
+     * @param stream data input stream
+     * @param objectName name of data object
      * @param containerName name of container
      * @return Response
      */
@@ -507,7 +514,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * Deletes an objects in a container *
      *
      * @param containerName container name
-     * @param objectName    object name
+     * @param objectName object name
      * @return Response
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
@@ -538,9 +545,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * gets an objects from a container in the workspace
      *
      * @param containerName name of container
-     * @param objectName    name of object
+     * @param objectName name of object
      * @return response
-     * @throws IOException when there is an error of get object
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
@@ -551,10 +557,80 @@ public class WorkspaceResource extends ApplicationStatusResource {
     }
 
     /**
+     * gets objects from a container in the workspace as a multiplexed stream
+     *
+     * @param containerName name of container
+     * @param objectURIs the list of document Uris
+     * @return response
+     */
+    @Path("/containers/{containerName}/objects")
+    @GET
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response getBulkObjects(@PathParam(CONTAINER_NAME) String containerName,
+        List<String> objectURIs) {
+
+        // Check file existence & compute total stream size
+        List<Long> fileSizes = new ArrayList<>();
+        for (String objectId : objectURIs) {
+            try {
+                JsonNode objectInformation = workspace.getObjectInformation(containerName, objectId);
+                fileSizes.add(objectInformation.get("size").asLong());
+            } catch (final ContentAddressableStorageNotFoundException e) {
+                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName + " / " + objectId, e);
+                return Response.status(Status.NOT_FOUND).entity(containerName).build();
+            } catch (final ContentAddressableStorageException e) {
+                LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+                return Response.status(Status.INTERNAL_SERVER_ERROR).entity(containerName).build();
+            }
+        }
+        long totalStreamSize = MultiplexedStreamWriter.getTotalStreamSize(fileSizes);
+
+        // Return response as StreamingOutput instance
+        StreamingOutput streamingOutput = output -> {
+            try {
+
+                MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(output);
+
+                // Write object contents
+                for (String objectURI : objectURIs) {
+
+                    Response objResponse = null;
+                    try {
+                        objResponse = workspace.getObject(containerName, objectURI);
+
+                        long size =
+                            Long.parseLong(objResponse.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+                        try (InputStream inputStream = (InputStream) objResponse.getEntity()) {
+                            multiplexedStreamWriter.appendEntry(size, inputStream);
+                        }
+
+                    } finally {
+                        if (objResponse != null) {
+                            consumeAnyEntityAndClose(objResponse);
+                        }
+                    }
+                }
+
+                multiplexedStreamWriter.appendEndOfFile();
+
+            } catch (Exception e) {
+                LOGGER.error("Could not return bulk objects", e);
+                throw new WebApplicationException("Could not return bulk objects", e);
+            }
+        };
+
+        return Response
+            .ok(streamingOutput)
+            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), totalStreamSize)
+            .build();
+    }
+
+    /**
      * gets an objects from a container in the workspace
      *
      * @param containerName name of container
-     * @param objectName    name of object
+     * @param objectName name of object
      * @return Response
      * @throws IOException when there is an error of get object
      */
@@ -586,8 +662,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
      * checks if a object exists in an container or compute object Digest
      *
      * @param containerName name of container
-     * @param objectName    name of object
-     * @param algo          path parameter of algo
+     * @param objectName name of object
+     * @param algo path parameter of algo
      * @return Response
      */
     @Path("/containers/{containerName}/objects/{objectName:.*}")

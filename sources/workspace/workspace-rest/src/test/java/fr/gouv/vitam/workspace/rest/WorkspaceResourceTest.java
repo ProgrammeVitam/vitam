@@ -38,16 +38,16 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import fr.gouv.vitam.workspace.common.Entry;
 import io.restassured.RestAssured;
 import io.restassured.config.EncoderConfig;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
@@ -60,15 +60,18 @@ import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static io.restassured.RestAssured.with;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -494,12 +497,6 @@ public class WorkspaceResourceTest {
         }
     }
 
-    private VitamError getVitamError(VitamCode vitamCode, String msg) {
-        return new VitamError(vitamCode.name()).setMessage(msg).setState("ko")
-            .setHttpCode(vitamCode.getStatus().getStatusCode()).setDescription(msg)
-            .setContext(vitamCode.getService().getName());
-    }
-
     // uriList
     @Test
     public void givenEmptyFolderWhenfindingThenReturnNoContent() throws IOException {
@@ -586,4 +583,60 @@ public class WorkspaceResourceTest {
         }
     }
 
+    @Test
+    public void should_get_bulk_objects() throws Exception {
+
+        byte[] file1 = "some-file".getBytes();
+        byte[] file2 = "another-file".getBytes();
+
+        String fileName1 = "file1.txt";
+        String fileName2 = "toto/file2.txt";
+
+        with().then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+        with()
+            .contentType(ContentType.BINARY).body(new ByteArrayInputStream(file1))
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + fileName1)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.BINARY).body(new ByteArrayInputStream(file2))
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + fileName2)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        Response response = given().contentType(ContentType.JSON)
+            .body(Arrays.asList(fileName1, fileName2)).then()
+            .statusCode(Status.OK.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects")
+            .andReturn();
+
+        try(MultiplexedStreamReader reader = new MultiplexedStreamReader(response.asInputStream())) {
+            assertThat(reader.readNextEntry().get()).hasSameContentAs(new ByteArrayInputStream(file1));
+            assertThat(reader.readNextEntry().get()).hasSameContentAs(new ByteArrayInputStream(file2));
+            assertThat(reader.readNextEntry()).isEmpty();
+        }
+    }
+
+    @Test
+    public void should_return_404_when_get_bulk_objects_with_unknown_file() throws Exception {
+
+        byte[] file1 = "some-file".getBytes();
+
+        String fileName1 = "file1.txt";
+        String fileName2 = "toto/file2.txt";
+
+        with().then()
+            .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+        with()
+            .contentType(ContentType.BINARY).body(new ByteArrayInputStream(file1))
+            .when().post("/containers/" + CONTAINER_NAME + "/objects/" + fileName1)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .body(Arrays.asList(fileName1, fileName2)).then()
+            .statusCode(Status.NOT_FOUND.getStatusCode()).when()
+            .get("/containers/" + CONTAINER_NAME + "/objects");
+    }
 }
