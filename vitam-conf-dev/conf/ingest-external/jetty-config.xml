@@ -160,8 +160,6 @@
       </Set>
        <Set name="IncludeProtocols">
         <Array type="String">
-          <Item>TLSv1</Item>
-          <Item>TLSv1.1</Item>
           <Item>TLSv1.2</Item>
         </Array>
       </Set>
