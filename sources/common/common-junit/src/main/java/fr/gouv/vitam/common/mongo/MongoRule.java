@@ -54,6 +54,7 @@ public class MongoRule extends ExternalResource {
     private static int dataBasePort = 27017;
 
     private final MongoClient mongoClient;
+    private final String dbName;
     private Set<String> collectionsToBePurged;
 
     private boolean clientClosed = false;
@@ -63,6 +64,10 @@ public class MongoRule extends ExternalResource {
      * @param collectionsToBePurged
      */
     public MongoRule(MongoClientOptions clientOptions, String... collectionsToBePurged) {
+        this(VITAM_DB, clientOptions, collectionsToBePurged);
+    }
+
+    public MongoRule(String dbName, MongoClientOptions clientOptions, String... collectionsToBePurged) {
 
         if (null != collectionsToBePurged) {
             this.collectionsToBePurged = Sets.newHashSet(collectionsToBePurged);
@@ -71,12 +76,13 @@ public class MongoRule extends ExternalResource {
         }
 
         mongoClient = new MongoClient(new ServerAddress(MONGO_HOST, dataBasePort), clientOptions);
+        this.dbName = dbName;
     }
 
     @Override
     protected void after() {
         if (!clientClosed) {
-            purge(MongoRule.VITAM_DB, collectionsToBePurged);
+            purge(dbName, collectionsToBePurged);
         }
     }
 
@@ -105,18 +111,8 @@ public class MongoRule extends ExternalResource {
         close();
     }
 
-    public void handleAfterClass(String database) {
-        handleAfter(database);
-        handleAfterClass();
-    }
-
     public void handleAfter() {
         after();
-    }
-
-    public void handleAfter(String database) {
-        purge(database, collectionsToBePurged);
-        handleAfter();
     }
 
     public static int getDataBasePort() {
@@ -128,19 +124,19 @@ public class MongoRule extends ExternalResource {
     }
 
     public MongoDatabase getMongoDatabase() {
-        return mongoClient.getDatabase(VITAM_DB);
+        return mongoClient.getDatabase(dbName);
     }
 
     public MongoCollection<Document> getMongoCollection(String collectionName) {
-        return mongoClient.getDatabase(VITAM_DB).getCollection(collectionName);
+        return mongoClient.getDatabase(dbName).getCollection(collectionName);
     }
 
     public <TDocument> MongoCollection<TDocument> getMongoCollection(String collectionName, Class<TDocument> clazz) {
-        return mongoClient.getDatabase(VITAM_DB).getCollection(collectionName, clazz);
+        return mongoClient.getDatabase(dbName).getCollection(collectionName, clazz);
     }
 
     public void handleAfter(Set<String> collections) {
-        purge(MongoRule.VITAM_DB, collections);
+        purge(dbName, collections);
     }
 
 

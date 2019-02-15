@@ -62,7 +62,6 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import retrofit2.Call;
@@ -122,6 +121,8 @@ public class StorageTwoOffersIT {
     private static final String SECOND_OFFER_ID = "default2";
     private static final String OFFER_ID = "default";
     private static final String STRATEGY_ID = "default";
+    private static final String DB_OFFER1 = "vitamoffer1";
+    private static final String DB_OFFER2 = "vitamoffer2";
 
     static StorageClient storageClient;
     static WorkspaceClient workspaceClient;
@@ -139,10 +140,10 @@ public class StorageTwoOffersIT {
 
 
     @ClassRule
-    public static MongoRule mongoRuleOffer1 = new MongoRule(VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, VitamCollection.getMongoClientOptions());
 
     @ClassRule
-    public static MongoRule mongoRuleOffer2 = new MongoRule(VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, VitamCollection.getMongoClientOptions());
 
     private static OfferSyncAdminResource offerSyncAdminResource;
 
@@ -182,8 +183,8 @@ public class StorageTwoOffersIT {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        mongoRuleOffer1.handleAfterClass("vitamoffer1");
-        mongoRuleOffer2.handleAfterClass("vitamoffer2");
+        mongoRuleOffer1.handleAfterClass();
+        mongoRuleOffer2.handleAfterClass();
         VitamClientFactory.resetConnections();
     }
 
@@ -197,8 +198,8 @@ public class StorageTwoOffersIT {
     public void cleanup() throws IOException {
         cleanOffer(OFFER_FOLDER);
         cleanOffer(SECOND_FOLDER);
-        mongoRuleOffer1.handleAfter("vitamoffer1");
-        mongoRuleOffer2.handleAfter("vitamoffer2");
+        mongoRuleOffer1.handleAfter();
+        mongoRuleOffer2.handleAfter();
     }
 
     private void cleanOffer(String offerFolder) throws IOException {
