@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -167,6 +168,7 @@ public class DriverToOfferTest {
         junitHelper.releasePort(serverPort);
 
         application.stop();
+        VitamClientFactory.resetConnections();
 
         // delete files
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
