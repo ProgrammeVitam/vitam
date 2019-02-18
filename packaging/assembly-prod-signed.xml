@@ -1,49 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>PROD</id>
+    <id>PROD-signed</id>
     <formats>
         <format>tar.gz</format>
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
+        <!-- TODO : add the public key ONLY for signed rpm -->
+        <fileSet>
+            <directory>.</directory>
+            <outputDirectory>rpm_signed/</outputDirectory>
+            <includes>
+                <include>RPM-GPG-KEY-vitam</include>
+            </includes>
+        </fileSet>
         <!-- Add all vitam-external rpm -->
         <fileSet>
-            <directory>../rpm/vitam-external/target</directory>
-            <outputDirectory>rpm/vitam-external</outputDirectory>
+            <directory>rpm_signed/vitam-product/</directory>
+            <outputDirectory>rpm_signed/vitam-product</outputDirectory>
             <excludes>
-                <exclude>**/metricbeat-*.rpm</exclude>
-                <exclude>**/packetbeat-*.rpm</exclude>
+                <exclude>**/*ihm-recette-*.rpm</exclude>
             </excludes>
         </fileSet>
-        <!-- Add "native" vitam-product rpm -->
         <fileSet>
-            <directory>../rpm/vitam-product/target</directory>
-            <outputDirectory>rpm/vitam-product</outputDirectory>
-            <includes>
-                <include>**/*.rpm</include>
-            </includes>
+            <directory>rpm_signed/vitam-external/</directory>
+            <outputDirectory>rpm_signed/vitam-external</outputDirectory>
             <excludes>
                 <exclude>**/vitam-gatling-*.rpm</exclude>
-            </excludes>
-        </fileSet>
-        <!-- Add all vitam-external deb -->
-        <fileSet>
-            <directory>../deb/vitam-external/target</directory>
-            <outputDirectory>deb/vitam-external</outputDirectory>
-            <excludes>
-                <exclude>**/metricbeat-*.deb</exclude>
-                <exclude>**/packetbeat-*.deb</exclude>
-            </excludes>
-        </fileSet>
-        <!-- Add "native" vitam-product deb -->
-        <fileSet>
-            <directory>../deb/vitam-product/target</directory>
-            <outputDirectory>deb/vitam-product</outputDirectory>
-            <includes>
-                <include>**/*.deb</include>
-            </includes>
-            <excludes>
-                <exclude>**/vitam-gatling-*.deb</exclude>
+                <exclude>**/metricbeat-*.rpm</exclude>
+                <exclude>**/packetbeat-*.rpm</exclude>
             </excludes>
         </fileSet>
         <!-- Add sources -->
@@ -116,28 +101,6 @@
             <includes>
                 <include>fr.gouv.vitam.doc:*:zip</include>
             </includes>
-        </dependencySet>
-        <!-- Add java-based vitam-product rpm -->
-        <dependencySet>
-            <outputDirectory>/rpm/vitam-product</outputDirectory>
-            <unpack>false</unpack>
-            <includes>
-                <include>*:*:rpm</include>
-            </includes>
-            <excludes>
-                <exclude>*:ihm-recette*:rpm</exclude>
-            </excludes>
-        </dependencySet>
-        <!-- Add java-based vitam-product deb -->
-        <dependencySet>
-            <outputDirectory>/deb/vitam-product</outputDirectory>
-            <unpack>false</unpack>
-            <includes>
-                <include>*:*:deb</include>
-            </includes>
-            <excludes>
-                <exclude>*:ihm-recette*:deb</exclude>
-            </excludes>
         </dependencySet>
     </dependencySets>
 </assembly>
