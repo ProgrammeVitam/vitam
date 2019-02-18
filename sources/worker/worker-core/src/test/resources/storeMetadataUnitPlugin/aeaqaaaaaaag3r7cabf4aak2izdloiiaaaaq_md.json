@@ -1,0 +1,97 @@
+{
+  "ArchiveUnitProfile": "PresentationType",
+  "DescriptionLevel": "Item",
+  "Title": "Sensibilisation API",
+  "FilePlanPosition": "FilePlanPosition0",
+  "OriginatingSystemId": "OriginatingSystemId0",
+  "ArchivalAgencyArchiveUnitIdentifier": "ArchivalAgencyArchiveUnitIdentifier0",
+  "OriginatingAgencyArchiveUnitIdentifier": "OriginatingAgencyArchiveUnitIdentifier0",
+  "TransferringAgencyArchiveUnitIdentifier": "TransferringAgencyArchiveUnitIdentifier0",
+  "Description": "Sensibilisation au Technical Design et à l'API Design Java et REST de la solution logicielle Vitam",
+  "Language": "fr-FR",
+  "OriginatingAgency": {
+    "Identifier": "Identifier0"
+  },
+  "SubmissionAgency": {
+    "Identifier": "Identifier1"
+  },
+  "Writer": {
+    "FirstName": "FirstName0",
+    "BirthName": "BirthName0"
+  },
+  "CreatedDate": "2016-05-05T20:45:20",
+  "TransactedDate": "2016-05-05",
+  "_id": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
+  "_nbc": 0,
+  "_tenant": 0,
+  "_og": "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaaq",
+  "_up": [],
+  "_min": 1,
+  "_max": 1,
+  "_us": [],
+  "_uds": [],
+  "_mgt": {
+    "StorageRule": {
+      "Rules": [
+        {
+          "Rule": "STO-00001",
+          "StartDate": "2016-01-01",
+          "EndDate": "2017-01-01"
+        }
+      ],
+      "FinalAction": "RestrictAccess"
+    },
+    "AppraisalRule": {
+      "Rules": [
+        {
+          "Rule": "APP-00001",
+          "StartDate": "2016-01-01",
+          "EndDate": "2026-01-01"
+        }
+      ],
+      "FinalAction": "Keep"
+    },
+    "AccessRule": {
+      "Rules": [
+        {
+          "Rule": "ACC-00001",
+          "StartDate": "2016-01-01",
+          "EndDate": "2016-01-01"
+        }
+      ]
+    },
+    "DisseminationRule": {
+      "Rules": [
+        {
+          "Rule": "DIS-00004",
+          "StartDate": "2016-01-01",
+          "EndDate": "2116-01-01"
+        }
+      ]
+    },
+    "ReuseRule": {
+      "Rules": [
+        {
+          "Rule": "REU-00001",
+          "StartDate": "2016-01-01",
+          "EndDate": "2026-01-01"
+        }
+      ]
+    },
+    "ClassificationRule": {
+      "Rules": [
+        {
+          "Rule": "CLASS-00001",
+          "StartDate": "2016-01-01",
+          "EndDate": "2026-01-01",
+          "ClassificationLevel": "ClassificationLevel0",
+          "ClassificationOwner": "ClassificationOwner0"
+        }
+      ]
+    },
+    "NeedAuthorization": false
+  },
+  "_ops": [
+    "aedqaaaaacag3r7caayaqak2izdj7ciaaaaq"
+  ]
+}

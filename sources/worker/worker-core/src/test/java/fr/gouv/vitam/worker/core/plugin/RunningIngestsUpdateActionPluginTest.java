@@ -30,12 +30,12 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -58,7 +57,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
-import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -66,11 +64,13 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.InputStream;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -101,10 +101,10 @@ public class RunningIngestsUpdateActionPluginTest {
 
     private static final String AU_DETAIL = "RunningIngestsUpdateActionPlugin/archiveUnits.json";
     private static final String UPDATED_AU = "RunningIngestsUpdateActionPlugin/updatedAu.json";
-    private static final StoreMetaDataUnitActionPlugin storeMetadataObjectActionHandler = mock(StoreMetaDataUnitActionPlugin.class);
+    private static final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin = mock(StoreMetaDataUnitActionPlugin.class);
 
     RunningIngestsUpdateActionPlugin plugin = new RunningIngestsUpdateActionPlugin(processingManagementClientFactory,
-        metaDataClientFactory, storeMetadataObjectActionHandler);
+        metaDataClientFactory, storeMetaDataUnitActionPlugin);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -142,7 +142,7 @@ public class RunningIngestsUpdateActionPluginTest {
     @RunWithCustomExecutor
     @Test
     public void givenRunningProcessWhenExecuteThenCheckAllPossibleStatusCode() throws Exception {
-        reset(storeMetadataObjectActionHandler);
+        reset(storeMetaDataUnitActionPlugin);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final File runningIngests = PropertiesUtils.getResourceFile(RUNNING_INGESTS);
 
@@ -164,26 +164,15 @@ public class RunningIngestsUpdateActionPluginTest {
         when(metaDataClient.selectUnits(any())).thenReturn(archiveUnitToBeUpdated);
         when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(archiveUnitUpdated);
 
-        List<StatusCode> statusCodeList = Lists.newArrayList(StatusCode.OK);
-        when(storeMetadataObjectActionHandler.execute(any(), any()))
-            .thenAnswer(o -> new ItemStatus().increment(
-                statusCodeList.get(0)));
-
+        doNothing()
+            .when(storeMetaDataUnitActionPlugin).storeDocumentsWithLfc(any(), any(), anyList());
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
-        statusCodeList.set(0, StatusCode.WARNING);
-        response = plugin.execute(params, handlerIO);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
-
-        statusCodeList.set(0, StatusCode.KO);
+        doThrow(VitamException.class)
+            .when(storeMetaDataUnitActionPlugin).storeDocumentsWithLfc(any(), any(), anyList());
         response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-
-        statusCodeList.set(0, StatusCode.FATAL);
-        response = plugin.execute(params, handlerIO);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-
     }
 
     @RunWithCustomExecutor

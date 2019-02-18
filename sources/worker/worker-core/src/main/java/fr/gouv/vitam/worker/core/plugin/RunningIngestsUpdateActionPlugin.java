@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -52,7 +53,6 @@ import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -64,7 +64,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
@@ -81,6 +80,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static java.util.Collections.singletonList;
+
 /**
  * CheckArchiveUnitSchema Plugin.<br>
  */
@@ -92,7 +93,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private static final int RANK_RUNNING_INGESTS_FILE = 0;
     private final Map<String, List<JsonNode>> updatedRulesByType = new HashMap<String, List<JsonNode>>();
     private final ProcessingManagementClientFactory processingManagementClientFactory;
-    private final StoreMetadataObjectActionHandler storeMetadataObjectActionHandler;
+    private final StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin;
     private final MetaDataClientFactory metaDataClientFactory;
     private final ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
 
@@ -112,17 +113,17 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
      * Empty constructor UnitsRulesComputePlugin
      */
     public RunningIngestsUpdateActionPlugin() {
-        this.storeMetadataObjectActionHandler = new StoreMetaDataUnitActionPlugin();
+        this.storeMetaDataUnitActionPlugin = new StoreMetaDataUnitActionPlugin();
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
         this.metaDataClientFactory = MetaDataClientFactory.getInstance();
     }
 
     @VisibleForTesting
     public RunningIngestsUpdateActionPlugin(ProcessingManagementClientFactory processingManagementClientFactory,
-        MetaDataClientFactory metaDataClientFactory, StoreMetaDataUnitActionPlugin storeMetadataObjectActionHandler) {
+        MetaDataClientFactory metaDataClientFactory, StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin) {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
-        this.storeMetadataObjectActionHandler = storeMetadataObjectActionHandler;
+        this.storeMetaDataUnitActionPlugin = storeMetaDataUnitActionPlugin;
     }
 
     @Override
@@ -309,15 +310,10 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private void saveMetadataWithLfcInTheStorage(WorkerParameters workerParameters, HandlerIO handlerIO)
         throws ProcessingException {
         try {
-            ItemStatus itemStatus =
-                storeMetadataObjectActionHandler.execute(workerParameters, handlerIO);
+            storeMetaDataUnitActionPlugin.storeDocumentsWithLfc(workerParameters, handlerIO,
+                singletonList(workerParameters.getObjectName()));
 
-            if (itemStatus.getGlobalStatus().isGreaterOrEqualToKo()) {
-                throw new ProcessingException(
-                    String.format("The ArchiveUnit %s with LifeCycle isn't saved in the storage",
-                        workerParameters.getObjectName()));
-            }
-        } catch (ContentAddressableStorageServerException e) {
+        } catch (VitamException e) {
             throw new ProcessingException(e);
         }
     }

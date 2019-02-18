@@ -81,20 +81,6 @@
       "agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
       "obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
       "evDetData": "{}"
-    },
-    {
-      "evId": "aedqaaaaacgdgornaa7veak6vd7zklqaaaaq",
-      "evParentId": null,
-      "evType": "LFC.UNIT_METADATA_STORAGE",
-      "evDateTime": "2017-09-22T09:51:18.032",
-      "evIdProc": "aedqaaaaacgv4sd5abalyak6vd7wdsqaaaaq",
-      "evTypeProc": "INGEST",
-      "outcome": "OK",
-      "outDetail": "LFC.UNIT_METADATA_STORAGE.OK",
-      "outMessg": "Succès de l'écriture des métadonnées de l'unité archivistique",
-      "agId": "{\"Name\":\"84d8f77da467\",\"Role\":\"worker\",\"ServerId\":1815296557,\"SiteId\":1,\"GlobalPlatformId\":204683821}",
-      "obId": "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq",
-      "evDetData": "{\"FileName\":\"aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq.json\",\"Algorithm\":\"SHA-512\",\"MessageDigest\":\"c388f30f72dfd6c7a21c91da3fc17a300911b9b4cd2a4d130b5adac9f97f55ae9446d1b8b7e7dd7f01c482d114c1fd0bf6975caf825fdd42856c10c7e03026f2\",\"Offers\":\"localhost\"}"
     }
   ],
   "_tenant": 0,
