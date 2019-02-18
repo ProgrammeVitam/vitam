@@ -28,7 +28,10 @@ package fr.gouv.vitam.storage.engine.server.storagelog.parameters;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -78,7 +81,31 @@ public class StorageLogbookParameters implements StorageLogStructure {
         this.mapParameters.putAll(mapParameters);
     }
 
-    public static StorageLogbookParameters buildCreateLogParameters(
+    public static StorageLogbookParameters createLogParameters(String objectIdentifier,
+        String dataCategory, String digest, String digestAlgorithm, String size, String agentIdentifiers,
+        String agentIdentifierRequester,
+        StorageLogbookOutcome outcome) {
+        final Map<StorageLogbookParameterName, String> mandatoryParameters = new TreeMap<>();
+        mandatoryParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        mandatoryParameters.put(StorageLogbookParameterName.outcome, outcome.name());
+        mandatoryParameters.put(StorageLogbookParameterName.objectIdentifier, objectIdentifier);
+        mandatoryParameters.put(StorageLogbookParameterName.dataCategory, dataCategory);
+        mandatoryParameters.put(StorageLogbookParameterName.objectGroupIdentifier, "objGId NA");
+        mandatoryParameters.put(StorageLogbookParameterName.digest, digest);
+        mandatoryParameters.put(StorageLogbookParameterName.digestAlgorithm, digestAlgorithm);
+        mandatoryParameters.put(StorageLogbookParameterName.size, size);
+        mandatoryParameters.put(StorageLogbookParameterName.eventType, "CREATE");
+        mandatoryParameters.put(StorageLogbookParameterName.xRequestId,
+            VitamThreadUtils.getVitamSession().getRequestId());
+        mandatoryParameters.put(StorageLogbookParameterName.agentIdentifiers, agentIdentifiers);
+        mandatoryParameters
+            .put(StorageLogbookParameterName.tenantId, ParameterHelper.getTenantParameter().toString());
+        mandatoryParameters.put(StorageLogbookParameterName.agentIdentifierRequester, agentIdentifierRequester);
+
+        return buildCreateLogParameters(mandatoryParameters);
+    }
+
+    static StorageLogbookParameters buildCreateLogParameters(
         Map<StorageLogbookParameterName, String> mapParameters) {
         checkMandatoryParameters(mapParameters, mandatoryParametersForCreate);
         return new StorageLogbookParameters(mapParameters);

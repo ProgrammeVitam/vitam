@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,37 +35,55 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.google.common.collect.ImmutableMap;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mockito;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -87,6 +106,8 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * StorageDistributionImplTest
@@ -97,20 +118,35 @@ public class StorageDistributionImplTest {
     private static final String STRATEGY_ID = "strategyId";
     private static final String OFFER_ID = "default";
     private static final int TENANT_ID = 0;
-    private static StorageDistribution simpleDistribution;
-    private static StorageDistribution customDistribution;
-    private static WorkspaceClient client;
 
-    static TemporaryFolder folder = new TemporaryFolder();
+    private static StorageDistribution simpleDistribution;
+    private StorageDistribution customDistribution;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
+
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @BeforeClass
-    public static void initStatic() throws IOException {
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
+
+    @Mock
+    private BulkStorageDistribution bulkStorageDistribution;
+
+    @Before
+    public void prepare() throws IOException {
         final StorageConfiguration configuration = new StorageConfiguration();
         configuration.setUrlWorkspace("http://localhost:8080");
-        client = Mockito.mock(WorkspaceClient.class);
+        configuration.setTimeoutMsPerKB(1000);
+        doReturn(workspaceClient).when(workspaceClientFactory).getClient();
         List<Integer> list = new ArrayList<>();
         list.add(0);
         list.add(1);
@@ -119,15 +155,14 @@ public class StorageDistributionImplTest {
         StorageLog storageLogService =
             StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
-        customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService,
-            Executors.newFixedThreadPool(16, VitamThreadFactory.getInstance()), 300);
+        customDistribution = new StorageDistributionImpl(workspaceClientFactory, DigestType.SHA1, storageLogService,
+            Executors.newFixedThreadPool(16, VitamThreadFactory.getInstance()), 300, bulkStorageDistribution);
     }
 
-    @AfterClass
-    public static void endOfClass() {
+    @After
+    public void cleanup() {
         simpleDistribution.close();
-        folder.getRoot().delete();
-        // custom not necessary since static only
+        customDistribution.close();
     }
 
     @Test
@@ -168,9 +203,9 @@ public class StorageDistributionImplTest {
 
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         FileInputStream stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
-        reset(client);
+        reset(workspaceClient);
 
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
@@ -183,8 +218,8 @@ public class StorageDistributionImplTest {
             IOUtils.closeQuietly(stream);
             IOUtils.closeQuietly(stream2);
         }
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf")).thenThrow(IllegalStateException.class);
         assertNotNull(storedInfoResult);
         assertEquals(objectId, storedInfoResult.getId());
         assertNull(storedInfoResult.getObjectGroupId());
@@ -200,8 +235,8 @@ public class StorageDistributionImplTest {
         // Store Unit
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
@@ -221,8 +256,8 @@ public class StorageDistributionImplTest {
         // Store logbook
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
@@ -242,8 +277,8 @@ public class StorageDistributionImplTest {
         // Store storageLog
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
@@ -262,8 +297,8 @@ public class StorageDistributionImplTest {
         // Store object group
         stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream2).build());
@@ -300,9 +335,9 @@ public class StorageDistributionImplTest {
 
         FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         FileInputStream stream2 = new FileInputStream(PropertiesUtils.findFile("object.zip"));
-        reset(client);
+        reset(workspaceClient);
 
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(stream)
@@ -329,8 +364,8 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(Response.status(Status.OK)
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(Response.status(Status.OK)
             .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).entity(stream).build());
         try {
             customDistribution
@@ -349,8 +384,8 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build())
             .thenReturn(Response.status(Status.OK).entity(new FileInputStream(PropertiesUtils.findFile("object.zip")))
@@ -377,8 +412,8 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenThrow(ContentAddressableStorageNotFoundException.class);
         try {
             customDistribution
@@ -388,8 +423,8 @@ public class StorageDistributionImplTest {
             // Expection
         }
 
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenThrow(ContentAddressableStorageServerException.class);
         try {
             customDistribution
@@ -401,8 +436,8 @@ public class StorageDistributionImplTest {
 
         final FileInputStream stream = new FileInputStream(PropertiesUtils.findFile("object.zip"));
         IOUtils.closeQuietly(stream);
-        reset(client);
-        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+        reset(workspaceClient);
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
             .thenReturn(Response.status(Status.OK).entity(stream)
                 .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 6349).build());
         try {
@@ -423,6 +458,53 @@ public class StorageDistributionImplTest {
         } catch (final IllegalArgumentException exc) {
             // test OK
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testBulkCreateFromWorkspace()
+        throws StorageException {
+
+        // Given
+        int tenantId = 2;
+        List<String> workspaceObjectURIs = Arrays.asList("uir1", "uri2");
+        List<String> objectNames = Arrays.asList("ob1", "ob2");
+        String workspaceContainer = "workspaceContainer";
+        String requester = "requester";
+        List<String> offers = Arrays.asList("default", "default2");
+        Map<String, String> digests = ImmutableMap.of("default", "digest1", "default2", "digest2");
+
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+
+        doReturn(digests).when(bulkStorageDistribution).bulkCreateFromWorkspaceWithRetries(
+            anyInt(),anyList(), anyMap(), anyMap(), any(), anyString(), anyList(), anyList(), anyString());
+
+        BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
+            workspaceContainer, workspaceObjectURIs, DataCategory.UNIT, objectNames
+        );
+
+        // When
+        BulkObjectStoreResponse bulkObjectStoreResponse =
+            customDistribution.bulkCreateFromWorkspace(STRATEGY_ID, bulkObjectStoreRequest, requester);
+
+        // Then
+        assertThat(bulkObjectStoreResponse.getDigestType()).isEqualTo(DigestType.SHA1.getName());
+        assertThat(bulkObjectStoreResponse.getObjectDigests()).isEqualTo(digests);
+        assertThat(bulkObjectStoreResponse.getOfferIds()).isEqualTo(offers);
+
+        ArgumentCaptor<Map<String, StorageOffer>> storageOfferCaptor = ArgumentCaptor.forClass(Map.class);
+        ArgumentCaptor<Map<String, Driver>> storageDriverCaptor = ArgumentCaptor.forClass(Map.class);
+
+        verify(bulkStorageDistribution).bulkCreateFromWorkspaceWithRetries(
+            eq(tenantId), eq(offers), storageDriverCaptor.capture(), storageOfferCaptor.capture(),
+            eq(DataCategory.UNIT), eq(workspaceContainer), eq(workspaceObjectURIs), eq(objectNames), eq(requester)
+        );
+
+        assertThat(storageOfferCaptor.getValue().keySet()).containsExactlyInAnyOrderElementsOf(offers);
+        assertThat(storageOfferCaptor.getValue().values()).noneMatch(Objects::isNull);
+
+        assertThat(storageDriverCaptor.getValue().keySet()).containsExactlyInAnyOrderElementsOf(offers);
+        assertThat(storageDriverCaptor.getValue().values()).noneMatch(Objects::isNull);
     }
 
     @RunWithCustomExecutor
@@ -503,9 +585,9 @@ public class StorageDistributionImplTest {
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
 
         FakeInputStream stream = new FakeInputStream(500);
-        reset(client);
+        reset(workspaceClient);
 
-        when(client.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf")).thenReturn(
             Response.status(Status.OK).entity(stream).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), (long) 500)
                 .build());
 

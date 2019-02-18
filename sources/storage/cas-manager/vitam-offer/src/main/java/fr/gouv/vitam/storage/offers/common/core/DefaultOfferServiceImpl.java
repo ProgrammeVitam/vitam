@@ -51,6 +51,10 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.stream.ExactSizeInputStream;
+import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -72,6 +76,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -231,6 +236,62 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
                 .getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GLOBAL_PUT_OBJECT", stopwatch.elapsed(
                 TimeUnit.MILLISECONDS));
         }
+    }
+
+    @Override
+    public StorageBulkPutResult bulkPutObjects(String containerName, List<String> objectIds,
+        MultiplexedStreamReader multiplexedStreamReader, DataCategory type, DigestType digestType)
+        throws ContentAddressableStorageException, IOException {
+
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        try {
+            ensureContainerExists(containerName);
+
+            bulkLogObjectWriteInOfferLog(containerName, objectIds);
+
+            List<StorageBulkPutResultEntry> entries = new ArrayList<>();
+
+            for (String objectId : objectIds) {
+
+                Optional<ExactSizeInputStream> entryInputStream = multiplexedStreamReader.readNextEntry();
+                if (!entryInputStream.isPresent()) {
+                    throw new IllegalStateException("No entry not found for object id " + objectId);
+                }
+
+                LOGGER.info("Writing object '" + objectId + "' of container " + containerName);
+
+                ExactSizeInputStream inputStream = entryInputStream.get();
+
+                String digest;
+                String existingDigest =
+                    checkNonRewritableObjects(containerName, objectId, inputStream, type, digestType);
+                if (existingDigest != null) {
+                    digest = existingDigest;
+                } else {
+                    digest = putObject(containerName, objectId, inputStream, inputStream.getSize(), digestType, type);
+                }
+                entries.add(new StorageBulkPutResultEntry(objectId, digest, inputStream.getSize()));
+            }
+
+            if (multiplexedStreamReader.readNextEntry().isPresent()) {
+                throw new IllegalStateException("No more entries expected");
+            }
+
+            return new StorageBulkPutResult(entries);
+
+        } finally {
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
+                "BULK_PUT_OBJECTS", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        }
+    }
+
+    private void bulkLogObjectWriteInOfferLog(String containerName, List<String> objectIds)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        // Log in offer log
+        Stopwatch times = Stopwatch.createStarted();
+        offerDatabaseService.bulkSave(containerName, objectIds, OfferLogAction.WRITE);
+        PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,
+            "BULK_LOG_CREATE_IN_DB", times.elapsed(TimeUnit.MILLISECONDS));
     }
 
     @Override

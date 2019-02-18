@@ -48,6 +48,9 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
@@ -86,10 +89,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -223,6 +229,14 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         public Response getOfferLogs(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
             @PathParam("type") String type, OfferLogRequest offerLogRequest) {
             return mock.get();
+        }
+
+        @PUT
+        @Path("/bulk/objects/{type}")
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response bulkPutObjects(@PathParam("type") DataCategory type, InputStream input) {
+            return mock.put();
         }
 
         protected void consumeAndCloseStream(InputStream stream) {
@@ -823,5 +837,145 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     private StorageMetadataResult mockMetadatasObjectResult() {
         return new StorageMetadataResult(OBJECT_ID, TYPE, "abcdef", 6096,
             "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsWithoutRequestKO() throws Exception {
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(null);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsWithEmptyRequestKO() throws Exception {
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(new StorageBulkPutRequest(null, null, null, null, null, 0));
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsRequestWithOnlyMissingTenantIdKO() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, false, true);
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsRequestWithOnlyMissingDataStreamKO() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(false, true, true, true, true);
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsRequestWithOnlyMissingAlgortihmKO() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, false, true, true, true);
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsRequestWithOnlyMissingGuidKO() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, false, true, true);
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsRequestWithOnlyMissingTypeKO() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, true, false);
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test
+    public void bulkPutObjectsWithRequestOK() throws Exception {
+
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, true, true);
+
+        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(
+            Arrays.asList(
+                new StorageBulkPutResultEntry("GUID1", "d1", 1),
+                new StorageBulkPutResultEntry("GUID2", "d2", 2)
+            )
+        );
+        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(storageBulkPutResult).build());
+
+        try (Connection connection = driver.connect(offer.getId())) {
+            final StorageBulkPutResult result = connection.bulkPutObjects(request);
+            assertNotNull(result);
+            assertThat(result.getEntries()).hasSize(2);
+            assertThat(result.getEntries().get(0).getObjectId()).isEqualTo("GUID1");
+            assertThat(result.getEntries().get(0).getDigest()).isEqualTo("d1");
+            assertThat(result.getEntries().get(0).getSize()).isEqualTo(1);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsWithRequestThrowsNotFoundErrorOnPutKO() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, true, true);
+        when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsWithRequestThrowsOtherErrorOnPutKO() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, true, true);
+        when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).build());
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsWithRequestThrowsInternalServerErrorOnPutOK() throws Exception {
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, true, true);
+        when(mock.put()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    @Test(expected = StorageDriverException.class)
+    public void bulkPutObjectsThrowsOtherException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Status.SERVICE_UNAVAILABLE).build());
+        final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, true, true);
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.bulkPutObjects(request);
+        }
+    }
+
+    private StorageBulkPutRequest getBulkPutObjectsRequest(boolean putInputStream, boolean putDigestA, boolean putGuid,
+        boolean putTenantId, boolean putType) {
+
+        FakeInputStream stream = null;
+        DigestType digest = null;
+        List<String> guid = null;
+        Integer tenantId = null;
+        String type = null;
+
+        if (putInputStream) {
+            stream = new FakeInputStream(1);
+        }
+        if (putDigestA) {
+            digest = DigestType.MD5;
+        }
+        if (putGuid) {
+            guid = Arrays.asList("GUID1", "GUID2");
+        }
+        if (putTenantId) {
+            tenantId = 0;
+        }
+        if (putType) {
+            type = DataCategory.OBJECT.getFolder();
+        }
+        return new StorageBulkPutRequest(tenantId, type, guid, digest, stream, 1L);
     }
 }

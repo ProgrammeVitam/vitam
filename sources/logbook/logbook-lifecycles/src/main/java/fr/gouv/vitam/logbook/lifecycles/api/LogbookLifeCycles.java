@@ -397,12 +397,30 @@ public interface LogbookLifeCycles {
         throws LogbookNotFoundException, InvalidParseOperationException;
 
     /**
+     * returns the raw version of unit life cycle
+     *
+     * @param ids the ids to retrieve
+     * @return the unit life cycle
+     */
+    List<JsonNode> getRawUnitLifeCycleByIds(List<String> ids)
+        throws LogbookNotFoundException, InvalidParseOperationException;
+
+    /**
      * returns the raw version of object group life cycle
      *
      * @param id the id to retrieve
      * @return the object group life cycle
      */
     JsonNode getRawObjectGroupLifeCycleById(String id)
+        throws LogbookNotFoundException, InvalidParseOperationException;
+
+    /**
+     * returns the raw version of object group life cycle
+     *
+     * @param ids the ids to retrieve
+     * @return the object group life cycle
+     */
+    List<JsonNode> getRawObjectGroupLifeCycleByIds(List<String> ids)
         throws LogbookNotFoundException, InvalidParseOperationException;
 
     /**

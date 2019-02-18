@@ -28,17 +28,21 @@ package fr.gouv.vitam.logbook.operations.client;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS;
+import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Lists;
@@ -84,11 +88,14 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -96,6 +103,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response;
 
 public class LogbookResourceIT {
 
@@ -626,6 +635,64 @@ public class LogbookResourceIT {
             ArrayList<LogbookLifeCycleObjectGroupModel> objects1 = Lists.newArrayList(objects);
             assertThat(objects1).hasSize(2).extracting("_id").containsExactly(eip.toString(), eip2.toString());
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testGetRawUnitLifeCycleByIds() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(2);
+
+        // Given
+        JsonNode doc1 = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("doc1.json"));
+        JsonNode doc2 = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("doc2.json"));
+        JsonNode doc3 = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("doc3.json"));
+
+        String GUID1 = "aeaqaaaaaahoii7cab2ggalizruha2iaaabq";
+        String GUID2 = "aeaqaaaaaahoii7cab2ggalizruhbziaaaaq";
+        String GUID3 = "aeaqaaaaaahoii7cab2ggalizruhbzqaaaba";
+
+        LogbookCollections.LIFECYCLE_UNIT.getCollection().insertMany(
+            Arrays.asList(
+                new LogbookLifeCycleUnit(doc1),
+                new LogbookLifeCycleUnit(doc2),
+                new LogbookLifeCycleUnit(doc3)
+            )
+        );
+
+
+        // Test unknown id
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, 2)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(Arrays.asList(GUID1, "Unkown id")))
+            .when().get("/raw/unitlifecycles/byids")
+            .then().statusCode(Response.Status.NOT_FOUND.getStatusCode());
+
+        // Test wrong tenant id
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, 2)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(Arrays.asList(GUID1, GUID2)))
+            .when().get("/raw/unitlifecycles/byids")
+            .then().statusCode(Response.Status.NOT_FOUND.getStatusCode());
+
+        // Test OK
+        JsonNode responseJson = given()
+            .header(GlobalDataRest.X_TENANT_ID, 2)
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(Arrays.asList(GUID1, GUID3)))
+            .when().get("/raw/unitlifecycles/byids")
+            .then().statusCode(Response.Status.OK.getStatusCode())
+            .extract().body().as(JsonNode.class);
+        RequestResponseOK requestResponseOK = RequestResponseOK.getFromJsonNode(responseJson);
+
+        List results = requestResponseOK.getResults();
+        assertThat(results).hasSize(2);
+        results.sort(
+            Comparator.comparing(o -> ((ObjectNode) o).get("_id").asText())
+        );
+        JsonAssert.assertJsonEquals(results.get(0), doc1);
+        JsonAssert.assertJsonEquals(results.get(1), doc3);
     }
 
 }

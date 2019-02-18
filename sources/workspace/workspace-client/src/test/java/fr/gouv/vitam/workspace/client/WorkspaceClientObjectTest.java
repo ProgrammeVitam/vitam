@@ -57,6 +57,8 @@ import javax.ws.rs.core.Response.Status;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
@@ -64,6 +66,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class WorkspaceClientObjectTest extends ResteasyTestApplication {
@@ -180,6 +183,14 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
             return mock.headFolder();
         }
 
+        @Path("/{containerName}/objects")
+        @GET
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        @Consumes(MediaType.APPLICATION_JSON)
+        public Response bulkGetObjects(@PathParam(CONTAINER_NAME) String containerName,
+            List<String> objectURIs) {
+            return mock.get();
+        }
     }
 
     // create
@@ -207,7 +218,6 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
         stream = getInputStream("file1");
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.putObject(CONTAINER_NAME, OBJECT_NAME, stream);
-        assertTrue(true);
     }
 
     // delete
@@ -237,7 +247,6 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
     public void givenObjectAlreadyExistsWhenDeleteObjectThenReturnNotContent() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.deleteObject(CONTAINER_NAME, OBJECT_NAME);
-        assertTrue(true);
     }
 
     // get
@@ -267,7 +276,6 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
     public void givenObjectAlreadyExistsWhenGetObjectThenReturnObject() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.OK).build());
         client.getObject(CONTAINER_NAME, OBJECT_NAME);
-        assertTrue(true);
     }
 
     // check existence
@@ -434,4 +442,34 @@ public class WorkspaceClientObjectTest extends ResteasyTestApplication {
         client.checkObject(CONTAINER_NAME, OBJECT_NAME, "fakeDigest", null);
     }
 
+    // get
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullParamWhenBulkGetObjectsThenRaiseAnException() throws Exception {
+        client.bulkGetObjects(CONTAINER_NAME, null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullIdParamWhenBulkGetObjectsThenRaiseAnException() throws Exception {
+        client.bulkGetObjects(CONTAINER_NAME, Arrays.asList("id1", null));
+    }
+
+    @Test(expected = ContentAddressableStorageServerException.class)
+    public void givenServerErrorWhenBulkGetObjectsThenRaiseAnException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        client.bulkGetObjects(CONTAINER_NAME, Arrays.asList("id1", "id2"));
+    }
+
+    @Test(expected = ContentAddressableStorageNotFoundException.class)
+    public void givenObjectNotFoundWhenBulkGetObjectsThenRaiseAnException() throws Exception {
+        when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
+        client.bulkGetObjects(CONTAINER_NAME, Arrays.asList("id1", "id2"));
+    }
+
+    @Test
+    public void givenObjectAlreadyExistsWhenBulkGetObjectsThenReturnObject() throws Exception {
+        reset(mock);
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
+        System.out.println(client.toString());
+        client.bulkGetObjects(CONTAINER_NAME, Arrays.asList("id1", "id2"));
+    }
 }

@@ -43,6 +43,8 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import org.apache.commons.io.IOUtils;
@@ -247,6 +249,11 @@ public class FakeDriverImpl extends AbstractDriver {
                     throw new StorageDriverException(getName(), "Digest or Storage Put in error", false, e);
                 }
             }
+        }
+
+        @Override
+        public StorageBulkPutResult bulkPutObjects(StorageBulkPutRequest request) {
+            throw new IllegalStateException("Stop using mocks in production");
         }
 
         @Override

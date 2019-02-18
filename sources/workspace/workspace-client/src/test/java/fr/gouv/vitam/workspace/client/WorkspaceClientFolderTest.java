@@ -163,7 +163,6 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
     public void givenFolderNotFoundWhenCreateFolderThenReturnCreated() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.CREATED).build());
         client.createFolder(CONTAINER_NAME, FOLDER_NAME);
-        assertTrue(true);
     }
 
     // delete
@@ -193,7 +192,6 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
     public void givenFolderAlreadyExistsWhenDeleteFolderThenReturnNotContent() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.NO_CONTENT).build());
         client.deleteFolder(CONTAINER_NAME, FOLDER_NAME);
-        assertTrue(true);
     }
 
     // check existence

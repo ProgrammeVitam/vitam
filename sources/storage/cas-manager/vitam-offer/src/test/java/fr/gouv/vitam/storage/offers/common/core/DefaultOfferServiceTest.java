@@ -27,6 +27,54 @@
 
 package fr.gouv.vitam.storage.offers.common.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
+import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
+import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
+import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
+import fr.gouv.vitam.storage.driver.model.StorageBulkPutResultEntry;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.output.ByteArrayOutputStream;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.LongStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
@@ -35,48 +83,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.LongStream;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.StorageConfiguration;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
-import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
-import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
-import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
-import fr.gouv.vitam.storage.engine.common.model.Order;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 /**
  * Default offer service test implementation
@@ -87,7 +97,7 @@ public class DefaultOfferServiceTest {
 
     private static final String CONTAINER_PATH = "container";
     private static final DataCategory OBJECT_TYPE = DataCategory.OBJECT;
-    private static final String FOLDER_PATH = "folder";
+    private static final DataCategory UNIT_TYPE = DataCategory.UNIT;
     private static final String OBJECT_ID = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_2 = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_3 = GUIDFactory.newObjectGUID(0).getId();
@@ -95,12 +105,17 @@ public class DefaultOfferServiceTest {
 
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
+    private static final String ARCHIVE_FILE2_TXT = "archivefile2.txt";
+    private static final String ARCHIVE_FILE3_TXT = "archivefile3.txt";
     private static final String OBJECT_ID_2_CONTENT = "Vitam Test Content";
     private static final String FAKE_CONTAINER = "fakeContainer";
     private static final String OBJECT = "object_";
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private OfferLogDatabaseService offerDatabaseService;
@@ -110,43 +125,17 @@ public class DefaultOfferServiceTest {
         ContentAddressableStorageAbstract.disableContainerCaching();
     }
 
-    @After
-    public void afterEachTest() throws Exception {
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_2));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_3));
-        Files.deleteIfExists(
-            Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder(), OBJECT_ID_DELETE));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_TYPE.getFolder()));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, FOLDER_PATH));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_2));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_3));
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT_ID_DELETE));
-        for (int i = 0; i < 150; i++) {
-            Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH, OBJECT + i));
-        }
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), CONTAINER_PATH));
-        // Clean fake container part
-        Path fakeContainerPath = Paths.get(conf.getStoragePath(), FAKE_CONTAINER);
-        if (Files.exists(fakeContainerPath)) {
-            Files.list(fakeContainerPath).forEach(path -> {
-                try {
-                    Files.deleteIfExists(path);
-                } catch (IOException e) {
-                    LOGGER.error(e);
-                }
-            });
-        }
-        Files.deleteIfExists(Paths.get(conf.getStoragePath(), FAKE_CONTAINER));
+    @Before
+    public void init() throws Exception {
+        File confFile = PropertiesUtils.findFile(DEFAULT_STORAGE_CONF);
+        final ObjectNode conf = PropertiesUtils.readYaml(confFile, ObjectNode.class);
+        conf.put("storagePath", tempFolder.getRoot().getAbsolutePath());
+        PropertiesUtils.writeYaml(confFile, conf);
     }
 
     @Test
     public void initOKTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
-        assertNotNull(offerService);
+        new DefaultOfferServiceImpl(offerDatabaseService);
     }
 
     @Test
@@ -163,9 +152,7 @@ public class DefaultOfferServiceTest {
         offerService.ensureContainerExists(CONTAINER_PATH);
 
         // check
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File container = new File(tempFolder.getRoot(), CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
@@ -186,7 +173,7 @@ public class DefaultOfferServiceTest {
         }
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        final File offerFile = new File(CONTAINER_PATH + "/" + OBJECT_ID);
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
@@ -220,9 +207,7 @@ public class DefaultOfferServiceTest {
         offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
 
         // check
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File container = new File(tempFolder.getRoot(), CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
@@ -367,5 +352,167 @@ public class DefaultOfferServiceTest {
             offerLogs.add(offerLog);
         });
         return offerLogs;
+    }
+
+    @Test
+    public void bulkPutObjectsSingleEntry() throws Exception {
+
+        // Given
+        File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
+
+        // When
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        StorageBulkPutResult storageBulkPutResult = offerService.bulkPutObjects(
+            CONTAINER_PATH,
+            Collections.singletonList(OBJECT_ID),
+            multiplexedStreamReader,
+            OBJECT_TYPE, DigestType.SHA512);
+
+        // Then
+        assertThat(storageBulkPutResult.getEntries()).hasSize(1);
+        StorageBulkPutResultEntry entry1 = storageBulkPutResult.getEntries().get(0);
+        checkFile(file1, offerService, entry1, OBJECT_ID);
+
+        verify(offerDatabaseService).bulkSave(eq(CONTAINER_PATH), eq(Collections.singletonList(OBJECT_ID)),
+            eq(OfferLogAction.WRITE));
+    }
+
+    @Test
+    public void bulkPutObjectsMultipleEntries() throws Exception {
+
+        // Given
+        File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
+        File file3 = PropertiesUtils.findFile(ARCHIVE_FILE3_TXT);
+        MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1, file2, file3);
+
+        // When
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        StorageBulkPutResult storageBulkPutResult = offerService.bulkPutObjects(
+            CONTAINER_PATH,
+            Arrays.asList(OBJECT_ID, OBJECT_ID_2, OBJECT_ID_3),
+            multiplexedStreamReader,
+            OBJECT_TYPE, DigestType.SHA512);
+
+        // Then
+        assertThat(storageBulkPutResult.getEntries()).hasSize(3);
+        checkFile(file1, offerService, storageBulkPutResult.getEntries().get(0), OBJECT_ID);
+        checkFile(file2, offerService, storageBulkPutResult.getEntries().get(1), OBJECT_ID_2);
+        checkFile(file3, offerService, storageBulkPutResult.getEntries().get(2), OBJECT_ID_3);
+
+        verify(offerDatabaseService).bulkSave(eq(CONTAINER_PATH),
+            eq(Arrays.asList(OBJECT_ID, OBJECT_ID_2, OBJECT_ID_3)), eq(OfferLogAction.WRITE));
+    }
+
+    @Test
+    public void bulkPutObjectsUpdateNonUpdatableObjectWithSameContent() throws Exception {
+
+        // Given
+        File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+
+        // When
+        MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
+        StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
+            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE, DigestType.SHA512);
+
+        MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file1);
+        StorageBulkPutResult storageBulkPutResult2 = offerService.bulkPutObjects(
+            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2, OBJECT_TYPE, DigestType.SHA512);
+
+        // Then
+        assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
+        checkFile(file1, offerService, storageBulkPutResult1.getEntries().get(0), OBJECT_ID);
+
+        assertThat(storageBulkPutResult2.getEntries()).hasSize(1);
+        checkFile(file1, offerService, storageBulkPutResult2.getEntries().get(0), OBJECT_ID);
+
+        verify(offerDatabaseService, times(2)).bulkSave(eq(CONTAINER_PATH),
+            eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE));
+    }
+
+    @Test
+    public void bulkPutObjectsUpdateNonUpdatableObjectWithDifferentContent() throws Exception {
+
+        // Given
+        File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+
+        // When
+        MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
+        StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
+            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE, DigestType.SHA512);
+
+        // Try import again
+        assertThatThrownBy(() -> {
+                MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file2);
+                offerService.bulkPutObjects(
+                    CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2,
+                    OBJECT_TYPE, DigestType.SHA512);
+            }).isInstanceOf(NonUpdatableContentAddressableStorageException.class);
+
+        // Then (check non updated)
+        assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
+        checkFile(file1, offerService, storageBulkPutResult1.getEntries().get(0), OBJECT_ID);
+
+        verify(offerDatabaseService, times(2)).bulkSave(eq(CONTAINER_PATH),
+            eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE));
+    }
+
+    @Test
+    public void bulkPutObjectsUpdateUpdatableObjectWithDifferentContent() throws Exception {
+
+        // Given
+        File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+
+        // When
+        MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
+        StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
+            CONTAINER_PATH, Arrays.asList(OBJECT_ID), multiplexedStreamReader, UNIT_TYPE, DigestType.SHA512);
+
+        MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file2);
+        StorageBulkPutResult storageBulkPutResult2 = offerService.bulkPutObjects(
+            CONTAINER_PATH, Arrays.asList(OBJECT_ID), multiplexedStreamReader2, UNIT_TYPE, DigestType.SHA512);
+
+        // Then (check updated content)
+        assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
+        assertThat(storageBulkPutResult2.getEntries()).hasSize(1);
+        checkFile(file2, offerService, storageBulkPutResult2.getEntries().get(0), OBJECT_ID);
+
+        verify(offerDatabaseService, times(2)).bulkSave(eq(CONTAINER_PATH),
+            eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE));
+    }
+
+    private MultiplexedStreamReader createMultiplexedStreamReader(File... files) throws IOException {
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(byteArrayOutputStream);
+
+        for (File file : files) {
+            try (FileInputStream in = new FileInputStream(file)) {
+                multiplexedStreamWriter.appendEntry(file.length(), in);
+            }
+        }
+        multiplexedStreamWriter.appendEndOfFile();
+        return new MultiplexedStreamReader(byteArrayOutputStream.toInputStream());
+    }
+
+    private void checkFile(File testFile, DefaultOfferService offerService, StorageBulkPutResultEntry entry,
+        String objectId)
+        throws IOException, ContentAddressableStorageException {
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + objectId);
+        assertThat(offerFile).hasSameContentAs(testFile);
+
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+
+        assertEquals(entry.getDigest(), digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, objectId,
+            VitamConfiguration.getDefaultDigestType()), digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectId));
     }
 }
