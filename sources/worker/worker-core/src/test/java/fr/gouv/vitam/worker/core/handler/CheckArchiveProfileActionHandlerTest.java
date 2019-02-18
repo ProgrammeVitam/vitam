@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 public class CheckArchiveProfileActionHandlerTest {
 
     private static final AdminManagementClient adminClient = mock(AdminManagementClient.class);
-    ;
+    
     private static final AdminManagementClientFactory adminManagementClientFactory =
         mock(AdminManagementClientFactory.class);
     private GUID guid;
