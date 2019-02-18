@@ -178,7 +178,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
             griffinModelListForScenario = getListOfGriffinGivenScenario(adminManagementClient, scenarioModel);
 
         } catch (Exception e) {
-            throw new ProcessingException("Preconditions Failed", e);
+            throw new ProcessingException(String.format("Preconditions Failed :  %s", e.getMessage()), e);
         }
 
         SelectMultiQuery selectMultiQuery = prepareUnitsWithObjectGroupsQuery(preservationRequest.getDslQuery());
