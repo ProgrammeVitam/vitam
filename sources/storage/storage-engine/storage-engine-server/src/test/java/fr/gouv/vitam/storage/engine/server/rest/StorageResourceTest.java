@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -104,6 +105,7 @@ import static io.restassured.RestAssured.given;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 /**
@@ -1073,6 +1075,78 @@ public class StorageResourceTest {
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
             dataCategory.getCollectionName());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public final void bulkCreateFromWorkspaceConflict() throws Exception {
+
+        // Given
+        int tenantId = 2;
+        String strategyId = "strategyId";
+        String workspaceContainer = "workspaceContainer";
+        List<String> uris = Arrays.asList("uri1", "uri2");
+        DataCategory dataCategory = DataCategory.UNIT;
+        List<String> objectNames = Arrays.asList("ob1", "ob2");
+        String requester = "requester";
+
+        BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
+            workspaceContainer, uris, dataCategory, objectNames);
+
+        HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
+
+        HttpHeaders headers = getHttpHeaders(tenantId, strategyId);
+
+        StorageDistribution storageDistribution = mock(StorageDistribution.class);
+        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
+
+        doThrow(StorageInconsistentStateException.class)
+            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
+
+        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
+
+        // When
+        Response response = storageResource.bulkCreateFromWorkspace(
+            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.CONFLICT.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public final void bulkCreateFromWorkspaceInternalServerError() throws Exception {
+
+        // Given
+        int tenantId = 2;
+        String strategyId = "strategyId";
+        String workspaceContainer = "workspaceContainer";
+        List<String> uris = Arrays.asList("uri1", "uri2");
+        DataCategory dataCategory = DataCategory.UNIT;
+        List<String> objectNames = Arrays.asList("ob1", "ob2");
+        String requester = "requester";
+
+        BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
+            workspaceContainer, uris, dataCategory, objectNames);
+
+        HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
+
+        HttpHeaders headers = getHttpHeaders(tenantId, strategyId);
+
+        StorageDistribution storageDistribution = mock(StorageDistribution.class);
+        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
+
+        doThrow(StorageException.class)
+            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
+
+        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
+
+        // When
+        Response response = storageResource.bulkCreateFromWorkspace(
+            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
+
+        // Then
+        assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     private void checkBackRequest(BulkObjectStoreRequest bulkObjectStoreRequest,

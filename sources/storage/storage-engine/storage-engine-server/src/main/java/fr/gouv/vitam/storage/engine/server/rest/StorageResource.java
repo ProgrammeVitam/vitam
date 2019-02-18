@@ -65,6 +65,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -2301,6 +2302,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
+        } catch (StorageInconsistentStateException exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_INCONSISTENT_STATE);
         } catch (final Exception exc) {
             LOGGER.error(exc);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
