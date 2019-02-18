@@ -323,7 +323,7 @@
                         JAR. -->
                     <artifactId>maven-resources-plugin</artifactId>
                     <!-- 3.0 ? -->
-                    <version>2.7</version>
+                    <version>3.1.0</version>
                     <configuration>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
@@ -550,7 +550,7 @@
                 <plugin>
                     <!-- Dependency manipulation (copy, unpack) and analysis. -->
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>2.10</version>
+				    <version>3.1.1</version>
                 </plugin>
                 <plugin>
                     <!-- Environmental constraint checking (Maven Version, JDK etc), User
