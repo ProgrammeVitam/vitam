@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.offers.common.database;
+package fr.gouv.vitam.storage.offers.database;
 
 import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;

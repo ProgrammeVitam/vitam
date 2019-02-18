@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.offers.common.driver;
+package fr.gouv.vitam.storage.offers.driver;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -56,9 +56,9 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
-import fr.gouv.vitam.storage.offers.common.rest.OfferConfiguration;
+import fr.gouv.vitam.storage.offers.database.OfferCollections;
+import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.storage.offers.rest.OfferConfiguration;
 import fr.gouv.vitam.storage.offers.workspace.driver.DriverImpl;
 import io.restassured.RestAssured;
 import org.bson.Document;

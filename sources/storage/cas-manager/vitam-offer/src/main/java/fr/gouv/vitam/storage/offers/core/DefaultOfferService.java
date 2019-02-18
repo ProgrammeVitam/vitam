@@ -25,7 +25,7 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.offers.common.core;
+package fr.gouv.vitam.storage.offers.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,47 +23,86 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.rest;
+ */
+package fr.gouv.vitam.storage.offers.database;
 
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
-
+import org.bson.Document;
 
 /**
- * DefaultOfferMain Test
+ * Offer sequence.
  */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+public class OfferSequence {
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+    public static final String COUNTER_FIELD = "Counter";
+    public static final String ID_FIELD = "_id";
 
-    @Test
-    public final void testFictiveLaunch() {
-        try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
+    private String id;
 
-        try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
+    private long counter;
 
-        try {
-            new DefaultOfferMain(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final IllegalStateException exc) {
-            // Result Expected
-        }
+    /**
+     * Constructor, jackson usage only
+     */
+    public OfferSequence() {}
+
+    /**
+     * Constructor
+     * 
+     * @param id id
+     */
+    public OfferSequence(String id) {
+        this.id = id;
     }
 
-    @Test
-    public void shouldActivateShiroFilter() {
-        new DefaultOfferMain("src/test/resources/storage-default-offer-ssl.conf");
+    /**
+     * Gets the id
+     * 
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id
+     * 
+     * @param id
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the counter
+     * 
+     * @return counter
+     */
+    public long getCounter() {
+        return counter;
+    }
+
+    /**
+     * Sets the counter
+     * 
+     * @param counter counter
+     */
+    public void setCounter(long counter) {
+        this.counter = counter;
+    }
+
+    /**
+     * Ugly workaround to keep object type when convert JSON to Mongo Document
+     *
+     * TODO: switch to mongo-java-driver >= 3.5.0 and use PojoCodecProvider
+     *
+     * @return Document
+     * @see <a href=
+     *      "http://mongodb.github.io/mongo-java-driver/3.5/driver/getting-started/quick-start-pojo/#creating-a-custom-codecregistry">PojoCodecProvider</a>
+     */
+    public Document toDocument() {
+        Document document = new Document();
+        document.put(ID_FIELD, id);
+        document.put(COUNTER_FIELD, counter);
+        return document;
     }
 }

@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.rest;
+package fr.gouv.vitam.storage.offers.rest;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
@@ -47,10 +47,10 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
-import fr.gouv.vitam.storage.offers.common.core.DefaultOfferServiceImpl;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
+import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
+import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
+import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
 
 /**
  * Offer register resources and filters

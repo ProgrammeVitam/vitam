@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.rest;
+package fr.gouv.vitam.storage.offers.rest;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,7 +61,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
-import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
+import fr.gouv.vitam.storage.offers.database.OfferCollections;
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
 import org.apache.commons.io.FileUtils;

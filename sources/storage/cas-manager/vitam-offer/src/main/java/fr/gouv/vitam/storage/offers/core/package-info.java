@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,86 +23,10 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.storage.offers.common.database;
-
-import org.bson.Document;
-
+ *******************************************************************************/
 /**
- * Offer sequence.
+ * Provides core implementation (Workspace based) for the Storage Offer Default
+ * module
+ *
  */
-public class OfferSequence {
-
-    public static final String COUNTER_FIELD = "Counter";
-    public static final String ID_FIELD = "_id";
-
-    private String id;
-
-    private long counter;
-
-    /**
-     * Constructor, jackson usage only
-     */
-    public OfferSequence() {}
-
-    /**
-     * Constructor
-     * 
-     * @param id id
-     */
-    public OfferSequence(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Gets the id
-     * 
-     * @return the id
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Sets the id
-     * 
-     * @param id
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Gets the counter
-     * 
-     * @return counter
-     */
-    public long getCounter() {
-        return counter;
-    }
-
-    /**
-     * Sets the counter
-     * 
-     * @param counter counter
-     */
-    public void setCounter(long counter) {
-        this.counter = counter;
-    }
-
-    /**
-     * Ugly workaround to keep object type when convert JSON to Mongo Document
-     *
-     * TODO: switch to mongo-java-driver >= 3.5.0 and use PojoCodecProvider
-     *
-     * @return Document
-     * @see <a href=
-     *      "http://mongodb.github.io/mongo-java-driver/3.5/driver/getting-started/quick-start-pojo/#creating-a-custom-codecregistry">PojoCodecProvider</a>
-     */
-    public Document toDocument() {
-        Document document = new Document();
-        document.put(ID_FIELD, id);
-        document.put(COUNTER_FIELD, counter);
-        return document;
-    }
-}
+package fr.gouv.vitam.storage.offers.core;

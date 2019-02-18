@@ -117,7 +117,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientExcept
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
+import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;

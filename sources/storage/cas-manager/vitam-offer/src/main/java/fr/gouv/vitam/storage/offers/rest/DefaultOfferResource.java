@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.rest;
+package fr.gouv.vitam.storage.offers.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -60,8 +60,8 @@ import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
-import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
-import fr.gouv.vitam.storage.offers.common.core.NonUpdatableContentAddressableStorageException;
+import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
+import fr.gouv.vitam.storage.offers.core.NonUpdatableContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;

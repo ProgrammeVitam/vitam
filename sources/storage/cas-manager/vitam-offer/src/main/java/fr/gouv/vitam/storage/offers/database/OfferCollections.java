@@ -1,4 +1,4 @@
-package fr.gouv.vitam.storage.offers.common.database;
+package fr.gouv.vitam.storage.offers.database;
 
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 

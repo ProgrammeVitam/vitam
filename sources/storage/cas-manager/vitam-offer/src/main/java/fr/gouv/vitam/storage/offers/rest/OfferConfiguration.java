@@ -25,7 +25,7 @@
  * accept its terms.
  */
 
-package fr.gouv.vitam.storage.offers.common.rest;
+package fr.gouv.vitam.storage.offers.rest;
 
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
 

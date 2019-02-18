@@ -24,43 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.core;
-
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
-
 /**
- * Thrown when updating an existing non updatable object.
+ * Provides core implementation for default offer mongo acces.
+ *
  */
-public class NonUpdatableContentAddressableStorageException extends ContentAddressableStorageException {
-
-    private static final long serialVersionUID = 672300958086946348L;
-
-    /**
-     * Constructor
-     *
-     * @param message as String message to associate with the exception
-     */
-    public NonUpdatableContentAddressableStorageException(String message) {
-        super(message);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param cause as String to associate with the exception
-     */
-    public NonUpdatableContentAddressableStorageException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * Constructor
-     *
-     * @param message : message to associate with the exception
-     * @param cause : cause to associate with the exception
-     */
-    public NonUpdatableContentAddressableStorageException(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-}
+package fr.gouv.vitam.storage.offers.database;
