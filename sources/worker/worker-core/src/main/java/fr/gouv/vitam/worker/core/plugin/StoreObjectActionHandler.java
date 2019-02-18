@@ -26,6 +26,11 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
@@ -39,11 +44,11 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-
-import java.util.List;
 
 /**
  *
@@ -94,6 +99,16 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         return null;
     }
 
+    protected BulkObjectStoreResponse storeObjects(BulkObjectStoreRequest bulkObjectStoreRequest)
+            throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
+
+        try (final StorageClient storageClient = storageClientFactory.getClient()) {
+            // store binary data objects
+            return storageClient.bulkStoreFilesFromWorkspace(DEFAULT_STRATEGY, bulkObjectStoreRequest);
+
+        }
+    }
+
     /**
      * Helper to set _storage on node after storing it
      *
@@ -119,6 +134,27 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         LOGGER.debug("DEBUG node: {}", node);
     }
 
+    protected void storeStorageInfos(String strategy, Map<String, JsonNode> nodes, BulkObjectStoreResponse result) {
+        LOGGER.debug("DEBUG result: {}", result);
+        Iterator<Map.Entry<String, String>> objectsDigests = result.getObjectDigests().entrySet().iterator();
+        while(objectsDigests.hasNext()) {
+            Map.Entry<String, String> objectDigest = objectsDigests.next();
+            List<String> offers = result.getOfferIds();
+            ObjectNode storage = JsonHandler.createObjectNode();
+            storage.put(SedaConstants.TAG_NB, result.getOfferIds().size());
+            ArrayNode offersId = JsonHandler.createArrayNode();
+            if (offers != null) {
+                for (String id : offers) {
+                    offersId.add(id);
+                }
+            }
+            storage.set(SedaConstants.OFFER_IDS, offersId);
+            storage.put(SedaConstants.STRATEGY_ID, strategy);
+            ((ObjectNode)nodes.get(objectDigest.getKey())).set(SedaConstants.STORAGE, storage);
+            LOGGER.debug("DEBUG node: {}", nodes.get(objectDigest.getKey()));
+        }
+    }
+
     /**
      * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
      *
@@ -137,5 +173,30 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         }
 
         return JsonHandler.unprettyPrint(object);
+    }
+
+    /**
+     * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
+     *
+     * @param result
+     * @param itemStatusByObject
+     */
+    protected void updateSubTasksAndTasksFromStorageInfos(BulkObjectStoreResponse result, Map<String, ItemStatus> itemStatusByObject, ItemStatus itemStatus) {
+        Iterator<Map.Entry<String, String>> objectsDigests = result.getObjectDigests().entrySet().iterator();
+        while(objectsDigests.hasNext()) {
+            ObjectNode object = JsonHandler.createObjectNode();
+            Map.Entry<String, String> objectDigest = objectsDigests.next();
+            object.put(FILE_NAME, objectDigest.getKey());
+            object.put(ALGORITHM, result.getDigestType());
+            object.put(DIGEST, objectDigest.getValue());
+            List<String> offers = result.getOfferIds();
+            object.put(OFFERS, offers != null ? String.join(",", offers) : "");
+            itemStatusByObject.get(objectDigest.getKey()).increment(StatusCode.OK);
+            itemStatusByObject.get(objectDigest.getKey()).setEvDetailData(JsonHandler.unprettyPrint(object));
+
+            // increment itemStatus with subtask
+            itemStatus.setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
+                    .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
+        }
     }
 }

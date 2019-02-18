@@ -141,7 +141,7 @@ public class StoreObjectGroupActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         doThrow(new StorageServerClientException("Error storage")).when(storageClient)
-            .storeFileFromWorkspace(any(), any(), any(), any());
+            .bulkStoreFilesFromWorkspace(any(), any());
 
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
 
