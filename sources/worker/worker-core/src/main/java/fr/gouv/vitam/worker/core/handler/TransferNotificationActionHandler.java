@@ -160,7 +160,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     public TransferNotificationActionHandler() {
         this(LogbookOperationsClientFactory.getInstance(), StorageClientFactory.getInstance(),
-            new ValidationXsdUtils());
+            ValidationXsdUtils.getInstance());
     }
 
     @VisibleForTesting
