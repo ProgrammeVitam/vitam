@@ -1,0 +1,49 @@
+tapeBatches:
+    -
+        containers:
+            - 0_object
+            - 1_object
+        nbThreads: 3
+    -
+        containers:
+            - 0_others
+            - 1_others
+
+tapeLibraries:
+    TAPE_LIB_1:
+        robots:
+            -
+                device: /dev/sg3
+            -
+                device: /dev/sg4
+        drives:
+            -
+                device: /dev/nst1
+                readWriteCommand: TAR
+                timeoutInMilliseconds: 60000
+            -
+                device: /dev/nst2
+                readWriteCommand: CP
+                timeoutInMilliseconds: 40000
+            -
+                device: /dev/nst3
+                readWriteCommand: DD
+                timeoutInMilliseconds: 20000
+            -
+                device: /dev/nst4
+
+    TAPE_LIB_2:
+        robots:
+            -
+                device: /dev/sg5
+            -
+                device: /dev/sg6
+        drives:
+            -
+                device: /dev/nst5
+            -
+                device: /dev/nst6
+            -
+                device: /dev/nst7
+            -
+                device: /dev/nst8
