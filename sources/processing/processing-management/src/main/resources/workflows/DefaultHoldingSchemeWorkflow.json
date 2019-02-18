@@ -199,8 +199,9 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
+        "type": "Units",
         "element": "UnitsLevel/ingestLevelStack.json",
-        "type": "Units"
+        "bulkSize": 128
       },
       "actions": [
         {
