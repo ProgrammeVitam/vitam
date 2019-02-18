@@ -132,7 +132,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
                 outputStream.close();
 
                 if (profile.getFormat().equals(ProfileFormat.XSD)) {
-                    isValid = new ValidationXsdUtils().checkFileXSD(handlerIO.getInputStreamFromWorkspace(
+                    isValid = ValidationXsdUtils.getInstance().checkFileXSD(handlerIO.getInputStreamFromWorkspace(
                         IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE), tmpFile);
                 }
 

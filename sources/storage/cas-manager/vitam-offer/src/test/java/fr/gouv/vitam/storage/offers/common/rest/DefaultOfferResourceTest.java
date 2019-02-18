@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.Files;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
@@ -73,6 +74,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -124,6 +126,10 @@ public class DefaultOfferResourceTest {
         OBJECT_MAPPER.disable(SerializationFeature.INDENT_OUTPUT);
     }
 
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResourceTest.class);
 
     @ClassRule
@@ -136,6 +142,11 @@ public class DefaultOfferResourceTest {
             o.setPrefix(PREFIX);
             mongoRule.addCollectionToBePurged(o.getName());
         }
+
+        File confFile = PropertiesUtils.findFile(DEFAULT_STORAGE_CONF);
+        final ObjectNode conf = PropertiesUtils.readYaml(confFile, ObjectNode.class);
+        conf.put("storagePath", tempFolder.getRoot().getAbsolutePath());
+        PropertiesUtils.writeYaml(confFile, conf);
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final OfferConfiguration realWorkspaceOffer =
@@ -756,8 +767,10 @@ public class DefaultOfferResourceTest {
         File testFileV2 = PropertiesUtils.findFile(ARCHIVE_FILE_V2_TXT);
 
         // When (try override file1 & file2 with new content)
-        bulkPutObjects(DataCategory.UNIT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
-        bulkPutObjects(DataCategory.UNIT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV2, testFileV2), Status.CREATED);
+        bulkPutObjects(DataCategory.UNIT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1),
+            Status.CREATED);
+        bulkPutObjects(DataCategory.UNIT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV2, testFileV2),
+            Status.CREATED);
 
         // Then
         checkWrittenFile(testFileV2, "2_unit", "file1");
@@ -774,8 +787,10 @@ public class DefaultOfferResourceTest {
         File testFileV1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
 
         // When (try override file1 & file2 with same content)
-        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
-        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1),
+            Status.CREATED);
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1),
+            Status.CREATED);
 
         // Then
         checkWrittenFile(testFileV1, "2_object", "file1");
@@ -793,8 +808,10 @@ public class DefaultOfferResourceTest {
         File testFileV2 = PropertiesUtils.findFile(ARCHIVE_FILE_V2_TXT);
 
         // When (try override file2 with different content)
-        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1), Status.CREATED);
-        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file3", "file2", "file4"), Arrays.asList(testFileV1, testFileV2, testFileV1), Status.CONFLICT);
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file1", "file2"), Arrays.asList(testFileV1, testFileV1),
+            Status.CREATED);
+        bulkPutObjects(DataCategory.OBJECT, Arrays.asList("file3", "file2", "file4"),
+            Arrays.asList(testFileV1, testFileV2, testFileV1), Status.CONFLICT);
 
         // Then
         checkWrittenFile(testFileV1, "2_object", "file2");
@@ -811,11 +828,11 @@ public class DefaultOfferResourceTest {
         InputStream inputStream = new ByteArrayInputStream(content);
 
         io.restassured.response.Response response = given().header(GlobalDataRest.X_TENANT_ID, "2")
-                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, content.length)
-                .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
-                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(inputStream).when()
-                .put("/bulk/objects/{type}", dataCategory.name())
-                .andReturn();
+            .header(GlobalDataRest.VITAM_CONTENT_LENGTH, content.length)
+            .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+            .contentType(MediaType.APPLICATION_OCTET_STREAM).body(inputStream).when()
+            .put("/bulk/objects/{type}", dataCategory.name())
+            .andReturn();
 
         assertThat(response.statusCode()).isEqualTo(expectedStatus.getStatusCode());
 
@@ -849,7 +866,7 @@ public class DefaultOfferResourceTest {
 
         // Append content entries
         for (File file : files) {
-            try(FileInputStream fis = new FileInputStream(file)) {
+            try (FileInputStream fis = new FileInputStream(file)) {
                 multiplexedStreamWriter.appendEntry(file.length(), fis);
             }
         }

@@ -92,9 +92,6 @@ import static org.mockito.Mockito.when;
  * Default offer service test implementation
  */
 public class DefaultOfferServiceTest {
-
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceTest.class);
-
     private static final String CONTAINER_PATH = "container";
     private static final DataCategory OBJECT_TYPE = DataCategory.OBJECT;
     private static final DataCategory UNIT_TYPE = DataCategory.UNIT;

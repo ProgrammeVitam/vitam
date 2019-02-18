@@ -36,12 +36,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
 public class CheckArchiveProfileActionHandlerTest {
 
-    private AdminManagementClient adminClient;
+    private static final AdminManagementClient adminClient = mock(AdminManagementClient.class);
+    ;
     private static final AdminManagementClientFactory adminManagementClientFactory =
         mock(AdminManagementClientFactory.class);
     private GUID guid;
@@ -60,12 +62,13 @@ public class CheckArchiveProfileActionHandlerTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private HandlerIO handlerIO = mock(HandlerIO.class);
+    private static final HandlerIO handlerIO = mock(HandlerIO.class);
 
     @Before
     public void setUp() throws ProcessingException, FileNotFoundException {
-        adminClient = mock(AdminManagementClient.class);
         guid = GUIDFactory.newGUID();
+        reset(adminClient);
+        reset(handlerIO);
         when(adminManagementClientFactory.getClient()).thenReturn(adminClient);
 
     }
