@@ -4,7 +4,7 @@
   "license": "CeCILL 2.1",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --proxy-config proxy.conf.json -port 4201",
+    "start": "ng serve --proxy-config proxy.conf.json -port 4201 --ssl true",
     "build": "ng build --env=dev",
     "prod": "ng build --env=prod",
     "inttest": "ng test --single-run=true --browsers PhantomJS --watch=false",
