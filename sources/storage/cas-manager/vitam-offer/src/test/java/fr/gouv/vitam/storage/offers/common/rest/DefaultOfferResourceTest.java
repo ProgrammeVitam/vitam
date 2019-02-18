@@ -30,6 +30,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.io.Files;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
@@ -70,6 +71,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -119,6 +121,10 @@ public class DefaultOfferResourceTest {
         OBJECT_MAPPER.disable(SerializationFeature.INDENT_OUTPUT);
     }
 
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResourceTest.class);
 
     @ClassRule
@@ -131,6 +137,11 @@ public class DefaultOfferResourceTest {
             o.setPrefix(PREFIX);
             mongoRule.addCollectionToBePurged(o.getName());
         }
+
+        File confFile = PropertiesUtils.findFile(DEFAULT_STORAGE_CONF);
+        final ObjectNode conf = PropertiesUtils.readYaml(confFile, ObjectNode.class);
+        conf.put("storagePath", tempFolder.getRoot().getAbsolutePath());
+        PropertiesUtils.writeYaml(confFile, conf);
 
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final OfferConfiguration realWorkspaceOffer =
@@ -177,6 +188,7 @@ public class DefaultOfferResourceTest {
         try {
             // restart server to reinit collection sequence
             application.stop();
+            VitamClientFactory.resetConnections();
             application.start();
         } catch (VitamApplicationServerException e) {
             throw new VitamException("could not restart server");

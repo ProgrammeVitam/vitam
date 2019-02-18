@@ -28,8 +28,6 @@ import static org.mockito.Mockito.mock;
 
 public class PopulateServiceTest {
 
-    private static final String STORAGE_CONF_FILE = "storage.conf";
-
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
@@ -55,7 +53,7 @@ public class PopulateServiceTest {
 
     @AfterClass
     public static void afterClass() {
-        elasticsearchRule.deleteIndexes();
+        elasticsearchRule.deleteIndexesWithoutClose();
         mongoRule.handleAfterClass();
     }
 
@@ -72,12 +70,12 @@ public class PopulateServiceTest {
             new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
         UnitGraph unitGraph = new UnitGraph(metadataRepository);
         populateService =
-            new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 4,
+            new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 2,
                 metadataStorageService);
     }
 
     @After
-    public void after() throws Exception {
+    public void after() {
         mongoRule.handleAfter();
         elasticsearchRule.handleAfter();
     }
@@ -121,7 +119,6 @@ public class PopulateServiceTest {
         }
 
         int[] idx = {0};
-        int portMongo = MongoRule.getDataBasePort();
         assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count()).isEqualTo(11);
         Bson filter = Filters.eq("_mgt.StorageRule.Rules.Rule", "STR-00059");
         assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count(filter)).isEqualTo(10);
@@ -155,7 +152,7 @@ public class PopulateServiceTest {
     public void should_populate_logbook_collections() throws Exception {
         // Given
         PopulateModel populateModel = new PopulateModel();
-        populateModel.setBulkSize(100);
+        populateModel.setBulkSize(10);
         populateModel.setNumberOfUnit(5);
         populateModel.setRootId("1234");
         populateModel.setSp("vitam");
