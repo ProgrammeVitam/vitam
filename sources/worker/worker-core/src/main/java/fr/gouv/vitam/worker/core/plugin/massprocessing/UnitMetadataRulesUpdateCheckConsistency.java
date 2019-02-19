@@ -54,7 +54,11 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -140,7 +144,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
         Optional<JsonNode> checkError = ruleActions.getUpdate().stream()
             .flatMap(x -> x.entrySet().stream())
-            .map(this::computeErrorsForCategory)
+            .map(this::computeErrorsForUpdate)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .findFirst();
@@ -148,15 +152,17 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
         checkError = ruleActions.getAdd().stream()
             .flatMap(x -> x.entrySet().stream())
-            .map(this::computeErrorsForCategory)
+            .map(this::computeErrorsForAdd)
             .filter(Optional::isPresent)
             .map(Optional::get)
             .findFirst();
         if(checkError.isPresent()) return checkError.get();
+
         checkError = ruleActions.getDelete().stream()
             .flatMap(x -> x.entrySet().stream())
-            .map(this::computeOnlyRulesID)
-            .filter(Objects::nonNull)
+            .map(this::computeErrorsForDelete)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .findFirst();
         return checkError.orElse(null);
     }
@@ -206,6 +212,122 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             return Optional.of(errorInfo);
         } catch (InvalidParseOperationException | AdminManagementClientServerException e) {
             throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<JsonNode> checkDate(String startDateAsString, String category) {
+        try {
+            LocalDate startDate = LocalDate.parse(startDateAsString);
+            if (startDate.getYear() >= 9000) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "'StartDate' must be prior than year 9000 for category " + category);
+                return Optional.of(errorInfo);
+            }
+        } catch (DateTimeParseException e) {
+            ObjectNode errorInfo = JsonHandler.createObjectNode();
+            errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+            errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+            errorInfo.put("Info ", "'StartDate' must follow 'AAAA-MM-DD' format " + category);
+            return Optional.of(errorInfo);
+        }
+        return Optional.empty();
+
+    }
+
+    private Optional<JsonNode> computeErrorsForUpdate(Map.Entry<String, RuleCategoryAction> entry) {
+        Optional<JsonNode> response = computeErrorsForCategory(entry);
+        if (response.isPresent()) {
+            return response;
+        }
+
+        for (RuleAction ruleAction: entry.getValue().getRules()) {
+            if (StringUtils.isEmpty(ruleAction.getOldRule())) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "Rule update should define an 'OldRule' to be updated for category " + entry.getKey());
+                return Optional.of(errorInfo);
+            }
+
+            if (StringUtils.isEmpty(ruleAction.getRule())
+                && StringUtils.isEmpty(ruleAction.getStartDate())
+                && !ruleAction.isDeleteStartDate()) {
+
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "Rule update should define new 'Rule', 'StartDate' or 'DeleteStartDate' for category " + entry.getKey());
+                return Optional.of(errorInfo);
+            }
+
+            Optional<JsonNode> checkDateResponse = checkDate(ruleAction.getStartDate(), entry.getKey());
+            if (checkDateResponse.isPresent()) {
+                return checkDateResponse;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<JsonNode> computeErrorsForAdd(Map.Entry<String, RuleCategoryAction> entry) {
+        Optional<JsonNode> response = computeErrorsForCategory(entry);
+        if (response.isPresent()) {
+            return response;
+        }
+
+        for (RuleAction ruleAction: entry.getValue().getRules()) {
+            if (StringUtils.isEmpty(ruleAction.getRule())) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "New rule must at least define the field 'Rule' for category " + entry.getKey());
+                return Optional.of(errorInfo);
+            }
+
+            if (StringUtils.isNotEmpty(ruleAction.getOldRule()) || ruleAction.isDeleteStartDate()) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "New rule must not define 'OldRule' nor 'DeleteStartDate' fields for category " + entry.getKey());
+                return Optional.of(errorInfo);
+            }
+
+            Optional<JsonNode> checkDateResponse = checkDate(ruleAction.getStartDate(), entry.getKey());
+            if (checkDateResponse.isPresent()) {
+                return checkDateResponse;
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<JsonNode> computeErrorsForDelete(Map.Entry<String, RuleCategoryAction> entry) {
+        JsonNode rulesIDErrors = computeOnlyRulesID(entry);
+        if (rulesIDErrors != null) { return Optional.of(rulesIDErrors); }
+
+        for (RuleAction ruleAction: entry.getValue().getRules()) {
+            if (StringUtils.isEmpty(ruleAction.getRule())) {
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "Delete rule must at least define the field 'Rule' for category " + entry.getKey());
+                return Optional.of(errorInfo);
+            }
+
+            if (StringUtils.isNotEmpty(ruleAction.getOldRule())
+                || StringUtils.isNotEmpty(ruleAction.getStartDate())
+                || ruleAction.isDeleteStartDate()) {
+
+                ObjectNode errorInfo = JsonHandler.createObjectNode();
+                errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
+                errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
+                errorInfo.put("Info ", "Delete rule must not define 'OldRule', 'StartDate' nor 'DeleteStartDate' fields for category " + entry.getKey());
+                return Optional.of(errorInfo);
+            }
         }
 
         return Optional.empty();
