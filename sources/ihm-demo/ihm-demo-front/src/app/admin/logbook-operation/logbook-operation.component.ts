@@ -30,10 +30,12 @@ export class LogbookOperationComponent extends PageComponent {
     {label: 'Entrée', value: 'ingest'},
     {label: 'Export DIP', value: 'export_dip'},
     {label: 'Mise à jour', value: 'update'},
+    {label: 'Mise à jour de format autorisé', value: 'formatUpdate'},
     {label: 'Préservation', value: 'preservation'},
     {label: 'Sécurisation', value: 'traceability'},
     {label: 'Vérification', value: 'check'},
-    {label: 'Sauvegarde écritures', value: 'storage_backup'}
+    {label: 'Sauvegarde écritures', value: 'storage_backup'},
+    {label: 'Reclassification', value: 'reclassification'}
   ];
   public logbookData = [
     FieldDefinition.createIdField('evId', 'Identifiant', 6, 8),
@@ -125,10 +127,12 @@ export class LogbookOperationComponent extends PageComponent {
 
   static handleReports(item): string[] {
     const evType = item.evTypeProc.toUpperCase();
-    if (['AUDIT', 'EXPORT_DIP', 'INGEST'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
+    if (['AUDIT', 'EXPORT_DIP', 'INGEST', 'MASS_UPDATE'].indexOf(evType) > -1 || item.evType.toUpperCase() === 'STP_IMPORT_RULES'
       || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'HOLDINGSCHEME'
-      || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY'
-      || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'DATA_MIGRATION') {
+      || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
+      || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION'
+      || item.evType.toUpperCase() === 'IMPORT_PRESERVATION_SCENARIO' || item.evType.toUpperCase() === 'IMPORT_GRIFFIN'
+      || item.evType.toUpperCase() === 'PRESERVATION' || item.evType.toUpperCase() === 'STP_IMPORT_ACCESS_CONTRACT' ) {
 
       if (LogbookOperationComponent.isOperationInProgress(item)) {
         return ['fa-clock-o'];
@@ -218,7 +222,14 @@ export class LogbookOperationComponent extends PageComponent {
     switch (item.evTypeProc.toUpperCase()) {
       case 'AUDIT':
       case 'DATA_MIGRATION':
+      case 'ELIMINATION':
         logbookService.downloadReport(item.evIdProc);
+        break;
+      case 'PRESERVATION':
+        logbookService.downloadPreservationReport(item.evIdProc);
+        break;
+      case 'MASS_UPDATE':
+        logbookService.downloadMassUpdateReport(item.evIdProc);
         break;
       case 'INGEST':
         logbookService.downloadObject(item.evIdProc);
@@ -227,17 +238,27 @@ export class LogbookOperationComponent extends PageComponent {
         logbookService.downloadDIP(item.evIdProc);
         break;
       case 'MASTERDATA':
-        if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES'|| item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
+        if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
           logbookService.downloadReport(item.evIdProc);
           break;
         } else if (item.evType.toUpperCase() === 'HOLDINGSCHEME') {
           logbookService.downloadObject(item.evIdProc);
           break;
-        }
+        } else if (item.evType === 'STP_REFERENTIAL_FORMAT_IMPORT') {
+          logbookService.downloadReport(item.evIdProc);
+          break;
+        } else if (item.evType === 'IMPORT_GRIFFIN') {
+            logbookService.downloadReport(item.evIdProc);
+            break;
+        } else if (item.evType === 'IMPORT_PRESERVATION_SCENARIO') {
+            logbookService.downloadReport(item.evIdProc);
+            break;
+        } else if (item.evType === 'STP_IMPORT_ACCESS_CONTRACT') {
+          logbookService.downloadReport(item.evIdProc);
+          break;
     }
-
   }
-
+  }
   static isOperationInProgress(item): boolean {
     const status = LogbookOperationComponent.getOperationStatus(item);
     switch (status) {

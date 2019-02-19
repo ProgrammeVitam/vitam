@@ -26,30 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.common.server;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -74,6 +50,7 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -86,6 +63,7 @@ import fr.gouv.vitam.common.junit.JunitHelper.ElasticsearchTestConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -97,11 +75,35 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
+import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 
 public class MongoDbAccessAdminImplTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImplTest.class);
@@ -134,7 +136,7 @@ public class MongoDbAccessAdminImplTest {
     private static final String AQUISITION_INFORMATION = "AcquisitionInformation";
     private static final String LEGAL_STATUS = "LegalStatus";
     private static final Integer TENANT_ID = 0;
-    
+
     private static final String DEFAULT_DATE = "2018-04-05T13:34:40.234";
 
     static int port;
@@ -227,7 +229,8 @@ public class MongoDbAccessAdminImplTest {
             .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("10")
-            .setRuleMeasurement("Annee");
+            .setRuleMeasurement("Annee")
+            .setUpdateDate("2019-10-11");
 
         fileRules2 = new FileRules(TENANT_ID)
             .setCreationDate(now)
@@ -236,7 +239,8 @@ public class MongoDbAccessAdminImplTest {
             .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("20")
-            .setRuleMeasurement("Annee");
+            .setRuleMeasurement("Annee")
+            .setUpdateDate("2019-10-10");
 
         final RegisterValueDetailModel initialValue = new RegisterValueDetailModel(1, 0, 1);
         register = new AccessionRegisterDetail(TENANT_ID)
@@ -443,7 +447,7 @@ public class MongoDbAccessAdminImplTest {
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.count());
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -453,7 +457,7 @@ public class MongoDbAccessAdminImplTest {
         } catch (BadRequestException e) {
             // do nothing
         }
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -488,7 +492,7 @@ public class MongoDbAccessAdminImplTest {
             client.getDatabase(DATABASE_NAME).getCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.count());
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -498,7 +502,7 @@ public class MongoDbAccessAdminImplTest {
         } catch (BadRequestException e) {
             // do nothing
         }
-        
+
         try {
             JsonNode update = JsonHandler.getFromString(
                 "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
@@ -547,6 +551,7 @@ public class MongoDbAccessAdminImplTest {
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
         contract.setId(id);
         final JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        ((ObjectNode) jsonContract).put("Identifier", GUIDFactory.newGUID().toString());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
@@ -575,10 +580,18 @@ public class MongoDbAccessAdminImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
-        contract.setId(id);
-        final JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        accessContract.setId(id);
+        final JsonNode jsonContract = JsonHandler.toJsonNode(accessContract);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
-        arrayNode.add(jsonContract);
+
+        ObjectNode contractToPersist = JsonHandler.getFromJsonNode(jsonContract, ObjectNode.class);
+        contractToPersist.put("Identifier", "Identifier" + GUIDFactory.newGUID().toString());
+        contractToPersist.put("EveryOriginatingAgency", false);
+        contractToPersist.put("WritingPermission", false);
+        contractToPersist.put("EveryDataObjectVersion", false);
+
+        arrayNode.add(JsonHandler.toJsonNode(contractToPersist));
+
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
 
         final Select select = new Select();
@@ -657,7 +670,7 @@ public class MongoDbAccessAdminImplTest {
             .setOriginatingAgencies(originatingAgencies)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);            
+            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
         return contract;
     }
 
@@ -676,5 +689,22 @@ public class MongoDbAccessAdminImplTest {
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
         return profile;
+    }
+
+    private static Context createContext() {
+        JsonNode node = JsonHandler.createObjectNode();
+        ((ObjectNode) node).put(VitamDocument.ID, GUIDFactory.newIngestContractGUID(TENANT_ID).getId());
+        ((ObjectNode) node).put(Context.IDENTIFIER, "contextId");
+        ((ObjectNode) node).put(Context.NAME, "contextName");
+        ((ObjectNode) node).put(Context.PERMISSION, new ArrayNode(null));
+        ((ObjectNode) node).put(Context.SECURITY_PROFILE, "contextName");
+        ((ObjectNode) node).put(Context.STATUS, ContextStatus.INACTIVE.toString());
+        ((ObjectNode) node).put("EnableControl", false);
+        ((ObjectNode) node).put("CreationDate", "2019-02-10");
+        ((ObjectNode) node).put("LastUpdate", "2019-02-11");
+
+        final Context context = new Context(node);
+
+        return context;
     }
 }

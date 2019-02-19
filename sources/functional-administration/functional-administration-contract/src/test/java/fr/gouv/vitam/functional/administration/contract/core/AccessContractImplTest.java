@@ -217,9 +217,6 @@ public class AccessContractImplTest {
         ArrayNode agenciesNodeToPersist = JsonHandler.createArrayNode();
 
         for (final AgenciesModel agency : agenciesToInsert) {
-
-            agency.setId(GUIDFactory.newEventGUID(tenant).getId());
-            agency.setTenant(tenant);
             agenciesNodeToPersist.add(JsonHandler.toJsonNode(agency));
         }
         if (!agenciesToInsert.isEmpty()) {
@@ -976,7 +973,25 @@ public class AccessContractImplTest {
         assertThat(errorDescription.contains(
             "object instance has properties which are not allowed by the schema: [\\\"InvalidProp\\\"]")).isTrue();
 
-
     }
 
-}
+    @Test
+    @RunWithCustomExecutor
+    public void givenAccessContractsWithInexistantUsageThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        // Given
+        File fileContractsKO = PropertiesUtils.getResourceFile("KO_contract_access_usage_inexistant.json");
+        List<AccessContractModel> accessContractModelListKO =
+            JsonHandler.getFromFileAsTypeRefence(fileContractsKO, new TypeReference<List<AccessContractModel>>() {
+            });
+        // When
+        RequestResponse response2 = accessContractService.createContracts(accessContractModelListKO);
+
+        // Then
+        assertThat(response2.toString()).contains("Import access contracts error");
+        assertThat(response2.toString()).contains("instance value (\\\\\\\"toto\\\\\\\") not found in enum");
+        assertThat(response2).isNotInstanceOf(RequestResponseOK.class);
+    }
+
+    }
