@@ -132,7 +132,7 @@ export class LogbookOperationComponent extends PageComponent {
       || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY' || item.evType.toUpperCase() === 'STP_REFERENTIAL_FORMAT_IMPORT'
       || item.evType.toUpperCase() === 'DATA_MIGRATION' || item.evType.toUpperCase() === 'ELIMINATION_ACTION'
       || item.evType.toUpperCase() === 'IMPORT_PRESERVATION_SCENARIO' || item.evType.toUpperCase() === 'IMPORT_GRIFFIN'
-      || item.evType.toUpperCase() === 'PRESERVATION') {
+      || item.evType.toUpperCase() === 'PRESERVATION' || item.evType.toUpperCase() === 'STP_IMPORT_ACCESS_CONTRACT' ) {
 
       if (LogbookOperationComponent.isOperationInProgress(item)) {
         return ['fa-clock-o'];
@@ -253,10 +253,12 @@ export class LogbookOperationComponent extends PageComponent {
         } else if (item.evType === 'IMPORT_PRESERVATION_SCENARIO') {
             logbookService.downloadReport(item.evIdProc);
             break;
-        }
+        } else if (item.evType === 'STP_IMPORT_ACCESS_CONTRACT') {
+          logbookService.downloadReport(item.evIdProc);
+          break;
     }
   }
-
+  }
   static isOperationInProgress(item): boolean {
     const status = LogbookOperationComponent.getOperationStatus(item);
     switch (status) {

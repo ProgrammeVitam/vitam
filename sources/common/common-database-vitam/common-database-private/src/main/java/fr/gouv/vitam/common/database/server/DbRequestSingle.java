@@ -69,6 +69,8 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -240,21 +242,15 @@ public class DbRequestSingle {
             if (vitamCollection.isMultiTenant()) {
                 obj.append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
             }
+
+            if (!obj.containsKey(VitamDocument.ID)) {
+                GUID uuid = GUIDFactory.newGUID();
+                obj.put(VitamDocument.ID, uuid.toString());
+            }
+
             //Validate the document against the collection's json schema
             //TODO extends json schema validation to other collections
-            if ("Ontology".equals(vitamCollection.getName())) {
-                try {
-                    SchemaValidationUtils validator = new SchemaValidationUtils();
-                    JsonNode jsonDocument = JsonHandler.toJsonNode(obj);
-                    SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getClasz().getSimpleName());
-                    if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                        throw new SchemaValidationException(status.getValidationMessage());
-                    }
-                } catch (FileNotFoundException | ProcessingException e) {
-                    LOGGER.debug("Unable to initialize Json Validator : " + e.getMessage());
-                    throw new InvalidParseOperationException(e);
-                }
-            }
+            validateDocumentOverJsonSchema(JsonHandler.toJsonNode(obj));
 
             vitamDocumentList.add(obj);
         }
@@ -268,6 +264,23 @@ public class DbRequestSingle {
         insertToElasticsearch(vitamDocumentList);
         return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
     }
+
+    private void validateDocumentOverJsonSchema(JsonNode jsonDocument) throws InvalidParseOperationException, SchemaValidationException {
+        if (vitamCollection.getName().contains("VitamSequence") ||  vitamCollection.getName().contains("AccessionRegisterSymbolic")) {
+            return;
+        }
+        try {
+            SchemaValidationUtils validator = new SchemaValidationUtils();
+            SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getClasz().getSimpleName());
+            if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                throw new SchemaValidationException(status.getValidationMessage());
+            }
+        } catch (FileNotFoundException | ProcessingException e) {
+            throw new InvalidParseOperationException("Unable to initialize Json Validator : ", e);
+        }
+
+    }
+
 
     /**
      * @param arrayNode
@@ -608,17 +621,7 @@ public class DbRequestSingle {
                 ObjectNode updatedJsonDocument =
                     (ObjectNode) mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
 
-                try {
-                    SchemaValidationUtils validator = new SchemaValidationUtils();
-                    SchemaValidationStatus status =
-                        validator.validateJson(updatedJsonDocument, vitamCollection.getClasz().getSimpleName());
-                    if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                        throw new SchemaValidationException(status.getValidationMessage());
-                    }
-                } catch (FileNotFoundException | ProcessingException e) {
-                    LOGGER.debug("Unable to initialize Json Validator : " + e.getMessage());
-                    throw new InvalidCreateOperationException(e);
-                }
+                validateDocumentOverJsonSchema(updatedJsonDocument);
 
                 updatedDocument = document.newInstance(updatedJsonDocument);
                 if (!document.equals(updatedDocument)) {
