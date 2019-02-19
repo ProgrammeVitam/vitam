@@ -28,13 +28,13 @@ package fr.gouv.vitam.functional.administration.common;
 
 import java.util.Set;
 
+import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 
 /**
  * Defines an Ingest contract model for SIP transfer control. </BR>
@@ -239,7 +239,7 @@ public class IngestContract extends VitamDocument<IngestContract> {
      * @param checkParentLink to set
      * @return this
      */
-    public IngestContract setCheckParentLink(ActivationStatus checkParentLink) {
+    public IngestContract setCheckParentLink(IngestContractCheckState checkParentLink) {
         append(CHECKPARENTLINK, checkParentLink.name());
         return this;
     }
@@ -249,13 +249,13 @@ public class IngestContract extends VitamDocument<IngestContract> {
      *
      * @return status of checkParentLink for this ingest contact
      */
-    public ActivationStatus getCheckParentLink() {
+    public IngestContractCheckState getCheckParentLink() {
         String checkParentLink = getString(CHECKPARENTLINK);
         if (checkParentLink == null) {
             return null;
         }
         try {
-            return ActivationStatus.valueOf(checkParentLink);
+            return IngestContractCheckState.valueOf(checkParentLink);
         } catch (IllegalArgumentException exp) {
             // no value corresponds to this checkParentLink => corrupted state
             return null;

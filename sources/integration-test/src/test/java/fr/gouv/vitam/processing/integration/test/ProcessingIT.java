@@ -74,6 +74,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -1439,7 +1440,7 @@ public class ProcessingIT extends VitamRuleRunner {
         FileUtils.forceMkdir(new File(tmp));
 
         // Enable attachment
-        updateIngestContractLinkParentId("ArchivalAgreement0", "", ActivationStatus.INACTIVE.name());
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", IngestContractCheckState.AUTHORIZED.name());
 
         // Create SIP with attachment to unit
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
@@ -1503,7 +1504,7 @@ public class ProcessingIT extends VitamRuleRunner {
         FileUtils.forceMkdir(new File(tmp));
 
         // Enable attachment
-        updateIngestContractLinkParentId("ArchivalAgreement0", "", ActivationStatus.INACTIVE.name());
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", IngestContractCheckState.AUTHORIZED.name());
 
         // Ingest
         // Create SIP with unitRoot
@@ -1521,7 +1522,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
 
         // Now update the ingest contract, set the check to ACTIVE and the link parent id takes unitChild value
-        updateIngestContractLinkParentId("ArchivalAgreement0", unitChild, "ACTIVE");
+        updateIngestContractLinkParentId("ArchivalAgreement0", unitChild, "AUTHORIZED");
 
         // Create SIP with unitChild
         String zipName1 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";

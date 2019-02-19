@@ -89,8 +89,8 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_CONTRACT_ROOT_GUID_INCLUDED_AND_EXCLUDED =
                 "Error while validating contract (%s), root GUID (%s) can not be included and excluded at the same time";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
-        private static final String ERR_WRONG_LINK_PARENT_ID =
-            "the id of the AU %s is not in filing nor holding schema";
+        private static final String ERR_IDS_NOT_FOUND =
+            "At least one AU id %s not found";
         private static final String ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT = "One or multiple file format %s not found in db";
 
         private String reason;
@@ -131,8 +131,8 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          * @param linkParentId
          * @return GenericRejectionCause
          */
-        public static GenericRejectionCause rejectWrongLinkParentId(String linkParentId) {
-            return new GenericRejectionCause(String.format(ERR_WRONG_LINK_PARENT_ID, linkParentId));
+        public static GenericRejectionCause rejectAuNotFoundInDatabase(String linkParentId) {
+            return new GenericRejectionCause(String.format(ERR_IDS_NOT_FOUND, linkParentId));
         }
 
         /**

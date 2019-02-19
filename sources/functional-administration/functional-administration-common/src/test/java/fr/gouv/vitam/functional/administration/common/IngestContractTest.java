@@ -2,6 +2,7 @@ package fr.gouv.vitam.functional.administration.common;
 
 import static org.junit.Assert.assertEquals;
 
+import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -40,7 +41,7 @@ public class IngestContractTest {
             .setId(id)
             .setName(name)
             .setDescription(description).setStatus(ActivationStatus.ACTIVE)
-            .setCheckParentLink(ActivationStatus.INACTIVE)
+            .setCheckParentLink(IngestContractCheckState.AUTHORIZED)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate).

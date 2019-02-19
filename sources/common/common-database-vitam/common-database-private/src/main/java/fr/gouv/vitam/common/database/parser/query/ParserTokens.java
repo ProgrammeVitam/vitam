@@ -401,6 +401,7 @@ public class ParserTokens extends BuilderToken {
             "DeactivationDate",
             "LinkParentId",
             "CheckParentLink",
+            "CheckParentId",
             "MasterMandatory",
             "FormatUnidentifiedAuthorized",
             "EveryFormatType",
@@ -1096,6 +1097,7 @@ public class ParserTokens extends BuilderToken {
                 // Ingest contracts
             case "LinkParentId":
             case "CheckParentLink":
+            case "CheckParentId":
             case "MasterMandatory":
             case "FormatUnidentifiedAuthorized":
             case "EveryFormatType":
