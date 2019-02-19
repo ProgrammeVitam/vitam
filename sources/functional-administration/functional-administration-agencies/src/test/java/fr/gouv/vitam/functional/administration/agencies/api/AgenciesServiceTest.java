@@ -22,7 +22,6 @@ import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongo
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -299,7 +298,9 @@ public class AgenciesServiceTest {
         agencyService.checkFile(new FileInputStream(file));
     }
 
+    static String _id = GUIDFactory.newGUID().toString();
     static String contract = "{ \"_tenant\": 1,\n" +
+            "    \"_id\": \""+_id+"\", \n "+
             "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
             "    \"Identifier\": \"AC-000018\",\n" +
             "    \"Description\": \"aDescription of the contract\",\n" +
@@ -316,6 +317,7 @@ public class AgenciesServiceTest {
             "    \"WritingPermission\": true,\n" +
             "    \"EveryOriginatingAgency\": true,\n" +
             "    \"EveryDataObjectVersion\": false,\n" +
+            "     \"AccessLog\": \"ACTIVE\", \n" +
             "    \"_v\": 0\n" +
             "}";
 
