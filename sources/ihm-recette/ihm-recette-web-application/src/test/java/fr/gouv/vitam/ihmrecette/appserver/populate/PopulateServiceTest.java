@@ -113,7 +113,7 @@ public class PopulateServiceTest {
 
         // Then
         int i = 0;
-        while (populateService.inProgress() && i < 100) {
+        while (populateService.inProgress() && i < 300) {
             Thread.sleep(100L);
             i += 1;
         }
