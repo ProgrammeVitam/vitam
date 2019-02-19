@@ -16,6 +16,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -44,8 +45,7 @@ public class CheckArchiveProfileActionHandlerTest {
 
     private static final AdminManagementClient adminClient = mock(AdminManagementClient.class);
     
-    private static final AdminManagementClientFactory adminManagementClientFactory =
-        mock(AdminManagementClientFactory.class);
+    private static final AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
     private GUID guid;
     private static final Integer TENANT_ID = 0;
     private static final String FAKE_URL = "http://localhost:8083";
@@ -58,6 +58,8 @@ public class CheckArchiveProfileActionHandlerTest {
     private static final CheckArchiveProfileActionHandler handler =
         new CheckArchiveProfileActionHandler(adminManagementClientFactory);
 
+    @Rule
+    public TempFolderRule tempFolderRule = new TempFolderRule();
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
