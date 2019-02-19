@@ -526,8 +526,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             SanityChecker.checkJsonAll(query);
             result =
-                userInterfaceTransactionManager.selectOperation(query,
-                    userInterfaceTransactionManager.getVitamContext(request));
+                userInterfaceTransactionManager.selectOperation(query, userInterfaceTransactionManager.getVitamContext(request));
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();

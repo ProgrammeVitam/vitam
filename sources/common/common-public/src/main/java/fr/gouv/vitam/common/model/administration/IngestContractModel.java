@@ -47,9 +47,11 @@ public class IngestContractModel extends AbstractContractModel {
      */
     public static final String LINK_PARENT_ID = "LinkParentId";
     /**
-     * Activated control on parent id (ACTIVE / INACTIVE)
+     * Activated control on parent id (AUTHORIZED / REQUIRED / UNAUTHORIZED)
      */
     public static final String TAG_CHECK_PARENT_LINK = "CheckParentLink";
+
+    public static final String TAG_CHECK_PARENT_ID  = "CheckParentId";
 
     public static final String MASTER_MANDATORY = "MasterMandatory";
 
@@ -71,7 +73,7 @@ public class IngestContractModel extends AbstractContractModel {
     private Set<String> archiveProfiles;
 
     @JsonProperty(TAG_CHECK_PARENT_LINK)
-    private ActivationStatus checkParentLink;
+    private IngestContractCheckState checkParentLink;
     /**
      * masterMandatory is true by default if no value is specified
      */
@@ -98,6 +100,9 @@ public class IngestContractModel extends AbstractContractModel {
 
     @JsonProperty(FORMAT_TYPE)
     private Set<String> formatType;
+
+    @JsonProperty(TAG_CHECK_PARENT_ID)
+    private Set<String> checkParentId;
 
 
 
@@ -137,7 +142,7 @@ public class IngestContractModel extends AbstractContractModel {
      *
      * @return Check Parent Link status
      */
-    public ActivationStatus getCheckParentLink() {
+    public IngestContractCheckState getCheckParentLink() {
         return this.checkParentLink;
     }
 
@@ -145,11 +150,11 @@ public class IngestContractModel extends AbstractContractModel {
     /**
      * Set or change the check parent link status
      *
-     * @param status to set
+     * @param state to set
      * @return this
      */
-    public AbstractContractModel setCheckParentLink(ActivationStatus status) {
-        this.checkParentLink = status;
+    public AbstractContractModel setCheckParentLink(IngestContractCheckState state) {
+        this.checkParentLink = state;
         return this;
     }
 
@@ -208,4 +213,11 @@ public class IngestContractModel extends AbstractContractModel {
         return this;
     }
 
+    public Set<String> getCheckParentId() {
+        return checkParentId;
+    }
+
+    public void setCheckParentId(Set<String> checkParentId) {
+        this.checkParentId = checkParentId;
+    }
 }

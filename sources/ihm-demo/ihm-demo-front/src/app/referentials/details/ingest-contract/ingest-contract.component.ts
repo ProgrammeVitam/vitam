@@ -1,15 +1,15 @@
-import { Component } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { plainToClass } from 'class-transformer';
-import { Title } from '@angular/platform-browser';
+import {Component} from '@angular/core';
+import {ActivatedRoute, Router} from '@angular/router';
+import {plainToClass} from 'class-transformer';
+import {Title} from '@angular/platform-browser';
 
-import { BreadcrumbService } from "../../../common/breadcrumb.service";
-import { ReferentialsService } from "../../referentials.service";
-import { ObjectsService } from '../../../common/utils/objects.service';
-import { PageComponent } from "../../../common/page/page-component";
-import { DialogService } from "../../../common/dialog/dialog.service";
-import { IngestContract } from './ingest-contract';
-import {ErrorService} from "../../../common/error.service";
+import {BreadcrumbService} from '../../../common/breadcrumb.service';
+import {ReferentialsService} from '../../referentials.service';
+import {ObjectsService} from '../../../common/utils/objects.service';
+import {PageComponent} from '../../../common/page/page-component';
+import {DialogService} from '../../../common/dialog/dialog.service';
+import {IngestContract} from './ingest-contract';
+import {ErrorService} from '../../../common/error.service';
 import {ReferentialHelper} from '../../referential.helper';
 
 @Component({
@@ -20,26 +20,32 @@ import {ReferentialHelper} from '../../referential.helper';
 
 export class IngestContractComponent extends PageComponent {
 
-  contract : IngestContract;
-  modifiedContract : IngestContract;
+  contract: IngestContract;
+  modifiedContract: IngestContract;
   id: string;
-  isActif :boolean;
-  isCheckParent :boolean;
+  isActif: boolean;
+  isCheckParent: boolean;
   isMasterMandatory: boolean;
   isFormatUnidentifiedAuthorized: boolean;
-  update : boolean;
+  linkDeclaredInManifest: string;
+  update: boolean;
   updatedFields: any = {};
   saveRunning = false;
 
-  constructor(private activatedRoute: ActivatedRoute, private router : Router, private errorService: ErrorService,
+  public selectionOptions: any[] = [
+    {label: 'Autoriser', value: 'AUTHORIZED'},
+    {label: 'Obligatoire', value: 'REQUIRED'},
+    {label: 'Interdit', value: 'UNAUTHORIZED'}];
+
+  constructor(private activatedRoute: ActivatedRoute, private router: Router, private errorService: ErrorService,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
-              private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
+              private searchReferentialsService: ReferentialsService, private dialogService: DialogService) {
     super('Détail du contrat d\'entrée ', [], titleService, breadcrumbService);
 
   }
 
   pageOnInit() {
-    this.activatedRoute.params.subscribe( params => {
+    this.activatedRoute.params.subscribe(params => {
       this.id = params['id'];
       this.getDetail();
       let newBreadcrumb = [
@@ -56,9 +62,13 @@ export class IngestContractComponent extends PageComponent {
     this.update = !this.update;
     this.updatedFields = {};
     if (!this.update) {
-      this.modifiedContract =  ObjectsService.clone(this.contract);
+      this.modifiedContract = ObjectsService.clone(this.contract);
       this.isActif = this.modifiedContract.Status === 'ACTIVE';
     }
+  }
+
+  displayCheckParentLink(test: string): string {
+    return this.selectionOptions.find((item) => item.value == test).label;
   }
 
   changeStatus() {
@@ -73,7 +83,7 @@ export class IngestContractComponent extends PageComponent {
     this.updatedFields.MasterMandatory = this.modifiedContract.MasterMandatory;
   }
 
-  changeBooleanValue(key : string) {
+  changeBooleanValue(key: string) {
     this.updatedFields[key] = this.modifiedContract[key];
     if (key === 'EveryDataObjectVersion') {
       if (this.updatedFields[key] === true) {
@@ -87,18 +97,16 @@ export class IngestContractComponent extends PageComponent {
   }
 
   changeFormatUnidentifiedAuthorized() {
-    this.updatedFields.FormatUnidentifiedAuthorized  = this.modifiedContract.FormatUnidentifiedAuthorized ;
+    this.updatedFields.FormatUnidentifiedAuthorized = this.modifiedContract.FormatUnidentifiedAuthorized;
   }
 
-  changeCheckControl() {
-    if (this.isCheckParent) {
-      this.updatedFields.CheckParentLink = 'ACTIVE';
-    } else {
-      this.updatedFields.CheckParentLink = 'INACTIVE';
-    }
-  }
-  valueChange(key : string) {
+  valueChange(key: string) {
     this.updatedFields[key] = this.modifiedContract[key];
+  }
+
+  checkParentIdChange(values: string[]){
+    ObjectsService.pushAllWithoutDuplication(this.modifiedContract.CheckParentId, this.contract.CheckParentId);
+    this.updatedFields.CheckParentId = this.modifiedContract.CheckParentId;
   }
 
   saveUpdate() {
@@ -143,11 +151,13 @@ export class IngestContractComponent extends PageComponent {
 
   initData(value) {
     this.contract = plainToClass(IngestContract, value.$results)[0];
-    if (this.contract.DataObjectVersion === undefined ) {
+    if (this.contract.DataObjectVersion === undefined) {
       this.contract.DataObjectVersion = [];
     }
-    this.modifiedContract =  ObjectsService.clone(this.contract);
+    if (this.contract.CheckParentId === undefined) {
+      this.contract.CheckParentId = [];
+    }
+    this.modifiedContract = ObjectsService.clone(this.contract);
     this.isActif = this.modifiedContract.Status === 'ACTIVE';
-    this.isCheckParent = this.modifiedContract.CheckParentLink === 'ACTIVE';
   }
 }

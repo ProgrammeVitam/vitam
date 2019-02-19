@@ -16,6 +16,9 @@
     "CheckParentLink": {
       "type": "keyword"
     },
+    "CheckParentId": {
+      "type": "keyword"
+    },
     "ArchiveProfiles": {
       "type": "keyword"
     },

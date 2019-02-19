@@ -7,7 +7,7 @@
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016",
-		"CheckParentLink":"ACTIVE"
+		"CheckParentLink":"AUTHORIZED"
 		
 	},
 	{
@@ -19,5 +19,39 @@
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016",
 		"LinkParentId":"holding_guid"
+	},
+	{
+		"Name":"cName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"CheckParentLink":"UNAUTHORIZED"
+
+	},
+	{
+		"Name":"cName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"CheckParentLink":"REQUIRED"
+
+	},
+	{
+		"Name":"cName",
+		"Description":"aDescription of the contract",
+		"Status":"ACTIVE",
+		"LastUpdate":"10/12/2016",
+		"CreationDate":"10/12/2016",
+		"ActivationDate":"10/12/2016",
+		"DeactivationDate":"10/12/2016",
+		"CheckParentLink":"REQUIRED",
+		"CheckParentId": ["unitId", "unitId2"]
+
 	}
 ]

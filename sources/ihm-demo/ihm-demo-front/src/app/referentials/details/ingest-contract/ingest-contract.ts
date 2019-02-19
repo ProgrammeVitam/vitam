@@ -7,6 +7,7 @@ export class IngestContract {
   LinkParentId: string;
   Status: string;
   CheckParentLink: string;
+  CheckParentId: string[];
   isActive : boolean;
   CreationDate: string;
   MasterMandatory: boolean;
