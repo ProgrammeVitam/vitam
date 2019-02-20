@@ -208,6 +208,15 @@ vitam:
             - iniRealm
             # - ldapRealm
         # log_level: "DEBUG"
+        allowedMediaTypes:
+            - type: "application"
+              subtype: "pdf"
+            - type: "text"
+              subtype: "plain"
+            - type: "image"
+              subtype: "jpeg"
+            - type: "image"
+              subtype: "tiff"
         metrics_enabled: true
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
