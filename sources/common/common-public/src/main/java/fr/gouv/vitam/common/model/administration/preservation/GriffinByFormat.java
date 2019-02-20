@@ -64,7 +64,8 @@ public class GriffinByFormat {
     @JsonProperty("ActionDetail")
     private List<ActionPreservation> actionDetail;
 
-    public GriffinByFormat() {//default Constructor
+    public GriffinByFormat() {
+        //default Constructor
     }
 
     public GriffinByFormat(DefaultGriffin defaultGriffin) {
@@ -75,7 +76,8 @@ public class GriffinByFormat {
         this.actionDetail = defaultGriffin.getActionDetail();
     }
 
-    public GriffinByFormat(@NotEmpty Set<String> formatList,
+    public GriffinByFormat(
+        @NotEmpty Set<String> formatList,
         @NotEmpty String griffinIdentifier,
         @NotEmpty List<ActionPreservation> actionDetail) {
         this.formatList = formatList;
@@ -129,5 +131,17 @@ public class GriffinByFormat {
 
     public void setActionDetail(List<ActionPreservation> actionDetail) {
         this.actionDetail = actionDetail;
+    }
+
+    @Override
+    public String toString() {
+        return "GriffinByFormat{" +
+            "formatList=" + formatList +
+            ", griffinIdentifier='" + griffinIdentifier + '\'' +
+            ", timeOut=" + timeOut +
+            ", maxSize=" + maxSize +
+            ", debug=" + debug +
+            ", actionDetail=" + actionDetail +
+            '}';
     }
 }

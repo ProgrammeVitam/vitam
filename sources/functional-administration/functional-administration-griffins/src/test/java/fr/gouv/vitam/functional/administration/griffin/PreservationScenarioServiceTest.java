@@ -91,7 +91,7 @@ public class PreservationScenarioServiceTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
         DefaultGriffin defaultGriffin =
-            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation()));
+            new DefaultGriffin("id", ImmutableList.of(new ActionPreservation()));
 
         defaultScenarioModel = new PreservationScenarioModel(
             "name",
@@ -275,7 +275,7 @@ public class PreservationScenarioServiceTest {
         griffinByFormat.setTimeOut(2000);
 
         DefaultGriffin defaultGriffin =
-            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation(GENERATE, null)));
+            new DefaultGriffin("id", ImmutableList.of(new ActionPreservation(GENERATE, null)));
 
         defaultGriffin.setDebug(false);
         defaultGriffin.setActionDetail(singletonList(new ActionPreservation(GENERATE, null)));
@@ -927,7 +927,7 @@ public class PreservationScenarioServiceTest {
     public void shouldFailedValidateDefaultGriffinHasNoActionDetail() throws Exception {
         //Given
         DefaultGriffin defaultGriffin =
-            new DefaultGriffin(of("fmt"), "id", ImmutableList.of(new ActionPreservation()));
+            new DefaultGriffin("id", ImmutableList.of(new ActionPreservation()));
         defaultScenarioModel.setDefaultGriffin(defaultGriffin);
 
         // Then
