@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
@@ -58,6 +59,7 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -228,6 +230,45 @@ public class PreservationUpdateObjectGroupPluginTest {
     }
 
     @Test
+    public void should_update_identify_extract_and_generate() throws Exception {
+        // Given
+        ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        ArgumentCaptor<String> gotIdCaptor = ArgumentCaptor.forClass(String.class);
+
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(getOutputPreservation(EXTRACT), getOutputPreservation(GENERATE), getOutputPreservation(IDENTIFY));
+        TestHandlerIO testHandlerIO = new TestHandlerIO();
+        testHandlerIO.addOutputResult(0, batchResults);
+        testHandlerIO.setInputs(batchResults);
+
+        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+            .addResult(JsonHandler.getFromInputStream(objectGroupStream))
+            .setHttpCode(Response.Status.OK.getStatusCode());
+        given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
+        doNothing().when(metaDataClient)
+            .updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
+
+        // When
+        List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
+
+        // Then
+        assertThat(itemStatuses)
+            .extracting(ItemStatus::getGlobalStatus)
+            .containsOnly(OK);
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/_nbc").intValue())
+            .isEqualTo(2);
+        assertThat(finalQueryCaptor.getValue().at("/$action/1/$set/#nbobjects").intValue())
+            .isEqualTo(2);
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/FormatLitteral").textValue())
+            .isEqualTo("Batman");
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/MimeType").textValue())
+            .isEqualTo("text/winner");
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS").textValue())
+            .isEqualTo("40.714, -74.006");
+    }
+
+    @Test
     public void should_update_multiple_binary_generated() throws Exception {
         // Given
         ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
@@ -258,6 +299,36 @@ public class PreservationUpdateObjectGroupPluginTest {
             .isEqualTo(3);
         assertThat(finalQueryCaptor.getValue().at("/$action/1/$set/#nbobjects").intValue())
             .isEqualTo(3);
+    }
+
+    @Test
+    public void should_update_extracted_metadata() throws Exception {
+        // Given
+        ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
+
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(getOutputPreservation(EXTRACT));
+        TestHandlerIO testHandlerIO = new TestHandlerIO();
+        testHandlerIO.addOutputResult(0, batchResults);
+        testHandlerIO.setInputs(batchResults);
+
+        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+            .addResult(JsonHandler.getFromInputStream(objectGroupStream))
+            .setHttpCode(Response.Status.OK.getStatusCode());
+        given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
+        doNothing().when(metaDataClient)
+            .updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
+
+        // When
+        List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
+
+        // Then
+        assertThat(itemStatuses)
+            .extracting(ItemStatus::getGlobalStatus)
+            .containsOnly(OK);
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS").textValue())
+            .isEqualTo("40.714, -74.006");
     }
 
     @Test
@@ -528,6 +599,11 @@ public class PreservationUpdateObjectGroupPluginTest {
         output.setAction(action);
         output.setInputPreservation(new InputPreservation("aeaaaaaaaahiu6xhaaksgalhnbwn3siaaaaq", "fmt/43"));
         output.setFormatIdentification(new DbFormatIdentificationModel("Batman", "text/winner", "x-fmt/42"));
+        ExtractedMetadata extractedMetadata = new ExtractedMetadata();
+        HashMap<String, String> metadataToReplace = new HashMap<>();
+        metadataToReplace.put("GPS", "40.714, -74.006");
+        extractedMetadata.setMetadataToReplace(metadataToReplace);
+        output.setExtractedMetadata(extractedMetadata);
         return output;
     }
 

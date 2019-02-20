@@ -237,7 +237,7 @@ public class PreservationScenarioService {
                 throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier()+"'");
             }
 
-            if((model.getGriffinByFormat() == null || model.getGriffinByFormat().isEmpty()) && model.getDefaultGriffin() == null) {
+            if((model.getGriffinByFormat().isEmpty()) && model.getDefaultGriffin() == null) {
                 throw new ReferentialException("Invalid scenario for : '" + model.getIdentifier() + "' : at least one griffin must be defined (griffin by format or default griffin)");
             }
 

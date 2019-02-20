@@ -54,8 +54,11 @@ public class OutputPreservation {
     private ActionTypePreservation action;
     @JsonProperty("FormatIdentification")
     private DbFormatIdentificationModel formatIdentification;
+    @JsonProperty("ExtractedMetadata")
+    private ExtractedMetadata extractedMetadata;
 
     public OutputPreservation() {
+        // Empty constructor for deserialization
     }
 
     public String getResult() {
@@ -130,9 +133,17 @@ public class OutputPreservation {
         this.formatIdentification = formatIdentification;
     }
 
+    public ExtractedMetadata getExtractedMetadata() {
+        return extractedMetadata;
+    }
+
+    public void setExtractedMetadata(ExtractedMetadata extractedMetadata) {
+        this.extractedMetadata = extractedMetadata;
+    }
+
     @Override
     public String toString() {
-        return "Output{" +
+        return "OutputPreservation{" +
             "result='" + result + '\'' +
             ", error='" + error + '\'' +
             ", executed='" + executed + '\'' +
@@ -142,6 +153,7 @@ public class OutputPreservation {
             ", analyseResult='" + analyseResult + '\'' +
             ", action=" + action +
             ", formatIdentification=" + formatIdentification +
+            ", extractedMetadata=" + extractedMetadata +
             '}';
     }
 }

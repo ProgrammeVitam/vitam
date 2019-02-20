@@ -28,30 +28,21 @@ package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import javax.validation.constraints.NotEmpty;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class ValuesPreservation {
-
     @JsonProperty("Extension")
     private String extension;
 
     @JsonProperty("Args")
     private List<String> args;
-    @JsonProperty("DataToExtract")
-    private Map<String, String> dataToExtract;
 
-    public ValuesPreservation() {    }
+    @JsonProperty("FilteredExtractedData")
+    private List<String> filteredExtractedData;
 
-    public ValuesPreservation(String extension, List<String> args) {
-        this.extension = extension;
-        this.args = args;
-    }
-
-    public ValuesPreservation(Map<String, String> dataToExtract) {
-        this.dataToExtract = dataToExtract;
+    public ValuesPreservation() {
+        // Empty for deserialization
     }
 
     public String getExtension() {
@@ -73,20 +64,20 @@ public class ValuesPreservation {
         this.args = args;
     }
 
-    public Map<String, String> getDataToExtract() {
-        return dataToExtract;
+    public List<String> getFilteredExtractedData() {
+        return filteredExtractedData;
     }
 
-    public void setDataToExtract(Map<String, String> dataToExtract) {
-        this.dataToExtract = dataToExtract;
+    public void setFilteredExtractedData(List<String> filteredExtractedData) {
+        this.filteredExtractedData = filteredExtractedData;
     }
 
     @Override
     public String toString() {
-        return "Values{" +
-            "Extension='" + extension + '\'' +
-            ", Args=" + args +
-            ", DataToExtract=" + dataToExtract +
+        return "ValuesPreservation{" +
+            "extension='" + extension + '\'' +
+            ", args=" + args +
+            ", filteredExtractedData=" + filteredExtractedData +
             '}';
     }
 }

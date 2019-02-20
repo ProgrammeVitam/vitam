@@ -41,7 +41,8 @@ public class ActionPreservation {
     @JsonProperty("Values")
     private ValuesPreservation values;
 
-    public ActionPreservation() {//empty constructor
+    public ActionPreservation() {
+        //empty constructor
     }
 
     public ActionPreservation(

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -33,7 +33,6 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import java.util.List;
-import java.util.Set;
 
 /**
  * DefaultGriffin class
@@ -62,10 +61,11 @@ public class DefaultGriffin {
     @JsonProperty("ActionDetail")
     private List<ActionPreservation> actionDetail;
 
-    public DefaultGriffin() {//default Constructor
+    public DefaultGriffin() {
+        //default Constructor
     }
 
-    public DefaultGriffin(@NotEmpty Set<String> formatList,
+    public DefaultGriffin(
         @NotEmpty String griffinIdentifier,
         @NotEmpty List<ActionPreservation> actionDetail) {
         this.griffinIdentifier = griffinIdentifier;

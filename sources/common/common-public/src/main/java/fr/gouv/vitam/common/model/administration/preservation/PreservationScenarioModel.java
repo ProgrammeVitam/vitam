@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.administration.preservation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -34,16 +34,12 @@ import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import static java.util.Optional.empty;
-
-/**
- * PreservationScenarioModel class
- */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class PreservationScenarioModel {
 
@@ -106,10 +102,12 @@ public class PreservationScenarioModel {
     @Valid
     private DefaultGriffin defaultGriffin;
 
-    public PreservationScenarioModel() {//empty  constructor
+    public PreservationScenarioModel() {
+        //empty  constructor
     }
 
-    public PreservationScenarioModel(@NotEmpty String name,
+    public PreservationScenarioModel(
+        @NotEmpty String name,
         @NotEmpty String identifier,
         @NotEmpty List<ActionTypePreservation> actionList,
         @NotEmpty List<String> metadataFilter,
@@ -204,6 +202,9 @@ public class PreservationScenarioModel {
     }
 
     public List<GriffinByFormat> getGriffinByFormat() {
+        if (griffinByFormat == null) {
+            return Collections.emptyList();
+        }
         return griffinByFormat;
     }
 
@@ -219,57 +220,38 @@ public class PreservationScenarioModel {
         this.defaultGriffin = defaultGriffin;
     }
 
+    @JsonIgnore
     public Optional<String> getGriffinIdentifierByFormat(String format) {
         Optional<GriffinByFormat> griffin = getGriffinByFormat(format);
 
         return griffin.map(GriffinByFormat::getGriffinIdentifier);
-
     }
 
     @JsonIgnore
     public Optional<GriffinByFormat> getGriffinByFormat(String format) {
+        GriffinByFormat griffinByFormat = getGriffinByFormat().stream()
+            .filter(element -> element.getFormatList().contains(format))
+            .findFirst()
+            .orElse(defaultGriffin == null ? null : new GriffinByFormat(defaultGriffin));
 
-        boolean emptyGriffinList = griffinByFormat == null || griffinByFormat.isEmpty();
-
-        if (emptyGriffinList) {
-            if(defaultGriffin != null) {
-                return Optional.of(new GriffinByFormat(defaultGriffin));
-            }
-            return empty();
-        }
-
-        for (GriffinByFormat element : griffinByFormat) {
-            if (element.getFormatList().contains(format)) {
-                return Optional.of(element);
-            }
-        }
-
-        if(defaultGriffin != null) {
-            return Optional.of(new GriffinByFormat(defaultGriffin));
-        }
-
-        return empty();
+        return Optional.ofNullable(griffinByFormat);
     }
-
 
     @JsonIgnore
     public Set<String> getAllGriffinIdentifiers() {
+        Set<String> identifiers = getGriffinByFormat().stream()
+            .map(GriffinByFormat::getGriffinIdentifier)
+            .collect(Collectors.toSet());
 
-        Set<String> identifierSet = new HashSet<>();
-
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
-            return identifierSet;
+        if (defaultGriffin != null) {
+            identifiers.add(defaultGriffin.getGriffinIdentifier());
         }
 
-        griffinByFormat.forEach(g -> identifierSet.add(g.getGriffinIdentifier()));
-
-        if (defaultGriffin != null)
-            identifierSet.add(defaultGriffin.getGriffinIdentifier());
-
-        return identifierSet;
+        return identifiers;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "PreservationScenarioModel{" +
             "id='" + id + '\'' +
             ", tenant=" + tenant +

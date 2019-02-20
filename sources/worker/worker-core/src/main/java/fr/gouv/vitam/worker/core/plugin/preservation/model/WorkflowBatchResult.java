@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.EXTRACT;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 
@@ -237,6 +238,10 @@ public class WorkflowBatchResult {
 
         public boolean isOkAndIdentify() {
             return this.getOutput().getAction().equals(IDENTIFY) && this.getOutput().getStatus().equals(PreservationStatus.OK);
+        }
+
+        public boolean isOkAndExtracted() {
+            return this.getOutput().getAction().equals(EXTRACT) && this.getOutput().getStatus().equals(PreservationStatus.OK);
         }
     }
 }

@@ -124,23 +124,45 @@ public class DbVersionsModel {
     }
 
     @JsonIgnore
-    public static DbVersionsModel newVersionsFrom(DbVersionsModel versions, DbFormatIdentificationModel format) {
+    public static DbVersionsModel newVersionsFrom(DbVersionsModel that, Map<String, Object> otherMetadata) {
         return new DbVersionsModel(
-            versions.id,
-            versions.dataObjectVersion,
-            versions.dataObjectGroupId,
+            that.id,
+            that.dataObjectVersion,
+            that.dataObjectGroupId,
+            that.formatIdentificationModel,
+            that.fileInfoModel,
+            that.metadata,
+            that.size,
+            that.uri,
+            that.messageDigest,
+            that.algorithm,
+            that.storage,
+            that.physicalDimensionsModel,
+            that.physicalId,
+            otherMetadata,
+            that.opi
+        );
+    }
+
+    @JsonIgnore
+    public static DbVersionsModel newVersionsFrom(DbVersionsModel that, DbFormatIdentificationModel format) {
+        return new DbVersionsModel(
+            that.id,
+            that.dataObjectVersion,
+            that.dataObjectGroupId,
             format,
-            versions.fileInfoModel,
-            versions.metadata,
-            versions.size,
-            versions.uri,
-            versions.messageDigest,
-            versions.algorithm,
-            versions.storage,
-            versions.physicalDimensionsModel,
-            versions.physicalId,
-            versions.otherMetadata,
-            versions.opi);
+            that.fileInfoModel,
+            that.metadata,
+            that.size,
+            that.uri,
+            that.messageDigest,
+            that.algorithm,
+            that.storage,
+            that.physicalDimensionsModel,
+            that.physicalId,
+            that.otherMetadata,
+            that.opi
+        );
     }
 
     public String getId() {
@@ -273,6 +295,7 @@ public class DbVersionsModel {
         return id.equals(that.id)
             && dataObjectVersion.equals(that.dataObjectVersion)
             && dataObjectGroupId.equals(that.dataObjectGroupId)
+            && otherMetadata.equals(that.otherMetadata)
             && formatIdentificationModel.equals(that.formatIdentificationModel);
     }
 
