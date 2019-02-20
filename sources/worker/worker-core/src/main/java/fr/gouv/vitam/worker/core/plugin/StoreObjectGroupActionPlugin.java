@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -73,187 +74,110 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+    public List<ItemStatus> executeList(WorkerParameters params, HandlerIO handler) {
 
         checkMandatoryParameters(params);
         handlerIO = handler;
 
-        Map<String, ItemStatus> itemStatusByObject = new HashMap<>();
-
-        final ItemStatus itemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
+        final List<ItemStatus> itemStatusList = new ArrayList<>();
+        final List<Map<String, ItemStatus>> itemStatusByObjectList = new ArrayList<>();
 
         try {
-            checkMandatoryIOParameter(handler);
-
-            // get list of object group's objects
-            final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params);
-            // get list of object uris
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
-            }
+            checkMandatoryIOParameter(handlerIO);
 
             List<String> workspaceObjectURIs = new ArrayList<>();
             List<String> objectNames = new ArrayList<>();
+            List<MapOfObjects> mapOfObjectsList = new ArrayList<>();
 
-            for (final Map.Entry<String, String> objectGuid : mapOfObjects.binaryObjectsToStore.entrySet()) {
-                itemStatusByObject.put(objectGuid.getKey(), new ItemStatus(STORING_OBJECT_TASK_ID));
-                workspaceObjectURIs.add(SIP + objectGuid.getValue());
-                objectNames.add(objectGuid.getKey());
+            // get list of object group's objects
+            for (String objectName : params.getObjectNameList()) {
+                try {
+                    MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params.getContainerName(), objectName);
+                    Map<String, ItemStatus> itemStatusByObject = new HashMap<>();
+                    for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore().entrySet()) {
+                        itemStatusByObject.put(objectGuid.getKey(), new ItemStatus(STORING_OBJECT_TASK_ID));
+                        workspaceObjectURIs.add(SIP + objectGuid.getValue());
+                        objectNames.add(objectGuid.getKey());
+                    }
+
+                    itemStatusByObjectList.add(itemStatusByObject);
+                    itemStatusList.add(new ItemStatus(STORING_OBJECT_TASK_ID));
+                    mapOfObjectsList.add(mapOfObjects);
+
+                    // get list of object uris
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.getJsonOG()));
+                    }
+                } catch (StepAlreadyExecutedException e) {
+                    LOGGER.warn(e);
+                    itemStatusList.add(new ItemStatus().increment(StatusCode.ALREADY_EXECUTED));
+                }
+            }
+
+            if(objectNames.isEmpty()) {
+                return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.OK)));
             }
 
             BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(params.getContainerName(),
                     workspaceObjectURIs, DataCategory.OBJECT, objectNames);
 
-            // create ItemStatus for subtask
-            //ItemStatus subTaskItemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-
             // store objects
             BulkObjectStoreResponse result = storeObjects(bulkObjectStoreRequest);
             if (result != null) {
                 // update sub task itemStatus
-                updateSubTasksAndTasksFromStorageInfos(result, itemStatusByObject, itemStatus);
+                updateSubTasksAndTasksFromStorageInfos(result, itemStatusByObjectList, itemStatusList);
 
-                storeStorageInfos(DEFAULT_STRATEGY, mapOfObjects.objectJsonMap, result);
+                storeStorageInfos(DEFAULT_STRATEGY, mapOfObjectsList, result);
             }
 
-            // store OG to workspace
-            //((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
-            // why is that ?
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+            for (int i=0; i<mapOfObjectsList.size(); i++) {
+                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
+                        params.getObjectNameList().get(i),
+                        mapOfObjectsList.get(i).getJsonOG(), false, asyncIO);
             }
 
-            handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                        params.getObjectName(),
-                        mapOfObjects.jsonOG, false, asyncIO);
-        } catch (StepAlreadyExecutedException e) {
-            LOGGER.warn(e);
-            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
         } catch (final ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
-            itemStatus.increment(StatusCode.FATAL);
+            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
         } catch (StorageClientException e) {
             LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
+            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
         }
 
-        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-            itemStatus.increment(StatusCode.OK);
-        }
-
-        return new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus);
+        return getFinalResult(itemStatusList);
     }
 
-    /*@Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO actionDefinition) {
-        checkMandatoryParameters(params);
-        handlerIO = actionDefinition;
-        final ItemStatus itemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-        try {
-            checkMandatoryIOParameter(actionDefinition);
-
-            // get list of object group's objects
-            final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params);
-            // get list of object uris
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
-            }
-            for (final Map.Entry<String, String> objectGuid : mapOfObjects.binaryObjectsToStore.entrySet()) {
-                // Execute action on the object
-
-                // store binary data object
-                final ObjectDescription description = new ObjectDescription();
-                // set container name and object URI
-                description.setWorkspaceContainerGUID(params.getContainerName())
-                    .setWorkspaceObjectURI(SIP + objectGuid.getValue());
-                // set type and object name
-                description.setType(DataCategory.OBJECT).setObjectName(objectGuid.getKey());
-
-                // create ItemStatus for subtask
-                ItemStatus subTaskItemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-
-                // store object
-                StoredInfoResult result = storeObject(description, subTaskItemStatus);
-
-                if (result != null) {
-                    // init status code to OK as storeObject set it only if it's KO or FATAL
-                    subTaskItemStatus.increment(StatusCode.OK);
-
-                    // update sub task itemStatus
-                    subTaskItemStatus.setEvDetailData(detailsFromStorageInfo(result));
-
-                    storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result);
-                }
-
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
-                }
-
-                // increment itemStatus with subtask 
-                itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus)
-                    .increment(subTaskItemStatus.getGlobalStatus());
-
-            }
-            // store OG to workspace
-            //((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
-            // why is that ?
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
-            }
-            try {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                    params.getObjectName(),
-                    mapOfObjects.jsonOG, false, asyncIO);
-            } catch (ProcessingException e) {
-                LOGGER.error(params.getObjectName(), e);
-                throw e;
-            }
-
-        } catch (StepAlreadyExecutedException e) {
-            LOGGER.warn(e);
-            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
-        } catch (final ProcessingException e) {
-            LOGGER.error(e);
-            itemStatus.increment(StatusCode.FATAL);
-        }
-
-        if (StatusCode.UNKNOWN.equals(itemStatus.getGlobalStatus())) {
-            itemStatus.increment(StatusCode.OK);
-        }
-        return new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus);
-    }*/
-
-    private static class MapOfObjects {
-        private JsonNode jsonOG;
-        private Map<String, JsonNode> objectJsonMap;
-        private Map<String, String> binaryObjectsToStore;
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+            throws ProcessingException {
+        throw new ProcessingException("No need to implements method");
     }
 
     /**
      * Get the list of objects linked to the current object group
      *
-     * @param params worker parameters
+     * @param containerId
+     * @param objectName
      * @return the list of object guid and corresponding Json
      * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
      */
-    private MapOfObjects getMapOfObjectsIdsAndUris(WorkerParameters params)
+    private MapOfObjects getMapOfObjectsIdsAndUris(String containerId, String objectName)
         throws ProcessingException {
         final MapOfObjects mapOfObjects = new MapOfObjects();
-        mapOfObjects.binaryObjectsToStore = new HashMap<>();
-        mapOfObjects.objectJsonMap = new HashMap<>();
-        final String containerId = params.getContainerName();
-        final String objectName = params.getObjectName();
+        mapOfObjects.setBinaryObjectsToStore(new HashMap<>());
+        mapOfObjects.setObjectJsonMap(new HashMap<>());
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
         // Get objectGroup objects ids
-        mapOfObjects.jsonOG = handlerIO.getJsonFromWorkspace(
-            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName);
-        handlerIO.addOutputResult(OG_OUT_RANK, mapOfObjects.jsonOG, true, false);
+        mapOfObjects.setJsonOG(handlerIO.getJsonFromWorkspace(
+            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName));
+        handlerIO.setCurrentObjectId(objectName);
+        handlerIO.addOutputResult(OG_OUT_RANK, mapOfObjects.getJsonOG(), true, false);
 
         // Filter on objectGroup objects ids to retrieve only binary objects
         // informations linked to the ObjectGroup
-        final JsonNode original = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
-        final JsonNode work = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_WORK);
+        final JsonNode original = mapOfObjects.getJsonOG().get(SedaConstants.PREFIX_QUALIFIERS);
+        final JsonNode work = mapOfObjects.getJsonOG().get(SedaConstants.PREFIX_WORK);
         if (work == null) {
             // work is null, that means the object has been processed
             throw new StepAlreadyExecutedException("Object " + objectName + " has already been processed");
@@ -272,13 +196,13 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             for (final JsonNode binaryObject : version) {
                 if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                     String id = binaryObject.get(SedaConstants.PREFIX_ID).asText();
-                    mapOfObjects.binaryObjectsToStore.put(id,
+                    mapOfObjects.getBinaryObjectsToStore().put(id,
                         binaryObject.get(SedaConstants.TAG_URI).asText());
                     for (final JsonNode version2 : originalVersions) {
                         for (final JsonNode binaryObject2 : version2) {
                             if (binaryObject2.get(SedaConstants.TAG_PHYSICAL_ID) == null &&
                                 binaryObject2.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
-                                mapOfObjects.objectJsonMap.put(id, binaryObject2);
+                                mapOfObjects.getObjectJsonMap().put(id, binaryObject2);
                             }
                         }
                     }
@@ -291,6 +215,14 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO P0 Add objectGroup.json add input and check it
+    }
+
+    private List<ItemStatus> getFinalResult(List<ItemStatus> itemStatusList) {
+        List<ItemStatus> finalItemStatusList = new ArrayList<>();
+        for (ItemStatus itemStatus : itemStatusList) {
+            finalItemStatusList.add(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus));
+        }
+        return finalItemStatusList;
     }
 
 }

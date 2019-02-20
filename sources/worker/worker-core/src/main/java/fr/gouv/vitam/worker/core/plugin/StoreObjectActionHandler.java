@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -109,49 +108,26 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         }
     }
 
-    /**
-     * Helper to set _storage on node after storing it
-     *
-     * @param node
-     * @param result
-     */
-    protected void storeStorageInfo(ObjectNode node, StoredInfoResult result) {
+    protected void storeStorageInfos(String strategy, List<MapOfObjects> mapOfObjectsList, BulkObjectStoreResponse result) {
         LOGGER.debug("DEBUG result: {}", result);
-        int nbc = result.getNbCopy();
-        String strategy = result.getStrategy();
-        List<String> offers = result.getOfferIds();
-        ObjectNode storage = JsonHandler.createObjectNode();
-        storage.put(SedaConstants.TAG_NB, nbc);
-        ArrayNode offersId = JsonHandler.createArrayNode();
-        if (offers != null) {
-            for (String id : offers) {
-                offersId.add(id);
-            }
-        }
-        storage.set(SedaConstants.OFFER_IDS, offersId);
-        storage.put(SedaConstants.STRATEGY_ID, strategy);
-        node.set(SedaConstants.STORAGE, storage);
-        LOGGER.debug("DEBUG node: {}", node);
-    }
-
-    protected void storeStorageInfos(String strategy, Map<String, JsonNode> nodes, BulkObjectStoreResponse result) {
-        LOGGER.debug("DEBUG result: {}", result);
-        Iterator<Map.Entry<String, String>> objectsDigests = result.getObjectDigests().entrySet().iterator();
-        while(objectsDigests.hasNext()) {
-            Map.Entry<String, String> objectDigest = objectsDigests.next();
-            List<String> offers = result.getOfferIds();
-            ObjectNode storage = JsonHandler.createObjectNode();
-            storage.put(SedaConstants.TAG_NB, result.getOfferIds().size());
-            ArrayNode offersId = JsonHandler.createArrayNode();
-            if (offers != null) {
-                for (String id : offers) {
-                    offersId.add(id);
+        for(int i=0; i<mapOfObjectsList.size(); i++) {
+            MapOfObjects mapOfObjects = mapOfObjectsList.get(i);
+            Map<String, JsonNode> nodes = mapOfObjects.getObjectJsonMap();
+            for (Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore().entrySet()) {
+                List<String> offers = result.getOfferIds();
+                ObjectNode storage = JsonHandler.createObjectNode();
+                storage.put(SedaConstants.TAG_NB, result.getOfferIds().size());
+                ArrayNode offersId = JsonHandler.createArrayNode();
+                if (offers != null) {
+                    for (String id : offers) {
+                        offersId.add(id);
+                    }
                 }
+                storage.set(SedaConstants.OFFER_IDS, offersId);
+                storage.put(SedaConstants.STRATEGY_ID, strategy);
+                ((ObjectNode)nodes.get(objectGuid.getKey())).set(SedaConstants.STORAGE, storage);
+                LOGGER.debug("DEBUG node: {}", nodes.get(objectGuid.getKey()));
             }
-            storage.set(SedaConstants.OFFER_IDS, offersId);
-            storage.put(SedaConstants.STRATEGY_ID, strategy);
-            ((ObjectNode)nodes.get(objectDigest.getKey())).set(SedaConstants.STORAGE, storage);
-            LOGGER.debug("DEBUG node: {}", nodes.get(objectDigest.getKey()));
         }
     }
 
@@ -159,33 +135,16 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
      *
      * @param result
-     * @return JSON String
+     * @param itemStatusByObjectList
+     * @param itemStatusList
      */
-    protected String detailsFromStorageInfo(StoredInfoResult result) {
-        final ObjectNode object = JsonHandler.createObjectNode();
+    protected void updateSubTasksAndTasksFromStorageInfos(BulkObjectStoreResponse result, List<Map<String, ItemStatus>> itemStatusByObjectList, List<ItemStatus> itemStatusList) {
 
-        if (result != null) {
-            object.put(FILE_NAME, result.getId());
-            object.put(ALGORITHM, result.getDigestType());
-            object.put(DIGEST, result.getDigest());
-            List<String> offers = result.getOfferIds();
-            object.put(OFFERS, offers != null ? String.join(",", offers) : "");
-        }
-
-        return JsonHandler.unprettyPrint(object);
-    }
-
-    /**
-     * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
-     *
-     * @param result
-     * @param itemStatusByObject
-     */
-    protected void updateSubTasksAndTasksFromStorageInfos(BulkObjectStoreResponse result, Map<String, ItemStatus> itemStatusByObject, ItemStatus itemStatus) {
-        Iterator<Map.Entry<String, String>> objectsDigests = result.getObjectDigests().entrySet().iterator();
-        while(objectsDigests.hasNext()) {
+        for(Map.Entry<String, String> objectDigest : result.getObjectDigests().entrySet()) {
+            int pos = getElementPositionForObjectName(objectDigest.getKey(), itemStatusByObjectList);
+            Map<String, ItemStatus> itemStatusByObject = itemStatusByObjectList.get(pos);
+            ItemStatus itemStatus = itemStatusList.get(pos);
             ObjectNode object = JsonHandler.createObjectNode();
-            Map.Entry<String, String> objectDigest = objectsDigests.next();
             object.put(FILE_NAME, objectDigest.getKey());
             object.put(ALGORITHM, result.getDigestType());
             object.put(DIGEST, objectDigest.getValue());
@@ -198,5 +157,14 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
             itemStatus.setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
                     .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
         }
+    }
+
+    private int getElementPositionForObjectName(String objectName, List<Map<String, ItemStatus>> itemStatusByObjectList) {
+        for(int i=0; i<itemStatusByObjectList.size(); i++) {
+            if(itemStatusByObjectList.get(i).containsKey(objectName)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
