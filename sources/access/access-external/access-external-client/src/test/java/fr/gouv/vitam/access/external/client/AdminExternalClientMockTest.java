@@ -11,11 +11,11 @@ import javax.ws.rs.core.Response.Status;
 import org.junit.Before;
 import org.junit.Test;
 
-import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ProcessQuery;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 public class AdminExternalClientMockTest {
 
@@ -135,10 +135,16 @@ public class AdminExternalClientMockTest {
                 new ProcessQuery()).getHttpCode(),
             Status.OK.getStatusCode());
         assertEquals(client
-                .downloadRulesReport(new VitamContext(TENANT_ID), "ID").getStatus(),
+            .downloadRulesReport(new VitamContext(TENANT_ID), "ID").getStatus(),
             Status.OK.getStatusCode());
         assertEquals(client
-                .downloadAgenciesCsvAsStream(new VitamContext(TENANT_ID), "ID").getStatus(),
+            .downloadAgenciesCsvAsStream(new VitamContext(TENANT_ID), "ID").getStatus(),
             Status.OK.getStatusCode());
+
+        assertEquals(
+            client.createExternalOperation(new VitamContext(TENANT_ID),
+                LogbookParametersFactory.newLogbookOperationParameters()).getStatus(),
+            Status.CREATED.getStatusCode());
+
     }
 }

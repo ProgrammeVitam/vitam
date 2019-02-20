@@ -1,14 +1,48 @@
 package fr.gouv.vitam.access.external.rest;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static io.restassured.RestAssured.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.hamcrest.CoreMatchers;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -26,6 +60,7 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
@@ -51,36 +86,11 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.hamcrest.CoreMatchers;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static io.restassured.RestAssured.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 public class AdminManagementExternalResourceTest extends ResteasyTestApplication {
 
@@ -103,6 +113,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     private static final String EVIDENCE_AUDIT = "evidenceaudit";
     private static final String RECTIFICATION_AUDIT = "rectificationaudit";
 
+    private static final String OPERATIONS_URI = "/logbookoperations";
 
     private static final String DOCUMENT_ID = "/1";
 
@@ -2278,6 +2289,104 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().post(ONTOLOGIES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json")
             .body(CoreMatchers.containsString(resultNode.toString()));
+    }
+
+    @Test
+    public void testCreateExternalOperation() throws Exception {
+        when(adminManagementClient.createExternalOperation(any())).thenReturn(Status.CREATED);
+
+        LogbookOperationParameters operation =
+            fillLogbookParameters(GUIDFactory.newOperationLogbookGUID(0).getId(),
+                GUIDFactory.newOperationLogbookGUID(0).getId());
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(operation)
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        when(adminManagementClient.createExternalOperation(any())).thenReturn(Status.BAD_REQUEST);
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(operation)
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        when(adminManagementClient.createExternalOperation(any())).thenReturn(Status.INTERNAL_SERVER_ERROR);
+
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(operation)
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+
+
+        File logbookFile = PropertiesUtils.getResourceFile("external_logbook.json");
+        ObjectNode operationTooBig = (ObjectNode) JsonHandler.getFromFile(logbookFile);
+        // lets put maximum size for an external logbook equals to 10ko
+        VitamConfiguration.setOperationMaxSizeForExternal(10240);
+
+        LogbookOperationParameters params =
+            JsonHandler.getFromJsonNode(operationTooBig, LogbookOperationParameters.class);
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(params)
+            .when()
+            .post(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
+
+    }
+
+
+    private LogbookOperationParameters fillLogbookParameters(String guid, String evIdProc) {
+        LogbookOperationParameters logbookParamaters = LogbookParametersFactory.newLogbookOperationParameters();
+        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
+            guid);
+        logbookParamaters
+            .putParameterValue(LogbookParameterName.eventType, LogbookParameterName.eventType.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+            evIdProc != null ? evIdProc : guid);
+        logbookParamaters.putParameterValue(LogbookParameterName.eventTypeProcess,
+            LogbookParameterName.eventTypeProcess.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
+        logbookParamaters
+            .putParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            LogbookParameterName.outcomeDetailMessage.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifier,
+            LogbookParameterName.agentIdentifier.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifierApplicationSession,
+            LogbookParameterName.agentIdentifierApplicationSession.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
+            LogbookParameterName.eventIdentifierRequest.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt, null);
+
+        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifier,
+            LogbookParameterName.objectIdentifier.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierRequest,
+            LogbookParameterName.objectIdentifierRequest.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
+            LogbookParameterName.objectIdentifierIncome.name());
+
+        return logbookParamaters;
     }
 
 }

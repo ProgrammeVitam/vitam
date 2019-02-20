@@ -26,13 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.model.ProcessPause;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
@@ -46,11 +44,16 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
+import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.model.ProcessPause;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 
 @Path("/adminmanagement/v1")
@@ -77,8 +80,7 @@ public class AdminManagementResourceMock extends ApplicationStatusResource {
     protected void consumeAndCloseStream(InputStream xmlPronom) {
         try {
             if (null != xmlPronom) {
-                while (xmlPronom.read() > 0) {
-                }
+                while (xmlPronom.read() > 0) {}
                 xmlPronom.close();
             }
         } catch (IOException e) {
@@ -216,4 +218,13 @@ public class AdminManagementResourceMock extends ApplicationStatusResource {
     public Response removeForcePause(ProcessPause info) {
         return mock.post();
     }
+
+    @Path("/logbookoperations")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createExternalOperation(LogbookOperationParameters logbook) {
+        return mock.post();
+    }
+
 }

@@ -131,7 +131,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, unitId);
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET, UNITS + unitId + "/objects", vitamContext.getHeaders(),
+            response = performRequest(HttpMethod.GET, UNITS + unitId + AccessExtAPI.OBJECTS, vitamContext.getHeaders(),
                 selectObjectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 
@@ -164,7 +164,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         headers.add(GlobalDataRest.X_VERSION, version);
 
         try {
-            response = performRequest(HttpMethod.GET, UNITS + unitId + "/objects", headers,
+            response = performRequest(HttpMethod.GET, UNITS + unitId + AccessExtAPI.OBJECTS, headers,
                 null, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_OCTET_STREAM_TYPE, false);
 
         } catch (final VitamClientInternalException e) {
@@ -382,7 +382,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         Response response = null;
 
         try {
-            response = performRequest(HttpMethod.GET, "/objects", vitamContext.getHeaders(),
+            response = performRequest(HttpMethod.GET, AccessExtAPI.OBJECTS, vitamContext.getHeaders(),
                 selectQuery, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
 

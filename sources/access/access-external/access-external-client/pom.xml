@@ -46,6 +46,11 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>logbook-common</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 		</dependency>

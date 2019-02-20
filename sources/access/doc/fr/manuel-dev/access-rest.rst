@@ -4,7 +4,7 @@ Access-rest
 Présentation
 ************
 
-API REST EXT appelées par le client access external. 
+API REST EXT appelées par le client access external.
 Il y a un controle des paramètres (SanityChecker.checkJsonAll) et des headers transmis avec ESAPI.
 
 
@@ -153,6 +153,9 @@ Mise à jour du contrat d'entrès
 
 | POST https://vitam/admin-external/v1/profiles/profile_id
     Si X-Http-Method-Override égale à GET alors rechercher un profile avec son id (profile_id)
+
+| POST https://vitam/admin-external/v1/logbookoperations
+    Importer un journal d'opération externe
 
 
 - Profiles de sécurité

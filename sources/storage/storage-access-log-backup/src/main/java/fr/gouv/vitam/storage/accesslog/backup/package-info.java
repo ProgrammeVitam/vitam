@@ -24,6 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.storage.accesslog.backup;
 /**
  * Provides logbook interface, factory and implementation for the Storage Engine
  * Server module in order to log every object written on different storage

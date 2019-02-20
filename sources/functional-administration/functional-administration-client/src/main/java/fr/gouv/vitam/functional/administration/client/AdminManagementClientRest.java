@@ -26,7 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
+import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
+import static javax.ws.rs.HttpMethod.GET;
+import static javax.ws.rs.HttpMethod.POST;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.DefaultClient;
@@ -37,6 +52,7 @@ import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -53,12 +69,12 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.Context;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
@@ -74,19 +90,8 @@ import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundE
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSymbolic;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.List;
-
-import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
-import static javax.ws.rs.HttpMethod.GET;
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
  * AdminManagement client
@@ -130,6 +135,7 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
     private static final String RECTIFICATION_AUDIT = "/rectificationaudit";
+    private static final String CREATE_EXTERNAL_OPERATION_URI = "/logbookoperations";
 
     private static final String FORCE_PAUSE_URI = "/forcepause";
     private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
@@ -1714,8 +1720,8 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
             JsonNode queryDsl = getIdentifierQuery(GriffinModel.TAG_IDENTIFIER, id);
             RequestResponse<GriffinModel> requestResponse = findGriffin(queryDsl);
 
-            if (((RequestResponseOK)requestResponse).getResults() == null ||
-                ((RequestResponseOK)requestResponse).getResults().isEmpty()) {
+            if (((RequestResponseOK) requestResponse).getResults() == null ||
+                ((RequestResponseOK) requestResponse).getResults().isEmpty()) {
                 throw new ReferentialNotFoundException("Griffin not found ");
             }
             return requestResponse;
@@ -1733,11 +1739,11 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
 
             RequestResponse<PreservationScenarioModel> requestResponseOK = findPreservation(queryDsl);
 
-            if (((RequestResponseOK)requestResponseOK).getResults() == null ||
-                ((RequestResponseOK)requestResponseOK).isEmpty()) {
+            if (((RequestResponseOK) requestResponseOK).getResults() == null ||
+                ((RequestResponseOK) requestResponseOK).isEmpty()) {
                 throw new ReferentialNotFoundException(String.format("Preservation Scenario not found %s", id));
             }
-           return requestResponseOK;
+            return requestResponseOK;
         } catch (InvalidCreateOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -1762,6 +1768,43 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
                 return requestResponseOK;
             }
             return RequestResponse.parseFromResponse(response, PreservationScenarioModel.class);
+
+        } catch (VitamClientInternalException e) {
+            LOGGER.error("Internal Server Error", e);
+            throw new AdminManagementClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
+    @Override
+    public Status createExternalOperation(LogbookOperationParameters logbookOperationparams)
+        throws AdminManagementClientServerException, BadRequestException, LogbookClientAlreadyExistsException {
+        Response response = null;
+
+        try {
+            response = performRequest(HttpMethod.POST, CREATE_EXTERNAL_OPERATION_URI, null, logbookOperationparams,
+                MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
+            final Status status = Status.fromStatusCode(response.getStatus());
+
+            switch (status) {
+                case OK:
+                    break;
+                case BAD_REQUEST:
+                    String reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.BAD_REQUEST.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new BadRequestException(reason);
+                case CONFLICT:
+                    reason = (response.hasEntity()) ? response.readEntity(String.class)
+                        : Response.Status.CONFLICT.getReasonPhrase();
+                    LOGGER.error(reason);
+                    throw new LogbookClientAlreadyExistsException(reason);
+                default:
+                    break;
+            }
+
+            return status;
 
         } catch (VitamClientInternalException e) {
             LOGGER.error("Internal Server Error", e);

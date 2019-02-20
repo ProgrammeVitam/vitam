@@ -7,6 +7,8 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.LogbookExternalClientException;
+import fr.gouv.vitam.access.external.common.exception.LogbookExternalException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -45,6 +47,7 @@ import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -163,7 +166,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
 
     private <T> RequestResponse<T> internalFindDocuments(VitamContext vitamContext, AdminCollections documentType,
-        JsonNode select, Class<T> clazz) throws VitamClientException {
+        JsonNode select, Class<T> clazz)
+        throws VitamClientException {
         Response response = null;
 
         try {
@@ -468,7 +472,7 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
         Response response = null;
         try {
             response = performRequest(HttpMethod.GET, AccessExtAPI.TRACEABILITY_API + "/" + operationId +
-                    "/datafiles", vitamContext.getHeaders(),
+                "/datafiles", vitamContext.getHeaders(),
                 null,
                 null, MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
@@ -1216,7 +1220,8 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
 
     @Override
     public RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext,
-        JsonNode select) throws VitamClientException {
+        JsonNode select)
+        throws VitamClientException {
 
         return internalFindDocuments(vitamContext, AdminCollections.PRESERVATION_SCENARIO, select,
             PreservationScenarioModel.class);
@@ -1226,6 +1231,24 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     public RequestResponse<GriffinModel> findGriffin(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return internalFindDocuments(vitamContext, AdminCollections.GRIFFIN, select, GriffinModel.class);
+    }
+
+    @Override
+    public RequestResponse createExternalOperation(VitamContext vitamContext, LogbookOperationParameters logbookOperationparams)
+        throws LogbookExternalClientException {
+
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.POST, AccessExtAPI.LOGBOOK_OPERATIONS, vitamContext.getHeaders(),
+                logbookOperationparams, MediaType.APPLICATION_JSON_TYPE,
+                MediaType.APPLICATION_JSON_TYPE);
+            return RequestResponse.parseFromResponse(response);
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+            throw new LogbookExternalClientException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
     }
 }
 

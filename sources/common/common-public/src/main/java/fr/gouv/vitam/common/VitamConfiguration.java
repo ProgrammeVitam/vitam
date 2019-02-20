@@ -26,18 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
+
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -361,19 +362,16 @@ public class VitamConfiguration {
 
 
     /**
-     * This is a limitation of lucene.
-     * Fields whose UTF8 encoding is longer than the max length 32766 are not accepted
+     * This is a limitation of lucene. Fields whose UTF8 encoding is longer than the max length 32766 are not accepted
      */
     private static int keywordMaxLength = 32766;
     /**
-     * There is not a limitation in lucene for text fields.
-     * In VITAM, to enable sorting on some fields (title, ...), those fields are also not analysed (fielddata set to true)
+     * There is not a limitation in lucene for text fields. In VITAM, to enable sorting on some fields (title, ...),
+     * those fields are also not analysed (fielddata set to true)
      *
-     * Problem:
-     * - Indexing text fields with value length > keywordMaxLength
-     * - Change mapping on ES to set fielddata = true on those fields
-     * - Re-index
-     * => Lucene will throws an exception as keywords can't be longer than max length (keywordMaxLength)
+     * Problem: - Indexing text fields with value length > keywordMaxLength - Change mapping on ES to set fielddata =
+     * true on those fields - Re-index => Lucene will throws an exception as keywords can't be longer than max length
+     * (keywordMaxLength)
      *
      * So this is a vitam limitation.
      */
@@ -479,6 +477,12 @@ public class VitamConfiguration {
      * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
      */
     private static ClassificationLevel classificationLevel;
+
+
+    /**
+     * Max size of external json for operation
+     */
+    private static long operationMaxSizeForExternal = 15728640;
 
     static {
         getConfiguration().setDefault();
@@ -912,6 +916,9 @@ public class VitamConfiguration {
 
         if (null != parameters.getEnvironmentName()) {
             setEnvironmentName(parameters.getEnvironmentName());
+        }
+        if (null != parameters.getOperationMaxSizeForExternal()) {
+            setOperationMaxSizeForExternal(parameters.getOperationMaxSizeForExternal());
         }
     }
 
@@ -1912,9 +1919,31 @@ public class VitamConfiguration {
         return eliminationActionThreshold;
     }
 
+    /**
+     * 
+     * @param eliminationActionThreshold
+     */
     public static void setEliminationActionThreshold(long eliminationActionThreshold) {
         VitamConfiguration.eliminationActionThreshold = eliminationActionThreshold;
     }
+
+
+    /**
+     * 
+     * @return operationMaxSizeForExternal
+     */
+    public static long getOperationMaxSizeForExternal() {
+        return operationMaxSizeForExternal;
+    }
+
+    /**
+     * 
+     * @param operationMaxSizeForExternal
+     */
+    public static void setOperationMaxSizeForExternal(long operationMaxSizeForExternal) {
+        VitamConfiguration.operationMaxSizeForExternal = operationMaxSizeForExternal;
+    }
+
 
     /**
      * Getter for default OriginatingAgency for DIP export OriginatingAgency conflict
@@ -2151,10 +2180,10 @@ public class VitamConfiguration {
         return environmentName;
     }
 
-    public static /**
+    /**
      * set the environmentName
      */
-    void setEnvironmentName(String environmentName) {
+    public static void setEnvironmentName(String environmentName) {
         VitamConfiguration.environmentName = environmentName;
     }
 

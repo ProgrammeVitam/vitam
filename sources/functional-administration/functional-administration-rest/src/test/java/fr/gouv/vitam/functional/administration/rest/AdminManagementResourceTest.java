@@ -26,12 +26,42 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.rest;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.with;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Sets;
+
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -64,36 +94,14 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static io.restassured.RestAssured.with;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertEquals;
 
 public class AdminManagementResourceTest {
 
@@ -129,6 +137,9 @@ public class AdminManagementResourceTest {
     private static final String GET_DOCUMENT_RULES_URI = "/rules/document";
 
     private static final String CREATE_FUND_REGISTER_URI = "/accession-register";
+
+    private static final String CREATE_EXTERNAL_LOGBOOK_URI = "/logbookoperations";
+
     private static final String FILE_TEST_OK = "jeu_donnees_OK_regles_CSV.csv";
 
     private static final int TENANT_ID = 0;
@@ -219,7 +230,7 @@ public class AdminManagementResourceTest {
 
 
         FunctionalAdminCollections
-            .afterTestClass( true);
+            .afterTestClass(true);
 
         LOGGER.debug("Ending tests");
         try {
@@ -341,7 +352,8 @@ public class AdminManagementResourceTest {
         contractModel.setLastupdate("2019-02-12T14:51:23.567");
         contractModel.initializeDefaultValue();
 
-        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT).close();
+        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT)
+            .close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
         final AccessionRegisterDetailModel register =
@@ -887,4 +899,78 @@ public class AdminManagementResourceTest {
             .when().post(GET_DOCUMENT_RULES_URI)
             .then().statusCode(Status.OK.getStatusCode());
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void createExternalLogbook() throws Exception {
+        GUID request = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(request);
+        
+
+        LogbookOperationParameters logbook =
+            fillLogbookParameters(newOperationLogbookGUID(TENANT_ID).getId(),
+                newOperationLogbookGUID(TENANT_ID).getId());
+
+
+        given().contentType(ContentType.JSON).body(JsonHandler.toJsonNode(logbook))
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, request.getId())
+            .when().post(CREATE_EXTERNAL_LOGBOOK_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        given().contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(LogbookParametersFactory.newLogbookOperationParameters()))
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, request.getId())
+            .when().post(CREATE_EXTERNAL_LOGBOOK_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+        logbook.setTypeProcess(LogbookTypeProcess.AUDIT);
+        given().contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(JsonHandler.toJsonNode(logbook)))
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, request.getId())
+            .when().post(CREATE_EXTERNAL_LOGBOOK_URI)
+            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+
+
+    }
+
+
+    private LogbookOperationParameters fillLogbookParameters(String guid, String evIdProc) {
+        LogbookOperationParameters logbookParamaters = LogbookParametersFactory.newLogbookOperationParameters();
+        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
+            guid);
+        logbookParamaters
+            .putParameterValue(LogbookParameterName.eventType, LogbookParameterName.eventType.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
+            evIdProc != null ? evIdProc : guid);
+        logbookParamaters.setTypeProcess(LogbookTypeProcess.EXTERNAL);
+        logbookParamaters.putParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
+        logbookParamaters
+            .putParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+            LogbookParameterName.outcomeDetailMessage.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifier,
+            LogbookParameterName.agentIdentifier.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifierApplicationSession,
+            LogbookParameterName.agentIdentifierApplicationSession.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
+            LogbookParameterName.eventIdentifierRequest.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt, null);
+
+        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifier,
+            LogbookParameterName.objectIdentifier.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierRequest,
+            LogbookParameterName.objectIdentifierRequest.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
+            LogbookParameterName.objectIdentifierIncome.name());
+
+        return logbookParamaters;
+    }
+
 }

@@ -26,11 +26,12 @@
  */
 package fr.gouv.vitam.common;
 
-import com.google.common.base.Strings;
-import fr.gouv.vitam.common.configuration.ClassificationLevel;
-
 import java.util.List;
 import java.util.Map;
+
+import com.google.common.base.Strings;
+
+import fr.gouv.vitam.common.configuration.ClassificationLevel;
 
 
 /**
@@ -96,19 +97,16 @@ public class VitamConfigurationParameters {
     private Integer optimisticLockSleepTime;
 
     /**
-     * This is a limitation of lucene.
-     * Fields whose UTF8 encoding is longer than the max length 32766 are not accepted
+     * This is a limitation of lucene. Fields whose UTF8 encoding is longer than the max length 32766 are not accepted
      */
     private Integer keywordMaxLength;
     /**
-     * There is not a limitation in lucene for text fields.
-     * In VITAM, to enable sorting on some fields (title, ...), those fields are also not analysed (fielddata set to true)
+     * There is not a limitation in lucene for text fields. In VITAM, to enable sorting on some fields (title, ...),
+     * those fields are also not analysed (fielddata set to true)
      *
-     * Problem:
-     *    - Indexing text fields with value length > keywordMaxLength
-     *    - Change mapping on ES to set fielddata = true on those fields
-     *    - Re-index
-     *    => Lucene will throws an exception as keywords can't be longer than max length (keywordMaxLength)
+     * Problem: - Indexing text fields with value length > keywordMaxLength - Change mapping on ES to set fielddata =
+     * true on those fields - Re-index => Lucene will throws an exception as keywords can't be longer than max length
+     * (keywordMaxLength)
      *
      * So this is a vitam limitation.
      */
@@ -136,7 +134,7 @@ public class VitamConfigurationParameters {
      * Max entries allowed for elimination action
      */
     private Long eliminationActionThreshold;
-    
+
     /**
      * Expire time for the cache entries in seconds (5 minutes by default)
      */
@@ -322,6 +320,12 @@ public class VitamConfigurationParameters {
      * Environment name used for storage offer container prefix (by default, set to empty string)
      */
     private String environmentName;
+
+    /**
+     * max operation size for external logbook
+     */
+    private Long operationMaxSizeForExternal;
+
 
     /**
      * VitamData empty constructor for YAMLFactory
@@ -1015,6 +1019,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter
+     * 
      * @return keywordMaxLength
      */
     public Integer getKeywordMaxLength() {
@@ -1023,6 +1028,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Setter
+     * 
      * @param keywordMaxLength
      */
     public void setKeywordMaxLength(Integer keywordMaxLength) {
@@ -1031,6 +1037,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Getter
+     * 
      * @return textMaxLength
      */
     public Integer getTextMaxLength() {
@@ -1039,6 +1046,7 @@ public class VitamConfigurationParameters {
 
     /**
      * Setter
+     * 
      * @param textMaxLength
      */
     public void setTextMaxLength(Integer textMaxLength) {
@@ -1291,11 +1299,31 @@ public class VitamConfigurationParameters {
     public String getEnvironmentName() {
         return environmentName;
     }
+
     /**
      * set the environmentName
      */
     public void setEnvironmentName(String environmentName) {
         this.environmentName = environmentName;
     }
+
+    /**
+     * Get operation Max Size For External Logbook
+     * 
+     * @return operationMaxSizeForExternal
+     */
+    public Long getOperationMaxSizeForExternal() {
+        return operationMaxSizeForExternal;
+    }
+
+    /**
+     * set operation Max Size For External Logbook
+     * 
+     * @param operationMaxSizeForExternal the max size
+     */
+    public void setOperationMaxSizeForExternal(Long operationMaxSizeForExternal) {
+        this.operationMaxSizeForExternal = operationMaxSizeForExternal;
+    }
+
 
 }

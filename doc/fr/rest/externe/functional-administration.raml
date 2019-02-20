@@ -993,6 +993,27 @@ documentation:
         description: Requête DSL de type **recherche simple (SELECT SINGLE)** de VITAM.
         example: !include libraries/examples/dslQuery.json
 
+/logbookoperations:
+  displayName: Journalisation externe
+  description: API permettant d'intégrer des journaux d'opération externes.
+  is: [ StandardTraits.StandardOptionalHeader ]
+  post:
+    description: Requête qui insère une opération externe dans le journal des opérations
+    body:
+      application/json:
+        description: |
+          Requête qui insère une opération externe dans le journal des opérations
+        type: object
+        example: !include libraries/examples/Logbook.json
+    responses:
+      201:
+        description: L'opération a bien été créée dans VITAM
+      400:
+        description: L'opération n'est pas au format exigé. Ou alors la valeur du champ eventTypeProcess est incorrecte (devrait être EXTERNAL)
+      409:
+        description: L'opération existe déjà
+      500:
+        description: Internal Server Error, le serveur a rencontré une erreur
 /:
   displayName: Endpoints
   description: |
@@ -1002,6 +1023,7 @@ documentation:
       Request that will return list of endpoints
     is: [ StandardTraits.StandardHeader200,
       StandardTraits.StandardHeader404, StandardTraits.StandardHeader503 ]
+
 
 /status:
   get:

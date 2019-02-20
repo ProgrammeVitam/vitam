@@ -24,117 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-
 package fr.gouv.vitam.logbook.common.parameters;
 
+import java.io.IOException;
+import java.util.Map.Entry;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+
 /**
- * Logbook Process Type
+ * AbstractParameters Serializer for Jackson
  */
-public enum LogbookTypeProcess {
-    /**
-     * Ingest type process
-     */
-    INGEST,
-    /**
-     * Audit type process
-     */
-    AUDIT,
-    /**
-     * Destruction type process
-     */
-    DESTRUCTION,
-    /**
-     * Preservation type process
-     */
-    PRESERVATION,
-    /**
-     * Check type process
-     */
-    CHECK,
-    /**
-     * Update process
-     */
-    UPDATE,
-    /**
-     * Rules Manager process
-     */
-    MASTERDATA,
-    /**
-     * traceabiliy type process
-     */
-    TRACEABILITY,
-    /**
-     * INGEST (Blank test)
-     */
-    INGEST_TEST,
-    /**
-     * Storage logbook type process
-     */
-    STORAGE_LOGBOOK,
+class LogbookOperationParametersSerializer extends JsonSerializer<LogbookOperationParameters> {
 
     /**
-     * Storage Rule type process
+     * Empty constructor
      */
-    STORAGE_RULE,
-    /**
-     * Storage Rule type process
-     */
-    STORAGE_AGENCIES,
-    /**
-     * Storage Backup type process
-     */
-    STORAGE_BACKUP,
-    /**
-     * Holding scheme type process (tree)
-     */
-    HOLDINGSCHEME,
-    /**
-     * Filing scheme type process (classification plan)
-     */
-    FILINGSCHEME,
-    /**
-     * export du DIP
-     */
-    EXPORT_DIP,
-    /**
-     * Migration
-     */
-    DATA_MIGRATION,
-    /**
-     * Reclassification process (attachment/detachment)
-     */
-    RECLASSIFICATION,
-    /**
-     * Mass update of archive units.
-     */
-    MASS_UPDATE,
-    /**
-     * Elimination process
-     */
-    ELIMINATION,
-    /**
-     * Evidence probativevalue export.
-     */
-    EXPORT_PROBATIVE_VALUE,
-    /**
-     * External uses only.
-     */
-    EXTERNAL;
+    public LogbookOperationParametersSerializer() {
+        // empty
+    }
 
-    /**
-     * Get the LogbookTypeProcess matching the given type
-     *
-     * @param type
-     * @return a LogbookTypeProcess
-     * @throws IllegalArgumentException
-     */
-    public static LogbookTypeProcess getLogbookTypeProcess(String type) throws IllegalArgumentException {
-        for (LogbookTypeProcess c : LogbookTypeProcess.values()) {
-            if (c.name().equals(type)) {
-                return c;
-            }
+    @Override
+    public void serialize(LogbookOperationParameters value, JsonGenerator gen,
+        SerializerProvider serializers)
+        throws IOException {
+        gen.writeStartObject();
+        for (final Entry<LogbookParameterName, String> item : value.getMapParameters().entrySet()) {
+            gen.writeStringField(item.getKey().name(), item.getValue());
         }
-        throw new IllegalArgumentException(type);
+        if (!value.getEvents().isEmpty()) {
+            gen.writeArrayFieldStart(LogbookParameterName.events.name());
+            for (LogbookParameters item : value.getEvents()) {
+                gen.writeObject(item);
+            }
+            gen.writeEndArray();
+        }
+        gen.writeEndObject();
     }
 
 }

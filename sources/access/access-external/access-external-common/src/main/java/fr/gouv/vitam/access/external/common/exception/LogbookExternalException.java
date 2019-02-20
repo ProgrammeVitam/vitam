@@ -24,36 +24,46 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.parameters;
+package fr.gouv.vitam.access.external.common.exception;
 
-import java.io.IOException;
-import java.util.Map.Entry;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * AbstractParameters Serializer for Jackson
+ * Logbook External Exception
  */
-class LogbookParametersSerializer extends JsonSerializer<AbstractParameters> {
+public class LogbookExternalException extends VitamException {
+
 
     /**
-     * Empty constructor
+     * 
      */
-    public LogbookParametersSerializer() {
-        // empty
+    private static final long serialVersionUID = -6297292326015681656L;
+
+    /**
+     * constructor with message
+     *
+     * @param message message to associate with the exception
+     */
+    public LogbookExternalException(String message) {
+        super(message);
     }
 
-    @Override
-    public void serialize(AbstractParameters value, JsonGenerator gen,
-        SerializerProvider serializers)
-        throws IOException {
-        gen.writeStartObject();
-        for (final Entry<LogbookParameterName, String> item : value.getMapParameters().entrySet()) {
-            gen.writeStringField(item.getKey().name(), item.getValue());
-        }
-        gen.writeEndObject();
+    /**
+     * constructor with throwable
+     *
+     * @param cause cause to associate with the exception
+     */
+    public LogbookExternalException(Throwable cause) {
+        super(cause);
     }
 
+    /**
+     * constructor with message and throwable
+     *
+     * @param message message to associate with the exception
+     * @param cause cause to associate with the exception
+     */
+    public LogbookExternalException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

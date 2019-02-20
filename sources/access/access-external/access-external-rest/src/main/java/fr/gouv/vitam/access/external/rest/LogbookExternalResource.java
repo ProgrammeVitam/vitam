@@ -26,7 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -38,23 +50,20 @@ import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.Secured;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
  * Logbook external resource
@@ -81,6 +90,12 @@ public class LogbookExternalResource {
         this(AccessInternalClientFactory.getInstance());
     }
 
+    /**
+     * Constructor
+     * 
+     * @param accessInternalClientFactory
+     * @param adminManagementClientFactory
+     */
     public LogbookExternalResource(AccessInternalClientFactory accessInternalClientFactory) {
         this.accessInternalClientFactory = accessInternalClientFactory;
         LOGGER.debug("LogbookExternalResource initialized");
@@ -297,5 +312,6 @@ public class LogbookExternalResource {
                 .setHttpCode(Status.UNAUTHORIZED.getStatusCode()).toResponse();
         }
     }
+
 
 }

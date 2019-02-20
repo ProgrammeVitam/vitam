@@ -26,6 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -48,24 +60,13 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * JSON handler using Json format
@@ -197,6 +198,7 @@ public final class JsonHandler {
 
     /**
      * Create json Parser
+     * 
      * @param in the inputStream
      * @return createJsonParser
      * @throws IOException IOException
@@ -260,7 +262,7 @@ public final class JsonHandler {
     /**
      * merge, Merge two jsonNode
      *
-     * @param mainNode   node to update
+     * @param mainNode node to update
      * @param updateNode note to merge with
      * @return merged node
      */
@@ -321,8 +323,8 @@ public final class JsonHandler {
     }
 
     /**
-     * @param value          in format String to transform
-     * @param clasz          the instance of target class
+     * @param value in format String to transform
+     * @param clasz the instance of target class
      * @param parameterClazz the the target class template parameters
      * @return the object of type clasz
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
@@ -371,7 +373,7 @@ public final class JsonHandler {
     }
 
     /**
-     * @param file  to transform
+     * @param file to transform
      * @param clasz the instance of target class
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
@@ -387,7 +389,7 @@ public final class JsonHandler {
     }
 
     /**
-     * @param file         to transform
+     * @param file to transform
      * @param valueTypeRef the type reference of target class
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
@@ -403,7 +405,7 @@ public final class JsonHandler {
     }
 
     /**
-     * @param file  to transform
+     * @param file to transform
      * @param clasz the instance of target class
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
@@ -420,7 +422,7 @@ public final class JsonHandler {
 
     /**
      * @param jsonNode the json object to transform
-     * @param clazz    the instance of target class
+     * @param clazz the instance of target class
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
@@ -435,7 +437,7 @@ public final class JsonHandler {
     }
 
     public static final <T> T getFromJsonNode(final JsonNode jsonNode, final Class<T> clasz, Class<?> parameterClazz)
-            throws InvalidParseOperationException {
+        throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("value, class or parameterClazz", jsonNode, clasz, parameterClazz);
             JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(clasz, parameterClazz);
@@ -448,7 +450,7 @@ public final class JsonHandler {
 
     /**
      * @param jsonNode the json object to get
-     * @param clasz    the instance of target class
+     * @param clasz the instance of target class
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
@@ -523,7 +525,7 @@ public final class JsonHandler {
 
     /**
      * @param object to write
-     * @param file   to write object
+     * @param file to write object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
     public static final void writeAsFile(final Object object, File file)
@@ -537,7 +539,7 @@ public final class JsonHandler {
     }
 
     /**
-     * @param object       to write
+     * @param object to write
      * @param outputStream the output stream
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
@@ -565,7 +567,7 @@ public final class JsonHandler {
      * Check if JsonNodes are not null and not empty
      *
      * @param message default message within exception
-     * @param nodes   to check
+     * @param nodes to check
      * @throws IllegalArgumentException if nodes are null or empty
      */
     public static final void checkNullOrEmpty(final String message, final JsonNode... nodes) {
@@ -584,7 +586,7 @@ public final class JsonHandler {
      * node should have only one property
      *
      * @param nodeName name to print in case of error
-     * @param node     to check
+     * @param node to check
      * @return the couple property name and property value
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
@@ -617,7 +619,7 @@ public final class JsonHandler {
      * node should have only one property ; simple value is allowed
      *
      * @param nodeName name to print in case of error
-     * @param node     to check
+     * @param node to check
      * @return the couple property name and property value
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
@@ -671,8 +673,7 @@ public final class JsonHandler {
             Map<String, Object> info = null;
             try {
                 info = OBJECT_MAPPER.readValue(value,
-                    new TypeReference<Map<String, Object>>() {
-                    });
+                    new TypeReference<Map<String, Object>>() {});
             } catch (final IOException e) {
                 throw new InvalidParseOperationException(e);
             }
@@ -696,8 +697,7 @@ public final class JsonHandler {
             Map<String, String> info = null;
             try {
                 info = OBJECT_MAPPER.readValue(value,
-                    new TypeReference<Map<String, String>>() {
-                    });
+                    new TypeReference<Map<String, String>>() {});
             } catch (final IOException e) {
                 throw new InvalidParseOperationException(e);
             }
@@ -721,8 +721,7 @@ public final class JsonHandler {
         Map<String, Object> info = null;
         try {
             info = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream),
-                new TypeReference<Map<String, Object>>() {
-                });
+                new TypeReference<Map<String, Object>>() {});
         } catch (final IOException e) {
             throw new InvalidParseOperationException(e);
         } finally {
@@ -743,9 +742,9 @@ public final class JsonHandler {
     /**
      * transform an inputStream into a {@link {Map<String, T>} maps of template class
      *
-     * @param inputStream    to transform
+     * @param inputStream to transform
      * @param parameterClazz type of the value on the Map
-     * @param <T>            the class template
+     * @param <T> the class template
      * @return the corresponding HashMap
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
@@ -777,7 +776,7 @@ public final class JsonHandler {
 
     /**
      * @param inputStream to transform
-     * @param clasz       the instance of target class
+     * @param clasz the instance of target class
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
@@ -795,7 +794,7 @@ public final class JsonHandler {
 
     /**
      * @param inputStream to transform
-     * @param clasz       the instance of target class
+     * @param clasz the instance of target class
      * @param parameterClazz the the target class template parameters
      * @return the corresponding object
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
@@ -803,7 +802,8 @@ public final class JsonHandler {
     public static final <T> T getFromInputStream(InputStream inputStream, Class<T> clasz, Class<?>... parameterClazz)
         throws InvalidParseOperationException {
         try {
-            ParametersChecker.checkParameter("InputStream, class or parameterClazz", inputStream, clasz, parameterClazz);
+            ParametersChecker.checkParameter("InputStream, class or parameterClazz", inputStream, clasz,
+                parameterClazz);
             JavaType type = OBJECT_MAPPER.getTypeFactory().constructParametricType(clasz, parameterClazz);
             return OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream), type);
         } catch (final IOException | IllegalArgumentException e) {
@@ -816,9 +816,9 @@ public final class JsonHandler {
     /**
      * From one ArrayNode, get a new ArrayNode from offset to limit items
      *
-     * @param array  to get node data
+     * @param array to get node data
      * @param offset of array to get
-     * @param limit  of array to get
+     * @param limit of array to get
      * @return Sub ArrayNode
      */
     public static ArrayNode getSubArrayNode(ArrayNode array, int offset, int limit) {
@@ -839,9 +839,9 @@ public final class JsonHandler {
     /**
      * Find a node with the given path
      *
-     * @param node      the parent Node within the search must be performed
+     * @param node the parent Node within the search must be performed
      * @param fieldPath the field to find in the root. use '.' to get sub-node (ex: parent.child.subNodeName)
-     * @param deepCopy  if true, the returned node is a copy of the matching node, else return the original one
+     * @param deepCopy if true, the returned node is a copy of the matching node, else return the original one
      * @return the find node or null if not found.
      */
     public static JsonNode getNodeByPath(JsonNode node, String fieldPath, boolean deepCopy) {
@@ -861,9 +861,9 @@ public final class JsonHandler {
     /**
      * Find a parent of the node with the given path
      *
-     * @param node      the root Node within the search must be performed
+     * @param node the root Node within the search must be performed
      * @param fieldPath the field to find in the root. use '.' to get sub-node (ex: ["parent","child","subNodeName"])
-     * @param deepCopy  if true, the returned node is a copy of the matching node, else return the original one
+     * @param deepCopy if true, the returned node is a copy of the matching node, else return the original one
      * @return the parent of the node defined by the given path (in the findPath example, return 'child' node)
      */
     public static JsonNode getParentNodeByPath(JsonNode node, String fieldPath, boolean deepCopy) {
@@ -884,10 +884,10 @@ public final class JsonHandler {
     /**
      * Set a value in a node defined by the given path. Create path nodes if needed
      *
-     * @param node      the rootNode
-     * @param nodePath  the path of the node that must be updated/created
-     * @param value     The new value of the node
-     * @param canCreate true if missing nodes muse be created. Else an error  was thrown for missing nodes
+     * @param node the rootNode
+     * @param nodePath the path of the node that must be updated/created
+     * @param value The new value of the node
+     * @param canCreate true if missing nodes muse be created. Else an error was thrown for missing nodes
      * @throws InvalidParseOperationException
      */
     public static void setNodeInPath(ObjectNode node, String nodePath, JsonNode value, boolean canCreate)
@@ -965,8 +965,34 @@ public final class JsonHandler {
         return currentNode;
     }
 
+    /**
+     * Tests if jsonNode is Null or empty
+     * 
+     * @param jsonNode
+     * @return true if json is null or empty
+     */
     public static boolean isNullOrEmpty(JsonNode jsonNode) {
-        if (jsonNode == null) { return true; }
+        if (jsonNode == null) {
+            return true;
+        }
         return !jsonNode.fieldNames().hasNext();
     }
+
+    /**
+     * writeValueAsBytes, from Json to byte[]
+     *
+     * @param json to write as bytes
+     * @return the byte[]
+     * @throws InvalidParseOperationException if parse JsonNode object exception occurred
+     */
+    public static final byte[] writeValueAsBytes(JsonNode json)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("json", json);
+            return OBJECT_MAPPER.writeValueAsBytes(json);
+        } catch (final IOException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
 }

@@ -124,10 +124,10 @@ abstract class AbstractParameters implements LogbookParameters {
     public LogbookParameters setBeginningLog(String handlerId, String subTaskId,
         String additionnalMessage, String... params) {
         if (this instanceof LogbookOperationParameters) {
-            // should call setFinalStatus instead, as STARTED event is no longer used for logbook operation 
+            // should call setFinalStatus instead, as STARTED event is no longer used for logbook operation
             setFinalStatusOp(handlerId, subTaskId, StatusCode.OK, additionnalMessage, params);
         } else {
-            // should call setFinalStatus instead, as STARTED event is no longer used for LFC  
+            // should call setFinalStatus instead, as STARTED event is no longer used for LFC
             setFinalStatusLfc(handlerId, subTaskId, StatusCode.OK, additionnalMessage, params);
         }
         return this;
@@ -135,12 +135,12 @@ abstract class AbstractParameters implements LogbookParameters {
 
     private LogbookParameters setFinalStatusLfc(String handlerId, String subTaskId,
         StatusCode code, String additionnalMessage, String... params) {
-        if(subTaskId != null){
+        if (subTaskId != null) {
             putParameterValue(LogbookParameterName.eventType,
-                    VitamLogbookMessages.getSubTaskEventTypeLfc(handlerId, subTaskId));
+                VitamLogbookMessages.getSubTaskEventTypeLfc(handlerId, subTaskId));
         } else {
             putParameterValue(LogbookParameterName.eventType,
-                    VitamLogbookMessages.getEventTypeLfc(handlerId));
+                VitamLogbookMessages.getEventTypeLfc(handlerId));
         }
         putParameterValue(LogbookParameterName.outcome, code.name());
         if (subTaskId != null) {
@@ -176,9 +176,9 @@ abstract class AbstractParameters implements LogbookParameters {
 
     private LogbookParameters setFinalStatusOp(String handlerId, String subTaskId,
         StatusCode code, String additionnalMessage, String... params) {
-        if(subTaskId != null){
+        if (subTaskId != null) {
             putParameterValue(LogbookParameterName.eventType,
-                    VitamLogbookMessages.getSubTaskEventTypeOp(handlerId, subTaskId));
+                VitamLogbookMessages.getSubTaskEventTypeOp(handlerId, subTaskId));
         } else {
             putParameterValue(LogbookParameterName.eventType, handlerId);
         }
