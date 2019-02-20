@@ -2,8 +2,11 @@
 <label for="query">Exécution manuelle de TNR  </label>
 
 <div class="ui-g-12">
-    <button pButton type="button" label='Mise à jour référentiel' (click)="sync()">
+    <button pButton type="button" label='Mise à jour référentiel' (click)="syncWithBranch()">
     </button>
+    <select [(ngModel)]="branch" #ctrl="ngModel" style="display: inline; margin: 0 0 0 10px">
+        <option *ngFor='let branchName of branches' value="{{branchName}}">{{branchName}}</option>
+    </select>
 </div>
 <div class="ui-g-12">
 <textarea class="textarea-dsl ui-g-12" id="query" rows="25" cols="12" pInputTextarea [(ngModel)]="featureText"></textarea>
@@ -28,6 +31,13 @@
     <p>Le réferentiel  à été  mis à jour </p>
     <p-footer>
         <button type="button" pButton icon="fa-check" (click)="updateOk=false" label="OK"></button>
+    </p-footer>
+</p-dialog>
+
+<p-dialog header="Mise à jour du référentiel git"  [(visible)]="updateKo" modal="modal" [responsive]="true">
+    <p>Une erreur s'est produite lors de la mise à jour du référentiel git </p>
+    <p-footer>
+        <button type="button" pButton icon="fa-check" (click)="updateKo=false" label="OK"></button>
     </p-footer>
 </p-dialog>
 

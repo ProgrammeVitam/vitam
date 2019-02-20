@@ -28,23 +28,31 @@ package fr.gouv.vitam.ihmrecette.appserver.applicativetest;
 
 import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import org.apache.commons.collections4.queue.CircularFifoQueue;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * service to manage cucumber test
@@ -182,25 +190,62 @@ public class ApplicativeTestService {
 
     /**
      * @param featurePath
-     * @param branche
+     * @param branch
      * @return
      * @throws IOException
      * @throws InterruptedException
      */
-    void checkout(Path featurePath, String branche) throws IOException, InterruptedException {
-        LOGGER.debug("git checkout" + branche);
+    int checkout(Path featurePath, String branch) throws IOException, InterruptedException {
+        LOGGER.debug("git checkout" + branch);
 
-        ProcessBuilder pb = new ProcessBuilder("git", "checkout", branche);
+        ProcessBuilder pb = new ProcessBuilder("git", "checkout", branch);
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
         LOGGER.debug("process exit status " + p.exitValue());
+
+        return p.exitValue();
     }
 
-    int resetTnrMaster(Path featurePath) throws InterruptedException, IOException {
-        LOGGER.debug("git reset ");
+    List<String> getBranches(Path featurePath) throws IOException, InterruptedException {
+        LOGGER.debug("git get branches");
 
-        ProcessBuilder processBuilder = new ProcessBuilder("git", "reset", "--hard", "origin/tnr_master");
+        ProcessBuilder pb = new ProcessBuilder("git", "for-each-ref", "--sort=-committerdate", "refs/heads/", "--format='%(refname:short)'");
+        pb.directory(featurePath.toFile());
+        Process p = pb.start();
+        p.waitFor();
+        String stdout = stdToString(p.getInputStream());
+        LOGGER.debug("process output " + stdout);
+
+        return Arrays.asList(stdout.replaceAll("'","").split(" \\| "));
+    }
+
+    private static String stdToString(InputStream std) {
+        CircularFifoQueue<String> lastLines = new CircularFifoQueue<>(250);
+        List<String> firstLines = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(std, UTF_8))) {
+            String c;
+            while ((c = reader.readLine()) != null) {
+                if (firstLines.size() < 250) {
+                    firstLines.add(c);
+                } else {
+                    lastLines.add(c);
+                }
+            }
+        } catch (IOException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            return Stream.concat(firstLines.stream(), lastLines.stream())
+                .collect(Collectors.joining(" | ")) + "|" + e.getMessage();
+        }
+        return Stream.concat(firstLines.stream(), lastLines.stream())
+            .collect(Collectors.joining(" | "));
+    }
+
+
+    int reset(Path featurePath, String branch) throws InterruptedException, IOException {
+        LOGGER.debug("git reset origin/" + branch);
+
+        ProcessBuilder processBuilder = new ProcessBuilder("git", "reset", "--hard", "origin/" + branch);
         processBuilder.directory(featurePath.toFile());
         Process process = processBuilder.start();
         process.waitFor();

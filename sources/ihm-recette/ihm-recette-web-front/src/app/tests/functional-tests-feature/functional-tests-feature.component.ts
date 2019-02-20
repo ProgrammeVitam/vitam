@@ -22,6 +22,9 @@ const breadcrumb: BreadcrumbElement[] = [
 export class FunctionalTestsFeatureComponent extends PageComponent {
 
   updateOk: boolean;
+  updateKo: boolean;
+  branch: string;
+  branches: Array<string>;
   featureText: string;
   requestResponse: String;
   synchroResponse: String;
@@ -43,14 +46,21 @@ export class FunctionalTestsFeatureComponent extends PageComponent {
       });
   };
 
-  sync() {
-    this.service.sync().subscribe(() => this.updateOk = true);
+  syncWithBranch() {
+    this.service.syncWithBranch(this.branch).subscribe(
+      () => this.updateOk = true,
+      () => this.updateKo = true
+    );
   };
 
 
   pageOnInit(): Subscription {
-    return undefined;
-  }
+    this.service.getAllBranches().subscribe(data =>  {
+      this.branches = data;
+    });
+
+    return null;
+  };
 
 
 }

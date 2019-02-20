@@ -162,6 +162,21 @@ public class ApplicativeTestResource {
     }
 
     /**
+     * list git branches
+     *
+     * @return list of git branches
+     * @throws IOException
+     */
+    @GET
+    @Path("/gitBranches")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listGitBranches() throws IOException, InterruptedException {
+        List<String> branchList = applicativeTestService.getBranches(Paths.get(testSystemSipDirectory));
+
+        return Response.ok(branchList).build();
+    }
+
+    /**
      * PDL
      * return a specific report according to his name.
      *
@@ -184,24 +199,26 @@ public class ApplicativeTestResource {
     }
 
     /**
-     * synchronize tnr directory
+     * synchronize git branch
      *
-     * @return status of the command
+     * @return Status of the command
      */
-
     @POST
-    @Path("/syncTnrPieces")
-    public Response synchronizedPiecesTestDirectory() throws IOException, InterruptedException {
-        LOGGER.debug("synchronise tnr_master");
+    @Path("/syncTnrPiecesWithBranch")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response synchronizedPiecesTestDirectoryWithBranch(String branch) throws IOException, InterruptedException {
+        LOGGER.debug("synchronise " + branch);
 
         applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
+        int resetStatus = applicativeTestService.reset(Paths.get(testSystemSipDirectory), branch);
+        int checkoutStatus = applicativeTestService.checkout(Paths.get(testSystemSipDirectory), branch);
 
-        int status = applicativeTestService.resetTnrMaster(Paths.get(testSystemSipDirectory));
+        if (resetStatus == 0 && checkoutStatus == 0) {
+            return Response.status(Response.Status.OK).entity(0).build();
+        }
 
-        applicativeTestService.checkout(Paths.get(testSystemSipDirectory), "tnr_master");
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(1).build();
 
-
-        return Response.ok().entity(status).build();
     }
 
     private Response synchronizeGit(String tnr_master) throws IOException, InterruptedException {
