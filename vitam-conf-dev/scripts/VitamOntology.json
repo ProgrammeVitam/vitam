@@ -1766,7 +1766,7 @@
     "Origin": "INTERNAL",
     "ShortName": "ActionList",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1777,7 +1777,7 @@
     "Origin": "INTERNAL",
     "ShortName": "FormatList",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1788,7 +1788,7 @@
     "Origin": "INTERNAL",
     "ShortName": "GriffinIdentifier",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1799,7 +1799,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Timeout",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1810,7 +1810,7 @@
     "Origin": "INTERNAL",
     "ShortName": "MaxSize",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1821,7 +1821,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Debug",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1832,7 +1832,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Type",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1843,7 +1843,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Extension",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
@@ -1851,10 +1851,10 @@
     "SedaField": "Args",
     "Description": "Mapping : preservationscenario-es-mapping.json",
     "Type": "TEXT",
-    "Origin": "Args",
+    "Origin": "INTERNAL",
     "ShortName": "Extension",
     "Collections": [
-      "PreservationScenarion"
+      "PreservationScenario"
     ]
   },
   {
