@@ -26,6 +26,7 @@ pipeline {
         SERVICE_GIT_URL = credentials("service-gitlab-url")
         SERVICE_PROXY_HOST = credentials("http-proxy-host")
         SERVICE_PROXY_PORT = credentials("http-proxy-port")
+        SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
     }
 
@@ -105,48 +106,30 @@ pipeline {
                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.6.0").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.0.5").withRun('-p 27017:27017') { o ->
-                                        sh '$MVN_COMMAND -f pom.xml clean verify sonar:sonar -Dsonar.branch=$GIT_BRANCH'
+                                        withEnv(["JAVA_TOOL_OPTIONS=-Dhttp.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttp.proxyPort=${env.SERVICE_PROXY_PORT} -Dhttps.proxyHost=${env.SERVICE_PROXY_HOST} -Dhttps.proxyPort=${env.SERVICE_PROXY_PORT} -Dhttp.nonProxyHosts=${env.SERVICE_NOPROXY}"]) {
+                                            sh '$MVN_COMMAND -f pom.xml clean verify org.owasp:dependency-check-maven:aggregate sonar:sonar -Dsonar.branch=$GIT_BRANCH'
+                                        }
                                     }
                         		}
                             }
                         }
-                    }   
-
+                    }
                 }
             }
             post {
                 always {
                     junit 'sources/**/target/surefire-reports/*.xml'
                 }
+                success {
+                    archiveArtifacts (
+                        artifacts: '**/dependency-check-report.html',
+                        fingerprint: true
+                    )
+                }
             }
         }
 
-        // FIXME OMA : not working but should be...
-        //         stage("Build javadoc") {
-        //             // when {
-        //             //     environment(name: 'CHANGED_VITAM', value: 'true')
-        //             // }
-        //             environment {
-        //                 DEPLOY_GOAL = readFile("deploy_goal.txt")
-        //                 VERSION = readFile("version_projet.txt").trim()
-        //             }
-        //             steps {
-        //                 script {
-        //                     dir('sources') {
-        //                         // sh 'echo Version du projet is : $VERSION'
-        //                         sh '''$MVN_COMMAND -f sources/pom.xml javadoc:aggregate-jar deploy:deploy-file -DgroupId=fr.gouv.vitam -DartifactId=parent -Dfile=./target/parent-$VERSION-javadoc.jar -Dpackaging=jar -Dclassifier=javadoc -Durl=$SERVICE_NEXUS_URL -Dversion=$VERSION'''
-        // // generated output file should be ./target/parent-0.30.0-SNAPSHOT-javadoc.jar
-        // // manque encore
-        // // -DrepositoryId=<repository-id> \
-        // // -Dversion=<version> \
-        //                     }
-        //                 }
-        //             }
-        //         }
-
         stage("Build packages") {
-            // Separated for the -T 1C option (possible here, but not while executing the tests)
-            // Caution : it force us to recompile and rebuild the jar packages, but it doesn't cost that much (KWA TODO: To be verified)
             // when {
             //     environment(name: 'CHANGED_VITAM', value: 'true')
             // }
@@ -290,7 +273,6 @@ pipeline {
                 }
             }
             steps {
-                // KWA Note : ${WORKSPACE} doesn't work correctly inside docker containers
                 sh 'mkdir -p target'
                 sh 'mkdir -p logs'
                 // KWA : Visibly, backslash escape hell. \\ => \ in groovy string.
