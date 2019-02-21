@@ -27,13 +27,56 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static java.util.Collections.singletonList;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.lucene.search.join.ScoreMode;
+import org.bson.Document;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.aggregations.AggregationBuilder;
+import org.elasticsearch.search.aggregations.AggregationBuilders;
+import org.elasticsearch.search.aggregations.Aggregations;
+import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
+import org.elasticsearch.search.aggregations.bucket.filter.Filter;
+import org.elasticsearch.search.aggregations.bucket.nested.Nested;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms.Bucket;
+import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
+import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
+import org.elasticsearch.search.aggregations.metrics.sum.Sum;
+import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
-import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
+
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
 import fr.gouv.vitam.common.database.builder.facet.FacetHelper;
@@ -101,49 +144,12 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import fr.gouv.vitam.metadata.core.utils.OriginatingAgencyBucketResult;
-import org.apache.commons.collections.CollectionUtils;
-import org.bson.Document;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
-import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.Aggregations;
-import org.elasticsearch.search.aggregations.bucket.MultiBucketsAggregation;
-import org.elasticsearch.search.aggregations.bucket.terms.Terms;
-import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-
-import javax.ws.rs.core.Response;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.OPS;
-import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.QUALIFIERS;
-import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-import static java.util.Collections.singletonList;
 
 /**
  * MetaDataImpl implements a MetaData interface
@@ -154,14 +160,7 @@ public class MetaDataImpl implements MetaData {
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
-    public static final String ORIGINATING_AGENCY = "originatingAgency";
-    private static final String OPI = "opi";
-    public static final String QUALIFIER_VERSION_OPI = "qualifierVersionOpi";
-    public static final String TOTAL_SIZE = "totalSize";
-    public static final String TOTAL_OBJECT = "totalObject";
-    private static final String LIST_GOT = "listGOT";
     private static final String RESULTS = "$results";
-    public static final String TOTAL_GOT = "totalGOT";
     public static final String SP = "sp";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
@@ -515,82 +514,72 @@ public class MetaDataImpl implements MetaData {
             .getAggregations();
     }
 
-    @Override
-    public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(
-        String operationId) {
-        AggregateIterable<Document> aggregate =
-            MetadataCollections.OBJECTGROUP.getCollection().aggregate(Arrays.asList(
-                new Document("$match", new Document(OPS, operationId)),
-                new Document("$unwind", "$" + QUALIFIERS),
-                new Document("$unwind", "$" + QUALIFIERS + ".versions"),
-                new Document("$match", new Document(QUALIFIERS + ".versions._opi", operationId)),
-                new Document("$group",
-                    new Document(ID,
-                        new Document(OPI, "$" + MetadataDocument.OPI)
-                            .append(SP, "$" + MetadataDocument.ORIGINATING_AGENCY)
-                            .append(QUALIFIER_VERSION_OPI, "$" + QUALIFIERS + ".versions._opi"))
-                        .append(TOTAL_SIZE, new Document("$sum", "$" + QUALIFIERS + ".versions.Size"))
-                        .append(TOTAL_OBJECT, new Document("$sum", 1))
-                        .append(LIST_GOT, new Document("$addToSet", "$_id"))),
-                new Document("$project",
-                    new Document(ID, 1)
-                        .append(TOTAL_SIZE, 1)
-                        .append(TOTAL_OBJECT, 1)
-                        .append(TOTAL_GOT, new Document("$size", "$listGOT")))
-                ),
-                Document.class);
+   @Override
+   public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(Integer tenant, String operationId) {
+        AggregationBuilder originatingAgencyAgg = aggregationForObjectGroupAccessionRegisterByOperationId(
+                operationId);
 
+        QueryBuilder query = queryForObjectGroupAccessionRegisterByOperationId(tenant, operationId);
 
-        List<Document> documents = Lists.newArrayList(aggregate.iterator());
+        Aggregations result = OBJECTGROUP.getEsClient()
+                .basicSearch(OBJECTGROUP, tenant, Collections.singletonList(originatingAgencyAgg), query).getAggregations();
 
-        // For each originating agencies, compute total
-        // In case of ingest, we will have only one originating agency.
-        // We group by _opi to prevent compute object group multiple time (in case where we add object to existing GOT)
-        Map<String, ObjectGroupPerOriginatingAgency> totalByOriginatingAgencies = new HashMap<>();
+        List<ObjectGroupPerOriginatingAgency> listOgsPerSps = new ArrayList<ObjectGroupPerOriginatingAgency>();
+        Terms originatingAgencyResult = result.get("originatingAgency");
+        for (Bucket originatingAgencyBucket : originatingAgencyResult.getBuckets()) {
+            String sp = originatingAgencyBucket.getKeyAsString();
+            ObjectGroupPerOriginatingAgency ogPerSp = new ObjectGroupPerOriginatingAgency(operationId, sp, 0l, 0l, 0l);
+            Terms operationResult = originatingAgencyBucket.getAggregations().get("operation");
+            for (Bucket operationBucket : operationResult.getBuckets()) {
+                String opi = operationBucket.getKeyAsString();
+                Nested versionResult = operationBucket.getAggregations().get("version");
+                Filter versionOperationResult = versionResult.getAggregations().get("versionOperation");
+                Cardinality gotCountResult = versionOperationResult.getAggregations().get("gotCount");
+                Sum binaryObjectSizeResult = versionOperationResult.getAggregations().get("binaryObjectSize");
+                ValueCount binaryObjectCountResult = versionOperationResult.getAggregations().get("binaryObjectCount");
 
-        for (Document doc : documents) {
-
-            Document id = doc.get(ID, Document.class);
-            String opi = id.getString(MetaDataImpl.OPI);
-            String _sp = id.getString(MetaDataImpl.SP);
-            String qualifierVersionOpi = id.getString(MetaDataImpl.QUALIFIER_VERSION_OPI);
-
-            // Count only object but not GOTs
-            if (!opi.equals(qualifierVersionOpi)) {
-                doc.put(MetaDataImpl.TOTAL_GOT, 0l);
+                long gotCount = gotCountResult.getValue();
+                long binaryObjectSize = (long) binaryObjectSizeResult.getValue();
+                long binaryObjectCount = binaryObjectCountResult.getValue();
+                if (opi.equals(operationId)) {
+                    ogPerSp.setNumberOfGOT(ogPerSp.getNumberOfGOT() + gotCount);
+                }
+                ogPerSp.setSize(ogPerSp.getSize() + binaryObjectSize);
+                ogPerSp.setNumberOfObject(ogPerSp.getNumberOfObject() + binaryObjectCount);
             }
-
-            Number totalGOT = doc.get(MetaDataImpl.TOTAL_GOT, Number.class);
-            Number totalObject = doc.get(MetaDataImpl.TOTAL_OBJECT, Number.class);
-            Number totalSize = doc.get(MetaDataImpl.TOTAL_SIZE, Number.class);
-
-            ObjectGroupPerOriginatingAgency _sp_total_doc = totalByOriginatingAgencies.get(_sp);
-            if (null == _sp_total_doc) {
-
-                ObjectGroupPerOriginatingAgency objectGroupPerOriginatingAgency = new ObjectGroupPerOriginatingAgency();
-
-                objectGroupPerOriginatingAgency.setOperation(qualifierVersionOpi);
-                objectGroupPerOriginatingAgency.setAgency(_sp);
-
-                objectGroupPerOriginatingAgency.setNumberOfGOT(totalGOT.longValue());
-
-                objectGroupPerOriginatingAgency.setNumberOfObject(totalObject.longValue());
-
-                objectGroupPerOriginatingAgency.setSize(totalSize.longValue());
-
-                totalByOriginatingAgencies.put(_sp, objectGroupPerOriginatingAgency);
-            } else {
-                // After un-count GOT where opi != qualifierVersionOpi
-                // Sum all ObjectGroupPerOriginatingAgency of the same agency
-                _sp_total_doc.setNumberOfGOT(totalGOT.longValue() + _sp_total_doc.getNumberOfGOT());
-                _sp_total_doc.setNumberOfObject(totalObject.longValue() + _sp_total_doc.getNumberOfObject());
-                _sp_total_doc.setSize(totalSize.longValue() + _sp_total_doc.getSize());
-            }
+            listOgsPerSps.add(ogPerSp);
         }
 
-        return new ArrayList<>(totalByOriginatingAgencies.values());
+        return listOgsPerSps;
     }
 
+    private QueryBuilder queryForObjectGroupAccessionRegisterByOperationId(Integer tenant, String operationId) {
+        QueryBuilder tenantQuery = QueryBuilders.termQuery("_tenant", tenant);
+        QueryBuilder operationQuery = QueryBuilders.matchQuery("_ops", operationId);
+        QueryBuilder nestedOperationQuery = QueryBuilders.nestedQuery("_qualifiers.versions",
+                QueryBuilders.matchQuery("_qualifiers.versions._opi", operationId), ScoreMode.Avg);
+        return QueryBuilders.boolQuery().must(tenantQuery).must(operationQuery).must(nestedOperationQuery);
+    }
+
+    private AggregationBuilder aggregationForObjectGroupAccessionRegisterByOperationId(String operationId) {
+        AggregationBuilder gotCountAgg = AggregationBuilders.cardinality("gotCount")
+                .field("_qualifiers.versions.DataObjectGroupId");
+        AggregationBuilder binaryObjectSizeAgg = AggregationBuilders.sum("binaryObjectSize")
+                .field("_qualifiers.versions.Size");
+        AggregationBuilder binaryObjectCountAgg = AggregationBuilders.count("binaryObjectCount")
+                .field("_qualifiers.versions._id");
+        AggregationBuilder versionOperationAgg = AggregationBuilders
+                .filter("versionOperation", QueryBuilders.matchQuery("_qualifiers.versions._opi", operationId))
+                .subAggregation(binaryObjectCountAgg).subAggregation(binaryObjectSizeAgg).subAggregation(gotCountAgg);
+        AggregationBuilder versionAgg = AggregationBuilders.nested("version", "_qualifiers.versions")
+                .subAggregation(versionOperationAgg);
+        AggregationBuilder operationAgg = AggregationBuilders.terms("operation").field("_opi")
+                .subAggregation(versionAgg);
+        AggregationBuilder originatingAgencyAgg = AggregationBuilders.terms("originatingAgency").field("_sp")
+                .subAggregation(operationAgg);
+        return originatingAgencyAgg;
+    }
+    
     @Override
     public RequestResponse<JsonNode> selectUnitsByQuery(JsonNode selectQuery)
         throws MetaDataExecutionException, InvalidParseOperationException,

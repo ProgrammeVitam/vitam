@@ -1033,8 +1033,9 @@ public class MetadataResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @GET
     public Response selectAccessionRegisterOnObjectGroupByOperationId(@PathParam("operationId") String operationId) {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         List<ObjectGroupPerOriginatingAgency> documents =
-            metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(operationId);
+            metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(tenantId, operationId);
 
         RequestResponseOK<ObjectGroupPerOriginatingAgency> responseOK = new RequestResponseOK<>();
         responseOK.setHttpCode(Status.OK.getStatusCode());

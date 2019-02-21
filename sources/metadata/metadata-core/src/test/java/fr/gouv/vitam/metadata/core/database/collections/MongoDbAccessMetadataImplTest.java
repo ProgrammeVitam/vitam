@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -282,42 +283,81 @@ public class MongoDbAccessMetadataImplTest {
 
     }
 
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_aggregate_object_group_per_operation_id_and_originating_agency_scenario() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
+
+        // Given
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
+        initGotsForAccessionRegisterTest("/got_1_sp1.json", "/got_2_sp1.json", "/got_3_sp2.json",
+                "/got_4_sp1_sp2.json");
+
+        // When
+        final String operationId1 = "opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        List<ObjectGroupPerOriginatingAgency> documents1 =
+                metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(0, operationId1);
+        final String operationId4 = "opi4aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        List<ObjectGroupPerOriginatingAgency> documents4 = metaData
+                .selectOwnAccessionRegisterOnObjectGroupByOperationId(0, operationId4);
+        final String operationId5 = "opi5aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+        List<ObjectGroupPerOriginatingAgency> documents5 = metaData
+                .selectOwnAccessionRegisterOnObjectGroupByOperationId(0, operationId5);
+        // Then
+        assertThat(documents1).extracting("operation", "agency", "numberOfObject", "numberOfGOT", "size")
+                .contains(tuple("opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sp1", 3L, 2l, 200l));
+        assertThat(documents4).extracting("operation", "agency", "numberOfObject", "numberOfGOT", "size").contains(
+                tuple("opi4aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sp1", 2L, 0l, 200l),
+                tuple("opi4aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sp2", 1L, 0l, 100l));
+        assertThat(documents5).isEmpty();
+    }
+    
     @Test
     @RunWithCustomExecutor
     public void should_aggregate_object_group_per_operation_id_and_originating_agency() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        mongoDbAccess =
-            new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName(), false,
-                esClient, tenantList);
+        mongoDbAccess = new MongoDbAccessMetadataImpl(mongoRule.getMongoClient(),
+                mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
 
         // Given
-        final MongoCollection objectGroup = MetadataCollections.OBJECTGROUP.getCollection();
-
         final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
-
         final String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
-        objectGroup.insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp1_1.json"))));
-        objectGroup.insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp1_sp2_2.json"))));
-        objectGroup.insertOne(
-            new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp2.json"))));
-        objectGroup.insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp2_4.json"))));
-        objectGroup.insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_other_operation_id.json"))));
+        initGotsForAccessionRegisterTest("/object_sp1_1.json", "/object_sp1_sp2_2.json", "/object_sp2.json", "/object_sp2_4.json", "/object_other_operation_id.json"); 
+        
         // When
-        List<ObjectGroupPerOriginatingAgency> documents =
-            metaData.selectOwnAccessionRegisterOnObjectGroupByOperationId(operationId);
+        List<ObjectGroupPerOriginatingAgency> documents = metaData
+                .selectOwnAccessionRegisterOnObjectGroupByOperationId(0, operationId);
 
         // Then
+        assertThat(documents).extracting("operation", "agency", "numberOfObject", "numberOfGOT", "size").contains(
+                tuple("aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq", "sp1", 3L, 1l, 200l),
+                tuple("aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq", "sp2", 7l, 3l, 480l));
+    }
 
-        assertThat(documents).extracting("operation", "agency", "numberOfObject", "numberOfGOT",
-            "size")
-            .contains(tuple("aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq", "sp1", 3L, 1l, 200l),
-                tuple("aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq", "sp2", 6l, 3l, 380l));
+    private void initGotsForAccessionRegisterTest(String... files) throws InvalidParseOperationException, DatabaseException {
+        List<Document> objectGroups = Arrays.asList(files).stream()
+                .map(file -> {
+                    try {
+                        return (Document) (new ObjectGroup(
+                                JsonHandler.getFromInputStream(getClass().getResourceAsStream(file))));
+                    } catch (InvalidParseOperationException e) {
+                        throw new RuntimeException(e);
+                    }
+                })
+                .collect(Collectors.toList());
+        
+        VitamRepositoryFactory factory = VitamRepositoryFactory.get();
+        VitamMongoRepository mongo = factory.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+        mongo.save(objectGroups);
 
+        VitamElasticsearchRepository es =
+            VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+        es.save(objectGroups);
     }
 
     @Test

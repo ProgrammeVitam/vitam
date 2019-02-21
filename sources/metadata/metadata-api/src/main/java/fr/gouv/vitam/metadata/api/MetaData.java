@@ -73,9 +73,10 @@ public interface MetaData {
      * Select an Accession Register linked to an Operation
      *
      * @param operationId the operation identifier
+     * @param tenantId the tenant identifier
      * @return the list of documents
      */
-    List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(String operationId);
+    List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(Integer tenantId, String operationId);
 
 
     /**

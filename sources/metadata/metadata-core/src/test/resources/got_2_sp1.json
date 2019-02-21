@@ -1,0 +1,56 @@
+{
+  "_id": "got2sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "_tenant": 0,
+  "_profil": "",
+  "_qualifiers": [
+    {
+      "qualifier": "BinaryMaster",
+      "_nbc": 1,
+      "versions": [
+        {
+          "_id": "got2sp1bm1aaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "DataObjectGroupId": "got2sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "DataObjectVersion": "BinaryMaster_1",
+          "Size": 100,
+          "_opi":"opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        },
+        {
+          "_id": "got2sp1bm2aaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "DataObjectGroupId": "got2sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "DataObjectVersion": "BinaryMaster_2",
+          "Size": 100,
+          "_opi":"opi4aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }
+      ]
+    }
+  ],
+  "_up": [
+    "au1sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "_nbc": 0,
+  "_opi":"opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "_ops": [
+    "opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "opi4aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  ],
+  "_sp": "sp1",
+  "_sps": [
+    "sp1"
+  ]
+}

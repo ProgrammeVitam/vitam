@@ -1,5 +1,5 @@
 {
-  "_id": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
+  "_id": "aebaaaaaaagbcaacaajo4ak4tr257laaaaaq",
   "_tenant": 0,
   "_profil": "",
   "_qualifiers": [
@@ -9,7 +9,7 @@
       "versions": [
         {
           "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7qyaaaaq",
-          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
+          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr257laaaaaq",
           "DataObjectVersion": "PhysicalMaster_1",
           "PhysicalId": 123456789,
           "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
@@ -29,7 +29,7 @@
       "versions": [
         {
           "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kyaaaaq",
-          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
+          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr257laaaaaq",
           "DataObjectVersion": "BinaryMaster_1",
           "Size": 100,
           "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
@@ -42,12 +42,26 @@
             "strategyId": "default"
           }
         }, {
-          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kyaaaaq",
-          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2o7laaaaaq",
-          "DataObjectVersion": "BinaryMaster_1",
+          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kybaaaq",
+          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr257laaaaaq",
+          "DataObjectVersion": "BinaryMaster_2",
           "Size": 100,
           "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
-          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE2.pdf",
+          "_storage": {
+            "_nbc": 1,
+            "offerIds": [
+              "localhost"
+            ],
+            "strategyId": "default"
+          }
+        }, {
+          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kyb1111",
+          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr257laaaaaq",
+          "DataObjectVersion": "BinaryMaster_3",
+          "Size": 100,
+          "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaapre",
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE3.pdf",
           "_storage": {
             "_nbc": 1,
             "offerIds": [
