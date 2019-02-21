@@ -875,7 +875,8 @@
     "ShortName": "Type",
     "Collections": [
       "Unit",
-      "Ontology"
+      "Ontology",
+      "PreservationScenario"
     ]
   },
   {
@@ -1823,29 +1824,7 @@
     "Collections": [
       "PreservationScenario"
     ]
-  },
-  {
-    "Identifier": "Type",
-    "SedaField": "Type",
-    "Description": "Mapping : preservationscenario-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Type",
-    "Collections": [
-      "PreservationScenario"
-    ]
-  },
-  {
-    "Identifier": "Extension",
-    "SedaField": "Extension",
-    "Description": "Mapping : preservationscenario-es-mapping.json",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Extension",
-    "Collections": [
-      "PreservationScenario"
-    ]
-  },
+  },  
   {
     "Identifier": "Args",
     "SedaField": "Args",
@@ -2068,7 +2047,8 @@
     "Origin": "INTERNAL",
     "ShortName": "Extension(s)",
     "Collections": [
-      "FileFormat"
+      "FileFormat",
+      "PreservationScenario"
     ]
   },
   {
