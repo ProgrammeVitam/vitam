@@ -535,7 +535,17 @@
                     <!-- Security check for dependencies -->
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>1.4.0</version>
+                    <version>4.0.2</version>
+		            <configuration>
+                        <failBuildOnCVSS>8</failBuildOnCVSS>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>check</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
 
                 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
@@ -550,7 +560,25 @@
                 <plugin>
                     <!-- Dependency manipulation (copy, unpack) and analysis. -->
                     <artifactId>maven-dependency-plugin</artifactId>
-				    <version>3.1.1</version>
+                    <version>3.1.1</version>
+ 		            <executions>
+                        <execution>
+                            <id>analyze</id>
+                            <goals>
+                                <goal>analyze-only</goal>
+                            </goals>
+                            <configuration>
+                                <failOnWarning>false</failOnWarning>
+                                <ignoreNonCompile>false</ignoreNonCompile>
+                                <ignoredUnusedDeclaredDependencies>
+                                    <ignoredUsedUndeclaredDependency>org.slf4j:jcl-over-slf4j</ignoredUsedUndeclaredDependency>
+                                    <ignoredUsedUndeclaredDependency>org.slf4j:slf4j-log4j12</ignoredUsedUndeclaredDependency>
+                                    <ignoredUnusedDeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUnusedDeclaredDependency>
+                                    <!-- if any others... -->
+                                </ignoredUnusedDeclaredDependencies>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <!-- Environmental constraint checking (Maven Version, JDK etc), User
@@ -855,14 +883,14 @@
                 </exclusions>
             </dependency>
             <dependency>
-                <groupId>javax.ws.rs</groupId>
-                <artifactId>javax.ws.rs-api</artifactId>
-                <version>${javax.ws.rs.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>org.apache.jclouds.api</groupId>
                 <artifactId>openstack-swift</artifactId>
                 <version>${jclouds-ceph.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.ws.rs</groupId>
+                <artifactId>javax.ws.rs-api</artifactId>
+                <version>${javax.ws.rs.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.pacesys</groupId>
@@ -880,7 +908,6 @@
                 <artifactId>openstack4j-httpclient</artifactId>
                 <version>${openstack4j.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>com.amazonaws</groupId>
                 <artifactId>aws-java-sdk-s3</artifactId>
@@ -1123,6 +1150,7 @@
                 <artifactId>jackson-dataformat-smile</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-compress</artifactId>
