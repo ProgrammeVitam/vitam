@@ -24,7 +24,7 @@ export class ImportComponent  extends PageComponent {
     {label:"Règles de gestion", value:'rule'},
     {label:"Documents type", value:'archiveUnitProfile'},
     {label:"Ontologies", value:'ontology'},
-    {label:"Scenario de préservation", value:'scenarios'},
+    {label:"Scénarios de préservation", value:'scenarios'},
     {label:"Griffons", value:'griffins'},
     {label:"Services agents", value:'agencies'}
   ];
@@ -119,9 +119,9 @@ export class ImportComponent  extends PageComponent {
         case "scenarios":
           this.extensions = ["json"];
           this.uploadAPI = 'scenarios';
-          this.importSucessMsg = 'Les scénarios de preservation ont bien été importés';
+          this.importSucessMsg = 'Les scénarios de préservation ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import des scénarios de preservation ";
+          this.breadcrumbName = "Import des scénarios de préservation ";
           break;
         default:
           this.router.navigate(['ingest/sip']);
