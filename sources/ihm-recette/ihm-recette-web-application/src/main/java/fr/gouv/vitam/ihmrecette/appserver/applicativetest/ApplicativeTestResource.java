@@ -171,6 +171,7 @@ public class ApplicativeTestResource {
     @Path("/gitBranches")
     @Produces(MediaType.APPLICATION_JSON)
     public Response listGitBranches() throws IOException, InterruptedException {
+        applicativeTestService.fetch(Paths.get(testSystemSipDirectory));
         List<String> branchList = applicativeTestService.getBranches(Paths.get(testSystemSipDirectory));
 
         return Response.ok(branchList).build();
