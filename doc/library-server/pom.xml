@@ -20,9 +20,10 @@
     <build>
         <plugins>
             <plugin>
-                <!-- Dependency manipulation (copy, unpack) and analysis. -->
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
+                    <!-- Dependency manipulation (copy, unpack) and analysis. -->
                     <execution>
                         <id>copy-dependencies</id>
                         <phase>package</phase>
@@ -36,12 +37,6 @@
                             <overWriteIfNewer>true</overWriteIfNewer>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
                     <execution>
                         <id>unpack-technical-doc</id>
                         <phase>validate</phase>
@@ -78,6 +73,24 @@
                             <resources>
                                 <resource>
                                     <directory>${basedir}/src/main/conf</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <!-- Debian -->
+                    <execution>
+                        <id>copy-debian-controlFiles</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/control</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/deb/control</directory>
                                     <filtering>true</filtering>
                                 </resource>
                             </resources>
@@ -173,28 +186,6 @@
                     </mappings>
 
                 </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>copy-debian-controlFiles</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}/control</outputDirectory>
-                            <overwrite>true</overwrite>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/src/deb/control</directory>
-                                    <filtering>true</filtering>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <artifactId>jdeb</artifactId>

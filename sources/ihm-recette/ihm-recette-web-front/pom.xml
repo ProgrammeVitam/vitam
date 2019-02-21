@@ -105,7 +105,7 @@
                     <descriptors>
                         <descriptor>zip-conf.xml</descriptor>
                     </descriptors>
-                    <finalName>${ihm-recette.name}-${pom.version}</finalName>
+                    <finalName>${ihm-recette.name}-${project.version}</finalName>
                     <tarLongFileMode>posix</tarLongFileMode>
                 </configuration>
                 <executions>
@@ -132,7 +132,7 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>target/${ihm-recette.name}-${pom.version}-bundle.zip</file>
+                                    <file>target/${ihm-recette.name}-${project.version}-bundle.zip</file>
                                     <type>zip</type>
                                 </artifact>
                             </artifacts>
