@@ -13,3 +13,9 @@ jettyConfig: jetty-config.xml
 authentication: true
 enableXsrFilter: true
 enableSession: true
+
+allowedMediaTypes:
+{% for mediaType in vitam_struct.allowedMediaTypes %}
+    - type: {{ mediaType.type }}
+      subtype: {{ mediaType.subtype }}
+{% endfor %}
