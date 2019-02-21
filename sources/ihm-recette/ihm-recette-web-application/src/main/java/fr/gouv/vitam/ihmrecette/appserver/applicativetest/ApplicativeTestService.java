@@ -210,14 +210,14 @@ public class ApplicativeTestService {
     List<String> getBranches(Path featurePath) throws IOException, InterruptedException {
         LOGGER.debug("git get branches");
 
-        ProcessBuilder pb = new ProcessBuilder("git", "for-each-ref", "--sort=-committerdate", "refs/heads/", "--format='%(refname:short)'");
+        ProcessBuilder pb = new ProcessBuilder("git", "for-each-ref", "--sort=-committerdate", "refs/remotes/", "--format='%(refname:short)'");
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
         String stdout = stdToString(p.getInputStream());
         LOGGER.debug("process output " + stdout);
 
-        return Arrays.asList(stdout.replaceAll("'","").split(" \\| "));
+        return Arrays.asList(stdout.replaceAll("'","").replaceAll("[[a-zA-Z0-9]_]+/","").split(" \\| "));
     }
 
     private static String stdToString(InputStream std) {
