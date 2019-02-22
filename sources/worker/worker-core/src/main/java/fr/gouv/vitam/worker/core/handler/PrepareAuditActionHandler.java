@@ -26,10 +26,19 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -60,15 +69,12 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * PrepareAuditActionHandler
@@ -111,61 +117,59 @@ public class PrepareAuditActionHandler extends ActionHandler {
         throws ProcessingException, ContentAddressableStorageServerException {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
-        ArrayNode ogIdList = JsonHandler.createArrayNode();
         List<String> originatingAgency;
         ArrayNode originatingAgencyEmpty = JsonHandler.createArrayNode();
+        long ogTotalNumber = 0;
 
         try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient();
             MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
 
-            SelectMultiQuery selectQuery = new SelectMultiQuery();
-            Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
-            String auditType = mapParameters.get(WorkerParameterName.auditType);
-            if (auditType.toLowerCase().equals("tenant")) {
-                originatingAgency = listOriginatingAgency(originatingAgencyEmpty, null);
-                String[] arrayOriginatingAgency = new String[originatingAgency.size()];
-                originatingAgency.toArray(arrayOriginatingAgency);
-                selectQuery.setQuery(QueryHelper.in(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken(),
-                    arrayOriginatingAgency));
-            } else if (auditType.toLowerCase().equals("originatingagency")) {
-                auditType = BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken();
-                String objectId = mapParameters.get(WorkerParameterName.objectId);
-                listOriginatingAgency(originatingAgencyEmpty, objectId);
-                selectQuery.setQuery(QueryHelper.eq(auditType, objectId));
-            }
-            final int scrollSize = GlobalDatas.LIMIT_LOAD;
-            selectQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
-            selectQuery.setScrollFilter(
-                GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD,
-                GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT,
-                scrollSize);
-            JsonNode searchResults = metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
-            JsonNode hitsNode = searchResults.get(HITS);
-            if (hitsNode != null) {
-                JsonNode total = hitsNode.get("total");
-                if (total != null) {
-                    long ogTotalNumber = total.asLong();
-                    int offset = scrollSize;
-                    JsonNode scrollNode = hitsNode.get("scrollId");
-                    if (scrollNode != null) {
-                        final String scrollId = scrollNode.asText();
-                        addToOgIdList(ogIdList, searchResults);
-                        while (offset < ogTotalNumber) {
-                            selectQuery.setScrollFilter(
-                                scrollId,
-                                GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT,
-                                GlobalDatas.LIMIT_LOAD);
-                            final JsonNode nextSearchResults =
-                                metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
-                            addToOgIdList(ogIdList, nextSearchResults);
-                            offset += scrollSize;
+            File ogIdsToAuditFile = handler.getNewLocalFile(AuditWorkflowConstants.AUDIT_FILE);
+            try (OutputStream ogIdsToAuditStream = new FileOutputStream(ogIdsToAuditFile);
+                    JsonLineWriter ogIdsToAuditWriter = new JsonLineWriter(ogIdsToAuditStream);) {
+                
+                SelectMultiQuery selectQuery = new SelectMultiQuery();
+                Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
+                String auditType = mapParameters.get(WorkerParameterName.auditType);
+                if (auditType.toLowerCase().equals("tenant")) {
+                    originatingAgency = listOriginatingAgency(originatingAgencyEmpty, null);
+                    String[] arrayOriginatingAgency = new String[originatingAgency.size()];
+                    originatingAgency.toArray(arrayOriginatingAgency);
+                    selectQuery.setQuery(QueryHelper.in(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken(),
+                            arrayOriginatingAgency));
+                } else if (auditType.toLowerCase().equals("originatingagency")) {
+                    auditType = BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken();
+                    String objectId = mapParameters.get(WorkerParameterName.objectId);
+                    listOriginatingAgency(originatingAgencyEmpty, objectId);
+                    selectQuery.setQuery(QueryHelper.eq(auditType, objectId));
+                }
+                final int scrollSize = GlobalDatas.LIMIT_LOAD;
+                selectQuery.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
+                selectQuery.setScrollFilter(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT,
+                        scrollSize);
+                JsonNode searchResults = metadataClient.selectObjectGroups(selectQuery.getFinalSelect());
+                JsonNode hitsNode = searchResults.get(HITS);
+                if (hitsNode != null) {
+                    JsonNode total = hitsNode.get("total");
+                    if (total != null) {
+                        ogTotalNumber = total.asLong();
+                        int offset = scrollSize;
+                        JsonNode scrollNode = hitsNode.get("scrollId");
+                        if (scrollNode != null) {
+                            final String scrollId = scrollNode.asText();
+                            addToOgIdList(ogIdsToAuditWriter, searchResults);
+                            while (offset < ogTotalNumber) {
+                                selectQuery.setScrollFilter(scrollId, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT,
+                                        GlobalDatas.LIMIT_LOAD);
+                                final JsonNode nextSearchResults = metadataClient
+                                        .selectObjectGroups(selectQuery.getFinalSelect());
+                                addToOgIdList(ogIdsToAuditWriter, nextSearchResults);
+                                offset += scrollSize;
+                            }
                         }
                     }
                 }
             }
-
-            File file = handler.getNewLocalFile(AuditWorkflowConstants.AUDIT_FILE);
-            JsonHandler.writeAsFile(ogIdList, file);
 
             // Idempotency - we check if the folder exist
             if (workspaceClient.isExistingContainer(param.getContainerName())) {
@@ -178,8 +182,8 @@ public class PrepareAuditActionHandler extends ActionHandler {
             }
 
             workspaceClient.createContainer(param.getContainerName());
-            handler.transferFileToWorkspace(AuditWorkflowConstants.AUDIT_FILE, file, true, asyncIO);
-            if (ogIdList.size() == 0 || originatingAgencyEmpty.size() > 0) {
+            handler.transferFileToWorkspace(AuditWorkflowConstants.AUDIT_FILE, ogIdsToAuditFile, true, asyncIO);
+            if (ogTotalNumber == 0 || originatingAgencyEmpty.size() > 0) {
                 itemStatus.increment(StatusCode.WARNING);
                 ObjectNode errorNode = JsonHandler.createObjectNode();
                 errorNode.set("Service producteur vide", originatingAgencyEmpty);
@@ -187,6 +191,9 @@ public class PrepareAuditActionHandler extends ActionHandler {
             } else {
                 itemStatus.increment(StatusCode.OK);
             }
+        } catch (IOException e) {
+            LOGGER.error("Could not generate object group distribution", e);
+            itemStatus.increment(StatusCode.FATAL);
         } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataException e) {
             LOGGER.error("Metadata errors : ", e);
             itemStatus.increment(StatusCode.FATAL);
@@ -201,11 +208,12 @@ public class PrepareAuditActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private void addToOgIdList(ArrayNode ogIdList, JsonNode searchResults) {
+    private void addToOgIdList(JsonLineWriter ogIdsToAuditWriter, JsonNode searchResults) throws IOException {
         if (searchResults.get(RESULTS) != null) {
             ArrayNode ogList = (ArrayNode) searchResults.get(RESULTS);
             for (JsonNode og : ogList) {
-                ogIdList.add(og.get(ID).asText());
+                JsonLineModel entry = new JsonLineModel(og.get(ID).asText(), null, null);
+                ogIdsToAuditWriter.addEntry(entry);
             }
         }
     }
