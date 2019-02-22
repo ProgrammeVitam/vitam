@@ -26,10 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
-import fr.gouv.vitam.storage.offers.tape.cmd.TarCommand;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
@@ -42,38 +43,51 @@ public class TarTapeLibraryService implements TapeReadWriteService {
     public static final String CVF = "-cvf";
     public static final String XVF = "-xvf";
     public static final String TVF = "-tvf";
+    public static final String C = "-C";
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
     private final Lock canReadWrite;
 
     public TarTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor) {
+        ParametersChecker.checkParameter("Params are required", tapeDriveConf, processExecutor);
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
         this.canReadWrite = tapeDriveConf.getLock();
     }
 
     @Override
-    public CommandResponse writeToTape(long timeoutInMillisecondes, String inputPath) {
-        ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
+    public CommandResponse writeToTape(long timeoutInMillisecondes, String workingDir, String filePath) {
+        ParametersChecker.checkParameter("Arguments device and inputPath is required", tapeDriveConf.getDevice(), filePath);
 
-        List<String> args = Lists.newArrayList(CVF, tapeDriveConf.getDevice(), inputPath);
+        List<String> args = Lists.newArrayList(CVF, tapeDriveConf.getDevice(), workingDir + filePath);
         Output output = getExecutor().execute(tapeDriveConf.getTarPath(), timeoutInMillisecondes, args);
 
-        return parse(output, CommandResponse.class);
+        return parseCommonResponse(output);
     }
 
     @Override
-    public CommandResponse readFromTape(long timeoutInMillisecondes, String outputPath) {
-        ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
+    public CommandResponse readFromTape(long timeoutInMillisecondes, String workingDir, String filetoExtract) {
+        ParametersChecker.checkParameter("Arguments outputPath is required", filetoExtract);
 
-        List<String> args = Lists.newArrayList(XVF, tapeDriveConf.getDevice(), outputPath);
+        List<String> args = Lists.newArrayList(C, workingDir, XVF, tapeDriveConf.getDevice(), filetoExtract);
         Output output = getExecutor().execute(tapeDriveConf.getTarPath(), timeoutInMillisecondes, args);
+        return parseCommonResponse(output);
+    }
 
-        return parse(output, CommandResponse.class);
+    private CommandResponse parseCommonResponse(Output output) {
+        CommandResponse response = new CommandResponse();
+        response.setOutput(output);
+        if (output.getExitCode() == 0) {
+            response.setStatus(StatusCode.OK);
+        } else {
+            response.setStatus(StatusCode.KO);
+        }
+
+        return response;
     }
 
     @Override
-    public CommandResponse list(long timeoutInMillisecondes) {
+    public CommandResponse listFromTape(long timeoutInMillisecondes) {
         List<String> args = Lists.newArrayList(TVF, tapeDriveConf.getDevice());
         Output output = getExecutor().execute(tapeDriveConf.getTarPath(), timeoutInMillisecondes, args);
 
@@ -97,6 +111,7 @@ public class TarTapeLibraryService implements TapeReadWriteService {
 
     @Override
     public <T> T parse(Output output, Class<T> clazz) {
+
         return null;
     }
 }

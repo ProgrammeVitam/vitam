@@ -29,14 +29,11 @@ package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
-import fr.gouv.vitam.storage.offers.tape.cmd.DdCommand;
-import fr.gouv.vitam.storage.offers.tape.cmd.MtCommand;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 
-import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -54,27 +51,27 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     }
 
     @Override
-    public CommandResponse writeToTape(long timeoutInMillisecondes, String inputPath) {
+    public CommandResponse writeToTape(long timeoutInMillisecondes, String workingDir, String inputPath) {
         ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
 
-        List<String> args = Lists.newArrayList(IF + inputPath, OF + tapeDriveConf.getDevice());
+        List<String> args = Lists.newArrayList(IF + workingDir + inputPath, OF + tapeDriveConf.getDevice());
         Output output = getExecutor().execute(tapeDriveConf.getDdPath(), timeoutInMillisecondes, args);
 
         return parse(output, CommandResponse.class);
     }
 
     @Override
-    public CommandResponse readFromTape(long timeoutInMillisecondes, String outputPath) {
+    public CommandResponse readFromTape(long timeoutInMillisecondes, String workingDir, String outputPath) {
         ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
 
-        List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(), OF + outputPath);
+        List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(), OF + workingDir + outputPath);
         Output output = getExecutor().execute(tapeDriveConf.getDdPath(), timeoutInMillisecondes, args);
 
         return parse(output, CommandResponse.class);
     }
 
     @Override
-    public CommandResponse list(long timeoutInMillisecondes) {
+    public CommandResponse listFromTape(long timeoutInMillisecondes) {
         throw new IllegalStateException("Not implemented for dd command");
     }
 
