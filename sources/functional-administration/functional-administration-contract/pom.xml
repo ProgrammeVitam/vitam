@@ -45,6 +45,11 @@
             <artifactId>assertj-core</artifactId>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>functional-administration-format-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

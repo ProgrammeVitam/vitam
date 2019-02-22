@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
@@ -630,14 +631,106 @@ public class WebApplicationResourceDeleteTest {
         throws ReferentialException, SchemaValidationException {
         final GUID guid = GUIDFactory.newGUID();
         ObjectNode data1 = JsonHandler.createObjectNode().put("_id", guid.getId());
-        if (collection.equals(FunctionalAdminCollections.ONTOLOGY)) {
-            data1.put("CreationDate", "2008-10-10");
-            data1.put("Identifier", "Identifier");
-            data1.put("LastUpdate", "2008-10-10");
-            data1.put("Origin", "EXTERNAL");
-            data1.put("Type", "TEXT");
+
+        if(!collection.equals(FunctionalAdminCollections.CONTEXT) &&
+            !collection.equals(FunctionalAdminCollections.SECURITY_PROFILE)) {
             data1.put("_tenant", 1);
-            data1.put("_v", "0");
+        }
+        data1.put("_v", "0");
+        switch (collection){
+            case ONTOLOGY:
+                data1.put("CreationDate", "2008-10-10");
+                data1.put("Identifier", "Identifier");
+                data1.put("LastUpdate", "2008-10-10");
+                data1.put("Origin", "EXTERNAL");
+                data1.put("Type", "TEXT");
+                break;
+            case AGENCIES:
+                data1.put("Name", "aName");
+                data1.put("Identifier", "Identifier");
+                break;
+            case PROFILE:
+                data1.put("Name", "aName");
+                data1.put("Identifier", "Identifier");
+                data1.put("Status", "ACTIVE");
+                data1.put("Format", "RNG");
+                data1.put("CreationDate", "2019-02-13");
+                data1.put("LastUpdate", "2019-02-13");
+                break;
+            case ACCESS_CONTRACT:
+                data1.put("Name", "aName");
+                data1.put("Identifier", "Identifier");
+                data1.put("Status", "ACTIVE");
+                data1.put("CreationDate", "2019-02-13");
+                data1.put("LastUpdate", "2019-02-13");
+                data1.put("EveryDataObjectVersion", false);
+                data1.put("EveryOriginatingAgency", true);
+                data1.put("WritingPermission", true);
+                data1.put("AccessLog", "INACTIVE");
+                break;
+            case INGEST_CONTRACT:
+                data1.put("Name", "aName");
+                data1.put("Identifier", "Identifier");
+                data1.put("Status", "ACTIVE");
+                data1.put("CreationDate", "2019-02-13");
+                data1.put("LastUpdate", "2019-02-13");
+                data1.put("EveryDataObjectVersion", false);
+                data1.put("EveryFormatType", true);
+                data1.put("FormatUnidentifiedAuthorized", true);
+                data1.put("MasterMandatory", true);
+                break;
+            case RULES:
+                data1.put("RuleId", "APP-00001");
+                data1.put("RuleType", "AppraisalRule");
+                data1.put("RuleValue", "Dossier individuel d’agent civil");
+                data1.put("RuleDuration", "80");
+                data1.put("RuleMeasurement", "Year");
+                data1.put("CreationDate", "2019-02-10");
+                data1.put("UpdateDate", "2019-02-14");
+                break;
+            case CONTEXT:
+                data1.put(CONTEXT_NAME, "aName");
+                data1.put("Identifier", "Identifier");
+                data1.put("CreationDate", "2019-02-13");
+                data1.put("LastUpdate", "2019-02-13");
+                data1.put("EnableControl", true);
+                final ObjectNode permissionNode = JsonHandler.createObjectNode();
+                permissionNode.put("tenant", TENANT_ID);
+                data1.put("Permissions", JsonHandler.createArrayNode().add(permissionNode));
+                data1.put("SecurityProfile", "admin-security-profile");
+                data1.put("Status", "ACTIVE");
+                break;
+            case SECURITY_PROFILE:
+                data1.put("Name", "aName");
+                data1.put("Identifier", "admin-security-profile");
+                data1.put("Permissions", new ArrayNode(null));
+                data1.put("FullAccess", true);
+                break;
+            case FORMATS:
+                data1.put("Name", "Plain Text File");
+                data1.put("PUID", "x-fmt/111");
+                data1.put("CreationDate", "2019-02-15");
+                data1.put("VersionPronom", "94");
+                break;
+            case ACCESSION_REGISTER_SUMMARY:
+                data1.put("OriginatingAgency", "FRAN_NP_009913");
+                data1.put("TotalObjectGroups", new ObjectNode(null));
+                data1.put("TotalUnits", new ObjectNode(null));
+                data1.put("TotalObjects", new ObjectNode(null));
+                data1.put("ObjectSize", new ObjectNode(null));
+                break;
+            case ACCESSION_REGISTER_DETAIL:
+                data1.put("OriginatingAgency", "FRAN_NP_009913");
+                data1.put("Opc", GUIDFactory.newGUID().toString());
+                data1.put("Opi", GUIDFactory.newGUID().toString());
+                data1.put("Events", new ArrayNode(null));
+                data1.put("TotalObjectGroups", new ObjectNode(null));
+                data1.put("TotalUnits", new ObjectNode(null));
+                data1.put("TotalObjects", new ObjectNode(null));
+                data1.put("ObjectSize", new ObjectNode(null));
+                break;
+            default:
+                throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
         }
 
         mongoDbAccessAdmin.insertDocument(data1, collection).close();
@@ -696,6 +789,15 @@ public class WebApplicationResourceDeleteTest {
             adminContext = GUIDFactory.newGUID();
             final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
             data1.put(CONTEXT_NAME, ADMIN_CONTEXT);
+            data1.put("Identifier", "Identifier");
+            data1.put("CreationDate", "2019-02-13");
+            data1.put("LastUpdate", "2019-02-13");
+            data1.put("EnableControl", true);
+            final ObjectNode permissionNode = JsonHandler.createObjectNode();
+            permissionNode.put("tenant", TENANT_ID);
+            data1.put("Permissions", JsonHandler.createArrayNode().add(permissionNode));
+            data1.put("SecurityProfile", "admin-security-profile");
+            data1.put("Status", "ACTIVE");
             mongoDbAccessAdmin.insertDocument(data1, collection).close();
         }
         return adminContext;
@@ -715,6 +817,9 @@ public class WebApplicationResourceDeleteTest {
             adminContext = GUIDFactory.newGUID();
             final ObjectNode data1 = JsonHandler.createObjectNode().put("_id", adminContext.getId());
             data1.put(SECURITY_PROFIL_NAME, SECURITY_PROFIL_NAME_TO_SAVE);
+            data1.put("Identifier", "admin-security-profile");
+            data1.put("Permissions", new ArrayNode(null));
+            data1.put("FullAccess", true);
             mongoDbAccessAdmin.insertDocument(data1, collection).close();
         }
         return adminContext;
