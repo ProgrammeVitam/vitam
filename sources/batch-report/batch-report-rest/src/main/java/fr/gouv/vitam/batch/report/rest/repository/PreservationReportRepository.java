@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -62,6 +63,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ACTION;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ANALYSE_RESULT;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ID;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.OBJECT_GROUP_ID;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.PROCESS_ID;
 import static fr.gouv.vitam.batch.report.model.PreservationReportModel.STATUS;
@@ -100,7 +102,7 @@ public class PreservationReportRepository {
     private static WriteModel<Document> modelToWriteDocument(PreservationReportModel model) {
         try {
             return new UpdateOneModel<>(
-                eq(PROCESS_ID, model.getProcessId()),
+                and(eq(PROCESS_ID, model.getProcessId()), eq(ID, model.getId())),
                 new Document("$set", Document.parse(JsonHandler.writeAsString(model))),
                 new UpdateOptions().upsert(true)
             );
@@ -148,18 +150,19 @@ public class PreservationReportRepository {
         int nbActionsIdentify = getStats(and(eqTenant, eqProcessId, eq(ACTION, IDENTIFY.name())), ACTION);
         int nbActionsExtract = getStats(and(eqTenant, eqProcessId, eq(ACTION, EXTRACT.name())), ACTION);
 
-        Spliterator<SimpleEntry<String, Integer>> map = collection.aggregate(
-            Arrays.asList(
-                match(and(eqTenant, eqProcessId)),
-                project(include("analyseResult")),
-                group("$" + ANALYSE_RESULT, sum("count", 1))
-            )
-        ).allowDiskUse(true)
-         .batchSize(1000)
-         .map(d -> new SimpleEntry<>(d.getString("_id"), d.get("count", Integer.class)))
-         .spliterator();
+        Spliterator<SimpleEntry<String, Integer>> mapAnalyseResult = nbActionsAnaylse > 0
+            ? collection.aggregate(
+                Arrays.asList(
+                    match(and(eqTenant, eqProcessId)),
+                    project(include("analyseResult")),
+                    group("$" + ANALYSE_RESULT, sum("count", 1)))
+                ).allowDiskUse(true)
+                .batchSize(1000)
+                .map(d -> new SimpleEntry<>(d.getString("_id"), d.get("count", Integer.class)))
+                .spliterator()
+            : Spliterators.emptySpliterator();
 
-        Map<String, Integer> analyseResults = StreamSupport.stream(map, false)
+        Map<String, Integer> analyseResults = StreamSupport.stream(mapAnalyseResult, false)
             .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
 
         return new PreservationStatsModel(

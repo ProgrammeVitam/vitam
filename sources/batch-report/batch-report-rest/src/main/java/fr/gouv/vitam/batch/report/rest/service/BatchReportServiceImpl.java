@@ -210,8 +210,7 @@ public class BatchReportServiceImpl {
             PreservationStatsModel stats = preservationReportRepository.stats(processId, tenantId);
             addDocumentToFile(stats, writer);
 
-            try (MongoCursor<PreservationReportModel> reports = preservationReportRepository
-                .findCollectionByProcessIdTenant(processId, tenantId)) {
+            try (MongoCursor<PreservationReportModel> reports = preservationReportRepository.findCollectionByProcessIdTenant(processId, tenantId)) {
                 reports.forEachRemaining(d -> addDocumentToFile(d, writer));
             }
         }
