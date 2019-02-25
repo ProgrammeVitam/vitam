@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.pool;
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;

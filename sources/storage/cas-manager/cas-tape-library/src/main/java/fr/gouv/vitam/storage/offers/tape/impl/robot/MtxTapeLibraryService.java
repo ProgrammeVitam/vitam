@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.impl.robot;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
@@ -58,7 +59,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     public TapeLibraryState status(long timeoutInMillisecondes) {
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), STATUS);
         Output output = getExecutor().execute(tapeRebotConf.getMtxPath(), timeoutInMillisecondes, args);
-        return parse(output, TapeLibraryState.class);
+        return parseTapeLibraryState(output);
     }
 
     @Override
@@ -97,6 +98,18 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
         lock.unlock();
     }
 
+    private TapeLibraryState parseTapeLibraryState(Output output) {
+        TapeLibraryState response = new TapeLibraryState();
+        response.setOutput(output);
+
+        if (output.getExitCode() == 0) {
+            response.setStatus(StatusCode.OK);
+        } else {
+            response.setStatus(StatusCode.KO);
+        }
+
+        return response;
+    }
     @Override
     public <T> T parse(Output output, Class<T> clazz) {
         return null;

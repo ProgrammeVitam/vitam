@@ -15,6 +15,7 @@ import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -23,10 +24,11 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.fail;
+import static org.assertj.core.api.Assertions.fail;
 
 public class TarTapeLibraryServiceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TarTapeLibraryServiceTest.class);
+    public static final long TIMEOUT_IN_MILLISECONDS = 1000L;
 
     @Rule
     public TempFolderRule tempFolderRule = new TempFolderRule();
@@ -51,7 +53,7 @@ public class TarTapeLibraryServiceTest {
     @Test
     public void testWriteToTapeOK() throws IOException {
         TapeDriveConf tapeDriveConf = new TapeDriveConf();
-        tapeDriveConf.setTimeoutInMilliseconds(15L);
+        tapeDriveConf.setTimeoutInMilliseconds(TIMEOUT_IN_MILLISECONDS);
         String device = tempFolderRule.newFile().getAbsolutePath();
         tapeDriveConf.setDevice(device);
         TarTapeLibraryService tarTapeLibraryService =
@@ -84,7 +86,7 @@ public class TarTapeLibraryServiceTest {
     @Test(expected = IllegalArgumentException.class)
     public void testWriteToTapeIllegalArgumentException() throws FileNotFoundException {
         TapeDriveConf tapeDriveConf = new TapeDriveConf();
-        tapeDriveConf.setTimeoutInMilliseconds(15L);
+        tapeDriveConf.setTimeoutInMilliseconds(TIMEOUT_IN_MILLISECONDS);
         TarTapeLibraryService tarTapeLibraryService =
             new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance());
 
@@ -95,7 +97,7 @@ public class TarTapeLibraryServiceTest {
     @Test
     public void testWriteToTapeKO() throws IOException {
         TapeDriveConf tapeDriveConf = new TapeDriveConf();
-        tapeDriveConf.setTimeoutInMilliseconds(15L);
+        tapeDriveConf.setTimeoutInMilliseconds(TIMEOUT_IN_MILLISECONDS);
         String device = tempFolderRule.newFile().getAbsolutePath();
         tapeDriveConf.setDevice(device);
         TarTapeLibraryService tarTapeLibraryService =

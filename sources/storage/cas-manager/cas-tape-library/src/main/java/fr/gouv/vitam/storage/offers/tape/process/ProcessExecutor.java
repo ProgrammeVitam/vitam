@@ -26,27 +26,39 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.process;
 
+import com.google.common.collect.Lists;
+import org.apache.commons.collections4.CollectionUtils;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ProcessExecutor {
     private final static ProcessExecutor instance = new ProcessExecutor();
+    public static final String SUDO = "sudo";
 
     public static ProcessExecutor getInstance() {
         return instance;
     }
 
     /**
-     *
      * @param commandPath
+     * @param asSudo
      * @param timeoutInMillisecondes
      * @param args
      * @return
      */
-    public Output execute(String commandPath, long timeoutInMillisecondes, List<String> args) {
-        List<String> command = Stream.concat(Stream.of(commandPath), args.stream()).collect(Collectors.toList());
+    public Output execute(String commandPath, boolean asSudo, long timeoutInMillisecondes, List<String> args) {
+        List<String> command;
+        if (asSudo) {
+            command = Lists.newArrayList(SUDO, commandPath);
+        } else {
+            command = Lists.newArrayList(commandPath);
+
+        }
+
+        if (!CollectionUtils.isEmpty(args)) {
+            command.addAll(args);
+        }
 
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         Process process = null;
@@ -57,5 +69,16 @@ public class ProcessExecutor {
         } catch (Exception e) {
             return new Output(e, process, processBuilder);
         }
+    }
+
+    /**
+     * Execute commands as sudo
+     * @param commandPath
+     * @param timeoutInMillisecondes
+     * @param args
+     * @return
+     */
+    public Output execute(String commandPath, long timeoutInMillisecondes, List<String> args) {
+        return execute(commandPath, true, timeoutInMillisecondes, args);
     }
 }

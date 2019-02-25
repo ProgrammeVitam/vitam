@@ -26,11 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.offers.tape.process.Output;
+
 import java.util.List;
 
 public class TapeLibraryState {
+    private Output output;
+    private StatusCode status;
+
     private List<TapeDrive> drives;
     private List<TapeSlot> slots;
+
+    public Output getOutput() {
+        return output;
+    }
+
+    public void setOutput(Output output) {
+        this.output = output;
+    }
+
+    public StatusCode getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusCode status) {
+        this.status = status;
+    }
 
     public List<TapeDrive> getDrives() {
         return drives;
