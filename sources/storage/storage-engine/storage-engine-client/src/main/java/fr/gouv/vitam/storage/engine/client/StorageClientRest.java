@@ -86,7 +86,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String STORAGE_LOG_TRACEABILITY_URI = "/storage/traceability";
     private static final String COPY = "/copy/";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
-    public static final String DIGEST_MUST_HAVE_A_VALID_VALUE = "Digest must have a valid value";
 
     StorageClientRest(StorageClientFactory factory) {
         super(factory);

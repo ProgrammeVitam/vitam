@@ -26,7 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import fr.gouv.vitam.common.LocalDateUtil;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import com.google.common.collect.Maps;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -43,7 +59,7 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -51,21 +67,6 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 
@@ -141,12 +142,12 @@ public class StoreObjectGroupActionPluginTest {
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
         doThrow(new StorageServerClientException("Error storage")).when(storageClient)
-            .storeFileFromWorkspace(any(), any(), any(), any());
+            .bulkStoreFilesFromWorkspace(any(), any());
 
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
 
-        final ItemStatus response = plugin.execute(paramsObjectGroups, action);
-        assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
+        assertEquals(StatusCode.FATAL, response.get(0).getGlobalStatus());
     }
 
     @Test
@@ -162,14 +163,15 @@ public class StoreObjectGroupActionPluginTest {
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup).build());
 
-        doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(any(),
-            any(), any(), any());
+        doReturn(getStorageResult("aeaaaaaaaaaam7myaaaamakxfgivurqaaaaq",
+                "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804"))
+                .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
 
 
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
 
-        final ItemStatus response = plugin.execute(paramsObjectGroups, action);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
+        assertEquals(StatusCode.OK, response.get(0).getGlobalStatus());
     }
 
     @Test
@@ -185,26 +187,22 @@ public class StoreObjectGroupActionPluginTest {
         when(workspaceClient.getObject(CONTAINER_NAME, "ObjectGroup/" + OBJECT_GROUP_GUID_2 + ".json"))
             .thenReturn(Response.status(Status.OK).entity(objectGroup2).build());
 
-        doReturn(getStorageResult()).when(storageClient).storeFileFromWorkspace(any(),
-            any(), any(), any());
+        doReturn(getStorageResult("aeaaaaaaaaakwtamaaxakak32oqku2iaaaaq",
+                "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7"))
+                .when(storageClient).bulkStoreFilesFromWorkspace(any(), any());
 
         plugin = new StoreObjectGroupActionPlugin(storageClientFactory);
 
-        final ItemStatus response = plugin.execute(paramsObjectGroups, action);
-        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
+        assertEquals(StatusCode.OK, response.get(0).getGlobalStatus());
     }
 
-    private StoredInfoResult getStorageResult() {
-        final StoredInfoResult storedInfoResult = new StoredInfoResult();
-        storedInfoResult.setInfo("Info");
-        storedInfoResult.setId("obj");
-        storedInfoResult.setCreationTime(LocalDateUtil.getString(LocalDateUtil.now()));
-        storedInfoResult.setLastAccessTime(LocalDateUtil.getString(LocalDateUtil.now()));
-        storedInfoResult.setLastCheckedTime(LocalDateUtil.getString(LocalDateUtil.now()));
-        storedInfoResult.setLastModifiedTime(LocalDateUtil.getString(LocalDateUtil.now()));
-        storedInfoResult.setNbCopy(1);
-        storedInfoResult.setStrategy("default");
+    private BulkObjectStoreResponse getStorageResult(String objectId, String objectDigest) {
+        final BulkObjectStoreResponse storedInfoResult = new BulkObjectStoreResponse();
         storedInfoResult.setOfferIds(Arrays.asList("idoffer1"));
+        Map<String, String> objectDigests = Maps.newHashMap();
+        objectDigests.put(objectId, objectDigest);
+        storedInfoResult.setObjectDigests(objectDigests);
         return storedInfoResult;
     }
 

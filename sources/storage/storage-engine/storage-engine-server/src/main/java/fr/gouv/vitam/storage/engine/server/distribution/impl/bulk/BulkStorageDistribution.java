@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TransfertTimeoutHelper;
@@ -84,44 +85,50 @@ public class BulkStorageDistribution {
 
         List<String> events = new ArrayList<>();
 
-        for (int attempt = 1; attempt <= nbReties; attempt++) {
+        try {
 
-            BulkPutResult bulkOutResult = bulkPutTransferManager.bulkSendDataToOffers(workspaceContainerGUID, tenantId,
-                dataCategory, remainingOfferIds, storageDrivers, storageOffers, workspaceObjectURIs, objectIds);
+            for (int attempt = 1; attempt <= nbReties; attempt++) {
 
-            if (bulkOutResult.getObjectInfos() != null) {
-                objectInfos = bulkOutResult.getObjectInfos().stream()
-                    .collect(Collectors.toMap(ObjectInfo::getObjectId, objectInfo -> objectInfo));
-            }
+                BulkPutResult bulkOutResult =
+                    bulkPutTransferManager.bulkSendDataToOffers(workspaceContainerGUID, tenantId,
+                        dataCategory, remainingOfferIds, storageDrivers, storageOffers, workspaceObjectURIs, objectIds);
 
-            for (Map.Entry<String, OfferBulkPutStatus> entry : bulkOutResult.getStatusByOfferIds().entrySet()) {
+                if (bulkOutResult.getObjectInfos() != null) {
+                    objectInfos = bulkOutResult.getObjectInfos().stream()
+                        .collect(Collectors.toMap(ObjectInfo::getObjectId, objectInfo -> objectInfo));
+                }
 
-                String offerId = entry.getKey();
-                OfferBulkPutStatus status = entry.getValue();
+                for (Map.Entry<String, OfferBulkPutStatus> entry : bulkOutResult.getStatusByOfferIds().entrySet()) {
 
-                events.add(offerId + ATTEMPT + attempt + " : " + status);
+                    String offerId = entry.getKey();
+                    OfferBulkPutStatus status = entry.getValue();
 
-                if (status == OfferBulkPutStatus.OK) {
-                    remainingOfferIds.remove(offerId);
+                    events.add(offerId + ATTEMPT + attempt + " : " + status);
+
+                    if (status == OfferBulkPutStatus.OK) {
+                        remainingOfferIds.remove(offerId);
+                    }
+                }
+
+                boolean hasBlockerError =
+                    bulkOutResult.getStatusByOfferIds().values().contains(OfferBulkPutStatus.BLOCKER);
+                if (hasBlockerError) {
+                    throw new StorageInconsistentStateException("A fatal error occurred during bulk object storage");
+                }
+
+                if (remainingOfferIds.isEmpty()) {
+                    // Build response
+                    return objectInfos.entrySet().stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getDigest()));
                 }
             }
 
-            boolean hasBlockerError = bulkOutResult.getStatusByOfferIds().values().contains(OfferBulkPutStatus.BLOCKER);
-            if (remainingOfferIds.isEmpty() || hasBlockerError) {
-                break;
-            }
+            throw new StorageException("Could not proceed bulk put operation after " + nbReties + " attempts");
+
+        } finally {
+            // Log events to storage log
+            logStorageEvents(tenantId, dataCategory, objectIds, requester, remainingOfferIds, objectInfos, events);
         }
-
-        // Log events to storage log
-        logStorageEvents(tenantId, dataCategory, objectIds, requester, remainingOfferIds, objectInfos, events);
-
-        if (remainingOfferIds.isEmpty()) {
-            // Build response
-            return objectInfos.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getDigest()));
-        }
-
-        throw new StorageException("Could not proceed bulk put operation");
     }
 
     private void logStorageEvents(Integer tenantId, DataCategory dataCategory, List<String> objectIds, String requester,

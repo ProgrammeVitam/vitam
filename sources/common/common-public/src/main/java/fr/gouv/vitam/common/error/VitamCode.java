@@ -98,6 +98,8 @@ public enum VitamCode {
         "Storage technical error"),
     STORAG_EMPTY_PARAMTER(ServiceName.STORAGE, DomainName.STORAGE, "18", Status.PRECONDITION_FAILED,
         "No offer identifier specified, this is mandatory"),
+    STORAGE_INCONSISTENT_STATE(ServiceName.STORAGE, DomainName.STORAGE, "19", Status.CONFLICT,
+        "Inconsistent state"),
 
     WORKSPACE_NOT_ACCEPTABLE_FILES(ServiceName.WORKSPACE, DomainName.STORAGE, "14", Status.NOT_ACCEPTABLE,
         "File or folder name not authorized"),

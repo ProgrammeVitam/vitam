@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -35,28 +33,20 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.StoreMetaDataObjectGroupActionPlugin;
 import fr.gouv.vitam.worker.core.plugin.StoreMetaDataUnitActionPlugin;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
-import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditParameters;
 import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportLine;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import org.apache.commons.lang.SerializationUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -127,16 +117,17 @@ public class DataRectificationStep extends ActionHandler {
                         StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin =
                             new StoreMetaDataObjectGroupActionPlugin();
 
-                        storeMetaDataObjectGroupActionPlugin
-                            .saveDocumentWithLfcInStorage(type.getId(), handler, param.getContainerName(), itemStatus);
+                        storeMetaDataObjectGroupActionPlugin.storeDocumentsWithLfc(
+                            param, handler, Collections.singletonList(type.getId())
+                        );
                     }
 
                     if (type.getType().equals(DataCategory.UNIT.name())) {
                         StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin =
                             new StoreMetaDataUnitActionPlugin();
 
-                        storeMetaDataUnitActionPlugin
-                            .saveDocumentWithLfcInStorage(type.getId(), handler, param.getContainerName(), itemStatus);
+                        storeMetaDataUnitActionPlugin.storeDocumentsWithLfc(
+                            param, handler, Collections.singletonList(type.getId()));
                     }
                 }
 

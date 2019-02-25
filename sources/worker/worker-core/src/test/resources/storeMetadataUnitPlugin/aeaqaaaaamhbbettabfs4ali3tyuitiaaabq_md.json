@@ -1,0 +1,54 @@
+{
+  "_id": "aeaqaaaaamhbbettabfs4ali3tyuitiaaabq",
+  "_mgt": {
+    "AccessRule": {
+      "Rules": [
+        {
+          "Rule": "ACC-00003",
+          "StartDate": "2000-01-01",
+          "EndDate": "2025-01-01"
+        },
+        {
+          "Rule": "ACC-00002",
+          "StartDate": "2000-01-01",
+          "EndDate": "2025-01-01"
+        }
+      ]
+    }
+  },
+  "DescriptionLevel": "RecordGrp",
+  "Title": "2_Front Populaire",
+  "Description": "Cette unité de description doit hériter de ManagementMetadata de la règle ACC-00002 avec pour StartDate 01/01/2000 et a comme règle propre ACC-00003 avec pour StartDate 01/01/2000",
+  "StartDate": "2017-04-05T08:11:56",
+  "EndDate": "2017-04-05T08:11:56",
+  "_sedaVersion": "2.1",
+  "_implementationVersion": "2.3.0-SNAPSHOT",
+  "_storage": {
+    "_nbc": 2,
+    "offerIds": [
+      "offer-fs-1.service.int.consul",
+      "offer-fs-2.service.int.consul"
+    ],
+    "strategyId": "default"
+  },
+  "_sps": [
+    "RATP"
+  ],
+  "_sp": "RATP",
+  "_ops": [
+    "aeeaaaaaaohklx6baai5yali3tytkpaaaaaq"
+  ],
+  "_opi": "aeeaaaaaaohklx6baai5yali3tytkpaaaaaq",
+  "_unitType": "INGEST",
+  "_up": [],
+  "_us": [],
+  "_graph": [],
+  "_us_sp": {},
+  "_uds": {},
+  "_min": 1,
+  "_max": 1,
+  "_glpd": "2019-02-11T14:23:59.952",
+  "_v": 0,
+  "_av": 0,
+  "_tenant": 3
+}

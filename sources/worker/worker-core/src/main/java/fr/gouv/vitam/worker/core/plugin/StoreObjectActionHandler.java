@@ -26,6 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
@@ -39,11 +43,11 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
+import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-
-import java.util.List;
 
 /**
  *
@@ -94,48 +98,73 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
         return null;
     }
 
-    /**
-     * Helper to set _storage on node after storing it
-     *
-     * @param node
-     * @param result
-     */
-    protected void storeStorageInfo(ObjectNode node, StoredInfoResult result) {
+    protected BulkObjectStoreResponse storeObjects(BulkObjectStoreRequest bulkObjectStoreRequest)
+            throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
+
+        try (final StorageClient storageClient = storageClientFactory.getClient()) {
+            // store binary data objects
+            return storageClient.bulkStoreFilesFromWorkspace(DEFAULT_STRATEGY, bulkObjectStoreRequest);
+
+        }
+    }
+
+    protected void storeStorageInfos(String strategy, List<MapOfObjects> mapOfObjectsList, BulkObjectStoreResponse result) {
         LOGGER.debug("DEBUG result: {}", result);
-        int nbc = result.getNbCopy();
-        String strategy = result.getStrategy();
-        List<String> offers = result.getOfferIds();
-        ObjectNode storage = JsonHandler.createObjectNode();
-        storage.put(SedaConstants.TAG_NB, nbc);
-        ArrayNode offersId = JsonHandler.createArrayNode();
-        if (offers != null) {
-            for (String id : offers) {
-                offersId.add(id);
+        for(int i=0; i<mapOfObjectsList.size(); i++) {
+            MapOfObjects mapOfObjects = mapOfObjectsList.get(i);
+            Map<String, JsonNode> nodes = mapOfObjects.getObjectJsonMap();
+            for (Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore().entrySet()) {
+                List<String> offers = result.getOfferIds();
+                ObjectNode storage = JsonHandler.createObjectNode();
+                storage.put(SedaConstants.TAG_NB, result.getOfferIds().size());
+                ArrayNode offersId = JsonHandler.createArrayNode();
+                if (offers != null) {
+                    for (String id : offers) {
+                        offersId.add(id);
+                    }
+                }
+                storage.set(SedaConstants.OFFER_IDS, offersId);
+                storage.put(SedaConstants.STRATEGY_ID, strategy);
+                ((ObjectNode)nodes.get(objectGuid.getKey())).set(SedaConstants.STORAGE, storage);
+                LOGGER.debug("DEBUG node: {}", nodes.get(objectGuid.getKey()));
             }
         }
-        storage.set(SedaConstants.OFFER_IDS, offersId);
-        storage.put(SedaConstants.STRATEGY_ID, strategy);
-        node.set(SedaConstants.STORAGE, storage);
-        LOGGER.debug("DEBUG node: {}", node);
     }
 
     /**
      * detailsFromStorageInfo, get storage details as JSON String from storageInfo result
      *
      * @param result
-     * @return JSON String
+     * @param itemStatusByObjectList
+     * @param itemStatusList
      */
-    protected String detailsFromStorageInfo(StoredInfoResult result) {
-        final ObjectNode object = JsonHandler.createObjectNode();
+    protected void updateSubTasksAndTasksFromStorageInfos(BulkObjectStoreResponse result, List<Map<String, ItemStatus>> itemStatusByObjectList, List<ItemStatus> itemStatusList) {
 
-        if (result != null) {
-            object.put(FILE_NAME, result.getId());
+        for(Map.Entry<String, String> objectDigest : result.getObjectDigests().entrySet()) {
+            int pos = getElementPositionForObjectName(objectDigest.getKey(), itemStatusByObjectList);
+            Map<String, ItemStatus> itemStatusByObject = itemStatusByObjectList.get(pos);
+            ItemStatus itemStatus = itemStatusList.get(pos);
+            ObjectNode object = JsonHandler.createObjectNode();
+            object.put(FILE_NAME, objectDigest.getKey());
             object.put(ALGORITHM, result.getDigestType());
-            object.put(DIGEST, result.getDigest());
+            object.put(DIGEST, objectDigest.getValue());
             List<String> offers = result.getOfferIds();
             object.put(OFFERS, offers != null ? String.join(",", offers) : "");
-        }
+            itemStatusByObject.get(objectDigest.getKey()).increment(StatusCode.OK);
+            itemStatusByObject.get(objectDigest.getKey()).setEvDetailData(JsonHandler.unprettyPrint(object));
 
-        return JsonHandler.unprettyPrint(object);
+            // increment itemStatus with subtask
+            itemStatus.setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
+                    .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
+        }
+    }
+
+    private int getElementPositionForObjectName(String objectName, List<Map<String, ItemStatus>> itemStatusByObjectList) {
+        for(int i=0; i<itemStatusByObjectList.size(); i++) {
+            if(itemStatusByObjectList.get(i).containsKey(objectName)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }

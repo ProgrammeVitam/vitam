@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -847,7 +848,7 @@ public class StorageTwoOffersIT {
         // When / Then
         assertThatThrownBy(() -> storageClient.bulkStoreFilesFromWorkspace(
             STRATEGY_ID, new BulkObjectStoreRequest(workspaceContainer, workspaceUris2, OBJECT, objectIds))
-        ).isInstanceOf(StorageServerClientException.class);
+        ).isInstanceOf(StorageAlreadyExistsClientException.class);
         for (int i = 0; i < nbFiles; i++) {
             checkFileExistenceAndContent(objectIds.get(i), DataCategory.OBJECT, true,
                 FileUtils.readFileToByteArray(files1.get(i)), OFFER_ID, SECOND_OFFER_ID);

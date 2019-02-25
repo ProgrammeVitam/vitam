@@ -1,12 +1,4 @@
 {
-  "httpCode":200,
-  "$hits" : {
-    "total" : 1,
-    "offset" : 0,
-    "limit" : 1,
-    "size" : 1
-  },
-  "$results" : [ {
     "_id": "aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq",
     "_tenant": 0,
     "_profil": "",
@@ -68,11 +60,4 @@
         "strategyId": "default"
     },
     "_v": 1
-  } ],
-  "$context" : {
-    "$roots" : [ "aebaaaaaaaag3r7caarvuak2ij3chpyaaaaq" ],
-    "$query" : [ ],
-    "$filter" : { },
-    "$projection" : { }
-  }
 }
