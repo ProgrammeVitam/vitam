@@ -53,4 +53,13 @@ public interface TapeDriveCommandService extends TapeDriveSafeCommandService, Be
      * @return CommandResponse
      */
     CommandResponse goToEnd(long timeoutInMillisecondes);
+
+
+    /**
+     *  Erase tape
+     * @param timeoutInMillisecondes
+     * @return CommandResponse
+     */
+    CommandResponse erase(long timeoutInMillisecondes);
+
 }

@@ -10,6 +10,7 @@ import fr.gouv.vitam.storage.offers.tape.pool.TapeLibraryPoolImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeService;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -22,6 +23,8 @@ public class TapeLibraryFactory {
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
     private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
 
+    private TapeLibraryFactory() {
+    }
 
     public void initize(TapeLibraryConfiguration configuration) {
         Map<String, TapeLibraryConf> libaries = configuration.getTapeLibraries();
@@ -29,8 +32,9 @@ public class TapeLibraryFactory {
         for (String tapeLibraryIdentifier : libaries.keySet()) {
             TapeLibraryConf tapeLibraryConf = libaries.get(tapeLibraryIdentifier);
 
-            BlockingQueue<TapeRobotService> robotServices = new ArrayBlockingQueue<>(tapeLibraryConf.getRobots().size(), true);
-            BlockingQueue<TapeDriveService> driveServices = new ArrayBlockingQueue<>(tapeLibraryConf.getDrives().size(), true);
+            BlockingQueue<TapeRobotService> robotServices =
+                new ArrayBlockingQueue<>(tapeLibraryConf.getRobots().size(), true);
+            ConcurrentHashMap<Integer, TapeDriveService> driveServices = new ConcurrentHashMap<>();
 
 
 
@@ -41,11 +45,12 @@ public class TapeLibraryFactory {
 
             for (TapeDriveConf tapeDriveConf : tapeLibraryConf.getDrives()) {
                 final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf);
-                driveServices.add(tapeDriveService);
+                driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);
             }
 
             if (robotServices.size() > 0 && driveServices.size() > 0) {
-                tapeLibraryPool.putIfAbsent(tapeLibraryIdentifier, new TapeLibraryPoolImpl(robotServices, driveServices));
+                tapeLibraryPool
+                    .putIfAbsent(tapeLibraryIdentifier, new TapeLibraryPoolImpl(robotServices, driveServices));
             }
         }
 

@@ -24,19 +24,8 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.dto;
+package fr.gouv.vitam.storage.offers.tape.spec;
 
-public enum TapeDriveStatus{
-    ONLINE("ONLINE IM_REP_EN"),
-    DR_OPEN("DR_OPEN IM_REP_EN");
+public interface TapeService {
 
-    String status;
-
-    TapeDriveStatus(String status) {
-        this.status = status;
-    }
-
-    public String getStatus() {
-        return status;
-    }
 }

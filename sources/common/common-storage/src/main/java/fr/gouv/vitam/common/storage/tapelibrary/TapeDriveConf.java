@@ -39,12 +39,20 @@ public class TapeDriveConf {
     @JsonIgnore
     private final transient Lock lock = new ReentrantLock();
 
+    private Integer index;
     private String device;
     private String mtPath = "mt";
     private String ddPath = "dd";
     private String tarPath = "tar";
     private long timeoutInMilliseconds = 60000;
 
+    public Integer getIndex() {
+        return index;
+    }
+
+    public void setIndex(Integer index) {
+        this.index = index;
+    }
 
     public String getDevice() {
         return device;

@@ -26,8 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.drive;
 
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
@@ -35,15 +41,15 @@ import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-
 public class MtTapeLibraryService implements TapeDriveCommandService {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MtTapeLibraryService.class);
+
     public static final String F = "-f";
     public static final String STATUS = "status";
     public static final String FSF = "fsf";
     public static final String REWIND = "rewind";
     public static final String EOD = "eod";
+    public static final String ERASE = "erase";
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
     /**
@@ -60,31 +66,50 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     @Override
     public TapeDriveState status(long timeoutInMillisecondes) {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), STATUS);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(), timeoutInMillisecondes,
+            args);
         Output output = getExecutor().execute(tapeDriveConf.getMtPath(), timeoutInMillisecondes, args);
-        return parse(output, TapeDriveState.class);
+        return parseTapeDriveState(output);
     }
 
     @Override
     public CommandResponse goToPosition(long timeoutInMillisecondes, String position) {
         ParametersChecker.checkParameter("Arguments position is required", position);
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), FSF, position);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(), timeoutInMillisecondes,
+            args);
         Output output = getExecutor().execute(tapeDriveConf.getMtPath(), timeoutInMillisecondes, args);
-        return parse(output, CommandResponse.class);
+        return parseCommonResponse(output);
     }
 
     @Override
     public CommandResponse rewind(long timeoutInMillisecondes) {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), REWIND);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(), timeoutInMillisecondes,
+            args);
         Output output = getExecutor().execute(tapeDriveConf.getMtPath(), timeoutInMillisecondes, args);
-        return parse(output, CommandResponse.class);
+        return parseCommonResponse(output);
     }
 
     @Override
     public CommandResponse goToEnd(long timeoutInMillisecondes) {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), EOD);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(), timeoutInMillisecondes,
+            args);
         Output output = getExecutor().execute(tapeDriveConf.getMtPath(), timeoutInMillisecondes, args);
-        return parse(output, CommandResponse.class);
+        return parseCommonResponse(output);
     }
+
+    @Override
+    public CommandResponse erase(long timeoutInMillisecondes) {
+        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), ERASE);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(), timeoutInMillisecondes,
+            args);
+        Output output = getExecutor().execute(tapeDriveConf.getMtPath(), timeoutInMillisecondes, args);
+        return parseCommonResponse(output);
+    }
+
+
 
     @Override
     public ProcessExecutor getExecutor() {
@@ -99,6 +124,32 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     @Override
     public void end() {
         driveLock.unlock();
+    }
+
+
+    private TapeDriveState parseTapeDriveState(Output output) {
+        TapeDriveState response = new TapeDriveState();
+        response.setOutput(output);
+
+        if (output.getExitCode() == 0) {
+            response.setStatus(StatusCode.OK);
+        } else {
+            response.setStatus(StatusCode.KO);
+        }
+
+        return response;
+    }
+
+    private CommandResponse parseCommonResponse(Output output) {
+        CommandResponse response = new CommandResponse();
+        response.setOutput(output);
+        if (output.getExitCode() == 0) {
+            response.setStatus(StatusCode.OK);
+        } else {
+            response.setStatus(StatusCode.KO);
+        }
+
+        return response;
     }
 
     @Override

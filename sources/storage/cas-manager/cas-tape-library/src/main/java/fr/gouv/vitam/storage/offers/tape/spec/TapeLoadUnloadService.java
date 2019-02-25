@@ -34,4 +34,8 @@ public interface TapeLoadUnloadService extends TapeRobotSafeCommandService, Begi
 
     CommandResponse unloadTape(long timeoutInMillisecondes, String tapeIndex, String driveIndex);
 
+    CommandResponse loadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex);
+
+    CommandResponse unloadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex);
+
 }

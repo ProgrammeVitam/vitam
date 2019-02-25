@@ -26,49 +26,53 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.pool;
 
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
-import java.util.concurrent.BlockingQueue;
-
 public class TapeLibraryPoolImpl implements TapeLibraryPool {
 
     private final BlockingQueue<TapeRobotService> tapeRobotServicePool;
-    private final BlockingQueue<TapeDriveService> tapeDriveServicePool;
+    private final ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool;
 
     public TapeLibraryPoolImpl(
         BlockingQueue<TapeRobotService> tapeRobotServicePool,
-        BlockingQueue<TapeDriveService> tapeDriveServicePool) {
+        ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool) {
         this.tapeRobotServicePool = tapeRobotServicePool;
         this.tapeDriveServicePool = tapeDriveServicePool;
     }
 
     @Override
-    public TapeRobotService checkoutRobotService(boolean wait) throws InterruptedException {
-        if (wait) {
-            return this.tapeRobotServicePool.take();
-        } else {
-            return this.tapeRobotServicePool.remove();
-        }
+    public TapeRobotService checkoutRobotService() throws InterruptedException {
+        return this.tapeRobotServicePool.take();
+
     }
 
     @Override
-    public TapeDriveService checkoutDriveService(boolean wait) throws InterruptedException {
-        if (wait) {
-            return this.tapeDriveServicePool.take();
-        } else {
-            return this.tapeDriveServicePool.remove();
-        }
+    public TapeRobotService checkoutRobotService(long timeout, TimeUnit unit) throws InterruptedException {
+        return this.tapeRobotServicePool.poll(timeout, unit);
+
+    }
+
+    @Override
+    public TapeDriveService checkoutDriveService(Integer driveIndex) {
+        return this.tapeDriveServicePool.remove(driveIndex);
     }
 
     @Override
     public void pushRobotService(TapeRobotService tapeRobotService) throws InterruptedException {
+        ParametersChecker.checkParameter("TapeRobotService is required", tapeRobotService);
         this.tapeRobotServicePool.put(tapeRobotService);
     }
 
     @Override
-    public void pushDriveService(TapeDriveService tapeDriveService) throws InterruptedException {
-        this.tapeDriveServicePool.put(tapeDriveService);
+    public void pushDriveService(TapeDriveService tapeDriveService) {
+        ParametersChecker.checkParameter("TapeDriveService is required", tapeDriveService);
+        this.tapeDriveServicePool.put(tapeDriveService.getTapeDriveConf().getIndex(), tapeDriveService);
     }
 }

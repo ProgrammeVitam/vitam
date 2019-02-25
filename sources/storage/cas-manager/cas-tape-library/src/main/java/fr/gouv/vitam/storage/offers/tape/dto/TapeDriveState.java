@@ -26,20 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.offers.tape.process.Output;
+
 public class TapeDriveState {
-    private String output;
+    private Output output;
+    private StatusCode status;
     private Integer fileNumber;
     private Integer blockNumber;
     private Long tapeBlockSize;
     private String densityCode;
     private Integer errorCountSinceLastStatus;
-    private TapeDriveStatus status;
+    private TapeDriveStatus driveStatus;
 
-    public String getOutput() {
+    public Output getOutput() {
         return output;
     }
 
-    public void setOutput(String output) {
+    public void setOutput(Output output) {
         this.output = output;
     }
 
@@ -83,11 +87,19 @@ public class TapeDriveState {
         this.errorCountSinceLastStatus = errorCountSinceLastStatus;
     }
 
-    public TapeDriveStatus getStatus() {
+    public StatusCode getStatus() {
         return status;
     }
 
-    public void setStatus(TapeDriveStatus status) {
+    public void setStatus(StatusCode status) {
         this.status = status;
+    }
+
+    public TapeDriveStatus getDriveStatus() {
+        return driveStatus;
+    }
+
+    public void setDriveStatus(TapeDriveStatus driveStatus) {
+        this.driveStatus = driveStatus;
     }
 }

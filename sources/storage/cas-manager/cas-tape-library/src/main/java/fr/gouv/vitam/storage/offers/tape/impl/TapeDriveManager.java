@@ -27,8 +27,10 @@
 package fr.gouv.vitam.storage.offers.tape.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.impl.drive.MtTapeLibraryService;
+import fr.gouv.vitam.storage.offers.tape.impl.readwrite.DdTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TarTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
@@ -38,28 +40,39 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 public class TapeDriveManager implements TapeDriveService {
 
     private final TapeDriveConf tapeDriveConf;
-    private final TapeReadWriteService tapeReadWriteService;
+    private final TapeReadWriteService tarReadWriteService;
+    private final TapeReadWriteService ddReadWriteService;
     private final TapeDriveCommandService tapeDriveCommandService;
 
     public TapeDriveManager(TapeDriveConf tapeDriveConf) {
         this.tapeDriveConf = tapeDriveConf;
         ProcessExecutor processExecutor = ProcessExecutor.getInstance();
-        this.tapeReadWriteService = new TarTapeLibraryService(tapeDriveConf, processExecutor);
+        this.tarReadWriteService = new TarTapeLibraryService(tapeDriveConf, processExecutor);
+        this.ddReadWriteService = new DdTapeLibraryService(tapeDriveConf, processExecutor);
         this.tapeDriveCommandService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
     }
 
     @VisibleForTesting
-    public TapeDriveManager(TapeDriveConf tapeDriveConf,
-        ProcessExecutor processExecutor, TapeReadWriteService tapeReadWriteService,
+    public TapeDriveManager(TapeDriveConf tapeDriveConf, TapeReadWriteService tarReadWriteService,
+        TapeReadWriteService ddReadWriteService,
         TapeDriveCommandService tapeDriveCommandService) {
         this.tapeDriveConf = tapeDriveConf;
-        this.tapeReadWriteService = tapeReadWriteService;
+        this.tarReadWriteService = tarReadWriteService;
+        this.ddReadWriteService = ddReadWriteService;
         this.tapeDriveCommandService = tapeDriveCommandService;
     }
 
     @Override
-    public TapeReadWriteService getReadWriteService() {
-        return tapeReadWriteService;
+    public TapeReadWriteService getReadWriteService(ReadWriteCmd readWriteCmd) {
+        ParametersChecker.checkParameter("ReadWriteCmd is required", readWriteCmd);
+        switch (readWriteCmd) {
+            case DD:
+                return ddReadWriteService;
+            case TAR:
+                return tarReadWriteService;
+        }
+
+        throw new IllegalArgumentException(readWriteCmd + " not implemented");
     }
 
     @Override

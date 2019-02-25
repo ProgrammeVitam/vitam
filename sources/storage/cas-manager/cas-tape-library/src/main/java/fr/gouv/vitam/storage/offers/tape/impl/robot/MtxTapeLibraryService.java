@@ -26,8 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.robot;
 
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
@@ -36,11 +42,8 @@ import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-
 public class MtxTapeLibraryService implements TapeLoadUnloadService {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MtxTapeLibraryService.class);
     public static final String F = "-f";
     public static final String UNLOAD = "unload";
     public static final String LOAD = "load";
@@ -58,6 +61,8 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     @Override
     public TapeLibraryState status(long timeoutInMillisecondes) {
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), STATUS);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(), timeoutInMillisecondes,
+            args);
         Output output = getExecutor().execute(tapeRebotConf.getMtxPath(), timeoutInMillisecondes, args);
         return parseTapeLibraryState(output);
     }
@@ -67,9 +72,11 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
         ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
 
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), LOAD, tapeIndex, driveIndex);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(), timeoutInMillisecondes,
+            args);
         Output output = getExecutor().execute(tapeRebotConf.getMtxPath(), timeoutInMillisecondes, args);
 
-        return parse(output, CommandResponse.class);
+        return parseCommonResponse(output);
     }
 
     @Override
@@ -77,11 +84,22 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
         ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
 
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), UNLOAD, tapeIndex, driveIndex);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(), timeoutInMillisecondes,
+            args);
+
         Output output = getExecutor().execute(tapeRebotConf.getMtxPath(), timeoutInMillisecondes, args);
 
-        return parse(output, CommandResponse.class);
+        return parseCommonResponse(output);
     }
 
+    @Override
+    public CommandResponse loadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex) {
+        return loadTape(timeoutInMillisecondes, tapeIndex.toString(), driveIndex.toString());
+    }
+
+    @Override public CommandResponse unloadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex) {
+        return unloadTape(timeoutInMillisecondes, tapeIndex.toString(), driveIndex.toString());
+    }
 
     @Override
     public ProcessExecutor getExecutor() {
@@ -98,6 +116,19 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
         lock.unlock();
     }
 
+    private CommandResponse parseCommonResponse(Output output) {
+        CommandResponse response = new CommandResponse();
+        response.setOutput(output);
+        if (output.getExitCode() == 0) {
+            response.setStatus(StatusCode.OK);
+        } else {
+            response.setStatus(StatusCode.KO);
+        }
+
+        return response;
+    }
+
+
     private TapeLibraryState parseTapeLibraryState(Output output) {
         TapeLibraryState response = new TapeLibraryState();
         response.setOutput(output);
@@ -110,6 +141,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
 
         return response;
     }
+
     @Override
     public <T> T parse(Output output, Class<T> clazz) {
         return null;
