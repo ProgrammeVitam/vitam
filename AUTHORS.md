@@ -1,6 +1,6 @@
 # Authors of Vitam
 
-## Release 8 (V1) active development team (11/2018)
+## Release 9 (V2) active development team (02/2019)
 
 ### French government team
 
@@ -15,8 +15,6 @@
 * Thierry Devillechabrolle
 
 ### Linagora development team
-
-* Laurent Dubois
 * Olivier Elbhar
 * Abderrahim Fraoucene
 * Mahmoud Sayad
@@ -28,11 +26,12 @@
 * Thomas Peigné
 * Jean-Eudes Couignoux
 * Djamel Hamas
-* Idrissa Manzo
 * Dédé Agbodji
 * Lotfi Gheribi
 * Jean-Baptiste Petit
-* Edith Abouquir
+* Romain Chauveau
+* Nabil El Hajjioui
+
 
 ### Thales integration team
 
@@ -91,23 +90,34 @@
 * Lilas Becha
 * Kristopher Waltzer
 * Bernardo Resende
-
+* Laurent Dubois
+* Idrissa Manzo
+* Edith Abouquir
 
 ## Thanks for collaboration
 
 * French Ministry of Culture - Adamant
 * French Ministry for the Armed Forces - Archipel
 * French Ministry for Europe and Foreign Affairs - Saphir
-* French Ministry for the Ecological and Inclusive Transition
-* French Ministry for Solidarity and Health
+
+* French Ministry for the Ecological and Inclusive Transition (MTES)
+* French Ministry for Solidarity and Health (MINSOC)
+* French Ministry of National Education and Youth 
 * French Agency for Food, Environmental and Occupational Health & Safety (ANSES)
 * French Alternative Energies and Atomic Energy Commission (CEA)
 * French public institution of Exploitation of the Computerized Land Book (EPELFI)
 * National Computing Center for Higher Education (CINES)
 * Payment Services Agency (ASP)
 * Musée du quai Branly - Jacques Chirac
+* CHU - University Hospital Centre-  Avranches-Granville
+* County Council of Hérault
+* French National Health Insurance Agency for Wage Earners (CNAMTS)
+* TGIR Huma-Num
+* Central Agency for Social Security Organizations (ACOSS)
 
 ## Thanks for support
 
-* Claire Botella
 * Julie Garnier
+* Gernada Kuci
+
+
