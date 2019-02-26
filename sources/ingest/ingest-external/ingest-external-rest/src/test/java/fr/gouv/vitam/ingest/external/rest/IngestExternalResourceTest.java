@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LocalFile;
@@ -57,6 +58,7 @@ import org.junit.Test;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -115,8 +117,12 @@ public class IngestExternalResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
-        if (application != null) {
-            application.stop();
+        try {
+            if (application != null) {
+                application.stop();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();

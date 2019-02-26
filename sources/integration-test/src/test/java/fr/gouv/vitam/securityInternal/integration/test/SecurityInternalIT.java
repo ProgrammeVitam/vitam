@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.client.TestVitamClientFactory;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.VitamRestTestClient;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClient;
@@ -59,6 +60,7 @@ import org.junit.Test;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -113,8 +115,12 @@ public class SecurityInternalIT extends VitamRuleRunner {
     public static void shutdownAfterClass() throws Exception {
         handleAfterClass(0, 1);
         runAfter();
-        if (identityMain != null) {
-            identityMain.stop();
+        try {
+            if (identityMain != null) {
+                identityMain.stop();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         if (internalSecurityClient != null) {
             internalSecurityClient.close();
