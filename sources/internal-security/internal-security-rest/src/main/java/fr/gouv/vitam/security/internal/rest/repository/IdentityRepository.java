@@ -87,7 +87,7 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
      * @return
      * @throws InvalidParseOperationException
      */
-    public Optional<IdentityModel> findIdentity(String subjectDN, BigInteger serialNumber)
+    public Optional<IdentityModel> findIdentity(String subjectDN, String serialNumber)
         throws InvalidParseOperationException {
         FindIterable<Document> models =
             identityCollection.find(filterBySubjectDNAndSerialNumber(subjectDN, serialNumber));
@@ -103,14 +103,14 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
      * @param contextId
      * @param serialNumber
      */
-    public void linkContextToIdentity(String subjectDN, String contextId, BigInteger serialNumber) {
+    public void linkContextToIdentity(String subjectDN, String contextId, String serialNumber) {
         identityCollection.updateOne(
             filterBySubjectDNAndSerialNumber(subjectDN, serialNumber),
             set("ContextId", contextId));
     }
 
-    private Bson filterBySubjectDNAndSerialNumber(String subjectDN, BigInteger serialNumber) {
-        return and(eq("SubjectDN", subjectDN), eq("SerialNumber", serialNumber.intValue()),
+    private Bson filterBySubjectDNAndSerialNumber(String subjectDN, String serialNumber) {
+        return and(eq("SubjectDN", subjectDN), eq("SerialNumber", serialNumber),
             eq(CertificateBaseModel.STATUS_TAG, CertificateStatus.VALID.name()));
     }
 

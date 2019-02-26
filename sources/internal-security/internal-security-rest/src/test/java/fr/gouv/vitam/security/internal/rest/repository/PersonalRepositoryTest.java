@@ -48,7 +48,7 @@ public class PersonalRepositoryTest {
         PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
         personalCertificateModel.setIssuerDN("issuerDN");
         personalCertificateModel.setSubjectDN("distinguishedName");
-        personalCertificateModel.setSerialNumber(BigInteger.TEN);
+        personalCertificateModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         personalCertificateModel.setId(id.toString());
         personalCertificateModel.setCertificateHash(
             CERTIFICATE_HASH);
@@ -63,7 +63,7 @@ public class PersonalRepositoryTest {
             .isNotNull()
             .containsEntry("IssuerDN", "issuerDN")
             .containsEntry("SubjectDN", "distinguishedName")
-            .containsEntry("SerialNumber", 10)
+            .containsEntry("SerialNumber", String.valueOf(10))
             .containsEntry("Hash", CERTIFICATE_HASH);
     }
 
@@ -75,7 +75,7 @@ public class PersonalRepositoryTest {
         PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
         personalCertificateModel.setIssuerDN("issuerDN");
         personalCertificateModel.setSubjectDN("distinguishedName");
-        personalCertificateModel.setSerialNumber(BigInteger.TEN);
+        personalCertificateModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         personalCertificateModel.setId(id.toString());
         personalCertificateModel.setCertificateHash(
             CERTIFICATE_HASH);
@@ -92,7 +92,7 @@ public class PersonalRepositoryTest {
         assertThat(result).isPresent().hasValueSatisfying(identity -> {
             assertThat(identity.getIssuerDN()).isEqualTo("issuerDN");
             assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
-            assertThat(identity.getSerialNumber()).isEqualTo(BigInteger.TEN);
+            assertThat(identity.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.TEN));
             assertThat(identity.getId()).isEqualTo(id.toString());
         });
     }

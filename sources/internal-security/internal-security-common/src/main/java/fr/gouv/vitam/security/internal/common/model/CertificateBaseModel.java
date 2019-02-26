@@ -48,7 +48,7 @@ public class CertificateBaseModel {
 
     private String contextId;
 
-    private BigInteger serialNumber;
+    private String serialNumber;
 
     @JsonProperty(ISSUER_DN_TAG)
     private String issuerDN;
@@ -88,11 +88,11 @@ public class CertificateBaseModel {
         this.contextId = contextId;
     }
 
-    public BigInteger getSerialNumber() {
+    public String getSerialNumber() {
         return serialNumber;
     }
 
-    public void setSerialNumber(BigInteger serialNumber) {
+    public void setSerialNumber(String serialNumber) {
         this.serialNumber = serialNumber;
     }
 

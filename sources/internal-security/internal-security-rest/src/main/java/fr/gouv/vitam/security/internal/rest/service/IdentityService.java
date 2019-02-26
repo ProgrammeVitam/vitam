@@ -69,7 +69,7 @@ public class IdentityService {
 
         identityModel.setSubjectDN(certificate.getSubjectDN().getName());
         identityModel.setIssuerDN(certificate.getIssuerDN().getName());
-        identityModel.setSerialNumber(certificate.getSerialNumber());
+        identityModel.setSerialNumber(String.valueOf(certificate.getSerialNumber()));
 
         identityRepository.createIdentity(identityModel);
     }
@@ -85,7 +85,7 @@ public class IdentityService {
         X509Certificate x509Certificate = X509PKIUtil.parseX509Certificate(identityInsertModel.getCertificate());
 
         Optional<IdentityModel> identityModel = identityRepository.findIdentity(
-            x509Certificate.getSubjectDN().getName(), x509Certificate.getSerialNumber());
+            x509Certificate.getSubjectDN().getName(), String.valueOf(x509Certificate.getSerialNumber()));
 
         identityModel.ifPresent(identity -> {
             identity.setContextId(identityInsertModel.getContextId());
@@ -107,7 +107,7 @@ public class IdentityService {
         X509Certificate x509Certificate = X509PKIUtil.parseX509Certificate(certificate);
 
         Optional<IdentityModel> identityModelOptional = identityRepository
-            .findIdentity(x509Certificate.getSubjectDN().getName(), x509Certificate.getSerialNumber());
+            .findIdentity(x509Certificate.getSubjectDN().getName(), String.valueOf(x509Certificate.getSerialNumber()));
 
         //check validity of the  retrieved certificate from VITAM DB
         if (identityModelOptional.isPresent()) {
