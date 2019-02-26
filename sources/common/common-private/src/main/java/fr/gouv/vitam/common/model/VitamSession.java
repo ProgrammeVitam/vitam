@@ -26,19 +26,20 @@
  */
 package fr.gouv.vitam.common.model;
 
+import javax.validation.constraints.NotNull;
+
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import org.slf4j.MDC;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUID;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import org.slf4j.MDC;
-
-import javax.validation.constraints.NotNull;
 
 /**
  * <p>
@@ -67,6 +68,7 @@ public class VitamSession {
     private AccessContractModel contract = null;
     private Object other = null;
     private String personalCertificate = null;
+    private boolean usedForTests;
 
     /**
      * @param owningThread the owning thread
@@ -93,6 +95,7 @@ public class VitamSession {
         newSession.applicationSessionId = origin.getApplicationSessionId();
         newSession.securityProfileIdentifier = origin.getSecurityProfileIdentifier();
         newSession.personalCertificate = origin.getPersonalCertificate();
+        newSession.usedForTests = origin.isUsedForTests();
         return newSession;
     }
 
@@ -117,8 +120,8 @@ public class VitamSession {
     private void checkCallingThread() {
         if (Thread.currentThread() != owningThread) {
             throw new IllegalStateException(
-                "VitamSession should only be called by the thread that owns it ; here, caller was " +
-                    Thread.currentThread() + ", and owner was ");
+                    "VitamSession should only be called by the thread that owns it ; here, caller was " +
+                            Thread.currentThread() + ", and owner was ");
         }
     }
 
@@ -142,8 +145,8 @@ public class VitamSession {
         if (oldRequestId != requestId) {
             // KWA TODO: replace the check by thing like StringUtils.checkNullOrEmpty(toto)
             LOGGER.warn(
-                "Caution : inconsistency detected between content of the VitamSession (requestId:{}) and the Logging MDC (requestId:{})",
-                oldRequestId, requestId);
+                    "Caution : inconsistency detected between content of the VitamSession (requestId:{}) and the Logging MDC (requestId:{})",
+                    oldRequestId, requestId);
         }
         requestId = newRequestId;
         MDC.put(GlobalDataRest.X_REQUEST_ID, newRequestId);
@@ -317,6 +320,8 @@ public class VitamSession {
         setApplicationSessionId(newSession.getApplicationSessionId());
         setSecurityProfileIdentifier(newSession.getSecurityProfileIdentifier());
         setPersonalCertificate(newSession.getPersonalCertificate());
+        setUsedForTests(newSession.isUsedForTests());
+
     }
 
     /**
@@ -343,22 +348,30 @@ public class VitamSession {
 
         if (Strings.isNullOrEmpty(VitamThreadUtils.getVitamSession().getRequestId())) {
             VitamThreadUtils
-                .getVitamSession()
-                .setRequestId(GUIDFactory
-                    .newRequestIdGUID(VitamThreadUtils
-                        .getVitamSession()
-                        .getTenantId()
-                    )
-                    .getId()
-                );
+                    .getVitamSession()
+                    .setRequestId(GUIDFactory
+                            .newRequestIdGUID(VitamThreadUtils
+                                    .getVitamSession()
+                                    .getTenantId()
+                            )
+                            .getId()
+                    );
         }
     }
 
     @Override
     public String toString() {
         return Integer.toHexString(hashCode()) + "{requestId='" + requestId + "', tenantId:'" + tenantId +
-            "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" +
-            applicationSessionId + "', personalCertificate:'" +
-            personalCertificate + "'}";
+                "', contractId:'" + contractId + "', contextId:'" + contextId + "', applicationSessionId:'" +
+                applicationSessionId + "', personalCertificate:'" +
+                personalCertificate + "'}";
+    }
+
+    public boolean isUsedForTests() {
+        return usedForTests;
+    }
+
+    public void setUsedForTests(boolean usedForTests) {
+        this.usedForTests = usedForTests;
     }
 }

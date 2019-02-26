@@ -26,7 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -34,8 +50,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -50,21 +64,16 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, SedaUtilsFactory.class})
 public class CheckObjectsNumberActionHandlerTest {
 
     private CheckObjectsNumberActionHandler checkObjectsNumberActionHandler;
@@ -72,7 +81,7 @@ public class CheckObjectsNumberActionHandlerTest {
 
     private static final String SUBTASK_MANIFEST_INFERIOR_BDO = "MANIFEST_INFERIOR_BDO";
     private static final String SUBTASK_MANIFEST_SUPERIOR_BDO = "MANIFEST_SUPERIOR_BDO";
-
+    
     private WorkerParameters workParams;
 
     private SedaUtils sedaUtils;
@@ -80,9 +89,6 @@ public class CheckObjectsNumberActionHandlerTest {
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
 
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private SedaUtilsFactory sedaUtilsFactory;
     private final List<URI> uriDuplicatedListManifestKO = new ArrayList<>();
     private final List<URI> uriListManifestOK = new ArrayList<>();
     private final List<URI> uriOutNumberListManifestKO = new ArrayList<>();
@@ -102,25 +108,21 @@ public class CheckObjectsNumberActionHandlerTest {
     public void setUp() throws Exception {
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams.setWorkerGUID(GUIDFactory.newGUID()).setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("objectName.json"))
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName("CheckObjectsNumberActionHandlerTest");
-
+                .setUrlMetadata("http://localhost:8083")
+                .setObjectNameList(Lists.newArrayList("objectName.json"))
+                .setObjectName("objectName.json").setCurrentStep("currentStep")
+                .setContainerName("CheckObjectsNumberActionHandlerTest");
 
         workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        handlerIO = new HandlerIOImpl("CheckObjectsNumberActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
 
-        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
-        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
-        sedaUtilsFactory = mock(SedaUtilsFactory.class);
-        when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
-
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-            "CheckObjectsNumberActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
+        PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
 
         // URI LIST MANIFEST
         uriDuplicatedListManifestKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
@@ -138,12 +140,14 @@ public class CheckObjectsNumberActionHandlerTest {
 
         uriListWorkspaceOK.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
         uriListWorkspaceOK.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
+        // FIXME P1: ugly hack to be compatible with actual implementation
         // remove this add when the object count is fixed
         uriListWorkspaceOK.add(new URI(URLEncoder.encode("manifest.xml", CharsetUtils.UTF_8)));
 
         uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("content/file1.pdf", CharsetUtils.UTF_8)));
         uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("content/file2.pdf", CharsetUtils.UTF_8)));
         uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("content/file3.pdf", CharsetUtils.UTF_8)));
+        // FIXME P1: ugly hack to be compatible with actual implementation
         // remove this add when the object count is fixed
         uriOutNumberListWorkspaceKO.add(new URI(URLEncoder.encode("manifest.xml", CharsetUtils.UTF_8)));
 
@@ -153,7 +157,7 @@ public class CheckObjectsNumberActionHandlerTest {
         messages.add("Duplicated digital objects " + "content/file1.pdf");
         extractDuplicatedUriResponseKO = new ExtractUriResponse();
         extractDuplicatedUriResponseKO.setUriListManifest(uriDuplicatedListManifestKO)
-            .setErrorDuplicateUri(Boolean.TRUE).setErrorNumber(messages.size());
+                .setErrorDuplicateUri(Boolean.TRUE).setErrorNumber(messages.size());
 
         extractOutNumberUriResponseKO = new ExtractUriResponse();
         extractOutNumberUriResponseKO.setUriListManifest(uriOutNumberListManifestKO);
@@ -166,11 +170,11 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenRaiseXMLStreamExceptionAndReturnResponseFATAL()
-        throws ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaUtilsFactory);
+                new CheckObjectsNumberActionHandler();
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
@@ -179,30 +183,30 @@ public class CheckObjectsNumberActionHandlerTest {
 
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenRaiseProcessingExceptionReturnResponseFATAL()
-        throws ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).getAllDigitalObjectUriFromManifest();
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaUtilsFactory);
+                new CheckObjectsNumberActionHandler();
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
         final ItemStatus response = checkObjectsNumberActionHandler.execute(workParams, handlerIO);
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.FATAL.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
     }
 
     @Test
     public void givenWorkpaceExistWhenExecuteThenReturnResponseOK()
-        throws ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaUtilsFactory);
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -211,19 +215,19 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
+                .isEqualTo(2);
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndDuplicatedURIManifest()
-        throws ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaUtilsFactory);
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractDuplicatedUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -231,21 +235,20 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
     }
 
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberManifest()
-        throws ProcessingException, ContentAddressableStorageServerException,
-        InvalidParseOperationException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException, InvalidParseOperationException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaUtilsFactory);
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractOutNumberUriResponseKO);
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
+                .thenReturn(new RequestResponseOK().addResult(uriListWorkspaceOK));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -254,28 +257,27 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response.getItemsStatus().get(HANDLER_ID).getData("errorNumber")).isEqualTo(1);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
+                .isEqualTo(2);
         JsonNode evDetData = JsonHandler.getFromString((String) response.getData("eventDetailData"));
         assertNotNull(evDetData);
         assertNotNull(evDetData.get("evDetTechData"));
         assertNotNull(evDetData.get("evDetTechData").asText().contains("manifestError"));
-        assertEquals(SUBTASK_MANIFEST_SUPERIOR_BDO,
-            response.getItemsStatus().get(HANDLER_ID).getGlobalOutcomeDetailSubcode().toString());
-
+        assertEquals(SUBTASK_MANIFEST_SUPERIOR_BDO, response.getItemsStatus().get(HANDLER_ID).getGlobalOutcomeDetailSubcode().toString());
+        
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndOutNumberWorkspace()
-        throws ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException, InvalidParseOperationException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaUtilsFactory);
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
+                .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -283,23 +285,22 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
-        assertEquals(SUBTASK_MANIFEST_INFERIOR_BDO,
-            response.getItemsStatus().get(HANDLER_ID).getGlobalOutcomeDetailSubcode().toString());
+                .isEqualTo(2);
+        assertEquals(SUBTASK_MANIFEST_INFERIOR_BDO, response.getItemsStatus().get(HANDLER_ID).getGlobalOutcomeDetailSubcode().toString());        
     }
 
     @Test
     public void givenWorkspaceExistWhenExecuteThenReturnResponseKOAndNotFoundFile()
-        throws ProcessingException, ContentAddressableStorageServerException {
+            throws XMLStreamException, IOException, ProcessingException, ContentAddressableStorageServerException {
 
         checkObjectsNumberActionHandler =
-            new CheckObjectsNumberActionHandler(sedaUtilsFactory);
+                new CheckObjectsNumberActionHandler();
 
         when(sedaUtils.getAllDigitalObjectUriFromManifest()).thenReturn(extractUriResponseOK);
         when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
+                .thenReturn(new RequestResponseOK().addResult(uriOutNumberListWorkspaceKO));
 
         assertThat(CheckObjectsNumberActionHandler.getId()).isEqualTo(HANDLER_ID);
 
@@ -307,8 +308,8 @@ public class CheckObjectsNumberActionHandlerTest {
         assertThat(response).isNotNull();
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.KO.getStatusLevel()))
-            .isEqualTo(1);
+                .isEqualTo(1);
         assertThat(response.getItemsStatus().get(HANDLER_ID).getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isEqualTo(2);
+                .isEqualTo(2);
     }
 }

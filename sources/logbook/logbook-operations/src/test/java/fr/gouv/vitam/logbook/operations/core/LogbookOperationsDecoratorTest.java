@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.operations.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -40,8 +39,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.operations.api.LogbookOperations;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
@@ -88,9 +85,7 @@ public class LogbookOperationsDecoratorTest {
         final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
         mongoDbAccess = mock(LogbookDbAccess.class);
-        StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-        when(storageClientFactory.getClient()).thenReturn(mock(StorageClient.class));
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, mock(IndexationHelper.class));
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
         logbookOperationsImpl = Mockito.spy(logbookOperationsImpl);
         logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);

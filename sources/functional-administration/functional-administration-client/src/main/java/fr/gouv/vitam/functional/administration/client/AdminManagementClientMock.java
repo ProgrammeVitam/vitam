@@ -204,12 +204,13 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse getAccessionRegister(JsonNode query)
-        throws InvalidParseOperationException {
+        throws InvalidParseOperationException, ReferentialException {
         AccessionRegisterSummaryModel model = new AccessionRegisterSummaryModel();
         RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel();
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel();
         RegisterValueDetailModel totalObjects = new RegisterValueDetailModel();
         RegisterValueDetailModel objectSize = new RegisterValueDetailModel();
+        ParametersChecker.checkParameter("stream is a mandatory parameter", query);
         LOGGER.debug("get document Register Fund request:");
 
         model.setId("aefaaaaaaaaam7mxaa2gyakygejizayaaaaq")
@@ -241,7 +242,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse getAccessionRegisterDetail(String id, JsonNode query)
-        throws InvalidParseOperationException {
+        throws InvalidParseOperationException, ReferentialException {
         RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel().setIngested(1).setRemained(1);
         RegisterValueDetailModel totalUnits = new RegisterValueDetailModel().setIngested(1).setRemained(1);
         RegisterValueDetailModel totalObjects = new RegisterValueDetailModel().setIngested(4).setRemained(4);
@@ -268,7 +269,8 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public Status importIngestContracts(List<IngestContractModel> ingestContractModelList) {
+    public Status importIngestContracts(List<IngestContractModel> ingestContractModelList)
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("import Ingest contracts request ");
         return Status.OK;
     }
@@ -461,8 +463,11 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse findSecurityProfiles(JsonNode queryDsl)
-        throws InvalidParseOperationException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find security profiles request ");
+        if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
+            VitamThreadUtils.getVitamSession().setTenantId(0);
+        }
         SecurityProfileModel model =
             JsonHandler.getFromString(ClientMockResultHelper.SECURITY_PROFILES, SecurityProfileModel.class);
         return ClientMockResultHelper.createReponse(model);
@@ -470,7 +475,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
 
     @Override
     public RequestResponse findSecurityProfileByIdentifier(String identifier)
-        throws InvalidParseOperationException {
+        throws InvalidParseOperationException, AdminManagementClientServerException {
         LOGGER.debug("find security profiles by identifier request ");
         return ClientMockResultHelper.getSecurityProfiles();
     }

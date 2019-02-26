@@ -6,47 +6,24 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>2.1.3-SNAPSHOT</version>
+		<version>2.1.2-SNAPSHOT</version>
 		<relativePath>../sources/pom.xml</relativePath>
 	</parent>
 	<artifactId>vitam-package</artifactId>
 	<packaging>pom</packaging>
 	<name>VITAM Package</name>
-	<description>Packaging VITAM</description>
+	<description>Packaging complet VITAM</description>
 
 	<build>
 		<plugins>
-			<!-- download dependencies for signing rpms -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<includeGroupIds>fr.gouv.vitam</includeGroupIds>
-							<includeTypes>rpm</includeTypes>
-							<outputDirectory>${basedir}/rpm_signed/vitam-product/</outputDirectory>
-							<overWriteReleases>false</overWriteReleases>
-							<overWriteSnapshots>false</overWriteSnapshots>
-							<overWriteIfNewer>true</overWriteIfNewer>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.6.0</version>
 				<executions>
 					<!-- rpm -->
 					<execution>
 						<id>Build native vitam-product rpm</id>
-						<phase>process-resources</phase>
+						<phase>compile</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -56,7 +33,7 @@
 					</execution>
 					<execution>
 						<id>Get native vitam-external rpm</id>
-						<phase>process-resources</phase>
+						<phase>compile</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -64,10 +41,11 @@
 							<executable>../rpm/vitam-external/build_repo.sh</executable>
 						</configuration>
 					</execution>
+
 					<!-- debian -->
 					<execution>
 						<id>Build native vitam-product deb</id>
-						<phase>process-resources</phase>
+						<phase>compile</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -77,7 +55,7 @@
 					</execution>
 					<execution>
 						<id>Get native vitam-external deb</id>
-						<phase>process-resources</phase>
+						<phase>compile</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
@@ -85,7 +63,6 @@
 							<executable>../deb/vitam-external/build_repo.sh</executable>
 						</configuration>
 					</execution>
-					<!-- remove useless & dangerous configuration -->
 					<execution>
 						<id>Remove vitam certificates</id>
 						<phase>compile</phase>
@@ -96,7 +73,6 @@
 							<executable>./remove_user_certificates.sh</executable>
 						</configuration>
 					</execution>
-					<!-- empty vitam-griffins list -->
 					<execution>
 						<id>Remove vitam griffins</id>
 						<phase>compile</phase>
@@ -107,58 +83,8 @@
 							<executable>./remove_griffins.sh</executable>
 						</configuration>
 					</execution>
-					<!-- sign rpm -->
-					<execution>
-						<id>Create signed rpm</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>./create_rpm_signed.sh</executable>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
-			<!-- TODO : copy all other rpm (from vitam-external & vitam-product) to rpm_signed -->
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-resources-external</id>
-						<phase>compile</phase>
-						<goals>
-						<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-						<outputDirectory>${basedir}/rpm_signed/vitam-external/</outputDirectory>
-						<resources>          
-							<resource>
-							<directory>../rpm/vitam-external/target/</directory>
-							<!-- <filtering>true</filtering> -->
-							</resource>
-						</resources>              
-						</configuration>            
-					</execution>
-						<execution>
-						<id>copy-resources-product</id>
-						<phase>compile</phase>
-						<goals>
-						<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-						<outputDirectory>${basedir}/rpm_signed/vitam-product/</outputDirectory>
-						<resources>          
-							<resource>
-							<directory>../rpm/vitam-product/target/</directory>
-							<!-- <filtering>true</filtering> -->
-							</resource>
-						</resources>              
-						</configuration>            
-					</execution>
-				</executions>
-			</plugin>
-			<!-- generate assemblies -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<executions>
@@ -171,7 +97,6 @@
 								<descriptor>${basedir}/assembly-prod.xml</descriptor>
 								<descriptor>${basedir}/assembly-horsprod.xml</descriptor>
 								<descriptor>${basedir}/assembly-deployment.xml</descriptor>
-								<descriptor>${basedir}/assembly-prod-signed.xml</descriptor>
 							</descriptors>
 						</configuration>
 						<goals>

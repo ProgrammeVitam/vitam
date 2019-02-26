@@ -128,7 +128,7 @@ DriverManager : SPI
 ===================
 
 | Service permettant d'ajouter ou de supprimer des drivers d'offre.
-| Le driver (son interface) est défini dans :ref:`storage-driver`.
+| Le driver (son interface) est défini dans `storage-driver`_.
 
 Les différents drivers sont chargés via le ServiceLoader de la JDK puis leurs instances sont stockées dans une liste.
 Cela permet ensuite de configurer les offres sur les différentes instances de driver en passant par une MAP dont la clef est l'identifant de l'offre, la valeur est le driver instancié dans la liste (une référence à ce driver donc, retrouvé par son nom (getName())).
@@ -173,10 +173,14 @@ du SPI.
 
     public interface DriverMapper {
         List<String> getOffersFor(String driverName) throws StorageException;
+
         void addOfferTo(String offerId, String driverName) throws StorageException;
+
         void addOffersTo(List<String> offersIdsToAdd, String driverName) throws StorageException;
+
         void removeOfferTo(String offerId, String driverName) throws StorageException;
+
         void removeOffersTo(List<String> offersIdsToRemove, String driverName) throws StorageException;
     }
 
-Dans un premier temps, l'implémentation du mapper se fera en passant par un fichier. Dans son implémentation actuelle, le *DriverMapper* a besoin d'un fichier de configuration, ``driver-mapping.conf``. Ici, il permet de définir l'emplacement où seront enregistrés les fichiers permettant la persistance via la clef **driverMappingPath**. Une autre clef est nécessaire afin de définir le délimiteur dans ce fichier via la clef **delimiter**, le principe étant de mettre en place un fichier par driver comme un fichier CSV, les offres étant séparées par ce délimiteur.
+Dans un premier temps, l'implémentation du mapper se fera en passant par un fichier. Dans son implémentation actuelle, le DriverMapper a besoin d'un fichier de configuration, driver-mapping.conf. Ici, il permet de définir l'emplacement où seront enregistrés les fichiers permettant la persistance via la clef **driverMappingPath**. Une autre clef est nécessaire afin de définir le délimiteur dans ce fichier via la clef **delimiter**, le principe étant de mettre en place un fichier par driver comme un fichier CSV, les offres étant séparées par ce délimiteur.

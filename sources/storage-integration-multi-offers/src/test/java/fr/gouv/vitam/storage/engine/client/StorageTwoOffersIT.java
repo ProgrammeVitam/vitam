@@ -43,7 +43,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -51,6 +50,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferSyncRequest;
 import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncStatus;
 import fr.gouv.vitam.storage.offers.common.database.OfferCollections;
+import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
@@ -62,8 +62,10 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
@@ -121,29 +123,24 @@ public class StorageTwoOffersIT {
     private static final String SECOND_OFFER_ID = "default2";
     private static final String OFFER_ID = "default";
     private static final String STRATEGY_ID = "default";
-    private static final String DB_OFFER1 = "vitamoffer1";
-    private static final String DB_OFFER2 = "vitamoffer2";
 
     static StorageClient storageClient;
     static WorkspaceClient workspaceClient;
     static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
+    private static final String OFFER_FOLDER = "offer";
+    private static final String SECOND_FOLDER = "offer2";
 
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
 
     @ClassRule
-    public static TempFolderRule tempFolder = new TempFolderRule();
-
-    public static String OFFER_FOLDER;
-
-    public static String SECOND_FOLDER;
-
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
-    public static MongoRule mongoRuleOffer1 = new MongoRule(DB_OFFER1, VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer1 = new MongoRule(VitamCollection.getMongoClientOptions() );
 
     @ClassRule
-    public static MongoRule mongoRuleOffer2 = new MongoRule(DB_OFFER2, VitamCollection.getMongoClientOptions());
+    public static MongoRule mongoRuleOffer2 = new MongoRule(VitamCollection.getMongoClientOptions());
 
     private static OfferSyncAdminResource offerSyncAdminResource;
 
@@ -153,8 +150,6 @@ public class StorageTwoOffersIT {
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
-        OFFER_FOLDER = tempFolder.newFolder().getAbsolutePath();
-        SECOND_FOLDER = tempFolder.newFolder().getAbsolutePath();
 
         OfferCollections.OFFER_LOG.setPrefix(GUIDFactory.newGUID().getId());
         OfferCollections.OFFER_SEQUENCE.setPrefix(GUIDFactory.newGUID().getId());
@@ -183,8 +178,8 @@ public class StorageTwoOffersIT {
 
     @AfterClass
     public static void tearDownAfterClass() {
-        mongoRuleOffer1.handleAfterClass();
-        mongoRuleOffer2.handleAfterClass();
+        mongoRuleOffer1.handleAfterClass("vitamoffer1");
+        mongoRuleOffer2.handleAfterClass("vitamoffer2");
         VitamClientFactory.resetConnections();
     }
 
@@ -198,15 +193,15 @@ public class StorageTwoOffersIT {
     public void cleanup() throws IOException {
         cleanOffer(OFFER_FOLDER);
         cleanOffer(SECOND_FOLDER);
-        mongoRuleOffer1.handleAfter();
-        mongoRuleOffer2.handleAfter();
+        mongoRuleOffer1.handleAfter("vitamoffer1");
+        mongoRuleOffer2.handleAfter("vitamoffer2");
     }
 
     private void cleanOffer(String offerFolder) throws IOException {
         File offerDir = new File(offerFolder);
-        if (offerDir.exists()) {
+        if(offerDir.exists()) {
             File[] containerDirs = offerDir.listFiles(File::isDirectory);
-            if (containerDirs != null) {
+            if(containerDirs != null) {
                 for (File container : containerDirs) {
                     FileUtils.cleanDirectory(container);
                 }
@@ -453,6 +448,7 @@ public class StorageTwoOffersIT {
         checkFileExistenceAndContent("file1", UNIT, true, "data1_V2".getBytes(), OFFER_ID, SECOND_OFFER_ID);
     }
 
+    @Ignore
     @Test
     @RunWithCustomExecutor
     public void synchronizeOneOfferFromAnotherFromScratch() throws Exception {
@@ -569,8 +565,7 @@ public class StorageTwoOffersIT {
             getBasicAuthnToken()).execute();
     }
 
-    private void verifyOfferSyncStatus(Response<Void> offerSyncResponseItemCall, Long startOffset, long expectedOffset)
-        throws IOException {
+    private void verifyOfferSyncStatus(Response<Void> offerSyncResponseItemCall, Long startOffset, long expectedOffset) throws IOException {
         assertThat(offerSyncResponseItemCall.code()).isEqualTo(200);
 
         awaitSynchronizationTermination(60);

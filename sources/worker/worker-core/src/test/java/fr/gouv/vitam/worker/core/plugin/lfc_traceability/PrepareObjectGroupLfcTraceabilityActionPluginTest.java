@@ -47,8 +47,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
@@ -73,9 +71,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -132,33 +127,14 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         "PrepareObjectGroupLfcTraceabilityActionPlugin/lastTraceability.json";
     private static final String GOT_METADATA_JSON = "PrepareObjectGroupLfcTraceabilityActionPlugin/md_gots.json";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
     private WorkspaceClient workspaceClient;
-
-    @Mock
-    private MetaDataClient metadataClient;
-
-    @Mock
     private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private MetaDataClientFactory metadataClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-    @Mock
+    private MetaDataClient metaDataClient;
+    private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
-
-
-    @Mock
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private LogbookOperationsClient logbookOperationsClient;
-
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -180,10 +156,9 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         SystemPropertyUtil.refresh();
         storedFilesDirectory = folder.newFolder("storedFiles");
 
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
 
         doAnswer(invocation -> {
             String filename = invocation.getArgument(1);
@@ -193,6 +168,11 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
             return null;
         }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
             anyString(), org.mockito.ArgumentMatchers.any(InputStream.class));
+
+        metaDataClient = mock(MetaDataClient.class);
+        metaDataClientFactory = mock(MetaDataClientFactory.class);
+        when(metaDataClientFactory.getClient())
+            .thenReturn(metaDataClient);
 
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
@@ -204,7 +184,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         when(logbookOperationsClientFactory.getClient())
             .thenReturn(logbookOperationsClient);
 
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "PrepareObjectGroupLfcTraceabilityActionPluginTest", "workerId",
+        handlerIO = new HandlerIOImpl(workspaceClient, "PrepareObjectGroupLfcTraceabilityActionPluginTest", "workerId",
             Lists.newArrayList());
         // mock later ?
         out = new ArrayList<>();
@@ -244,7 +224,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
                 RequestResponseOK.class, JsonNode.class);
 
-        when(metadataClient.getObjectGroupsByIdsRaw(eq(new HashSet<>(Arrays.asList(
+        when(metaDataClient.getObjectGroupsByIdsRaw(eq(new HashSet<>(Arrays.asList(
             "aebaaaaaaag457juaap7qaldnejfprqaaaaq",
             "aebaaaaaaag457juaap7qaldnejfpsiaaaaq"
         ))))).thenReturn(metadataResponse);
@@ -253,7 +233,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, 100000);
         PrepareObjectGroupLfcTraceabilityActionPlugin handler =
             new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
+                metaDataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         LocalDateTime snapshot1 = LocalDateUtil.now();
@@ -316,7 +296,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(GOT_METADATA_JSON),
                 RequestResponseOK.class, JsonNode.class);
 
-        when(metadataClient.getObjectGroupsByIdsRaw(eq(new HashSet<>(Arrays.asList(
+        when(metaDataClient.getObjectGroupsByIdsRaw(eq(new HashSet<>(Arrays.asList(
             "aebaaaaaaag457juaap7qaldnejfprqaaaaq",
             "aebaaaaaaag457juaap7qaldnejfpsiaaaaq"
         ))))).thenReturn(metadataResponse);
@@ -326,7 +306,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, maxEntries);
         PrepareObjectGroupLfcTraceabilityActionPlugin handler =
             new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
+                metaDataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -382,7 +362,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         WorkerParameters params = createExecParams(300, 100000);
         PrepareObjectGroupLfcTraceabilityActionPlugin handler =
             new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
+                metaDataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -441,7 +421,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         WorkerParameters params = createExecParams(300, 100000);
         PrepareObjectGroupLfcTraceabilityActionPlugin handler =
             new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
+                metaDataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -469,11 +449,11 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         reset(logbookOperationsClient);
         when(logbookOperationsClient.selectOperation(any())).thenReturn(lastTraceability);
 
-        doThrow(new VitamClientException("prb")).when(metadataClient).getObjectGroupsByIdsRaw(any());
+        doThrow(new VitamClientException("prb")).when(metaDataClient).getObjectGroupsByIdsRaw(any());
 
         WorkerParameters params = createExecParams(300, 100000);
         PrepareObjectGroupLfcTraceabilityActionPlugin handler = new PrepareObjectGroupLfcTraceabilityActionPlugin(
-            metadataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
+            metaDataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         final ItemStatus response = handler.execute(params, handlerIO);
@@ -514,10 +494,10 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         Set<String> gotIds2 =
             objectsLFC2.stream().skip(1).map(entry -> entry.get("_id").asText()).collect(Collectors.toSet());
 
-        when(metadataClient.getObjectGroupsByIdsRaw(gotIds1))
+        when(metaDataClient.getObjectGroupsByIdsRaw(gotIds1))
             .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MD_GOTS_BIG_1_JSON),
                 RequestResponseOK.class, JsonNode.class));
-        when(metadataClient.getObjectGroupsByIdsRaw(gotIds2))
+        when(metaDataClient.getObjectGroupsByIdsRaw(gotIds2))
             .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(MD_GOTS_BIG_2_JSON),
                 RequestResponseOK.class, JsonNode.class));
 
@@ -525,7 +505,7 @@ public class PrepareObjectGroupLfcTraceabilityActionPluginTest {
         WorkerParameters params = createExecParams(temporizationDelayInSeconds, 100000);
         PrepareObjectGroupLfcTraceabilityActionPlugin handler =
             new PrepareObjectGroupLfcTraceabilityActionPlugin(
-                metadataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
+                metaDataClientFactory, logbookLifeCyclesClientFactory, logbookOperationsClientFactory, 10);
 
         // When
         LocalDateTime snapshot1 = LocalDateUtil.now();

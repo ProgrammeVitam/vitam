@@ -231,7 +231,7 @@ Rôle :
 Fonctions :
 
 * Offre de stockage fournie par défaut
-* Stockage simple des objets numériques sur un système de fichiers local ou sur un stockage objet Swift ou sur stockage objet S3
+* Stockage simple des objets numériques sur un système de fichiers local ou sur un stockage objet Swift
 * Log des écritures dans l'offre en permettant le rejeu
 
 Données gérées :

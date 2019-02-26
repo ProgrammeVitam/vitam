@@ -26,7 +26,23 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.events.XMLEvent;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -37,18 +53,13 @@ import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientMock;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -58,22 +69,16 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.events.XMLEvent;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
+@PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
+    LogbookOperationsClientFactory.class, ValidationXsdUtils.class})
 public class TransferNotificationActionHandlerATROKFileTest {
     private static final String ARCHIVE_ID_TO_GUID_MAP =
         "ARCHIVE_ID_TO_GUID_MAP_obj.json";
@@ -90,18 +95,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
     private static final String HANDLER_ID = "ATR_NOTIFICATION";
 
     private WorkspaceClient workspaceClient;
-    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private StorageClient storageClient;
-    private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        mock(LogbookLifeCyclesClientFactory.class);
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private static final LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
-    private LogbookOperationsClient logbookOperationsClient;
-
-    private static final ValidationXsdUtils validationXsdUtils = mock(ValidationXsdUtils.class);
-
+    private WorkspaceClientFactory workspaceClientFactory;
     private HandlerIOImpl handlerIO;
     private List<IOParameter> in;
     private List<IOParameter> out;
@@ -117,25 +111,20 @@ public class TransferNotificationActionHandlerATROKFileTest {
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq2203");
 
-        String objectId = "objectId";
-
+        LogbookOperationsClientFactory.changeMode(null);
+        LogbookLifeCyclesClientFactory.changeMode(null);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-
-        logbookOperationsClient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-
-        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-
-
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId", newArrayList(objectId));
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        String objectId = "objectId";
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 
-        when(validationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
+        PowerMockito.mockStatic(ValidationXsdUtils.class);
+        PowerMockito.when(ValidationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
 
         in = new ArrayList<>();
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
@@ -149,8 +138,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
         handlerIO.addOutputResult(4, PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS), false);
         handlerIO.addOutputResult(5, PropertiesUtils.getResourceFile(OBJECT_GROUP_ID_TO_GUID_MAP), false);
 
-        File existingGOTGUIDToNewGotGUIDInAttachmentFile =
-            handlerIO.getNewLocalFile("existingGOTGUIDToNewGotGUIDInAttachmentFile");
+        File existingGOTGUIDToNewGotGUIDInAttachmentFile = handlerIO.getNewLocalFile("existingGOTGUIDToNewGotGUIDInAttachmentFile");
         JsonHandler.writeAsFile(JsonHandler.createObjectNode(), existingGOTGUIDToNewGotGUIDInAttachmentFile);
         handlerIO.addOutputResult(6, existingGOTGUIDToNewGotGUIDInAttachmentFile, false);
 
@@ -167,8 +155,7 @@ public class TransferNotificationActionHandlerATROKFileTest {
     @Test
     public void givenXMLCreationWhenValidThenResponseOK_and_objectGroupGuid_OK()
         throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
-            logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler();) {
             final InputStream xmlFile;
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             handlerIO.reset();
@@ -177,9 +164,8 @@ public class TransferNotificationActionHandlerATROKFileTest {
             WorkerParameters parameters =
                 params.putParameterValue(WorkerParameterName.workflowStatusKo, StatusCode.OK.name())
                     .putParameterValue(WorkerParameterName.logBookTypeProcess, LogbookTypeProcess.INGEST.name());
-
-            when(logbookOperationsClient.selectOperationById(any())).thenReturn(new LogbookOperationsClientMock().selectOperationById("opi"));
-            final ItemStatus response = handler.execute(parameters, handlerIO);
+            final ItemStatus response = handler
+                .execute(parameters, handlerIO);
 
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(out.get(0).getUri().getPath());

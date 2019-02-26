@@ -50,17 +50,12 @@ public class CheckSedaActionHandler extends ActionHandler {
     private static final String SUBTASK_CHECK_MULTI_MANIFEST = CONTAINER_FORMAT + "." + FILE;
     private static final String SUBTASK_CHECK_MULTI_FOLDER_CONTENT_ID = CONTAINER_FORMAT + "." + DIRECTORY;
 
-    private final SedaUtilsFactory sedaUtilsFactory;
-
     /**
      * Constructor with parameter SedaUtilsFactory
+     *
      */
     public CheckSedaActionHandler() {
-        this(SedaUtilsFactory.getInstance());
-    }
-
-    public CheckSedaActionHandler(SedaUtilsFactory sedaUtilsFactory) {
-        this.sedaUtilsFactory = sedaUtilsFactory;
+        // empty constructor
     }
 
     /**
@@ -75,7 +70,7 @@ public class CheckSedaActionHandler extends ActionHandler {
         checkMandatoryParameters(params);
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-        final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
+        final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
 
         CheckSedaValidationStatus status;
         status = sedaUtils.checkSedaValidation(params, itemStatus);

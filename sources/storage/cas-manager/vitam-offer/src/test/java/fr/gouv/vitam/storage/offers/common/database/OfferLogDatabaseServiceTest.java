@@ -77,7 +77,7 @@ public class OfferLogDatabaseServiceTest {
     private OfferLogDatabaseService offerLogDatabaseService;
 
     @BeforeClass
-    public static void setUpBeforeClass() {
+    public static void setUpBeforeClass() throws Exception {
         for (OfferCollections o : OfferCollections.values()) {
             o.setPrefix(PREFIX);
             mongoRule.addCollectionToBePurged(o.getName());

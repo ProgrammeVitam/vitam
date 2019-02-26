@@ -26,9 +26,54 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
+import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
+import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
+
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
@@ -38,7 +83,6 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFou
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -63,13 +107,9 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.AsyncInputStreamHelper;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.server.application.resources.BasicVitamStatusServiceImpl;
-import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
-import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.ihmdemo.common.api.IhmWebAppHeader;
 import fr.gouv.vitam.ihmdemo.common.pagination.OffsetBasedPagination;
@@ -86,41 +126,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 
 /**
  * Web Application Resource class
@@ -166,9 +171,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String DEFAULT = "default";
     private static final String RULE_ACTIONS = "ruleActions";
 
-    private final UserInterfaceTransactionManager userInterfaceTransactionManager;
-    private final PaginationHelper paginationHelper;
-    private final DslQueryHelper dslQueryHelper;
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
     private List<String> secureMode;
 
@@ -177,12 +179,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param webApplicationConfigonfig configuration
      */
-    public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig, UserInterfaceTransactionManager userInterfaceTransactionManager, PaginationHelper paginationHelper, DslQueryHelper dslQueryHelper) {
+    public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig) {
         super(new BasicVitamStatusServiceImpl());
         this.secureMode = webApplicationConfigonfig.getSecureMode();
-        this.userInterfaceTransactionManager = userInterfaceTransactionManager;
-        this.paginationHelper = paginationHelper;
-        this.dslQueryHelper = dslQueryHelper;
         LOGGER.debug("init Admin Management Resource server");
 
         WorkspaceClientFactory.changeMode(webApplicationConfigonfig.getWorkspaceUrl());
@@ -400,7 +399,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             VitamContext context = new VitamContext(TENANT_ID);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
 
-            final RequestResponse logbookOperationResult = userInterfaceTransactionManager
+            final RequestResponse logbookOperationResult = UserInterfaceTransactionManager
                 .selectOperationbyId(operationId, context);
             if (logbookOperationResult != null && logbookOperationResult.toJsonNode().has(RESULTS_FIELD)) {
                 final JsonNode logbookOperation = logbookOperationResult.toJsonNode().get(RESULTS_FIELD).get(0);
@@ -585,7 +584,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
-            final JsonNode query = dslQueryHelper.createSelectAndUpdateDSLQuery(optionsMap);
+            final JsonNode query = DslQueryHelper.createSelectAndUpdateDSLQuery(optionsMap);
 
             try (final AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance()
                 .getClient()) {
@@ -654,7 +653,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination));
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
 
                 return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())
@@ -670,17 +669,17 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 ParametersChecker.checkParameter("Search criteria payload is mandatory", options);
                 SanityChecker.checkJsonAll(JsonHandler.toJsonNode(options));
                 final Map<String, Object> optionsMap = JsonHandler.getMapFromString(options);
-                final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
+                final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
                 LOGGER.debug("query >>>>>>>>>>>>>>>>> : " + query);
-                result = userInterfaceTransactionManager.selectOperation(query,
-                    userInterfaceTransactionManager.getVitamContext(request));
+                result = UserInterfaceTransactionManager.selectOperation(query,
+                    UserInterfaceTransactionManager.getVitamContext(request));
 
                 // save result
                 LOGGER.debug("resultr <<<<<<<<<<<<<<<<<<<<<<<: " + result);
-                paginationHelper.setResult(sessionId, result.toJsonNode());
+                PaginationHelper.setResult(sessionId, result.toJsonNode());
                 // pagination
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(result.toJsonNode(), pagination));
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(result.toJsonNode(), pagination));
 
             } catch (final InvalidCreateOperationException | InvalidParseOperationException e) {
                 LOGGER.error("Bad request Exception ", e);
@@ -719,7 +718,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
             final RequestResponse<LogbookOperation> result =
-                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, context);
             return Response.status(Status.OK).entity(result).build();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
@@ -779,7 +778,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
             final RequestResponse<LogbookOperation> result =
-                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, context);
 
             RequestResponseOK<LogbookOperation> responseOK = (RequestResponseOK<LogbookOperation>) result;
             LogbookOperation operation = responseOK.getFirstResult();
@@ -835,7 +834,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         try {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
-            final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
 
             try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
                 RequestResponse<AccessContractModel> response =
@@ -886,7 +885,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             requestId = requestIds.get(0);
             // get result from shiro session
             try {
-                result = RequestResponseOK.getFromJsonNode(paginationHelper.getResult(sessionId, pagination));
+                result = RequestResponseOK.getFromJsonNode(PaginationHelper.getResult(sessionId, pagination));
 
                 return Response.status(Status.OK).entity(result).header(GlobalDataRest.X_REQUEST_ID, requestId)
                     .header(IhmDataRest.X_OFFSET, pagination.getOffset())

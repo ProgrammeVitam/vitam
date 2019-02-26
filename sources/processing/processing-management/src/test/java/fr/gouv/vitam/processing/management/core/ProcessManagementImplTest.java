@@ -59,17 +59,15 @@ import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
-import fr.gouv.vitam.worker.client.WorkerClient;
-import fr.gouv.vitam.worker.client.WorkerClientFactory;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.time.LocalDate;
 import java.time.ZoneOffset;
@@ -83,29 +81,18 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.net.ssl.*"})
+@PrepareForTest({WorkspaceProcessDataManagement.class, ProcessDataAccessImpl.class})
 public class ProcessManagementImplTest {
 
     private ProcessManagementImpl processManagementImpl;
     private static final String CONTAINER_NAME = "container1";
     private static final String ID = "id1";
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
-    private ProcessDataAccessImpl processDataAccess;
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-    @Mock
-    private WorkspaceClient workspaceClient;
-    @Mock
-    private WorkspaceProcessDataManagement processDataManagement;
-
-
+    private static WorkspaceProcessDataManagement processDataManagement;
     private IWorkerManager workerManager = null;
     private ProcessDistributor processDistributor = null;
 
@@ -115,30 +102,23 @@ public class ProcessManagementImplTest {
 
     @Before
     public void setup() {
-        reset(workspaceClientFactory);
-        reset(workspaceClient);
-        reset(processDataAccess);
-        reset(processDataManagement);
+        PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
+        processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
+        PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
 
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
-        WorkerClient workerClient = mock(WorkerClient.class);
-        when(workerClientFactory.getClient()).thenReturn(workerClient);
-        workerManager = new WorkerManager(workerClientFactory);
-        processDistributor =
-            new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement, workspaceClientFactory, workerClientFactory);
+        workerManager = new WorkerManager();
+        processDistributor = new ProcessDistributorImpl(workerManager);
     }
 
     @Test(expected = ProcessingException.class)
     @RunWithCustomExecutor
     public void testResumeNotInitiatedWorkflow() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
-        verifyNoMoreInteractions(processDataManagement);
-        when(processDataManagement.getProcessWorkflowFor(eq(1), anyString()))
+        PowerMockito.verifyNoMoreInteractions(processDataManagement);
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(1), anyString()))
             .thenReturn(new HashMap<>());
         processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
-                processDataManagement);
+            new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         processManagementImpl.resume(
             WorkerParametersFactory.newWorkerParameters(ID, ID, CONTAINER_NAME, ID, Lists.newArrayList(ID),
                 "http://localhost:8083",
@@ -151,12 +131,10 @@ public class ProcessManagementImplTest {
     public void loadNoPersistedWorkflowTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(2);
         // No persisted Workflow
-        verifyNoMoreInteractions(processDataManagement);
-        when(processDataManagement.getProcessWorkflowFor(eq(2), anyString()))
+        PowerMockito.verifyNoMoreInteractions(processDataManagement);
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(2), anyString()))
             .thenReturn(new HashMap<>());
-        processManagementImpl =
-            new ProcessManagementImpl(new ServerConfiguration(), processDistributor, processDataAccess,
-                processDataManagement);
+        processManagementImpl = new ProcessManagementImpl(new ServerConfiguration(), processDistributor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(2);
         Assert.assertNotNull(processWorkflowList);
@@ -167,14 +145,13 @@ public class ProcessManagementImplTest {
     @Test
     public void loadPersitedPausedWorkflowTest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(3);
-        when(processDataAccess.findAllProcessWorkflow(eq(3)))
-            .thenReturn(getPausedWorkflowList(3));
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(3), anyString()))
+            .thenReturn(getPausedWorkflowMap());
 
         ServerConfiguration serverConfiguration = new ServerConfiguration();
         serverConfiguration.setUrlMetadata("fakeurl:1111");
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
-        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor, processDataAccess,
-            processDataManagement);
+        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor);
         Assert.assertNotNull(processManagementImpl);
         List<ProcessWorkflow> processWorkflowList = processManagementImpl.findAllProcessWorkflow(3);
         Assert.assertNotNull(processWorkflowList);
@@ -200,10 +177,15 @@ public class ProcessManagementImplTest {
         serverConfiguration.setUrlMetadata("fakeurl:1111");
         serverConfiguration.setUrlWorkspace("fakeurl:1112");
 
+        ProcessDataAccessImpl processDataAccess = mock(ProcessDataAccessImpl.class);
+
+        PowerMockito.mockStatic(ProcessDataAccessImpl.class);
+
+        when(ProcessDataAccessImpl.getInstance()).thenReturn(processDataAccess);
+
         when(processDataAccess.findAllProcessWorkflow(eq(0))).thenReturn(getPausedWorkflowList(5));
 
-        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor, processDataAccess,
-            processDataManagement);
+        processManagementImpl = new ProcessManagementImpl(serverConfiguration, processDistributor);
         Assert.assertNotNull(processManagementImpl);
 
         ProcessQuery pq = new ProcessQuery();

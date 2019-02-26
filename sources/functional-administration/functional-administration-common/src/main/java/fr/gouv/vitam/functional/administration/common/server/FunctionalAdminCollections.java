@@ -160,19 +160,20 @@ public enum FunctionalAdminCollections {
                     collection.initialize(collection.getEsClient());
                 }
             }
-        }
-        if (null != FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()) {
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
-                .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                    new IndexOptions().unique(true));
-        }
 
-        if (null != FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()) {
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
-                    new IndexOptions().unique(true));
+            if (collection == FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL) {
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
+                    .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
+                        new IndexOptions().unique(true));
+            }
+
+            if (collection == FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY) {
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
+                        new IndexOptions().unique(true));
+            }
+
         }
-        // TODO: 30/01/19 Add indexes of other collections
 
     }
 
@@ -182,8 +183,8 @@ public enum FunctionalAdminCollections {
     }
 
     @VisibleForTesting
-    public static void resetVitamSequenceCounter() {
-        FunctionalAdminCollections.VITAM_SEQUENCE.getCollection()
+    public static void cleanCollection(FunctionalAdminCollections collection) {
+        collection.vitamCollection.getCollection()
             .updateMany(Filters.exists(VitamSequence.ID), Updates.set(VitamSequence.COUNTER, 0));
     }
 
@@ -257,7 +258,7 @@ public enum FunctionalAdminCollections {
     /**
      * Initialize the collection
      *
-     * @param db database type
+     * @param db       database type
      * @param recreate true is as recreate type
      */
     protected void initialize(final MongoDatabase db, final boolean recreate) {
@@ -335,6 +336,19 @@ public enum FunctionalAdminCollections {
      */
     public ElasticsearchAccessFunctionalAdmin getEsClient() {
         return (ElasticsearchAccessFunctionalAdmin) vitamCollection.getEsClient();
+    }
+
+    /**
+     * @param collection
+     * @return the corresponding FunctionalAdminCollections
+     */
+    public static FunctionalAdminCollections getFromVitamCollection(VitamCollection collection) {
+        for (FunctionalAdminCollections coll : FunctionalAdminCollections.values()) {
+            if (coll.getName().equals(collection.getName())) {
+                return coll;
+            }
+        }
+        return null;
     }
 
     /**

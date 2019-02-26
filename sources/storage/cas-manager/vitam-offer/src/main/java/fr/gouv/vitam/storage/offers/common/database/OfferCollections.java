@@ -22,7 +22,7 @@ public enum OfferCollections {
         return name;
     }
 
-    public void setPrefix(String prefix) { // NOSONAR
+    public void setPrefix(String prefix) {
         this.name = prefix + getClazz().getSimpleName();
     }
 }

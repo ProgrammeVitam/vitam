@@ -15,8 +15,6 @@ import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.worker.core.distribution.JsonLineIterator;
@@ -28,9 +26,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -41,6 +36,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class LogbookUnitLifeCycleTraceabilityHelperTest {
@@ -60,26 +56,10 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
     private HandlerIOImpl handlerIO;
     private List<IOParameter> in;
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
     private WorkspaceClient workspaceClient;
-
-    @Mock
     private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-
-    @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock
     private LogbookOperationsClient logbookOperationsClient;
-
     private ItemStatus itemStatus;
 
     @Rule
@@ -93,13 +73,16 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
         LOGBOOK_OPERATION_EVENT_DATE = LocalDateUtil.fromDate(LocalDateUtil.getDate("2016-06-10T11:56:35.914"));
 
-
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
+        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
         String objectId = "objectId";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "Test", "workerId",
-            Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(workspaceClient, "Test", "workerId", Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 
         in = new ArrayList<>();

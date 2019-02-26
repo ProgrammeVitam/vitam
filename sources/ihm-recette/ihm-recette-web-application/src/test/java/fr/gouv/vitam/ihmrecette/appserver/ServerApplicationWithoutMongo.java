@@ -28,7 +28,6 @@
 package fr.gouv.vitam.ihmrecette.appserver;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
-import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,9 +40,6 @@ import javax.ws.rs.core.Context;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
-import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
-import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 
 /**
  * Application server without mongo and elasticsearch
@@ -53,8 +49,7 @@ import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 public class ServerApplicationWithoutMongo extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
-    private static UserInterfaceTransactionManager userInterfaceTransactionManager =
-        mock(UserInterfaceTransactionManager.class);
+
     private Set<Object> singletons;
 
     /**
@@ -73,8 +68,7 @@ public class ServerApplicationWithoutMongo extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             
-            final WebApplicationResource resource = new WebApplicationResource(configuration, userInterfaceTransactionManager,
-                PaginationHelper.getInstance(), DslQueryHelper.getInstance());
+            final WebApplicationResource resource = new WebApplicationResource(configuration);
             singletons.add(resource);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -90,9 +84,5 @@ public class ServerApplicationWithoutMongo extends Application {
     @Override
     public Set<Object> getSingletons() {
         return singletons;
-    }
-
-    public static UserInterfaceTransactionManager getUserInterfaceTransactionManager() {
-        return userInterfaceTransactionManager;
     }
 }

@@ -41,7 +41,6 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -75,13 +74,12 @@ public class PreservationStorageMetadataAndLfc extends StoreMetadataObjectAction
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
     public PreservationStorageMetadataAndLfc() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), StorageClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance());
     }
 
     @VisibleForTesting
     PreservationStorageMetadataAndLfc(MetaDataClientFactory metaDataClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory) {
-        super(storageClientFactory);
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
     }

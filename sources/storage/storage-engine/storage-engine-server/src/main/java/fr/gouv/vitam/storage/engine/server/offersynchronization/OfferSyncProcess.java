@@ -81,9 +81,6 @@ public class OfferSyncProcess {
         this.distribution = distribution;
         this.bulkSize = bulkSize;
         this.offerSyncThreadPoolSize = offerSyncThreadPoolSize;
-        this.offerSyncStatus = new OfferSyncStatus(
-            VitamThreadUtils.getVitamSession().getRequestId(), StatusCode.UNKNOWN, null, null,
-            null, null, null, null, null);
     }
 
     /**

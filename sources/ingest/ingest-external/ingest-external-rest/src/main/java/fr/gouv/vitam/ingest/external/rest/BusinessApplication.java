@@ -28,14 +28,12 @@ package fr.gouv.vitam.ingest.external.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.security.internal.filter.AuthorizationFilter;
 import fr.gouv.vitam.security.internal.filter.InternalSecurityFilter;
 
@@ -60,7 +58,7 @@ public class BusinessApplication extends Application {
 
     /**
      * Constructor
-     *
+     * 
      * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -77,10 +75,7 @@ public class BusinessApplication extends Application {
             singletons.add(new InternalSecurityFilter());
             singletons.add(new AuthorizationFilter());
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(
-                new IngestExternalResource(configuration, secureEndpointRegistry, FormatIdentifierFactory.getInstance(),
-                    IngestInternalClientFactory
-                        .getInstance()));
+            singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry));
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
             singletons.add(secureEndpointScanner);

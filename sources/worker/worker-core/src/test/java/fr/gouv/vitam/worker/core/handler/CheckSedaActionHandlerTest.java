@@ -26,6 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -42,21 +54,18 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({SedaUtilsFactory.class})
 public class CheckSedaActionHandlerTest {
-    private SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
-    private CheckSedaActionHandler handler = new CheckSedaActionHandler(sedaUtilsFactory);
+    CheckSedaActionHandler handler = new CheckSedaActionHandler();
     private static final String HANDLER_ID = "CHECK_SEDA";
     private HandlerIOImpl action;
     private SedaUtils sedaUtils;
@@ -65,11 +74,12 @@ public class CheckSedaActionHandlerTest {
 
     @Before
     public void setUp() {
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
         guid = GUIDFactory.newGUID();
         action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
         in = new ArrayList<>();
-        when(sedaUtilsFactory.createSedaUtils(action)).thenReturn(sedaUtils);
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
     }
 
     @After
@@ -79,16 +89,16 @@ public class CheckSedaActionHandlerTest {
 
     @Test
     public void givenWorkspaceWhenXmlNotExistThenReturnResponseKO()
-        throws ProcessingException {
+            throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(any(), any());
         when(sedaUtils.getMandatoryValues(any())).thenThrow(new ProcessingException(""));
         assertNotNull(CheckSedaActionHandler.getId());
         assertEquals(CheckSedaActionHandler.getId(), HANDLER_ID);
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         // itemId is used as eventType so do not change it
@@ -98,25 +108,27 @@ public class CheckSedaActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceWhenXmlExistThenReturnResponseOK() {
+    public void givenWorkspaceWhenXmlExistThenReturnResponseOK()
+            throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.VALID).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
 
     @Test
-    public void givenWorkspaceWhenXmlIsEmptyThenReturnResponseKO() {
+    public void givenWorkspaceWhenXmlIsEmptyThenReturnResponseKO()
+            throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NOT_XSD_VALID).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         // itemId is used as eventType so do not change it
@@ -126,13 +138,14 @@ public class CheckSedaActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceWhenFileNotXmlThenReturnResponseKO() {
+    public void givenWorkspaceWhenFileNotXmlThenReturnResponseKO()
+            throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NOT_XML_FILE).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         // itemId is used as eventType so do not change it
@@ -142,30 +155,31 @@ public class CheckSedaActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceWhenXmlNotThereThenReturnResponseKO() {
+    public void givenWorkspaceWhenXmlNotThereThenReturnResponseKO()
+            throws XMLStreamException, IOException, ProcessingException {
         Mockito.doReturn(CheckSedaValidationStatus.NO_FILE).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         // itemId is used as eventType so do not change it
-        assertEquals(response.getItemId(), HANDLER_ID);
+        assertEquals(response.getItemId(), HANDLER_ID); 
         // global outcome detail subcode is used to specify error type
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "NO_FILE");
     }
 
     @Test
-    public void givenWorkspaceWhenThereAreManyManifestThenReturnResponseKO() {
-        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST).when(sedaUtils)
-            .checkSedaValidation(any(), any());
+    public void givenWorkspaceWhenThereAreManyManifestThenReturnResponseKO()
+            throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_MANIFEST).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         // itemId is used as eventType so do not change it
@@ -175,14 +189,14 @@ public class CheckSedaActionHandlerTest {
     }
 
     @Test
-    public void givenWorkspaceWhenThereAreManyFolderThenReturnResponseKO() {
-        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT).when(sedaUtils)
-            .checkSedaValidation(any(), any());
+    public void givenWorkspaceWhenThereAreManyFolderThenReturnResponseKO()
+            throws XMLStreamException, IOException, ProcessingException {
+        Mockito.doReturn(CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT).when(sedaUtils).checkSedaValidation(any(), any());
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                        .setUrlMetadata("http://localhost:8083")
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         // itemId is used as eventType so do not change it

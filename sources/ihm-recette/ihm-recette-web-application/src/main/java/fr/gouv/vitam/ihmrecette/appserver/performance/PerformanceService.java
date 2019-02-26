@@ -77,7 +77,7 @@ public class PerformanceService {
     public static final int NUMBER_OF_RETRY = 100;
     private final IngestExternalClientFactory ingestClientFactory;
     private final AdminExternalClientFactory adminClientFactory;
-    private final UserInterfaceTransactionManager userInterfaceTransactionManager;
+
     private AtomicBoolean performanceTestInProgress = new AtomicBoolean(false);
 
     /**
@@ -96,17 +96,16 @@ public class PerformanceService {
      */
     public PerformanceService(Path sipDirectory, Path performanceReportDirectory) {
         this(IngestExternalClientFactory.getInstance(), AdminExternalClientFactory.getInstance(), sipDirectory,
-            performanceReportDirectory, UserInterfaceTransactionManager.getInstance());
+            performanceReportDirectory);
     }
 
     public PerformanceService(IngestExternalClientFactory ingestClientFactory,
         AdminExternalClientFactory adminClientFactory, Path sipDirectory,
-        Path performanceReportDirectory, UserInterfaceTransactionManager userInterfaceTransactionManager) {
+        Path performanceReportDirectory) {
         this.sipDirectory = sipDirectory;
         this.ingestClientFactory = ingestClientFactory;
         this.adminClientFactory = adminClientFactory;
         this.performanceReportDirectory = performanceReportDirectory;
-        this.userInterfaceTransactionManager = userInterfaceTransactionManager;
     }
 
     /**
@@ -164,8 +163,7 @@ public class PerformanceService {
     }
 
     private void launchTestInParallel(PerformanceModel model, String fileName, int tenantId) throws IOException {
-        ExecutorService launcherPerformanceExecutor =
-            Executors.newFixedThreadPool(model.getParallelIngest(), VitamThreadFactory.getInstance());
+        ExecutorService launcherPerformanceExecutor = Executors.newFixedThreadPool(model.getParallelIngest(), VitamThreadFactory.getInstance());
         ExecutorService reportExecutor = Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
 
         LOGGER.info("start performance test");
@@ -207,7 +205,7 @@ public class PerformanceService {
             VitamContext context = new VitamContext(tenantId);
             context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
             final RequestResponse<LogbookOperation> requestResponse =
-                userInterfaceTransactionManager.selectOperationbyId(operationId, context);
+                UserInterfaceTransactionManager.selectOperationbyId(operationId, context);
 
             if (requestResponse.isOk()) {
                 RequestResponseOK<LogbookOperation> requestResponseOK =

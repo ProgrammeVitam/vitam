@@ -51,8 +51,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -68,10 +66,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -88,6 +83,7 @@ import static org.mockito.AdditionalMatchers.and;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
@@ -116,24 +112,9 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
     private static final String TRACEABILITY_STATS =
         "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityStats.json";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
     private WorkspaceClient workspaceClient;
-
-    @Mock
     private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-
-    @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
     private final WorkerParameters params =
@@ -155,12 +136,16 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
+        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
         String objectId = "objectId";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-            "FinalizeLifecycleTraceabilityActionHandlerTest", "workerId",
+        handlerIO = new HandlerIOImpl(workspaceClient, "FinalizeLifecycleTraceabilityActionHandlerTest", "workerId",
             Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 

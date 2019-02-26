@@ -57,9 +57,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientMock;
+import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleUnitParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -72,6 +70,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientRest;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -85,11 +84,14 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.core.Response;
@@ -107,16 +109,16 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({MetaDataClientFactory.class, LogbookOperationsClientFactory.class,
+    LogbookLifeCyclesClientFactory.class, StorageClientFactory.class, WorkspaceClientFactory.class})
 public class AccessInternalModuleImplTest {
 
     @Rule
@@ -124,35 +126,12 @@ public class AccessInternalModuleImplTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private AccessInternalModuleImpl accessModuleImpl;
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-
-    @Mock
-    private MetaDataClientFactory metaDataClientFactory;
-    @Mock
     private MetaDataClient metaDataClient;
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-    @Mock
     private WorkspaceClient workspaceClient;
-    @Mock
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock
+
     private LogbookOperationsClient logbookOperationClient;
-    @Mock
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    @Mock
     private LogbookLifeCyclesClient logbookLifeCycleClient;
-    @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
-    private AdminManagementClientFactory adminManagementClientFactory;
-    @Mock
-    private AdminManagementClient adminManagementClient;
-
-    @Mock
     private StorageClient storageClient;
     private static JunitHelper junitHelper;
     private static int serverPort;
@@ -215,6 +194,10 @@ public class AccessInternalModuleImplTest {
             "{\"Rule\":\"CLASS-00002\",\"StartDate\":\"2017-07-01\"}," +
             "{\"Rule\":\"CLASS-00003\",\"StartDate\":\"2017-07-01\"}" + "]}}}]}";
 
+    private static final String QUERY_FINAL_ACTION =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.StorageRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}],\"FinalAction\":\"Copy\"}}}]}";
+
     private static final String QUERY_CREATE_STRING =
         "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
             "{\"$set\":{\"#management.ReuseRule\":{Rules:[" + "{\"Rule\":\"REU-00001\",\"StartDate\":\"2017-07-01\"}" +
@@ -247,6 +230,9 @@ public class AccessInternalModuleImplTest {
         "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
             "{\"$set\":{\"#management.ClassificationRule\":{Rules:[{\"Rule\":\"STO-00002\",\"StartDate\":\"2017-07-01\"}]}}}]}";
 
+    private static final String QUERY_PREVENT_INHERITANCE =
+        "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"#management.AccessRule.Inheritance.PreventInheritance\":\"false\"}}]}}";
 
     private static final String REAL_DATA_RESULT_PATH = "sample_data_results.json";
     private static final String REAL_DATA_RESULT_MULTI_PATH = "sample_data_multi_results.json";
@@ -283,31 +269,35 @@ public class AccessInternalModuleImplTest {
 
     @Before
     public void setUp() {
-        reset(metaDataClient);
-        reset(logbookLifeCycleClient);
-        reset(logbookOperationClient);
-        reset(storageClient);
-        reset(workspaceClient);
-        reset(adminManagementClient);
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.mockStatic(MetaDataClientFactory.class);
+        metaDataClient = mock(MetaDataClientRest.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metaDataClient);
+        logbookLifeCycleClient = mock(LogbookLifeCyclesClient.class);
+        logbookOperationClient = mock(LogbookOperationsClient.class);
+        final LogbookLifeCyclesClientFactory factorylc = mock(LogbookLifeCyclesClientFactory.class);
+        final LogbookOperationsClientFactory factoryop = mock(LogbookOperationsClientFactory.class);
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factorylc);
+        PowerMockito.when(factorylc.getClient()).thenReturn(logbookLifeCycleClient);
+        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(factoryop);
+        PowerMockito.when(factoryop.getClient()).thenReturn(logbookOperationClient);
+        storageClient = mock(StorageClient.class);
+        final StorageClientFactory factoryst = mock(StorageClientFactory.class);
+        PowerMockito.mockStatic(StorageClientFactory.class);
+        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(factoryst);
+        PowerMockito.when(factoryst.getClient()).thenReturn(storageClient);
 
-        reset(metaDataClientFactory);
-        reset(logbookLifeCyclesClientFactory);
-        reset(logbookOperationsClientFactory);
-        reset(storageClientFactory);
-        reset(workspaceClientFactory);
-        reset(adminManagementClientFactory);
-
-        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCycleClient);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationClient);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-
-
+        final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         accessModuleImpl =
-            new AccessInternalModuleImpl(logbookLifeCyclesClientFactory, logbookOperationsClientFactory,
-                storageClientFactory, workspaceClientFactory, adminManagementClientFactory, metaDataClientFactory);
+            new AccessInternalModuleImpl(storageClient, logbookOperationClient, logbookLifeCycleClient,
+                workspaceClient);
     }
 
     @Test
@@ -326,14 +316,14 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException()
         throws Exception {
-        doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(any());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_select_units_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnits(any());
+        PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
 
     }
@@ -341,21 +331,21 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void given__DSLWhen_select_units_ThenThrows_MetadataInvalidSelectException()
         throws Exception {
-        doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(any());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_DSLWhen_select_units_ThenThrows_MetaDataDocumentSizeException()
         throws Exception {
-        doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnits(any());
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_clientProblem_When_select_units_ThenThrows_AccessExecutionException()
         throws Exception {
-        doThrow(new ProcessingException("")).when(metaDataClient).selectUnits(any());
+        Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectUnits(any());
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
@@ -376,14 +366,14 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void given_test_AccessExecutionException_unitById()
         throws Exception {
-        doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnitbyId(any(), any());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectUnitbyId(any(), any());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_select_unitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnitbyId(any(),
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient).selectUnitbyId(any(),
             any());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
@@ -391,14 +381,14 @@ public class AccessInternalModuleImplTest {
     @Test(expected = AccessInternalExecutionException.class)
     public void given__DSLWhen_select_unitById_ThenThrows_MetadataInvalidSelectException()
         throws Exception {
-        doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnitbyId(any(),
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectUnitbyId(any(),
             any());
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void given_emptyOrNullIdUnit_when_selectUnitbyId_thenthrows_IllegalArgumentException() throws Exception {
-        doThrow(new IllegalArgumentException("")).when(metaDataClient)
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .selectUnitbyId(fromStringToJson(QUERY), "");
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), "");
     }
@@ -406,7 +396,7 @@ public class AccessInternalModuleImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_selectUnitById_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .selectUnitbyId(fromStringToJson(QUERY), ID);
         accessModuleImpl.selectUnitbyId(fromStringToJson(QUERY), ID);
     }
@@ -415,21 +405,21 @@ public class AccessInternalModuleImplTest {
     public void given_empty_DSLWhen_selectUnit_ThenThrows_InvalidParseOperationException()
         throws Exception {
         final JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .selectUnits(jsonQuery);
         accessModuleImpl.selectUnit(fromStringToJson(QUERY));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void given_emptyOrNullIdUnit_when_selectOGbyId_thenthrows_IllegalArgumentException() throws Exception {
-        doThrow(new IllegalArgumentException("")).when(metaDataClient)
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .selectObjectGrouptbyId(fromStringToJson(QUERY), "");
         accessModuleImpl.selectObjectGroupById(fromStringToJson(QUERY), "");
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void given_metadataAccessProblem_throw_AccessExecutionException() throws Exception {
-        doThrow(new ProcessingException("Fake error")).when(metaDataClient)
+        Mockito.doThrow(new ProcessingException("Fake error")).when(metaDataClient)
             .selectObjectGrouptbyId(fromStringToJson(QUERY), "ds");
         accessModuleImpl.selectObjectGroupById(fromStringToJson(QUERY), "ds");
     }
@@ -446,7 +436,7 @@ public class AccessInternalModuleImplTest {
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_DSLWhen_selectOGById_ThenThrows_InvalidParseOperationException()
         throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .selectObjectGrouptbyId(fromStringToJson(QUERY), ID);
         accessModuleImpl.selectObjectGroupById(fromStringToJson(QUERY), ID);
     }
@@ -784,7 +774,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
-        doThrow(new IllegalArgumentException("")).when(metaDataClient)
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(fromStringToJson(QUERY), ID);
 
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), ID, REQUEST_ID);
@@ -806,7 +796,7 @@ public class AccessInternalModuleImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .updateUnitbyId(any(), any());
 
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY_UPDATE), ID, REQUEST_ID);
@@ -858,7 +848,7 @@ public class AccessInternalModuleImplTest {
             "\"MyInt\":20,\"MyBoolean\":false,\"MyFloat\":2.0,\"ArrayVar\":[\"val1\",\"val2\"]," +
             "\"Array2Var\":[\"val1\",\"val2\"],\"_tenant\":0,\"_max\":1,\"_min\":1,\"_up\":[],\"_nbc\":0}]}");
         when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
-        doThrow(new MetaDataExecutionException("")).when(metaDataClient)
+        Mockito.doThrow(new MetaDataExecutionException("")).when(metaDataClient)
             .updateUnitbyId(any(), any());
 
         accessModuleImpl.updateUnitbyId(updateQuery.getFinalUpdate(), ID, REQUEST_ID);
@@ -880,7 +870,7 @@ public class AccessInternalModuleImplTest {
         final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
             ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
 
-        doThrow(new LogbookClientNotFoundException("")).when(logbookOperationClient).update(any());
+        Mockito.doThrow(new LogbookClientNotFoundException("")).when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture());
 
         final String id = "aeaqaaaaaaaaaaabaasdaakxocodoiyaaaaq";
@@ -926,7 +916,7 @@ public class AccessInternalModuleImplTest {
     public void given_emptyOrNullIdUnit_when_updateUnitbyId_thenthrows_IllegalArgumentException() throws Exception {
         Mockito.doNothing().when(logbookOperationClient).update(any());
         Mockito.doNothing().when(logbookLifeCycleClient).update(any());
-        doThrow(new IllegalArgumentException("")).when(metaDataClient)
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient)
             .updateUnitbyId(fromStringToJson(QUERY), "");
 
         accessModuleImpl.updateUnitbyId(fromStringToJson(QUERY), "", REQUEST_ID);
@@ -1093,11 +1083,6 @@ public class AccessInternalModuleImplTest {
 
         RequestParserMultiple results;
 
-        when(adminManagementClient.getRuleByID(eq("STO-00001"))).thenReturn(new AdminManagementClientMock().getRuleByID("STO-00001"));
-        when(adminManagementClient.getRuleByID(eq("STO-00002"))).thenReturn(new AdminManagementClientMock().getRuleByID("STO-00002"));
-        when(adminManagementClient.getRuleByID(eq("CLASS-00002"))).thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00002"));
-        when(adminManagementClient.getRuleByID(eq("CLASS-00003"))).thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00003"));
-        when(adminManagementClient.getRuleByID(eq("REU-00001"))).thenReturn(new AdminManagementClientMock().getRuleByID("REU-00001"));
         results = executeCheck(QUERY_STRING);
         assertEquals(5, results.getRequest().getActions().size());
 
@@ -1233,14 +1218,14 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenSelectObjectsTestAccessExecutionException()
         throws Exception {
-        doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(any());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = InvalidParseOperationException.class)
     public void givenEmptyDSLWhenSelectObjectsThenThrowsInvalidParseOperationException()
         throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+        PowerMockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
 
@@ -1249,21 +1234,21 @@ public class AccessInternalModuleImplTest {
     @Test(expected = IllegalArgumentException.class)
     public void givenDSLWhenSelectObjectsThenThrowsMetadataInvalidSelectException()
         throws Exception {
-        doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(any());
+        Mockito.doThrow(new IllegalArgumentException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void givenDSLWhenSelectObjectsThenThrowsMetaDataDocumentSizeException()
         throws Exception {
-        doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectObjectGroups(any());
+        Mockito.doThrow(new MetaDataDocumentSizeException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     @Test(expected = AccessInternalExecutionException.class)
     public void givenClientProblemWhenSelectObjectsThenThrowsAccessExecutionException()
         throws Exception {
-        doThrow(new ProcessingException("")).when(metaDataClient).selectObjectGroups(any());
+        Mockito.doThrow(new ProcessingException("")).when(metaDataClient).selectObjectGroups(any());
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
@@ -1271,14 +1256,13 @@ public class AccessInternalModuleImplTest {
     public void givenEmptyDSLWhenSlectObjectsThenThrowsInvalidParseOperationException()
         throws Exception {
         final JsonNode jsonQuery = JsonHandler.getFromString(QUERY);
-        doThrow(new InvalidParseOperationException("")).when(metaDataClient)
+        Mockito.doThrow(new InvalidParseOperationException("")).when(metaDataClient)
             .selectObjectGroups(jsonQuery);
         accessModuleImpl.selectObjects(fromStringToJson(QUERY));
     }
 
     private RequestParserMultiple executeCheck(String queryString)
-        throws InvalidParseOperationException, AccessInternalRuleExecutionException, AccessInternalExecutionException,
-        MetaDataNotFoundException {
+        throws InvalidParseOperationException, AccessInternalRuleExecutionException, AccessInternalExecutionException {
         JsonNode queryJson = JsonHandler.getFromString(queryString);
 
         final RequestParserMultiple parser = RequestParserHelper.getParser(queryJson);

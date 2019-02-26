@@ -58,7 +58,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -90,7 +89,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 @SuppressWarnings("rawtypes")
@@ -116,6 +114,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     static IngestInternalClientFactory factory = IngestInternalClientFactory.getInstance();
 
+
     public static VitamServerTestRunner
         vitamServerTestRunner =
         new VitamServerTestRunner(IngestInternalClientRestTest.class, factory);
@@ -130,12 +129,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     @AfterClass
     public static void tearDownAfterClass() throws Throwable {
         vitamServerTestRunner.runAfter();
-    }
-
-    @Before
-    public void before() throws Throwable {
-        reset(mock);
-        reset(mockLogbook);
     }
 
     @Override
@@ -397,6 +390,8 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
         final InputStream fakeUploadResponseInputStream =
             client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertNotNull(fakeUploadResponseInputStream);
+
         try {
             assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
                 StreamUtils.toInputStream("test")));

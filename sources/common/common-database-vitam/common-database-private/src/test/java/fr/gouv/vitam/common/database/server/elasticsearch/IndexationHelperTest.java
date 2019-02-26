@@ -91,7 +91,6 @@ public class IndexationHelperTest {
         new ElasticsearchRule(AGENCIES + "_-1", AGENCIES + "_0", AGENCIES + "_1", AGENCIES + "_2");
 
     private static ElasticsearchAccess elasticsearchAccess;
-    private IndexationHelper indexationHelper = IndexationHelper.getInstance();
 
     @BeforeClass
     public static void setUp() throws Exception {
@@ -122,7 +121,7 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         // When
         final IndexationResult indexationResult =
-            indexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
+            IndexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
                 resourceAsStream);
 
         for (IndexOK index : indexationResult.getIndexOK()) {
@@ -193,7 +192,7 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         // When
         final IndexationResult indexationResult =
-            indexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
+            IndexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
                 resourceAsStream);
 
         for (IndexOK index : indexationResult.getIndexOK()) {
@@ -233,23 +232,19 @@ public class IndexationHelperTest {
             new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON));
         String mapping = ElasticsearchUtil
             .transferJsonToMapping(new FileInputStream(PropertiesUtils.findFile(AGENCIES_TEST_ES_MAPPING_JSON)));
-        Map<String, String> aliasesWithIndexesMap = new HashMap<>();
         tenants.forEach(o -> {
             Map<String, String> res = elasticsearchAccess
                 .createIndexAndAliasIfAliasNotExists(AGENCIES, mapping, TYPEUNIQUE, o);
-            aliasesWithIndexesMap.putAll(res);
             Assertions.assertThat(res).hasSize(1);
             elasticsearchRule.addIndexToBePurged(res.keySet().iterator().next());
             elasticsearchRule.addIndexToBePurged(res.values().iterator().next());
         });
 
-        Assertions.assertThat(aliasesWithIndexesMap).hasSize(2);
-
         // Waite one second
         Thread.sleep(1000);
 
         final IndexationResult indexationResult =
-            indexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
+            IndexationHelper.reindex(collection, AGENCIES, elasticsearchAccess, tenants,
                 resourceAsStream);
         // When
         for (IndexOK indexOK : indexationResult.getIndexOK()) {
@@ -258,7 +253,8 @@ public class IndexationHelperTest {
 
             String aliasName = AGENCIES + "_" + indexOK.getTenant();
 
-            indexationHelper.switchIndex(aliasName, indexName, elasticsearchAccess);
+            Thread.sleep(5);
+            IndexationHelper.switchIndex(aliasName, indexName, elasticsearchAccess);
             GetAliasesResponse actualAliases =
                 elasticsearchRule.getClient().admin().indices().getAliases(new GetAliasesRequest().indices(indexName))
                     .actionGet();
@@ -296,7 +292,7 @@ public class IndexationHelperTest {
         IndexParameters indexParameters = new IndexParameters();
         indexParameters.setCollectionName("collection_name");
         // When
-        IndexationResult koResult = indexationHelper.getFullKOResult(indexParameters, messageCause);
+        IndexationResult koResult = IndexationHelper.getFullKOResult(indexParameters, messageCause);
         final String koResultToAssert = JsonHandler.unprettyPrint(koResult);
         // Then
         assertThat(koResultToAssert).isEqualTo(indexationResultTest);
@@ -314,7 +310,7 @@ public class IndexationHelperTest {
         indexParameters.setCollectionName("collection_name");
         indexParameters.setTenants(Arrays.asList(1, 2));
         // When
-        IndexationResult koResult = indexationHelper.getFullKOResult(indexParameters, messageCause);
+        IndexationResult koResult = IndexationHelper.getFullKOResult(indexParameters, messageCause);
         final String koResultToAssert = JsonHandler.unprettyPrint(koResult);
         // Then
         assertThat(koResultToAssert).isEqualTo(indexationResultTest);

@@ -37,7 +37,6 @@ import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -47,8 +46,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.mockito.Mockito.mock;
 
 public class TestHandlerIO implements HandlerIO {
 
@@ -90,8 +87,7 @@ public class TestHandlerIO implements HandlerIO {
         throw new RuntimeException("Not implemented");
     }
 
-    @Override
-    public HandlerIO addOutputResult(int rank, Object object) throws ProcessingException {
+    @Override public HandlerIO addOutputResult(int rank, Object object) throws ProcessingException {
         inputs.add(rank, object);
         return this;
     }
@@ -102,8 +98,7 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO)
-        throws ProcessingException {
+    public HandlerIO addOutputResult(int rank, Object object, boolean deleteLocal, boolean asyncIO) throws ProcessingException {
         throw new RuntimeException("Not implemented");
     }
 
@@ -138,14 +133,12 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
-        throws ProcessingException {
+    public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO) throws ProcessingException {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
-        boolean asyncIO) {
+    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath, boolean asyncIO){
     }
 
     @Override
@@ -192,15 +185,13 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode,
-        boolean toDelete, boolean asyncIO)
+    public void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete, boolean asyncIO)
         throws ProcessingException {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
-        InputStream uploadedInputStream, boolean asyncIO)
+    public void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType, InputStream uploadedInputStream, boolean asyncIO)
         throws ContentAddressableStorageException {
         throw new RuntimeException("Not implemented");
     }
@@ -232,10 +223,5 @@ public class TestHandlerIO implements HandlerIO {
 
     void setInputs(Object input) {
         inputs.add(input);
-    }
-
-    @Override
-    public WorkspaceClientFactory getWorkspaceClientFactory() {
-        return mock(WorkspaceClientFactory.class);
     }
 }

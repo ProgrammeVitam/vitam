@@ -18,7 +18,14 @@
 
 package fr.gouv.vitam.processing.management.core;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import com.google.common.collect.Maps;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -50,6 +57,7 @@ import fr.gouv.vitam.processing.common.exception.StepsNotFoundException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
@@ -57,13 +65,6 @@ import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import java.time.LocalDateTime;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 
 /**
  * State Machine class implementing the Interface. Dealing with evolution of workflows
@@ -75,44 +76,31 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
     private ProcessEngine processEngine;
     private ProcessWorkflow processWorkflow;
     private ProcessDataManagement dataManagement;
-    private String operationId;
+    private String operationId = null;
 
     private int stepIndex = -1;
-    private int stepTotal;
+    private int stepTotal = 0;
 
     private boolean replayAfterFatal = false;
 
-    private List<ProcessStep> steps;
+    private List<ProcessStep> steps = new ArrayList<>();
     private ProcessStep currentStep = null;
     private boolean stepByStep = false;
 
     private StatusCode status = StatusCode.UNKNOWN;
 
-    private ProcessState state;
+    private ProcessState state = null;
     private volatile ProcessState targetState = null;
     private PauseOrCancelAction pauseCancelAction = PauseOrCancelAction.ACTION_RUN;
 
     private CompletableFuture<Boolean> waitMonitor;
 
     private Map<String, String> engineParams = Maps.newHashMap();
-    private String messageIdentifier;
-    private String prodService;
+    private String messageIdentifier = null;
+    private String prodService = null;
 
-    private WorkspaceClientFactory workspaceClientFactory;
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine) {
-        this(processWorkflow, processEngine, WorkspaceProcessDataManagement.getInstance(),
-        WorkspaceClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance());
-    }
-
-    @VisibleForTesting
-    public StateMachine(ProcessWorkflow processWorkflow, ProcessEngine processEngine,
-        ProcessDataManagement dataManagement,
-        WorkspaceClientFactory workspaceClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
-        this.workspaceClientFactory = workspaceClientFactory;
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         if (null == processWorkflow) {
             throw new IllegalArgumentException("The parameter processWorkflow must not be null");
         }
@@ -126,7 +114,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         this.prodService = processWorkflow.getProdService();
         this.steps = processWorkflow.getSteps();
         this.processEngine = processEngine;
-        this.dataManagement = dataManagement;
+        this.dataManagement = WorkspaceProcessDataManagement.getInstance();
         this.stepTotal = this.steps.size();
         operationId = processWorkflow.getOperationId();
         initStepIndex();
@@ -383,7 +371,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         // if pause after fatal, force replay last step (if resume or next)
         replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover())
-            && StatusCode.FATAL.equals(processWorkflow.getStatus()));
+                && StatusCode.FATAL.equals(processWorkflow.getStatus()));
 
         executeSteps(workerParameters, processWorkflow.getPauseRecover(), replayAfterFatal);
     }
@@ -410,7 +398,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
         // check if pause after FATAL
         replayAfterFatal = (PauseRecover.RECOVER_FROM_API_PAUSE.equals(processWorkflow.getPauseRecover())
-            && StatusCode.FATAL.equals(processWorkflow.getStatus()));
+                && StatusCode.FATAL.equals(processWorkflow.getStatus()));
 
         // here, we need to add something in order to tell that we want the current step to be re executed
         executeSteps(workerParameters, processWorkflow.getPauseRecover(), true);
@@ -474,7 +462,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (stepIndex <= stepTotal - 1) {
             currentStep = steps.get(stepIndex);
 
-            if (backwards) {
+            if(backwards){
                 currentStep.setPauseOrCancelAction(PauseOrCancelAction.ACTION_REPLAY);
             }
         } else {
@@ -549,7 +537,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         if (stepStatusCode != null) {
             // if replay after FATAL and Process in PauseFromAPI, accept newest statusCode otherwise increment status
             stepStatusCode = (stepStatusCode.compareTo(statusCode) < 0 || replayAfterFatal)
-                ? statusCode : stepStatusCode;
+                    ? statusCode : stepStatusCode;
         }
         currentStep.setStepStatusCode(stepStatusCode);
 
@@ -561,7 +549,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
 
         // only force status update for replayed step
-        if (replayAfterFatal) {
+        if(replayAfterFatal){
             replayAfterFatal = false;
         }
     }
@@ -572,11 +560,11 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      * @param statusCode initial statusCode
      * @return the computed statusCode
      */
-    private StatusCode recomputeProcessWorkflowStatus(StatusCode statusCode) {
+    private StatusCode recomputeProcessWorkflowStatus(StatusCode statusCode){
         StatusCode computedStatus = statusCode;
-        for (int i = 0; i < stepIndex; i++) {
+        for (int i = 0; i < stepIndex; i++){
             StatusCode previousStatusCode = this.steps.get(i).getStepStatusCode();
-            if (previousStatusCode.compareTo(computedStatus) > 0) {
+            if(previousStatusCode.compareTo(computedStatus) > 0){
                 computedStatus = previousStatusCode;
             }
         }
@@ -641,7 +629,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // if the step has been defined as Blocking and stepStatus is KO or FATAL
             // then stop the process
             if (itemStatus.shallStop(currentStep.getBehavior().equals(ProcessBehavior.BLOCKING))) {
-                if (statusCode.isGreaterOrEqualToFatal()) {
+                if(statusCode.isGreaterOrEqualToFatal()){
                     state = ProcessState.PAUSE;
                     targetState = ProcessState.PAUSE;
 
@@ -756,8 +744,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {
-            }
+            } catch (InterruptedException e1) {}
             try {
                 dataManagement.persistProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
                     operationId, processWorkflow);
@@ -775,7 +762,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
      */
     protected void finalizeLogbook(WorkerParameters workParams) {
 
-        final LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient();
+        final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         try {
             final GUID operationGuid = GUIDReader.getGUID(operationId);
             final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
@@ -788,15 +775,13 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
             // Retry after 5 second
             try {
                 Thread.sleep(5000);
-            } catch (InterruptedException e1) {
-            }
+            } catch (InterruptedException e1) {}
 
             try {
                 final GUID operationGuid = GUIDReader.getGUID(operationId);
                 final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
-                logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status,
-                    workParams
-                        .getWorkflowIdentifier(), GUIDReader.getGUID(workParams.getRequestId()));
+                logbook(logbookClient, eventGuid, operationGuid, processWorkflow.getLogbookTypeProcess(), status, workParams
+                    .getWorkflowIdentifier(), GUIDReader.getGUID(workParams.getRequestId()));
 
             } catch (Exception ex) {
                 LOGGER.error("Retry > error while finalize logbook of the process workflow", e);
@@ -820,7 +805,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
 
 
     private void cleanWorkspace() {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             if (workspaceClient.isExistingContainer(operationId)) {
                 workspaceClient.deleteContainer(operationId, true);
             }
@@ -836,8 +821,7 @@ public class StateMachine implements IEventsState, IEventsProcessEngine {
         }
     }
 
-    private void logbook(LogbookOperationsClient client, GUID eventIdentifier, GUID operationGuid,
-        LogbookTypeProcess logbookTypeProcess,
+    private void logbook(LogbookOperationsClient client, GUID eventIdentifier, GUID operationGuid, LogbookTypeProcess logbookTypeProcess,
         StatusCode statusCode, String eventType, GUID requestId) throws Exception {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationParameters parameters = LogbookParametersFactory

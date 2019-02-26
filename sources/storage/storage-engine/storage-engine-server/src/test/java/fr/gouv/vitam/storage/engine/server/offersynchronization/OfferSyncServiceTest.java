@@ -10,9 +10,9 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(MockitoJUnitRunner.class)
 public class OfferSyncServiceTest {
 
     private static final String SOURCE = "source";
@@ -40,9 +40,6 @@ public class OfferSyncServiceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock RestoreOfferBackupService restoreOfferBackupService;
     @Mock StorageDistribution distribution;
@@ -248,7 +245,7 @@ public class OfferSyncServiceTest {
         doAnswer((args) -> {
             countDownLatch.countDown();
             return null;
-        }).when(offerSyncProcess).synchronize(any(), any(), any(), eq(OFFSET));
+        }).when(offerSyncProcess).synchronize(any(), any(), any(), anyLong());
 
         OfferSyncService instance = new OfferSyncService(restoreOfferBackupService, distribution, 1000, 16);
 

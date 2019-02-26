@@ -169,7 +169,6 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     @VisibleForTesting
     public MassUpdateUnitsProcess(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory lfcClientFactory,
         StorageClientFactory storageClientFactory, AdminManagementClientFactory adminManagementClientFactory) {
-        super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
         this.lfcClientFactory = lfcClientFactory;
         this.storageClientFactory = storageClientFactory;

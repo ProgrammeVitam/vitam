@@ -99,8 +99,6 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     private final LogbookDbAccess mongoDbAccess;
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final StorageClientFactory storageClientFactory;
-    private final IndexationHelper indexationHelper;
 
     /**
      * Constructor
@@ -108,17 +106,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
      * @param mongoDbAccess of logbook
      */
     public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess) {
-        this(mongoDbAccess, WorkspaceClientFactory.getInstance(), StorageClientFactory.getInstance(),
-            IndexationHelper.getInstance());
+        this(mongoDbAccess, WorkspaceClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess, WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory, IndexationHelper indexationHelper) {
+    public LogbookOperationsImpl(LogbookDbAccess mongoDbAccess, WorkspaceClientFactory workspaceClientFactory) {
         this.mongoDbAccess = mongoDbAccess;
         this.workspaceClientFactory = workspaceClientFactory;
-        this.storageClientFactory = storageClientFactory;
-        this.indexationHelper = indexationHelper;
     }
 
     @Override
@@ -147,7 +141,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
     @Override
     public RequestResponse<LogbookOperation> selectOperations(JsonNode select)
-        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
+            throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
         VitamMongoCursor cursor = mongoDbAccess.getLogbookOperations(select, true);
         List<LogbookOperation> operations = new ArrayList<>();
         while (cursor.hasNext()) {
@@ -166,12 +160,10 @@ public class LogbookOperationsImpl implements LogbookOperations {
             }
         }
 
-        DatabaseCursor hitss = (cursor.getScrollId() != null) ?
-            new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
-            :
-            new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
+        DatabaseCursor hitss = (cursor.getScrollId() != null) ? new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size(), cursor.getScrollId())
+                : new DatabaseCursor(cursor.getTotal(), offset, limit, operations.size());
         return new RequestResponseOK<LogbookOperation>(select)
-            .addAllResults(operations).setHits(hitss);
+                .addAllResults(operations).setHits(hitss);
     }
 
     private void filterFinalResponse(VitamDocument<?> document) {
@@ -258,10 +250,8 @@ public class LogbookOperationsImpl implements LogbookOperations {
 
         Select select = new Select();
         select.setQuery(QueryHelper.and()
-            .add(QueryHelper
-                .gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)))
-            .add(QueryHelper
-                .lte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(endDate))));
+            .add(QueryHelper.gte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(startDate)))
+            .add(QueryHelper.lte(VitamFieldsHelper.lastPersistedDate(), LocalDateUtil.getFormattedDateForMongo(endDate))));
         select.addOrderByAscFilter(VitamFieldsHelper.lastPersistedDate());
 
         MongoCursor<LogbookOperation> cursor = null;
@@ -326,7 +316,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 indexParameters
                     .getCollectionName());
             LOGGER.error(message);
-            return indexationHelper.getFullKOResult(indexParameters, message);
+            return IndexationHelper.getFullKOResult(indexParameters, message);
         }
         if (!LogbookCollections.OPERATION.equals(collection)) {
             String message = String.format("Try to reindex a non operation logbook collection '%s' with operation " +
@@ -334,18 +324,18 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 indexParameters
                     .getCollectionName());
             LOGGER.error(message);
-            return indexationHelper.getFullKOResult(indexParameters, message);
+            return IndexationHelper.getFullKOResult(indexParameters, message);
         } else {
             MongoCollection<Document> mongoCollection = collection.getCollection();
             try (InputStream mappingStream = ElasticsearchCollections
                 .valueOf(indexParameters.getCollectionName().toUpperCase())
                 .getMappingAsInputStream()) {
-                return indexationHelper.reindex(mongoCollection, collection.getName(), collection.getEsClient(),
+                return IndexationHelper.reindex(mongoCollection, collection.getName(), collection.getEsClient(),
                     indexParameters.getTenants(), mappingStream);
             } catch (IOException exc) {
                 LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),
                     indexParameters.getTenants().stream().map(Object::toString).collect(Collectors.joining(", ")));
-                return indexationHelper.getFullKOResult(indexParameters, exc.getMessage());
+                return IndexationHelper.getFullKOResult(indexParameters, exc.getMessage());
             }
         }
 
@@ -354,7 +344,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     @Override
     public void switchIndex(String alias, String newIndexName) throws DatabaseException {
         try {
-            indexationHelper.switchIndex(alias, newIndexName, LogbookCollections.OPERATION.getEsClient());
+            IndexationHelper.switchIndex(alias, newIndexName, LogbookCollections.OPERATION.getEsClient());
         } catch (DatabaseException exc) {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName, exc);
             throw exc;
@@ -383,7 +373,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             }
             workspaceClient.putObject(containerName, operationGuid, JsonHandler.writeToInpustream
                 (logbookOperation));
-            try (StorageClient storageClient = storageClientFactory.getClient()) {
+            try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 ObjectDescription objectDescription = new ObjectDescription();
                 objectDescription.setWorkspaceContainerGUID(containerName);
                 objectDescription.setObjectName(operationGuid);

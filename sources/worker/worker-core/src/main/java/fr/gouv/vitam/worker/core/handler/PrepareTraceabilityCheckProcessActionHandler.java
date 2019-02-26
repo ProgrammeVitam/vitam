@@ -26,8 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -55,14 +62,11 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  *
@@ -78,19 +82,6 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
     private static final int TRACEABILITY_EVENT_DETAIL_RANK = 0;
 
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private final StorageClientFactory storageClientFactory;
-
-    public PrepareTraceabilityCheckProcessActionHandler() {
-        this(LogbookOperationsClientFactory.getInstance(), StorageClientFactory.getInstance());
-    }
-
-    public PrepareTraceabilityCheckProcessActionHandler(
-        LogbookOperationsClientFactory logbookOperationsClientFactory,
-        StorageClientFactory storageClientFactory) {
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-        this.storageClientFactory = storageClientFactory;
-    }
 
     /**
      * @return HANDLER_ID
@@ -107,7 +98,8 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
         // 1- Get the TRACEABILITY operation to check
         LogbookOperation operationToCheck;
-        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
+        try (LogbookOperationsClient logbookOperationsClient =
+            LogbookOperationsClientFactory.getInstance().getClient()) {
 
             RequestResponseOK requestResponseOK =
                 RequestResponseOK.getFromJsonNode(logbookOperationsClient
@@ -136,8 +128,8 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
 
         Response response = null;
         // 2- TRACEABILITY operation found, so extract the ZIP file to start checking process
-        try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient();
-            StorageClient storageClient = storageClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             // Create TraceabilityEvent instance
             String evDetData = operationToCheck.getString(LogbookMongoDbName.eventDetailData.getDbname());
@@ -152,8 +144,7 @@ public class PrepareTraceabilityCheckProcessActionHandler extends ActionHandler 
             DataCategory dataCategory = getDataCategory(traceabilityEvent);
 
             response =
-                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory,
-                    AccessLogUtils.getNoLogAccessLog());
+                storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, fileName, dataCategory, AccessLogUtils.getNoLogAccessLog());
 
             // Idempotency - we check if a folder exist
             if (workspaceClient.isExistingContainer(param.getContainerName())) {

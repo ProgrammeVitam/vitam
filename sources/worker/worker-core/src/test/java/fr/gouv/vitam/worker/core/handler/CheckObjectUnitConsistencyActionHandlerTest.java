@@ -26,6 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -48,19 +59,15 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class})
 public class CheckObjectUnitConsistencyActionHandlerTest {
 
     CheckObjectUnitConsistencyActionHandler handler;
@@ -71,35 +78,38 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
 
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private static final String OBJ = "obj";
 
     private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
         .newGUID()).setContainerName(OBJ).setUrlWorkspace("http://localhost:8083")
         .setUrlMetadata("http://localhost:8083")
-        .setObjectNameList(Lists.newArrayList(OBJ))
-        .setObjectName(OBJ)
+            .setObjectNameList(Lists.newArrayList(OBJ))
+            .setObjectName(OBJ)
         .setCurrentStep("TEST").setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
     @Before
     public void setUp() {
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        final LogbookLifeCyclesClientFactory factory = mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(factory);
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+        PowerMockito.when(factory.getClient()).thenReturn(logbookLifeCyclesClient);
     }
 
     @Test
     public void givenObjectUnitConsistencyCheckWhenNotFindBDOWithoutOGAndOGNonReferencedByArchiveUnitThenResponseOK()
-        throws ProcessingException {
+        throws  ProcessingException {
         final HandlerIOImpl action;
         final List<IOParameter> in;
         String objectId = "objectId";
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, OBJ, "workerId",
-            newArrayList(objectId));
+        action = new HandlerIOImpl(OBJ, "workerId", newArrayList(objectId));
         action.setCurrentObjectId(objectId);
 
         in = new ArrayList<>();
@@ -132,8 +142,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
         final HandlerIOImpl action;
         final List<IOParameter> in;
         String objectId = "objectId";
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, OBJ, "workerId",
-            newArrayList(objectId));
+        action = new HandlerIOImpl(OBJ, "workerId", newArrayList(objectId));
         action.setCurrentObjectId(objectId);
 
         in = new ArrayList<>();
@@ -162,8 +171,7 @@ public class CheckObjectUnitConsistencyActionHandlerTest {
     public void givenObjectUnitConsistencyWithEmptyHandlerIOThrowsException()
         throws ProcessingException {
 
-        final HandlerIO action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "", "", newArrayList());
+        final HandlerIO action = new HandlerIOImpl("", "", newArrayList());
         handler = new CheckObjectUnitConsistencyActionHandler();
         handler.execute(params, action);
     }

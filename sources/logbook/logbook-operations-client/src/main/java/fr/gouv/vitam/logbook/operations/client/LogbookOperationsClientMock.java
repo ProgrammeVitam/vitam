@@ -60,7 +60,7 @@ import javax.ws.rs.core.Response;
 /**
  * Mock client implementation for logbook operation
  */
-public class LogbookOperationsClientMock extends AbstractMockClient implements LogbookOperationsClient {
+class LogbookOperationsClientMock extends AbstractMockClient implements LogbookOperationsClient {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientMock.class);
 
     private static final String UPDATE = "UPDATE";

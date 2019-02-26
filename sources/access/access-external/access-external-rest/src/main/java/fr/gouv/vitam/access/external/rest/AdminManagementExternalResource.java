@@ -74,12 +74,12 @@ import fr.gouv.vitam.common.model.administration.AgenciesModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
-import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
@@ -92,6 +92,7 @@ import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.VitamErrorUtils;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesImportInProgressException;
@@ -99,6 +100,7 @@ import fr.gouv.vitam.functional.administration.common.exception.FileRulesNotFoun
 import fr.gouv.vitam.functional.administration.common.exception.ProfileNotFoundException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.ingest.internal.common.exception.IngestInternalClientNotFoundException;
@@ -167,9 +169,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     private final SecureEndpointRegistry secureEndpointRegistry;
     private static final AlertService alertService = new AlertServiceImpl();
 
-    private final AdminManagementClientFactory adminManagementClientFactory;
-    private final IngestInternalClientFactory ingestInternalClientFactory;
-    private final AccessInternalClientFactory accessInternalClientFactory;
+    private AdminManagementClientFactory adminManagementClientFactory;
 
     /**
      * Constructor
@@ -180,22 +180,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         this.secureEndpointRegistry = secureEndpointRegistry;
         LOGGER.debug("init Admin Management Resource server");
         adminManagementClientFactory = AdminManagementClientFactory.getInstance();
-        this.ingestInternalClientFactory = IngestInternalClientFactory.getInstance();
-        this.accessInternalClientFactory = AccessInternalClientFactory.getInstance();
     }
 
-    @VisibleForTesting
-    AdminManagementExternalResource(
+    @VisibleForTesting AdminManagementExternalResource(
         VitamStatusService statusService,
         SecureEndpointRegistry secureEndpointRegistry,
-        AdminManagementClientFactory adminManagementClientFactory,
-        IngestInternalClientFactory ingestInternalClientFactory,
-        AccessInternalClientFactory accessInternalClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory) {
         super(statusService);
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.adminManagementClientFactory = adminManagementClientFactory;
-        this.ingestInternalClientFactory = ingestInternalClientFactory;
-        this.accessInternalClientFactory = accessInternalClientFactory;
     }
 
     /**
@@ -271,7 +264,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @param document inputStream to check
      */
     private Response asyncCheckFormat(InputStream document) {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Response response = client.checkFormat(document);
             return new VitamAsyncInputStreamResponse(response);
         } catch (ReferentialException ex) {
@@ -290,7 +283,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @param document the referential to check
      */
     private Response asyncDownloadErrorReportRules(InputStream document) {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.checkRulesFile(document);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
@@ -307,7 +300,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * @param document the referential to check
      */
     private Response asyncDownloadErrorReportAgencies(InputStream document) {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.checkAgenciesFile(document);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
@@ -321,7 +314,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Resume in case of Exception
      *
-     * @param ex exception to handle
+     * @param ex       exception to handle
      * @param document the given document to import
      */
     private Response asyncResponseResume(Exception ex, InputStream document) {
@@ -335,8 +328,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a format
      *
-     * @param headers http headers
-     * @param uriInfo used to construct the created resource and send it back as location in the response
+     * @param headers  http headers
+     * @param uriInfo  used to construct the created resource and send it back as location in the response
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -349,7 +342,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         try {
             checkParameter(DOCUMENT_IS_MANDATORY, document);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 Status status = client.importFormat(document, filename);
                 // Send the http response with no entity and the status got from internalService;
                 ResponseBuilder ResponseBuilder = Response.status(status);
@@ -380,7 +373,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a rules document
      *
-     * @param headers http headers
+     * @param headers  http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      */
@@ -402,7 +395,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             }
             SanityChecker.checkHTMLFile(file);
 
-            try (AdminManagementClient client = adminManagementClientFactory.getClient();
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
                 InputStream fileInputStream = new FileInputStream(file)) {
                 Status status = client.importRulesFile(fileInputStream, filename);
 
@@ -438,7 +431,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     private Response downloadTraceabilityOperationFile(String operationId) {
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final Response response = client.downloadTraceabilityFile(operationId);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             return new VitamAsyncInputStreamResponse(response,
@@ -477,7 +470,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Importer des contrats d'entrées dans le référentiel")
     public Response importIngestContracts(JsonNode select) {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importIngestContracts(getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<IngestContractModel>>() {
                 }));
@@ -523,7 +516,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response importAccessContracts(JsonNode contract) {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importAccessContracts(getFromStringAsTypeRefence(contract.toString(),
                 new TypeReference<List<AccessContractModel>>() {
                 }));
@@ -569,7 +562,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response importContexts(JsonNode select) {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Status status = client.importContexts(getFromStringAsTypeRefence(select.toString(),
                 new TypeReference<List<ContextModel>>() {
                 }));
@@ -604,7 +597,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response createProfiles(InputStream document) {
         try {
             checkParameter(DOCUMENT_IS_MANDATORY, document);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
@@ -663,7 +656,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response createProfiles(JsonNode select) {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createProfiles(getFromStringAsTypeRefence(select.toString(),
@@ -699,7 +692,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response createArchiveUnitProfiles(InputStream document) {
         try {
             checkParameter(DOCUMENT_IS_MANDATORY, document);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
                 JsonNode json = JsonHandler.getFromInputStream(document);
                 SanityChecker.checkJsonAll(json);
@@ -759,7 +752,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response createArchiveUnitProfiles(JsonNode select) {
 
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse requestResponse =
                 client.createArchiveUnitProfiles(getFromStringAsTypeRefence(select.toString(),
@@ -782,9 +775,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a Profile file document (xsd or rng, ...)
      *
-     * @param uriInfo used to construct the created resource and send it back as location in the response
+     * @param uriInfo           used to construct the created resource and send it back as location in the response
      * @param profileMetadataId id of the profile metadata
-     * @param profileFile inputStream representing the data to import
+     * @param profileFile       inputStream representing the data to import
      * @return The jaxRs Response
      */
     @Path("/profiles/{id:.+}")
@@ -797,7 +790,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter("profileFile stream is a mandatory parameter", profileFile);
             checkParameter(profileMetadataId, "The profile id is mandatory");
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse requestResponse = client.importProfileFile(profileMetadataId, profileFile);
                 ResponseBuilder ResponseBuilder = Response.status(requestResponse.getStatus())
                     .entity(requestResponse);
@@ -866,7 +859,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     private Response asyncDownloadProfileFile(String profileMetadataId) {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final Response response = client.downloadProfileFile(profileMetadataId);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             return new VitamAsyncInputStreamResponse(response,
@@ -897,7 +890,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response getFormats(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 final RequestResponse<FileFormatModel> result = client.getFormats(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -936,7 +929,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response getRules(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 final JsonNode result = client.getRules(select);
                 return Response.status(Status.OK).entity(result).build();
@@ -975,7 +968,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findIngestContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse<IngestContractModel> result = client.findIngestContracts(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -1010,7 +1003,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findAccessContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse result = client.findAccessContracts(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -1045,7 +1038,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse result = client.findProfiles(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -1081,7 +1074,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findArchiveUnitProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse result = client.findArchiveUnitProfiles(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -1116,7 +1109,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findContexts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse result = client.findContexts(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -1140,7 +1133,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Import a agencies document
      *
-     * @param headers http headers
+     * @param headers  http headers
      * @param document inputStream representing the data to import
      * @return The jaxRs Response
      * @throws InvalidParseOperationException
@@ -1163,7 +1156,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             }
             SanityChecker.checkHTMLFile(file);
 
-            try (AdminManagementClient client = adminManagementClientFactory.getClient();
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
                 InputStream fileInputStream = new FileInputStream(file)) {
                 Status status = client.importAgenciesFile(fileInputStream, filename);
 
@@ -1202,7 +1195,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "agencies:id:read", description = "Trouver un service producteur avec son identifier")
     public Response findAgencyByID(@PathParam("id_document") String documentId) {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             checkParameter("documentId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
             final RequestResponse<AgenciesModel> requestResponse = client.getAgencyById(documentId);
@@ -1243,7 +1236,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findAgencies(@Dsl(value = SELECT_SINGLE) JsonNode select) throws IOException {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 JsonNode result = client.getAgencies(select);
                 return Response.status(Status.OK).entity(result).build();
@@ -1277,7 +1270,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         ":read", description = "Lister le contenu du référentiel des registres des fonds")
     public Response getAccessionRegister(@Dsl(value = SELECT_SINGLE) JsonNode select) {
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 final RequestResponse result = client.getAccessionRegister(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -1318,7 +1311,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = "accessionregisterssymbolic:read", description = "Get accession register symbolic")
     public Response getAccessionRegisterSymbolic(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
             RequestResponse result = client.getAccessionRegisterSymbolic(tenant, select);
@@ -1345,7 +1338,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 final JsonNode result = client.getFormatByID(documentId);
                 return Response.status(Status.OK).entity(result).build();
             } catch (ReferentialNotFoundException e) {
@@ -1383,7 +1376,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 final JsonNode result = client.getRuleByID(documentId);
                 return Response.status(Status.OK).entity(result).build();
             } catch (final FileRulesNotFoundException e) {
@@ -1420,7 +1413,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<IngestContractModel> requestResponse = client.findIngestContractsByID(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
                 return Response.status(st).entity(requestResponse).build();
@@ -1459,7 +1452,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<AccessContractModel> requestResponse = client.findAccessContractsByID(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
                 return Response.status(st).entity(requestResponse).build();
@@ -1498,7 +1491,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<ProfileModel> requestResponse = client.findProfilesByID(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
                 return Response.status(st).entity(requestResponse).build();
@@ -1537,7 +1530,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter("Archive unit profile ID is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<ArchiveUnitProfileModel> requestResponse =
                     client.findArchiveUnitProfilesByID(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
@@ -1577,7 +1570,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<ContextModel> requestResponse = client.findContextById(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
                 return Response.status(st).entity(requestResponse).build();
@@ -1620,7 +1613,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
@@ -1661,7 +1654,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
@@ -1703,7 +1696,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
@@ -1744,7 +1737,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
@@ -1787,7 +1780,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
@@ -1824,7 +1817,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * findAccessionRegisterDetail
      *
      * @param documentId the document id of accession register to get
-     * @param select the query to get document
+     * @param select     the query to get document
      * @return Response
      */
     @GET
@@ -1837,7 +1830,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         checkParameter("accession register id is a mandatory parameter", documentId);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result =
                 client.getAccessionRegisterDetail(documentId, select);
@@ -1872,7 +1865,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "traceabilitychecks:create", description = "Tester l'intégrité d'un journal sécurisé")
     public Response checkOperationTraceability(@Dsl(value = SELECT_SINGLE) JsonNode query) {
 
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             checkParameter("checks operation Logbook traceability parameters", query);
             SanityChecker.checkJsonAll(query);
             RequestResponse<JsonNode> result = client.checkTraceabilityOperation(query);
@@ -1913,7 +1906,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = "audits:create", description = "Lancer un audit de l'existance des objets")
     public Response launchAudit(JsonNode options) {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(options);
             RequestResponse<JsonNode> result = client.launchAuditWorkflow(options);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -1944,7 +1937,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response importSecurityProfiles(JsonNode document) {
 
         checkParameter("Json document is a mandatory parameter", document);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(document);
             Status status = client.importSecurityProfiles(getFromStringAsTypeRefence(document.toString(),
                 new TypeReference<List<SecurityProfileModel>>() {
@@ -1976,7 +1969,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "probativevalue:create", description = "Lancer un export du relevé de valeur probante")
     public Response exportProbativeValue(ProbativeValueRequest probativeValueRequest) {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(probativeValueRequest.getDslQuery());
 
             RequestResponse<JsonNode> result = client.exportProbativeValue(probativeValueRequest);
@@ -2007,7 +2000,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         description = "Lister le contenu du référentiel des profiles de sécurité")
     public Response findSecurityProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse<SecurityProfileModel> result = client.findSecurityProfiles(select);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -2041,7 +2034,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         try {
             checkParameter("identifier is a mandatory parameter", identifier);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<SecurityProfileModel> requestResponse =
                     client.findSecurityProfileByIdentifier(identifier);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
@@ -2070,7 +2063,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update a security profile
      *
      * @param identifier the identifier of the security profile to update
-     * @param queryDsl query to execute
+     * @param queryDsl   query to execute
      * @return Response
      * @throws AdminManagementClientServerException
      * @throws InvalidParseOperationException
@@ -2085,7 +2078,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
         throws AdminManagementClientServerException, InvalidParseOperationException {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
@@ -2112,9 +2105,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     /**
      * Construct the error following input
      *
-     * @param status Http error status
+     * @param status  Http error status
      * @param message The functional error message, if absent the http reason phrase will be used instead
-     * @param code The functional error code, if absent the http code will be used instead
+     * @param code    The functional error code, if absent the http code will be used instead
      * @return
      */
     @Deprecated
@@ -2160,7 +2153,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     /**
      * @param headers the http header of request
-     * @param query the filter query
+     * @param query   the filter query
      * @return the list of Operations details
      */
     @GET
@@ -2169,7 +2162,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = "operations:read", description = "Récupérer les informations sur une opération donnée")
     public Response listOperationsDetails(@Context HttpHeaders headers, ProcessQuery query) {
-        try (IngestInternalClient client = ingestInternalClientFactory.getClient()) {
+        try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.listOperationsDetails(query).toResponse();
         } catch (VitamClientException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
@@ -2190,7 +2183,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = "operations:id:read:status", description = "Récupérer le code HTTP d'une opération donnée")
     public Response getWorkFlowExecutionStatus(@PathParam("id") String id) {
-        try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
+        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(id);
             final ItemStatus itemStatus = ingestInternalClient.getOperationProcessStatus(id);
 
@@ -2235,7 +2228,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response getOperationProcessExecutionDetails(@PathParam("id") String id) {
         Status status;
         ItemStatus itemStatus = null;
-        try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
+        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             itemStatus = ingestInternalClient.getOperationProcessExecutionDetails(id);
             return new RequestResponseOK<ItemStatus>().addResult(itemStatus).setHttpCode(Status.OK.getStatusCode())
                 .toResponse();
@@ -2286,7 +2279,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
      * Update the status of an operation.
      *
      * @param headers contain X-Action and X-Context-ID
-     * @param id operation identifier
+     * @param id      operation identifier
      * @return http response
      */
     @Path("operations/{id}")
@@ -2304,7 +2297,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     private Response updateOperationActionProcessAsync(String operationId, String action) {
 
-        try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
+        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(operationId);
             RequestResponse<ItemStatus> itemStatusRequestResponse =
                 ingestInternalClient.updateOperationActionProcess(action, operationId);
@@ -2343,7 +2336,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
         checkParameter("operationId must not be null", id);
         VitamError vitamError;
-        try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
+        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(id);
             VitamThreadUtils.getVitamSession().setRequestId(id);
 
@@ -2382,7 +2375,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = "workflows:read", description = "Récupérer la liste des tâches des workflows")
     public Response getWorkflowDefinitions(@Context HttpHeaders headers) {
-        try (IngestInternalClient client = ingestInternalClientFactory.getClient()) {
+        try (IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient()) {
             return client.getWorkflowDefinitions().toResponse();
         } catch (VitamClientException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
@@ -2450,7 +2443,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     private Response downloadObjectAsync(String objectId, IngestCollection collection) {
 
-        try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
+        try (IngestInternalClient ingestInternalClient = IngestInternalClientFactory.getInstance().getClient()) {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
             return new VitamAsyncInputStreamResponse(response);
         } catch (IllegalArgumentException e) {
@@ -2503,7 +2496,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "evidenceaudit:check", description = "Audit de traçabilité d'unités archivistiques")
     public Response checkEvidenceAudit(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode select) {
         checkParameter("mandatory parameter", select);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> result = client.evidenceAudit(select);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -2529,7 +2522,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = "rectificationaudit:check", description = "rectification de données suite a un audit")
     public Response rectificationAudit(String operationId) {
         checkParameter("mandatory parameter", operationId);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> result = client.rectificationAudit(operationId);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -2558,7 +2551,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         JsonNode ontologies) {
 
         checkParameter("Json ontologies is a mandatory parameter", ontologies);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(ontologies);
             RequestResponse requestResponse =
                 client.importOntologies(forceUpdate, getFromStringAsTypeRefence(ontologies.toString(),
@@ -2574,13 +2567,13 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
-                .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
-                .setState(StatusCode.KO.name())
-                .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
-                .setContext(ACCESS_EXTERNAL_MODULE)
-                .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
+                    .setMessage(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage())
+                    .setState(StatusCode.KO.name())
+                    .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
+                    .setContext(ACCESS_EXTERNAL_MODULE)
+                    .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
             return Response.status(Status.BAD_REQUEST)
-                .entity(error).build();
+                    .entity(error).build();
         }
     }
 
@@ -2599,7 +2592,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findOntologies(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse result = client.findOntologies(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -2635,7 +2628,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try {
             checkParameter("Ontology ID is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 RequestResponse<OntologyModel> requestResponse = client.findOntologyByID(documentId);
                 int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
                 return Response.status(st).entity(requestResponse).build();
@@ -2675,7 +2668,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response forcePause(ProcessPause info) {
 
         checkParameter("Json ProcessPause is a mandatory parameter", info);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
             RequestResponse requestResponse = client.forcePause(info);
             return Response.status(requestResponse.getStatus())
@@ -2702,7 +2695,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response removeForcePause(ProcessPause info) {
 
         checkParameter("Json ProcessPause is a mandatory parameter", info);
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
 
             RequestResponse requestResponse = client.removeForcePause(info);
             return Response.status(requestResponse.getStatus())
@@ -2747,10 +2740,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "griffins:read", description = "Lister le contenu du référentiel des griffons")
-    public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select)
-        throws AdminManagementClientServerException {
+    public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select) throws AdminManagementClientServerException {
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findGriffin(select);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
@@ -2773,7 +2765,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response findPreservationScenarios(@Dsl(value = SELECT_SINGLE) JsonNode select) {
 
         try {
-            try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
                 SanityChecker.checkJsonAll(select);
                 RequestResponse result = client.findPreservation(select);
                 int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();

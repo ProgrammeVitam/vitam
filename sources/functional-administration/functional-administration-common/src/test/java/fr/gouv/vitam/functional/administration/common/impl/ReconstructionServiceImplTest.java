@@ -49,13 +49,13 @@ import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -73,6 +73,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test the reconstruction services.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ReconstructionServiceImplTest {
 
     /**
@@ -90,13 +91,9 @@ public class ReconstructionServiceImplTest {
     public static final String SEQUENCE_NAME = "fake name";
     public static final String BACKUP_SEQUENCE_NAME = "fake backup name";
 
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
     @Mock
     private VitamMongoRepository multiTenantMongoRepository;
 

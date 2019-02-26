@@ -67,7 +67,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @return boolean type
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
-    boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException;
+    boolean isExistingContainer(String containerName);
 
     /**
      * Adds an object representing the data at location containerName/objectName

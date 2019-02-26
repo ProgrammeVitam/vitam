@@ -27,37 +27,12 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.IOParameter;
-import fr.gouv.vitam.common.model.processing.ProcessingUri;
-import fr.gouv.vitam.common.model.processing.UriPrefix;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -68,10 +43,25 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.processing.IOParameter;
+import fr.gouv.vitam.common.model.processing.ProcessingUri;
+import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import org.junit.Test;
 
 
 public class CheckConformityActionPluginTest {
@@ -149,37 +139,11 @@ public class CheckConformityActionPluginTest {
         "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaabb.json";
     private static final String OBJECT_GROUP_DIGEST_INVALID =
         "checkConformityActionPlugin/aebaaaaaaaakwtamaai7cak32lvlyoyaaabc.json";
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock
-    private WorkspaceClient workspaceClient;
-
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-
-
-    @Mock
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-
-
-    @Mock
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock
-    private LogbookOperationsClient logbookOperationsClient;
-
-    @Before
-    public void setUp() throws Exception {
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-    }
 
     @Test
     public void getNonStandardDigestUpdate() throws Exception {
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objName")))
@@ -203,8 +167,7 @@ public class CheckConformityActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
         String objectId = "objectId";
         final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
+            new HandlerIOImpl(workspaceClient, "CheckConformityActionHandlerTest", "workerId",
                 Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 
@@ -226,6 +189,7 @@ public class CheckConformityActionPluginTest {
 
     @Test
     public void checkBinaryAndPhysicalObject() throws Exception {
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroup = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_BDO_AND_PDO);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objName")))
@@ -239,8 +203,7 @@ public class CheckConformityActionPluginTest {
         final WorkerParameters params = getDefaultWorkerParameters();
         String objectId = "objectId";
         final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
+            new HandlerIOImpl(workspaceClient, "CheckConformityActionHandlerTest", "workerId",
                 Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
         final List<IOParameter> out = new ArrayList<>();
@@ -258,6 +221,7 @@ public class CheckConformityActionPluginTest {
 
     @Test
     public void checkEmptyDigestMessage() throws Exception {
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroupEmptyDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_EMPTY);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName2")))
@@ -273,8 +237,7 @@ public class CheckConformityActionPluginTest {
 
         String objectId = "objectId";
         final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
+            new HandlerIOImpl(workspaceClient, "CheckConformityActionHandlerTest", "workerId",
                 Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
         final List<IOParameter> out = new ArrayList<>();
@@ -295,6 +258,7 @@ public class CheckConformityActionPluginTest {
 
     @Test
     public void checkInvalidDigestMessage() throws Exception {
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
         InputStream objectGroupInvalideDigest = PropertiesUtils.getResourceAsStream(OBJECT_GROUP_DIGEST_INVALID);
         when(workspaceClient.getObject(any(), eq("ObjectGroup/objectName3")))
@@ -310,8 +274,7 @@ public class CheckConformityActionPluginTest {
 
         String objectId = "objectId";
         final HandlerIOImpl handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "CheckConformityActionHandlerTest", "workerId",
+            new HandlerIOImpl(workspaceClient, "CheckConformityActionHandlerTest", "workerId",
                 Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
         final List<IOParameter> out = new ArrayList<>();

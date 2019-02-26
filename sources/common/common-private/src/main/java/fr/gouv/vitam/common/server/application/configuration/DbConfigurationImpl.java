@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.server.application.configuration;
 import java.util.List;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.BasicAuthModel;
 
 /**
  * Implementation of DbConfiguraton Interface

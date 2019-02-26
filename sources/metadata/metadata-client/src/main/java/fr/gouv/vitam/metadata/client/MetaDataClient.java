@@ -123,12 +123,11 @@ public interface MetaDataClient extends BasicClient {
      * @throws MetaDataExecutionException thrown when internal Server Error (fatal technical exception thrown)
      * @throws InvalidParseOperationException thrown when the Query is badly formatted or objectGroupId is empty
      * @throws MetaDataDocumentSizeException thrown when Query document Size is Too Large
-     * @throws MetaDataNotFoundException
      * @throws MetadataInvalidSelectException thrown when objectGroupId or selectQuery id is null or blank
      * @throws MetaDataClientServerException
      */
     JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
-        throws MetaDataExecutionException, MetaDataNotFoundException,
+        throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetadataInvalidSelectException,
         MetaDataClientServerException;
 

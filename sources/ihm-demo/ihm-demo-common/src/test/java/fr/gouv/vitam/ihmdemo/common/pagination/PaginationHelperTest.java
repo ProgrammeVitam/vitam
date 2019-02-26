@@ -69,17 +69,17 @@ public class PaginationHelperTest {
     @Test
     public void givenSessionAlreadyExistsWhenPaginateResultThenReturnJsonNode() throws Exception {
 
-        PaginationHelper.getInstance().setResult(sessionId, createResult());
-        JsonNode result = PaginationHelper.getInstance().getResult(sessionId, new OffsetBasedPagination());
+        PaginationHelper.setResult(sessionId, createResult());
+        JsonNode result = PaginationHelper.getResult(sessionId, new OffsetBasedPagination());
         assertEquals(result.get("$results").size(), 100);
-        result = PaginationHelper.getInstance().getResult(createResult(), new OffsetBasedPagination());
+        result = PaginationHelper.getResult(createResult(), new OffsetBasedPagination());
         assertEquals(result.get("$results").size(), 100);
     }
 
 
     @Test(expected = VitamException.class)
     public void givenSessionNotFoundWhenSetResultThenRaiseAnException() throws Exception {
-        PaginationHelper.getInstance().setResult("SessionNotFound", createResult());
+        PaginationHelper.setResult("SessionNotFound", createResult());
     }
 
 

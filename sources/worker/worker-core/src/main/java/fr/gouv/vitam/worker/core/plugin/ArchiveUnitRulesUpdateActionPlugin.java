@@ -26,10 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -44,6 +49,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -56,13 +63,9 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.ArchiveUnitUpdateUtils;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * ArchiveUnitRulesUpdateAction Plugin.<br>
+ *
  */
 public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements VitamAutoCloseable {
 
@@ -76,27 +79,29 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
     private static final String FIELDS_KEY = "$fields";
     private static final String RULES_KEY = "Rules";
 
-    private final ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
+    private LogbookLifeCyclesClient logbookLifeCycleClient;
+    private ArchiveUnitUpdateUtils archiveUnitUpdateUtils = new ArchiveUnitUpdateUtils();
 
-    private final MetaDataClientFactory metaDataClientFactory;
+    private HandlerIO handlerIO;
 
+    /**
+     * Empty constructor
+     */
     public ArchiveUnitRulesUpdateActionPlugin() {
-        this(MetaDataClientFactory.getInstance());
+
     }
 
-    @VisibleForTesting
-    public ArchiveUnitRulesUpdateActionPlugin(MetaDataClientFactory metaDataClientFactory) {
-        this.metaDataClientFactory = metaDataClientFactory;
-    }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
+        handlerIO = handler;
         LOGGER.debug("ArchiveUnitRulesUpdateActionPlugin running ...");
-
+        logbookLifeCycleClient =
+            LogbookLifeCyclesClientFactory.getInstance().getClient();
         final ItemStatus itemStatus = new ItemStatus(UPDATE_UNIT_RULES_TASK_ID);
         // Get ArchiveUnit information
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
             String archiveUnitId = params.getObjectName().split("\\.")[0];
             final SelectParserMultiple selectRequest = new SelectParserMultiple();
             ObjectNode projectionNode = JsonHandler.createObjectNode();
@@ -119,7 +124,7 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
 
             Map<String, List<JsonNode>> updatedRulesByType = new HashMap<String, List<JsonNode>>();
 
-            final JsonNode rulesForAU = handler.getJsonFromWorkspace(
+            final JsonNode rulesForAU = handlerIO.getJsonFromWorkspace(
                 UpdateWorkflowConstants.UNITS_FOLDER + "/" + params.getObjectName());
             if (rulesForAU.isArray() && rulesForAU.size() > 0) {
                 for (final JsonNode rule : rulesForAU) {
@@ -147,14 +152,13 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
                 }
                 // if at least one action is set
                 if (nbUpdates > 0) {
-                    query
-                        .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
+                    query.addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()));
                     JsonNode updateResultJson = metaDataClient.updateUnitbyId(query.getFinalUpdate(), archiveUnitId);
                     String diffMessage = archiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, archiveUnitId);
                     archiveUnitUpdateUtils.logLifecycle(params, archiveUnitId, StatusCode.OK, diffMessage,
-                        handler.getLifecyclesClient());
+                        logbookLifeCycleClient);
                     archiveUnitUpdateUtils.commitLifecycle(params.getContainerName(), archiveUnitId,
-                        handler.getLifecyclesClient());
+                        logbookLifeCycleClient);
                 }
             }
             itemStatus.increment(StatusCode.OK);
@@ -171,8 +175,9 @@ public class ArchiveUnitRulesUpdateActionPlugin extends ActionHandler implements
         } catch (MetaDataNotFoundException e) {
             LOGGER.error("Archive unit not found : ", e);
             itemStatus.increment(StatusCode.KO);
+        } finally {
+            logbookLifeCycleClient.close();
         }
-
         LOGGER.debug("ArchiveUnitRulesUpdateActionPlugin response: " + itemStatus.getGlobalStatus());
         return new ItemStatus(UPDATE_UNIT_RULES_TASK_ID).setItemsStatus(UPDATE_UNIT_RULES_TASK_ID, itemStatus);
     }

@@ -54,7 +54,7 @@ public class MetaDataClientMockTest {
     @Test
     public void selectObjectGrouptbyIdTest()
         throws MetaDataExecutionException, MetaDataDocumentSizeException, MetadataInvalidSelectException,
-        MetaDataClientServerException, InvalidParseOperationException,MetaDataNotFoundException {
+        MetaDataClientServerException, InvalidParseOperationException {
         assertNotNull(client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"));
     }
 

@@ -1,9 +1,12 @@
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -20,9 +23,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Check Integrity of object
  */
@@ -35,20 +35,12 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
     public static final String UNITS_UPS = "#unitups";
     private static final int OG_NODE_RANK = 0;
 
-    private StorageClientFactory storageClientFactory;
-
     /**
      * Empty constructor CheckIntegrityObjectPlugin
      */
     public CheckIntegrityObjectPlugin() {
-        this(StorageClientFactory.getInstance());
+        // Empty
     }
-
-    @VisibleForTesting
-    public CheckIntegrityObjectPlugin(StorageClientFactory storageClientFactory) {
-        this.storageClientFactory = storageClientFactory;
-    }
-
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler)
@@ -59,7 +51,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
         final ItemStatus itemStatus = new ItemStatus(CHECK_INTEGRITY_ID);
         int nbObjectOK = 0;
         int nbObjectKO = 0;
-        try (final StorageClient storageClient = storageClientFactory.getClient()) {
+        try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             JsonNode ogNode = (JsonNode) handler.getInput(OG_NODE_RANK);
             JsonNode qualifiersList = ogNode.get(QUALIFIERS);
             JsonNode unitsUpsList = ogNode.get(UNITS_UPS);
@@ -79,7 +71,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                     } else {
                         nbObjectKO += 1;
                         continue;
-                    }
+                    }                
 
                     JsonNode storageInformation = version.get("#storage");
                     final String strategy = storageInformation.get("strategyId").textValue();
@@ -87,13 +79,13 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
                     for (JsonNode offerId : storageInformation.get("offerIds")) {
                         offerIds.add(offerId.textValue());
                     }
-
+                    
                     JsonNode offerToMetadata = storageClient.getInformation(strategy, DataCategory.OBJECT,
                         version.get("#id").asText(), offerIds, true);
                     for (String offerId : offerIds) {
                         String digest = null;
                         JsonNode metadata = offerToMetadata.findValue(offerId);
-                        if (metadata != null) {
+                        if (metadata != null){
                             digest = metadata.get("digest").asText();
                         } else {
                             checkDigest = false;
@@ -102,7 +94,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
 
                         checkDigest = messageDigest.equals(digest);
                     }
-
+                    
                     if (checkDigest) {
                         nbObjectOK += 1;
                     } else {
@@ -121,7 +113,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
             itemStatus.increment(StatusCode.FATAL);
             return new ItemStatus(CHECK_INTEGRITY_ID).setItemsStatus(CHECK_INTEGRITY_ID, itemStatus);
         }
-
+        
         if (nbObjectKO > 0) {
             itemStatus.increment(StatusCode.KO);
         }
@@ -130,14 +122,14 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
         }
 
-        itemStatus.setData("Detail", "Detail = OK : " + nbObjectOK + " KO : " + nbObjectKO);
+        itemStatus.setData("Detail", "Detail = OK : "+ nbObjectOK + " KO : " + nbObjectKO);
         try {
             evDetData.set("nbKO", JsonHandler.getFromString(String.valueOf(nbObjectKO)));
-            itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
+            itemStatus.setEvDetailData( JsonHandler.unprettyPrint( evDetData ) );
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
         }
-
+        
         return new ItemStatus(CHECK_INTEGRITY_ID).setItemsStatus(CHECK_INTEGRITY_ID, itemStatus);
     }
 
@@ -146,7 +138,7 @@ public class CheckIntegrityObjectPlugin extends ActionHandler {
         // TODO Auto-generated method stub
 
     }
-
+    
     /**
      * @return CHECK_INTEGRITY_ID
      */

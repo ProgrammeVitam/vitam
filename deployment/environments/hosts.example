@@ -150,12 +150,9 @@ hosts-mongodb-offer
 # TODO: Put here servers where this service will be deployed : storage-offer-default
 # LIMIT : only 1 offer per machine and 1 machine per offer
 # Mandatory param for each offer is offer_conf and points to offer_opts.yml & vault-vitam.yml (with same tree)
-# for swift
 # hostname-offre-1.vitam offer_conf=offer-swift-1
 # for filesystem
 # hostname-offre-2.vitam offer_conf=offer-fs-1
-# for s3
-# hostname-offre-3.vitam offer_conf=offer-s3-1
 
 [hosts-mongodb-offer:children]
 hosts-mongos-offer
@@ -171,8 +168,6 @@ hosts-mongod-offer
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1
 # vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1
-# vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1
-# vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1
 
 [hosts-mongoc-offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts-mongoc-data]
@@ -187,9 +182,6 @@ hosts-mongod-offer
 # vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1                          mongo_rs_bootstrap=true
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1
 # vitam-fs-offer               mongo_cluster_name=offer-fs-1                          mongo_arbiter=true
-# vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1                       mongo_rs_bootstrap=true
-# vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1
-# vitam-s3-offer               mongo_cluster_name=offer-s3-1                       mongo_arbiter=true
 
 [hosts-mongod-offer]
 # WARNING : DO NOT COLLOCATE WITH [hosts-mongod-data]
@@ -205,9 +197,6 @@ hosts-mongod-offer
 # vitam-mongo-fs-offer-01      mongo_cluster_name=offer-fs-1       mongo_shard_id=0                   mongo_rs_bootstrap=true
 # vitam-mongo-fs-offer-02      mongo_cluster_name=offer-fs-1       mongo_shard_id=0
 # vitam-fs-offer               mongo_cluster_name=offer-fs-1       mongo_shard_id=0                   mongo_arbiter=true
-# vitam-mongo-s3-offer-01      mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   mongo_rs_bootstrap=true
-# vitam-mongo-s3-offer-02      mongo_cluster_name=offer-s3-1       mongo_shard_id=0
-# vitam-s3-offer               mongo_cluster_name=offer-s3-1       mongo_shard_id=0                   mongo_arbiter=true
 
 ##### Zone data
 

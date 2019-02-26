@@ -28,7 +28,22 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -43,35 +58,17 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 public class VerifyTimeStampActionHandlerTest {
 
@@ -88,6 +85,7 @@ public class VerifyTimeStampActionHandlerTest {
     private GUID guid;
     private WorkerParameters params;
     private static final Integer TENANT_ID = 0;
+    private WorkspaceClient workspaceClient;
     private List<IOParameter> in;
 
     private static final String HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP = "COMPARE_TOKEN_TIMESTAMP";
@@ -100,20 +98,6 @@ public class VerifyTimeStampActionHandlerTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
-    private WorkspaceClient workspaceClient;
-
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-    @Mock
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-
     @Before
     public void setUp() throws Exception {
 
@@ -121,17 +105,14 @@ public class VerifyTimeStampActionHandlerTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+        workspaceClient = mock(WorkspaceClient.class);
 
         guid = GUIDFactory.newGUID();
         params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
         String objectId = "objectId";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-            Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(workspaceClient, guid.getId(), "workerId", Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
     }
 
@@ -160,7 +141,7 @@ public class VerifyTimeStampActionHandlerTest {
 
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp")))
-            .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
+                .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -212,7 +193,7 @@ public class VerifyTimeStampActionHandlerTest {
 
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             "token.tsp")))
-            .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
+                .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());

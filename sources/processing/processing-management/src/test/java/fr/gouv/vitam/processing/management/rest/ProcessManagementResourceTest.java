@@ -28,55 +28,53 @@ package fr.gouv.vitam.processing.management.rest;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
-import fr.gouv.vitam.common.model.ProcessState;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.WorkFlow;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
-import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
-import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
-import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
-import fr.gouv.vitam.processing.management.api.ProcessManagement;
-import fr.gouv.vitam.worker.client.WorkerClientFactory;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
+import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.Response.Status;
+import java.net.URI;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 
-public class ProcessManagementResourceTest extends ResteasyTestApplication {
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, WorkspaceProcessDataManagement.class})
+public class ProcessManagementResourceTest {
 
     private static final String CONF_FILE_NAME = "processing.conf";
 
@@ -88,6 +86,7 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
     private static final String WORKFLOWS_URI = "/workflows";
     private static final String OPERATION_ID_URI = "/operations/xyz";
     private static final String FORCE_PAUSE_URI = "/forcepause";
+    private static final String REMOVE_FORCE_PAUSE_URI = "/removeforcepause";
     private static final String ID = "identifier4";
     private static JunitHelper junitHelper;
     private static int port;
@@ -95,26 +94,8 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
     private static final Integer TENANT_ID = 0;
 
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
-    private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
-    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private static final ProcessManagement processManagement = mock(ProcessManagement.class);
-    private static final ServerConfiguration serverConfiguration = mock(ServerConfiguration.class);
-
-    {
-        VitamApplicationInitializr.get()
-            .initialize(serverConfiguration, workerClientFactory, workspaceClientFactory, processManagement);
-
-    }
-
-    @Override
-    public Set<Object> getResources() {
-        return VitamApplicationInitializr.get().getSingletons();
-    }
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return VitamApplicationInitializr.get().getCommonBusinessApplication().getClasses();
-    }
+    private static WorkspaceClient workspaceClient;
+    private static WorkspaceProcessDataManagement processDataManagement;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -122,11 +103,12 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
 
-        when(serverConfiguration.getWorkflowRefreshPeriod()).thenReturn(10000);
-        when(serverConfiguration.getProcessingCleanerPeriod()).thenReturn(10000);
-        when(serverConfiguration.getUrlWorkspace()).thenReturn("localhost");
-        when(serverConfiguration.getUrlMetadata()).thenReturn("localhost");
-        application = new ProcessManagementMain(CONF_FILE_NAME, ProcessManagementResourceTest.class, null);
+        PowerMockito.mockStatic(WorkspaceProcessDataManagement.class);
+        processDataManagement = PowerMockito.mock(WorkspaceProcessDataManagement.class);
+        PowerMockito.when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
+        PowerMockito.when(processDataManagement.getProcessWorkflowFor(eq(1), anyString()))
+            .thenReturn(new HashMap<>());
+        application = new ProcessManagementMain(CONF_FILE_NAME);
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
@@ -145,28 +127,37 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         VitamClientFactory.resetConnections();
     }
 
-    @Before
-    public void before() {
-        Mockito.reset(processManagement);
-    }
-
     /**
      * Test server status should return 200
      */
     @Test
-    public void shouldGetStatusReturnNoContent() {
+    public void shouldGetStatusReturnNoContent() throws Exception {
         get("/status").then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
+    @Ignore
     @Test
     public void shouldReturnResponseAccepted() throws Exception {
 
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
+            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+
+        // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
+        ProcessDistributorImpl processDistributorImpl = Mockito.mock(ProcessDistributorImpl.class);
+
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
-        itemStatus.setGlobalState(ProcessState.RUNNING);
-        itemStatus.setLogbookTypeProcess(LogbookTypeProcess.INGEST.name());
 
-        when(processManagement.init(any(), anyString())).thenReturn(new ProcessWorkflow());
+        Mockito.when(processDistributorImpl.distribute(any(), any(), any(), any()))
+            .thenReturn(itemStatus);
+
+
         final GUID processId = GUIDFactory.newGUID();
         final String operationByIdURI = OPERATION_URI + "/" + processId.getId();
 
@@ -177,8 +168,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
             .statusCode(Status.CREATED.getStatusCode());
-
-        when(processManagement.resume(any(), anyInt(), anyBoolean())).thenReturn(itemStatus);
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
@@ -195,7 +184,15 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
      */
     @Test
     public void shouldReturnPreconditionFailedIfNotStepFound() throws Exception {
-        doThrow(new ProcessingException("")).when(processManagement).init(any(), anyString());
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
+            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)
@@ -211,18 +208,33 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
      *
      * @throws Exception
      */
-
+    @Ignore
     @Test
     public void shouldReturnResponseUauthorized() throws Exception {
+
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
+            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+
+        // Mock ProcessDistributorImplFactory + ProcessDistributorImpl + Worker response
+
+        ProcessDistributorImpl processDistributorImpl = Mockito.mock(ProcessDistributorImpl.class);
+
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
-        itemStatus.setGlobalState(ProcessState.RUNNING);
-        itemStatus.setLogbookTypeProcess(LogbookTypeProcess.INGEST.name());
+
+        Mockito.when(processDistributorImpl.distribute(any(), any(), any(), any()))
+            .thenReturn(itemStatus);
+
 
         final GUID processId = GUIDFactory.newGUID();
         final String operationByIdURI = OPERATION_URI + "/" + processId.getId();
 
-        when(processManagement.init(any(), anyString())).thenReturn(new ProcessWorkflow());
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
@@ -230,8 +242,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
             .post(operationByIdURI).then()
             .statusCode(Status.CREATED.getStatusCode());
-
-        when(processManagement.resume(any(), anyInt(), anyBoolean())).thenReturn(itemStatus);
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
@@ -240,7 +250,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             .post(operationByIdURI).then()
             .statusCode(Status.ACCEPTED.getStatusCode());
 
-        doThrow(new StateNotAllowedException("")).when(processManagement).resume(any(), anyInt(), anyBoolean());
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
@@ -267,7 +276,15 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
      */
     @Test
     public void shouldReturnPreconditionFaildIfcancelWorkflowById() throws Exception {
-        doThrow(new ProcessingException("")).when(processManagement).cancel(anyString(), anyInt());
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
+            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.PAUSE.getValue(),
@@ -282,11 +299,18 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
      *
      * @throws Exception
      */
+    @SuppressWarnings("unchecked")
     @Test
     public void shouldReturnOkWhenGetWorkflowDefinitions() throws Exception {
-        Map<String, WorkFlow> map = new HashMap<>();
-        map.put(EXITS_WORKFLOW_ID, new WorkFlow().setIdentifier(EXITS_WORKFLOW_ID));
-        when(processManagement.getWorkflowDefinitions()).thenReturn(map);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        Mockito.when(workspaceClient.getListUriDigitalObjectFromFolder(any(), any()))
+            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
+
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -306,7 +330,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
     @SuppressWarnings("unchecked")
     @Test
     public void shouldReturnGoodStatusWhenForcePause() throws Exception {
-        doNothing().when(processManagement).forcePause(any());
         ProcessPause pause = new ProcessPause(null, 0, null);
         given()
             .contentType(ContentType.JSON)
@@ -316,7 +339,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             .then().assertThat()
             .statusCode(Status.OK.getStatusCode());
 
-        doThrow(new ProcessingException("be null")).when(processManagement).forcePause(any());
         //error when both tenant and type are null
         pause.setTenant(null);
         given()
@@ -328,7 +350,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             .statusCode(Status.BAD_REQUEST.getStatusCode())
             .body(containsString("be null"));
 
-        doNothing().when(processManagement).forcePause(any());
         pause.setType("INGEST");
         given()
             .contentType(ContentType.JSON)
@@ -339,7 +360,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
             .statusCode(Status.OK.getStatusCode());
 
 
-        doThrow(new ProcessingException("is not a valid process type")).when(processManagement).forcePause(any());
         //Inexisting type
         pause.setType("BAD_INGEST");
         given()

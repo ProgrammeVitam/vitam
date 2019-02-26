@@ -309,8 +309,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private Unmarshaller unmarshaller;
     private ArchiveUnitListener listener;
 
-    private final MetaDataClientFactory metaDataClientFactory;
-    private final AdminManagementClientFactory adminManagementClientFactory;
+    private MetaDataClientFactory metaDataClientFactory;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private AdminManagementClientFactory adminManagementClientFactory;
 
     private ObjectNode archiveUnitTree;
     private Map<String, JsonNode> existingGOTs;
@@ -320,7 +321,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
      * Constructor with parameter SedaUtilsFactory
      */
     public ExtractSedaActionHandler() {
-        this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
+                AdminManagementClientFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -346,6 +348,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     @VisibleForTesting
     ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
+                             LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
                              AdminManagementClientFactory adminManagementClientFactory) {
         dataObjectIdToGuid = new HashMap<>();
         dataObjectIdWithoutObjectGroupId = new HashMap<>();
@@ -371,6 +374,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         existingGOTGUIDToNewGotGUIDInAttachment = new HashMap<>();
         archiveUnitTree = JsonHandler.createObjectNode();
         this.metaDataClientFactory = metaDataClientFactory;
+        this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
@@ -396,7 +400,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         UnitType workflowUnitType = getUnitType();
 
-        try (LogbookLifeCyclesClient lifeCycleClient = handlerIO.getLifecyclesClient()) {
+        try (LogbookLifeCyclesClient lifeCycleClient = logbookLifeCyclesClientFactory.getClient()) {
 
             if (asyncIO) {
                 handlerIO.enableAsync(true);

@@ -18,8 +18,16 @@
 
 package fr.gouv.vitam.processing.distributor.v2;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -29,19 +37,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingBadRequestException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
 import fr.gouv.vitam.processing.common.model.WorkerBean;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
-import fr.gouv.vitam.worker.client.WorkerClient;
-import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
-import fr.gouv.vitam.worker.client.WorkerClientFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 /**
  * WorkerManager class contains methods to manage workers
@@ -56,8 +51,6 @@ public class WorkerManager implements IWorkerManager {
     private ConcurrentMap<String, WorkerFamilyManager> workersFamily;
 
 
-    private WorkerClientFactory workerClientFactory = null;
-
     /**
      * Constructor
      */
@@ -65,23 +58,16 @@ public class WorkerManager implements IWorkerManager {
         workersFamily = new ConcurrentHashMap<>();
     }
 
-    public WorkerManager(WorkerClientFactory workerClientFactory) {
-        workersFamily = new ConcurrentHashMap<>();
-        this.workerClientFactory = workerClientFactory;
-    }
-
-
-
     @Override
     public synchronized void marshallToDB() {
-        if (!getWorkerDbFile().exists()) {
+        if (!WORKER_DB_FILE.exists()) {
             try {
                 if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder()))) {
                     Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder()));
                 }
-                Files.createFile(getWorkerDbFile().toPath());
+                Files.createFile(WORKER_DB_FILE.toPath());
             } catch (IOException e) {
-                LOGGER.warn("Cannot create worker list serialization file : " + getWorkerDbFile().getName(), e);
+                LOGGER.warn("Cannot create worker list serialization file : " + WORKER_DB_FILE.getName(), e);
             }
         }
         List<WorkerBean> registeredWorkers = new ArrayList<>();
@@ -94,7 +80,7 @@ public class WorkerManager implements IWorkerManager {
         }
 
         try {
-            JsonHandler.writeAsFile(registeredWorkers, getWorkerDbFile());
+            JsonHandler.writeAsFile(registeredWorkers, WORKER_DB_FILE);
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Cannot update database worker", e);
         }
@@ -146,35 +132,7 @@ public class WorkerManager implements IWorkerManager {
     }
 
     @Override
-    public boolean checkStatusWorker(String serverHost, int serverPort) {
-        if (null == workerClientFactory) {
-            WorkerClientConfiguration workerClientConfiguration = new WorkerClientConfiguration(serverHost, serverPort);
-            WorkerClientFactory.changeMode(workerClientConfiguration);
-            return checkStatus(serverHost, serverPort, WorkerClientFactory.getInstance(workerClientConfiguration));
-        } else {
-            return checkStatus(serverHost, serverPort, workerClientFactory);
-        }
-
-
-    }
-
-    private boolean checkStatus(String serverHost, int serverPort, WorkerClientFactory workerClientFactory) {
-        try (WorkerClient workerClient = workerClientFactory.getClient()) {
-            workerClient.checkStatus();
-            return true;
-        } catch (Exception e) {
-            LOGGER.error("Worker server [" + serverHost + ":" + serverPort + "] is not active.", e);
-            return false;
-        }
-    }
-
-    @Override
     public WorkerFamilyManager findWorkerBy(String workerFamily) {
         return workersFamily.get(workerFamily);
-    }
-
-    @Override
-    public File getWorkerDbFile() {
-        return PropertiesUtils.fileFromDataFolder(WORKER_DB_PATH);
     }
 }

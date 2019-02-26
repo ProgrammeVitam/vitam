@@ -33,7 +33,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertNotNull;
 
-// FIXME: 30/01/19 "Already tested in @see MongoDbAccessMetadataFactoryTest. This test should be reactivated when mongo docker with an authenticated user is used"
 @Ignore("Already tested in @see MongoDbAccessMetadataFactoryTest. This test should be reactivated when mongo docker with an authenticated user is used")
 public class LogbookMongoDbAccessFactoryAuthenticationTest {
 

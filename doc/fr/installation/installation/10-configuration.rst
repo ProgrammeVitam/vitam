@@ -55,11 +55,9 @@ La configuration des droits d'accès à VITAM est réalisée dans le fichier |re
 Fichier ``offers_opts.yml``
 ----------------------------
 
-.. hint:: Fichier à créer depuis ``offers_opts.yml.example`` et à paramétrer selon le besoin.
+Enfin, la déclaration des configuration des offres de stockage est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
 
-La déclaration de configuration des offres de stockage associées est réalisée dans le fichier |repertoire_inventory| ``/group_vars/all/offers_opts.yml`` :
-
- .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml.example
+ .. literalinclude:: ../../../../deployment/environments/group_vars/all/offers_opts.yml
      :language: yaml
      :linenos:
 
@@ -116,8 +114,6 @@ Voici la liste des vaults pour lesquels il est nécessaire de modifier le mot de
 .. warning:: Le paramétrage du mode d'authentifications des utilisateurs à l'IHM démo est géré au niveau du fichier ``deployment/environments/group_vars/all/vitam_vars.yml``. Plusieurs modes d'authentifications sont proposés au niveau de la section ``authentication_realms``. Dans le cas d'une authentification se basant sur le mécanisme ``iniRealm`` (configuration ``shiro`` par défaut), les mots de passe déclarés dans la section ``vitam_users`` devront s'appuyer sur une politique de mot de passe robuste, comme indiqué en début de chapitre. Il est par ailleurs possible de  choisir un mode d'authentification s'appuyant sur un annuaire LDAP externe (``ldapRealm`` dans la section ``authentication_realms``).
 
 .. note:: Dans le cadre d'une installation avec au moins une offre "swift", il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et le mot de passe de connexion "swift" associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre swift "offer-swift-1".
-
-.. note:: Dans le cadre d'une installation avec au moins une offre "s3", il faut déclarer, dans la section ``vitam_offers``, le nom de chaque offre et l'access key secret "s3" associé, défini dans le fichier ``offers_opts.yml``. L'exemple ci-dessus présente la déclaration du mot de passe pour l'offre s3 "offer-s3-1".
 
 * Le fichier |repertoire_inventory| ``/group_vars/all/vault-keystores.yml`` contient les mots de passe des magasins de certificats utilisés dans VITAM :
 

@@ -76,7 +76,6 @@
                 <!-- Other -->
                 <exclude>**/node_modules/**</exclude>
                 <exclude>**/evosuite-tests/**</exclude>
-                <exclude>**/rpm_signed/**</exclude>
             </excludes>
         </fileSet>
         <!-- Add ansible deployment files -->
@@ -95,7 +94,6 @@
                 <exclude>environments/group_vars/all/vault-extra.example</exclude>
                 <exclude>environments/group_vars/all/vault-keystores.yml</exclude>
                 <exclude>environments/group_vars/all/vault-vitam.yml</exclude>
-                <exclude>environments/group_vars/all/offers_opts.yml</exclude>
                 <exclude>vitam-conf-dev</exclude>
                 <exclude>environments/certs/vault-certs.yml</exclude>
                 <exclude>deployment/pki/ca/*</exclude>

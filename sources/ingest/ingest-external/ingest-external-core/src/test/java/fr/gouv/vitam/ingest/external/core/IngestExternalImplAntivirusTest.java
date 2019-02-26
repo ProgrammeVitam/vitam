@@ -26,8 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.core;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierFactoryException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -38,22 +54,20 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.InputStream;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({FormatIdentifierFactory.class})
 public class IngestExternalImplAntivirusTest {
     private static final String PATH = "/tmp";
     private static final String SCRIPT_SCAN_CLAMAV_VIRUS = "scan-clamav_virus.sh";
@@ -64,9 +78,6 @@ public class IngestExternalImplAntivirusTest {
     private InputStream stream;
     private static final Integer TENANT_ID = 0;
 
-    private FormatIdentifierFactory formatIdentifierFactory = mock(FormatIdentifierFactory.class);
-    private IngestInternalClientFactory ingestInternalClientFactor = mock(IngestInternalClientFactory.class);
-
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
@@ -75,11 +86,8 @@ public class IngestExternalImplAntivirusTest {
     private static final long timeoutScanDelay = 60000;
 
     @Before
-    public void setUp() throws Exception {
-        IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
-        when(ingestInternalClientFactor.getClient()).thenReturn(ingestInternalClient);
-        when(ingestInternalClient.getWorkflowDetails(anyString()))
-            .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
+    public void setUp() {
+        // nothing to do here 
     }
 
     @RunWithCustomExecutor
@@ -90,8 +98,8 @@ public class IngestExternalImplAntivirusTest {
         config.setPath(PATH);
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS);
         config.setTimeoutScanDelay(timeoutScanDelay);
-        IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor);
+        IngestExternalImpl ingestExternalImpl = new IngestExternalImpl(config);
+        PowerMockito.mockStatic(FormatIdentifierFactory.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -102,7 +110,7 @@ public class IngestExternalImplAntivirusTest {
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
-
+    
     @RunWithCustomExecutor
     @Test
     public void givenVirusFoundFixedThenKo()
@@ -111,8 +119,8 @@ public class IngestExternalImplAntivirusTest {
         config.setPath(PATH);
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_VIRUS_FIXED);
         config.setTimeoutScanDelay(timeoutScanDelay);
-        IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor);
+        IngestExternalImpl ingestExternalImpl = new IngestExternalImpl(config);
+        PowerMockito.mockStatic(FormatIdentifierFactory.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
@@ -123,7 +131,7 @@ public class IngestExternalImplAntivirusTest {
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
-
+    
     @RunWithCustomExecutor
     @Test
     public void givenClamavUnknwonThenKo()
@@ -132,8 +140,8 @@ public class IngestExternalImplAntivirusTest {
         config.setPath(PATH);
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV_UNKNOWN);
         config.setTimeoutScanDelay(timeoutScanDelay);
-        IngestExternalImpl ingestExternalImpl =
-            new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactor);
+        IngestExternalImpl ingestExternalImpl = new IngestExternalImpl(config);
+        PowerMockito.mockStatic(FormatIdentifierFactory.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());

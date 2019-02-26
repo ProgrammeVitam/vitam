@@ -125,7 +125,6 @@ public final class JsonHandler {
         objectMapper.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true);
         objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
 
-
         return objectMapper;
     }
 

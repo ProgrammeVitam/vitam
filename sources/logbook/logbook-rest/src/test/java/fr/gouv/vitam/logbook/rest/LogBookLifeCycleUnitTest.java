@@ -26,6 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.rest;
 
+import static io.restassured.RestAssured.given;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import javax.ws.rs.core.Response.Status;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -70,23 +81,12 @@ import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import net.javacrumbs.jsonunit.JsonAssert;
-import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static io.restassured.RestAssured.given;
 
 /**
  *
@@ -97,7 +97,7 @@ public class LogBookLifeCycleUnitTest {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions());
+            new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -143,8 +143,8 @@ public class LogBookLifeCycleUnitTest {
     public static void setUpBeforeClass() throws Exception {
 
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
+                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID);
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -245,11 +245,6 @@ public class LogBookLifeCycleUnitTest {
             ioL.toString());
     }
 
-    @After
-    public void after() {
-        LogbookCollections.afterTest(TENANT_ID);
-    }
-
     @AfterClass
     public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
@@ -291,7 +286,7 @@ public class LogBookLifeCycleUnitTest {
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        // already exists
+        // already exsits
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -630,16 +625,15 @@ public class LogBookLifeCycleUnitTest {
 
 
         // When / Then
-        String body = given()
+        RequestResponseOK response = given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .get(UNIT_LIFECYCLES_RAW_BY_ID_URL + "aeaqaaaaaaef6ys5absnuala7tya75iaaacq")
             .then()
             .statusCode(Status.OK.getStatusCode())
-            .extract().body().asString();
-        RequestResponseOK requestResponse = JsonHandler.getFromString(body, RequestResponseOK.class);
+            .extract().body().as(RequestResponseOK.class);
 
         String expectedJson = JsonHandler.unprettyPrint(json);
-        String actualJson = JsonHandler.unprettyPrint(JsonHandler.toJsonNode(requestResponse.getFirstResult()));
+        String actualJson = JsonHandler.unprettyPrint(JsonHandler.toJsonNode(response.getFirstResult()));
 
         JsonAssert.assertJsonEquals(expectedJson, actualJson);
     }

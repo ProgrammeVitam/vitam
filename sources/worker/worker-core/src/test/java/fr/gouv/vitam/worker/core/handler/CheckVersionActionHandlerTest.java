@@ -26,6 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -38,38 +47,33 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({SedaUtilsFactory.class})
 public class CheckVersionActionHandlerTest {
-
-    private SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
-    private CheckVersionActionHandler handlerVersion = new CheckVersionActionHandler(sedaUtilsFactory);
+    CheckVersionActionHandler handlerVersion = new CheckVersionActionHandler();
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
     private SedaUtils sedaUtils;
     private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("objectName.json"))
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName("CheckVersionActionHandlerTest");
-    private final HandlerIOImpl handlerIO =
-        new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
+            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
+                    .setUrlMetadata("http://localhost:8083")
+                    .setObjectNameList(Lists.newArrayList("objectName.json"))
+                    .setObjectName("objectName.json").setCurrentStep("currentStep")
+                    .setContainerName("CheckVersionActionHandlerTest");
+    private final HandlerIOImpl handlerIO = new HandlerIOImpl("CheckVersionActionHandlerTest", "workerId", com.google.common.collect.Lists.newArrayList());
 
     @Before
     public void setUp() throws Exception {
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
         sedaUtils = mock(SedaUtils.class);
-        when(sedaUtilsFactory.createSedaUtils(handlerIO)).thenReturn(sedaUtils);
+        PowerMockito.when(SedaUtilsFactory.create(handlerIO)).thenReturn(sedaUtils);
     }
 
     @After
@@ -79,13 +83,13 @@ public class CheckVersionActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenCheckIsTrueThenReturnResponseOK()
-        throws ProcessingException, IOException, URISyntaxException {
+            throws ProcessingException, IOException, URISyntaxException {
         Map<String, Map<String, String>> versionMap = new HashMap<>();
         final Map<String, String> invalidVersionMap = new HashMap<>();
         final Map<String, String> validVersionMap = new HashMap<>();
 
-        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION, invalidVersionMap);
-        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION, validVersionMap);
+        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
+        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
         Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
@@ -94,13 +98,13 @@ public class CheckVersionActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenCheckIsFalseThenReturnResponseWarning()
-        throws ProcessingException {
+            throws ProcessingException, IOException, URISyntaxException {
         Map<String, Map<String, String>> versionMap = new HashMap<>();
         final Map<String, String> invalidVersionMap = new HashMap<>();
         final Map<String, String> validVersionMap = new HashMap<>();
         invalidVersionMap.put("PhysicalMaste", "PhysicalMaste");
-        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION, invalidVersionMap);
-        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION, validVersionMap);
+        versionMap.put(SedaUtils.INVALID_DATAOBJECT_VERSION,invalidVersionMap);
+        versionMap.put(SedaUtils.VALID_DATAOBJECT_VERSION,validVersionMap);
         Mockito.doReturn(versionMap).when(sedaUtils).checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);
@@ -109,7 +113,7 @@ public class CheckVersionActionHandlerTest {
 
     @Test
     public void givenWorkspaceExistWhenExceptionExistThenReturnResponseFatal()
-        throws ProcessingException {
+            throws ProcessingException, IOException, URISyntaxException {
         Mockito.doThrow(new ProcessingException("")).when(sedaUtils).checkSupportedDataObjectVersion(any());
         assertEquals(CheckVersionActionHandler.getId(), HANDLER_ID);
         final ItemStatus response = handlerVersion.execute(params, handlerIO);

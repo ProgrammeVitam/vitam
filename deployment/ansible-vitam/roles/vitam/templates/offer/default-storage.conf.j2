@@ -17,19 +17,3 @@ swiftConnectionTimeout: {{ vitam_offers[offer_conf]["swiftConnectionTimeout"] | 
 swiftReadTimeout: {{ vitam_offers[offer_conf]["swiftReadTimeout"] | default(200000) }}
 swiftHardRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftHardRenewTokenDelayBeforeExpireTime"] | default(60) }}
 swiftSoftRenewTokenDelayBeforeExpireTime: {{ vitam_offers[offer_conf]["swiftSoftRenewTokenDelayBeforeExpireTime"] | default(300) }}
-
-{% if vitam_offers[offer_conf]["provider"] == "amazon-s3-v1" %}
-s3RegionName: {{ vitam_offers[offer_conf]["s3RegionName"] }}
-s3Endpoint: {{ vitam_offers[offer_conf]["s3Endpoint"] }}
-s3AccessKey: {{ vitam_offers[offer_conf]["s3AccessKey"] }}
-s3SecretKey: {{ vitam_offers[offer_conf]["s3SecretKey"] }}
-s3PathStyleAccessEnabled: {{ vitam_offers[offer_conf]["s3PathStyleAccessEnabled"] | default(true) }}
-s3SignerType: {{ vitam_offers[offer_conf]["s3SignerType"] | default("") }}
-s3MaxConnections: {{ vitam_offers[offer_conf]["s3MaxConnections"] | default(50) }}
-s3ConnectionTimeout: {{ vitam_offers[offer_conf]["s3ConnectionTimeout"] | default(10000) }}
-s3SocketTimeout: {{ vitam_offers[offer_conf]["s3SocketTimeout"] | default(50000) }}
-s3RequestTimeout: {{ vitam_offers[offer_conf]["s3RequestTimeout"] | default(0) }}
-s3ClientExecutionTimeout: {{ vitam_offers[offer_conf]["s3ClientExecutionTimeout"] | default(0) }}
-s3TrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
-s3TrustStorePassword: {{ password_truststore }}
-{% endif %}

@@ -38,9 +38,9 @@ import fr.gouv.vitam.storage.engine.server.offersynchronization.OfferSyncService
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
 import java.util.Arrays;
@@ -53,6 +53,7 @@ import static org.mockito.Mockito.when;
 /**
  * Offer synchronization resource tests.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class AdminOfferSyncResourceTest {
 
     @Rule
@@ -66,9 +67,6 @@ public class AdminOfferSyncResourceTest {
 
     private static final String OFFER_FS_1_SERVICE_CONSUL = "offer-fs-1.service.consul";
     private static final String OFFER_FS_2_SERVICE_CONSUL = "offer-fs-2.service.consul";
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private OfferSyncService offerSyncService;

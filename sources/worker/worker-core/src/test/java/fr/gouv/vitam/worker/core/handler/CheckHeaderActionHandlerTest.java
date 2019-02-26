@@ -28,10 +28,8 @@ package fr.gouv.vitam.worker.core.handler;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
@@ -40,12 +38,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientMock;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -61,6 +54,11 @@ import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -73,15 +71,20 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({SedaUtilsFactory.class, WorkspaceClientFactory.class})
 public class CheckHeaderActionHandlerTest {
     private static final String CONTRACT_NAME = "ArchivalAgreement0";
-    private final SedaUtils sedaUtils = mock(SedaUtils.class);
+    CheckHeaderActionHandler handler = new CheckHeaderActionHandler();
+    private SedaUtils sedaUtils;
     private GUID guid;
     private static final Integer TENANT_ID = 0;
 
@@ -90,65 +93,38 @@ public class CheckHeaderActionHandlerTest {
         "CheckHeaderActionHandler/manifest_no_archival_profile.xml";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-    private AdminManagementClient adminManagementClient;
-    private AdminManagementClientFactory adminManagementClientFactory;
-
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-
-    private SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
-
     private final HandlerIO handlerIO = mock(HandlerIO.class);
-    private CheckHeaderActionHandler handler;
+    private final SedaUtils utils = SedaUtilsFactory.create(handlerIO);
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Before
-    public void setUp()
-        throws ReferentialException, InvalidParseOperationException {
+    public void setUp() {
+        PowerMockito.mockStatic(SedaUtilsFactory.class);
+        sedaUtils = mock(SedaUtils.class);
         guid = GUIDFactory.newGUID();
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        adminManagementClient = mock(AdminManagementClient.class);
-        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-
-        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
-        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-
-        when(adminManagementClient.findIngestContractsByID(any()))
-            .thenReturn(new AdminManagementClientMock().findIngestContractsByID("contract"));
-        when(adminManagementClient.findContextById(any()))
-            .thenReturn(new AdminManagementClientMock().findContextById("context"));
-        when(adminManagementClient.getAgencies(any()))
-            .thenReturn(new AdminManagementClientMock().getAgencies(JsonHandler.createObjectNode()));
-
-        when(adminManagementClient.findIngestContracts(any()))
-            .thenReturn(new AdminManagementClientMock().findIngestContracts(JsonHandler.createObjectNode()));
-
-
-        when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
+
     }
 
     @Test
     @RunWithCustomExecutor
     public void testHandlerWorking() throws ProcessingException {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, sedaUtilsFactory);
-        HandlerIOImpl action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-                com.google.common.collect.Lists.newArrayList());
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(sedaUtils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Map<String, Object> sedaMap = new HashMap<>();
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "AG-0000001");
         sedaMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, CONTRACT_NAME);
         sedaMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, SedaConstants.TAG_MESSAGE_IDENTIFIER);
+        AdminManagementClientFactory.changeMode(null);
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
@@ -195,17 +171,20 @@ public class CheckHeaderActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testHandlerWorkingWithRealManifest() throws Exception {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, SedaUtilsFactory.getInstance());
+    public void testHandlerWorkingWithRealManifest() throws IOException, ContentAddressableStorageNotFoundException,
+        ContentAddressableStorageServerException {
 
-        HandlerIOImpl action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-                com.google.common.collect.Lists.newArrayList());
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(utils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
         when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
+
+        AdminManagementClientFactory.changeMode(null);
+        //Mockito.doCallRealMethod().when(utils).getMandatoryValues(any());
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
@@ -218,12 +197,12 @@ public class CheckHeaderActionHandlerTest {
 
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
         final ItemStatus response = handler.execute(params, action);
-        assertThat(response.getGlobalStatus()).isEqualTo( StatusCode.OK);
-        assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
+        assertEquals(response.getGlobalStatus(), StatusCode.OK);
+        assertNotNull(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         String evDetData = response.getEvDetailData();
-        assertThat(evDetData.contains("ArchivalAgreement0")).isTrue();
-        assertThat(evDetData.contains("English Comment")).isTrue();
-        assertThat(evDetData.contains("ArchivalProfile0")).isTrue();
+        assertTrue(evDetData.contains("ArchivalAgreement0"));
+        assertTrue(evDetData.contains("English Comment"));
+        assertTrue(evDetData.contains("ArchivalProfile0"));
         action.partialClose();
 
     }
@@ -231,11 +210,11 @@ public class CheckHeaderActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testDefinedProfileInIngestContractButNotInManifest()
-        throws IOException, ContentAddressableStorageNotFoundException,
+    public void testDefinedProfileInIngestContractButNotInManifest() throws IOException, ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, SedaUtilsFactory.getInstance());
 
+        HandlerIOImpl action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList());
+        PowerMockito.when(SedaUtilsFactory.create(action)).thenReturn(utils);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(MANIFEST_WITHOUT_ARCHIVAL_PROFILE));
@@ -243,24 +222,20 @@ public class CheckHeaderActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
 
+        AdminManagementClientFactory.changeMode(null);
         assertNotNull(CheckHeaderActionHandler.getId());
         final WorkerParameters params =
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
                 .setUrlMetadata("http://localhost:8083")
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-
-        HandlerIOImpl action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-                com.google.common.collect.Lists.newArrayList());
-
         action.getInput().add("true");
         action.getInput().add("true");
         action.getInput().add("true");
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "ingestcontract.json"));
 
         final ItemStatus response = handler.execute(params, action);
-        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
+        assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);        
         assertThat(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER)).isNotNull();
         String evDetData = response.getEvDetailData();
         assertThat(evDetData).contains("was not found in the ingest contract");

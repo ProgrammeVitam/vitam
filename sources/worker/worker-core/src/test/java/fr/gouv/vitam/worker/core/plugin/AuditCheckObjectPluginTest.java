@@ -1,7 +1,18 @@
 package fr.gouv.vitam.worker.core.plugin;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
@@ -23,30 +34,27 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({MetaDataClientFactory.class})
 public class AuditCheckObjectPluginTest {
+    AuditCheckObjectPlugin plugin = new AuditCheckObjectPlugin();
     private MetaDataClient metadataClient;
-    private final static MetaDataClientFactory metadataClientFactory = mock(MetaDataClientFactory.class);
-
+    private MetaDataClientFactory metadataClientFactory;
+    
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
-
+    
     private static final String ACTIONS = CheckExistenceObjectPlugin.getId();
     private static final String SEARCH_RESULTS = "PrepareAuditHandler/searchResults.json";
-    private AuditCheckObjectPlugin plugin = new AuditCheckObjectPlugin(metadataClientFactory);
-
+    
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -66,15 +74,20 @@ public class AuditCheckObjectPluginTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
+        PowerMockito.mockStatic(MetaDataClientFactory.class);
         metadataClient = mock(MetaDataClient.class);
-        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
+        metadataClientFactory = mock(MetaDataClientFactory.class);
+
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
+        PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
+            .thenReturn(metadataClient);
 
         action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "shouldWriteLFC")));
 
     }
-
+    
     @Test
     public void testAuditCheckObjectPluginWorking() throws Exception {
         action.addOutIOParameters(out);
@@ -82,11 +95,11 @@ public class AuditCheckObjectPluginTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SEARCH_RESULTS));
         reset(metadataClient);
         when(metadataClient.selectObjectGrouptbyId(any(), any())).thenReturn(searchResults);
-
+        
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
-
-
-
+    
+    
+    
 }

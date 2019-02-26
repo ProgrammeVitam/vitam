@@ -62,7 +62,6 @@
                 <!-- Other -->
                 <exclude>**/node_modules/**</exclude>
                 <exclude>**/evosuite-tests/**</exclude>
-                <exclude>**/rpm_signed/**</exclude>
             </excludes>
         </fileSet>
         <!-- Add ansible deployment files -->

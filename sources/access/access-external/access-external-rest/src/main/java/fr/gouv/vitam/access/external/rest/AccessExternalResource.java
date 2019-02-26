@@ -27,7 +27,6 @@
 package fr.gouv.vitam.access.external.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -98,13 +97,14 @@ public class AccessExternalResource extends ApplicationStatusResource {
     private static final String ACCESS_EXTERNAL_MODULE = "ACCESS_EXTERNAL";
     private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResource.class);
+    private static final String UNITS = "units";
+    private static final String OBJECTS = "objects";
     private static final String CONTRACT_ACCESS_NOT_ALLOW = "Contract access does not allow ";
     private static final String UNIT_NOT_FOUND = "Unit not found";
     private static final String REQ_RES_DOES_NOT_EXIST = "Request resource does not exist";
     private static final String OBJECT_TAG = "#object";
 
     private final SecureEndpointRegistry secureEndpointRegistry;
-    private final AccessInternalClientFactory accessInternalClientFactory;
 
     /**
      * Constructor
@@ -112,14 +112,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
      * @param secureEndpointRegistry endpoint list registry
      */
     public AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
-        this(secureEndpointRegistry, AccessInternalClientFactory.getInstance());
-    }
-
-    @VisibleForTesting
-    public AccessExternalResource(SecureEndpointRegistry secureEndpointRegistry,
-        AccessInternalClientFactory accessInternalClientFactory) {
         this.secureEndpointRegistry = secureEndpointRegistry;
-        this.accessInternalClientFactory = accessInternalClientFactory;
         LOGGER.debug("AccessExternalResourceV2 initialized");
     }
 
@@ -154,9 +147,9 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "units:read", description = "Récupérer la liste des unités archivistiques")
     public Response getUnits(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
-            RequestResponse<JsonNode> result = client.selectUnits(queryJson);
+            RequestResponse<JsonNode>  result = client.selectUnits(queryJson);
 
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -210,7 +203,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "dipexport:create", description = "Générer le DIP à partir d'un DSL")
     public Response exportDIP(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
             RequestResponse response = client.exportDIP(queryJson);
             if (response.isOk()) {
@@ -244,7 +237,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
         ParametersChecker.checkParameter("Missing reclassification request", queryJson);
 
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse response = client.reclassification(queryJson);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
@@ -290,7 +283,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         }
 
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse response = client.startEliminationAnalysis(eliminationRequestBody);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
@@ -336,7 +329,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                 .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
         }
 
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse response = client.startEliminationAction(eliminationRequestBody);
             if (response.isOk()) {
                 return Response.status(Status.ACCEPTED.getStatusCode()).entity(response).build();
@@ -367,7 +360,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     public Response findDIPByID(@PathParam("id") String id) {
 
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             Response response = client.findDIPByID(id);
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final AccessInternalClientServerException e) {
@@ -393,7 +386,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         description = "Obtenir le détail d'une unité archivistique au format json")
     public Response getUnitById(@Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         ParametersChecker.checkParameter("unit id is required", idUnit);
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(idUnit);
             SelectParserMultiple selectParserMultiple = new SelectParserMultiple();
             selectParserMultiple.parse(queryJson);
@@ -441,7 +434,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "units:id:update", description = "Réaliser la mise à jour d'une unité archivistique")
     public Response updateUnitById(@Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryJson, @PathParam("idu") String idUnit) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             // FIXME P1 add of idUnit as roots should be made in metadata as it is an internal concern
             UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
             updateParserMultiple.parse(queryJson);
@@ -509,7 +502,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     public Response getObjectGroupMetadataByUnitId(@Context HttpHeaders headers, @PathParam("idu") String unitId,
         @Dsl(value = DslSchema.GET_BY_ID) JsonNode queryJson) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
             String idObjectGroup = idObjectGroup(unitId);
             if (idObjectGroup == null) {
@@ -626,7 +619,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "units:update", description = "Mise à jour en masse des unités archivistiques")
     public Response massUpdateUnits(@Dsl(DslSchema.MASS_UPDATE) JsonNode queryJson) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             UpdateParserMultiple updateParserMultiple = new UpdateParserMultiple();
             updateParserMultiple.parse(queryJson);
             UpdateMultiQuery updateMultiQuery = updateParserMultiple.getRequest();
@@ -697,7 +690,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
                     "Can not read Dsl query").setHttpCode(status.getStatusCode())).build();
         }
 
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> response = client.updateUnitsRules(massUpdateUnitRuleRequest);
 
             if (!response.isOk() && response instanceof VitamError) {
@@ -750,7 +743,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "unitsWithInheritedRules:read", description = "Récupérer la liste des unités archivistiques avec leurs règles de gestion héritées")
     public Response selectUnitsWithInheritedRules(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> result = client.selectUnitsWithInheritedRules(queryJson);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -797,7 +790,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         AccessInternalClientNotFoundException, AccessUnauthorizedException {
         // Select "Object from ArchiveUNit idu
         ParametersChecker.checkParameter("unit id is required", idu);
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addUsedProjection(OBJECT_TAG);
             RequestResponse<JsonNode> response = client.selectUnitbyId(select.getFinalSelect(), idu);
@@ -842,7 +835,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
 
         final String xQualifier = multipleMap.get(GlobalDataRest.X_QUALIFIER).get(0);
         final String xVersion = multipleMap.get(GlobalDataRest.X_VERSION).get(0);
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             HttpHeaderHelper.checkVitamHeadersMap(multipleMap);
             final Response response =
                 client.getObject(idObjectGroup, xQualifier, Integer.valueOf(xVersion), unitId);
@@ -930,7 +923,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "objects:read", description = "Récupérer la liste des groupes d'objets")
     public Response getObjects(@Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             SanityChecker.checkJsonAll(queryJson);
             RequestResponse<JsonNode> result = client.selectObjects(queryJson);
 
@@ -981,7 +974,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "storageaccesslog:read:binary", description = "Télécharger les journaux d'accès")
     public Response getAccessLog(JsonNode params) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             final Response response = client.downloadAccessLogFile(params);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             return new VitamAsyncInputStreamResponse(response,
@@ -1024,7 +1017,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
     @Secured(permission = "preservation:update", description = "Lancer le processus de préservation")
     public Response startPreservation(PreservationRequest preservationRequest) {
         Status status;
-        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
             RequestResponse<JsonNode> requestResponse = client.startPreservation(preservationRequest);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(st).entity(requestResponse).build();

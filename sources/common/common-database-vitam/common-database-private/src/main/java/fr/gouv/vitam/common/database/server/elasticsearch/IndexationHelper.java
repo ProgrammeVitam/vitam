@@ -57,12 +57,6 @@ public class IndexationHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexationHelper.class);
     public static final String TYPEUNIQUE = VitamCollection.getTypeunique();
 
-    private static final IndexationHelper instance = new IndexationHelper();
-
-    public static IndexationHelper getInstance() {
-        return instance;
-    }
-
     /**
      * reindex a collection on a tenant list with a esmapping file
      *
@@ -73,7 +67,7 @@ public class IndexationHelper {
      * @return the result of the reindexation as a IndexationResult object
      * @throws IOException
      */
-    public IndexationResult reindex(MongoCollection<Document> collection, String collectionName,
+    public static IndexationResult reindex(MongoCollection<Document> collection, String collectionName,
         ElasticsearchAccess esClient,
         List<Integer> tenants, InputStream mapping)
         throws IOException {
@@ -164,12 +158,12 @@ public class IndexationHelper {
      * @param esClient the elastic client
      * @throws DatabaseException if an error occurs
      */
-    public void switchIndex(String aliasName, String newIndex, ElasticsearchAccess esClient)
+    public static void switchIndex(String aliasName, String newIndex, ElasticsearchAccess esClient)
         throws DatabaseException {
         esClient.switchIndex(aliasName, newIndex);
     }
 
-    private void createIndexationResult(String collectionName, IndexationResult indexationResult,
+    private static void createIndexationResult(String collectionName, IndexationResult indexationResult,
         String currentIndexWithoutAlias, Integer currentTenant, List<IndexOK> indexesOk) {
         if (currentTenant != null) {
             indexesOk.add(new IndexOK(currentIndexWithoutAlias, currentTenant));
@@ -180,7 +174,7 @@ public class IndexationHelper {
         indexationResult.setCollectionName(collectionName);
     }
 
-    private List<Document> getDocuments(MongoCursor<Document> cursor) {
+    private static List<Document> getDocuments(MongoCursor<Document> cursor) {
         int cpt = 0;
         List<Document> documents = new ArrayList<>();
         while (cpt < VitamConfiguration.getMaxElasticsearchBulk() && cursor.hasNext()) {
@@ -197,7 +191,7 @@ public class IndexationHelper {
      * @param message the message to be added
      * @return the final result as an IndexationResult object
      */
-    public IndexationResult getFullKOResult(IndexParameters indexParameters, String message) {
+    public static IndexationResult getFullKOResult(IndexParameters indexParameters, String message) {
         IndexationResult result = new IndexationResult();
         List<IndexKO> koList = new ArrayList<>();
         if (indexParameters.getTenants() != null) {
@@ -221,7 +215,7 @@ public class IndexationHelper {
      * @param message the message to be added
      * @return the final result as an IndexationResult object
      */
-    public IndexationResult getKOResult(SwitchIndexParameters switchIndexParameters, String message) {
+    public static IndexationResult getKOResult(SwitchIndexParameters switchIndexParameters, String message) {
         IndexationResult result = new IndexationResult();
         List<IndexKO> koList = new ArrayList<>();
         koList.add(new IndexKO(switchIndexParameters.getAlias() + "_*", message));

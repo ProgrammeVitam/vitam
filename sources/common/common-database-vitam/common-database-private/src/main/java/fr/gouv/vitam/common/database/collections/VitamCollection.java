@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.collections;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.ReadConcern;
@@ -138,8 +137,7 @@ public class VitamCollection {
         return name;
     }
 
-    @VisibleForTesting
-    public void setName(String name) { // NOSONAR
+    public void setName(String name) {
         this.name = name;
     }
 

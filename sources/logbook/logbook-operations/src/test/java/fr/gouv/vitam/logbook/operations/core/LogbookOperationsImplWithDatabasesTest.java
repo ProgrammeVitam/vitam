@@ -28,6 +28,13 @@ package fr.gouv.vitam.logbook.operations.core;
 
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
+import de.flapdoodle.embed.mongo.MongodExecutable;
+import de.flapdoodle.embed.mongo.MongodProcess;
+import de.flapdoodle.embed.mongo.MongodStarter;
+import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.runtime.Network;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -36,7 +43,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -61,18 +67,16 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAc
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -89,9 +93,32 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import org.bson.Document;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
 
 @RunWithCustomExecutor
 public class LogbookOperationsImplWithDatabasesTest {
@@ -139,12 +166,6 @@ public class LogbookOperationsImplWithDatabasesTest {
     @Mock
     private WorkspaceClient workspaceClient;
 
-    @Mock
-    private StorageClientFactory storageClientFactory;
-    @Mock
-    private StorageClient storageClient;
-    @Mock
-    private IndexationHelper indexationHelper;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -237,11 +258,6 @@ public class LogbookOperationsImplWithDatabasesTest {
         VitamClientFactory.resetConnections();
     }
 
-    @Before
-    public void before() {
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-    }
-
     @After
     public void clean() {
         LogbookCollections.afterTest(0, 1);
@@ -251,8 +267,7 @@ public class LogbookOperationsImplWithDatabasesTest {
     public void givenCreateAndUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
-        logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
         logbookOperationsImpl.create(logbookParametersStart);
         logbookOperationsImpl.update(logbookParametersAppend);
         try {
@@ -284,8 +299,7 @@ public class LogbookOperationsImplWithDatabasesTest {
     public void givenCreateAndSelect() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
-        logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);
         logbookOperationsImpl.create(logbookParameters3);
@@ -340,8 +354,7 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         mockWorkspaceClient();
-        logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
 
         logbookOperationsImpl.create(logbookParameters1);
         logbookOperationsImpl.create(logbookParameters2);
@@ -365,9 +378,9 @@ public class LogbookOperationsImplWithDatabasesTest {
     }
 
     private void mockWorkspaceClient() throws Exception {
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        doNothing().when(workspaceClient).createContainer(any());
-        doNothing().when(workspaceClient)
+        Mockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        Mockito.doNothing().when(workspaceClient).createContainer(any());
+        Mockito.doNothing().when(workspaceClient)
             .putObject(any(), any(), any());
     }
 

@@ -27,20 +27,21 @@
 
 package fr.gouv.vitam.common.format.identification;
 
+import java.nio.file.Path;
+import java.util.List;
+
 import fr.gouv.vitam.common.format.identification.exception.FileFormatNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierBadRequestException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
 import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
-
-import java.nio.file.Path;
-import java.util.List;
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
 
 /**
  * Format identifier interface
  */
-public interface FormatIdentifier {
+public interface FormatIdentifier extends VitamAutoCloseable {
 
     /**
      * Get format identifier status

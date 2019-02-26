@@ -10,7 +10,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.common.VitamSequence;
 import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccessFunctionalAdmin;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -57,6 +56,10 @@ public class VitamRuleRunner {
 
     @ClassRule
     public static DisableCacheContainerRule disableCacheContainerRule = new DisableCacheContainerRule();
+
+    // Rules
+    @ClassRule
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @ClassRule
     public static MongoRule mongoRule =

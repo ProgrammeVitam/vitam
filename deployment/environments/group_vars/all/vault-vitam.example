@@ -9,99 +9,85 @@ consul_encrypt: Biz14ohqN4HtvZmrXp3N4A==
 
 mongodb:
   mongo-data:
-    passphrase: change_it_kM4L6zBgK527tWBb
+    passphrase: mongogo
     admin:
       user: vitamdb-admin
-      password: change_it_1MpG22m2MywvKW5E
+      password: azerty
     localadmin:
       user: vitamdb-localadmin
-      password: change_it_HycFEVD74g397iRe
+      password: qwerty
     metadata:
       user: metadata
-      password: change_it_37b97KVaDV8YbCwt
+      password: azerty1
     logbook:
       user: logbook
-      password: change_it_jVi6q8eX4H1Ce8UC
+      password: azerty2
     report:
       user: report
-      password: change_it_jb7TASZbU6n85t8L
+      password: azerty5
     functionalAdmin:
       user: functional-admin
-      password: change_it_9eA2zMCL6tm6KF1e
+      password: azerty3
     securityInternal:
       user: security-internal
-      password: change_it_m39XvRQWixyDX566
+      password: azerty4
   offer-fs-1:
-    passphrase: change_it_mB5rnk1M5TY61PqZ
+    passphrase: mongogo
     admin:
       user: vitamdb-admin
-      password: change_it_FLkM5emt63N73EcN
+      password: azerty
     localadmin:
       user: vitamdb-localadmin
-      password: change_it_QeH8q4e16ah4QKXS
+      password: qwerty
     offer:
       user: offer
-      password: change_it_pQi1T1yT9LAF8au8
+      password: azerty5
   offer-fs-2:
-    passphrase: change_it_eSY1By57qZr4MX2s
+    passphrase: mongogo
     admin:
       user: vitamdb-admin
-      password: change_it_84aTMFZ7h8e2NgMe
+      password: azerty
     localadmin:
       user: vitamdb-localadmin
-      password: change_it_Am1B37tGY1w5VfvX
+      password: qwerty
     offer:
       user: offer
-      password: change_it_mLDYds957sNQ53mA
+      password: azerty5
   offer-swift-1:
-    passphrase: change_it_gYvt42M2pKL6Zx3T
+    passphrase: mongogo
     admin:
       user: vitamdb-admin
-      password: change_it_e21hLp51WNa4sJFS
+      password: azerty
     localadmin:
       user: vitamdb-localadmin
-      password: change_it_QB8857SJrGrQh2yu
+      password: qwerty
     offer:
       user: offer
-      password: change_it_AWJg2Bp3s69P6nMe
-  offer-s3-1:
-    passphrase: change_it_uF1jVdR9NqdTG625
-    admin:
-      user: vitamdb-admin
-      password: change_it_5b7cSWcS5M1NF4kv
-    localadmin:
-      user: vitamdb-localadmin
-      password: change_it_S9jE24rxHwUZP6y5
-    offer:
-      user: offer
-      password: change_it_TuTB1i2k7iQW3zL2
+      password: azerty5
 
 vitam_users:
   - vitam_aadmin:
     login: aadmin
-    password: change_it_z5MP7GC4qnR8nL9t
+    password: aadmin1234
     role: admin
   - vitam_uuser:
     login: uuser
-    password: change_it_w94Q3jPAT2aJYm8b
+    password: uuser1234
     role: user
   - vitam_gguest:
     login: gguest
-    password: change_it_E5v7Tr4h6tYaQG2W
+    password: gguest1234
     role: guest
   - techadmin:
     login: techadmin
-    password: change_it_K29E1uHcPZ8zXji8
+    password: techadmin1234
     role: admin
 
 ldap_authentification:
-    ldap_pwd: "change_it_t69Rn5NdUv39EYkC"
+    ldap_pwd: "admin"
 
-admin_basic_auth_password: change_it_5Yn74JgXwbQ9KdP8
+admin_basic_auth_password: adminPassword
 
 vitam_offers:
     offer-swift-1:
-        swiftPassword: change_it_m44j57aYeRPnPXQ2
-    offer-s3-1:
-        s3AccessKey: accessKey_change_grLS8372Uga5EJSx
-        s3SecretKey: secretKey_change_p97es2m2CHXPJA1m
+        swiftPassword: password

@@ -26,26 +26,29 @@
  */
 package fr.gouv.vitam.ihmdemo.common.pagination;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import java.util.Collection;
+
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.UnavailableSecurityManagerException;
 import org.apache.shiro.mgt.DefaultSecurityManager;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.DefaultSessionManager;
 
-import java.util.Collection;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Pagination Helper
  * <p>
+ * FIXME 2905 => use class type
  */
 public class PaginationHelper {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PaginationHelper.class);
@@ -56,18 +59,12 @@ public class PaginationHelper {
     private static final String JSON_NODE_OFFSET = "offset";
     private static final String JSON_NODE_LIMIT = "limit";
 
-    private static final PaginationHelper instance = new PaginationHelper();
-
-    public static PaginationHelper getInstance() {
-        return instance;
-    }
-
     /**
      * @param sessionId
      * @param result
      * @throws VitamException
      */
-    public void setResult(String sessionId, JsonNode result) throws VitamException {
+    public static void setResult(String sessionId, JsonNode result) throws VitamException {
 
         ParametersChecker.checkParameter(PARAMETERS, sessionId, result);
         final Session session = getSession(sessionId);
@@ -80,7 +77,7 @@ public class PaginationHelper {
      * @return JsonNode
      * @throws VitamException
      */
-    public JsonNode getResult(String sessionId, OffsetBasedPagination pagination) throws VitamException {
+    public static JsonNode getResult(String sessionId, OffsetBasedPagination pagination) throws VitamException {
 
         final Session session = getSession(sessionId);
         final ObjectNode result = (ObjectNode) session.getAttribute(RESULT_SESSION_ATTRIBUTE);
@@ -98,13 +95,13 @@ public class PaginationHelper {
      * @return JsonNode
      * @throws VitamException
      */
-    public JsonNode getResult(JsonNode result, OffsetBasedPagination pagination) throws VitamException {
+    public static JsonNode getResult(JsonNode result, OffsetBasedPagination pagination) throws VitamException {
 
         final ObjectNode jsonResult = (ObjectNode) result;
         return paginate(jsonResult, pagination);
     }
 
-    private Session getSession(String sessionId) throws VitamException {
+    private static Session getSession(String sessionId) throws VitamException {
         try {
             final DefaultSecurityManager securityManager = (DefaultSecurityManager) SecurityUtils.getSecurityManager();
             final DefaultSessionManager sessionManager = (DefaultSessionManager) securityManager.getSessionManager();
@@ -123,7 +120,7 @@ public class PaginationHelper {
         }
     }
 
-    public JsonNode paginate(ObjectNode result, OffsetBasedPagination pagination)
+    private static JsonNode paginate(ObjectNode result, OffsetBasedPagination pagination)
         throws InvalidParseOperationException {
 
         final ObjectNode jsonResult = (ObjectNode) JsonHandler.toJsonNode(result);

@@ -53,6 +53,7 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.worker.client.WorkerClient;
+import fr.gouv.vitam.worker.client.WorkerClientConfiguration;
 import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
@@ -67,6 +68,10 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -87,13 +92,17 @@ import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkerClientFactory.class})
 public class ProcessDistributorImplTest {
 
     private static final String CHAINED_FILE_00_JSON = "chainedFile_00.json";
@@ -120,20 +129,12 @@ public class ProcessDistributorImplTest {
     private ProcessWorkflow processWorkflow;
     private static WorkspaceClientFactory workspaceClientFactory;
     private WorkspaceClient workspaceClient;
+    private WorkerClient workerClient;
     private static IWorkerManager workerManager;
     private ProcessDistributorImpl processDistributor;
 
-
-    private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
-    private static final WorkerClient workerClient = mock(WorkerClient.class);
-
-
     @Before
     public void setUp() throws Exception {
-        reset(workerClient);
-        reset(workerClientFactory);
-
-        when(workerClientFactory.getClient()).thenReturn(workerClient);
         workerParameters = WorkerParametersFactory.newWorkerParameters();
         workerParameters.setWorkerGUID(GUIDFactory.newGUID());
         workerParameters.setContainerName(operationId);
@@ -147,11 +148,19 @@ public class ProcessDistributorImplTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(processDataAccess.findOneProcessWorkflow(any(), any())).thenReturn(processWorkflow);
 
+
+        WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
+        mockStatic(WorkerClientFactory.class);
+        when(WorkerClientFactory.getInstance(any(WorkerClientConfiguration.class))).thenReturn(workerClientFactory);
+
+        workerClient = mock(WorkerClient.class);
+        when(workerClientFactory.getClient()).thenReturn(workerClient);
+
         when(workerClient.submitStep(any()))
             .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
 
         processDistributor = new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
-            workspaceClientFactory, workerClientFactory);
+            workspaceClientFactory);
 
         if (Thread.currentThread() instanceof VitamThreadFactory.VitamThread) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT);
@@ -173,12 +182,11 @@ public class ProcessDistributorImplTest {
     public static void tearUpBeforeClass() throws Exception {
         VitamConfiguration.setWorkerBulkSize(1);
         final WorkerBean workerBean =
-            new WorkerBean("DefaultWorker", "DefaultWorker", 2, 0, "status",
+            new WorkerBean("DefaultWorker", "DefaultWorker", 10, 0, "status",
                 new WorkerRemoteConfiguration("localhost", 8999));
         workerBean.setWorkerId("FakeWorkerId");
 
-        when(workerClientFactory.getClient()).thenReturn(workerClient);
-        workerManager = new WorkerManager(workerClientFactory);
+        workerManager = new WorkerManager();
         workerManager.registerWorker(workerBean);
 
     }
@@ -204,32 +212,28 @@ public class ProcessDistributorImplTest {
         }
 
         try {
-            new ProcessDistributorImpl(null, processDataAccess, processDataManagement, workspaceClientFactory,
-                workerClientFactory);
+            new ProcessDistributorImpl(null, processDataAccess, processDataManagement, workspaceClientFactory);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(mock(IWorkerManager.class), null, processDataManagement, workspaceClientFactory,
-                workerClientFactory);
+            new ProcessDistributorImpl(mock(IWorkerManager.class), null, processDataManagement, workspaceClientFactory);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(mock(IWorkerManager.class), processDataAccess, null, workspaceClientFactory,
-                workerClientFactory);
+            new ProcessDistributorImpl(mock(IWorkerManager.class), processDataAccess, null, workspaceClientFactory);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(mock(IWorkerManager.class), processDataAccess, processDataManagement, null,
-                workerClientFactory);
+            new ProcessDistributorImpl(mock(IWorkerManager.class), processDataAccess, processDataManagement, null);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -274,7 +278,7 @@ public class ProcessDistributorImplTest {
 
         final ProcessDistributor processDistributor =
             new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
-                workspaceClientFactory, workerClientFactory);
+                workspaceClientFactory);
 
         try {
             processDistributor
@@ -325,7 +329,7 @@ public class ProcessDistributorImplTest {
 
         final ProcessDistributor processDistributor =
             new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
-                workspaceClientFactory, workerClientFactory);
+                workspaceClientFactory);
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), operationId,
@@ -399,6 +403,8 @@ public class ProcessDistributorImplTest {
 
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgument(0);
+            System.err.println("descriptionStep.getWorkParams().getObjectNameList()" +
+                descriptionStep.getWorkParams().getObjectNameList());
             if (descriptionStep.getWorkParams().getObjectNameList().iterator().next().equals("aaa1.json")) {
                 //throw new RuntimeException("Exception While Executing aaa1");
                 return getMockedItemStatus(StatusCode.KO);

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,59 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.common.storage.s3;
+ */
+package fr.gouv.vitam.common.external.client;
+
+import javax.ws.rs.client.Client;
+
 
 /**
- * List of error codes as defined by Amazon's S3 API and used by Amazon S3
- * connector in Vitam.
- * 
- * @see https://docs.aws.amazon.com/AmazonS3/latest/API/ErrorResponses.html#ErrorCodeList
- *
+ * Abstract client class for all vitam client not using SSL
  */
-public enum AmazonS3APIErrorCodes {
+public abstract class AbstractBenchmarkClientFactory<T extends BasicClient> extends TestVitamClientFactory<T> {
 
-	/**
-	 * Error for case when bucket already exists without acl
-	 */
-	BUCKET_ALREADY_EXISTS("BucketAlreadyExists"),
-	/**
-	 * Error for case when bucket already exists with acl
-	 */
-	BUCKET_ALREADY_OWNED_BY_YOU("BucketAlreadyOwnedByYou"),
-	/**
-	 * Error when bucket does not exists
-	 */
-	NO_SUCH_BUCKET("NoSuchBucket"),
-	/**
-	 * Error when object does not exists
-	 */
-	NO_SUCH_KEY("NoSuchKey"),
-	/**
-	 * Error when bucket or object does not exists
-	 */
-	NOT_FOUND("404 Not Found");
+    /**
+     * Constructor with standard configuration
+     *
+     * @param serverPort
+     * @param resourcePath the resource path of the server for the client calls
+     * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
+     * @throws UnsupportedOperationException HTTPS not implemented yet
+     */
+    protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath) {
+        super(serverPort, resourcePath);
+    }
 
-	/**
-	 * Amazon S3 API error response codes
-	 */
-	private final String errorCode;
-
-	/**
-	 * Constructor
-	 * 
-	 * @param errorCode error code
-	 */
-	private AmazonS3APIErrorCodes(String errorCode) {
-		this.errorCode = errorCode;
-	}
-
-	/**
-	 * Gets the errorCode
-	 * 
-	 * @return errorCode
-	 */
-	public String getErrorCode() {
-		return errorCode;
-	}
+    /**
+     * ONLY use this constructor in unit test Remove this when JerseyTest will be fully compatible with Jetty
+     *
+     * @param serverPort
+     * @param resourcePath the resource path of the server for the client calls
+     * @param client the HTTP client to use
+     * @throws UnsupportedOperationException HTTPS not implemented yet
+     */
+    protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath, Client client) {
+        super(serverPort, resourcePath, client);
+    }
 }

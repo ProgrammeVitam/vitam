@@ -97,8 +97,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     private final String workerId;
     private final File localDirectory;
     private final Map<String, Object> memoryMap = new HashMap<>();
-    private final WorkspaceClientFactory workspaceClientFactory;
-    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private final WorkspaceClient workspaceCient;
+    private final LogbookLifeCyclesClient lifecyclesClient;
     private final LogbookLifeCyclesClientHelper helper;
 
     private AsyncWorkspaceTransfer asyncWorkspaceTransfer;
@@ -111,33 +111,30 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Constructor with local root path
      *
      * @param containerName the container name
-     * @param workerId the worker id
+     * @param workerId      the worker id
      * @param objectIds
      */
     public HandlerIOImpl(String containerName, String workerId, List<String> objectIds) {
-        this(WorkspaceClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), containerName,
-            workerId, objectIds);
+        this(WorkspaceClientFactory.getInstance().getClient(), containerName, workerId, objectIds);
     }
 
     /**
      * Constructor with workspaceClient, local root path he is used for test purpose
      *
-     * @param workspaceClientFactory
-     * @param logbookLifeCyclesClientFactory
-     * @param containerName the container name
-     * @param workerId the worker id
+     * @param workspaceClient
+     * @param containerName   the container name
+     * @param workerId        the worker id
      * @param objectIds
      */
     @VisibleForTesting
-    public HandlerIOImpl(WorkspaceClientFactory workspaceClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, String containerName, String workerId,
+    public HandlerIOImpl(WorkspaceClient workspaceClient, String containerName, String workerId,
         List<String> objectIds) {
         this.containerName = containerName;
         this.workerId = workerId;
         localDirectory = PropertiesUtils.fileFromTmpFolder(containerName + "_" + workerId);
         localDirectory.mkdirs();
-        this.workspaceClientFactory = workspaceClientFactory;
-        this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
+        workspaceCient = workspaceClient;
+        lifecyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
         helper = new LogbookLifeCyclesClientHelper();
         this.objectIds = objectIds;
 
@@ -148,7 +145,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public LogbookLifeCyclesClient getLifecyclesClient() {
-        return logbookLifeCyclesClientFactory.getClient();
+        return lifecyclesClient;
     }
 
     @Override
@@ -222,6 +219,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         } catch (WorkerspaceQueueException e) {
             throw new RuntimeException(e);
         } finally {
+            workspaceCient.close();
+            lifecyclesClient.close();
             partialClose();
         }
     }
@@ -364,8 +363,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         Path filePath,
         boolean asyncIO) throws ProcessingException {
         if (!asyncIO) {
-            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                workspaceClient.putObject(containerName, workspacePath, inputStream);
+            try {
+                workspaceCient.putObject(containerName, workspacePath, inputStream);
             } catch (final ContentAddressableStorageServerException e) {
                 throw new ProcessingException("Cannot write to workspace: " + containerName + "/" + workspacePath, e);
             } finally {
@@ -406,7 +405,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
      * Resources file
      *
      * @param objectName object name
-     * @param optional if file is optional
+     * @param optional   if file is optional
      * @return file if found, if not found, null if optional
      * @throws FileNotFoundException if file is not found and not optional
      */
@@ -448,15 +447,15 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         final File file = getNewLocalFile(objectName);
         if (!file.exists()) {
             Response response = null;
-            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                response = workspaceClient.getObject(containerName, objectName);
+            try {
+                response = workspaceCient.getObject(containerName, objectName);
                 if (response != null) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
                         StreamUtils.copy((InputStream) response.getEntity(), fileOutputStream);
                     }
                 }
             } finally {
-                consumeAnyEntityAndClose(response);
+                workspaceCient.consumeAnyEntityAndClose(response);
             }
         }
         return file;
@@ -473,24 +472,22 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     public Response getInputStreamNoCachedFromWorkspace(String objectName)
         throws ContentAddressableStorageNotFoundException,
         ContentAddressableStorageServerException {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            return workspaceClient.getObject(containerName, objectName);
-        }
+        return workspaceCient.getObject(containerName, objectName);
     }
 
     @Override
     public void consumeAnyEntityAndClose(Response response) {
-        DefaultClient.staticConsumeAnyEntityAndClose(response);
+        workspaceCient.consumeAnyEntityAndClose(response);
     }
 
     @Override
     public JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException {
         Response response = null;
         InputStream is = null;
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try {
             final File file = getNewLocalFile(jsonFilePath);
             if (!file.exists()) {
-                response = workspaceClient.getObject(containerName, jsonFilePath);
+                response = workspaceCient.getObject(containerName, jsonFilePath);
                 is = (InputStream) response.getEntity();
                 if (is != null) {
                     try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
@@ -512,7 +509,7 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
             LOGGER.debug("Local Worker Storage Error", e);
             throw new ProcessingException(e);
         } finally {
-            consumeAnyEntityAndClose(response);
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
     }
 
@@ -527,9 +524,9 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
 
     @Override
     public List<URI> getUriList(String containerName, String folderName) throws ProcessingException {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        try {
             return JsonHandler
-                .getFromStringAsTypeRefence(workspaceClient.getListUriDigitalObjectFromFolder(containerName, folderName)
+                .getFromStringAsTypeRefence(workspaceCient.getListUriDigitalObjectFromFolder(containerName, folderName)
                     .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
                 });
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException | InvalidFormatException e) {
@@ -569,16 +566,15 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         LOGGER.debug("Try to push stream to workspace...");
 
         if (!asyncIO) {
-            try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                // call workspace
-                if (!workspaceClient.isExistingContainer(container)) {
-                    workspaceClient.createContainer(container);
-                    workspaceClient.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
-                } else {
-                    LOGGER.error(container + "already exist");
-                    throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
-                }
+            // call workspace
+            if (!workspaceCient.isExistingContainer(container)) {
+                workspaceCient.createContainer(container);
+                workspaceCient.uncompressObject(container, folderName, archiveMimeType, uploadedInputStream);
+            } else {
+                LOGGER.error(container + "already exist");
+                throw new ContentAddressableStorageAlreadyExistException(container + "already exist");
             }
+
             LOGGER.debug(" -> push compressed file to workspace finished");
         } else {
             try {
@@ -596,17 +592,16 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         throws ContentAddressableStorageException {
 
         LOGGER.debug("Try to push stream to workspace...");
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            // call workspace
-            if (workspaceClient.isExistingContainer(containerName)) {
-                CompressInformation compressInformation = new CompressInformation();
-                Collections.addAll(compressInformation.getFiles(), inputFiles);
-                compressInformation.setOutputFile(outputFile);
-                workspaceClient.compress(containerName, compressInformation);
-            } else {
-                LOGGER.error(containerName + "already exist");
-                throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
-            }
+
+        // call workspace
+        if (workspaceCient.isExistingContainer(containerName)) {
+            CompressInformation compressInformation = new CompressInformation();
+            Collections.addAll(compressInformation.getFiles(), inputFiles);
+            compressInformation.setOutputFile(outputFile);
+            workspaceCient.compress(containerName, compressInformation);
+        } else {
+            LOGGER.error(containerName + "already exist");
+            throw new ContentAddressableStorageAlreadyExistException(containerName + "already exist");
         }
 
     }
@@ -625,8 +620,8 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
         if (!isFolderExist(folderName)) {
             return false;
         }
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            workspaceClient.deleteFolder(this.containerName, folderName);
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            client.deleteFolder(this.containerName, folderName);
             return true;
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
             throw new ContentAddressableStorageException(exc);
@@ -639,15 +634,11 @@ public class HandlerIOImpl implements HandlerIO, VitamAutoCloseable {
     }
 
     private boolean isFolderExist(String folderName) throws ContentAddressableStorageException {
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            return workspaceClient.isExistingFolder(this.containerName, folderName);
+        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+            return client.isExistingFolder(this.containerName, folderName);
         } catch (ContentAddressableStorageServerException exc) {
             throw new ContentAddressableStorageException(exc);
         }
     }
 
-    @Override
-    public WorkspaceClientFactory getWorkspaceClientFactory() {
-        return workspaceClientFactory;
-    }
 }

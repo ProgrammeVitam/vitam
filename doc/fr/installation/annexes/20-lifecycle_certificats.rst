@@ -25,8 +25,6 @@ Le tableau ci-dessous indique le mode de fonctionnement actuel pour les différe
 |         |        | Horodatage      | PKI partenaire    | *proc. par défaut*                           | *proc. par défaut* | *proc. par défaut* |
 |         |        +-----------------+-------------------+----------------------------------------------+--------------------+--------------------+
 |         |        | Storage (swift) | Offre de stockage | *proc. par défaut*                           | *proc. par défaut* | *proc. par défaut* |
-|         |        +-----------------+-------------------+----------------------------------------------+--------------------+--------------------+
-|         |        | Storage (s3)    | Offre de stockage | *proc. par défaut*                           | *proc. par défaut* | *proc. par défaut* |
 |         +        +-----------------+-------------------+----------------------------------------------+--------------------+--------------------+
 |         | Certif | ingest          | PKI partenaire    | *proc. par défaut*                           | *proc. par défaut* | *proc. par défaut* |
 |         +        +-----------------+-------------------+----------------------------------------------+--------------------+--------------------+

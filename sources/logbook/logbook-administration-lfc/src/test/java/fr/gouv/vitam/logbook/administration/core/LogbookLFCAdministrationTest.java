@@ -29,7 +29,6 @@ import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
-import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -56,14 +55,11 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -90,9 +86,6 @@ public class LogbookLFCAdministrationTest {
 
     private static WorkspaceClientFactory workspaceClientFactory;
     private static WorkspaceClient workspaceClient;
-    private static StorageClientFactory storageClientFactory;
-    private static StorageClient storageClient;
-
 
     private static ProcessingManagementClientFactory processingManagementClientFactory;
     private static ProcessingManagementClient processingManagementClient;
@@ -107,8 +100,6 @@ public class LogbookLFCAdministrationTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-   private LogbookOperationsImpl logbookOperations;
-
 
     @BeforeClass
     public static void init() throws IOException, VitamException {
@@ -118,12 +109,9 @@ public class LogbookLFCAdministrationTest {
 
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
-        storageClientFactory = mock(StorageClientFactory.class);
-        storageClient = mock(StorageClient.class);
 
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-
-        processingManagementClientFactory = mock(ProcessingManagementClientFactory.class);
+        processingManagementClientFactory =
+            mock(ProcessingManagementClientFactory.class);
         processingManagementClient = mock(ProcessingManagementClient.class);
 
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
@@ -149,13 +137,6 @@ public class LogbookLFCAdministrationTest {
         VitamClientFactory.resetConnections();
     }
 
-    @Before
-    public void before() {
-        reset(storageClient);
-        reset(workspaceClient);
-        reset(processingManagementClient);
-        logbookOperations = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, IndexationHelper.getInstance());
-    }
     @After
     public void tearDown() {
         LogbookCollections.afterTest(Arrays.asList(LogbookCollections.OPERATION), tenantId);
@@ -175,6 +156,7 @@ public class LogbookLFCAdministrationTest {
         RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
         req.setHttpCode(Status.ACCEPTED.getStatusCode());
         when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
@@ -204,6 +186,7 @@ public class LogbookLFCAdministrationTest {
 
         doThrow(new ContentAddressableStorageAlreadyExistException("ContentAddressableStorageAlreadyExistException"))
             .when(workspaceClient).createContainer(anyString());
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,
@@ -230,6 +213,7 @@ public class LogbookLFCAdministrationTest {
         RequestResponseOK<ItemStatus> req = new RequestResponseOK<ItemStatus>().addResult(new ItemStatus());
         req.setHttpCode(Status.ACCEPTED.getStatusCode());
         when(processingManagementClient.updateOperationActionProcess(anyString(), anyString())).thenReturn(req);
+        LogbookOperationsImpl logbookOperations = new LogbookOperationsImpl(mongoDbAccess);
 
         LogbookLFCAdministration logbookAdministration =
             new LogbookLFCAdministration(logbookOperations, processingManagementClientFactory,

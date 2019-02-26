@@ -103,7 +103,7 @@ public class TransferThread implements Callable<ThreadResponseData> {
         throws StorageException, StorageDriverException, InterruptedException {
         if (IS_JUNIT_MODE && request.getGuid().equals(TIMEOUT_TEST) && request.getTenantId() == 0) {
             LOGGER.info("Sleep for Junit test");
-            Thread.sleep(100);
+            Thread.sleep(2000);
             return null;
         }
         LOGGER.debug(request.toString());

@@ -83,7 +83,6 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
-import fr.gouv.vitam.functional.administration.ontologies.client.AdminManagementOntologiesClientFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
@@ -170,7 +169,6 @@ public class WebApplicationResourceDeleteTest {
                 new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
                         Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), TENANT_ID, 1);
 
-        AdminManagementOntologiesClientFactory.changeMode(null);
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
 

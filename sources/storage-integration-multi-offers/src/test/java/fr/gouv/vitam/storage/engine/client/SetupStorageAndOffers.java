@@ -58,7 +58,7 @@ import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
  * just litle class for  setuping StorageTwoOffersIT test
  * SetupStorageAndOffers class
  */
-class SetupStorageAndOffers {
+ class SetupStorageAndOffers {
     private static final String JETTY_STORAGE_ADMIN = "jetty.storage.admin";
     static WorkspaceMain workspaceMain;
     static DefaultOfferMain firstOfferApplication;
@@ -92,7 +92,7 @@ class SetupStorageAndOffers {
         //Force offer 1 to have her own folder
         File file = PropertiesUtils.findFile(StorageTwoOffersIT.STORAGE_CONF_FILE_NAME);
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            IOUtils.write("storagePath: " + StorageTwoOffersIT.OFFER_FOLDER, outputStream, CharsetUtils.UTF_8);
+            IOUtils.write("storagePath: ./offer", outputStream, CharsetUtils.UTF_8);
         }
 
         SystemPropertyUtil.set(DefaultOfferMain.PARAMETER_JETTY_SERVER_PORT, 8757);
@@ -101,7 +101,7 @@ class SetupStorageAndOffers {
         List<MongoDbNode> mongoDbNodes = offerConfiguration.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         offerConfiguration.setMongoDbNodes(mongoDbNodes);
-offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
+
 
         PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
 
@@ -116,7 +116,7 @@ offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
         //Force offer 2 to have her own folder
         file = PropertiesUtils.findFile(StorageTwoOffersIT.STORAGE_CONF_FILE_NAME);
         try (FileOutputStream outputStream = new FileOutputStream(file)) {
-            IOUtils.write("storagePath: " + StorageTwoOffersIT.SECOND_FOLDER, outputStream, CharsetUtils.UTF_8);
+            IOUtils.write("storagePath: ./offer2", outputStream, CharsetUtils.UTF_8);
         }
 
         //
@@ -128,8 +128,6 @@ offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
         List<MongoDbNode> mongoDbNodesSecond = secondOfferConfiguration.getMongoDbNodes();
         mongoDbNodesSecond.get(0).setDbPort(MongoRule.getDataBasePort());
         secondOfferConfiguration.setMongoDbNodes(mongoDbNodesSecond);
-
-        secondOfferConfiguration.setStoragePath(StorageTwoOffersIT.SECOND_FOLDER);
         PropertiesUtils.writeYaml(secondOfferConfig, secondOfferConfiguration);
 
         DefaultOfferMain secondOfferApplication = new DefaultOfferMain(secondOfferConfig.getAbsolutePath());
@@ -165,8 +163,7 @@ offerConfiguration.setStoragePath(StorageTwoOffersIT.OFFER_FOLDER);
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
 
         //configure client
-        StorageClientFactory
-            .changeMode(new ClientConfigurationImpl("localhost", StorageTwoOffersIT.PORT_SERVICE_STORAGE));
+        StorageClientFactory.changeMode(new ClientConfigurationImpl("localhost", StorageTwoOffersIT.PORT_SERVICE_STORAGE));
         StorageTwoOffersIT.storageClient = StorageClientFactory.getInstance().getClient();
 
 

@@ -52,15 +52,11 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.server.application.junit.ResponseHelper;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.http.Header;
@@ -72,6 +68,11 @@ import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -79,21 +80,22 @@ import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
-public class AccessExternalResourceTest extends ResteasyTestApplication {
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
+@PrepareForTest({AccessInternalClientFactory.class, AdminManagementClientFactory.class})
+public class AccessExternalResourceTest {
     @Rule
     public ExpectedException thrownException = ExpectedException.none();
 
@@ -108,6 +110,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceTest.class);
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int port = junitHelper.findAvailablePort();
+    private static AccessInternalClient clientAccessInternal;
 
     private static final String BODY_TEST_SINGLE =
         "{\"$query\": {\"$eq\": {\"aa\" : \"vv\" }}, \"$projection\": {}, \"$filter\": {}}";
@@ -179,38 +182,12 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private final static BusinessApplicationTest businessApplicationTest = new BusinessApplicationTest();
-
-    private final static AccessInternalClientFactory accessInternalClientFactory =
-        businessApplicationTest.getAccessInternalClientFactory();
-    private final static AccessInternalClient accessInternalClient = mock(AccessInternalClient.class);
-
-    private final static AdminManagementClientFactory adminManagementClientFactory =
-        businessApplicationTest.getAdminManagementClientFactory();
-    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
-
-    private final static IngestInternalClientFactory ingestInternalClientFactory =
-        businessApplicationTest.getIngestInternalClientFactory();
-    private final static IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
-
-
-    @Override
-    public Set<Object> getResources() {
-        return businessApplicationTest.getSingletons();
-    }
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return businessApplicationTest.getClasses();
-    }
-
-
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new AccessExternalMain(ACCESS_CONF, AccessExternalResourceTest.class, null);
+            application = new AccessExternalMain(ACCESS_CONF, BusinessApplicationTest.class, null);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
@@ -225,17 +202,16 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     }
 
     @Before
-    public void setUpBefore() {
-        reset(accessInternalClient);
-        reset(accessInternalClientFactory);
-        reset(adminManagementClient);
-        reset(adminManagementClientFactory);
-        reset(ingestInternalClient);
-        reset(ingestInternalClientFactory);
+    public void setUpBefore() throws Exception {
 
-        when(accessInternalClientFactory.getClient()).thenReturn(accessInternalClient);
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
+        PowerMockito.mockStatic(AccessInternalClientFactory.class);
+        clientAccessInternal = PowerMockito.mock(AccessInternalClient.class);
+        final AccessInternalClientFactory clientAccessInternalFactory =
+            PowerMockito.mock(AccessInternalClientFactory.class);
+        PowerMockito.when(AccessInternalClientFactory.getInstance()).thenReturn(clientAccessInternalFactory);
+        PowerMockito.when(AccessInternalClientFactory.getInstance().getClient())
+            .thenReturn(clientAccessInternal);
+
     }
 
     @AfterClass
@@ -431,7 +407,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         selectMultiQuery.addRoots(ID_UNIT);
 
 
-        when(accessInternalClient.selectUnitbyId(selectMultiQuery.getFinalSelect(), ID_UNIT))
+        PowerMockito.when(clientAccessInternal.selectUnitbyId(selectMultiQuery.getFinalSelect(), ID_UNIT))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(SELECT_RETURN)));
 
         given()
@@ -715,7 +691,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testUpdateUnitById() throws Exception {
-        when(accessInternalClient.updateUnitbyId(any(), any()))
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.updateUnitbyId(any(), any()))
             .thenReturn(new RequestResponseOK<JsonNode>().addResult(
                 JsonHandler.getFromString("{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}")));
 
@@ -801,7 +778,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testAccessUnits() throws Exception {
-        when(accessInternalClient.selectUnits(any()))
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.selectUnits(any()))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Multiple Query DSL Validator Ok
         given()
@@ -832,7 +810,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testHttpOverrideAccessUnits() throws Exception {
-        when(accessInternalClient.selectUnits(any()))
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.selectUnits(any()))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
@@ -893,10 +872,10 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testErrorSelectUnitsById()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        AccessUnauthorizedException {
+        InvalidParseOperationException, AccessUnauthorizedException {
 
         try {
-            when(accessInternalClient.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
+            PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
                 .thenThrow(InvalidParseOperationException.class);
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -916,7 +895,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
 
         try {
-            when(accessInternalClient.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
+            PowerMockito.when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
                 .thenThrow(InvalidParseOperationException.class);
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -935,7 +914,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         }
 
         try {
-            when(accessInternalClient.selectUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
+            PowerMockito
+                .when(clientAccessInternal.selectUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
                 .thenThrow(InvalidParseOperationException.class);
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -958,10 +938,10 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @Test
     public void testErrorsUpdateUnitsById()
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
-        NoWritingPermissionException, AccessUnauthorizedException {
+        InvalidParseOperationException, NoWritingPermissionException, AccessUnauthorizedException {
 
         try {
-            when(accessInternalClient.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
+            PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), good_id))
                 .thenThrow(InvalidParseOperationException.class);
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -980,7 +960,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         }
 
         try {
-            when(accessInternalClient.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
+            PowerMockito.when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString(BAD_QUERY_TEST), bad_id))
                 .thenThrow(InvalidParseOperationException.class);
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -999,7 +979,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         }
 
         try {
-            when(accessInternalClient.updateUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
+            PowerMockito
+                .when(clientAccessInternal.updateUnitbyId(JsonHandler.getFromString("INTERAL_SEVER_ERROR"), bad_id))
                 .thenThrow(InvalidParseOperationException.class);
         } catch (final InvalidParseOperationException e) {
             given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -1045,8 +1026,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new AccessInternalClientServerException(""))
-            .when(accessInternalClient).selectUnits(any());
+        PowerMockito.doThrow(new AccessInternalClientServerException(""))
+            .when(clientAccessInternal).selectUnits(any());
 
         // Wrong Query for ACCESS_UNITS_URI accept only select-multiple Schema and not select-single
         given()
@@ -1059,8 +1040,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new AccessInternalClientNotFoundException(""))
-            .when(accessInternalClient).selectUnits(any());
+        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
+            .when(clientAccessInternal).selectUnits(any());
 
         given()
             .contentType(ContentType.JSON)
@@ -1083,7 +1064,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testOkSelectUnits() throws Exception {
-        when(accessInternalClient.selectUnits(any()))
+        PowerMockito.when(clientAccessInternal.selectUnits(any()))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Query Validation Ok
         JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE);
@@ -1144,8 +1125,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new AccessInternalClientServerException(""))
-            .when(accessInternalClient).selectUnits(any());
+        PowerMockito.doThrow(new AccessInternalClientServerException(""))
+            .when(clientAccessInternal).selectUnits(any());
 
         // Wrong Query for ACCESS_UNITS_URI accept only select-multiple Schema and not select-single
         given()
@@ -1158,8 +1139,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new AccessInternalClientNotFoundException(""))
-            .when(accessInternalClient).selectUnits(any());
+        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
+            .when(clientAccessInternal).selectUnits(any());
 
         given()
             .contentType(ContentType.JSON)
@@ -1171,8 +1152,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new BadRequestException("Bad Request"))
-            .when(accessInternalClient).selectUnits(any());
+        PowerMockito.doThrow(new BadRequestException("Bad Request"))
+            .when(clientAccessInternal).selectUnits(any());
 
         given()
             .contentType(ContentType.JSON)
@@ -1193,11 +1174,12 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void getObjectGroupPost() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+        reset(clientAccessInternal);
         final JsonNode result = JsonHandler.getFromString(BODY_TEST_SINGLE);
-        when(accessInternalClient.selectObjectbyId(any(), anyString()))
+        PowerMockito.when(clientAccessInternal.selectObjectbyId(any(), anyString()))
             .thenReturn(new RequestResponseOK().addResult(result));
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
-        when(accessInternalClient.selectUnitbyId(any(), any()))
+        PowerMockito.when(clientAccessInternal.selectUnitbyId(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -1242,8 +1224,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        reset(accessInternalClient);
-        when(accessInternalClient.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
             .thenThrow(new AccessInternalClientServerException(""));
 
@@ -1253,8 +1235,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .when().get("/units/" + ID_UNIT + "/objects").then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-        reset(accessInternalClient);
-        when(accessInternalClient.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectObjectbyId(JsonHandler.getFromString("\"" + anyString() + "\""),
             "\"" + anyString() + "\""))
             .thenThrow(new AccessInternalClientServerException(""));
 
@@ -1268,7 +1250,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void getObjectGroupMetadata() throws Exception {
-        reset(accessInternalClient);
+        reset(clientAccessInternal);
         String unitId = "good_id";
         JsonNode unit = JsonHandler.getFromString(
             "{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}");
@@ -1284,9 +1266,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         final RequestResponse<JsonNode> responseGOT =
             new RequestResponseOK<JsonNode>(JsonHandler.getFromString(BODY_TEST_MULTIPLE)).addResult(got)
                 .setHttpCode(200);
-        when(accessInternalClient.selectUnitbyId(any(), any()))
+        when(clientAccessInternal.selectUnitbyId(any(), any() ))
             .thenReturn(responseUnit);
-        when(accessInternalClient.selectObjectbyId(any(), any()))
+        when(clientAccessInternal.selectObjectbyId(any(), any() ))
             .thenReturn(responseGOT);
 
         // POST override GET ok
@@ -1334,9 +1316,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
 
         // applicative error 500
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
-        when(accessInternalClient.selectObjectbyId(any(), any()))
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(any(),  any() )).thenReturn(responseUnit);
+        when(clientAccessInternal.selectObjectbyId(any(), any()))
             .thenThrow(new AccessInternalClientServerException(""));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -1346,9 +1328,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
         // applicative error 412
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
-        when(accessInternalClient.selectObjectbyId(any(), any()))
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(any(), any() )).thenReturn(responseUnit);
+        when(clientAccessInternal.selectObjectbyId(any(), any()))
             .thenThrow(new InvalidParseOperationException(""));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -1358,9 +1340,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         // applicative error 404
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
-        when(accessInternalClient.selectObjectbyId(any(), any()))
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(clientAccessInternal.selectObjectbyId(any(),any()))
             .thenThrow(new AccessInternalClientNotFoundException(""));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -1371,10 +1353,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
 
         // applicative error 404 => unit without object
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnitNoObject);
-        when(accessInternalClient.selectObjectbyId(any(), any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(any(), any())).thenReturn(responseUnitNoObject);
+        when(clientAccessInternal.selectObjectbyId(any(), any())).thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
@@ -1383,10 +1364,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
         // applicative error 404 => object empty
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
-        when(accessInternalClient.selectObjectbyId(any(), any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(clientAccessInternal.selectObjectbyId(any(), any())).thenReturn(new RequestResponseOK<JsonNode>().setHttpCode(200));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
             .body(QUERY_TEST_BY_ID)
@@ -1395,9 +1375,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
         // applicative error 401
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitbyId(any(), any())).thenReturn(responseUnit);
-        when(accessInternalClient.selectObjectbyId(any(), any()))
+        reset(clientAccessInternal);
+        when(clientAccessInternal.selectUnitbyId(any(), any())).thenReturn(responseUnit);
+        when(clientAccessInternal.selectObjectbyId(any(), any()))
             .thenThrow(new AccessUnauthorizedException(""));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
@@ -1412,16 +1392,16 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         final Map<String, String> headers = new HashMap<>();
         final String GET_OBJECT_STREAM_URI = ACCESS_UNITS_URI + "/" + GOOD_ID + OBJECT_URI;
         headers.put("Content-Length", "4");
-        reset(accessInternalClient);
+        reset(clientAccessInternal);
         final Response response =
             ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                 MediaType.APPLICATION_OCTET_STREAM, headers);
 
         final JsonNode resultObjectReturn = JsonHandler.getFromString(OBJECT_RETURN);
-        when(accessInternalClient.selectUnitbyId(any(), anyString()))
+        PowerMockito.when(clientAccessInternal.selectUnitbyId(any(), anyString()))
             .thenReturn(new RequestResponseOK().addResult(resultObjectReturn));
 
-        when(accessInternalClient.getObject(anyString(), anyString(), anyInt(), anyString()))
+        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenReturn(response);
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -1504,7 +1484,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void getObjectUnit() throws Exception {
-        reset(accessInternalClient);
+        reset(clientAccessInternal);
 
         final Map<String, String> headers = new HashMap<>();
         headers.put("Content-Length", "4");
@@ -1513,17 +1493,16 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             ResponseHelper.getOutboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
                 MediaType.APPLICATION_OCTET_STREAM, headers);
 
-        when(accessInternalClient.getObject(anyString(), anyString(), anyInt(), anyString()))
+        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenReturn(response);
         String objectnode = "{\"$query\": {\"$eq\": {\"aa\" : \"vv\" }}, \"$projection\": {}, \"$filter\": {}}";
         JsonNode objectGroup = JsonHandler.getFromString(
             "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
         final JsonNode result = JsonHandler.getFromString(objectnode);
 
-        when(accessInternalClient.selectObjectbyId(any(), any()))
-            .thenReturn(new RequestResponseOK<JsonNode>().addResult(result));
+        when(clientAccessInternal.selectObjectbyId(any(), any())).thenReturn(new RequestResponseOK<JsonNode>().addResult(result));
 
-        when(accessInternalClient.selectUnitbyId(any(), any()))
+        when(clientAccessInternal.selectUnitbyId(any(), any()))
             .thenReturn(new RequestResponseOK<JsonNode>().addResult(objectGroup));
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders()).when()
@@ -1572,9 +1551,9 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         JsonNode objectGroup = JsonHandler.getFromString(
             "{\"$hint\":{\"total\":1},\"$context\":{\"$query\":{\"$eq\":{\"id\":\"1\"}},\"$projection\":{},\"$filter\":{}},\"$result\":[{\"#id\":\"1\",\"#object\":\"goodResult\",\"Title\":\"Archive 1\",\"DescriptionLevel\":\"Archive Mock\"}]}");
 
-        when(accessInternalClient.getObject(anyString(), anyString(), anyInt(), anyString()))
+        PowerMockito.when(clientAccessInternal.getObject(anyString(), anyString(), anyInt(), anyString()))
             .thenThrow(new InvalidParseOperationException(""));
-        when(accessInternalClient.selectUnitbyId(any(), anyString()))
+        PowerMockito.when(clientAccessInternal.selectUnitbyId(any(), anyString()))
             .thenReturn(new RequestResponseOK().addResult(objectGroup));
 
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
@@ -1639,8 +1618,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
-            .when().post(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
-            .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .when().post(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
 
         given()
             .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
@@ -1651,8 +1629,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.XML).header(X_HTTP_METHOD_OVERRIDE, "GET")
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
-            .when().post(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().post(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -1660,8 +1637,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.XML).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
-            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
-            .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
 
         given()
             .contentType(ContentType.XML).header(GlobalDataRest.X_TENANT_ID, UNEXTISTING_TENANT_ID)
@@ -1670,14 +1646,13 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
         given()
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
-            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void testAccessUnitsWithInheritedRules() throws Exception {
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitsWithInheritedRules(any()))
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.selectUnitsWithInheritedRules(any()))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Multiple Query DSL Validator Ok
         given()
@@ -1708,8 +1683,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testHttpOverrideAccessUnitsWithInheritedRules() throws Exception {
-        reset(accessInternalClient);
-        when(accessInternalClient.selectUnitsWithInheritedRules(any()))
+        reset(clientAccessInternal);
+        PowerMockito.when(clientAccessInternal.selectUnitsWithInheritedRules(any()))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
@@ -1794,8 +1769,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new AccessInternalClientServerException(""))
-            .when(accessInternalClient).selectUnitsWithInheritedRules(any());
+        PowerMockito.doThrow(new AccessInternalClientServerException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(any());
 
         // Wrong Query for ACCESS_UNITS_URI accept only select-multiple Schema and not select-single
         given()
@@ -1808,8 +1783,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new AccessInternalClientNotFoundException(""))
-            .when(accessInternalClient).selectUnitsWithInheritedRules(any());
+        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(any());
 
         given()
             .contentType(ContentType.JSON)
@@ -1832,7 +1807,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testOkSelectUnitsWithInheritedRules() throws Exception {
-        when(accessInternalClient.selectUnitsWithInheritedRules(any()))
+        PowerMockito.when(clientAccessInternal.selectUnitsWithInheritedRules(any()))
             .thenReturn(new RequestResponseOK().addResult(JsonHandler.getFromString(DATA_TEST)).setHttpCode(200));
         // Query Validation Ok
         JsonNode queryNode = JsonHandler.getFromString(BODY_TEST_MULTIPLE);
@@ -1893,8 +1868,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new AccessInternalClientServerException(""))
-            .when(accessInternalClient).selectUnitsWithInheritedRules(any());
+        PowerMockito.doThrow(new AccessInternalClientServerException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(any());
 
         // Wrong Query for ACCESS_UNITS_URI accept only select-multiple Schema and not select-single
         given()
@@ -1907,8 +1882,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new AccessInternalClientNotFoundException(""))
-            .when(accessInternalClient).selectUnitsWithInheritedRules(any());
+        PowerMockito.doThrow(new AccessInternalClientNotFoundException(""))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(any());
 
         given()
             .contentType(ContentType.JSON)
@@ -1920,8 +1895,8 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new BadRequestException("Bad Request"))
-            .when(accessInternalClient).selectUnitsWithInheritedRules(any());
+        PowerMockito.doThrow(new BadRequestException("Bad Request"))
+            .when(clientAccessInternal).selectUnitsWithInheritedRules(any());
 
         given()
             .contentType(ContentType.JSON)
@@ -1936,7 +1911,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testStartEliminationAnalysis_OK() throws Exception {
-        when(accessInternalClient.startEliminationAnalysis(any()))
+        PowerMockito.when(clientAccessInternal.startEliminationAnalysis(any()))
             .thenReturn(new RequestResponseOK().setHttpCode(200));
         given()
             .contentType(ContentType.JSON)
@@ -1952,7 +1927,7 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testStartEliminationAnalysis_InvalidRequest() throws Exception {
-        when(accessInternalClient.startEliminationAnalysis(any()))
+        PowerMockito.when(clientAccessInternal.startEliminationAnalysis(any()))
             .thenReturn(new RequestResponseOK().setHttpCode(200));
 
         // Query with projection

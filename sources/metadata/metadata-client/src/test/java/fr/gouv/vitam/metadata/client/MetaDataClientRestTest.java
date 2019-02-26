@@ -450,7 +450,7 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @Test
     public void selectOGByIdTest()
         throws MetaDataClientServerException, MetaDataDocumentSizeException, MetaDataExecutionException,
-        InvalidParseOperationException, MetaDataNotFoundException {
+        InvalidParseOperationException, MetadataInvalidSelectException {
         when(mock.get()).thenReturn(Response.status(Status.FOUND).entity("true").build());
         client.selectObjectGrouptbyId(JsonHandler.getFromString(VALID_QUERY), "id");
     }

@@ -254,7 +254,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
 
     @Override
     public JsonNode selectObjectGrouptbyId(JsonNode selectQuery, String objectGroupId)
-        throws MetaDataExecutionException, MetaDataNotFoundException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
+        MetadataInvalidSelectException, MetaDataClientServerException {
         try {
             ParametersChecker.checkParameter(ErrorMessage.SELECT_OBJECT_GROUP_QUERY_NULL.getMessage(), selectQuery);
             ParametersChecker.checkParameter(ErrorMessage.BLANK_PARAM.getMessage(), objectGroupId);
@@ -276,8 +277,6 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             } else if (response.getStatus() == Response.Status.PRECONDITION_FAILED.getStatusCode()) {
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
-            } else if (response.getStatus() == Status.NOT_FOUND.getStatusCode()) {
-                throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
             }
             return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {

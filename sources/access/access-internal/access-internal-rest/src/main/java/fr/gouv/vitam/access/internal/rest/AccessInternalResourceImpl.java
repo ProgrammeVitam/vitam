@@ -95,7 +95,6 @@ import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -105,16 +104,13 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -189,7 +185,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private ObjectGroupMapper objectGroupMapper;
 
     private ObjectMapper objectMapper;
-    private final ProcessingManagementClientFactory processingManagementClientFactory;
+    private ProcessingManagementClientFactory processingManagementClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
 
@@ -203,29 +199,25 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getUrlProcessing());
     }
 
-    @VisibleForTesting
-    public AccessInternalResourceImpl(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory, StorageClientFactory storageClientFactory,
-        WorkspaceClientFactory workspaceClientFactory, AdminManagementClientFactory adminManagementClientFactory,
-        MetaDataClientFactory metaDataClientFactory,
-        ProcessingManagementClientFactory processingManagementClientFactory) {
-        this(new AccessInternalModuleImpl(logbookLifeCyclesClientFactory, logbookOperationsClientFactory,
-                storageClientFactory,
-                workspaceClientFactory, adminManagementClientFactory,
-                metaDataClientFactory), logbookOperationsClientFactory, workspaceClientFactory,
-            processingManagementClientFactory);
+    /**
+     * Mock constructor
+     *
+     * @param accessModule accessModule
+     */
+    AccessInternalResourceImpl(AccessInternalModule accessModule) {
+        this(accessModule, LogbookOperationsClientFactory.getInstance(), WorkspaceClientFactory.getInstance(),
+            ProcessingManagementClientFactory.getInstance());
     }
 
     /**
      * Test constructor
      *
-     * @param accessModule accessModule
-     * @param logbookOperationsClientFactory logbookOperationsClientFactory
-     * @param workspaceClientFactory workspaceClientFactory
+     * @param accessModule                      accessModule
+     * @param logbookOperationsClientFactory    logbookOperationsClientFactory
+     * @param workspaceClientFactory            workspaceClientFactory
      * @param processingManagementClientFactory processingManagementClientFactory
      */
-    @VisibleForTesting
-    AccessInternalResourceImpl(AccessInternalModule accessModule,
+    @VisibleForTesting AccessInternalResourceImpl(AccessInternalModule accessModule,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         WorkspaceClientFactory workspaceClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory) {
@@ -385,8 +377,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 // When
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient
-                        .executeOperationProcess(operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
                 InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
@@ -467,8 +458,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
                 // When
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient
-                        .executeOperationProcess(operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.EXPORT_DIP.name(), RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException |
                 InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
@@ -567,8 +557,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 processingClient.initVitamProcess(operationId, Contexts.RECLASSIFICATION.name());
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient.executeOperationProcess(operationId, Contexts.RECLASSIFICATION.name(),
-                        processAction.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.RECLASSIFICATION.name(), processAction.getValue());
                 return jsonNodeRequestResponse.toResponse();
             }
 
@@ -663,8 +652,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 processingClient.initVitamProcess(new ProcessingEntry(operationId, eliminationWorkflowContext.name()));
 
                 RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    processingClient
-                        .executeOperationProcess(operationId, eliminationWorkflowContext.name(), RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, eliminationWorkflowContext.name(), RESUME.getValue());
                 return jsonNodeRequestResponse.toResponse();
             }
 
@@ -688,7 +676,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * get Archive Unit list by query based on identifier
      *
      * @param queryDsl as JsonNode
-     * @param idUnit identifier
+     * @param idUnit   identifier
      * @return an archive unit result list
      */
     @Override
@@ -721,10 +709,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final AccessInternalExecutionException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
             return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
@@ -761,10 +745,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -772,8 +752,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
      * update archive units by Id with Json query
      *
      * @param requestId request identifier
-     * @param queryDsl DSK, null not allowed
-     * @param idUnit units identifier
+     * @param queryDsl  DSK, null not allowed
+     * @param idUnit    units identifier
      * @return a archive unit result list
      */
     @Override
@@ -841,10 +821,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(exc);
             status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -876,10 +852,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -916,10 +888,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             status = Status.METHOD_NOT_ALLOWED;
             return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
                 .build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
 
@@ -971,7 +939,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(exc.getMessage(), exc);
             return Response.status(INTERNAL_SERVER_ERROR).entity(getErrorStream(INTERNAL_SERVER_ERROR,
                 exc.getMessage())).build();
-        } catch (StorageNotFoundException | MetaDataNotFoundException exc) {
+        } catch (MetaDataNotFoundException | StorageNotFoundException exc) {
             LOGGER.error(exc);
             return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, exc.getMessage())).build();
         }
@@ -1120,8 +1088,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
                 RequestResponse<JsonNode> requestResponse =
-                    processingClient
-                        .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name(), RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name(), RESUME.getValue());
                 return requestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |
                 LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
@@ -1193,8 +1160,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
                 RequestResponse<JsonNode> requestResponse =
-                    processingClient
-                        .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name(), RESUME.getValue());
+                    processingClient.executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_RULE.name(), RESUME.getValue());
                 return requestResponse.toResponse();
             } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException | LogbookClientBadRequestException |
                 LogbookClientAlreadyExistsException | InvalidGuidOperationException | LogbookClientServerException | VitamClientException | InternalServerException e) {
@@ -1332,8 +1298,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
             PreservationRequest restrictedRequest =
                 new PreservationRequest(restrictedQuery, preservationRequest.getScenarioIdentifier(),
-                    preservationRequest.getTargetUsage(), preservationRequest.getVersion(),
-                    preservationRequest.getSourceUsage());
+                    preservationRequest.getTargetUsage(),preservationRequest.getVersion(), preservationRequest.getSourceUsage());
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();

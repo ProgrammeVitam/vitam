@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -60,17 +61,14 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
     private static final String ALGORITHM = "Algorithm";
     private static final String DIGEST = "MessageDigest";
 
-    private final StorageClientFactory storageClientFactory;
+    private final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
 
-    public StoreObjectActionHandler(StorageClientFactory storageClientFactory) {
-        this.storageClientFactory = storageClientFactory;
-    }
 
     /**
      * The function is used for retrieving ObjectGroup in workspace and storing metaData in storage offer
      *
      * @param description the object description
-     * @param itemStatus item status
+     * @param itemStatus  item status
      * @return StoredInfoResult
      */
     protected StoredInfoResult storeObject(ObjectDescription description,

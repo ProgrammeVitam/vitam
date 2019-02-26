@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.offersynchronization;
 
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -39,10 +41,10 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -55,7 +57,13 @@ import static org.mockito.Mockito.when;
 /**
  * RestoreOfferBackupService tests
  */
+@RunWith(MockitoJUnitRunner.class)
 public class RestoreOfferBackupServiceTest {
+
+    /**
+     * Vitam Logger.
+     */
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RestoreOfferBackupServiceTest.class);
 
     private static final String STRATEGY_ID = "default";
     private static final String OFFER_ID = "default";
@@ -65,8 +73,6 @@ public class RestoreOfferBackupServiceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();

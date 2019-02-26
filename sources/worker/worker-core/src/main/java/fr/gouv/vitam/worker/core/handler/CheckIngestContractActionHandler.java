@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
@@ -39,8 +42,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ContextModel;
+import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -52,10 +55,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * Handler class used to check the ingest contract of SIP. </br>
@@ -72,15 +71,24 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     private HandlerIO handlerIO;
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-    private AdminManagementClientFactory adminManagementClientFactory;
+    private AdminManagementClient adminManagementClient;
 
+    /**
+     * Constructor with parameter SedaUtilsFactory
+     */
     public CheckIngestContractActionHandler() {
-        this(AdminManagementClientFactory.getInstance());
+        adminManagementClient = AdminManagementClientFactory.getInstance().getClient();
     }
 
+
+    /**
+     * Constructor with parameter SedaUtilsFactory
+     *
+     * @param adminManagementClient
+     */
     @VisibleForTesting
-    public CheckIngestContractActionHandler(AdminManagementClientFactory adminManagementClientFactory) {
-        this.adminManagementClientFactory = adminManagementClientFactory;
+    public CheckIngestContractActionHandler(AdminManagementClient adminManagementClient) {
+        this.adminManagementClient = adminManagementClient;
     }
 
 
@@ -124,38 +132,38 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                 case CONTRACT_NOT_IN_MANIFEST:
                     itemStatus
                         .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTRACT_NOT_IN_MANIFEST.toString());
-                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Error ingest contract not found in the Manifest");
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA,  "Error ingest contract not found in the Manifest");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case CONTEXT_INACTIVE:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTEXT_INACTIVE.toString());
-                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Context inactive");
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA,  "Context inactive");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case CONTEXT_UNKNOWN:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTEXT_UNKNOWN.toString());
-                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Context not found");
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA,  "Context not found");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case CONTEXT_CHECK_ERROR:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTEXT_CHECK_ERROR.toString());
-                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Loading context error");
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA,  "Loading context error");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case CONTRACT_NOT_IN_CONTEXT:
                     itemStatus
                         .setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.CONTRACT_NOT_IN_CONTEXT.toString());
-                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Error ingest contract not found in the Context");
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA,  "Error ingest contract not found in the Context");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.KO);
                     break;
                 case FATAL:
                     itemStatus.setGlobalOutcomeDetailSubcode(CheckIngestContractStatus.FATAL.toString());
-                    infoNode.put(SedaConstants.EV_DET_TECH_DATA, "Cannot check context");
+                    infoNode.put(SedaConstants.EV_DET_TECH_DATA,  "Cannot check context");
                     itemStatus.setEvDetailData(JsonHandler.unprettyPrint(infoNode));
                     itemStatus.increment(StatusCode.FATAL);
                     break;
@@ -185,7 +193,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
             return CheckIngestContractStatus.CONTRACT_NOT_IN_MANIFEST;
         }
 
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
+        try {
             RequestResponse<IngestContractModel> referenceContracts =
                 adminManagementClient.findIngestContractsByID(contractIdentifier);
             if (referenceContracts.isOk()) {
@@ -219,7 +227,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
      * @param ingestContract
      */
     private CheckIngestContractStatus checkIngestContractInTheContext(String ingestContract) {
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
+        try {
             final String contextId = VitamThreadUtils.getVitamSession().getContextId();
 
             if (null == contextId || contextId.isEmpty()) {
@@ -249,7 +257,7 @@ public class CheckIngestContractActionHandler extends ActionHandler {
                     Integer tenant = ParameterHelper.getTenantParameter();
 
                     long count = context.getPermissions().stream()
-                        .filter(p -> Objects.equals(p.getTenant(), tenant))
+                        .filter(p -> p.getTenant() == tenant)
                         .filter(p -> p.getIngestContract() != null)
                         .filter(p -> p.getIngestContract().contains(ingestContract))
                         .count();
@@ -276,6 +284,11 @@ public class CheckIngestContractActionHandler extends ActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
+    }
+
+    @Override
+    public void close() {
+        this.adminManagementClient.close();
     }
 
     /**

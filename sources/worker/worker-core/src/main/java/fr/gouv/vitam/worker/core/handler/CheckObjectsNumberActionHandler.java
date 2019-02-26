@@ -26,10 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
@@ -41,6 +48,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -49,15 +57,11 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils;
 import fr.gouv.vitam.worker.common.utils.SedaUtilsFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.List;
-import java.util.stream.Collectors;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * Handler checking that digital objects number in workspace matches with manifest.xml.
+ *
  */
 public class CheckObjectsNumberActionHandler extends ActionHandler {
 
@@ -73,14 +77,13 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private static final String ERROR_IN_MANIFEST = "manifestError";
     private static final String ERROR_IN_CONTENT = "contentError";
 
-    private final SedaUtilsFactory sedaUtilsFactory;
+    private HandlerIO handlerIO;
 
+    /**
+     * Default Constructor
+     */
     public CheckObjectsNumberActionHandler() {
-        this(SedaUtilsFactory.getInstance());
-    }
-
-    public CheckObjectsNumberActionHandler(SedaUtilsFactory sedaUtilsFactory) {
-        this.sedaUtilsFactory = sedaUtilsFactory;
+        // Nothing
     }
 
     /**
@@ -99,12 +102,13 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
 
         try {
             checkMandatoryIOParameter(handlerIO);
-            final ExtractUriResponse extractUriResponse = getUriListFromManifest(handlerIO, params);
+            this.handlerIO = handlerIO;
+            final ExtractUriResponse extractUriResponse = getUriListFromManifest(params);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
 
                 final List<URI> uriListFromManifest = extractUriResponse.getUriListManifest();
-                final List<URI> uriListFromWorkspace = getUriListFromWorkspace(handlerIO, params);
+                final List<URI> uriListFromWorkspace = getUriListFromWorkspace(params);
                 checkCountDigitalObjectConformity(uriListFromManifest, uriListFromWorkspace, itemStatus);
 
             } else if (extractUriResponse != null) {
@@ -133,10 +137,10 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @return ExtractUriResponse
      * @throws ProcessingException throws when error in execution
      */
-    private ExtractUriResponse getUriListFromManifest(HandlerIO handlerIO, WorkerParameters params)
+    private ExtractUriResponse getUriListFromManifest(WorkerParameters params)
         throws ProcessingException {
         // get uri list from manifest
-        final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
+        final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
         return sedaUtils.getAllDigitalObjectUriFromManifest();
     }
 
@@ -149,9 +153,9 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @throws ProcessingException throws when error in execution
      * @throws ContentAddressableStorageServerException
      */
-    private List<URI> getUriListFromWorkspace(HandlerIO handlerIO, WorkerParameters params)
+    private List<URI> getUriListFromWorkspace(WorkerParameters params)
         throws ProcessingException, ContentAddressableStorageServerException {
-        return getDigitalObjectUriListFromWorkspace(handlerIO, params);
+        return getDigitalObjectUriListFromWorkspace(params);
     }
 
     /**
@@ -269,10 +273,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @return List of Uri
      * @throws ProcessingException - throw when workspace is unavailable.
      * @throws ContentAddressableStorageServerException
+     *
      */
-    private List<URI> getDigitalObjectUriListFromWorkspace(HandlerIO handlerIO, WorkerParameters workParams)
+    private List<URI> getDigitalObjectUriListFromWorkspace(WorkerParameters workParams)
         throws ProcessingException, ContentAddressableStorageServerException {
-        try (final WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
+        try (final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
 
             // FIXME P1: We have to count here from SIP/Content and not from SIP
             // Remove one element is actually, with our SIP correct but not really true because it is not necessary
@@ -289,8 +294,7 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             final List<URI> uriListWorkspace =
                 JsonHandler.getFromStringAsTypeRefence(workspaceClient
                     .getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                });
+                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
             // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
             return uriListWorkspace.stream().filter(uri -> uri.toString().contains(encodedSeparator)).collect(Collectors
                 .toList());

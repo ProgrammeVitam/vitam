@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.common.client;
 
+import javax.ws.rs.client.Client;
+
+
 /**
  * Abstract client class for all vitam client not using SSL
  */
@@ -36,9 +39,22 @@ public abstract class AbstractBenchmarkClientFactory<T extends BasicClient> exte
      *
      * @param serverPort
      * @param resourcePath the resource path of the server for the client calls
+     * @param suppressHttpCompliance define if client (Jetty Client feature) check if request id HTTP compliant
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
     protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath) {
         super(serverPort, resourcePath);
+    }
+
+    /**
+     * ONLY use this constructor in unit test Remove this when JerseyTest will be fully compatible with Jetty
+     *
+     * @param serverPort
+     * @param resourcePath the resource path of the server for the client calls
+     * @param client the HTTP client to use
+     * @throws UnsupportedOperationException HTTPS not implemented yet
+     */
+    protected AbstractBenchmarkClientFactory(int serverPort, String resourcePath, Client client) {
+        super(serverPort, resourcePath, client);
     }
 }

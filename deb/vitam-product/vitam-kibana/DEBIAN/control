@@ -1,8 +1,0 @@
-Package: vitam-kibana
-Version: 6.5.4
-Section: database
-Priority: optional
-Architecture: all
-Depends: bash, vitam-user-vitam, kibana ( =6.5.4)
-Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
-Description: Kibana lets you visualize your Elasticsearch data and navigate the Elastic Stack.

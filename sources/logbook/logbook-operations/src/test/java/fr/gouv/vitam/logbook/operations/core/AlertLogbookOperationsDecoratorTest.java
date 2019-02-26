@@ -26,9 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.operations.core;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
-import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
@@ -41,34 +61,18 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mockito;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest(WorkspaceClientFactory.class)
 public class AlertLogbookOperationsDecoratorTest {
 
-    private WorkspaceClientFactory workspaceClientFactory;
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    private AlertLogbookOperationsDecorator alertLogbookOperationsDecorator;
+    AlertLogbookOperationsDecorator alertLogbookOperationsDecorator;
     LogbookEvent logbookEvent = new LogbookEvent();
     List<LogbookEvent> alertEvents = new ArrayList<>();
     private LogbookOperationsImpl logbookOperationsImpl;
@@ -84,13 +88,12 @@ public class AlertLogbookOperationsDecoratorTest {
         mongoDbAccess = mock(LogbookDbAccess.class);
         alertService = mock(AlertServiceImpl.class);
 
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
         // Mock workspace and mongoDbAccess to avoid error on operation backup
+        final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
 
-        StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-        when(storageClientFactory.getClient()).thenReturn(mock(StorageClient.class));
-        IndexationHelper indexationHelper = mock(IndexationHelper.class);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,indexationHelper);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory);
         eventType = "STP_IMPORT_ACCESS_CONTRACT";
         logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);
@@ -116,7 +119,7 @@ public class AlertLogbookOperationsDecoratorTest {
     public void testCreate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         alertLogbookOperationsDecorator.create(logbookParameters);
-        verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
+        Mockito.verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
     }
 
     @RunWithCustomExecutor
@@ -124,7 +127,7 @@ public class AlertLogbookOperationsDecoratorTest {
     public void testUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         alertLogbookOperationsDecorator.update(logbookParameters);
-        verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
+        Mockito.verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
     }
 
     @RunWithCustomExecutor
@@ -133,7 +136,7 @@ public class AlertLogbookOperationsDecoratorTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperationParameters[] operationArray = {logbookParameters};
         alertLogbookOperationsDecorator.createBulkLogbookOperation(operationArray);
-        verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
+        Mockito.verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
     }
 
     @RunWithCustomExecutor
@@ -142,7 +145,7 @@ public class AlertLogbookOperationsDecoratorTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         LogbookOperationParameters[] operationArray = {logbookParameters};
         alertLogbookOperationsDecorator.updateBulkLogbookOperation(operationArray);
-        verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
+        Mockito.verify(alertService).createAlert(Mockito.eq(VitamLogLevel.INFO), Mockito.anyString());
     }
 
 

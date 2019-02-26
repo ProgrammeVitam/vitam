@@ -71,8 +71,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
-public class VitamServerTestRunner {// NOSONAR
-    public static final String LOCALHOST = "localhost";
+public class VitamServerTestRunner {
     private final VitamServer server;
     private final VitamClientFactoryInterface<?> factory;
     private final Class<? extends Application> application;
@@ -82,124 +81,124 @@ public class VitamServerTestRunner {// NOSONAR
     private final int adminPort;
 
     public VitamServerTestRunner(Class<? extends Application> application,
-        Class<? extends Application> adminApplication) {// NOSONAR
+        Class<? extends Application> adminApplication) {
         this(application, adminApplication, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication,
-        boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasAuthorizationFilter) {
         this(application, adminApplication, false, hasAuthorizationFilter);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter) {
         this(application, adminApplication, hasTenantFilter, hasAuthorizationFilter, false);
     }
 
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {
         this(application, adminApplication, hasTenantFilter, hasAuthorizationFilter, hasSession, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession, boolean hasShiroFilter) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession, boolean hasShiroFilter) {
         this(application, adminApplication, hasTenantFilter, hasAuthorizationFilter, hasSession, hasShiroFilter, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication,
         boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession, boolean hasShiroFilter,
-        boolean hasXsrFilter) {// NOSONAR
+        boolean hasXsrFilter) {
         this(application, adminApplication, null, null, hasTenantFilter, hasAuthorizationFilter, hasSession,
             hasShiroFilter,
             hasXsrFilter);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
-        Class<? extends Application> adminApplication, VitamClientFactoryInterface<?> factory) {// NOSONAR
+        Class<? extends Application> adminApplication, VitamClientFactoryInterface<?> factory) {
         this(application, adminApplication, factory, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication, VitamClientFactoryInterface<?> factory,
-        boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasAuthorizationFilter) {
         this(application, adminApplication, factory, false, hasAuthorizationFilter);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication, VitamClientFactoryInterface<?> factory,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter) {
         this(application, adminApplication, factory, hasTenantFilter, hasAuthorizationFilter, false);
     }
 
 
     public VitamServerTestRunner(Class<? extends Application> application,
         Class<? extends Application> adminApplication, VitamClientFactoryInterface<?> factory,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {
         this(application, adminApplication, null, factory, hasTenantFilter, hasAuthorizationFilter, hasSession, false,
             false);
     }
 
-    public VitamServerTestRunner(Class<? extends Application> application) {// NOSONAR
+    public VitamServerTestRunner(Class<? extends Application> application) {
         this(application, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
-        boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasAuthorizationFilter) {
         this(application, false, hasAuthorizationFilter);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter) {
         this(application, hasTenantFilter, hasAuthorizationFilter, false);
     }
 
 
     public VitamServerTestRunner(Class<? extends Application> application,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {
         this(application, hasTenantFilter, hasAuthorizationFilter, hasSession, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession, boolean hasShiroFilter) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession, boolean hasShiroFilter) {
         this(application, hasTenantFilter, hasAuthorizationFilter, hasSession, hasShiroFilter, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application,
         boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession, boolean hasShiroFilter,
-        boolean hasXsrFilter) {// NOSONAR
+        boolean hasXsrFilter) {
         this(application, (VitamClientFactoryInterface) null, hasTenantFilter, hasAuthorizationFilter, hasSession,
             hasShiroFilter, hasXsrFilter);
     }
 
-    public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory) {// NOSONAR
+    public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory) {
         this(application, factory, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory,
-        boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasAuthorizationFilter) {
         this(application, factory, false, hasAuthorizationFilter);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter) {
         this(application, factory, hasTenantFilter, hasAuthorizationFilter, false);
     }
 
 
     public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory,
-        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {// NOSONAR
+        boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession) {
         this(application, factory, hasTenantFilter, hasAuthorizationFilter, hasSession, false, false);
     }
 
     public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory,
         boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession,
-        boolean hasShiroFilter, boolean hasXsrFilter) {// NOSONAR
+        boolean hasShiroFilter, boolean hasXsrFilter) {
         this(application, application, null, factory, hasTenantFilter, hasAuthorizationFilter, hasSession,
             hasShiroFilter, hasXsrFilter);
     }
@@ -208,7 +207,7 @@ public class VitamServerTestRunner {// NOSONAR
         Class<? extends Application> adminApplication, SslConfig configuration,
         VitamClientFactoryInterface<?> factory,
         boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession,
-        boolean hasShiroFilter, boolean hasXsrFilter) { // NOSONAR
+        boolean hasShiroFilter, boolean hasXsrFilter) {
         this.application = application;
         this.adminAapplication = adminApplication;
         this.factory = factory;
@@ -230,7 +229,7 @@ public class VitamServerTestRunner {// NOSONAR
         if (null != factory) {
             //Force host to localhost: collision between tests
             if (null != factory.getClientConfiguration()) {
-                factory.getClientConfiguration().setServerHost(LOCALHOST);
+                factory.getClientConfiguration().setServerHost("localhost");
             }
 
             factory.changeServerPort(businessPort);
@@ -242,7 +241,7 @@ public class VitamServerTestRunner {// NOSONAR
      *
      * @param configuration
      */
-    private void createSslConnector(SslConfig configuration) {// NOSONAR
+    private void createSslConnector(SslConfig configuration) {
         HttpConfiguration https = new HttpConfiguration();
         https.addCustomizer(new SecureRequestCustomizer());
 
@@ -275,7 +274,7 @@ public class VitamServerTestRunner {// NOSONAR
 
     private void prepare(boolean hasTenantFilter, boolean hasAuthorizationFilter, boolean hasSession,
         boolean hasShiroFilter,
-        boolean hasXsrFilter) {// NOSONAR
+        boolean hasXsrFilter) {
 
         try {
             ContextHandlerCollection applicationHandlers = new ContextHandlerCollection();
@@ -315,7 +314,7 @@ public class VitamServerTestRunner {// NOSONAR
             applicationHandlers.addHandler(stats);
             // Configure admin connector
 
-            ServerConnector admin = new ServerConnector(server.getServer()); // NOSONAR
+            ServerConnector admin = new ServerConnector(server.getServer());
             admin.setName("admin");
             admin.setHost("localhost");
             admin.setPort(adminPort);
@@ -337,7 +336,7 @@ public class VitamServerTestRunner {// NOSONAR
 
             server.configure(applicationHandlers);
         } catch (Exception e) {
-            throw new RuntimeException(e); // NOSONAR
+            throw new RuntimeException(e);
         }
     }
 
@@ -352,15 +351,15 @@ public class VitamServerTestRunner {// NOSONAR
         }
     }
 
-    protected void after() throws Exception {// NOSONAR
+    protected void after() throws Throwable {
         server.stop();
     }
 
-    public MockOrRestClient getClient() {// NOSONAR
+    public MockOrRestClient getClient() {
         return factory == null ? null : factory.getClient();
     }
 
-    public void runAfter() throws Exception {// NOSONAR
+    public void runAfter() throws Throwable {
         after();
         releasePort();
         VitamClientFactory.resetConnections();
@@ -373,16 +372,16 @@ public class VitamServerTestRunner {// NOSONAR
         }
     }
 
-    public void stop() throws Exception {// NOSONAR
+    public void stop() throws Throwable {
         server.stop();
     }
 
-    public void start() throws Exception {// NOSONAR
+    public void start() throws Throwable {
         server.start();
     }
 
 
-    private void addShiroFilter(ServletContextHandler context) throws VitamApplicationServerException {// NOSONAR
+    private void addShiroFilter(ServletContextHandler context) throws VitamApplicationServerException {
 
         File shiroFile;
         try {
@@ -399,7 +398,7 @@ public class VitamServerTestRunner {// NOSONAR
     }
 
     private void addTenantFilter(ServletContextHandler context, List<Integer> tenantList)
-        throws VitamApplicationServerException {// NOSONAR
+        throws VitamApplicationServerException {
         // Tenant Filter
         try {
             JsonNode node = JsonHandler.toJsonNode(tenantList);
@@ -422,8 +421,8 @@ public class VitamServerTestRunner {// NOSONAR
                 return port.intValue();
             }
             try {
-                Thread.sleep(10); // NOSONAR
-            } catch (final InterruptedException e) {// NOSONAR
+                Thread.sleep(10);
+            } catch (final InterruptedException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         } while (true);
@@ -434,7 +433,7 @@ public class VitamServerTestRunner {// NOSONAR
             socket.setReuseAddress(true);
             return socket.getLocalPort();
         } catch (final IOException e) {
-            throw new IllegalStateException(e);// NOSONAR
+            throw new IllegalStateException(e);
         }
     }
 

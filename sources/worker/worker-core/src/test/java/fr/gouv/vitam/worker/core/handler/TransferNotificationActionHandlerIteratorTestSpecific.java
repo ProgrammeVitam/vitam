@@ -26,7 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -43,7 +56,6 @@ import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
@@ -55,8 +67,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -64,24 +75,17 @@ import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static com.google.common.collect.Lists.newArrayList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.net.ssl.*", "org.xml.sax.*", "javax.management.*"})
+@PrepareForTest({WorkspaceClientFactory.class, LogbookLifeCyclesClientFactory.class,
+    LogbookOperationsClientFactory.class, ValidationXsdUtils.class})
 public class TransferNotificationActionHandlerIteratorTestSpecific {
     private static final String ATR_PATH = "ATR/responseReply.xml";
     private static final String ARCHIVE_ID_TO_GUID_MAP =
@@ -103,17 +107,11 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     private static final String LOGBOOK_LFC_GOT = "transferNotificationActionHandler/logbookLifecycleGOTKO.json";
 
     private WorkspaceClient workspaceClient;
-    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private StorageClient storageClient;
-    private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        mock(LogbookLifeCyclesClientFactory.class);
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-    private static final LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
+    private WorkspaceClientFactory workspaceClientFactory;
+    private LogbookLifeCyclesClientFactory lifeCyclesClientFactory;
+    private LogbookLifeCyclesClient lifeCyclesClient;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private LogbookOperationsClient logbookOperationsClient;
-
-    private static final ValidationXsdUtils validationXsdUtils = mock(ValidationXsdUtils.class);
     private HandlerIOImpl action;
     private List<IOParameter> in;
     private List<IOParameter> out;
@@ -128,25 +126,29 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
                 .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep")
                 .setContainerName(guid.getId()).setProcessId("aeaaaaaaaaaaaaababz4aakxtykbybyaaaaq");
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        storageClient = mock(StorageClient.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-
-        logbookOperationsClient = mock(LogbookOperationsClient.class);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-
-        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-
-
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
         String objectId = "objectId";
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-            newArrayList(objectId));
+        action = new HandlerIOImpl(guid.getId(), "workerId", newArrayList(objectId));
         action.setCurrentObjectId(objectId);
 
-        when(validationXsdUtils.checkWithXSD(any(InputStream.class), anyString())).thenReturn(true);
+        PowerMockito.mockStatic(ValidationXsdUtils.class);
+        PowerMockito.when(ValidationXsdUtils.checkWithXSD(any(), any())).thenReturn(true);
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
+        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
+        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance().getClient()).thenReturn(logbookOperationsClient);
+
+        lifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        lifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(lifeCyclesClientFactory);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance().getClient()).thenReturn(lifeCyclesClient);
 
         in = new ArrayList<>();
         for (int i = 0; i < TransferNotificationActionHandler.HANDLER_IO_PARAMETER_NUMBER; i++) {
@@ -174,14 +176,14 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     @Test
     public void givenXMLCreationWhenValidButWithoutInfoFieldsInManifestThenResponseOK()
         throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
-            logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
-            doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(any());
-            when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
+            Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
+                .selectOperationById(any());
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
@@ -206,15 +208,14 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     @Test
     public void givenXMLCreationWhenProcessKOButWithoutInfoFieldsInManifestThenResponseATROK()
         throws Exception {
-        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler(
-            logbookOperationsClientFactory, storageClientFactory, validationXsdUtils)) {
+        try (TransferNotificationActionHandler handler = new TransferNotificationActionHandler()) {
 
-            doReturn(getLogbookOperation()).when(logbookOperationsClient)
+            Mockito.doReturn(getLogbookOperation()).when(logbookOperationsClient)
                 .selectOperationById(any());
-            when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
+            when(lifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
-            when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
+            when(lifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
                 .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
                 .thenReturn(new RequestResponseOK<JsonNode>());
 
@@ -246,17 +247,15 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
     private static JsonNode getLogbookLifecycleGOT()
         throws IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            JSON.serialize(new LogbookLifeCycleObjectGroup(
-                StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
-            ));
+            JSON.serialize(new LogbookLifeCycleObjectGroup(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
+                ));
     }
 
     private static JsonNode getLogbookLifecycleAU()
         throws IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            JSON.serialize(
-                new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU)))
-            ));
+            JSON.serialize(new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU)))
+                ));
     }
 
 }

@@ -16,14 +16,14 @@ storage:
   dbPath: {{ mongo_db_path }}
   journal:
     enabled: {% if mongo_arbiter is defined and mongo_arbiter| lower == "true" %}false{% else %}true{% endif %}
-
+    
   directoryPerDB: true
 
 
 # network interfaces
 net:
   port: {{ mongodb.mongod_port }}
-  bindIp: {{ ip_service }}{% if groups['hosts-dev-tools'] | length > 0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
+  bindIp: {{ ip_service }}{% if groups['hosts-dev-tools'] >0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
 
 
 # operationProfiling:

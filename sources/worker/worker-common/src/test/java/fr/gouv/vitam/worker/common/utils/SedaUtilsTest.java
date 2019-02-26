@@ -26,8 +26,45 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.common.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import javax.xml.stream.XMLEventReader;
+import javax.xml.stream.XMLInputFactory;
+
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
@@ -43,35 +80,10 @@ import fr.gouv.vitam.worker.common.utils.SedaUtils.CheckSedaValidationStatus;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLEventReader;
-import javax.xml.stream.XMLInputFactory;
-import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class})
 public class SedaUtilsTest {
 
     @Rule
@@ -99,12 +111,15 @@ public class SedaUtilsTest {
 
     @Before
     public void setUp() {
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
 
     }
 
+    // TODO P1 : WARN sometimes bug on jenkins
     @Test
     public void givenGuidWhenXmlExistThenReturnValid() throws Exception {
         when(workspaceClient.getObject(any(), any()))
@@ -209,7 +224,7 @@ public class SedaUtilsTest {
         assertEquals(3, validVersionMap.size());
         assertTrue(invalidVersionMap.containsValue("PhysicalMaster_-1"));
         assertTrue(invalidVersionMap.containsValue("Dissemination_One"));
-
+        
         evenReader =
             factory.createXMLEventReader(new FileReader("src/test/resources/sip_missing_required_value.xml"));
         versionMap = utils.compareVersionList(evenReader);
@@ -250,7 +265,7 @@ public class SedaUtilsTest {
     public void givenCorrectSedaFileWhenCheckStorageAvailabilityThenOK() throws Exception {
         when(workspaceClient.getObjectInformation(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(getSedaTest()));
-        final long manifestSize = utils.getManifestSize(params, workspaceClientFactory);
+        final long manifestSize = utils.getManifestSize(params);
         assertTrue(manifestSize > 0);
     }
 
@@ -258,7 +273,7 @@ public class SedaUtilsTest {
     public void givenProblemWithSedaFileWhenCheckStorageAvailabilityThenKO() throws Exception {
         when(workspaceClient.getObjectInformation(any(), any()))
             .thenReturn(new RequestResponseOK().addResult(getSedaTestError()));
-        utils.getManifestSize(params, workspaceClientFactory);
+        utils.getManifestSize(params);
     }
 
     private JsonNode getSedaTest() {

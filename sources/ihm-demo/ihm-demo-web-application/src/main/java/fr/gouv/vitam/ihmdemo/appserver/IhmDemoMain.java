@@ -26,7 +26,11 @@
  */
 package fr.gouv.vitam.ihmdemo.appserver;
 
+import javax.ws.rs.core.Application;
+
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -35,8 +39,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.VitamServer;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
-
-import javax.ws.rs.core.Application;
 
 /**
  * Ihm-demo web application
@@ -60,23 +62,6 @@ public class IhmDemoMain {
         vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
             BusinessApplication.class, AdminApplication.class, Lists.newArrayList());
     }
-
-    public IhmDemoMain(String configurationFile,
-        Class<? extends Application> testBusinessApplication,
-        Class<? extends Application> testAdminApplication) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        if (null == testBusinessApplication) {
-            testBusinessApplication = BusinessApplication.class;
-        }
-
-        if (null == testAdminApplication) {
-            testAdminApplication = AdminApplication.class;
-        }
-        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            testBusinessApplication, testAdminApplication, Lists.newArrayList());
-    }
-
 
     /**
      * Main method to run the application (doing start and join)

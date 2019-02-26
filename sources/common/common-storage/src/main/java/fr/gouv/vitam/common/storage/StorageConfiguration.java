@@ -50,75 +50,19 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private int swiftConnectionTimeout;
     private int swiftReadTimeout;
     /**
-     * swiftRenewTokenDelayBeforeExpireTime is the time in seconds to handle a token
-     * renew before a token expiration occurs
+     * swiftRenewTokenDelayBeforeExpireTime is the time in seconds to handle a token renew before a token expiration occurs
      */
     private long swiftSoftRenewTokenDelayBeforeExpireTime;
     private long swiftHardRenewTokenDelayBeforeExpireTime;
 
     /**
-     * S3 Region Name
-     */
-    private String s3RegionName;
-    /**
-     * S3 URL
-     */
-    private String s3Endpoint;
-    /**
-     * S3 trust store path
-     */
-    private String s3TrustStore;
-    /**
-     * S3 trust store password
-     */
-    private String s3TrustStorePassword;
-    /**
-     * S3 Access Key ID
-     */
-    private String s3AccessKey;
-    /**
-     * S3 Access Key Login
-     */
-    private String s3SecretKey;
-    /**
-     * S3 Signature algorithm (default null for V4, or 'S3SignerType' for V2 or
-     * 'AWSS3V4SignerType' for V4)
-     */
-    private String s3SignerType;
-    /**
-     * S3 access bucket in 'path-style' instead of default 'virtual-hosted-style'
-     */
-    private boolean s3PathStyleAccessEnabled;
-    /**
-     * S3 max number of open http connections
-     */
-    private int s3MaxConnections;
-    /**
-     * S3 connection timeout
-     */
-    private int s3ConnectionTimeout;
-    /**
-     * S3 socket timeout
-     */
-    private int s3SocketTimeout;
-    /**
-     * S3 request timeout
-     */
-    private int s3RequestTimeout;
-    /**
-     * S3 client execution timeout
-     */
-    private int s3ClientExecutionTimeout;
-
-    /**
      * @return the swiftUrl
      */
-    public String getSwiftUrl() {
-        return swiftUrl;
-    }
+    public String getSwiftUrl() { return swiftUrl; }
 
     /**
-     * @param swiftUrl the swiftUrl to set
+     * @param swiftUrl
+     *            the swiftUrl to set
      *
      * @return this
      */
@@ -135,7 +79,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param provider the provider to set
+     * @param provider
+     *            the provider to set
      *
      * @return this
      */
@@ -152,7 +97,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftKeystoneAuthUrl the swiftKeystoneAuthUrl to set
+     * @param swiftKeystoneAuthUrl
+     *            the swiftKeystoneAuthUrl to set
      *
      * @return this
      */
@@ -169,7 +115,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftDomain the tenantName to set
+     * @param swiftDomain
+     *            the tenantName to set
      *
      * @return this
      */
@@ -186,7 +133,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftUser the userName to set
+     * @param swiftUser
+     *            the userName to set
      *
      * @return this
      */
@@ -203,7 +151,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param swiftPassword the swiftPassword to set
+     * @param swiftPassword
+     *            the swiftPassword to set
      *
      * @return this
      */
@@ -220,7 +169,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param storagePath the storagePath to set
+     * @param storagePath
+     *            the storagePath to set
      *
      * @return this
      */
@@ -237,7 +187,8 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     }
 
     /**
-     * @param contextPath the contextPath to set
+     * @param contextPath
+     *            the contextPath to set
      *
      * @return this
      */
@@ -334,122 +285,4 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     public void setSwiftHardRenewTokenDelayBeforeExpireTime(long swiftHardRenewTokenDelayBeforeExpireTime) {
         this.swiftHardRenewTokenDelayBeforeExpireTime = swiftHardRenewTokenDelayBeforeExpireTime;
     }
-
-    public String getS3RegionName() {
-        return s3RegionName;
-    }
-
-    public StorageConfiguration setS3RegionName(String s3RegionName) {
-        this.s3RegionName = s3RegionName;
-        return this;
-    }
-
-    public String getS3Endpoint() {
-        return s3Endpoint;
-    }
-
-    public StorageConfiguration setS3Endpoint(String s3Endpoint) {
-        this.s3Endpoint = s3Endpoint;
-        return this;
-    }
-
-    public String getS3TrustStore() {
-        return s3TrustStore;
-    }
-
-    public StorageConfiguration setS3TrustStore(String s3TrustStore) {
-        this.s3TrustStore = s3TrustStore;
-        return this;
-    }
-
-    public String getS3TrustStorePassword() {
-        return s3TrustStorePassword;
-    }
-
-    public StorageConfiguration setS3TrustStorePassword(String s3TrustStorePassword) {
-        this.s3TrustStorePassword = s3TrustStorePassword;
-        return this;
-    }
-
-    public String getS3AccessKey() {
-        return s3AccessKey;
-    }
-
-    public StorageConfiguration setS3AccessKey(String s3AccessKey) {
-        this.s3AccessKey = s3AccessKey;
-        return this;
-    }
-
-    public String getS3SecretKey() {
-        return s3SecretKey;
-    }
-
-    public StorageConfiguration setS3SecretKey(String s3SecretKey) {
-        this.s3SecretKey = s3SecretKey;
-        return this;
-    }
-
-    public String getS3SignerType() {
-        return s3SignerType;
-    }
-
-    public StorageConfiguration setS3SignerType(String s3SignerType) {
-        this.s3SignerType = s3SignerType;
-        return this;
-    }
-
-    public boolean isS3PathStyleAccessEnabled() {
-        return s3PathStyleAccessEnabled;
-    }
-
-    public StorageConfiguration setS3PathStyleAccessEnabled(boolean s3PathStyleAccessEnabled) {
-        this.s3PathStyleAccessEnabled = s3PathStyleAccessEnabled;
-        return this;
-    }
-
-    public int getS3MaxConnections() {
-        return s3MaxConnections;
-    }
-
-    public StorageConfiguration setS3MaxConnections(int s3MaxConnections) {
-        this.s3MaxConnections = s3MaxConnections;
-        return this;
-    }
-
-    public int getS3ConnectionTimeout() {
-        return s3ConnectionTimeout;
-    }
-
-    public StorageConfiguration setS3ConnectionTimeout(int s3ConnectionTimeout) {
-        this.s3ConnectionTimeout = s3ConnectionTimeout;
-        return this;
-    }
-
-    public int getS3SocketTimeout() {
-        return s3SocketTimeout;
-    }
-
-    public StorageConfiguration setS3SocketTimeout(int s3SocketTimeout) {
-        this.s3SocketTimeout = s3SocketTimeout;
-        return this;
-    }
-
-    public int getS3RequestTimeout() {
-        return s3RequestTimeout;
-    }
-
-    public StorageConfiguration setS3RequestTimeout(int s3RequestTimeout) {
-        this.s3RequestTimeout = s3RequestTimeout;
-        return this;
-    }
-
-    public int getS3ClientExecutionTimeout() {
-        return s3ClientExecutionTimeout;
-    }
-
-    public StorageConfiguration setS3ClientExecutionTimeout(int s3ClientExecutionTimeout) {
-        this.s3ClientExecutionTimeout = s3ClientExecutionTimeout;
-        return this;
-    }
-
 }

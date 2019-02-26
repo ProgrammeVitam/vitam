@@ -11,7 +11,6 @@ import fr.gouv.vitam.worker.core.exception.WorkerspaceQueueException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -310,6 +309,4 @@ public interface HandlerIO extends VitamAutoCloseable {
     boolean removeFolder(String folderName) throws ContentAddressableStorageException;
 
     void setCurrentObjectId(String currentObjectId);
-
-    WorkspaceClientFactory getWorkspaceClientFactory();
 }

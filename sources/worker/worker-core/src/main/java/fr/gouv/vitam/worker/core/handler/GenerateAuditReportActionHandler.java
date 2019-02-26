@@ -3,7 +3,6 @@ package fr.gouv.vitam.worker.core.handler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -31,6 +30,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -50,6 +50,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -121,24 +122,6 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
     private Map<String, Integer> serviceProducteurKO = new HashMap<String, Integer>();
     private ArrayNode serviceProducteurWarning = JsonHandler.createArrayNode();
 
-    private final StorageClientFactory storageClientFactory;
-    private final AdminManagementClientFactory adminManagementClientFactory;
-    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-
-    public GenerateAuditReportActionHandler() {
-        this(StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance());
-    }
-
-    @VisibleForTesting
-    public GenerateAuditReportActionHandler(StorageClientFactory storageClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
-        this.storageClientFactory = storageClientFactory;
-        this.adminManagementClientFactory = adminManagementClientFactory;
-        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
-    }
-
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
@@ -160,8 +143,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
         List<String> originatingAgency = new ArrayList<>();
 
-        try (LogbookOperationsClient jopClient = logbookOperationsClientFactory.getClient();
-            LogbookLifeCyclesClient lfcClient = handler.getLifecyclesClient()) {
+        try (LogbookOperationsClient jopClient = LogbookOperationsClientFactory.getInstance().getClient();
+            LogbookLifeCyclesClient lfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
 
             String objectId = mapParameters.get(WorkerParameterName.objectId);
             String auditTypeString = "";
@@ -189,7 +172,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
 
             String reportString = report.toString();
             InputStream auditReportFile = new ByteArrayInputStream(reportString.getBytes(CharsetUtils.UTF_8));
-            storeAuditReport(handler, param.getContainerName(), auditReportFile);
+            storeAuditReport(param.getContainerName(), auditReportFile);
         } catch (Exception e) {
             LOGGER.error("UnKnow error ", e);
             itemStatus.increment(StatusCode.FATAL);
@@ -251,8 +234,8 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                     QueryHelper.eq("events.outDetail", "PROCESS_SIP_UNITARY.WARNING")),
                 QueryHelper.in("events.agIdExt.originatingAgency", originatingAgency)));
 
-        RequestResponseOK<JsonNode> requestResponseOK =
-            RequestResponseOK.getFromJsonNode(jopClient.selectOperation(selectQuery.getFinalSelect()));
+            RequestResponseOK<JsonNode> requestResponseOK =
+                RequestResponseOK.getFromJsonNode(jopClient.selectOperation(selectQuery.getFinalSelect()));
 
         if (requestResponseOK.getResults().isEmpty()) {
             LOGGER.error("Logbook error, can not create source");
@@ -300,11 +283,11 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                         if (evDetData.get("errors") != null) {
                             for (JsonNode error : evDetData.get("errors")) {
                                 ObjectNode objectKO = JsonHandler.createObjectNode().put("IdOp", idOp)
-                                    .put(ID_GOT, event.get("obId").asText())
-                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
-                                    .put(USAGE, error.get(USAGE).asText())
-                                    .put(ORIGINATING_AGENCY, originatingAgency)
-                                    .put(OUT_DETAIL, event.get("outDetail").asText());
+                                        .put(ID_GOT, event.get("obId").asText())
+                                        .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                        .put(USAGE, error.get(USAGE).asText())
+                                        .put(ORIGINATING_AGENCY, originatingAgency)
+                                        .put(OUT_DETAIL, event.get("outDetail").asText());
                                 objectKO.putArray(UNITS_UPS).addAll((ArrayNode) error.get(UNITS_UPS));
                                 reportKO.add(objectKO);
                             }
@@ -312,11 +295,11 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
                         if (evDetData.get("errorsPhysical") != null) {
                             for (JsonNode error : evDetData.get("errorsPhysical")) {
                                 ObjectNode objectKO = JsonHandler.createObjectNode().put("IdOp", idOp)
-                                    .put(ID_GOT, event.get("obId").asText())
-                                    .put(ID_OBJ, error.get(ID_OBJ).asText())
-                                    .put(USAGE, error.get(USAGE).asText())
-                                    .put(ORIGINATING_AGENCY, originatingAgency)
-                                    .put(OUT_DETAIL, event.get("outDetail").asText());
+                                        .put(ID_GOT, event.get("obId").asText())
+                                        .put(ID_OBJ, error.get(ID_OBJ).asText())
+                                        .put(USAGE, error.get(USAGE).asText())
+                                        .put(ORIGINATING_AGENCY, originatingAgency)
+                                        .put(OUT_DETAIL, event.get("outDetail").asText());
                                 objectKO.putArray(UNITS_UPS).addAll((ArrayNode) error.get(UNITS_UPS));
                                 reportKO.add(objectKO);
                             }
@@ -346,7 +329,7 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         InvalidCreateOperationException {
         List<String> originatingAgency = new ArrayList<String>();
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Select selectQuery = new Select();
             if (id != null) {
                 selectQuery.setQuery(QueryHelper.eq(ORIGINATING_AGENCY, id));
@@ -382,12 +365,12 @@ public class GenerateAuditReportActionHandler extends ActionHandler {
         return HANDLER_ID;
     }
 
-    public void storeAuditReport(HandlerIO handlerIO, String guid, InputStream report)
+    public void storeAuditReport(String guid, InputStream report)
         throws InvalidParseOperationException, ContentAddressableStorageServerException,
         StorageAlreadyExistsClientException,
         StorageNotFoundClientException, StorageServerClientException, ContentAddressableStorageNotFoundException {
-        try (StorageClient storageClient = storageClientFactory.getClient();
-            WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
+        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(guid);
             try {
                 workspaceClient.createContainer(guid);

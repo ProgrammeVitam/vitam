@@ -210,6 +210,12 @@ public class ProperlyStopStartProcessingIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow() throws Exception {
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
+        LOGGER.error(
+            "=====================whenProcessingServerStopStartThenPauseStartProperlyProcessWorkflow============================");
         ProcessingIT.prepareVitamSession();
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);

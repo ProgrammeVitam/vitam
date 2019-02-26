@@ -27,8 +27,8 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -57,21 +57,12 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private static final String DEFAULT_STRATEGY = "default";
 
-    private final StorageClientFactory storageClientFactory;
-    private final SedaUtils sedaUtils;
-
     /**
      * Constructor with parameter SedaUtilsFactory
+     *
      */
     public CheckStorageAvailabilityActionHandler() {
-        this(StorageClientFactory.getInstance(), null);
-    }
-
-    @VisibleForTesting
-    public CheckStorageAvailabilityActionHandler(
-        StorageClientFactory storageClientFactory, SedaUtils sedaUtils) {
-        this.storageClientFactory = storageClientFactory;
-        this.sedaUtils = sedaUtils;
+        // Empty
     }
 
     /**
@@ -86,14 +77,15 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
         checkMandatoryParameters(params);
+        final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         long totalSizeToBeStored;
         try {
             checkMandatoryIOParameter(handlerIO);
             // TODO P0 extract this information from first parsing
-            final SedaUtils sedaUtils = (null == this.sedaUtils) ? SedaUtilsFactory.getInstance().createSedaUtils(handlerIO) : this.sedaUtils;
+            final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
-            final long manifestSize = sedaUtils.getManifestSize(params, handlerIO.getWorkspaceClientFactory());
+            final long manifestSize = sedaUtils.getManifestSize(params);
             totalSizeToBeStored = objectsSizeInSip + manifestSize;
             final JsonNode storageCapacityNode;
 

@@ -39,8 +39,6 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
@@ -62,8 +60,6 @@ import java.util.Optional;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 
 public class PreservationStorageMetadataAndLfcTest {
@@ -86,12 +82,6 @@ public class PreservationStorageMetadataAndLfcTest {
     private MetaDataClientFactory metaDataClientFactory;
 
     @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
-    private StorageClient storageClient;
-
-    @Mock
     private LogbookLifeCyclesClient logbookClient;
 
     @Mock
@@ -102,16 +92,13 @@ public class PreservationStorageMetadataAndLfcTest {
     @Before
     public void setUp() throws Exception {
 
-        reset(storageClient);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         given(logbookLifeCyclesClientFactory.getClient()).willReturn(logbookClient);
         parameter.setObjectNameList(Collections.singletonList(GOT_ID));
         handlerIO = new TestHandlerIO();
-        plugin = new PreservationStorageMetadataAndLfc(metaDataClientFactory, logbookLifeCyclesClientFactory, storageClientFactory);
+        plugin = new PreservationStorageMetadataAndLfc(metaDataClientFactory, logbookLifeCyclesClientFactory);
 
-        FormatIdentifierResponse format =
-            new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
+        FormatIdentifierResponse format = new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
         StoredInfoResult value = new StoredInfoResult();
         OutputPreservation output = new OutputPreservation();
         output.setStatus(PreservationStatus.OK);
@@ -126,11 +113,9 @@ public class PreservationStorageMetadataAndLfcTest {
             Optional.empty()
         );
 
-        WorkflowBatchResult batchResult = WorkflowBatchResult
-            .of(GOT_ID, "unitId", "BinaryMaster", "requestId", Collections.singletonList(outputExtra),
-                "BinaryMaster");
-        WorkflowBatchResults batchResults =
-            new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", Collections.singletonList(outputExtra),
+            "BinaryMaster");
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
 
         handlerIO.addOutputResult(0, batchResults);
         handlerIO.setInputs(batchResults);
@@ -141,8 +126,7 @@ public class PreservationStorageMetadataAndLfcTest {
         // Given
         InputStream stream = Object.class.getResourceAsStream("/preservation/objectGroup.json");
         JsonNode document = JsonHandler.getFromInputStream(stream);
-        RequestResponse<JsonNode> responseOK =
-            new RequestResponseOK<JsonNode>().addResult(document).setHttpCode(Response.Status.OK.getStatusCode());
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>().addResult(document).setHttpCode(Response.Status.OK.getStatusCode());
 
         given(metaDataClient.getObjectGroupByIdRaw(GOT_ID)).willReturn(responseOK);
         given(logbookClient.getRawObjectGroupLifeCycleById(GOT_ID)).willReturn(document);

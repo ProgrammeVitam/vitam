@@ -51,17 +51,22 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -77,11 +82,13 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({LogbookElasticsearchAccessFactory.class, IndexationHelper.class, WorkspaceClientFactory.class})
 public class LogbookOperationsImplTest {
 
     @Rule
@@ -91,81 +98,77 @@ public class LogbookOperationsImplTest {
     private LogbookOperationsImpl logbookOperationsImpl;
     private LogbookDbAccess mongoDbAccess;
     private LogbookOperationParameters logbookParameters;
-    private WorkspaceClientFactory workspaceClientFactory;
-    private StorageClientFactory storageClientFactory;
-    private StorageClient storageClient;
     private WorkspaceClient workspaceClient;
-    private IndexationHelper indexationHelper;
 
     @Before
     public void setUp() throws Exception {
         mongoDbAccess = mock(LogbookDbAccess.class);
-        indexationHelper = mock(IndexationHelper.class);
         logbookParameters = LogbookParametersFactory.newLogbookOperationParameters();
-        logbookParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            GUIDFactory.newOperationLogbookGUID(0).getId());
+        logbookParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, GUIDFactory
+            .newOperationLogbookGUID(0).getId());
 
+        // Mock workspace and mongoDbAccess to avoid error on operation backup
+        final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
         workspaceClient = mock(WorkspaceClient.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-
-        storageClient = mock(StorageClient.class);
-        storageClientFactory = mock(StorageClientFactory.class);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-
         doNothing().when(workspaceClient).createContainer(anyString());
         doNothing().when(workspaceClient).putObject(anyString(), anyString(), any());
         doNothing().when(workspaceClient).deleteObject(anyString(), anyString());
-        logbookOperationsImpl =
-            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper);
-
     }
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenCreateOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookDatabaseException.class).when(mongoDbAccess).createLogbookOperation(any());
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).createLogbookOperation(any());
 
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.create(logbookParameters);
     }
 
     @Test(expected = LogbookDatabaseException.class)
     public void givenUpdateOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookDatabaseException.class).when(mongoDbAccess).updateLogbookOperation(any());
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess).updateLogbookOperation(any());
 
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.update(logbookParameters);
     }
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
+        Mockito.doThrow(LogbookDatabaseException.class).when(mongoDbAccess)
             .getLogbookOperations(JsonHandler.createObjectNode(), true);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.select(null);
     }
 
     @Test(expected = LogbookAlreadyExistsException.class)
     public void givenCreateOperationWhenOperationAlreadyExistsThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess).createLogbookOperation(any());
+        Mockito.doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess).createLogbookOperation(any());
 
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.create(logbookParameters);
     }
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenUpdateOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookNotFoundException.class).when(mongoDbAccess).updateLogbookOperation(any());
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess).updateLogbookOperation(any());
 
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.update(logbookParameters);
     }
 
     @Test(expected = LogbookNotFoundException.class)
     public void givenSelectOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
+        Mockito.doThrow(LogbookNotFoundException.class).when(mongoDbAccess)
             .getLogbookOperations(JsonHandler.createObjectNode(), true);
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.select(null);
     }
 
@@ -175,6 +178,7 @@ public class LogbookOperationsImplTest {
         GUID guid = GUIDFactory.newEventGUID(0);
         ObjectNode data = JsonHandler.createObjectNode().put("_id", guid.getId());
         doReturn(new LogbookOperation(data)).when(mongoDbAccess).getLogbookOperation(guid.getId());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         LogbookOperation lo = logbookOperationsImpl.getById(guid.getId());
         assertNotNull(lo);
     }
@@ -188,6 +192,7 @@ public class LogbookOperationsImplTest {
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParametersFactory.newLogbookOperationParameters();
         param[1] = LogbookParametersFactory.newLogbookOperationParameters();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.createBulkLogbookOperation(param);
     }
 
@@ -200,6 +205,7 @@ public class LogbookOperationsImplTest {
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParametersFactory.newLogbookOperationParameters();
         param[1] = LogbookParametersFactory.newLogbookOperationParameters();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.updateBulkLogbookOperation(param);
     }
 
@@ -207,6 +213,7 @@ public class LogbookOperationsImplTest {
     public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
         reset(mongoDbAccess);
         doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         MongoCursor cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(LocalDateTime.now(),
             LocalDateUtil.now());
         assertNotNull(cursor);
@@ -218,6 +225,7 @@ public class LogbookOperationsImplTest {
     public void selectOperationsTest() throws Exception {
         reset(mongoDbAccess);
         doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         Select select = new Select();
         RequestResponse<LogbookOperation> response = logbookOperationsImpl.selectOperations(select.getFinalSelect());
         assertNotNull(response);
@@ -229,18 +237,19 @@ public class LogbookOperationsImplTest {
     public void findFirstTraceabilityOperationOKAfterDateTest() throws Exception {
         reset(mongoDbAccess);
         doReturn(createFakeMongoCursor()).when(mongoDbAccess).getLogbookOperations(any(), anyBoolean());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         LogbookOperation lo = logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateTime.now());
         assertNotNull(lo);
     }
 
     @Test
     public void reindexCollectionUnknownTest() {
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("fakeName");
         List<Integer> tenants = new ArrayList<>();
         tenants.add(0);
         parameters.setTenants(tenants);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, IndexationHelper.getInstance());
         IndexationResult result = logbookOperationsImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
@@ -254,12 +263,12 @@ public class LogbookOperationsImplTest {
 
     @Test
     public void reindexCollectionUnauthorizedTest() {
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("lifecycle_unit");
         List<Integer> tenants = new ArrayList<>();
         tenants.add(0);
         parameters.setTenants(tenants);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, IndexationHelper.getInstance());
         IndexationResult result = logbookOperationsImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
@@ -273,10 +282,12 @@ public class LogbookOperationsImplTest {
 
     @Test
     public void reindexIOExceptionTest() throws Exception {
-        when(indexationHelper.reindex(any(), any(), any(), any(), any()))
+        PowerMockito.mockStatic(IndexationHelper.class);
+        when(IndexationHelper.reindex(any(), any(), any(), any(), any()))
             .thenThrow(new IOException());
-        when(indexationHelper.getFullKOResult(any(), any()))
+        when(IndexationHelper.getFullKOResult(any(), any()))
             .thenCallRealMethod();
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         LogbookCollections.OPERATION.getVitamCollection().initialize(mock(MongoDatabase.class), false);
         IndexParameters parameters = new IndexParameters();
         parameters.setCollectionName("operation");
@@ -293,13 +304,18 @@ public class LogbookOperationsImplTest {
 
     @Test(expected = DatabaseException.class)
     public void switchIndexKOTest() throws Exception {
-        doThrow(new DatabaseException("erreur")).when(indexationHelper).switchIndex(anyString(), anyString(), any());
+        PowerMockito.spy(IndexationHelper.class);
+        PowerMockito.doThrow(new DatabaseException("erreur")).when(IndexationHelper.class,
+            "switchIndex", anyString(), anyString(), any());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.switchIndex("alias", "index_name");
     }
 
     @Test
     public void switchIndexOKTest() throws Exception {
-        doNothing().when(indexationHelper).switchIndex(anyString(), anyString(), any());
+        PowerMockito.spy(IndexationHelper.class);
+        PowerMockito.doNothing().when(IndexationHelper.class, "switchIndex", anyString(), anyString(), any());
+        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess);
         logbookOperationsImpl.switchIndex("alias", "index_name");
     }
 

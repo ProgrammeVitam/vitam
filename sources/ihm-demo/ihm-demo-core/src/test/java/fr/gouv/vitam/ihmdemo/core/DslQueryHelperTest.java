@@ -93,7 +93,6 @@ public class DslQueryHelperTest {
             "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " + "$filter : {$mult : false }," +
             "$action : " + updateAction + " }";
 
-    private DslQueryHelper dslQueryHelper = DslQueryHelper.getInstance();
     @BeforeClass
     public static void setup() throws Exception {
     }
@@ -123,7 +122,7 @@ public class DslQueryHelperTest {
         myHashMap.put("FORMAT", "PUID");
         myHashMap.put("AgencyName", "Name");
 
-        final JsonNode request = dslQueryHelper.createSingleQueryDSL(myHashMap);
+        final JsonNode request = DslQueryHelper.createSingleQueryDSL(myHashMap);
         assertNotNull(request);
         final SelectParserSingle request2 = new SelectParserSingle();
         request2.parse(request);
@@ -141,7 +140,7 @@ public class DslQueryHelperTest {
 
         myHashMap.put("EventID", "all");
         myHashMap.put("EventType", "all");
-        final JsonNode request = dslQueryHelper.createSingleQueryDSL(myHashMap);
+        final JsonNode request = DslQueryHelper.createSingleQueryDSL(myHashMap);
         assertNotNull(request);
         final SelectParserSingle request2 = new SelectParserSingle();
         request2.parse(request);
@@ -164,7 +163,7 @@ public class DslQueryHelperTest {
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
-        final JsonNode selectRequest = dslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -233,7 +232,7 @@ public class DslQueryHelperTest {
         queryMap.put("projection_", "#id");
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
 
-        final JsonNode selectRequest = dslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -288,7 +287,7 @@ public class DslQueryHelperTest {
         queryMap.put(UiConstants.SELECT_BY_ID.toString(), "1");
         queryMap.put("isAdvancedSearchFlag", "YES");
 
-        final JsonNode selectRequest = dslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSelectElasticsearchDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -311,7 +310,7 @@ public class DslQueryHelperTest {
         queryMap.put("projection_id", "#id");
         queryMap.put("projection_qualifiers", "#qualifiers");
 
-        final JsonNode selectRequest = dslQueryHelper.createSelectDSLQuery(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSelectDSLQuery(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -333,7 +332,7 @@ public class DslQueryHelperTest {
             throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> queryMap = new HashMap();
         queryMap.put("title", "");
-        dslQueryHelper.createSelectDSLQuery(queryMap);
+        DslQueryHelper.createSelectDSLQuery(queryMap);
     }
 
     /**
@@ -347,7 +346,7 @@ public class DslQueryHelperTest {
             throws InvalidParseOperationException, InvalidCreateOperationException {
         final Map<String, String> queryMap = new HashMap();
         queryMap.put("", "value");
-        dslQueryHelper.createSelectDSLQuery(queryMap);
+        DslQueryHelper.createSelectDSLQuery(queryMap);
     }
 
     /**
@@ -362,7 +361,7 @@ public class DslQueryHelperTest {
         queryMap.put("title", new TextNode("Archive2"));
         queryMap.put("date", new TextNode("09/09/2015"));
         final Map<String, JsonNode> rulesMap = new HashMap<>();
-        final JsonNode updateRequest = dslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
+        final JsonNode updateRequest = DslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
         assertNotNull(updateRequest);
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
@@ -385,7 +384,7 @@ public class DslQueryHelperTest {
         queryMap.put("title", new TextNode("Mosqueteers"));
         final Map<String, JsonNode> rulesMap = new HashMap();
 
-        final JsonNode updateRequest = dslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
+        final JsonNode updateRequest = DslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
         assertNotNull(updateRequest);
 
         final RequestParserMultiple updateParser = RequestParserHelper.getParser(updateRequest);
@@ -405,7 +404,7 @@ public class DslQueryHelperTest {
         final Map<String, JsonNode> queryMap = new HashMap();
         queryMap.put("", new TextNode("value"));
         final Map<String, JsonNode> rulesMap = new HashMap();
-        dslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
+        DslQueryHelper.createUpdateByIdDSLQuery(queryMap, rulesMap);
     }
 
     /**
@@ -420,7 +419,7 @@ public class DslQueryHelperTest {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(ACCESSION_REGISTER, "");
 
-        final JsonNode selectRequest = dslQueryHelper.createSingleQueryDSL(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -432,7 +431,7 @@ public class DslQueryHelperTest {
         final Map<String, Object> queryMap2 = new HashMap();
         queryMap2.put(ORIGINATING_AGENCY, "id01");
 
-        final JsonNode selectRequest2 = dslQueryHelper.createSingleQueryDSL(queryMap2);
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
         assertNotNull(selectRequest2);
 
         final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
@@ -455,7 +454,7 @@ public class DslQueryHelperTest {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(RULES, "");
 
-        final JsonNode selectRequest = dslQueryHelper.createSingleQueryDSL(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -467,7 +466,7 @@ public class DslQueryHelperTest {
         final Map<String, Object> queryMap2 = new HashMap();
         queryMap2.put(RULETYPE, "AppraisingRule");
 
-        final JsonNode selectRequest2 = dslQueryHelper.createSingleQueryDSL(queryMap2);
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
         assertNotNull(selectRequest2);
 
         final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
@@ -479,7 +478,7 @@ public class DslQueryHelperTest {
         final Map<String, Object> queryMap3 = new HashMap();
         queryMap3.put(RULETYPE, "AppraisingRule,test");
 
-        final JsonNode selectRequest3 = dslQueryHelper.createSingleQueryDSL(queryMap3);
+        final JsonNode selectRequest3 = DslQueryHelper.createSingleQueryDSL(queryMap3);
         assertNotNull(selectRequest3);
 
         final RequestParserMultiple selectParser3 = RequestParserHelper.getParser(selectRequest3);
@@ -501,7 +500,7 @@ public class DslQueryHelperTest {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "traceability");
 
-        final JsonNode selectRequest = dslQueryHelper.createSingleQueryDSL(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -522,7 +521,7 @@ public class DslQueryHelperTest {
         queryMap2.put("TraceabilityEndDate", "2017-02-09");
         queryMap2.put("TraceabilityLogType", "OPERATION");
 
-        final JsonNode selectRequest2 = dslQueryHelper.createSingleQueryDSL(queryMap2);
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
         assertNotNull(selectRequest2);
 
         final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
@@ -553,7 +552,7 @@ public class DslQueryHelperTest {
         final Map<String, Object> queryMap = new HashMap();
         queryMap.put(EVENT_TYPE_PROCESS, "INGEST");
 
-        final JsonNode selectRequest = dslQueryHelper.createSingleQueryDSL(queryMap);
+        final JsonNode selectRequest = DslQueryHelper.createSingleQueryDSL(queryMap);
         assertNotNull(selectRequest);
 
         final RequestParserMultiple selectParser = RequestParserHelper.getParser(selectRequest);
@@ -573,7 +572,7 @@ public class DslQueryHelperTest {
         queryMap2.put("IngestStartDate", "2017-01-01");
         queryMap2.put("IngestEndDate", "2017-02-09");
 
-        final JsonNode selectRequest2 = dslQueryHelper.createSingleQueryDSL(queryMap2);
+        final JsonNode selectRequest2 = DslQueryHelper.createSingleQueryDSL(queryMap2);
         assertNotNull(selectRequest2);
 
         final RequestParserMultiple selectParser2 = RequestParserHelper.getParser(selectRequest2);
@@ -600,7 +599,7 @@ public class DslQueryHelperTest {
         options.put("OriginatingAgency", "RATP");
 
         // When
-        JsonNode query = dslQueryHelper.createSearchQueryAccessionRegister(options);
+        JsonNode query = DslQueryHelper.createSearchQueryAccessionRegister(options);
 
         // Then
         assertThat(query.get("$query").toString()).isEqualTo("{\"$and\":[{\"$eq\":{\"OriginatingAgency\":\"RATP\"}},{\"$range\":{\"CreationDate\":{\"$gte\":\"2018-10-02T15:38:29.900\",\"$lte\":\"2018-10-02T15:38:42.547\"}}}]}");

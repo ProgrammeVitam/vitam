@@ -18,6 +18,16 @@
 
 package fr.gouv.vitam.processing.management.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.when;
+
 import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -28,17 +38,17 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingEngineException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.model.PauseRecover;
 import fr.gouv.vitam.processing.common.model.ProcessStep;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
-import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
+import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.engine.api.ProcessEngine;
@@ -49,24 +59,27 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.internal.verification.VerificationModeFactory;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-
+/**
+ *
+ */
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.net.ssl.*"})
+@PrepareForTest({WorkspaceProcessDataManagement.class, WorkspaceClientFactory.class})
 public class StateMachineTest {
 
     private static final Integer TENANT_ID = 0;
+    public static final String FAKE_CONTEXT = "FakeContext";
+    public static final String APPLICATION_ID = "FakeApplicationId";
     private WorkerParameters workParams;
 
     private ProcessDataAccessImpl processDataAccess;
+    private static WorkspaceProcessDataManagement processDataManagement;
 
     private static final String WORKFLOW_FILE = "workflowJSONv1.json";
     private static final String WORKFLOW_FINALLY_STEP_FILE = "workflowJSONFinallyStep.json";
@@ -77,15 +90,9 @@ public class StateMachineTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
-    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private static final LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
-    private static final ProcessDataManagement dataManagement = mock(ProcessDataManagement.class);
-
     @Before
     public void setup() {
-        when(logbookOperationsClientFactory.getClient()).thenReturn(mock(LogbookOperationsClient.class));
-        when(workspaceClientFactory.getClient()).thenReturn(mock(WorkspaceClient.class));
+        LogbookOperationsClientFactory.changeMode(null);
         workParams = WorkerParametersFactory.newWorkerParameters();
         workParams
             .setWorkerGUID(GUIDFactory.newGUID())
@@ -96,6 +103,15 @@ public class StateMachineTest {
             .setWorkflowIdentifier("DEFAULT_WORKFLOW");
 
         processDataAccess = ProcessDataAccessImpl.getInstance();
+
+        mockStatic(WorkspaceProcessDataManagement.class);
+        processDataManagement = mock(WorkspaceProcessDataManagement.class);
+        when(WorkspaceProcessDataManagement.getInstance()).thenReturn(processDataManagement);
+
+        mockStatic(WorkspaceClientFactory.class);
+        WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        when(workspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        when(workspaceClientFactory.getClient()).thenReturn(mock(WorkspaceClient.class));
     }
 
     @Test
@@ -242,9 +258,7 @@ public class StateMachineTest {
             );
 
         final ProcessEngine processEngine = mock(ProcessEngineImpl.class);
-        final StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        final StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
 
         doAnswer(invocation -> null).when(processEngine).start(any(), any(), any(), any());
         stateMachine.next(workParams);
@@ -296,9 +310,7 @@ public class StateMachineTest {
 
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, processDistributorMock);
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
@@ -349,9 +361,7 @@ public class StateMachineTest {
 
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, processDistributorMock);
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
@@ -402,9 +412,7 @@ public class StateMachineTest {
 
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, processDistributorMock);
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         when(processDistributorMock.distribute(any(), any(), any(), any()))
@@ -440,9 +448,7 @@ public class StateMachineTest {
 
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -490,9 +496,7 @@ public class StateMachineTest {
 
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -539,9 +543,7 @@ public class StateMachineTest {
 
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -589,9 +591,7 @@ public class StateMachineTest {
 
         final ProcessDistributor distributorMock = mock(ProcessDistributorImpl.class);
         final ProcessEngineImpl processEngine = ProcessEngineFactory.get().create(workParams, distributorMock);
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         final ProcessStep firstStep = processWorkflow.getSteps().get(0);
@@ -639,9 +639,7 @@ public class StateMachineTest {
                 workParams.getContainerName()
             );
 
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
         stateMachine.shutdown();
         verify(processDistributorMock, VerificationModeFactory.atLeastOnce()).pause(anyString());
@@ -668,9 +666,7 @@ public class StateMachineTest {
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setState(ProcessState.RUNNING);
 
-        StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory,
-                logbookOperationsClientFactory);
+        StateMachine stateMachine = StateMachineFactory.get().create(processWorkflow, processEngine);
         processEngine.setCallback(stateMachine);
 
         stateMachine.cancel();

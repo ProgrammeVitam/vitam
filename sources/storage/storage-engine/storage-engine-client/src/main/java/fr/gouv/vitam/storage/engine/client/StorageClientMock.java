@@ -74,7 +74,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 /**
  * Mock client implementation for storage
  */
-public class StorageClientMock extends AbstractMockClient implements StorageClient {
+class StorageClientMock extends AbstractMockClient implements StorageClient {
     static final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
         "838860800, \"nbc\": 2}," + "{\"offerId\": " + "\"offer2\",\"usableSpace\": 838860800, \"nbc\": 2}]}";
     static final String MOCK_INFOS_EMPTY_RESULT_ARRAY = "{\"capacities\": []}";
@@ -94,7 +94,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
 
     @Override
     public JsonNode getStorageInformation(String strategyId)
-        throws StorageServerClientException {
+        throws StorageNotFoundClientException, StorageServerClientException {
         Integer tenantId = 0;
         try {
             tenantId = ParameterHelper.getTenantParameter();
@@ -184,10 +184,11 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type) {
+    public VitamRequestIterator<JsonNode> listContainer(String strategyId, DataCategory type)
+        throws StorageServerClientException {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add(GlobalDataRest.X_CURSOR, true);
-        return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, JsonHandler.createObjectNode());
+        return new VitamRequestIterator<>(this, HttpMethod.GET, type.getFolder(), JsonNode.class, headers, null);
     }
 
     @Override

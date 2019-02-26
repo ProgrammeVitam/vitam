@@ -27,6 +27,17 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.InputStream;
+import java.util.List;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -35,7 +46,6 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -43,16 +53,12 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -63,36 +69,28 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.File;
-import java.io.InputStream;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({MetaDataClientFactory.class, WorkspaceClientFactory.class, ProcessingManagementClientFactory.class})
 public class RunningIngestsUpdateActionPluginTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final MetaDataClient metaDataClient = mock(MetaDataClient.class);
-    private static final MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
-    private static final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-
-
-    private static final StorageClient storageClient = mock(StorageClient.class);
-    private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-
-    private static final ProcessingManagementClient processManagementClient = mock(ProcessingManagementClient.class);
-    private static final ProcessingManagementClientFactory processingManagementClientFactory =
-        mock(ProcessingManagementClientFactory.class);
+    RunningIngestsUpdateActionPlugin plugin = new RunningIngestsUpdateActionPlugin();
+    private MetaDataClient metadataClient;
+    private MetaDataClientFactory metadataClientFactory;
+    private WorkspaceClient workspaceClient;
+    private WorkspaceClientFactory workspaceClientFactory;
+    private ProcessingManagementClient processManagementClient;
+    private ProcessingManagementClientFactory processManagementClientFactory;
 
     private GUID guid = GUIDFactory.newGUID();
 
@@ -101,10 +99,6 @@ public class RunningIngestsUpdateActionPluginTest {
 
     private static final String AU_DETAIL = "RunningIngestsUpdateActionPlugin/archiveUnits.json";
     private static final String UPDATED_AU = "RunningIngestsUpdateActionPlugin/updatedAu.json";
-    private static final StoreMetaDataUnitActionPlugin storeMetadataObjectActionHandler = mock(StoreMetaDataUnitActionPlugin.class);
-
-    RunningIngestsUpdateActionPlugin plugin = new RunningIngestsUpdateActionPlugin(processingManagementClientFactory,
-        metaDataClientFactory, storeMetadataObjectActionHandler);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -127,22 +121,32 @@ public class RunningIngestsUpdateActionPluginTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        reset(metaDataClient);
-        reset(storageClient);
-        reset(processManagementClient);
-        reset(workspaceClient);
+        PowerMockito.mockStatic(MetaDataClientFactory.class);
+        metadataClient = mock(MetaDataClient.class);
+        metadataClientFactory = mock(MetaDataClientFactory.class);
 
-        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(processingManagementClientFactory.getClient()).thenReturn(processManagementClient);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        workspaceClient = mock(WorkspaceClient.class);
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
+        PowerMockito.mockStatic(ProcessingManagementClientFactory.class);
+        processManagementClient = mock(ProcessingManagementClient.class);
+        processManagementClientFactory = mock(ProcessingManagementClientFactory.class);
+
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(metadataClientFactory);
+        PowerMockito.when(MetaDataClientFactory.getInstance().getClient())
+            .thenReturn(metadataClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
+            .thenReturn(workspaceClient);
+        PowerMockito.when(ProcessingManagementClientFactory.getInstance()).thenReturn(processManagementClientFactory);
+        PowerMockito.when(ProcessingManagementClientFactory.getInstance().getClient())
+            .thenReturn(processManagementClient);
     }
 
     @RunWithCustomExecutor
     @Test
     public void givenRunningProcessWhenExecuteThenCheckAllPossibleStatusCode() throws Exception {
-        reset(storeMetadataObjectActionHandler);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         final File runningIngests = PropertiesUtils.getResourceFile(RUNNING_INGESTS);
 
@@ -152,23 +156,27 @@ public class RunningIngestsUpdateActionPluginTest {
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
 
         params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
-
+        reset(workspaceClient);
+        reset(metadataClient);
+        reset(processManagementClient);
         when(handlerIO.getInputStreamFromWorkspace(
             eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
             .then(o -> PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON));
         when(handlerIO.getInput(0)).thenReturn(runningIngests);
-        when(handlerIO.getLifecyclesClient()).thenReturn(mock(LogbookLifeCyclesClient.class));
         when(processManagementClient.getOperationProcessStatus(any()))
             .thenReturn(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
 
-        when(metaDataClient.selectUnits(any())).thenReturn(archiveUnitToBeUpdated);
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(archiveUnitUpdated);
+        when(metadataClient.selectUnits(any())).thenReturn(archiveUnitToBeUpdated);
+        when(metadataClient.updateUnitbyId(any(), any())).thenReturn(archiveUnitUpdated);
+
+        StoreMetadataObjectActionHandler storeMetadataObjectActionHandler =
+            mock(StoreMetadataObjectActionHandler.class);
+        plugin.setStoreMetadataObjectActionHandler(storeMetadataObjectActionHandler);
 
         List<StatusCode> statusCodeList = Lists.newArrayList(StatusCode.OK);
         when(storeMetadataObjectActionHandler.execute(any(), any()))
             .thenAnswer(o -> new ItemStatus().increment(
                 statusCodeList.get(0)));
-
         ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
@@ -194,6 +202,9 @@ public class RunningIngestsUpdateActionPluginTest {
 
         try {
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
+            reset(workspaceClient);
+            reset(metadataClient);
+            reset(processManagementClient);
             when(handlerIO.getInputStreamFromWorkspace(
                 eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
                 .thenReturn(rulesUpdated);
@@ -213,7 +224,9 @@ public class RunningIngestsUpdateActionPluginTest {
 
         try {
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
-
+            reset(workspaceClient);
+            reset(metadataClient);
+            reset(processManagementClient);
             when(handlerIO.getInputStreamFromWorkspace(
                 eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
                 .thenReturn(rulesUpdated);
@@ -230,6 +243,9 @@ public class RunningIngestsUpdateActionPluginTest {
     public void givenFileNotFoundWhenExecuteThenReturnResponseKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
+        reset(workspaceClient);
+        reset(metadataClient);
+        reset(processManagementClient);
         when(handlerIO.getInputStreamFromWorkspace(
             eq(UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON)))
             .thenThrow(

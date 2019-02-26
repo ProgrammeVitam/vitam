@@ -1,6 +1,29 @@
 package fr.gouv.vitam.worker.core.handler;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.xml.stream.XMLStreamException;
+
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -22,20 +45,12 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import org.assertj.core.util.Lists;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
-import java.io.FileNotFoundException;
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({AdminManagementClientFactory.class})
 public class CheckArchiveProfileRelationActionHandlerTest {
     CheckArchiveProfileRelationActionHandler handler;
     private static final String HANDLER_ID = "CHECK_IC_AP_RELATION";
@@ -49,23 +64,27 @@ public class CheckArchiveProfileRelationActionHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+            new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
 
     @Before
     public void setUp() throws ProcessingException, FileNotFoundException {
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminClient = mock(AdminManagementClient.class);
         guid = GUIDFactory.newGUID();
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
-        when(adminManagementClientFactory.getClient()).thenReturn(adminClient);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
 
     }
 
     @Test
     @RunWithCustomExecutor
     public void testhandlerWorking()
-        throws  InvalidParseOperationException, AdminManagementClientServerException {
+            throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
+            InvalidCreateOperationException, AdminManagementClientServerException,
+            ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
@@ -77,10 +96,10 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             .thenReturn(createProfile(ProfileStatus.ACTIVE));
 
         final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        handler = new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
+                WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
+                        .setObjectNameList(Lists.newArrayList("objectName.json"))
+                        .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -92,7 +111,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "DIFF");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
     }
-
+    
     @Test
     @RunWithCustomExecutor
     public void givenProfilInactiveWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
@@ -109,7 +128,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        handler = new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
+        handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -131,7 +150,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        handler = new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
+        handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -153,7 +172,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        handler = new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
+        handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -177,7 +196,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        handler = new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
+        handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -187,8 +206,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenProfilOKAndIngestContractGetVitamErrorWhenTesthandlerWorkingThenReturnInvalideKO()
-        throws Exception {
+    public void givenProfilOKAndIngestContractGetVitamErrorWhenTesthandlerWorkingThenReturnInvalideKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         when(handlerIO.getInput(0)).thenReturn(PROFILE_IDENTIFIER);
@@ -202,7 +220,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        handler = new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
+        handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -227,7 +245,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
                 .setObjectNameList(Lists.newArrayList("objectName.json"))
                 .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
-        handler = new CheckArchiveProfileRelationActionHandler(adminManagementClientFactory);
+        handler = new CheckArchiveProfileRelationActionHandler();
         assertEquals(CheckArchiveProfileRelationActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(params, handlerIO);
@@ -247,8 +265,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         return ClientMockResultHelper.createReponse(contract);
     }
 
-    private static RequestResponse createIngestContract(ActivationStatus status, String profileIdentifier)
-        throws InvalidParseOperationException {
+    private static RequestResponse createIngestContract(ActivationStatus status, String profileIdentifier) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setName("ArchivalAgreement0");
         contract.setStatus(status);
@@ -259,11 +276,11 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         }
         return ClientMockResultHelper.createReponse(contract);
     }
-
+    
     private static RequestResponse createProfile(ProfileStatus status) throws InvalidParseOperationException {
         ProfileModel profil = new ProfileModel();
         profil.setIdentifier("PROFIL-00001");
-        profil.setStatus(status);
+        profil.setStatus(status);        
         return ClientMockResultHelper.createReponse(profil);
     }
 

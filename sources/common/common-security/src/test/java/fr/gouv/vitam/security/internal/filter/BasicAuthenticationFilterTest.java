@@ -7,20 +7,20 @@ import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ResourceInfo;
 import javax.ws.rs.core.FeatureContext;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -28,6 +28,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 
+@RunWith(MockitoJUnitRunner.class)
 public class BasicAuthenticationFilterTest {
 
     /**
@@ -36,9 +37,6 @@ public class BasicAuthenticationFilterTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BasicAuthenticationFilterTest.class);
 
     private static final AuthenticationLevel AUTHENTICATION_LEVEL = AuthenticationLevel.BASIC_AUTHENT;
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ResourceInfo resourceInfo;

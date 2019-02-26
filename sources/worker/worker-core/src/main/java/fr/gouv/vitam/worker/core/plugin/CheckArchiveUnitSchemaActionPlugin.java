@@ -26,9 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
@@ -46,6 +56,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -53,15 +64,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * CheckArchiveUnitSchema Plugin.<br>
@@ -79,6 +81,10 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     private static final int UNIT_OUT_RANK = 0;
 
     private static final int ONTOLOGY_IN_RANK = 0;
+    private HandlerIO handlerIO;
+
+    private static final String NOT_AU_JSON_VALID = "NOT_AU_JSON_VALID";
+    private static final String NOT_JSON_FILE = "NOT_JSON_FILE";
     private static final String UNIT_SANITIZE = "UNIT_SANITIZE";
 
     private static final String ONTOLOGY_VALIDATION = "ONTOLOGY_VALIDATION";
@@ -88,16 +94,32 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     private boolean isUpdateJsonMandatory = false;
     private boolean asyncIO = false;
 
+    private final AdminManagementClientFactory adminManagementClientFactory;
+
+    /**
+     * Empty constructor UnitsRulesComputePlugin
+     */
     public CheckArchiveUnitSchemaActionPlugin() {
-        //Empty
+        this(AdminManagementClientFactory.getInstance());
+    }
+
+    /**
+     * Empty constructor CheckArchiveUnitSchemaActionPlugin
+     *
+     * @param adminManagementClientFactory
+     */
+    @VisibleForTesting
+    public CheckArchiveUnitSchemaActionPlugin(AdminManagementClientFactory adminManagementClientFactory) {
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
+        handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID);
         SchemaValidationStatus schemaValidationStatus;
         try {
-            schemaValidationStatus = checkAUJsonAgainstSchema(handler, params, itemStatus);
+            schemaValidationStatus = checkAUJsonAgainstSchema(params, itemStatus);
             SchemaValidationStatusEnum status = schemaValidationStatus.getValidationStatus();
             switch (status) {
                 case VALID:
@@ -164,8 +186,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
 
 
-    private SchemaValidationStatus checkAUJsonAgainstSchema(HandlerIO handlerIO, WorkerParameters params,
-        ItemStatus itemStatus)
+    private SchemaValidationStatus checkAUJsonAgainstSchema(WorkerParameters params, ItemStatus itemStatus)
         throws ProcessingException, ArchiveUnitOntologyValidationException {
         final String objectName = params.getObjectName();
 
@@ -185,7 +206,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
                 throw new ArchiveUnitContainSpecialCharactersException(err);
             }
             Stopwatch ontologyTime = Stopwatch.createStarted();
-            checkFieldLengthAndForceFieldTypingUsingOntologies(handlerIO, archiveUnit, itemStatus, validator);
+            checkFieldLengthAndForceFieldTypingUsingOntologies(archiveUnit, itemStatus, validator);
             PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationOntology",
                 ontologyTime.elapsed(TimeUnit.MILLISECONDS));
 
@@ -217,8 +238,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     }
 
 
-    private void checkFieldLengthAndForceFieldTypingUsingOntologies(HandlerIO handlerIO, JsonNode archiveUnit,
-        ItemStatus itemStatus,
+    private void checkFieldLengthAndForceFieldTypingUsingOntologies(JsonNode archiveUnit, ItemStatus itemStatus,
         SchemaValidationUtils validator) throws ProcessingException, ArchiveUnitOntologyValidationException {
         JsonNode originalArchiveUnit = archiveUnit.deepCopy();
 

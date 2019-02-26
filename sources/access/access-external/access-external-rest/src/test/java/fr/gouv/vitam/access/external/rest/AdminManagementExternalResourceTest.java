@@ -1,16 +1,48 @@
 package fr.gouv.vitam.access.external.rest;
 
+import static io.restassured.RestAssured.given;
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.powermock.api.mockito.PowerMockito.doReturn;
+import static org.powermock.api.mockito.PowerMockito.doThrow;
+import static org.powermock.api.mockito.PowerMockito.when;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.model.*;
+import org.hamcrest.CoreMatchers;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.google.common.collect.Lists;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.api.AdminCollections;
-import fr.gouv.vitam.access.internal.client.AccessInternalClient;
-import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -27,23 +59,12 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.ItemStatus;
-import fr.gouv.vitam.common.model.ProcessAction;
-import fr.gouv.vitam.common.model.ProcessQuery;
-import fr.gouv.vitam.common.model.ProcessState;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AgenciesModel;
-import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
-import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientMock;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
@@ -51,38 +72,11 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFo
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import org.hamcrest.CoreMatchers;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.IntStream;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static io.restassured.RestAssured.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-public class AdminManagementExternalResourceTest extends ResteasyTestApplication {
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
+@PrepareForTest({AdminManagementClientFactory.class, IngestInternalClientFactory.class})
+public class AdminManagementExternalResourceTest {
 
     private static final String CODE_VALIDATION_DSL = VitamCodeHelper.getCode(VitamCode.GLOBAL_INVALID_DSL);
 
@@ -135,42 +129,16 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     public static final String SECURITY_PROFILES_URI = "/securityprofiles";
     private static final String RULE_FILE = "jeu_donnees_OK_regles_CSV_regles.csv";
 
-    private final static BusinessApplicationTest businessApplicationTest = new BusinessApplicationTest();
-
-    private final static AccessInternalClientFactory accessInternalClientFactory =
-        businessApplicationTest.getAccessInternalClientFactory();
-    private final static AccessInternalClient accessInternalClient = mock(AccessInternalClient.class);
-
-    private final static AdminManagementClientFactory adminManagementClientFactory =
-        businessApplicationTest.getAdminManagementClientFactory();
-    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
-
-    private final static IngestInternalClientFactory ingestInternalClientFactory =
-        businessApplicationTest.getIngestInternalClientFactory();
-    private final static IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
-
-    private final static VitamStatusService vitamStatusService = businessApplicationTest.getVitamStatusService();
-
-
-
-    @Override
-    public Set<Object> getResources() {
-        return businessApplicationTest.getSingletons();
-    }
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return businessApplicationTest.getClasses();
-    }
-
 
     private InputStream stream;
     private static JunitHelper junitHelper;
     private static int serverPort;
     private static AccessExternalMain application;
+    private static AdminManagementClient adminClient;
+    private static IngestInternalClient ingestInternalClient;
 
     @BeforeClass
-    public static void setUpBeforeClass() {
+    public static void setUpBeforeClass() throws Exception {
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -179,8 +147,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-            application =
-                new AccessExternalMain("access-external-test.conf", AdminManagementExternalResourceTest.class, null);
+            application = new AccessExternalMain("access-external-test.conf", BusinessApplicationTest.class, null);
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
@@ -200,25 +167,9 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         VitamClientFactory.resetConnections();
     }
 
-    @Before
-    public void setUpBefore() {
-        reset(accessInternalClient);
-        reset(accessInternalClientFactory);
-        reset(adminManagementClient);
-        reset(adminManagementClientFactory);
-        reset(ingestInternalClient);
-        reset(ingestInternalClientFactory);
-
-
-        when(accessInternalClientFactory.getClient()).thenReturn(accessInternalClient);
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
-    }
-
     @Test
-    public void testRectificationAudit() throws Exception {
-        when(adminManagementClient.rectificationAudit(anyString()))
-            .thenReturn(new AdminManagementClientMock().rectificationAudit("opi"));
+    public void testRectificationAudit() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
 
         given().contentType(ContentType.JSON).body("id")
             .header(GlobalDataRest.X_TENANT_ID, 0)
@@ -226,26 +177,19 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .then().statusCode(Status.OK.getStatusCode());
 
     }
-
     @Test
-    public void evidenceAudit() throws Exception {
+    public void evidenceAudit() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
 
-        when(adminManagementClient.evidenceAudit(any()))
-            .thenReturn(new AdminManagementClientMock().evidenceAudit(JsonHandler.createObjectNode()));
-
-        given().contentType(ContentType.JSON).body(new SelectMultiQuery().getFinalSelect())
+        given().contentType(ContentType.JSON).body( new SelectMultiQuery().getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .when().post(EVIDENCE_AUDIT)
             .then().statusCode(Status.OK.getStatusCode());
 
     }
-
-    @Test
-    public void testCheckDocument() throws Exception {
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.checkFormat(any()))
-            .thenReturn(adminManagementClientMock.checkFormat(new FakeInputStream(1)));
-
+        @Test
+    public void testCheckDocument() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -262,9 +206,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(FORMAT_CHECK_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        when(adminManagementClient.checkRulesFile(any()))
-            .thenReturn(adminManagementClientMock.checkRulesFile(new FakeInputStream(1)));
 
         stream = PropertiesUtils.getResourceAsStream(RULE_FILE);
         given().contentType(ContentType.BINARY).body(stream)
@@ -282,9 +223,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         given().contentType(ContentType.BINARY).body(stream)
             .when().post(RULES_CHECK_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        when(adminManagementClient.checkAgenciesFile(any()))
-            .thenReturn(adminManagementClientMock.checkAgenciesFile(new FakeInputStream(1)));
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -322,7 +260,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testCheckDocumentError() throws Exception {
-        doThrow(new ReferentialException("Referential Exception")).when(adminManagementClient).checkFormat(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doThrow(new ReferentialException("Referential Exception")).when(adminClient).checkFormat(any());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -343,9 +286,9 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void insertDocument() throws Exception {
-
-        when(adminManagementClient.importFormat(any(), any())).thenReturn(Status.CREATED);
+    public void insertDocument() throws FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+        int tenantaDMIN = VitamConfiguration.getAdminTenant();
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -366,22 +309,18 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().post(FORMAT_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        when(adminManagementClient.importRulesFile(any(), any())).thenReturn(Status.CREATED);
         stream = PropertiesUtils.getResourceAsStream(RULE_FILE);
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(RULES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
-
-        when(adminManagementClient.importAgenciesFile(any(), any())).thenReturn(Status.CREATED);
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(AGENCIES_URI)
             .then().statusCode(Status.CREATED.getStatusCode());
-
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
@@ -394,6 +333,33 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .header(GlobalDataRest.X_FILENAME, "vitam.conf")
             .when().post(RULES_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
+
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.CREATED.getStatusCode());
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+
+        stream = PropertiesUtils.getResourceAsStream("vitam.conf");
+        given().contentType(ContentType.BINARY).body(stream)
+            .header(GlobalDataRest.X_FILENAME, "vitam.conf")
+            .when().post(AGENCIES_URI)
+            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+
 
         given().contentType(ContentType.BINARY)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -415,8 +381,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void insertDocumentError() throws Exception {
-        doThrow(new ReferentialException("")).when(adminManagementClient).importFormat(any(), any());
-        doReturn(Response.ok().build()).when(adminManagementClient).checkFormat(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doThrow(new ReferentialException("")).when(adminClient).importFormat(any(), any());
+        doReturn(Response.ok().build()).when(adminClient).checkFormat(any());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -424,7 +395,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().post(FORMAT_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new DatabaseConflictException("")).when(adminManagementClient).importFormat(any(), any());
+        doThrow(new DatabaseConflictException("")).when(adminClient).importFormat(any(), any());
 
         stream = PropertiesUtils.getResourceAsStream("vitam.conf");
         given().contentType(ContentType.BINARY).body(stream)
@@ -435,7 +406,9 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testFindRules() throws InvalidCreateOperationException {
+    public void testFindRules() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
         final Select select = new Select();
         select.setQuery(eq("Identifier", "APP-00001"));
         given()
@@ -499,10 +472,11 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testFindFormats() throws Exception {
+    public void testFindFormats() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/348"));
-        when(adminManagementClient.getFormats(any())).thenReturn(ClientMockResultHelper.getFormat());
         given()
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -564,12 +538,11 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testFindAccessionRegister() throws Exception {
+    public void testFindAccessionRegister() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "RATP"));
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.getAccessionRegister(any()))
-            .thenReturn(adminManagementClientMock.getAccessionRegister(JsonHandler.createObjectNode()));
         given()
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -625,13 +598,11 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testFindAccessionRegisterDetail() throws Exception {
+    public void testFindAccessionRegisterDetail() throws InvalidCreateOperationException, FileNotFoundException {
+        AdminManagementClientFactory.changeMode(null);
+
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "RATP"));
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.getAccessionRegisterDetail(any(), any()))
-            .thenReturn(adminManagementClientMock.getAccessionRegisterDetail("id", JsonHandler.createObjectNode()));
-
         given()
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -687,12 +658,10 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testGetDocuments() throws Exception {
+    public void testGetDocuments() throws InvalidCreateOperationException, FileNotFoundException {
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
-
-        when(adminManagementClient.getAgencies(any()))
-            .thenReturn(new AdminManagementClientMock().getAgencies(JsonHandler.createObjectNode()));
+        AdminManagementClientFactory.changeMode(null);
 
         given()
             .accept(ContentType.JSON)
@@ -703,8 +672,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().post(RULES_URI + RULE_ID)
             .then().statusCode(Status.OK.getStatusCode());
 
-        when(adminManagementClient.getAgencyById(any()))
-            .thenReturn(new AdminManagementClientMock().getAgencyById("id"));
 
         given()
             .accept(ContentType.JSON)
@@ -800,9 +767,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().get(WRONG_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        when(adminManagementClient.getAccessionRegister(any()))
-            .thenReturn(new AdminManagementClientMock().getAccessionRegister(JsonHandler.createObjectNode()));
-
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
@@ -831,8 +795,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testGetDocumentsError() throws Exception {
-        doThrow(new ReferentialException("")).when(adminManagementClient).getFormats(any());
-        doThrow(new ReferentialException("")).when(adminManagementClient).getFormatByID(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doThrow(new ReferentialException("")).when(adminClient).getFormats(any());
+        doThrow(new ReferentialException("")).when(adminClient).getFormatByID(any());
         final Select select = new Select();
         select.setQuery(eq("Id", "APP-00001"));
 
@@ -852,8 +821,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
 
-        doThrow(new InvalidParseOperationException("")).when(adminManagementClient).getFormats(any());
-        doThrow(new InvalidParseOperationException("")).when(adminManagementClient).getFormatByID(any());
+        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormats(any());
+        doThrow(new InvalidParseOperationException("")).when(adminClient).getFormatByID(any());
 
         given()
             .accept(ContentType.JSON)
@@ -871,8 +840,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
         RequestResponse rsp = new RequestResponseOK<>().setHttpCode(Status.OK.getStatusCode());
-        when(adminManagementClient.getAccessionRegister(any())).thenReturn(rsp);
-        when(adminManagementClient.getAccessionRegisterDetail(any(), any())).thenReturn(rsp);
+        when(adminClient.getAccessionRegister(any())).thenReturn(rsp);
+        when(adminClient.getAccessionRegisterDetail(any(), any())).thenReturn(rsp);
 
         given()
             .contentType(ContentType.JSON)
@@ -907,9 +876,9 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new InvalidParseOperationException("")).when(adminManagementClient)
+        doThrow(new InvalidParseOperationException("")).when(adminClient)
             .getAccessionRegister(any());
-        doThrow(new InvalidParseOperationException("")).when(adminManagementClient)
+        doThrow(new InvalidParseOperationException("")).when(adminClient)
             .getAccessionRegisterDetail(anyString(), any());
 
         given()
@@ -930,9 +899,9 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().post(ACCESSION_REGISTER_DETAIL_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode());
 
-        doThrow(new IllegalArgumentException("")).when(adminManagementClient)
+        doThrow(new IllegalArgumentException("")).when(adminClient)
             .getAccessionRegister(any());
-        doThrow(new IllegalArgumentException("")).when(adminManagementClient)
+        doThrow(new IllegalArgumentException("")).when(adminClient)
             .getAccessionRegisterDetail(anyString(), any());
 
         given()
@@ -957,7 +926,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testImportIngestContractsWithInvalidFileBadRequest() throws Exception {
-        doReturn(Status.BAD_REQUEST).when(adminManagementClient).importIngestContracts(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.BAD_REQUEST).when(adminClient).importIngestContracts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1006,7 +980,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testimportValidIngestContractsFileReturnCreated() throws Exception {
-        doReturn(Status.CREATED).when(adminManagementClient).importIngestContracts(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.CREATED).when(adminClient).importIngestContracts(any());
         File contractFile = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
         JsonNode json = JsonHandler.getFromFile(contractFile);
         given().contentType(ContentType.JSON).body(json)
@@ -1017,7 +996,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testfindIngestContractsFile() throws Exception {
-        doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+
+        doReturn(new RequestResponseOK<>().addAllResults(getIngestContracts())).when(adminClient)
             .findIngestContracts(any());
 
         Select select = new Select();
@@ -1061,7 +1046,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testImportAccessContractsWithInvalidFileBadRequest() throws Exception {
-        doReturn(Status.BAD_REQUEST).when(adminManagementClient).importAccessContracts(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.BAD_REQUEST).when(adminClient).importAccessContracts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1072,7 +1062,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testimportValidAccessContractsFileReturnCreated() throws Exception {
-        doReturn(Status.CREATED).when(adminManagementClient).importAccessContracts(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.CREATED).when(adminClient).importAccessContracts(any());
         File contractFile = PropertiesUtils.getResourceFile("contracts_access_ok.json");
         JsonNode json = JsonHandler.getFromFile(contractFile);
 
@@ -1084,7 +1079,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testfindAccessContractsFile() throws Exception {
-        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
             .findAccessContracts(any());
 
         Select select = new Select();
@@ -1128,7 +1128,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testCreateProfileWithInvalidFileBadRequest() throws Exception {
-        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
             .createProfiles(any());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
@@ -1144,7 +1149,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testcreateValidProfileReturnCreated() throws Exception {
-        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
             .createProfiles(any());
 
         File fileProfiles = PropertiesUtils.getResourceFile("profiles_ok.json");
@@ -1158,7 +1168,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testfindProfiles() throws Exception {
-        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
             .findProfiles(any());
 
         final Select select = new Select();
@@ -1222,8 +1237,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testFindAgencies() throws Exception {
-        doReturn(new RequestResponseOK<AgenciesModel>().addAllResults(getAgencies()).toJsonNode())
-            .when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<AgenciesModel>().addAllResults(getAgencies()).toJsonNode()).when(adminClient)
             .getAgencies(any());
 
         final Select select = new Select();
@@ -1280,7 +1299,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testFindAgenciesById() throws Exception {
-        doReturn(new RequestResponseOK<AgenciesModel>().addResult(getAgencies().get(0))).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<AgenciesModel>().addResult(getAgencies().get(0))).when(adminClient)
             .getAgencyById(any());
 
         given()
@@ -1300,21 +1324,21 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        doThrow(new ReferentialNotFoundException("Agency not found")).when(adminManagementClient).getAgencyById(any());
+        doThrow(new ReferentialNotFoundException("Agency not found")).when(adminClient).getAgencyById(any());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.NOT_FOUND.getStatusCode());
 
-        doThrow(new AdminManagementClientServerException("Exception")).when(adminManagementClient).getAgencyById(any());
+        doThrow(new AdminManagementClientServerException("Exception")).when(adminClient).getAgencyById(any());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get(AGENCY_URI + "/id")
             .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-        doThrow(new InvalidParseOperationException("Exception")).when(adminManagementClient).getAgencyById(any());
+        doThrow(new InvalidParseOperationException("Exception")).when(adminClient).getAgencyById(any());
         given()
             .contentType(ContentType.JSON)
             .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1325,15 +1349,19 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testCheckTraceabilityOperation()
-        throws Exception {
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        // given()
+        // .contentType(ContentType.JSON)
+        // .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        // .body(JsonHandler.getFromString(request))
+        // .when()
+        // .post(CHECK_TRACEABILITY_OPERATION_URI)
+        // .then().statusCode(Status.OK.getStatusCode());
+
 
 
         final Select select = new Select();
         select.setQuery(eq("evType", "TRACEABILITY"));
-        RequestResponse<JsonNode> ok = new RequestResponseOK<>();
-        ok.setHttpCode(Status.OK.getStatusCode());
-
-        when(accessInternalClient.checkTraceabilityOperation(any())).thenReturn(ok);
         given()
             .accept(ContentType.JSON)
             .contentType(ContentType.JSON)
@@ -1386,18 +1414,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testDownloadTraceabilityOperationFile()
-        throws Exception {
-
-        Response response = mock(Response.class);
-        when(response.readEntity(InputStream.class)).thenReturn(StreamUtils.toInputStream("test"));
-        when(response.getStatus()).thenReturn(Status.OK.getStatusCode());
-        when(response.getStatusInfo()).thenReturn(Status.OK);
-        when(response.getMediaType()).thenReturn(MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        when(accessInternalClient.downloadTraceabilityFile(anyString()))
-            .thenReturn(response);
-
+    public void testDownloadTraceabilityOperationFile() throws InvalidParseOperationException {
         given().accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
@@ -1430,7 +1447,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         return res;
     }
 
-    private List<AgenciesModel> getAgencies() {
+    private List<AgenciesModel> getAgencies() throws FileNotFoundException, InvalidParseOperationException {
         List<AgenciesModel> res = new ArrayList<>();
         IntStream.range(1, 5).forEach(i -> {
             AgenciesModel agenciesModel = new AgenciesModel();
@@ -1455,13 +1472,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void insertSecurityProfile() throws Exception {
+    public void insertSecurityProfile() throws FileNotFoundException, InvalidParseOperationException {
+
+        AdminManagementClientFactory.changeMode(null);
+
         File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(securityProfileFile);
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.importSecurityProfiles(any()))
-            .thenReturn(adminManagementClientMock.importSecurityProfiles(
-                Lists.newArrayList()));
+
         // Test OK
         given()
             .accept(MediaType.APPLICATION_JSON)
@@ -1487,14 +1504,11 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testFindSecurityProfiles() throws Exception {
+    public void testFindSecurityProfiles() throws InvalidCreateOperationException, FileNotFoundException {
         final Select select = new Select();
         String securityProfileIdentifier = "SEC_PROFILE-00001";
         select.setQuery(eq("Identifier", securityProfileIdentifier));
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.findSecurityProfiles(any()))
-            .thenReturn(adminManagementClientMock.findSecurityProfiles(JsonHandler.createObjectNode()));
-
+        AdminManagementClientFactory.changeMode(null);
 
         // Test OK with GET
         given()
@@ -1564,14 +1578,9 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void testFindSecurityProfilesByIdentifier()
-        throws Exception {
+    public void testFindSecurityProfilesByIdentifier() throws InvalidCreateOperationException, FileNotFoundException {
 
         String securityProfileIdentifier = "SEC_PROFILE-00001";
-
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.findSecurityProfileByIdentifier(anyString()))
-            .thenReturn(adminManagementClientMock.findSecurityProfileByIdentifier(securityProfileIdentifier));
 
         // Test OK
         given()
@@ -1599,7 +1608,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testUpdateSecurityProfiles()
-        throws Exception {
+        throws InvalidCreateOperationException, FileNotFoundException, InvalidParseOperationException {
 
         // Add permission
         String NewPermission = "new_permission:read";
@@ -1612,9 +1621,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         updateParser.parse(update.getFinalUpdate());
 
         String securityProfileIdentifier = "SEC_PROFILE-00001";
+        AdminManagementClientFactory.changeMode(null);
 
-        when(adminManagementClient.updateSecurityProfile(anyString(), any()))
-            .thenReturn(new AdminManagementClientMock().updateSecurityProfile("id", JsonHandler.createObjectNode()));
         // valid query
         given()
             .contentType(ContentType.JSON)
@@ -1661,19 +1669,14 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testUpdateProfile()
-        throws Exception {
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
         String NewPermission = "new_permission:update:json";
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", "aName"));
         final SetAction setActionAddPermission = UpdateActionHelper.set("Permissions", NewPermission);
         update.addActions(setActionAddPermission);
-
-
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.updateProfile(anyString(), any()))
-            .thenReturn(adminManagementClientMock.updateProfile("id", JsonHandler.createObjectNode()));
-
+        AdminManagementClientFactory.changeMode(null);
 
         // valid query
         given()
@@ -1712,16 +1715,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testUpdateContext()
-        throws Exception {
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", "CT-000001"));
         final SetAction setActionDescription = UpdateActionHelper.set("Name", "admin-context");
         update.addActions(setActionDescription);
-
-        when(adminManagementClient.updateContext(anyString(), any()))
-            .thenReturn(new AdminManagementClientMock().updateContext("id", JsonHandler.createObjectNode()));
-
+        AdminManagementClientFactory.changeMode(null);
 
         // valid query
         given()
@@ -1760,17 +1760,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testUpdateAccessContract()
-        throws Exception {
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", "CT-000001"));
         final SetAction setActionDescription = UpdateActionHelper.set("Name", "admin-context");
         update.addActions(setActionDescription);
-
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.updateAccessContract(anyString(), any()))
-            .thenReturn(adminManagementClientMock.updateAccessContract("id", JsonHandler.createObjectNode()));
-
+        AdminManagementClientFactory.changeMode(null);
 
         // valid query
         given()
@@ -1809,16 +1805,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testUpdateIngestContract()
-        throws Exception {
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Identifier", "CT-000001"));
         final SetAction setActionDescription = UpdateActionHelper.set("Name", "admin-context");
         update.addActions(setActionDescription);
-
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.updateIngestContract(anyString(), any()))
-            .thenReturn(adminManagementClientMock.updateIngestContract("id", JsonHandler.createObjectNode()));
+        AdminManagementClientFactory.changeMode(null);
 
         // valid query
         given()
@@ -1858,9 +1851,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @Test
     public void listOperations()
         throws Exception {
-        RequestResponseOK requestResponseOK = new RequestResponseOK();
-        requestResponseOK.setHttpCode(Status.OK.getStatusCode());
-        when(ingestInternalClient.listOperationsDetails(any())).thenReturn(requestResponseOK);
 
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
@@ -1872,8 +1862,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void cancelOperationTest() throws Exception {
-        when(ingestInternalClient.cancelOperationProcessExecution(any())).thenReturn(new ItemStatus());
+    public void cancelOperationTest()
+        throws Exception {
         RestAssured.given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1884,9 +1874,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @Test
     public void getWorkFlowExecutionStatusTest()
         throws Exception {
-        when(ingestInternalClient.getOperationProcessStatus(anyString())).thenReturn(new ItemStatus().setGlobalState(
-            ProcessState.RUNNING));
-
         RestAssured.given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1897,7 +1884,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @Test
     public void getWorkFlowStatusTest()
         throws Exception {
-        when(ingestInternalClient.getOperationProcessExecutionDetails(anyString())).thenReturn(new ItemStatus());
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -1908,9 +1894,15 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void getWorkFlowNotFoundTest() throws Exception {
-        doThrow(new WorkflowNotFoundException("not found")).when(ingestInternalClient)
-            .getOperationProcessExecutionDetails(anyString());
+    public void getWorkFlowNotFoundTest()
+        throws Exception {
+        PowerMockito.mockStatic(IngestInternalClientFactory.class);
+        ingestInternalClient = PowerMockito.mock(IngestInternalClient.class);
+        final IngestInternalClientFactory ingestClientFactory = PowerMockito.mock(IngestInternalClientFactory.class);
+        when(IngestInternalClientFactory.getInstance()).thenReturn(ingestClientFactory);
+        when(IngestInternalClientFactory.getInstance().getClient()).thenReturn(ingestInternalClient);
+        doThrow(new WorkflowNotFoundException("WorkflowNotFoundException")).when(ingestInternalClient)
+            .getOperationProcessExecutionDetails(any());
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -1921,12 +1913,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void getWorkflowDefinitionsTest() throws Exception {
-        RequestResponseOK requestResponseOK = new RequestResponseOK();
-        requestResponseOK.setHttpCode(Status.OK.getStatusCode());
-        when(ingestInternalClient.getWorkflowDefinitions()).thenReturn(requestResponseOK);
-
-
+    public void getWorkflowDefinitionsTest()
+        throws Exception {
         RestAssured.given()
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -1935,13 +1923,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void updateWorkFlowStatusTest() throws Exception {
-        RequestResponseOK<ItemStatus> objectRequestResponseOK = new RequestResponseOK<>();
-        objectRequestResponseOK.addResult(new ItemStatus().setGlobalState(ProcessState.PAUSE));
-        objectRequestResponseOK.setHttpCode(Status.OK.getStatusCode());
-        when(ingestInternalClient.updateOperationActionProcess(anyString(), anyString()))
-            .thenReturn(objectRequestResponseOK);
-
+    public void updateWorkFlowStatusTest()
+        throws Exception {
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -1953,7 +1936,8 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     }
 
     @Test
-    public void updateWorkFlowStatusWithoutHeadersTest() {
+    public void updateWorkFlowStatusWithoutHeadersTest()
+        throws Exception {
         RestAssured.given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
@@ -1965,7 +1949,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testimportValidContextFileReturnCreated() throws Exception {
-        doReturn(Status.CREATED).when(adminManagementClient).importContexts(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.CREATED).when(adminClient).importContexts(any());
         File contextFile = PropertiesUtils.getResourceFile("context.json");
         JsonNode json = JsonHandler.getFromFile(contextFile);
         given().contentType(ContentType.JSON).body(json)
@@ -1976,7 +1965,13 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testfindContextFile() throws Exception {
-        doReturn(new RequestResponseOK<>().addAllResults(getContexts())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+
+        doReturn(new RequestResponseOK<>().addAllResults(getContexts())).when(adminClient)
             .findContexts(any());
 
         final Select select = new Select();
@@ -2044,7 +2039,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testImportContextsWithInvalidFileBadRequest() throws Exception {
-        doReturn(Status.BAD_REQUEST).when(adminManagementClient).importContexts(any());
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(Status.BAD_REQUEST).when(adminClient).importContexts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -2052,7 +2052,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
 
         doThrow(new ReferentialException("ReferentialException"))
-            .when(adminManagementClient).importContexts(any());
+            .when(adminClient).importContexts(any());
 
         given().contentType(ContentType.JSON).body(JsonHandler.createObjectNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -2064,14 +2064,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
     @Test
     public void downloadIngestReportsAsStream()
         throws Exception {
-        Response response = mock(Response.class);
-        when(response.readEntity(InputStream.class)).thenReturn(StreamUtils.toInputStream("test"));
-        when(response.getStatus()).thenReturn(Status.OK.getStatusCode());
-        when(response.getStatusInfo()).thenReturn(Status.OK);
-        when(response.getMediaType()).thenReturn(MediaType.APPLICATION_OCTET_STREAM_TYPE);
-
-        when(ingestInternalClient.downloadObjectAsync(anyString(), any()))
-            .thenReturn(response);
         RestAssured.given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_CONTEXT_ID, Contexts.DEFAULT_WORKFLOW)
@@ -2081,7 +2073,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testCreateArchiveUnitProfileWithInvalidFileBadRequest() throws Exception {
-        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
             .createArchiveUnitProfiles(any());
 
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("AUP_missing_identifier.json");
@@ -2096,7 +2093,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testCreateValidArchiveUnitProfileReturnCreated() throws Exception {
-        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
             .createArchiveUnitProfiles(any());
 
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profiles_ok.json");
@@ -2110,7 +2112,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testFindArchiveUnitProfiles() throws Exception {
-        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().addAllResults(getAccessContracts())).when(adminClient)
             .findArchiveUnitProfiles(any());
 
         final Select select = new Select();
@@ -2170,22 +2177,20 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
     }
-
-
-
+    
+    
+    
     @Test
     public void testUpdateArchiveUnitProfile()
-        throws Exception {
+        throws InvalidCreateOperationException, InvalidParseOperationException, AdminManagementClientServerException {
         String NewPermission = "new_permission:update:json";
 
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", "aName"));
         final SetAction setActionAddPermission = UpdateActionHelper.set("Permissions", NewPermission);
         update.addActions(setActionAddPermission);
+        AdminManagementClientFactory.changeMode(null);
 
-        AdminManagementClientMock adminManagementClientMock = new AdminManagementClientMock();
-        when(adminManagementClient.updateArchiveUnitProfile(anyString(), any()))
-            .thenReturn(adminManagementClientMock.updateArchiveUnitProfile("id", JsonHandler.createObjectNode()));
         // valid query
         given()
             .contentType(ContentType.JSON)
@@ -2223,7 +2228,6 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void should_respond_no_content_when_status() {
-        when(vitamStatusService.getResourcesStatus()).thenReturn(true);
         given()
             .accept(ContentType.JSON)
             .when()
@@ -2235,7 +2239,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testImportValidOntologyReturnCreated() throws Exception {
-        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new RequestResponseOK<>().setHttpCode(Status.CREATED.getStatusCode())).when(adminClient)
             .importOntologies(anyBoolean(), any());
 
         File fileOntologies = PropertiesUtils.getResourceFile("ontologies_ok.json");
@@ -2249,7 +2258,12 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @Test
     public void testImportOntologyWithInvalidFileBadRequest() throws Exception {
-        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminManagementClient)
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
             .importOntologies(anyBoolean(), any());
 
         File fileOntologies = PropertiesUtils.getResourceFile("ontologies_missing_identifier.json");
@@ -2260,24 +2274,29 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
             .when().post(ONTOLOGIES_URI)
             .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json");
     }
-
     @Test
     public void testImportOntologyWithUknownVocabularTypeThenBadRequest() throws Exception {
-        String result =
-            "{\"httpCode\":0,\"code\":\"020135\",\"context\":\"ADMIN_EXTERNAL\",\"state\":\"KO\",\"message\":\"Access external client error. JSON is invalid\",\"description\":\"Access external client error. JSON is invalid\"}";
+        // Given
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminClient = PowerMockito.mock(AdminManagementClient.class);
+        String result = "{\"httpCode\":0,\"code\":\"020135\",\"context\":\"ADMIN_EXTERNAL\",\"state\":\"KO\",\"message\":\"Access external client error. JSON is invalid\",\"description\":\"Access external client error. JSON is invalid\"}";
         JsonNode resultNode = JsonHandler.getFromString(result);
+        final AdminManagementClientFactory adminClientFactory = PowerMockito.mock(AdminManagementClientFactory.class);
+        // When
+        when(AdminManagementClientFactory.getInstance()).thenReturn(adminClientFactory);
+        when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
         // Then
-        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminManagementClient)
-            .importOntologies(anyBoolean(), any());
+        doReturn(new VitamError("").setHttpCode(Status.BAD_REQUEST.getStatusCode())).when(adminClient)
+                .importOntologies(anyBoolean(), any());
 
         File ontologyFile = PropertiesUtils.getResourceFile("ko_ontology_vocabular_type_unknown.json");
         JsonNode json = JsonHandler.getFromFile(ontologyFile);
 
         given().contentType(ContentType.JSON).body(json)
-            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(ONTOLOGIES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json")
-            .body(CoreMatchers.containsString(resultNode.toString()));
+                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+                .when().post(ONTOLOGIES_URI)
+                .then().statusCode(Status.BAD_REQUEST.getStatusCode()).contentType("application/json")
+                .body(  CoreMatchers.containsString(resultNode.toString()));
     }
 
 }

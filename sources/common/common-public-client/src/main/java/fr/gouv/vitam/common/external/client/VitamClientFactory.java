@@ -196,6 +196,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     /**
+     * ONLY use this constructor in unit test. Remove this when JerseyTest will be fully compatible with Jetty
+     *
      * @param configuration the client configuration
      * @param resourcePath the resource path of the server for the client calls
      * @param client the HTTP client to use

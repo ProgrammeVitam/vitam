@@ -55,9 +55,6 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
-import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
-import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestResource;
 import fr.gouv.vitam.ihmrecette.appserver.applicativetest.ApplicativeTestService;
 import fr.gouv.vitam.ihmrecette.appserver.performance.PerformanceResource;
@@ -105,8 +102,7 @@ public class BusinessApplication extends Application {
 
             final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
             final WebApplicationResource resource =
-                new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
-                    PaginationHelper.getInstance(), DslQueryHelper.getInstance());
+                new WebApplicationResource(configuration);
             singletons.add(deleteResource);
             singletons.add(resource);
 

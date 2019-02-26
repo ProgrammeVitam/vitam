@@ -26,10 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -64,11 +69,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExi
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
  * PrepareAuditActionHandler
@@ -85,20 +86,6 @@ public class PrepareAuditActionHandler extends ActionHandler {
     private static final String ID = "#id";
     private boolean asyncIO = false;
 
-    private final MetaDataClientFactory metaDataClientFactory;
-    private final AdminManagementClientFactory adminManagementClientFactory;
-
-    public PrepareAuditActionHandler() {
-        this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
-    }
-
-    @VisibleForTesting
-    public PrepareAuditActionHandler(MetaDataClientFactory metaDataClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
-        this.metaDataClientFactory = metaDataClientFactory;
-        this.adminManagementClientFactory = adminManagementClientFactory;
-    }
-
     /**
      * @return HANDLER_ID
      */
@@ -112,11 +99,11 @@ public class PrepareAuditActionHandler extends ActionHandler {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         ArrayNode ogIdList = JsonHandler.createArrayNode();
-        List<String> originatingAgency;
+        List<String> originatingAgency ;
         ArrayNode originatingAgencyEmpty = JsonHandler.createArrayNode();
 
-        try (WorkspaceClient workspaceClient = handler.getWorkspaceClientFactory().getClient();
-            MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
+        try (WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+            MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient()) {
 
             SelectMultiQuery selectQuery = new SelectMultiQuery();
             Map<WorkerParameterName, String> mapParameters = param.getMapParameters();
@@ -215,7 +202,7 @@ public class PrepareAuditActionHandler extends ActionHandler {
         InvalidCreateOperationException {
         List<String> originatingAgency = new ArrayList<String>();
 
-        try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Select selectQuery = new Select();
             if (objectId != null) {
                 selectQuery.setQuery(QueryHelper.eq("OriginatingAgency", objectId));
@@ -243,6 +230,5 @@ public class PrepareAuditActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

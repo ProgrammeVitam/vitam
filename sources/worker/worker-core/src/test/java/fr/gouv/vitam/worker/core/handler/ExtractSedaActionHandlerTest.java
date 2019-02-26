@@ -35,7 +35,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -201,25 +200,23 @@ public class ExtractSedaActionHandlerTest {
     @Before
     public void setUp() throws Exception {
 
-        reset(workspaceClient);
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
         LogbookOperationsClientFactory.changeMode(null);
+        LogbookLifeCyclesClientFactory.changeMode(null);
+
+        handler = new ExtractSedaActionHandler(metadataClientFactory, logbookLifeCyclesClientFactory,
+            adminManagementClientFactory);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        handler = new ExtractSedaActionHandler(metadataClientFactory, adminManagementClientFactory);
-
-
         String objectId = "SIP/manifest.xml";
-        handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "ExtractSedaActionHandlerTest",
-                "workerId",
-                Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(workspaceClient, "ExtractSedaActionHandlerTest", "workerId",
+            Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
 
         out = new ArrayList<>();
@@ -244,8 +241,7 @@ public class ExtractSedaActionHandlerTest {
 
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Ontology/ontology.json")));
 
-        out.add(new IOParameter().setUri(
-            new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json")));
+        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json")));
 
         in = new ArrayList<>();
         in.add(new IOParameter()
@@ -259,7 +255,6 @@ public class ExtractSedaActionHandlerTest {
             PropertiesUtils.getResourceAsStream(STORAGE_INFO_JSON);
         when(workspaceClient.getObject(any(), eq("StorageInfo/storageInfo.json")))
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
-        when(workspaceClient.isExistingFolder(any(), any())).thenReturn(true);
         handlerIO.addInIOParameters(in);
     }
 
@@ -650,7 +645,7 @@ public class ExtractSedaActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenManifestWithUpdateAddLinkedUnitExtractSedaThenReadSuccess()
-        throws Exception {
+        throws Exception{
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         prepareResponseOKForAdminManagementClientFindIngestContracts(INGEST_CONTRACT_NO_CHECK);
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
@@ -854,7 +849,7 @@ public class ExtractSedaActionHandlerTest {
     }
 
     private void prepareResponseOKForAdminManagementClientFindIngestContracts(String ingestContractName)
-        throws Exception {
+            throws Exception {
         final InputStream ingestContractInputStream =
             PropertiesUtils.getResourceAsStream(ingestContractName);
         RequestResponseOK responseOK =

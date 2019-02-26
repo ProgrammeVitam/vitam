@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -70,6 +69,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -78,7 +78,13 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 
 /**
  * FormatIdentificationAction Plugin.<br>
+ *
  */
+
+// TODO P1: refactor me
+// TODO P0: review Logbook messages (operation / lifecycle)
+// TODO P0: fully use VitamCode
+
 public class FormatIdentificationActionPlugin extends ActionHandler implements VitamAutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentificationActionPlugin.class);
@@ -115,37 +121,35 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
     private static final int REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK = 1;
     private static final String UNKNOWN_FORMAT = "unknown";
 
+    private static final String FORMAT_UNIDENTIFIED_AUTHORISED = "formatUnidentifiedAuthorized";
+    private static final String EVERY_FORMAT_TYPE = "everyFormatType";
+    private static final String FORMAT_TYPE = "formatType";
+
+    private HandlerIO handlerIO;
+    private FormatIdentifier formatIdentifier;
+
     private boolean metadatasUpdated = false;
     String eventDetailData;
     private boolean asyncIO = false;
-
-    private AdminManagementClientFactory adminManagementClientFactory;
-    private FormatIdentifierFactory formatIdentifierFactory;
 
     /**
      * Empty constructor
      */
     public FormatIdentificationActionPlugin() {
-        this(AdminManagementClientFactory.getInstance(), FormatIdentifierFactory.getInstance());
+
     }
 
-    @VisibleForTesting
-    public FormatIdentificationActionPlugin(
-        AdminManagementClientFactory adminManagementClientFactory,
-        FormatIdentifierFactory formatIdentifierFactory) {
-        this.adminManagementClientFactory = adminManagementClientFactory;
-        this.formatIdentifierFactory = formatIdentifierFactory;
-    }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
+        handlerIO = handler;
         LOGGER.debug("FormatIdentificationActionHandler running ...");
 
         final ItemStatus itemStatus = new ItemStatus(FILE_FORMAT);
-        FormatIdentifier formatIdentifier;
+
         try {
-            formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
+            formatIdentifier = FormatIdentifierFactory.getInstance().getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
         } catch (final FormatIdentifierNotFoundException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.WORKER_FORMAT_IDENTIFIER_NOT_FOUND,
                 FORMAT_IDENTIFIER_ID), e);
@@ -181,12 +185,10 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
                                         version.get(SedaConstants.TAG_FORMAT_IDENTIFICATION);
                                     final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
                                     // Retrieve the file
-                                    file = loadFileFromWorkspace(handlerIO, objectIdToUri.get(objectId));
+                                    file = loadFileFromWorkspace(objectIdToUri.get(objectId));
 
                                     final ObjectCheckFormatResult result =
-                                        executeOneObjectFromOG(handlerIO, formatIdentifier, objectId,
-                                            jsonFormatIdentifier, file,
-                                            version);
+                                        executeOneObjectFromOG(objectId, jsonFormatIdentifier, file, version);
 
                                     // create ItemStatus for subtask
                                     ItemStatus subTaskItemStatus = new ItemStatus(FILE_FORMAT);
@@ -261,8 +263,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         // Do not know...
     }
 
-    private ObjectCheckFormatResult executeOneObjectFromOG(HandlerIO handlerIO, FormatIdentifier formatIdentifier,
-        String objectId,
+    private ObjectCheckFormatResult executeOneObjectFromOG(String objectId,
         JsonNode manifestFormatIdentification,
         File file, JsonNode version) {
         final ObjectCheckFormatResult objectCheckFormatResult = new ObjectCheckFormatResult(objectId);
@@ -270,9 +271,9 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
 
         boolean formatUnidentifiedAuthorized = false;
         boolean everyFormatType = true;
-        Set<String> formatTypeSet;
+        Set<String> formatTypeSet = new HashSet<>();
         try {
-            IngestContractModel ingestContract = loadIngestContractFromWorkspace(handlerIO);
+            IngestContractModel ingestContract = loadIngestContractFromWorkspace();
             everyFormatType = ingestContract.isEveryFormatType();
             formatUnidentifiedAuthorized = ingestContract.isFormatUnidentifiedAuthorized();
             formatTypeSet = ingestContract.getFormatType();
@@ -294,7 +295,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
             final Select select = new Select();
             select.setQuery(eq(FileFormat.PUID, formatId));
             final RequestResponse<FileFormatModel> result;
-            try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
+            try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
                 result = adminClient.getFormats(select.getFinalSelect());
             }
 
@@ -437,7 +438,7 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         return null;
     }
 
-    private File loadFileFromWorkspace(HandlerIO handlerIO, String filePath)
+    private File loadFileFromWorkspace(String filePath)
         throws ProcessingException {
         try {
             return handlerIO.getFileFromWorkspace(IngestWorkflowConstants.SEDA_FOLDER + "/" + filePath);
@@ -512,9 +513,15 @@ public class FormatIdentificationActionPlugin extends ActionHandler implements V
         }
     }
 
+    @Override
+    public void close() {
+        if (formatIdentifier != null) {
+            formatIdentifier.close();
+        }
+    }
 
-    private IngestContractModel loadIngestContractFromWorkspace(HandlerIO handlerIO)
-        throws InvalidParseOperationException {
+
+    private IngestContractModel loadIngestContractFromWorkspace() throws InvalidParseOperationException {
         return JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_PARAMETERS_RANK),
             IngestContractModel.class);
     }

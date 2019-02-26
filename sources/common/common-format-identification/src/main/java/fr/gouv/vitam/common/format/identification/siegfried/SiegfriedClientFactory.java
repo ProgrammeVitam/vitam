@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
 /**
  * Siegfield Client factory
  */
-public class SiegfriedClientFactory extends VitamClientFactory<SiegfriedClient> {
+public final class SiegfriedClientFactory extends VitamClientFactory<SiegfriedClient> {
     private static final SiegfriedClientFactory Siegfried_CLIENT_FACTORY = new SiegfriedClientFactory();
     private static final String RESOURCE_PATH = "/identify";
 

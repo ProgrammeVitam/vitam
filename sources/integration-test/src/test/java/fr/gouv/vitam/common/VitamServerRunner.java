@@ -19,7 +19,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
-import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.server.AdminManagementConfiguration;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -45,7 +44,6 @@ import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.junit.ClassRule;
 import org.junit.rules.ExternalResource;
 
 import java.io.File;
@@ -124,16 +122,7 @@ public class VitamServerRunner extends ExternalResource {
     private static BatchReportMain batchReportMain;
     private static WorkerMain workerMain;
 
-    public final static TempFolderRule tempFolderRule = new TempFolderRule();
-
-    static {
-        try {
-            tempFolderRule.create();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
+    private static String randomWorkerDbFolder = null;
     Class<?> clazz;
     String dbname;
     String cluster;
@@ -156,6 +145,16 @@ public class VitamServerRunner extends ExternalResource {
                 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Start " + clazz.getSimpleName() +
                     " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 
+
+
+            if (null == randomWorkerDbFolder) {
+                randomWorkerDbFolder = GUIDFactory.newGUID().getId();
+            }
+
+            VitamConfiguration.getConfiguration()
+                .setData(PropertiesUtils.getResourcePath("common/").toString() + "/" + randomWorkerDbFolder + "/");
+
+
             if (Files.notExists(Paths.get(VitamConfiguration.getVitamDataFolder() + "/tmp/"))) {
                 Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/tmp/"));
             }
@@ -171,17 +170,20 @@ public class VitamServerRunner extends ExternalResource {
                 Files.createDirectories(Paths.get(VitamConfiguration.getVitamDataFolder() + "/storage/"));
             }
 
+            SystemPropertyUtil.set("vitam.tmp.folder", VitamConfiguration.getVitamDataFolder() + "/tmp/");
 
 
             // launch ES
 
             // launch workspace
             if (servers.contains(WorkspaceMain.class)) {
+                LOGGER.warn("========== workspaceMain     ==============");
                 startWorkspaceServer();
             }
 
             // launch logbook
             if (servers.contains(LogbookMain.class)) {
+                LOGGER.warn("========== logbookMain       ==============");
                 startLogbookServer();
             } else {
                 LogbookOperationsClientFactory.getInstance()
@@ -192,6 +194,7 @@ public class VitamServerRunner extends ExternalResource {
 
             // launch metadata
             if (servers.contains(MetadataMain.class)) {
+                LOGGER.warn("========== metadataMain      ==============");
                 startMetadataServer();
             } else {
                 MetaDataClientFactory.changeMode(null);
@@ -199,6 +202,7 @@ public class VitamServerRunner extends ExternalResource {
 
             // launch admin Management
             if (servers.contains(AdminManagementMain.class)) {
+                LOGGER.warn("========== adminManagementMain ============");
                 startAdminManagementServer();
             } else {
                 AdminManagementClientFactory.getInstance()
@@ -207,6 +211,7 @@ public class VitamServerRunner extends ExternalResource {
 
             // Launch offer
             if (servers.contains(DefaultOfferMain.class)) {
+                LOGGER.warn("========== defaultOfferMain  ==============");
                 startOfferServer();
             } else {
                 StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
@@ -214,6 +219,7 @@ public class VitamServerRunner extends ExternalResource {
 
             // Launch storage engine
             if (servers.contains(StorageMain.class)) {
+                LOGGER.warn("==========   storageMain     ==============");
                 startStorageServer();
             } else {
                 StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
@@ -221,18 +227,21 @@ public class VitamServerRunner extends ExternalResource {
 
             // launch processing
             if (servers.contains(ProcessManagementMain.class)) {
+                LOGGER.warn("========== processManagementMain ==========");
                 startProcessManagementServer();
             } else {
                 ProcessingManagementClientFactory.changeMode(null);
             }
             // launch worker
             if (servers.contains(WorkerMain.class)) {
+                LOGGER.warn("==========   WorkerMain     ==============");
                 startWorkerServer(CONFIG_WORKER_PATH);
             } else {
                 stopWorkerServer();
             }
 
             if (servers.contains(AccessInternalMain.class)) {
+                LOGGER.warn("========== accessInternalMain   ===========");
                 startAccessInternalServer();
             } else {
                 AccessInternalClientFactory.getInstance()
@@ -241,6 +250,7 @@ public class VitamServerRunner extends ExternalResource {
 
             // IngestInternalMain
             if (servers.contains(IngestInternalMain.class)) {
+                LOGGER.warn("========== ingestInternalMain   ===========");
                 startIngestInternalServer();
             } else {
                 IngestInternalClientFactory.getInstance()
@@ -248,6 +258,7 @@ public class VitamServerRunner extends ExternalResource {
             }
             // IngestInternalMain
             if (servers.contains(BatchReportMain.class)) {
+                LOGGER.warn("========== BatchReportMain   ===========");
                 startBatchReportServer();
                 BatchReportClientFactory.changeMode(
                     BatchReportClientFactory.changeConfigurationFile(BATCH_REPORT_CLIENT_PATH));
@@ -268,7 +279,6 @@ public class VitamServerRunner extends ExternalResource {
 
         SystemPropertyUtil.set(IngestInternalMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_INGEST_INTERNAL));
-        LOGGER.warn("=== VitamServerRunner start  IngestInternalMain");
         ingestInternalMain = new IngestInternalMain(INGEST_INTERNAL_CONF);
         ingestInternalMain.start();
         SystemPropertyUtil.clear(IngestInternalMain.PARAMETER_JETTY_SERVER_PORT);
@@ -287,7 +297,6 @@ public class VitamServerRunner extends ExternalResource {
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         batchReportConfiguration.setMongoDbNodes(mongoDbNodes);
         PropertiesUtils.writeYaml(batchConfig, batchReportConfiguration);
-        LOGGER.warn("=== VitamServerRunner start  BatchReportMain");
         batchReportMain = new BatchReportMain(batchConfig.getAbsolutePath());
         batchReportMain.start();
         BatchReportClientFactory.changeMode(new ClientConfigurationImpl("localhost", 8015));
@@ -303,7 +312,6 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
 
-        LOGGER.warn("=== VitamServerRunner start  IngestInternalMain");
         ingestInternalMain.stop();
         ingestInternalMain = null;
 
@@ -323,7 +331,6 @@ public class VitamServerRunner extends ExternalResource {
         SystemPropertyUtil
             .set(AccessInternalMain.PARAMETER_JETTY_SERVER_PORT,
                 Integer.toString(PORT_SERVICE_ACCESS_INTERNAL));
-        LOGGER.warn("=== VitamServerRunner start  AccessInternalMain");
         accessInternalMain =
             new AccessInternalMain(ACCESS_INTERNAL_CONF);
         accessInternalMain.start();
@@ -341,7 +348,6 @@ public class VitamServerRunner extends ExternalResource {
             }
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  AccessInternalMain");
         accessInternalMain.stop();
         accessInternalMain = null;
 
@@ -376,8 +382,6 @@ public class VitamServerRunner extends ExternalResource {
 
         SystemPropertyUtil
             .set(StorageMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_STORAGE));
-        LOGGER.warn("=== VitamServerRunner start  StorageMain");
-
         storageMain = new StorageMain(STORAGE_CONF);
         storageMain.start();
         SystemPropertyUtil.clear(StorageMain.PARAMETER_JETTY_SERVER_PORT);
@@ -395,7 +399,6 @@ public class VitamServerRunner extends ExternalResource {
             return;
         }
 
-        LOGGER.warn("=== VitamServerRunner start  StorageMain");
         storageMain.stop();
         storageMain = null;
         // Wait stop then mock
@@ -418,7 +421,6 @@ public class VitamServerRunner extends ExternalResource {
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         offerConfiguration.setMongoDbNodes(mongoDbNodes);
         PropertiesUtils.writeYaml(offerConfig, offerConfiguration);
-        LOGGER.warn("=== VitamServerRunner start  DefaultOfferMain");
 
         defaultOfferMain = new DefaultOfferMain(offerConfig.getAbsolutePath());
         defaultOfferMain.start();
@@ -432,7 +434,6 @@ public class VitamServerRunner extends ExternalResource {
             StorageClientFactory.getInstance().setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  DefaultOfferMain");
         defaultOfferMain.stop();
         defaultOfferMain = null;
         // If offer is not started, then storage should be mocked
@@ -452,8 +453,8 @@ public class VitamServerRunner extends ExternalResource {
         nodesEs.add(new ElasticsearchNode("localhost", ElasticsearchRule.getTcpPort()));
 
         SystemPropertyUtil
-            .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
-                Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN));
+                .set(JunitHelper.PARAMETER_JETTY_SERVER_PORT_ADMIN,
+                        Integer.toString(PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN));
 
         // prepare functional admin
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
@@ -465,7 +466,7 @@ public class VitamServerRunner extends ExternalResource {
         realAdminConfig.setClusterName(cluster);
         realAdminConfig.setWorkspaceUrl("http://localhost:" + PORT_SERVICE_WORKSPACE);
         PropertiesUtils.writeYaml(adminConfig, realAdminConfig);
-        LOGGER.warn("=== VitamServerRunner start  AdminManagementMain");
+
         adminManagementMain = new AdminManagementMain(adminConfig.getAbsolutePath());
         adminManagementMain.start();
         AdminManagementClientFactory
@@ -483,7 +484,6 @@ public class VitamServerRunner extends ExternalResource {
             }
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  AdminManagementMain");
         adminManagementMain.stop();
         adminManagementMain = null;
 
@@ -519,7 +519,6 @@ public class VitamServerRunner extends ExternalResource {
 
         PropertiesUtils.writeYaml(logbookConfigFile, logbookConfiguration);
 
-        LOGGER.warn("=== VitamServerRunner start  LogbookMain");
         logbookMain = new LogbookMain(logbookConfigFile.getAbsolutePath());
         logbookMain.start();
         SystemPropertyUtil.clear(LogbookMain.PARAMETER_JETTY_SERVER_PORT);
@@ -541,7 +540,6 @@ public class VitamServerRunner extends ExternalResource {
             }
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  LogbookMain");
         logbookMain.stop();
         logbookMain = null;
         // Wait stop
@@ -570,7 +568,6 @@ public class VitamServerRunner extends ExternalResource {
 
         writeYaml(workspaceConfigFile, workspaceConfiguration);
 
-        LOGGER.warn("=== VitamServerRunner start  WorkspaceMain");
         workspaceMain = new WorkspaceMain(workspaceConfigFile.getAbsolutePath());
         workspaceMain.start();
         SystemPropertyUtil.clear(WorkspaceMain.PARAMETER_JETTY_SERVER_PORT);
@@ -582,7 +579,6 @@ public class VitamServerRunner extends ExternalResource {
         if (null == workspaceMain) {
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  WorkspaceMain");
         workspaceMain.stop();
         workspaceMain = null;
     }
@@ -612,7 +608,6 @@ public class VitamServerRunner extends ExternalResource {
 
         PropertiesUtils.writeYaml(metadataConfig, realMetadataConfig);
 
-        LOGGER.warn("=== VitamServerRunner start  MetadataMain");
         metadataMain = new MetadataMain(metadataConfig.getAbsolutePath());
         metadataMain.start();
         SystemPropertyUtil.clear(MetadataMain.PARAMETER_JETTY_SERVER_PORT);
@@ -627,7 +622,6 @@ public class VitamServerRunner extends ExternalResource {
             }
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  MetadataMain");
         metadataMain.stop();
         metadataMain = null;
         MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
@@ -648,7 +642,6 @@ public class VitamServerRunner extends ExternalResource {
         }
         SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT,
             Integer.toString(PORT_SERVICE_PROCESSING));
-        LOGGER.warn("=== VitamServerRunner start  ProcessManagementMain");
         processManagementMain = new ProcessManagementMain(PROCESSING_CONF);
         processManagementMain.start();
         SystemPropertyUtil.clear(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT);
@@ -665,7 +658,6 @@ public class VitamServerRunner extends ExternalResource {
             }
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  ProcessManagementMain");
         processManagementMain.stop();
         processManagementMain = null;
         ProcessingManagementClientFactory
@@ -683,7 +675,6 @@ public class VitamServerRunner extends ExternalResource {
 
         SystemPropertyUtil
             .set(WorkerMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(PORT_SERVICE_WORKER));
-        LOGGER.warn("=== VitamServerRunner start  WorkerMain");
         workerMain = new WorkerMain(conf);
         workerMain.start();
         SystemPropertyUtil.clear(WorkerMain.PARAMETER_JETTY_SERVER_PORT);
@@ -697,7 +688,6 @@ public class VitamServerRunner extends ExternalResource {
         if (null == workerMain) {
             return;
         }
-        LOGGER.warn("=== VitamServerRunner start  WorkerMain");
         workerMain.stop();
         workerMain = null;
         waitServer(false,
@@ -713,7 +703,7 @@ public class VitamServerRunner extends ExternalResource {
             throw new RuntimeException(e);
         } finally {
             LOGGER.warn(
-                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> End " + clazz.getSimpleName() +
+                ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Stop " + clazz.getSimpleName() +
                     " <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         }
 

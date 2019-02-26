@@ -73,7 +73,7 @@ public class BusinessApplication extends Application {
             permissions.addAll(methodsAnnotatedWith);
 
             singletons.add(new WebApplicationResource(permissions, configuration));
-            singletons.add(new WebPreservationResource());
+            singletons.add(new WebPreservationResource(permissions));
 
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -28,7 +28,26 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.DATA_FILE;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
@@ -44,10 +63,13 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -56,25 +78,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.DATA_FILE;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, LogbookOperationsClientFactory.class,
+    StorageClientFactory.class})
 public class VerifyMerkleTreeActionHandlerTest {
     VerifyMerkleTreeActionHandler verifyMerkleTreeActionHandler;
     private static final String DETAIL_EVENT_TRACEABILITY = "EVENT_DETAIL_DATA.json";
@@ -89,8 +102,12 @@ public class VerifyMerkleTreeActionHandlerTest {
     private GUID guid;
     private WorkerParameters params;
     private static final Integer TENANT_ID = 0;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private LogbookOperationsClient logbookOperationsClient;
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
+    private StorageClient storageClient;
+    private StorageClientFactory storageClientFactory;
     private List<IOParameter> in;
 
     @Rule
@@ -112,12 +129,24 @@ public class VerifyMerkleTreeActionHandlerTest {
         Map<String, String> checkExtraParams = new HashMap<>();
         checkExtraParams.put(WorkerParameterName.logbookRequest.toString(), JsonHandler.unprettyPrint(query));
         params.setMap(checkExtraParams);
+
+        logbookOperationsClient = mock(LogbookOperationsClient.class);
+        storageClient = mock(StorageClient.class);
         workspaceClient = mock(WorkspaceClient.class);
+        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(StorageClientFactory.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
+        storageClientFactory = mock(StorageClientFactory.class);
+        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
+        PowerMockito.when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        PowerMockito.when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
+        PowerMockito.when(storageClientFactory.getClient()).thenReturn(storageClient);
         String objectId = "objectId";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(),
-            "workerId", Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
     }
 
@@ -147,10 +176,10 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             DATA_FILE)))
-            .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
+                .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
-            .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
+                .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
     }
@@ -176,10 +205,10 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             DATA_FILE)))
-            .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
+                .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
-            .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
+                .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertEquals(StatusCode.OK, response.getItemsStatus().get(verifyMerkleTreeActionHandler.getId())
@@ -187,7 +216,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyMerkleTreeActionHandler.getId())
             .getItemsStatus().get("COMPARE_MERKLE_HASH_WITH_INDEXED_HASH").getGlobalStatus());
     }
-
+    
     @Test
     @RunWithCustomExecutor
     public void testVerifyMerkleTreeWithCompareToSecuredHashKOThenKO()
@@ -209,10 +238,10 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             DATA_FILE)))
-            .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
+                .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
-            .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
+                .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
         assertEquals(StatusCode.KO, response.getItemsStatus().get(verifyMerkleTreeActionHandler.getId())
@@ -242,10 +271,10 @@ public class VerifyMerkleTreeActionHandlerTest {
 
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             DATA_FILE)))
-            .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
+                .thenReturn(Response.status(Status.OK).entity(operationsJson).build());
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             MERKLE_TREE_JSON)))
-            .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
+                .thenReturn(Response.status(Status.OK).entity(merkleTreeJson).build());
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
@@ -283,7 +312,7 @@ public class VerifyMerkleTreeActionHandlerTest {
         verifyMerkleTreeActionHandler = new VerifyMerkleTreeActionHandler();
         when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
             DATA_FILE)))
-            .thenThrow(new ContentAddressableStorageNotFoundException(DATA_FILE + " not found"));
+                .thenThrow(new ContentAddressableStorageNotFoundException(DATA_FILE + " not found"));
         final ItemStatus response = verifyMerkleTreeActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }

@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.DatabaseConnection;
@@ -162,8 +163,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
     public static Settings getSettings(String clusterName) {
         return Settings.builder().put("cluster.name", clusterName)
             .put("client.transport.sniff", true)
-            .put("client.transport.ping_timeout", "1s")
-            .put("transport.tcp.connect_timeout", "30s")
+            .put("client.transport.ping_timeout", "2s")
+            .put("transport.tcp.connect_timeout", "1s")
             // Note : thread_pool.refresh.size is now limited to max(half number of processors, 10)... that is the
             // default max value. So no configuration is needed.
             .put("thread_pool.refresh.max", VitamConfiguration.getNumberDbClientThread())
@@ -212,20 +213,20 @@ public class ElasticsearchAccess implements DatabaseConnection {
      * @return the client
      */
     public Client getClient() {
-        Client client = esClient.get();
+        final Client client = esClient.get();
         if (null == client) {
             synchronized (this) {
                 if (null == esClient.get()) {
                     try {
-                        client = getClient(getSettings(clusterName));
-                        esClient.set(client);
+                        esClient.set(getClient(getSettings(clusterName)));
                     } catch (VitamException e) {
-                        throw new RuntimeException("Error while get ES client", e);
+                        LOGGER.error("Error while get ES client", e);
+                        throw new RuntimeException(e);
                     }
                 }
             }
         }
-        return client;
+        return esClient.get();
     }
 
     /**
@@ -269,19 +270,14 @@ public class ElasticsearchAccess implements DatabaseConnection {
             try {
                 LOGGER.debug("createIndex");
                 LOGGER.debug("setMapping: " + indexName + " type: " + type + "\n\t" + mapping);
-                try {
-                    final CreateIndexResponse response = getClient().admin().indices()
-                        .prepareCreate(indexName)
-                        .setSettings(default_builder)
-                        .addMapping(type, mapping, XContentType.JSON).get();
+                final CreateIndexResponse response = getClient().admin().indices()
+                    .prepareCreate(indexName)
+                    .setSettings(default_builder)
+                    .addMapping(type, mapping, XContentType.JSON).get();
 
-                    if (!response.isAcknowledged()) {
-                        LOGGER.error("Error creating index for " + type + " / collection : " + collectionName);
-                        return new HashMap<>();
-                    }
-                } catch (ResourceAlreadyExistsException e) {
-                    // Continue if index already exists
-                    LOGGER.warn(e);
+                if (!response.isAcknowledged()) {
+                    LOGGER.error("Error creating index for " + type + " / collection : " + collectionName);
+                    return new HashMap<>();
                 }
 
                 AcknowledgedResponse indAliasesResponse = getClient().admin().indices()
@@ -291,6 +287,8 @@ public class ElasticsearchAccess implements DatabaseConnection {
                     LOGGER.error("Error creating alias for " + type + " / collection : " + collectionName);
                     return new HashMap<>();
                 }
+            } catch (ResourceAlreadyExistsException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             } catch (final Exception e) {
                 LOGGER.error("Error while set Mapping", e);
                 return new HashMap<>();

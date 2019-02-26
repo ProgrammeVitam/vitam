@@ -2,14 +2,12 @@ package fr.gouv.vitam.ingest.external.rest;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslDynamicFeature;
-import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
 import fr.gouv.vitam.common.security.rest.SecureEndpointScanner;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
-import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -25,9 +23,6 @@ public class BusinessApplicationTest extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
 
-    public static FormatIdentifierFactory formatIdentifierFactory;
-    public static IngestInternalClientFactory ingestInternalClientFactory;
-
     private Set<Object> singletons;
 
     public BusinessApplicationTest(@Context ServletConfig servletConfig) {
@@ -41,8 +36,7 @@ public class BusinessApplicationTest extends Application {
             commonBusinessApplication = new CommonBusinessApplication(true);
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry, formatIdentifierFactory,
-                ingestInternalClientFactory));
+            singletons.add(new IngestExternalResource(configuration, secureEndpointRegistry));
             singletons.add(new SanityCheckerCommonFilter());
             singletons.add(new SanityDynamicFeature());
             singletons.add(secureEndpointScanner);

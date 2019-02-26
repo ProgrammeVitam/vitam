@@ -43,6 +43,11 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
@@ -59,14 +64,20 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
+/**
+ * Data Transfer Object Model of access contract (DTO).
+ */
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({AdminManagementClientFactory.class})
 public class AccessContratIdHeaderHelperTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
-    private static final  AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+    private static AdminManagementClient adminManagementClient;
+    private static AdminManagementClientFactory adminManagementClientFactory;
 
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "CONTRACT_ID";
@@ -74,14 +85,17 @@ public class AccessContratIdHeaderHelperTest {
 
     @Before
     public void setUp() {
-       reset(adminManagementClient);
-       reset(adminManagementClientFactory);
-       when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        adminManagementClient = mock(AdminManagementClient.class);
+        PowerMockito.mockStatic(AdminManagementClientFactory.class);
+        adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
+        PowerMockito.when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
     }
 
     @Test
     @RunWithCustomExecutor
     public void testForResponseKO() throws AdminManagementClientServerException, InvalidParseOperationException {
+        reset(adminManagementClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // Prepare mocks
@@ -96,16 +110,17 @@ public class AccessContratIdHeaderHelperTest {
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID);
 
         try {
-            AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
-            fail("No exception was thrown");
-        } catch (MissingAccessContractIdException e) {
-            // Must throw an exception: Technical error
-        }
+	        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders);
+	        fail("No exception was thrown");
+	    } catch (MissingAccessContractIdException e) {
+	        // Must throw an exception: Technical error
+	    }
     }
 
     @Test
     @RunWithCustomExecutor
     public void testForEmptyContracts() throws AdminManagementClientServerException, InvalidParseOperationException {
+        reset(adminManagementClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // Prepare mocks
@@ -120,16 +135,17 @@ public class AccessContratIdHeaderHelperTest {
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID);
 
         try {
-            AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
-            fail("No exception was thrown");
-        } catch (MissingAccessContractIdException e) {
-            // Must throw an exception: No matching contracts
+	        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders);
+	        fail("No exception was thrown");
+	    } catch (MissingAccessContractIdException e) {
+	        // Must throw an exception: No matching contracts
         }
     }
 
     @Test
     @RunWithCustomExecutor
     public void testForSomeOriginatingAgency() throws Exception {
+        reset(adminManagementClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // Prepare mocks
@@ -151,7 +167,7 @@ public class AccessContratIdHeaderHelperTest {
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID);
 
-        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
+        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders);
 
         // Expect responses
         assertFalse(VitamThreadUtils.getVitamSession().getContract().getEveryOriginatingAgency());
@@ -161,6 +177,7 @@ public class AccessContratIdHeaderHelperTest {
     @Test
     @RunWithCustomExecutor
     public void testForEveryOriginatingAgency() throws Exception {
+        reset(adminManagementClient);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // Prepare mocks
@@ -189,7 +206,7 @@ public class AccessContratIdHeaderHelperTest {
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_IDENTIFIER);
 
-        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
+        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders);
 
         // Expect responses
         assertTrue(VitamThreadUtils.getVitamSession().getContract().getEveryOriginatingAgency());

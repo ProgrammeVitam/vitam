@@ -40,12 +40,9 @@ import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
@@ -63,12 +60,13 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import org.powermock.api.mockito.PowerMockito;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -80,9 +78,13 @@ import java.util.Arrays;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@RunWith(PowerMockRunner.class)
+@PowerMockIgnore("javax.net.ssl.*")
+@PrepareForTest({WorkspaceClientFactory.class, MetaDataClientFactory.class, StorageClientFactory.class,
+    LogbookLifeCyclesClientFactory.class})
 public class StoreMetaDataUnitActionPluginTest {
 
     private static final String METDATA_UNIT_RESPONSE_JSON = "storeMetadataUnitPlugin/metdataUnitResponse.json";
@@ -90,48 +92,15 @@ public class StoreMetaDataUnitActionPluginTest {
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaaq";
     private static final String UNIT_GUID = "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq";
     private static final String UNIT = "storeMetadataUnitPlugin/aeaqaaaaaaag3r7cabf4aak2izdloiiaaaaq.json";
+    private static final String OB_ID = "obId";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
-    @Mock
     private WorkspaceClient workspaceClient;
-
-    @Mock
-    private MetaDataClient metadataClient;
-
-    @Mock
     private WorkspaceClientFactory workspaceClientFactory;
-
-    @Mock
-    private MetaDataClientFactory metadataClientFactory;
-
-    @Mock
-    private AdminManagementClientFactory adminManagementClientFactory;
-
-    @Mock
-    private AdminManagementClient adminManagementClient;
-
-    @Mock
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-
-    @Mock
-    private LogbookLifeCyclesClient logbookLifeCyclesClient;
-
-    @Mock
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-
-    @Mock
-    private LogbookOperationsClient logbookOperationsClient;
-
-    @Mock
-    private StorageClientFactory storageClientFactory;
-
-    @Mock
+    private MetaDataClient metadataClient;
+    private LogbookLifeCyclesClient logbookClient;
     private StorageClient storageClient;
-
-
     private HandlerIOImpl action;
+    private StorageClientFactory storageClientFactory;
 
     private final InputStream unit;
     private final RequestResponse<JsonNode> unitResponse;
@@ -150,22 +119,37 @@ public class StoreMetaDataUnitActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
-        reset(workspaceClient);
-        reset(metadataClient);
-        reset(storageClient);
-        reset(logbookLifeCyclesClient);
-        reset(logbookOperationsClient);
-        reset(adminManagementClient);
-
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(metadataClientFactory.getClient()).thenReturn(metadataClient);
+        LogbookOperationsClientFactory.changeMode(null);
+        LogbookLifeCyclesClientFactory.changeMode(null);
+        // clients
+        workspaceClient = mock(WorkspaceClient.class);
+        metadataClient = mock(MetaDataClient.class);
+        storageClient = mock(StorageClient.class);
+        logbookClient = mock(LogbookLifeCyclesClient.class);
+        // static factories
+        PowerMockito.mockStatic(WorkspaceClientFactory.class);
+        PowerMockito.mockStatic(MetaDataClientFactory.class);
+        PowerMockito.mockStatic(StorageClientFactory.class);
+        PowerMockito.mockStatic(LogbookLifeCyclesClientFactory.class);
+        // workspace client
+        workspaceClientFactory = mock(WorkspaceClientFactory.class);
+        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
+        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
+        // metadata client
+        final MetaDataClientFactory mockedMetadataFactory = mock(MetaDataClientFactory.class);
+        PowerMockito.when(MetaDataClientFactory.getInstance()).thenReturn(mockedMetadataFactory);
+        PowerMockito.when(mockedMetadataFactory.getClient()).thenReturn(metadataClient);
+        // logbookClient
+        final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
+            mock(LogbookLifeCyclesClientFactory.class);
+        PowerMockito.when(LogbookLifeCyclesClientFactory.getInstance()).thenReturn(logbookLifeCyclesClientFactory);
+        PowerMockito.when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookClient);
+        // storage client
+        storageClientFactory = PowerMockito.mock(StorageClientFactory.class);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
-        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
-        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(StorageClientFactory.getInstance()).thenReturn(storageClientFactory);
 
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, CONTAINER_NAME, "workerId",
-            com.google.common.collect.Lists.newArrayList());
+        action = new HandlerIOImpl(CONTAINER_NAME, "workerId", com.google.common.collect.Lists.newArrayList());
     }
 
     @After
@@ -186,8 +170,7 @@ public class StoreMetaDataUnitActionPluginTest {
 
         when(metadataClient.getUnitByIdRaw(UNIT_GUID))
             .thenReturn(VitamCodeHelper.toVitamError(VitamCode.METADATA_NOT_FOUND, "not found"));
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -205,7 +188,7 @@ public class StoreMetaDataUnitActionPluginTest {
 
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
 
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById(UNIT_GUID))
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID))
             .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -215,8 +198,7 @@ public class StoreMetaDataUnitActionPluginTest {
         when(storageClient.storeFileFromWorkspace(any(), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
 
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -233,10 +215,9 @@ public class StoreMetaDataUnitActionPluginTest {
     @Test
     public void givenMetadataClientAndLogbookLifeCycleClientWhenSearchUnitWithLFCThenReturnOK() throws Exception {
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById(UNIT_GUID)).thenReturn(lfcResponse);
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID)).thenReturn(lfcResponse);
 
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         // select unit
         JsonNode unit = plugin.selectMetadataDocumentRawById(UNIT_GUID, DataCategory.UNIT, metadataClient);
@@ -244,7 +225,7 @@ public class StoreMetaDataUnitActionPluginTest {
         assertEquals(unit.get("_id").asText(), UNIT_GUID);
 
         // select lfc
-        JsonNode lfc = plugin.getRawLogbookLifeCycleById(UNIT_GUID, DataCategory.UNIT, logbookLifeCyclesClient);
+        JsonNode lfc = plugin.getRawLogbookLifeCycleById(UNIT_GUID, DataCategory.UNIT, logbookClient);
         assertNotNull(lfc);
         assertEquals(lfc.get("_id").asText(), UNIT_GUID);
 
@@ -273,11 +254,10 @@ public class StoreMetaDataUnitActionPluginTest {
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
             .getUnitByIdRaw(any());
 
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById(any()))
+        when(logbookClient.getRawUnitLifeCycleById(any()))
             .thenReturn(lfcResponse);
 
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -295,11 +275,10 @@ public class StoreMetaDataUnitActionPluginTest {
         Mockito.doThrow(new VitamClientException("Error Metadata")).when(metadataClient)
             .getUnitByIdRaw(UNIT_GUID);
 
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById(any()))
+        when(logbookClient.getRawUnitLifeCycleById(any()))
             .thenReturn(lfcResponse);
 
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -316,11 +295,10 @@ public class StoreMetaDataUnitActionPluginTest {
 
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
 
-        Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookLifeCyclesClient)
+        Mockito.doThrow(new LogbookClientException("Error Logbook")).when(logbookClient)
             .getRawUnitLifeCycleById(any());
 
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -337,7 +315,7 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById(UNIT_GUID))
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID))
             .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -347,8 +325,7 @@ public class StoreMetaDataUnitActionPluginTest {
         Mockito.doThrow(new StorageNotFoundClientException("Error Metadata")).when(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
 
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
@@ -365,7 +342,7 @@ public class StoreMetaDataUnitActionPluginTest {
                 .setObjectName(UNIT_GUID + ".json").setCurrentStep("Store unit");
 
         when(metadataClient.getUnitByIdRaw(UNIT_GUID)).thenReturn(unitResponse);
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById(UNIT_GUID))
+        when(logbookClient.getRawUnitLifeCycleById(UNIT_GUID))
             .thenReturn(lfcResponse);
 
         when(workspaceClient.getObject(CONTAINER_NAME,
@@ -375,8 +352,7 @@ public class StoreMetaDataUnitActionPluginTest {
         Mockito.doThrow(new StorageAlreadyExistsClientException("Error Metadata ")).when(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
 
-        plugin = new StoreMetaDataUnitActionPlugin(metadataClientFactory,
-            storageClientFactory);
+        plugin = new StoreMetaDataUnitActionPlugin();
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());

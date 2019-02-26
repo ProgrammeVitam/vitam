@@ -61,7 +61,7 @@ public class ElasticsearchRule extends ExternalResource {
     private boolean clientClosed = false;
 
 
-    public ElasticsearchRule(String... indexesToBePurged) {
+    public ElasticsearchRule(String... collectionNames) {
         try {
             client = new PreBuiltTransportClient(getClientSettings()).addTransportAddress(
                 new TransportAddress(InetAddress.getByName("localhost"), TCP_PORT));
@@ -69,8 +69,8 @@ public class ElasticsearchRule extends ExternalResource {
             throw new RuntimeException(e);
         }
 
-        if (null != indexesToBePurged) {
-            this.indexesToBePurged = Sets.newHashSet(indexesToBePurged);
+        if (null != collectionNames) {
+            this.collectionNames = Sets.newHashSet(collectionNames);
 
         }
     }
@@ -89,28 +89,28 @@ public class ElasticsearchRule extends ExternalResource {
 
 
     private Client client;
-    private Set<String> indexesToBePurged = new HashSet<>();
+    private Set<String> collectionNames = new HashSet<>();
 
     @Override
     protected void after() {
         if (!clientClosed) {
-            purge(client, indexesToBePurged);
+            purge(client, collectionNames);
         }
     }
 
-    private void purge(Client client, Collection<String> indexesToBePurged) {
-        for (String indexName : indexesToBePurged) {
+    private void purge(Client client, Collection<String> collectionNames) {
+        for (String collectionName : collectionNames) {
 
-            purge(client, indexName);
+            purge(client, collectionName);
         }
     }
 
 
-    public static void purge(Client client, String indexName) {
-        if (client.admin().indices().prepareExists(indexName.toLowerCase()).get().isExists()) {
+    public static void purge(Client client, String collectionName) {
+        if (client.admin().indices().prepareExists(collectionName.toLowerCase()).get().isExists()) {
             QueryBuilder qb = matchAllQuery();
 
-            SearchResponse scrollResp = client.prepareSearch(indexName.toLowerCase())
+            SearchResponse scrollResp = client.prepareSearch(collectionName.toLowerCase())
                 .addSort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC)
                 .setScroll(new TimeValue(60000))
                 .setQuery(qb)
@@ -121,7 +121,7 @@ public class ElasticsearchRule extends ExternalResource {
 
             do {
                 for (SearchHit hit : scrollResp.getHits().getHits()) {
-                    bulkRequest.add(client.prepareDelete(indexName.toLowerCase(), "typeunique", hit.getId()));
+                    bulkRequest.add(client.prepareDelete(collectionName.toLowerCase(), "typeunique", hit.getId()));
                 }
 
                 scrollResp =
@@ -144,28 +144,47 @@ public class ElasticsearchRule extends ExternalResource {
     }
 
 
-    public final void deleteIndex(Client client, String indexName) {
-        purge(client, indexName);
+    public final void deleteIndex(Client client, String collectionName) {
+        purge(client, collectionName);
+       /* try {
+            if (client.admin().indices().prepareExists(collectionName).get().isExists()) {
+
+                String indexName = collectionName;
+                ImmutableOpenMap<String, List<AliasMetaData>>
+                    alias = client.admin().indices().prepareGetAliases(collectionName).get().getAliases();
+                if (alias.size() > 0) {
+                    indexName = alias.iterator().next().key;
+                }
+                DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
+
+                if (!client.admin().indices().delete(deleteIndexRequest).get().isAcknowledged()) {
+                    SysErrLogger.FAKE_LOGGER.syserr("Index :" + collectionName + " not deleted");
+                }
+            }
+        } catch (final Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+
+        }*/
     }
 
     public void deleteIndexesWithoutClose() {
-        for (String indexName : indexesToBePurged) {
-            deleteIndex(client, indexName);
+        for (String collectionName : collectionNames) {
+            deleteIndex(client, collectionName);
         }
-        indexesToBePurged = new HashSet<>();
+        collectionNames = new HashSet<>();
     }
 
     public void deleteIndexes() {
-        for (String indexName : indexesToBePurged) {
-            deleteIndex(client, indexName);
+        for (String collectionName : collectionNames) {
+            deleteIndex(client, collectionName);
         }
-        indexesToBePurged = new HashSet<>();
+        collectionNames = new HashSet<>();
         close();
     }
 
     // Add index to be purged
     public ElasticsearchRule addIndexToBePurged(String indexName) {
-        indexesToBePurged.add(indexName);
+        collectionNames.add(indexName);
         return this;
     }
 
@@ -180,8 +199,8 @@ public class ElasticsearchRule extends ExternalResource {
         after(collections);
     }
 
-    private void after(Set<String> indexesToBePurged) {
-        purge(client, indexesToBePurged);
+    private void after(Set<String> collections) {
+        purge(client, collections);
     }
 
     /**

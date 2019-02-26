@@ -51,7 +51,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
- * Generic Exception Mapper for Jetty Server
+ * Generic Exception Mapper for Jersey Server
  */
 public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenericExceptionMapper.class);

@@ -46,7 +46,6 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.stream.StreamUtils;
 
 /**
  * Results for client mock
@@ -677,7 +676,7 @@ public class ClientMockResultHelper {
     public static Response getObjectStream() {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Disposition", "filename=\"test.txt\"");
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("test"),
+        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
             MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
     }
 

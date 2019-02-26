@@ -31,7 +31,7 @@ package fr.gouv.vitam.common.server.benchmark;
  */
 public enum BenchmarkConnectorProvider {
     /**
-     * Standard mode, using internal implementation
+     * Standard mode, using internal Jersey implementation
      */
     STANDARD,
     /**

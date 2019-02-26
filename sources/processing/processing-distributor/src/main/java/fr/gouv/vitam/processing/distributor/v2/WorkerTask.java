@@ -40,7 +40,6 @@ import fr.gouv.vitam.worker.client.exception.WorkerNotFoundClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerServerClientException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 // Task simulating a call to a worker
 public class WorkerTask implements Supplier<ItemStatus> {
@@ -54,11 +53,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
     private final String applicationId;
     private volatile WorkerTaskState workerTaskState = WorkerTaskState.PENDING;
 
-    private WorkerClientFactory workerClientFactory = null;
-
-
-    public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId,
-        String contextId, String applicationId) {
+    public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId, String contextId, String applicationId) {
         ParametersChecker.checkParameter("Params are required", descriptionStep, requestId);
         this.descriptionStep = descriptionStep;
         this.tenantId = tenantId;
@@ -66,18 +61,6 @@ public class WorkerTask implements Supplier<ItemStatus> {
         this.contractId = contractId;
         this.contextId = contextId;
         this.applicationId = applicationId;
-    }
-
-    public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId,
-        String contextId, String applicationId, WorkerClientFactory workerClientFactory) {
-        ParametersChecker.checkParameter("Params are required", descriptionStep, requestId);
-        this.descriptionStep = descriptionStep;
-        this.tenantId = tenantId;
-        this.requestId = requestId;
-        this.contractId = contractId;
-        this.contextId = contextId;
-        this.applicationId = applicationId;
-        this.workerClientFactory = workerClientFactory;
     }
 
     @Override
@@ -100,15 +83,8 @@ public class WorkerTask implements Supplier<ItemStatus> {
                 workerBean.getConfiguration().getServerPort());
 
             WorkerClientFactory.changeMode(configuration);
-            WorkerClient workerClient;
-            if (null == workerClientFactory) {
-                workerClient = WorkerClientFactory.getInstance(configuration).getClient();
-            } else {
-                workerClient = workerClientFactory.getClient();
 
-            }
-
-            try {
+            try (WorkerClient workerClient = WorkerClientFactory.getInstance(configuration).getClient()) {
 
                 switch (descriptionStep.getStep().getPauseOrCancelAction()) {
                     case ACTION_RUN:
@@ -155,8 +131,6 @@ public class WorkerTask implements Supplier<ItemStatus> {
                     throw new WorkerUnreachableException(workerBean.getWorkerId(), e);
                 }
                 throw new WorkerExecutorException(e);
-            } finally {
-                workerClient.close();
             }
 
         } catch (WorkerUnreachableException e) {
@@ -198,7 +172,7 @@ public class WorkerTask implements Supplier<ItemStatus> {
     public String getObjectName() {
         return descriptionStep.getWorkParams().getObjectName();
     }
-
+    
     public List<String> getObjectNameList() {
         return descriptionStep.getWorkParams().getObjectNameList();
     }

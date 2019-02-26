@@ -27,8 +27,8 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -41,11 +41,11 @@ import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -64,19 +64,12 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
 
     private static final String JSON = ".json";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
-    private final MetaDataClientFactory metaDataClientFactory;
 
+    /**
+     * Empty parameter Constructor
+     */
+    public StoreMetaDataUnitActionPlugin() {/*   nothing to do */ }
 
-    public StoreMetaDataUnitActionPlugin() {
-        this(MetaDataClientFactory.getInstance(), StorageClientFactory.getInstance());
-    }
-
-    @VisibleForTesting
-    public StoreMetaDataUnitActionPlugin(MetaDataClientFactory metaDataClientFactory,
-        StorageClientFactory storageClientFactory) {
-        super(storageClientFactory);
-        this.metaDataClientFactory = metaDataClientFactory;
-    }
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO)
@@ -108,31 +101,29 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
     /**
      * saveDocumentWithLfcInStorage
      *
-     * @param guid guid
-     * @param handlerIO then handler
+     * @param guid          guid
+     * @param handlerIO     then handler
      * @param containerName container name
-     * @param itemStatus itemStatus
+     * @param itemStatus    itemStatus
      * @throws VitamException VitamException
      */
     public void saveDocumentWithLfcInStorage(String guid,
         HandlerIO handlerIO, String containerName, ItemStatus itemStatus) throws VitamException {
 
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-            LogbookLifeCyclesClient logbookClient = handlerIO.getLifecyclesClient()) {
+        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
+            LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
 
             //// get metadata
 
             Stopwatch loadAU = Stopwatch.createStarted();
             JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, metaDataClient);
             MetadataDocumentHelper.removeComputedFieldsFromUnit(unit);
-            PerformanceLogger.getInstance()
-                .log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadAU", loadAU.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadAU", loadAU.elapsed(TimeUnit.MILLISECONDS));
 
             //// get lfc
             Stopwatch loadLFC = Stopwatch.createStarted();
             JsonNode lfc = getRawLogbookLifeCycleById(guid, DataCategory.UNIT, logbookClient);
-            PerformanceLogger.getInstance()
-                .log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadLFC", loadLFC.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadLFC", loadLFC.elapsed(TimeUnit.MILLISECONDS));
 
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(unit, lfc);
@@ -146,8 +137,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
                 handlerIO
                     .transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName, is,
                         null, false);
-                PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeWorkspace",
-                    storeWorkspace.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeWorkspace", storeWorkspace.elapsed(TimeUnit.MILLISECONDS));
 
             } catch (ProcessingException e) {
                 LOGGER.error("Could not backup file for " + guid, e);
@@ -163,8 +153,7 @@ public class StoreMetaDataUnitActionPlugin extends StoreMetadataObjectActionHand
             Stopwatch storeStorage = Stopwatch.createStarted();
 
             storeObject(description, itemStatus);
-            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeStorage",
-                storeStorage.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeStorage", storeStorage.elapsed(TimeUnit.MILLISECONDS));
 
         }
     }
