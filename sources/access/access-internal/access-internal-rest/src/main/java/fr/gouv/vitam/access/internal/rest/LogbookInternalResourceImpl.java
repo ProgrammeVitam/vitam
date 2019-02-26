@@ -29,6 +29,7 @@ package fr.gouv.vitam.access.internal.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
@@ -63,11 +64,11 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
-import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
@@ -79,6 +80,7 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -86,6 +88,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -119,7 +122,6 @@ public class LogbookInternalResourceImpl {
     private static final String LOGBOOK_MODULE = "LOGBOOK";
     private static final String CODE_VITAM = "code_vitam";
 
-    // TODO Extract values from DSLQueryHelper
     private static final String EVENT_ID_PROCESS = "evIdProc";
     private static final String OB_ID = "obId";
     private static final String DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND =
@@ -132,13 +134,34 @@ public class LogbookInternalResourceImpl {
 
     private final AccessInternalModule accessModule;
 
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     /**
      * Default Constructor
      */
     public LogbookInternalResourceImpl() {
         accessModule = new AccessInternalModuleImpl();
+        this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
+        this.logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
         LOGGER.debug("LogbookExternalResource initialized");
     }
+
+    @VisibleForTesting
+    public LogbookInternalResourceImpl(LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory, StorageClientFactory storageClientFactory,
+        WorkspaceClientFactory workspaceClientFactory, AdminManagementClientFactory adminManagementClientFactory,
+        MetaDataClientFactory metaDataClientFactory,
+        ProcessingManagementClientFactory processingManagementClientFactory) {
+        accessModule = new AccessInternalModuleImpl(logbookLifeCyclesClientFactory, logbookOperationsClientFactory,
+            storageClientFactory,
+            workspaceClientFactory, adminManagementClientFactory,
+            metaDataClientFactory);
+        this.processingManagementClientFactory = processingManagementClientFactory;
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        LOGGER.debug("LogbookExternalResource initialized");
+    }
+
 
     /***** LOGBOOK OPERATION - START *****/
     /**
@@ -152,7 +175,7 @@ public class LogbookInternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getOperationById(@PathParam("id_op") String operationId, JsonNode queryDsl) {
         Status status;
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             SanityChecker.checkJsonAll(queryDsl);
             SanityChecker.checkParameter(operationId);
             final SelectParserSingle parser = new SelectParserSingle();
@@ -183,6 +206,7 @@ public class LogbookInternalResourceImpl {
 
     /**
      * GET with request in body
+     *
      * @param query DSL as String
      * @return Response contains a list of logbook operation
      */
@@ -192,7 +216,7 @@ public class LogbookInternalResourceImpl {
     @Produces(MediaType.APPLICATION_JSON)
     public Response selectOperation(JsonNode query) {
         Status status;
-        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             // Check correctness of request
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(query);
@@ -217,6 +241,7 @@ public class LogbookInternalResourceImpl {
 
     /**
      * gets the unit life cycle based on its id
+     *
      * @param unitLifeCycleId the unit life cycle id
      * @param queryDsl the query
      * @return the unit life cycle
@@ -232,10 +257,12 @@ public class LogbookInternalResourceImpl {
             Select unitQuery = new Select();
             unitQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), unitLifeCycleId));
             JsonNode unitResult =
-                    accessModule.selectUnit(AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(unitQuery.getFinalSelect(),
-                            VitamThreadUtils.getVitamSession().getContract()));
-            if(unitResult.get("$hits").get("total").toString().equals("0")) {
-                return Response.status(Status.UNAUTHORIZED.getStatusCode()).entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
+                accessModule.selectUnit(AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForUnitForSelect(unitQuery.getFinalSelect(),
+                        VitamThreadUtils.getVitamSession().getContract()));
+            if (unitResult.get("$hits").get("total").toString().equals("0")) {
+                return Response.status(Status.UNAUTHORIZED.getStatusCode())
+                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
             }
 
             final JsonNode result = client.selectUnitLifeCycleById(unitLifeCycleId, queryDsl);
@@ -262,6 +289,7 @@ public class LogbookInternalResourceImpl {
 
     /**
      * gets the unit life cycle based on its id
+     *
      * @param queryDsl dsl query containing obId
      * @return the unit life cycle
      */
@@ -297,6 +325,7 @@ public class LogbookInternalResourceImpl {
 
     /**
      * gets the object group life cycle based on its id
+     *
      * @param objectGroupLifeCycleId the object group life cycle id
      * @param queryDsl the query
      * @return the object group life cycle
@@ -312,11 +341,12 @@ public class LogbookInternalResourceImpl {
             Select gotQuery = new Select();
             gotQuery.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), objectGroupLifeCycleId));
             final JsonNode gotResult = accessModule
-                    .selectObjects(AccessContractRestrictionHelper
-                            .applyAccessContractRestrictionForObjectGroupForSelect(gotQuery.getFinalSelect(),
-                                    VitamThreadUtils.getVitamSession().getContract()));
-            if(gotResult.get("$hits").get("total").toString().equals("0")) {
-                return Response.status(Status.UNAUTHORIZED.getStatusCode()).entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
+                .selectObjects(AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForObjectGroupForSelect(gotQuery.getFinalSelect(),
+                        VitamThreadUtils.getVitamSession().getContract()));
+            if (gotResult.get("$hits").get("total").toString().equals("0")) {
+                return Response.status(Status.UNAUTHORIZED.getStatusCode())
+                    .entity(getErrorEntity(Status.UNAUTHORIZED, "Accès refusé")).build();
             }
 
             final JsonNode result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, queryDsl);
@@ -366,6 +396,7 @@ public class LogbookInternalResourceImpl {
 
     /**
      * Checks a traceability operation based on a given DSLQuery
+     *
      * @param query the DSLQuery used to find the traceability operation to validate
      * @return The verification report == the logbookOperation
      * @throws LogbookClientNotFoundException
@@ -382,10 +413,8 @@ public class LogbookInternalResourceImpl {
         Response response = null;
         GUID checkOperationGUID = null;
         LOGGER.debug("Start Check in Resource");
-        try (LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient();
-            ProcessingManagementClient processingClient =
-                ProcessingManagementClientFactory.getInstance().getClient()) {
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+            ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
 
             LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
@@ -402,7 +431,7 @@ public class LogbookInternalResourceImpl {
             // Run the WORKFLOW
             response =
                 processingClient.executeCheckTraceabilityWorkFlow(checkOperationGUID.getId(), query,
-                        LogbookTypeProcess.CHECK.name(), ProcessAction.RESUME.getValue());
+                    LogbookTypeProcess.CHECK.name(), ProcessAction.RESUME.getValue());
             LOGGER.debug("Check in Resource launched");
 
 
@@ -467,8 +496,7 @@ public class LogbookInternalResourceImpl {
 
         // Get the TRACEABILITY operation
         LogbookOperation operationToCheck = null;
-        try (LogbookOperationsClient logbookOperationsClient =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
 
             final SelectParserSingle parser = new SelectParserSingle();
             Select select = new Select();

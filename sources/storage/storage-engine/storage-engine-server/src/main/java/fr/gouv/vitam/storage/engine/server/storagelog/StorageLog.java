@@ -26,14 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagelog;
 
+import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
+import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-
-import fr.gouv.vitam.common.model.VitamAutoCloseable;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParameters;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogStructure;
-import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 
 /**

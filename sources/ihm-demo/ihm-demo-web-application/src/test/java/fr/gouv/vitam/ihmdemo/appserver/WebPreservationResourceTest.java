@@ -2,6 +2,8 @@ package fr.gouv.vitam.ihmdemo.appserver;
 
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
+import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,9 +21,10 @@ public class WebPreservationResourceTest {
     @Mock AccessExternalClientFactory accessExternalClientFactory;
 
     @Before
-    public void setUp() throws Exception {
-
-        webPreservationResource = new WebPreservationResource(adminExternalClientFactory, accessExternalClientFactory);
+    public void setUp() {
+        webPreservationResource = new WebPreservationResource(adminExternalClientFactory, accessExternalClientFactory,
+            UserInterfaceTransactionManager
+                .getInstance(), DslQueryHelper.getInstance());
     }
 
     @Test

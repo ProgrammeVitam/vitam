@@ -27,38 +27,6 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.xml.stream.XMLStreamException;
-
-import org.assertj.core.util.Lists;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.guid.GUID;
@@ -69,21 +37,46 @@ import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.util.Lists;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({WorkspaceClientFactory.class})
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+
 public class CheckArchiveUnitSchemaActionPluginTest {
 
-    CheckArchiveUnitSchemaActionPlugin plugin = new CheckArchiveUnitSchemaActionPlugin();
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
+
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
     private static final String ARCHIVE_UNIT = "checkArchiveUnitSchemaActionPlugin/archive-unit_OK.json";
     private static final String ARCHIVE_UNIT_NUMBER =
         "checkArchiveUnitSchemaActionPlugin/archive-unit_OK_Title_Number.json";
@@ -108,7 +101,6 @@ public class CheckArchiveUnitSchemaActionPluginTest {
         "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_DescriptionLevel.json";
     private static final String ARCHIVE_UNIT_STARTDATE_AFTER_ENDDATE =
         "checkArchiveUnitSchemaActionPlugin/archive-unit_KO_startDate.json";
-    private static final String CHECK_UNIT_SCHEMA_TASK_ID = "CHECK_UNIT_SCHEMA";
 
     private final InputStream archiveUnit;
     private final InputStream archiveUnitNumber;
@@ -126,6 +118,9 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     private List<IOParameter> out;
     private List<IOParameter> in;
+
+    private CheckArchiveUnitSchemaActionPlugin plugin = new CheckArchiveUnitSchemaActionPlugin();
+
 
     private HandlerIOImpl action;
     private GUID guid = GUIDFactory.newGUID();
@@ -160,16 +155,20 @@ public class CheckArchiveUnitSchemaActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient()).thenReturn(workspaceClient);
-        
-        String objectId = "objectId";        
-        action = new HandlerIOImpl(guid.getId(), "workerId", com.google.common.collect.Lists.newArrayList(objectId));
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+        logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
+
+        String objectId = "objectId";
+        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
+            com.google.common.collect.Lists.newArrayList(objectId));
         action.setCurrentObjectId(objectId);
-        
+
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId.json")));
         action.addOutIOParameters(out);
@@ -191,13 +190,7 @@ public class CheckArchiveUnitSchemaActionPluginTest {
     }
 
     @Test
-    public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL()
-        throws XMLStreamException, IOException, ProcessingException {
-
-        final WorkspaceClientFactory mockedWorkspaceFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(mockedWorkspaceFactory);
-        PowerMockito.when(mockedWorkspaceFactory.getClient()).thenReturn(workspaceClient);
-
+    public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL() {
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.FATAL);
     }

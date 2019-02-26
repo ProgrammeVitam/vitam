@@ -99,7 +99,7 @@ public class SecurityInternalIT extends VitamRuleRunner {
         handleBeforeClass(0, 1);
         File securityInternalConfigurationFile = PropertiesUtils.findFile(IDENTITY_CONF);
         final InternalSecurityConfiguration internalSecurityConfiguration =
-                PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
+            PropertiesUtils.readYaml(securityInternalConfigurationFile, InternalSecurityConfiguration.class);
         internalSecurityConfiguration.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         PropertiesUtils.writeYaml(securityInternalConfigurationFile, internalSecurityConfiguration);
 
@@ -137,8 +137,8 @@ public class SecurityInternalIT extends VitamRuleRunner {
         byte[] certificate = toByteArray(stream);
         //WHEN //THEN
         assertThatThrownBy(
-                () -> internalSecurityClient.checkPersonalCertificate(certificate, "tt:read"))
-                .isInstanceOf(InternalSecurityException.class);
+            () -> internalSecurityClient.checkPersonalCertificate(certificate, "tt:read"))
+            .isInstanceOf(InternalSecurityException.class);
     }
 
     @Test
@@ -147,8 +147,8 @@ public class SecurityInternalIT extends VitamRuleRunner {
         // When / Then
         VitamThreadUtils.getVitamSession().setTenantId(0);
         assertThatThrownBy(
-                () -> internalSecurityClient.checkPersonalCertificate(null, "tt:read"))
-                .isInstanceOf(InternalSecurityException.class);
+            () -> internalSecurityClient.checkPersonalCertificate(null, "tt:read"))
+            .isInstanceOf(InternalSecurityException.class);
     }
 
     @Test
@@ -222,40 +222,40 @@ public class SecurityInternalIT extends VitamRuleRunner {
         identityInsertModel.setCertificate(toByteArray(getClass().getResourceAsStream(IDENTITY_CERT_FILE)));
 
         final TestVitamClientFactory<DefaultClient> testClientFactory =
-                new TestVitamClientFactory<>(29003, "/v1/api");
+            new TestVitamClientFactory<>(29003, "/v1/api");
         VitamRestTestClient restClient = new VitamRestTestClient(testClientFactory);
 
         restClient.given().body(identityInsertModel, MediaType.APPLICATION_JSON_TYPE).status(
-                Response.Status.CREATED).when().post("/identity");
+            Response.Status.CREATED).when().post("/identity");
 
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size()).isEqualTo(1);
 
         restClient.given().body(toByteArray(getClass().getResourceAsStream(PERSONAL_CERT_FILE)),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
-                Response.Status.NO_CONTENT).post("/personalCertificate");
+            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+            Response.Status.NO_CONTENT).post("/personalCertificate");
 
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(1);
 
         // When empty CRL
         restClient.given()
-                .body(toByteArray(getClass().getResourceAsStream(EMPTY_CRL_FILE)), MediaType.APPLICATION_OCTET_STREAM_TYPE)
-                .status(
-                        Response.Status.NO_CONTENT).post("/crl");
+            .body(toByteArray(getClass().getResourceAsStream(EMPTY_CRL_FILE)), MediaType.APPLICATION_OCTET_STREAM_TYPE)
+            .status(
+                Response.Status.NO_CONTENT).post("/crl");
         // Then
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
-                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
 
 
         //When Non empty CRL revoking sia certificate
         restClient.given().body(toByteArray(getClass().getResourceAsStream(CRL_SIA_REVOKED_FILE)),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
-                Response.Status.NO_CONTENT).post("/crl");
+            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+            Response.Status.NO_CONTENT).post("/crl");
 
         // Then
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
-                CertificateStatus.VALID.name()))).size()).isEqualTo(0);
+            CertificateStatus.VALID.name()))).size()).isEqualTo(0);
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
-                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
 
     }
 
@@ -266,56 +266,61 @@ public class SecurityInternalIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
         // initial collections size
-        int initialCertifCollectionSize = Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size();
-        int initialCertifPersoCollectionSize = Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size();
+        int initialCertifCollectionSize =
+            Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size();
+        int initialCertifPersoCollectionSize =
+            Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size();
 
         // Given certifcates without Status field in DB
         mongoRule.getMongoCollection(CERTIFICATE_COLLECTION)
-                .insertOne(buildCertificateDocument("01", IDENTITY_CERT_FILE));
+            .insertOne(buildCertificateDocument("01", IDENTITY_CERT_FILE));
         mongoRule.getMongoCollection(PERSONAL_COLLECTION).insertOne(buildCertificateDocument("01", IDENTITY_CERT_FILE));
 
-        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size()).isEqualTo(initialCertifCollectionSize + 1);
-        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size()).isEqualTo(initialCertifPersoCollectionSize + 1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find()).size())
+            .isEqualTo(initialCertifCollectionSize + 1);
+        assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find()).size())
+            .isEqualTo(initialCertifPersoCollectionSize + 1);
         //with Status filter, no result
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
-                CertificateStatus.VALID.name()))).size()).isEqualTo(0);
+            CertificateStatus.VALID.name()))).size()).isEqualTo(0);
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
-                CertificateStatus.VALID.name()))).size()).isEqualTo(0);
+            CertificateStatus.VALID.name()))).size()).isEqualTo(0);
 
         final TestVitamClientFactory<DefaultClient> testAdminClientFactory =
-                new TestVitamClientFactory<>(29003, "/v1/api"),
-                testBusinessClientFactory =
-                        new TestVitamClientFactory<>(8208, "/v1/api");
+            new TestVitamClientFactory<>(29003, "/v1/api"),
+            testBusinessClientFactory =
+                new TestVitamClientFactory<>(8208, "/v1/api");
 
         VitamRestTestClient adminRestClient = new VitamRestTestClient(testAdminClientFactory),
-                businessRestClient = new VitamRestTestClient(testBusinessClientFactory);
+            businessRestClient = new VitamRestTestClient(testBusinessClientFactory);
 
         //Then, when requesting them, we must have no result (Status=VALID filter applied in repositories)
         businessRestClient.given().body(toByteArray(getClass().getResourceAsStream(IDENTITY_CERT_FILE)),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
-                Response.Status.NOT_FOUND).when().get("identity");
+            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+            Response.Status.NOT_FOUND).when().get("identity");
 
         businessRestClient.given().body(toByteArray(getClass().getResourceAsStream(PERSONAL_CERT_FILE)),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
-                Response.Status.UNAUTHORIZED).get("/personalCertificate/personal-certificate-check/permission");
+            MediaType.APPLICATION_OCTET_STREAM_TYPE).status(
+            Response.Status.UNAUTHORIZED).get("/personalCertificate/personal-certificate-check/permission");
 
         //###################################
         //Calling security migration Endpoint to add the missing field
-        adminRestClient.given().status(Response.Status.ACCEPTED).addHeader(HttpHeaders.AUTHORIZATION, getBasicAuthnToken())
-                .post("security/migration");
+        adminRestClient.given().status(Response.Status.ACCEPTED)
+            .addHeader(HttpHeaders.AUTHORIZATION, getBasicAuthnToken())
+            .post("security/migration");
 
         awaitTermination(adminRestClient);
 
         //Then after migration, we must have result with Status filtring
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(CERTIFICATE_COLLECTION).find(eq(STATUS_TAG,
-                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
         assertThat(Lists.newArrayList(mongoRule.getMongoCollection(PERSONAL_COLLECTION).find(eq(STATUS_TAG,
-                CertificateStatus.VALID.name()))).size()).isEqualTo(1);
+            CertificateStatus.VALID.name()))).size()).isEqualTo(1);
 
     }
 
     private Document buildCertificateDocument(String certId, String certFile)
-            throws IOException, CertificateException {
+        throws IOException, CertificateException {
 
         X509Certificate cert = X509PKIUtil.parseX509Certificate(toByteArray(getClass().getResourceAsStream(certFile)));
 
@@ -332,18 +337,18 @@ public class SecurityInternalIT extends VitamRuleRunner {
 
     private String getBasicAuthnToken() {
         return "Basic " + Base64.getEncoder()
-                .encodeToString((BASIC_AUTHN_USER + ":" + BASIC_AUTHN_PWD).getBytes(StandardCharsets.UTF_8));
+            .encodeToString((BASIC_AUTHN_USER + ":" + BASIC_AUTHN_PWD).getBytes(StandardCharsets.UTF_8));
     }
 
     private void awaitTermination(VitamRestTestClient adminRestClient)
-            throws InterruptedException, IOException, VitamClientInternalException {
+        throws InterruptedException, IOException, VitamClientInternalException {
 
         // Wait for 30 seconds max
         for (int i = 0; i < 30; i++) {
             Thread.sleep(1000);
 
             int responseStatus = adminRestClient.given().addHeader("Authorization", getBasicAuthnToken())
-                    .get("/security/migration/status");
+                .get("/security/migration/status");
 
             if (responseStatus == Response.Status.NOT_FOUND.getStatusCode())
                 return;

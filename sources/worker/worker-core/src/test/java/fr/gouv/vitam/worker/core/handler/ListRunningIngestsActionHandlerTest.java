@@ -27,20 +27,8 @@
 
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
@@ -57,6 +45,7 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
@@ -70,20 +59,23 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({ProcessingManagementClientFactory.class, WorkspaceClientFactory.class})
+import java.io.File;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 public class ListRunningIngestsActionHandlerTest {
 
-    ListRunningIngestsActionHandler plugin = new ListRunningIngestsActionHandler();
-    private ProcessingManagementClient processManagementClient;
-    private ProcessingManagementClientFactory processManagementClientFactory;
+    private static final  ProcessingManagementClient processManagementClient = mock(ProcessingManagementClient.class);
+    private static final ProcessingManagementClientFactory processManagementClientFactory = mock(ProcessingManagementClientFactory.class);
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private List<ProcessDetail> list;
@@ -92,6 +84,8 @@ public class ListRunningIngestsActionHandlerTest {
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
     private ProcessDetail pw = new ProcessDetail();
+
+    private ListRunningIngestsActionHandler plugin = new ListRunningIngestsActionHandler(processManagementClientFactory);
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -102,9 +96,6 @@ public class ListRunningIngestsActionHandlerTest {
             .setObjectName("archiveUnit.json").setCurrentStep("currentStep")
             .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
 
-    public ListRunningIngestsActionHandlerTest() {
-        // do nothing
-    }
 
     @Before
     public void setUp() throws Exception {
@@ -112,22 +103,15 @@ public class ListRunningIngestsActionHandlerTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-        PowerMockito.mockStatic(ProcessingManagementClientFactory.class);
-        processManagementClient = mock(ProcessingManagementClient.class);
-        processManagementClientFactory = mock(ProcessingManagementClientFactory.class);
-
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
 
-        PowerMockito.when(ProcessingManagementClientFactory.getInstance()).thenReturn(processManagementClientFactory);
-        PowerMockito.when(ProcessingManagementClientFactory.getInstance().getClient())
-            .thenReturn(processManagementClient);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(WorkspaceClientFactory.getInstance().getClient())
-            .thenReturn(workspaceClient);
+        reset(workspaceClient);
+        reset(processManagementClient);
+        when(processManagementClientFactory.getClient())  .thenReturn(processManagementClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        action = new HandlerIOImpl(guid.getId(), "workerId", Lists.newArrayList());
+        action = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(), "workerId", Lists.newArrayList());
         out = new ArrayList<>();
         out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
             UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON)));
@@ -174,7 +158,7 @@ public class ListRunningIngestsActionHandlerTest {
         pw2.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
         pw2.setGlobalState(ProcessState.RUNNING.toString());
         pw2.setStepStatus(StatusCode.STARTED.toString());
-        list = new ArrayList<ProcessDetail>();
+        list = new ArrayList<>();
         list.add(pw);
         list.add(pw2);
 

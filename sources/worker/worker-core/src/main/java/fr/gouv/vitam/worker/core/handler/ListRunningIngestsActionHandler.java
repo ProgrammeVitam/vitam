@@ -30,6 +30,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -50,7 +51,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 
 /**
  * ListRunningIngestsAction Handler.<br>
- *
  */
 
 public class ListRunningIngestsActionHandler extends ActionHandler {
@@ -61,12 +61,16 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
     private HandlerIO handlerIO;
     private boolean asyncIO = false;
 
-    /**
-     * Empty constructor UnitsRulesComputePlugin
-     *
-     */
+    private final ProcessingManagementClientFactory processingManagementClientFactory;
+
     public ListRunningIngestsActionHandler() {
-        // Empty
+        this(ProcessingManagementClientFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public ListRunningIngestsActionHandler(
+        ProcessingManagementClientFactory processingManagementClientFactory) {
+        this.processingManagementClientFactory = processingManagementClientFactory;
     }
 
     @Override
@@ -99,8 +103,7 @@ public class ListRunningIngestsActionHandler extends ActionHandler {
         listProcessTypes.add(LogbookTypeProcess.HOLDINGSCHEME.toString());
         listProcessTypes.add(LogbookTypeProcess.FILINGSCHEME.toString());
         pq.setListProcessTypes(listProcessTypes);
-        try (ProcessingManagementClient processManagementClient =
-            ProcessingManagementClientFactory.getInstance().getClient()) {
+        try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
             RequestResponseOK<ProcessDetail> response =
                 (RequestResponseOK<ProcessDetail>) processManagementClient.listOperationsDetails(pq);
             List<ProcessDetail> ingestsInProcess = response.getResults();

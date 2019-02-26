@@ -28,12 +28,14 @@
 package fr.gouv.vitam.storage.offers.common.driver;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Filters;
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -62,9 +64,12 @@ import io.restassured.RestAssured;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -92,7 +97,7 @@ public class DriverToOfferTest {
     private static final String WORKSPACE_OFFER_CONF = "storage-default-offer-ssl.conf";
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
-    private static final String DATABASE_NAME = "Vitam";
+    private static final String DATABASE_NAME = "DriverToOfferTest";
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     private static DriverImpl driver;
@@ -112,8 +117,10 @@ public class DriverToOfferTest {
     private static StorageOffer offer = new StorageOffer();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(VitamCollection.getMongoClientOptions(), DATABASE_NAME);
+    public static TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(DATABASE_NAME, VitamCollection.getMongoClientOptions());
 
     @After
     public void after() throws Exception {
@@ -127,6 +134,11 @@ public class DriverToOfferTest {
             mongoRule.addCollectionToBePurged(o.getName());
         }
 
+        File confFile = PropertiesUtils.findFile(DEFAULT_STORAGE_CONF);
+        final ObjectNode conf = PropertiesUtils.readYaml(confFile, ObjectNode.class);
+        conf.put("storagePath", tempFolder.getRoot().getAbsolutePath());
+        PropertiesUtils.writeYaml(confFile, conf);
+
         final File workspaceOffer = PropertiesUtils.findFile(WORKSPACE_OFFER_CONF);
         final OfferConfiguration realWorkspaceOffer =
             PropertiesUtils.readYaml(workspaceOffer, OfferConfiguration.class);
@@ -134,6 +146,7 @@ public class DriverToOfferTest {
         List<MongoDbNode> mongoDbNodes = realWorkspaceOffer.getMongoDbNodes();
         mongoDbNodes.get(0).setDbPort(MongoRule.getDataBasePort());
         realWorkspaceOffer.setMongoDbNodes(mongoDbNodes);
+        realWorkspaceOffer.setDbName(DATABASE_NAME);
         PropertiesUtils.writeYaml(newWorkspaceOfferConf, realWorkspaceOffer);
 
         try {
@@ -167,18 +180,7 @@ public class DriverToOfferTest {
         junitHelper.releasePort(serverPort);
 
         application.stop();
-
-        // delete files
-        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
-        final File container = new File(conf.getStoragePath() + CONTAINER);
-        File object = new File(container.getAbsolutePath(), guid);
-        Files.deleteIfExists(object.toPath());
-        for (int i = 0; i < 150; i++) {
-            object = new File(container.getAbsolutePath(), "f" + i);
-            Files.deleteIfExists(object.toPath());
-        }
-        Files.deleteIfExists(container.toPath());
+        VitamClientFactory.resetConnections();
     }
 
     @Test
@@ -215,14 +217,10 @@ public class DriverToOfferTest {
                 final StoragePutResult result = connection.putObject(request);
                 assertNotNull(result);
 
-                final StorageConfiguration conf =
-                    PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-                        StorageConfiguration.class);
-                final File container = new File(conf.getStoragePath() + CONTAINER);
-                assertNotNull(container);
-                final File object = new File(container.getAbsolutePath(), guid);
-                assertNotNull(object);
-                assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
+                final StorageConfiguration storageConfiguration = PropertiesUtils
+                    .readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF), StorageConfiguration.class);
+                final File objectFile = new File(storageConfiguration.getStoragePath() + "/" + CONTAINER, guid);
+                assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), objectFile));
 
                 final String digestToCheck = result.getDigestHashBase16();
                 assertNotNull(digestToCheck);

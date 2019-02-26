@@ -18,25 +18,26 @@
 
 package fr.gouv.vitam.processing.management.rest;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.server.VitamServerLifeCycle;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
-import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
+import fr.gouv.vitam.processing.data.core.ProcessDataAccess;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
 import fr.gouv.vitam.processing.distributor.rest.ProcessDistributorResource;
 import fr.gouv.vitam.processing.distributor.v2.ProcessDistributorImpl;
 import fr.gouv.vitam.processing.distributor.v2.WorkerManager;
+import fr.gouv.vitam.processing.management.api.ProcessManagement;
+import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
-
-// FIXME:To facilitate some initialization, this Factory is used "only if needed" to prepare resources and classes.
-
 
 /**
  * As restEasy application is lazy load, and some classes are needed for both Jetty server and resteasy configuration
@@ -69,8 +70,8 @@ public class VitamApplicationInitializr {
             final ServerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, ServerConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication();
 
-            IWorkerManager workerManager = null;
-            ProcessDistributor processDistributor = null;
+            IWorkerManager workerManager;
+            ProcessDistributor processDistributor;
 
             WorkspaceClientFactory.changeMode(configuration.getUrlWorkspace());
 
@@ -82,21 +83,40 @@ public class VitamApplicationInitializr {
             ProcessManagementResource processManagementResource =
                 new ProcessManagementResource(configuration, processDistributor);
             ProcessDistributorResource processDistributorResource = new ProcessDistributorResource(workerManager);
-
             vitamServerLifeCycle =
                 new VitamServerLifeCycle(processManagementResource.getProcessLifeCycle());
-
-
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(processManagementResource);
             singletons.add(processDistributorResource);
         } catch (IOException e) {
             throw new RuntimeException(e);
-        } catch (ProcessingStorageWorkspaceException e) {
-            throw new RuntimeException(e);
         }
     }
+
+
+    @VisibleForTesting
+    public void initialize(ServerConfiguration serverConfiguration, WorkerClientFactory workerClientFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        ProcessManagement processManagement) {
+
+        commonBusinessApplication = new CommonBusinessApplication();
+
+        IWorkerManager workerManager = new WorkerManager(workerClientFactory);
+        workerManager.initialize();
+
+
+        ProcessManagementResource processManagementResource =
+            new ProcessManagementResource(processManagement, serverConfiguration);
+        ProcessDistributorResource processDistributorResource = new ProcessDistributorResource(workerManager);
+        vitamServerLifeCycle = new VitamServerLifeCycle(processManagementResource.getProcessLifeCycle());
+
+        singletons = new HashSet<>();
+        singletons.addAll(commonBusinessApplication.getResources());
+        singletons.add(processManagementResource);
+        singletons.add(processDistributorResource);
+    }
+
 
     /**
      * Return the set of registered resources

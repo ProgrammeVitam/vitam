@@ -294,6 +294,7 @@ public class ItemStatus {
     /**
      * @return masterData
      */
+    @JsonIgnore
     public Map<String, Object> getMasterData() {
         return (Map<String, Object>) data.get(MASTER_DATA);
     }
@@ -303,6 +304,7 @@ public class ItemStatus {
      * @param value
      * @return this
      */
+    @JsonIgnore
     public ItemStatus setMasterData(String key, Object value) {
         if (data.get(MASTER_DATA) == null) {
             data.put(MASTER_DATA, new HashMap<>());

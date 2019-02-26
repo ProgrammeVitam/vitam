@@ -38,20 +38,14 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFHelper;
-import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
-import fr.gouv.vitam.ingest.external.client.IngestExternalClientFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.Cookie;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
@@ -59,12 +53,8 @@ import java.io.File;
 import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.mockito.Mockito.when;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({UserInterfaceTransactionManager.class, DslQueryHelper.class,
-    IngestExternalClientFactory.class})
-// FIXME Think about Unit tests
 public class WebApplicationResourceTest {
 
     // take it from conf file
@@ -84,6 +74,7 @@ public class WebApplicationResourceTest {
     final static String tokenCSRF = XSRFHelper.generateCSRFToken();
 
     private static IhmRecetteMainWithoutMongo application;
+    private UserInterfaceTransactionManager userInterfaceTransactionManager;
 
     private static File adminConfigFile;
 
@@ -91,7 +82,6 @@ public class WebApplicationResourceTest {
     public static void setup() throws Exception {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
-        // TODO P1 verifier la compatibilité avec les tests parallèles sur jenkins
         final File adminConfig = PropertiesUtils.findFile("ihm-recette.conf");
         final WebApplicationConfig realAdminConfig =
             PropertiesUtils.readYaml(adminConfig, WebApplicationConfig.class);
@@ -128,9 +118,8 @@ public class WebApplicationResourceTest {
 
     @Before
     public void initStaticMock() {
-        PowerMockito.mockStatic(UserInterfaceTransactionManager.class);
-        PowerMockito.mockStatic(DslQueryHelper.class);
-        PowerMockito.mockStatic(IngestExternalClientFactory.class);
+        userInterfaceTransactionManager = ServerApplicationWithoutMongo.getUserInterfaceTransactionManager();
+        Mockito.reset(userInterfaceTransactionManager);
     }
 
     @Test
@@ -138,8 +127,8 @@ public class WebApplicationResourceTest {
 
         VitamContext context = new VitamContext(TENANT_ID);
         context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-        PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
+        when(
+            userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenReturn(RequestResponseOK.getFromJsonNode(sampleLogbookOperation, LogbookOperation.class));
         given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.OK.getStatusCode()).when().get("/stat/" + FAKE_OPERATION_ID);
@@ -151,8 +140,8 @@ public class WebApplicationResourceTest {
         throws Exception {
         VitamContext context = new VitamContext(TENANT_ID);
         context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
-        PowerMockito.when(
-            UserInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
+        when(
+            userInterfaceTransactionManager.selectOperationbyId(FAKE_OPERATION_ID, context))
             .thenThrow(RuntimeException.class);
         given().param("id_op", FAKE_OPERATION_ID).header(GlobalDataRest.X_CSRF_TOKEN, tokenCSRF).cookie(COOKIE)
             .expect().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).when()

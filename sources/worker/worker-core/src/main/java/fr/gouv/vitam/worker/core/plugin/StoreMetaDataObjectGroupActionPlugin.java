@@ -39,13 +39,13 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -67,10 +67,17 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
 
     private boolean asyncIO = false;
 
-    /**
-     * StoreMetaDataObjectGroupActionPlugin constructor
-     */
+    private final MetaDataClientFactory metaDataClientFactory;
+
     public StoreMetaDataObjectGroupActionPlugin() {
+        this(MetaDataClientFactory.getInstance(), StorageClientFactory.getInstance());
+    }
+
+
+    public StoreMetaDataObjectGroupActionPlugin(MetaDataClientFactory metaDataClientFactory,
+        StorageClientFactory storageClientFactory) {
+        super(storageClientFactory);
+        this.metaDataClientFactory = metaDataClientFactory;
     }
 
     @Override
@@ -104,11 +111,12 @@ public class StoreMetaDataObjectGroupActionPlugin extends StoreMetadataObjectAct
      * @param itemStatus
      * @throws VitamException
      */
-    public void saveDocumentWithLfcInStorage( String guid, HandlerIO handlerIO, String containerName,  ItemStatus itemStatus)
+    public void saveDocumentWithLfcInStorage(String guid, HandlerIO handlerIO, String containerName,
+        ItemStatus itemStatus)
         throws VitamException {
 
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-            LogbookLifeCyclesClient logbookClient = LogbookLifeCyclesClientFactory.getInstance().getClient();) {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
+            LogbookLifeCyclesClient logbookClient = handlerIO.getLifecyclesClient()) {
 
             //// get metadata
             JsonNode got = selectMetadataDocumentRawById(guid, DataCategory.OBJECTGROUP, metaDataClient);

@@ -162,9 +162,11 @@ public class MetaDataImpl implements MetaData {
     private static final String LIST_GOT = "listGOT";
     private static final String RESULTS = "$results";
     public static final String TOTAL_GOT = "totalGOT";
-    public static final String COUNT = "count";
     public static final String SP = "sp";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
+    private final IndexationHelper indexationHelper;
+    private final AdminManagementClientFactory adminManagementClientFactory;
+    private final DbRequestFactory dbRequestFactory;
 
     private static final String HISTORY_FILE_NAME_TRIGGERS_CONFIG = "history-triggers.json";
 
@@ -173,7 +175,18 @@ public class MetaDataImpl implements MetaData {
      * @param mongoDbAccess
      */
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess) {
+        this(mongoDbAccess, AdminManagementClientFactory.getInstance(), IndexationHelper.getInstance(),
+            DbRequestFactoryImpl.getInstance());
+    }
+
+    public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess,
+        AdminManagementClientFactory adminManagementClientFactory,
+        IndexationHelper indexationHelper,
+        DbRequestFactory dbRequestFactory) {
         this.mongoDbAccess = mongoDbAccess;
+        this.adminManagementClientFactory = adminManagementClientFactory;
+        this.indexationHelper = indexationHelper;
+        this.dbRequestFactory = dbRequestFactory;
     }
 
     /**
@@ -207,7 +220,7 @@ public class MetaDataImpl implements MetaData {
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         try {
-            DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
+            DbRequest dbRequest = dbRequestFactory.create();
             List<InsertParserMultiple> collect = insertRequests.stream().map(insertRequest -> {
                     InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
                     try {
@@ -235,7 +248,7 @@ public class MetaDataImpl implements MetaData {
     public void deleteUnits(List<String> idList)
         throws IllegalArgumentException, MetaDataExecutionException {
 
-        DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
+        DbRequest dbRequest = dbRequestFactory.create();
         dbRequest.deleteUnits(idList);
 
     }
@@ -244,7 +257,7 @@ public class MetaDataImpl implements MetaData {
     public void deleteObjectGroups(List<String> idList)
         throws IllegalArgumentException, MetaDataExecutionException {
 
-        DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
+        DbRequest dbRequest = dbRequestFactory.create();
         dbRequest.deleteObjectGroups(idList);
 
     }
@@ -258,7 +271,7 @@ public class MetaDataImpl implements MetaData {
             final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
             insertParser.parse(objectGroupRequest);
             insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-            DbRequestFactoryImpl.getInstance().create().execInsertObjectGroupRequests(singletonList(insertParser));
+            dbRequestFactory.create().execInsertObjectGroupRequests(singletonList(insertParser));
         } catch (final MongoWriteException e) {
             throw new MetaDataAlreadyExistException(e);
         }
@@ -270,7 +283,7 @@ public class MetaDataImpl implements MetaData {
         MetaDataAlreadyExistException {
 
         try {
-            DbRequest dbRequest = DbRequestFactoryImpl.getInstance().create();
+            DbRequest dbRequest = dbRequestFactory.create();
             List<InsertParserMultiple> collect = objectGroupRequest.stream().map(insertRequest -> {
                     InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
                     try {
@@ -329,7 +342,7 @@ public class MetaDataImpl implements MetaData {
 
         try {
 
-            Result result = DbRequestFactoryImpl.getInstance().create().execRequest(request);
+            Result result = dbRequestFactory.create().execRequest(request);
             List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
 
             if (!CollectionUtils.isEmpty(facetResults)) {
@@ -403,7 +416,8 @@ public class MetaDataImpl implements MetaData {
         Map<String, OriginatingAgencyBucketResult> objectGroupByOriginatingAgency,
         OriginatingAgencyBucketResult objectGroup) {
 
-        OriginatingAgencyBucketResult originatingAgencyBucketResult = objectGroupByOriginatingAgency.getOrDefault(objectGroup.originatingAgency, OriginatingAgencyBucketResult.empty());
+        OriginatingAgencyBucketResult originatingAgencyBucketResult = objectGroupByOriginatingAgency
+            .getOrDefault(objectGroup.originatingAgency, OriginatingAgencyBucketResult.empty());
 
         long groupObjectsCount = objectGroup.docCount - originatingAgencyBucketResult.docCount;
         long objectCount = objectGroup.objectCount - originatingAgencyBucketResult.objectCount;
@@ -426,15 +440,16 @@ public class MetaDataImpl implements MetaData {
         }
 
         if (groupObjectsCount > 0 && existingAccessionRegister == null) {
-            accessionRegisterSymbolicByOriginatingAgency.put(objectGroup.originatingAgency, new AccessionRegisterSymbolic()
-                .setId(GUIDFactory.newAccessionRegisterSymbolicGUID(tenant).getId())
-                .setCreationDate(creationDate)
-                .setTenant(tenant)
-                .setOriginatingAgency(objectGroup.originatingAgency)
-                .setArchiveUnit(0L)
-                .setObjectGroup(groupObjectsCount)
-                .setBinaryObject(objectCount)
-                .setBinaryObjectSize(binaryObjectSize));
+            accessionRegisterSymbolicByOriginatingAgency
+                .put(objectGroup.originatingAgency, new AccessionRegisterSymbolic()
+                    .setId(GUIDFactory.newAccessionRegisterSymbolicGUID(tenant).getId())
+                    .setCreationDate(creationDate)
+                    .setTenant(tenant)
+                    .setOriginatingAgency(objectGroup.originatingAgency)
+                    .setArchiveUnit(0L)
+                    .setObjectGroup(groupObjectsCount)
+                    .setBinaryObject(objectCount)
+                    .setBinaryObjectSize(binaryObjectSize));
             return;
         }
 
@@ -667,7 +682,7 @@ public class MetaDataImpl implements MetaData {
         }
 
         try {
-            result = DbRequestFactoryImpl.getInstance().create().execRequest(selectRequest);
+            result = dbRequestFactory.create().execRequest(selectRequest);
             arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
         } catch (ArchiveUnitOntologyValidationException e) {
             throw new MetaDataExecutionException(e);
@@ -712,7 +727,7 @@ public class MetaDataImpl implements MetaData {
             }
 
             // Execute DSL request
-            result = DbRequestFactoryImpl.getInstance().create().execRequest(updateRequest);
+            result = dbRequestFactory.create().execRequest(updateRequest);
             if (result.getNbResult() == 0) {
                 throw new MetaDataNotFoundException("ObjectGroup not found: " + objectId);
             }
@@ -734,7 +749,8 @@ public class MetaDataImpl implements MetaData {
             try {
 
                 checkArchiveUnitProfileQuery(updateRequest, unit);
-                RequestResponse<JsonNode> jsonNodeRequestResponse = updateUnitbyId(updateRequest.getRequest().getFinalUpdate(), unit);
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    updateUnitbyId(updateRequest.getRequest().getFinalUpdate(), unit);
                 List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
 
                 if (results != null && results.size() > 0) {
@@ -763,7 +779,8 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery, Map<String, DurationData> bindRuleToDuration)
+    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery,
+        Map<String, DurationData> bindRuleToDuration)
         throws InvalidParseOperationException {
         Set<String> unitIds;
         final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -773,7 +790,8 @@ public class MetaDataImpl implements MetaData {
 
         List<JsonNode> collect = unitIds.stream().map(unitId -> {
             try {
-                RequestResponse<JsonNode> jsonNodeRequestResponse = updateUnitRulesbyId(updateQuery.get("actions"), unitId, bindRuleToDuration);
+                RequestResponse<JsonNode> jsonNodeRequestResponse =
+                    updateUnitRulesbyId(updateQuery.get("actions"), unitId, bindRuleToDuration);
                 List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
 
                 if (results != null && results.size() > 0) {
@@ -788,7 +806,9 @@ public class MetaDataImpl implements MetaData {
                     .warn("error while updating management metadata for unit " + unitId + "; cant validate schema", e);
                 return objectNodeResultForUpdateError(unitId, "WARNING");
             } catch (ArchiveUnitOntologyValidationException e) {
-                LOGGER.warn("error while updating management metadata for unit " + unitId + "; cant validate ontologies", e);
+                LOGGER
+                    .warn("error while updating management metadata for unit " + unitId + "; cant validate ontologies",
+                        e);
                 return objectNodeResultForUpdateError(unitId, "WARNING");
             } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataExecutionException | VitamDBException e) {
                 LOGGER.error(e);
@@ -814,7 +834,8 @@ public class MetaDataImpl implements MetaData {
     @Override
     public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, ArchiveUnitOntologyValidationException, SchemaValidationException {
+        MetaDataDocumentSizeException, VitamDBException, ArchiveUnitOntologyValidationException,
+        SchemaValidationException {
         Result result;
         ArrayNode arrayNodeResponse;
         if (updateQuery.isNull()) {
@@ -840,7 +861,7 @@ public class MetaDataImpl implements MetaData {
 
             // Execute DSL request
             result =
-                DbRequestFactoryImpl.getInstance().create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
+                dbRequestFactory.create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
 
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
@@ -863,9 +884,11 @@ public class MetaDataImpl implements MetaData {
             .setHttpCode(Response.Status.OK.getStatusCode());
     }
 
-    private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId, Map<String, DurationData> bindRuleToDuration)
+    private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId,
+        Map<String, DurationData> bindRuleToDuration)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException, ArchiveUnitOntologyValidationException {
+        MetaDataDocumentSizeException, VitamDBException, SchemaValidationException,
+        ArchiveUnitOntologyValidationException {
         Result result;
         ArrayNode arrayNodeResponse;
         if (updateActions.isNull()) {
@@ -878,7 +901,8 @@ public class MetaDataImpl implements MetaData {
             final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
             // Execute DSL request
-            result = DbRequestFactoryImpl.getInstance().create().execRuleRequest(unitId, ruleActions, bindRuleToDuration);
+            result =
+                dbRequestFactory.create().execRuleRequest(unitId, ruleActions, bindRuleToDuration);
 
             final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
@@ -973,25 +997,25 @@ public class MetaDataImpl implements MetaData {
             String message = String.format("Try to reindex a non metadata collection '%s' with metadata module",
                 indexParam.getCollectionName());
             LOGGER.error(message);
-            return IndexationHelper.getFullKOResult(indexParam, message);
+            return indexationHelper.getFullKOResult(indexParam, message);
         }
         // mongo collection
         MongoCollection<Document> mongoCollection = collection.getCollection();
         try (InputStream mappingStream = ElasticsearchCollections.valueOf(indexParam.getCollectionName().toUpperCase())
             .getMappingAsInputStream()) {
-            return IndexationHelper.reindex(mongoCollection, collection.getName(), mongoDbAccess.getEsClient(),
+            return indexationHelper.reindex(mongoCollection, collection.getName(), mongoDbAccess.getEsClient(),
                 indexParam.getTenants(), mappingStream);
         } catch (IOException exc) {
             LOGGER.error("Cannot get '{}' elastic search mapping for tenants {}", collection.name(),
                 indexParam.getTenants().stream().map(Object::toString).collect(Collectors.joining(", ")));
-            return IndexationHelper.getFullKOResult(indexParam, exc.getMessage());
+            return indexationHelper.getFullKOResult(indexParam, exc.getMessage());
         }
     }
 
     @Override
     public void switchIndex(String alias, String newIndexName) throws DatabaseException {
         try {
-            IndexationHelper.switchIndex(alias, newIndexName, mongoDbAccess.getEsClient());
+            indexationHelper.switchIndex(alias, newIndexName, mongoDbAccess.getEsClient());
         } catch (DatabaseException exc) {
             LOGGER.error("Cannot switch alias {} to index {}", alias, newIndexName);
             throw exc;
@@ -1001,14 +1025,14 @@ public class MetaDataImpl implements MetaData {
     private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String unitId)
         throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
         MetaDataExecutionException, InvalidParseOperationException,
-            ArchiveUnitProfileEmptyControlSchemaException {
+        ArchiveUnitProfileEmptyControlSchemaException {
         boolean updateAupValue = false;
         String originalAupIdentifier = null;
         // first get aup information for the unit
         JsonNode aupInfo = getUnitArchiveUnitProfile(unitId);
         if (aupInfo != null) {
             originalAupIdentifier = aupInfo.isArray() ?
-                (aupInfo.get(0) != null ? aupInfo.get(0).asText(): null)
+                (aupInfo.get(0) != null ? aupInfo.get(0).asText() : null)
                 : aupInfo.asText();
         }
 
@@ -1033,7 +1057,7 @@ public class MetaDataImpl implements MetaData {
 
                 String archiveUnitProfileIdentifier =
                     object.get(field).isArray() ?
-                        (aupInfo.get(0) != null ? aupInfo.get(0).asText(): null) :
+                        (aupInfo.get(0) != null ? aupInfo.get(0).asText() : null) :
                         object.get(field).asText();
 
                 if (archiveUnitProfileIdentifier != null && !archiveUnitProfileIdentifier.isEmpty()) {
@@ -1074,19 +1098,20 @@ public class MetaDataImpl implements MetaData {
         return jsonUnit.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
     }
 
-    private static void addActionAUProfileSchema(String archiveUnitProfileIdentifier,
+    private void addActionAUProfileSchema(String archiveUnitProfileIdentifier,
         UpdateMultiQuery request)
         throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
         InvalidParseOperationException, MetaDataExecutionException,
         ArchiveUnitProfileEmptyControlSchemaException {
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
             RequestResponse<ArchiveUnitProfileModel> response =
                 adminClient.findArchiveUnitProfiles(select.getFinalSelect());
             ArchiveUnitProfileModel archiveUnitProfile;
 
-            List<ArchiveUnitProfileModel> results = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults();
+            List<ArchiveUnitProfileModel> results =
+                ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults();
             if (!response.isOk() || results.size() == 0) {
                 throw new ArchiveUnitProfileNotFoundException("Archive unit profile could not be found");
             }

@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>BucketAlreadyOwnedByYou</Code><Message>Your previous request to create the named bucket succeeded and you already own it.</Message><Resource>/1unit/</Resource><RequestId>1579C513368A1D2D</RequestId><HostId>3L137</HostId></Error>

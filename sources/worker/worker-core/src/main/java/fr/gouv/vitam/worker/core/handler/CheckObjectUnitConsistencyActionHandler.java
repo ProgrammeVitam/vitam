@@ -26,15 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -51,6 +42,12 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  * Check SIP - Object and Archiveunit Consistency handler
  */
@@ -63,7 +60,6 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_CONSISTENCY";
     private static final String SUBTASK_ORPHAN = "CHECK_CONSISTENCY_ORPHAN_OBJECT";
 
-    private HandlerIO handlerIO;
     private final List<Class<?>> handlerInitialIOList = new ArrayList<>();
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
@@ -88,14 +84,12 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         checkMandatoryParameters(params);
         checkMandatoryIOParameter(handler);
-        handlerIO = handler;
-
         try {
-            final List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(params);
+            final List<String> notConformOGs = findObjectGroupsNonReferencedByArchiveUnit(handler, params);
             if (!notConformOGs.isEmpty()) {
                 itemStatus.setData("errorNumber", notConformOGs.size());
             }
-        } catch (InvalidParseOperationException | InvalidGuidOperationException | IOException e) {
+        } catch (Exception e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
         }
@@ -108,12 +102,8 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
      *
      * @param params worker parameter
      * @return list of non conform OG
-     * @throws IOException if can not read file
-     * @throws InvalidParseOperationException when maps loaded is not conform
-     * @throws InvalidGuidOperationException when og guid is not correct
      */
-    private List<String> findObjectGroupsNonReferencedByArchiveUnit(WorkerParameters params)
-        throws IOException, InvalidParseOperationException, InvalidGuidOperationException {
+    private List<String> findObjectGroupsNonReferencedByArchiveUnit(HandlerIO handlerIO, WorkerParameters params) {
         final List<String> ogList = new ArrayList<>();
 
         @SuppressWarnings("unchecked")

@@ -26,33 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.rest;
 
-import static io.restassured.RestAssured.given;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
@@ -62,24 +38,91 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mockito;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({LogbookOperationsClientFactory.class, ProcessingManagementClientFactory.class,
-    WorkspaceClientFactory.class})
-public class LogbookInternalResourceImplTest {
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import java.util.Set;
+
+import static io.restassured.RestAssured.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    private final static ProcessingManagementClientFactory processingManagementClientFactory =
+        mock(ProcessingManagementClientFactory.class);
+    private final static ProcessingManagementClient processingManagementClient = mock(ProcessingManagementClient.class);
+
+    private final static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
+        mock(LogbookLifeCyclesClientFactory.class);
+    private final static LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+
+    private final static LogbookOperationsClientFactory logbookOperationsClientFactory =
+        mock(LogbookOperationsClientFactory.class);
+    private final static LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
+
+    private final static WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+    private final static WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+
+    private final static AdminManagementClientFactory adminManagementClientFactory =
+        mock(AdminManagementClientFactory.class);
+    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+
+    private final static StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+    private final static StorageClient storageClient = mock(StorageClient.class);
+
+    private final static MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
+    private final static MetaDataClient metaDataClient = mock(MetaDataClient.class);
+
+    private final static BusinessApplication businessApplication =
+        new BusinessApplication(logbookLifeCyclesClientFactory, logbookOperationsClientFactory, storageClientFactory,
+            workspaceClientFactory, adminManagementClientFactory, metaDataClientFactory,
+            processingManagementClientFactory);
+
+    @Override
+    public Set<Object> getResources() {
+        return businessApplication.getSingletons();
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        return businessApplication.getClasses();
+    }
 
     // LOGGER
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookInternalResourceImplTest.class);
@@ -95,13 +138,6 @@ public class LogbookInternalResourceImplTest {
     private static JunitHelper junitHelper;
     private static int port;
 
-    private LogbookOperationsClientFactory logbookOperationsClientFactory;
-    private static LogbookOperationsClient logbookOperationClient;
-    private static ProcessingManagementClient processManagementClient;
-    private static ProcessingManagementClientFactory processManagementClientFactory;
-    private static WorkspaceClient workspaceClient;
-    private static WorkspaceClientFactory workspaceClientFactory;
-
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
             " \"$filter\": { \"$orderby\": \"#id\" }, " +
@@ -113,7 +149,7 @@ public class LogbookInternalResourceImplTest {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new AccessInternalMain(ACCESS_CONF);
+            application = new AccessInternalMain(ACCESS_CONF, LogbookInternalResourceImplTest.class, null);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
@@ -127,23 +163,29 @@ public class LogbookInternalResourceImplTest {
 
     @Before
     public void setUp() {
-        logbookOperationClient = mock(LogbookOperationsClient.class);
-        PowerMockito.mockStatic(LogbookOperationsClientFactory.class);
-        logbookOperationsClientFactory = mock(LogbookOperationsClientFactory.class);
-        PowerMockito.when(LogbookOperationsClientFactory.getInstance()).thenReturn(logbookOperationsClientFactory);
-        PowerMockito.when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationClient);
+        reset(logbookOperationsClient);
+        reset(workspaceClient);
+        reset(processingManagementClient);
+        reset(metaDataClient);
+        reset(storageClient);
+        reset(adminManagementClient);
+        reset(logbookLifeCyclesClient);
 
-        processManagementClient = mock(ProcessingManagementClient.class);
-        PowerMockito.mockStatic(ProcessingManagementClientFactory.class);
-        processManagementClientFactory = mock(ProcessingManagementClientFactory.class);
-        PowerMockito.when(ProcessingManagementClientFactory.getInstance()).thenReturn(processManagementClientFactory);
-        PowerMockito.when(processManagementClientFactory.getClient()).thenReturn(processManagementClient);
+        reset(logbookOperationsClientFactory);
+        reset(workspaceClientFactory);
+        reset(processingManagementClientFactory);
+        reset(metaDataClientFactory);
+        reset(storageClientFactory);
+        reset(adminManagementClientFactory);
+        reset(logbookLifeCyclesClientFactory);
 
-        workspaceClient = mock(WorkspaceClient.class);
-        PowerMockito.mockStatic(WorkspaceClientFactory.class);
-        workspaceClientFactory = mock(WorkspaceClientFactory.class);
-        PowerMockito.when(WorkspaceClientFactory.getInstance()).thenReturn(workspaceClientFactory);
-        PowerMockito.when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
     }
 
     @AfterClass
@@ -151,10 +193,10 @@ public class LogbookInternalResourceImplTest {
         LOGGER.debug("Ending tests");
         try {
             application.stop();
-            junitHelper.releasePort(port);
-        } catch (final VitamApplicationServerException e) {
+        } catch (final Exception e) {
             LOGGER.error(e);
         }
+        junitHelper.releasePort(port);
         VitamClientFactory.resetConnections();
     }
 
@@ -166,23 +208,16 @@ public class LogbookInternalResourceImplTest {
      */
     @Test
     public void givenStartedServerWhenCheckTraceabilityThenOK() throws Exception {
-        LOGGER.warn("Reset logbook");
-        reset(logbookOperationClient);
-        LOGGER.warn("Reset process");
-        reset(processManagementClient);
-        LOGGER.warn("Reset workspace");
-        reset(workspaceClient);
-        LOGGER.warn("Start Mock");
-        Mockito.doNothing().when(logbookOperationClient).bulkCreate(any(), any());
-        Mockito.doNothing().when(logbookOperationClient).bulkUpdate(any(), any());
-        Mockito.doNothing().when(processManagementClient).initVitamProcess(any(),  any());
-        when(logbookOperationClient.selectOperationById(any()))
+        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
+        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
+        doNothing().when(processingManagementClient).initVitamProcess(any(), any());
+        when(logbookOperationsClient.selectOperationById(any()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
+        when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
             any(), any())).thenReturn(Response.ok().build());
-        when(processManagementClient.isOperationCompleted(any())).thenReturn(true);
+        when(processingManagementClient.isOperationCompleted(any())).thenReturn(true);
         when(workspaceClient.isExistingContainer(any())).thenReturn(true);
-        Mockito.doNothing().when(workspaceClient).deleteContainer(any(), anyBoolean());
+        doNothing().when(workspaceClient).deleteContainer(any(), anyBoolean());
         LOGGER.warn("Start Check");
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -193,18 +228,18 @@ public class LogbookInternalResourceImplTest {
 
     @Test
     public void givenStartedServerWhenSearchLogbookThenOK() throws Exception {
-        reset(logbookOperationClient);
-        reset(processManagementClient);
+        reset(logbookOperationsClient);
+        reset(processingManagementClient);
         reset(workspaceClient);
-        when(logbookOperationClient.selectOperation(any()))
-        .thenReturn(JsonHandler.getFromString(queryDsql));
+        when(logbookOperationsClient.selectOperation(any()))
+            .thenReturn(JsonHandler.getFromString(queryDsql));
 
         given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().get("/operations").then().statusCode(Status.OK.getStatusCode());
 
     }
-    
+
     /**
      * Test the check traceability method
      *
@@ -212,12 +247,12 @@ public class LogbookInternalResourceImplTest {
      */
     @Test
     public void givenStartedServerWhenCheckTraceabilityWithInvalidQueryThenBadRequest() throws Exception {
-        reset(logbookOperationClient);
-        reset(processManagementClient);
+        reset(logbookOperationsClient);
+        reset(processingManagementClient);
         reset(workspaceClient);
-        Mockito.doNothing().when(logbookOperationClient).bulkCreate(any(), any());
-        Mockito.doNothing().when(logbookOperationClient).bulkUpdate(any(), any());
-        Mockito.doThrow(new BadRequestException("Bad Request")).when(processManagementClient)
+        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
+        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
+        Mockito.doThrow(new BadRequestException("Bad Request")).when(processingManagementClient)
             .initVitamProcess(any(), any());
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -233,17 +268,16 @@ public class LogbookInternalResourceImplTest {
     @Test
     public void givenStartedServerWhenCheckTraceabilityWithInternalServerErrorThenInternalServerError()
         throws Exception {
-        reset(logbookOperationClient);
-        reset(processManagementClient);
+        reset(logbookOperationsClient);
+        reset(processingManagementClient);
         reset(workspaceClient);
-        Mockito.doNothing().when(logbookOperationClient).bulkCreate(any(), any());
-        Mockito.doNothing().when(logbookOperationClient).bulkUpdate(any(), any());
-        Mockito.doNothing().when(processManagementClient).initVitamProcess(any(), any());
-        when(logbookOperationClient.selectOperationById(any()))
+        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
+        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
+        doNothing().when(processingManagementClient).initVitamProcess(any(), any());
+        when(logbookOperationsClient.selectOperationById(any()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
+        when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
             any(), any())).thenThrow(new InternalServerException("InternalServerException"));
-
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post("/traceability/check").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -257,21 +291,20 @@ public class LogbookInternalResourceImplTest {
      */
     @Test
     public void givenStartedServerWhenCheckTraceabilityWithContainerNotFoundThenNotFound() throws Exception {
-        reset(logbookOperationClient);
-        reset(processManagementClient);
+        reset(logbookOperationsClient);
+        reset(processingManagementClient);
         reset(workspaceClient);
-        Mockito.doNothing().when(logbookOperationClient).bulkCreate(any(), any());
-        Mockito.doNothing().when(logbookOperationClient).bulkUpdate(any(), any());
-        Mockito.doNothing().when(processManagementClient).initVitamProcess(any(), any());
-        when(logbookOperationClient.selectOperationById(any()))
+        doNothing().when(logbookOperationsClient).bulkCreate(any(), any());
+        doNothing().when(logbookOperationsClient).bulkUpdate(any(), any());
+        doNothing().when(processingManagementClient).initVitamProcess(any(), any());
+        when(logbookOperationsClient.selectOperationById(any()))
             .thenReturn(ClientMockResultHelper.getLogbookOperation());
-        when(processManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
+        when(processingManagementClient.executeCheckTraceabilityWorkFlow(any(), any(),
             any(), any())).thenThrow(new WorkflowNotFoundException("Workflow not found"));
 
         given().contentType(ContentType.JSON).body(JsonHandler.getFromString(queryDsql))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all").header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when().post("/traceability/check").then().statusCode(Status.NOT_FOUND.getStatusCode());
-
     }
 
 }

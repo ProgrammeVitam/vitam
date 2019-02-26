@@ -26,14 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.external.rest;
 
-import io.restassured.RestAssured;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientMock;
+import io.restassured.RestAssured;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -44,6 +49,10 @@ import javax.ws.rs.core.Response.Status;
 import java.io.File;
 
 import static io.restassured.RestAssured.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class IngestExternalSslResourceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalSslResourceTest.class);
@@ -58,16 +67,23 @@ public class IngestExternalSslResourceTest {
     private static IngestExternalMain application;
 
     private static IngestExternalConfiguration realIngest;
+    private static FormatIdentifierFactory formatIdentifierFactory = mock(FormatIdentifierFactory.class);
+    private static IngestInternalClientFactory ingestInternalClientFactory = mock(IngestInternalClientFactory.class);
+    private static FormatIdentifierSiegfried siegfried = mock(FormatIdentifierSiegfried.class);
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenReturn(siegfried);
+        IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
+        when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
+        when(ingestInternalClient.getWorkflowDetails(anyString()))
+            .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
-        // TODO P1 verifier la compatibilité avec les test parallèle sur jenkins
 
         RestAssured.port = serverPort;
         RestAssured.basePath = RESOURCE_URI;
@@ -75,13 +91,15 @@ public class IngestExternalSslResourceTest {
         final File logbook = PropertiesUtils.findFile(INGEST_EXTERNAL_CONF);
         realIngest = PropertiesUtils.readYaml(logbook, IngestExternalConfiguration.class);
         File file = temporaryFolder.newFile();
-        String configurationFile = file.getAbsolutePath();
         PropertiesUtils.writeYaml(file, realIngest);
 
-        // TODO P1 activate authentication
-        // RestAssured.keystore("src/test/resources/tls/server/granted_certs.jks", "gazerty");
+        // TODO: 08/02/19 remove static (no time)
+        BusinessApplicationTest.formatIdentifierFactory = formatIdentifierFactory;
+        BusinessApplicationTest.ingestInternalClientFactory = ingestInternalClientFactory;
+
+
         try {
-            application = new IngestExternalMain(configurationFile, BusinessApplicationTest.class, null);
+            application = new IngestExternalMain(INGEST_EXTERNAL_CONF, BusinessApplicationTest.class, null);
             application.start();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);

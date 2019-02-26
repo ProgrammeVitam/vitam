@@ -124,6 +124,7 @@ public class WebApplicationResourceDelete {
     private final MongoDbAccessAdminImpl mongoDbAccessAdmin;
     private final LogbookMongoDbAccessImpl mongoDbAccessLogbook;
     private final MongoDbAccessMetadataImpl mongoDbAccessMetadata;
+    private final UserInterfaceTransactionManager userInterfaceTransactionManager = UserInterfaceTransactionManager.getInstance();
 
     /**
      * Default constructor
@@ -730,7 +731,7 @@ public class WebApplicationResourceDelete {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
 
             InputStream input = this.getClass().getResourceAsStream("/VitamOntology.json");
-            VitamContext context = UserInterfaceTransactionManager.getVitamContext(request);
+            VitamContext context = userInterfaceTransactionManager.getVitamContext(request);
             context.setTenantId(1);
             RequestResponse requestResponse =
                 adminClient.importOntologies(true, context, input);

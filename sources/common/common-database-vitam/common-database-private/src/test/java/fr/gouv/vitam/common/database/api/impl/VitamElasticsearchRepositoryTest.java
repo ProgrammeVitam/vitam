@@ -59,9 +59,6 @@ import org.junit.rules.TemporaryFolder;
  *
  */
 public class VitamElasticsearchRepositoryTest {
-
-    private static String ES_CONFIGURATION_FILE = "/elasticsearch-configuration.json";
-
     public static final String TESTINDEX = "vitamelasticsearchrepository" + GUIDFactory.newGUID().getId();
     private static VitamElasticsearchRepository repository;
 
@@ -370,7 +367,6 @@ public class VitamElasticsearchRepositoryTest {
         if (!client.admin().indices().prepareExists(TESTINDEX).get().isExists()) {
             final CreateIndexResponse createIndexResponse =
                 client.admin().indices().prepareCreate(TESTINDEX)
-                    .setSettings(settings())
                     .addMapping("typeunique", mapping, XContentType.JSON)
                     .get();
             assertThat(createIndexResponse.isAcknowledged()).isTrue();
@@ -393,10 +389,5 @@ public class VitamElasticsearchRepositoryTest {
     @Test(expected = DatabaseException.class)
     public void testRemoveByNameAndTenantNotImplemented() throws DatabaseException {
         repository.removeByNameAndTenant("FakeName", 0);
-    }
-
-    public Settings.Builder settings() throws IOException {
-        return Settings.builder().loadFromStream(ES_CONFIGURATION_FILE,
-            VitamElasticsearchRepositoryTest.class.getResourceAsStream(ES_CONFIGURATION_FILE), true);
     }
 }

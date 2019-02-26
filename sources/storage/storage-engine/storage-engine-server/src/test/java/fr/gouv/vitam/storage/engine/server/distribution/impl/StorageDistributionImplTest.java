@@ -117,7 +117,7 @@ public class StorageDistributionImplTest {
 
         folder.create();
         StorageLog storageLogService =
-            StorageLogFactory.getInstance(list, Paths.get(folder.getRoot().getAbsolutePath()));
+            StorageLogFactory.getInstanceForTest(list, Paths.get(folder.getRoot().getAbsolutePath()));
         simpleDistribution = new StorageDistributionImpl(configuration, storageLogService);
         customDistribution = new StorageDistributionImpl(client, DigestType.SHA1, storageLogService,
             Executors.newFixedThreadPool(16, VitamThreadFactory.getInstance()), 300);

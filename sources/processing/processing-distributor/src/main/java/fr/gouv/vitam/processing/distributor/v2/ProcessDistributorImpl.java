@@ -54,6 +54,7 @@ import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import fr.gouv.vitam.processing.data.core.management.WorkspaceProcessDataManagement;
 import fr.gouv.vitam.processing.distributor.api.IWorkerManager;
 import fr.gouv.vitam.processing.distributor.api.ProcessDistributor;
+import fr.gouv.vitam.worker.client.WorkerClientFactory;
 import fr.gouv.vitam.worker.client.exception.PauseCancelException;
 import fr.gouv.vitam.worker.client.exception.WorkerUnreachableException;
 import fr.gouv.vitam.worker.common.DescriptionStep;
@@ -127,10 +128,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
         "An Exception has been thrown when trying to persist DistributorIndex";
 
     private final ProcessDataAccess processDataAccess;
-    private ProcessDataManagement processDataManagement;
+    private final ProcessDataManagement processDataManagement;
     private final IWorkerManager workerManager;
-    private Map<String, Step> currentSteps = new HashMap<>();
-    private WorkspaceClientFactory workspaceClientFactory;
+    private final Map<String, Step> currentSteps = new HashMap<>();
+    private final WorkspaceClientFactory workspaceClientFactory;
+    private final WorkerClientFactory workerClientFactory;
 
     /**
      * Empty constructor
@@ -139,16 +141,18 @@ public class ProcessDistributorImpl implements ProcessDistributor {
      */
     public ProcessDistributorImpl(IWorkerManager workerManager) {
         this(workerManager, ProcessDataAccessImpl.getInstance(), WorkspaceProcessDataManagement.getInstance(),
-            WorkspaceClientFactory.getInstance());
+            WorkspaceClientFactory.getInstance(), null);
     }
 
     @VisibleForTesting
     public ProcessDistributorImpl(IWorkerManager workerManager, ProcessDataAccess processDataAccess,
-        ProcessDataManagement processDataManagement, WorkspaceClientFactory workspaceClientFactory) {
+        ProcessDataManagement processDataManagement, WorkspaceClientFactory workspaceClientFactory,
+        WorkerClientFactory workerClientFactory) {
         this.workerManager = workerManager;
         this.processDataAccess = processDataAccess;
         this.processDataManagement = processDataManagement;
         this.workspaceClientFactory = workspaceClientFactory;
+        this.workerClientFactory = workerClientFactory;
         ParametersChecker
             .checkParameter("Parameters are required.", workerManager, processDataAccess, processDataManagement,
                 workspaceClientFactory);
@@ -179,9 +183,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Temporary method for distribution supporting multi-list
      *
-     * @param workParams   of type {@link WorkerParameters}
-     * @param step         the execution step
-     * @param operationId  the operation id
+     * @param workParams of type {@link WorkerParameters}
+     * @param step the execution step
+     * @param operationId the operation id
      * @param pauseRecover prevent recover from pause action
      * @return the final step status
      */
@@ -628,8 +632,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     /**
      * Distribution on stream.
      *
-     * @param workerParameters         workerParameters
-     * @param step                     step
+     * @param workerParameters workerParameters
+     * @param step step
      * @param bufferedReader
      * @param initFromDistributorIndex
      * @param tenantId
@@ -794,7 +798,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             }
 
             prepareCurrentWorkerTaskAndCompletableListsOnStream(workerParameters, step, tenantId, operationId,
-                requestId, contractId, contextId, applicationId, bulkSize, distributionList, completableFutureList, currentWorkerTaskList);
+                requestId, contractId, contextId, applicationId, bulkSize, distributionList, completableFutureList,
+                currentWorkerTaskList);
 
             CompletableFuture<List<ItemStatus>> sequence = sequence(completableFutureList);
 
@@ -862,7 +867,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     private void prepareCurrentWorkerTaskAndCompletableLists(WorkerParameters workerParameters, Step step,
-        Integer tenantId, String operationId, String requestId, String contractId, String contextId, String applicationId,
+        Integer tenantId, String operationId, String requestId, String contractId, String contextId,
+        String applicationId,
         int bulkSize, List<String> subList, List<CompletableFuture<ItemStatus>> completableFutureList,
         List<WorkerTask> currentWorkerTaskList) {
         int subOffset = 0;
@@ -881,7 +887,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             final WorkerTask workerTask =
                 new WorkerTask(
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId, applicationId);
+                    tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
 
             currentWorkerTaskList.add(workerTask);
             completableFutureList.add(prepare(workerTask, operationId, tenantId));
@@ -891,7 +897,8 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     private void prepareCurrentWorkerTaskAndCompletableListsOnStream(WorkerParameters workerParameters, Step step,
-        Integer tenantId, String operationId, String requestId, String contractId, String contextId, String applicationId,
+        Integer tenantId, String operationId, String requestId, String contractId, String contextId,
+        String applicationId,
         int bulkSize, List<JsonLineModel> distributionList, List<CompletableFuture<ItemStatus>> completableFutureList,
         List<WorkerTask> currentWorkerTaskList) {
         int distribOffSet = 0;
@@ -913,7 +920,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             final WorkerTask workerTask =
                 new WorkerTask(
                     new DescriptionStep(step, ((DefaultWorkerParameters) workerParameters).newInstance()),
-                    tenantId, requestId, contractId, contextId, applicationId);
+                    tenantId, requestId, contractId, contextId, applicationId, workerClientFactory);
 
             currentWorkerTaskList.add(workerTask);
             completableFutureList.add(prepare(workerTask, operationId, tenantId));
@@ -953,7 +960,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     }
 
     /**
-     * @param task        task
+     * @param task task
      * @param operationId
      * @param tenantId
      * @return
@@ -1008,5 +1015,31 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     @Override
     public void close() {
         // Nothing
+    }
+
+
+    @Override
+    public ProcessDataAccess getProcessDataAccess() {
+        return processDataAccess;
+    }
+
+    @Override
+    public ProcessDataManagement getProcessDataManagement() {
+        return processDataManagement;
+    }
+
+    @Override
+    public IWorkerManager getWorkerManager() {
+        return workerManager;
+    }
+
+    @Override
+    public WorkspaceClientFactory getWorkspaceClientFactory() {
+        return workspaceClientFactory;
+    }
+
+    @Override
+    public WorkerClientFactory getWorkerClientFactory() {
+        return workerClientFactory;
     }
 }

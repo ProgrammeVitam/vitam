@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.data.core.management.ProcessDataManagement;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -95,8 +96,9 @@ public class ProcessWorkFlowsCleanerTest {
         when(processManagement.getConfiguration()).thenReturn(serverConfiguration);
         when(processManagement.getWorkFlowList()).thenReturn(map);
 
+        ProcessDataManagement processDataManagement = mock(ProcessDataManagement.class);
         // THEN
-        ProcessWorkFlowsCleaner processWorkFlowsCleaner = new ProcessWorkFlowsCleaner(processManagement, TimeUnit.HOURS);
+        ProcessWorkFlowsCleaner processWorkFlowsCleaner = new ProcessWorkFlowsCleaner(processManagement, processDataManagement, TimeUnit.HOURS);
         processWorkFlowsCleaner.run();
 
        assertThat(map.get(0).size()).isEqualTo(2);

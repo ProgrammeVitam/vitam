@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ihmdemo.appserver;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
 import fr.gouv.vitam.access.external.client.AdminExternalClient;
@@ -62,7 +63,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
-import static fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager.getVitamContext;
 import static javax.ws.rs.core.Response.status;
 
 /**
@@ -75,16 +75,24 @@ public class WebPreservationResource {
 
     private final AdminExternalClientFactory adminExternalClientFactory;
     private final AccessExternalClientFactory accessExternalClientFactory;
+    private final UserInterfaceTransactionManager userInterfaceTransactionManager;
+    private final DslQueryHelper dslQueryHelper;
 
+    @VisibleForTesting
     WebPreservationResource(
         AdminExternalClientFactory adminExternalClientFactory,
-        AccessExternalClientFactory accessExternalClientFactory) {
+        AccessExternalClientFactory accessExternalClientFactory,
+        UserInterfaceTransactionManager userInterfaceTransactionManager,
+        DslQueryHelper dslQueryHelper) {
         this.adminExternalClientFactory = adminExternalClientFactory;
         this.accessExternalClientFactory = accessExternalClientFactory;
+        this.userInterfaceTransactionManager = userInterfaceTransactionManager;
+        this.dslQueryHelper = dslQueryHelper;
     }
 
-    WebPreservationResource(Set<String> permissions) {
-        this(AdminExternalClientFactory.getInstance(), AccessExternalClientFactory.getInstance());
+    WebPreservationResource() {
+        this(AdminExternalClientFactory.getInstance(), AccessExternalClientFactory.getInstance(),
+            UserInterfaceTransactionManager.getInstance(), DslQueryHelper.getInstance());
     }
 
     @POST
@@ -96,7 +104,7 @@ public class WebPreservationResource {
         try (AccessExternalClient client = accessExternalClientFactory.getClient()) {
 
             PreservationRequest preservationRequest = getFromString(preservationString, PreservationRequest.class);
-            VitamContext vitamContext = getVitamContext(request);
+            VitamContext vitamContext = userInterfaceTransactionManager.getVitamContext(request);
             RequestResponse response = client.launchPreservation(vitamContext, preservationRequest);
 
             return status(Status.OK).entity(response).build();
@@ -113,13 +121,13 @@ public class WebPreservationResource {
     @RequiresPermissions("preservationScenarios:read")
     public Response getPreservationScenarios(@Context HttpServletRequest request, String select) {
 
-        VitamContext vitamContext = getVitamContext(request);
+        VitamContext vitamContext = userInterfaceTransactionManager.getVitamContext(request);
         RequestResponse<PreservationScenarioModel> response;
 
         try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
-            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
 
             response = client.findPreservationScenario(vitamContext, query);
 
@@ -138,13 +146,13 @@ public class WebPreservationResource {
     @Produces(MediaType.APPLICATION_JSON)
     @RequiresPermissions("griffins:read")
     public Response getPreservationGriffins(@Context HttpServletRequest request, String select) {
-        VitamContext vitamContext = getVitamContext(request);
+        VitamContext vitamContext = userInterfaceTransactionManager.getVitamContext(request);
         RequestResponse<GriffinModel> response;
 
         try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
             final Map<String, Object> optionsMap = JsonHandler.getMapFromString(select);
 
-            final JsonNode query = DslQueryHelper.createSingleQueryDSL(optionsMap);
+            final JsonNode query = dslQueryHelper.createSingleQueryDSL(optionsMap);
 
             response =
                 client.findGriffin(vitamContext, query);
@@ -167,7 +175,7 @@ public class WebPreservationResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient.importGriffin(
-                    UserInterfaceTransactionManager.getVitamContext(request), input,
+                    userInterfaceTransactionManager.getVitamContext(request), input,
                     request.getHeader(GlobalDataRest.X_FILENAME));
 
             if (response instanceof RequestResponseOK) {
@@ -193,7 +201,7 @@ public class WebPreservationResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse response =
                 adminClient.importPreservationScenario(
-                    UserInterfaceTransactionManager.getVitamContext(request), input,
+                    userInterfaceTransactionManager.getVitamContext(request), input,
                     request.getHeader(GlobalDataRest.X_FILENAME));
             if (response instanceof RequestResponseOK) {
                 return status(Status.OK).build();
@@ -219,7 +227,7 @@ public class WebPreservationResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<GriffinModel> response =
                 adminClient.findGriffinById(
-                    UserInterfaceTransactionManager.getVitamContext(request),
+                    userInterfaceTransactionManager.getVitamContext(request),
                     id);
             if (response instanceof RequestResponseOK) {
                 return status(Status.OK).entity(response).build();
@@ -234,6 +242,7 @@ public class WebPreservationResource {
             return status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     @GET
     @Path("scenario/{id}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -244,7 +253,7 @@ public class WebPreservationResource {
         try (final AdminExternalClient adminClient = AdminExternalClientFactory.getInstance().getClient()) {
             RequestResponse<PreservationScenarioModel> response =
                 adminClient.findPreservationScenarioById(
-                    UserInterfaceTransactionManager.getVitamContext(request),
+                    userInterfaceTransactionManager.getVitamContext(request),
                     id);
             if (response instanceof RequestResponseOK) {
                 return status(Status.OK).entity(response).build();

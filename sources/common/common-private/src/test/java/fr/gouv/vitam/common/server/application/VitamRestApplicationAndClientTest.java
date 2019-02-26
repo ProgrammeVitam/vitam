@@ -66,9 +66,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * Model for equivalent to JerseyTest and/or usage of restassured like VitamRestTestClient
- */
+
 public class VitamRestApplicationAndClientTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamRestApplicationAndClientTest.class);
 

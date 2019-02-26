@@ -73,9 +73,9 @@ public class AccessContratIdHeaderHelper {
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
      * @throws MissingAccessContractIdException
      */
-    public static void manageAccessContratFromHeader(MultivaluedMap<String, String> requestHeaders) throws
+    public static void manageAccessContratFromHeader(MultivaluedMap<String, String> requestHeaders, AdminManagementClientFactory adminManagementClientFactory) throws
         MissingAccessContractIdException {
-        try(final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
+        try(final AdminManagementClient client = adminManagementClientFactory.getClient()) {
             String headerAccessContratId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
             if (headerAccessContratId== null){

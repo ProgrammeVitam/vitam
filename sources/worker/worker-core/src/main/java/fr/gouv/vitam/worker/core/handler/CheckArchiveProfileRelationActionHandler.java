@@ -26,10 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.handler;
 
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -56,6 +55,8 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
+import java.util.List;
+
 /**
  * Check Archive Profile Relation Handler Verify the relation between ingest contract and profil in manifest
  */
@@ -72,11 +73,19 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
     private static final int PROFILE_IDENTIFIER_RANK = 0;
     private static final int CONTRACT_IDENTIFIER_RANK = 1;
 
+    private final AdminManagementClientFactory adminManagementClientFactory;
+
     /**
      * Constructor with parameter SedaUtilsFactory
      */
     public CheckArchiveProfileRelationActionHandler() {
-        // empty constructor
+        this(AdminManagementClientFactory.getInstance());
+    }
+
+
+    @VisibleForTesting
+    public CheckArchiveProfileRelationActionHandler(AdminManagementClientFactory adminManagementClientFactory) {
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     /**
@@ -96,7 +105,7 @@ public class CheckArchiveProfileRelationActionHandler extends ActionHandler {
         ObjectNode infoNode = JsonHandler.createObjectNode();
         String dataKey = null;
         String dataValue = null;
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
 
             if (ParametersChecker.isNotEmpty(profileIdentifier)) {
                 // Check that profile exists and not inactive

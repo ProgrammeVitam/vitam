@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutorProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.SocketConfig;
@@ -198,7 +197,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     }
 
     /**
-     * ONLY use this constructor in unit test. Remove this when JerseyTest will be fully compatible with Jetty
      *
      * @param configuration the client configuration
      * @param resourcePath the resource path of the server for the client calls
@@ -516,7 +514,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         clientBuilder.socketTimeout(VitamRestEasyConfiguration.READ_TIMEOUT.getInt(config, 100000),
             TimeUnit.MILLISECONDS);
         clientBuilder.asyncExecutor(vitamThreadPoolExecutor);
-        clientBuilder.register(new VitamThreadPoolExecutorProvider("Vitam"));
+        clientBuilder.executorService(vitamThreadPoolExecutor);
         if (isAllowGzipDecoded()) {
             clientBuilder.register(AcceptEncodingGZIPFilter.class);
             clientBuilder.register(GZIPDecodingInterceptor.class);

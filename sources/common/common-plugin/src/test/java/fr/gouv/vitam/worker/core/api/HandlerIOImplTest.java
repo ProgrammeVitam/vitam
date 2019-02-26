@@ -23,10 +23,13 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.processing.IOParameter;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.common.CompressInformation;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,13 +48,27 @@ public class HandlerIOImplTest {
 
     @Mock
     private WorkspaceClient workspaceClient;
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    @Mock
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+
 
     private HandlerIO handlerIO;
 
     @Before
     public void init() {
-        handlerIO = new HandlerIOImpl(workspaceClient, GUIDFactory.newGUID().getId(), GUIDFactory.newGUID().getId(), OBJECT_IDS);
+        handlerIO =
+            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, GUIDFactory.newGUID().getId(),
+                GUIDFactory.newGUID().getId(), OBJECT_IDS);
         handlerIO.setCurrentObjectId(CURRENT_OBJECT);
+
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
     }
 
     @Test
@@ -103,7 +120,7 @@ public class HandlerIOImplTest {
         when(workspaceClient.getObject(any(), any()))
             .thenReturn(Response.status(Status.OK).entity(PropertiesUtils.getResourceAsStream("sip.xml")).build());
 
-        try (final HandlerIO io = new HandlerIOImpl(workspaceClient, "containerName", "workerId", OBJECT_IDS)) {
+        try (final HandlerIO io = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "containerName", "workerId", OBJECT_IDS)) {
             io.setCurrentObjectId(CURRENT_OBJECT);
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
             final List<IOParameter> in = new ArrayList<>();
@@ -129,7 +146,7 @@ public class HandlerIOImplTest {
         final List<IOParameter> in = new ArrayList<>();
         in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(true));
 
-        final HandlerIOImpl io2 = new HandlerIOImpl(workspaceClient, "containerName", "workerId2", OBJECT_IDS);
+        final HandlerIOImpl io2 = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "containerName", "workerId2", OBJECT_IDS);
         io2.setCurrentObjectId(CURRENT_OBJECT);
         assertTrue(io2.checkHandlerIO(0, new ArrayList<>()));
 
@@ -156,7 +173,7 @@ public class HandlerIOImplTest {
         when(workspaceClient.getObject(any(), any()))
             .thenThrow(new ContentAddressableStorageNotFoundException(""));
 
-        try (final HandlerIO io = new HandlerIOImpl(workspaceClient, "containerName", "workerId", OBJECT_IDS)) {
+        try (final HandlerIO io = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "containerName", "workerId", OBJECT_IDS)) {
             assertTrue(io.checkHandlerIO(0, new ArrayList<>()));
             final List<IOParameter> in = new ArrayList<>();
             in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE, "objectName")).setOptional(false));
@@ -167,9 +184,8 @@ public class HandlerIOImplTest {
     @Test
     public void should_compress_file() throws Exception {
         // Given
-        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         String containerName = "containerName";
-        HandlerIO handlerIO = new HandlerIOImpl(workspaceClient, containerName, "workerId", OBJECT_IDS);
+        HandlerIO handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, containerName, "workerId", OBJECT_IDS);
         when(workspaceClient.isExistingContainer(containerName)).thenReturn(true);
 
         // When

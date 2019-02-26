@@ -26,36 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmdemo.core;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.InputStream;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
+import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2;
+import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2Factory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -68,14 +45,34 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests UserInterfaceTransactionManager class
  */
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({AccessExternalClientFactory.class})
 public class UserInterfaceTransactionManagerTest {
+    @Rule
+    public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
     private static String SELECT_ID_DSL_QUERY = "{ $roots : [ '1' ] }";
     private static String SEARCH_UNIT_DSL_QUERY =
         "{ \"$queries\": [{$eq : { #id : 1 }}], \"$filter\": {$orderby : { TransactedDate : 1 } }, " +
@@ -92,13 +89,6 @@ public class UserInterfaceTransactionManagerTest {
             "\"$actions\": {#id : 1, Title : 1, TransactedDate:1 }}";
     private static String OBJECT_GROUP_QUERY =
         "{\"$queries\": [{ \"$path\": \"aaaaa\" }],\"$filter\": { },\"$projection\": {}}";
-    private static final String ALL_PARENTS =
-        "[{#id:'ID029',Title:'ID029',#unitups:['ID028', 'ID030'],_tenant:0}, " +
-            "{#id:'ID028',Title:'ID028',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID030',Title:'ID030',#unitups:['ID027'],_tenant:0}," +
-            "{#id:'ID027',Title:'ID027',#unitups:['ID026', 'ID025'],_tenant:0}," +
-            "{#id:'ID026',Title:'ID026',#unitups:[],_tenant:0}," +
-            "{#id:'ID025',Title:'ID025',#unitups:[],_tenant:0}]";
 
     final int TENANT_ID = 0;
     final String CONTRACT_NAME = "contract";
@@ -107,42 +97,54 @@ public class UserInterfaceTransactionManagerTest {
     private static RequestResponse unitDetails;
     private static RequestResponse searchResult;
     private static RequestResponse updateResult;
-    private static JsonNode allParents;
 
     private static AsyncResponseJunitTest asynResponse = new AsyncResponseJunitTest();
 
-    private static AccessExternalClientFactory accessClientFactory;
-    private static AccessExternalClient accessClient;
-    private VitamContext context = getVitamContext();
+    private AccessExternalClientFactory accessExternalClientFactory;
+    private AdminExternalClientFactory adminExternalClientFactory;
+    private AccessExternalClientV2Factory accessExternalClientV2Factory;
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    private AccessExternalClient accessExternalClient;
+    private AdminExternalClient adminExternalClient;
+    private AccessExternalClientV2 accessExternalClientV2;
+
+
+    private VitamContext context = getVitamContext();
+    private UserInterfaceTransactionManager userInterfaceTransactionManager;
 
     @BeforeClass
     public static void setup() throws Exception {
         unitDetails = JsonHandler.getFromString(UNIT_DETAILS, RequestResponseOK.class, JsonNode.class);
         searchResult = JsonHandler.getFromString(SEARCH_RESULT, RequestResponseOK.class, JsonNode.class);
         updateResult = JsonHandler.getFromString(UPDATE_FIELD_IMPACTED_RESULT, RequestResponseOK.class, JsonNode.class);
-        allParents = JsonHandler.getFromString(ALL_PARENTS);
     }
 
     @Before
-    public void setupTests() throws Exception {
-        PowerMockito.mockStatic(AccessExternalClientFactory.class);
-        accessClientFactory = PowerMockito.mock(AccessExternalClientFactory.class);
-        accessClient = org.mockito.Mockito.spy(AccessExternalClient.class);
-        PowerMockito.when(AccessExternalClientFactory.getInstance()).thenReturn(accessClientFactory);
-        PowerMockito.when(AccessExternalClientFactory.getInstance().getClient()).thenReturn(accessClient);
+    public void setupTests() {
+        accessExternalClientFactory = mock(AccessExternalClientFactory.class);
+        accessExternalClient = org.mockito.Mockito.spy(AccessExternalClient.class);
+        when(accessExternalClientFactory.getClient()).thenReturn(accessExternalClient);
+
+        accessExternalClientV2Factory = mock(AccessExternalClientV2Factory.class);
+        accessExternalClientV2 = org.mockito.Mockito.spy(AccessExternalClientV2.class);
+        when(accessExternalClientV2Factory.getClient()).thenReturn(accessExternalClientV2);
+
+        adminExternalClientFactory = mock(AdminExternalClientFactory.class);
+        adminExternalClient = org.mockito.Mockito.spy(AdminExternalClient.class);
+        when(adminExternalClientFactory.getClient()).thenReturn(adminExternalClient);
+
+        userInterfaceTransactionManager =
+            new UserInterfaceTransactionManager(accessExternalClientFactory, adminExternalClientFactory,
+                accessExternalClientV2Factory, DslQueryHelper.getInstance());
     }
 
     @Test
     @RunWithCustomExecutor
     public void testSuccessSearchUnits()
         throws Exception {
-        when(accessClient.selectUnits(any(), any())).thenReturn(searchResult);
+        when(accessExternalClient.selectUnits(any(), any())).thenReturn(searchResult);
         // Test method
-        final RequestResponseOK result = (RequestResponseOK) UserInterfaceTransactionManager
+        final RequestResponseOK result = (RequestResponseOK) userInterfaceTransactionManager
             .searchUnits(JsonHandler.getFromString(SEARCH_UNIT_DSL_QUERY), context);
         assertTrue(result.getHits().getTotal() == 1);
     }
@@ -151,32 +153,29 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetArchiveUnitDetails()
         throws Exception {
-        when(accessClient.selectUnitbyId(
+        when(accessExternalClient.selectUnitbyId(
             any(),
             eq(JsonHandler.getFromString(SELECT_ID_DSL_QUERY)), eq(ID_UNIT)))
-                .thenReturn(unitDetails);
+            .thenReturn(unitDetails);
         // Test method
         final RequestResponseOK<JsonNode> archiveDetails =
-            (RequestResponseOK) UserInterfaceTransactionManager
+            (RequestResponseOK) userInterfaceTransactionManager
                 .getArchiveUnitDetails(JsonHandler.getFromString(SELECT_ID_DSL_QUERY), ID_UNIT, context);
         assertTrue(archiveDetails.getResults().get(0).get("Title").textValue().equals("Archive 1"));
     }
-
-
-    // TODO anpar: Make Test for selectOperation respect Dsl validator.
 
     @Test
     @RunWithCustomExecutor
     public void testgetLifecycleUnit()
         throws Exception {
-        when(accessClient.selectUnitLifeCycleById(any(), any(), any())).thenReturn(searchResult);
+        when(accessExternalClient.selectUnitLifeCycleById(any(), any(), any())).thenReturn(searchResult);
 
         // Test method
-        final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
+        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager
             .selectUnitLifeCycleById("1", context);
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
-        verify(accessClient).selectUnitLifeCycleById(any(), any(), selectArgument.capture());
+        verify(accessExternalClient).selectUnitLifeCycleById(any(), any(), selectArgument.capture());
         assertFalse(selectArgument.getValue().has("$filter"));
         assertFalse(selectArgument.getValue().has("$query"));
     }
@@ -185,26 +184,26 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testgetLifecycleObjectGroup()
         throws Exception {
-        when(accessClient.selectObjectGroupLifeCycleById(any(), any(), any())).thenReturn(searchResult);
+        when(accessExternalClient.selectObjectGroupLifeCycleById(any(), any(), any())).thenReturn(searchResult);
 
         // Test method
-        final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager
+        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager
             .selectObjectGroupLifeCycleById("1", context);
 
         ArgumentCaptor<JsonNode> selectArgument = ArgumentCaptor.forClass(JsonNode.class);
-        verify(accessClient).selectObjectGroupLifeCycleById(any(), any(), selectArgument.capture());
+        verify(accessExternalClient).selectObjectGroupLifeCycleById(any(), any(), selectArgument.capture());
         assertFalse(selectArgument.getValue().has("$filter"));
         assertFalse(selectArgument.getValue().has("$query"));
     }
 
-    
+
     @Test
     @RunWithCustomExecutor
     public void testSuccessUpdateUnits()
         throws Exception {
-        when(accessClient.updateUnitbyId(any(), any(), any())).thenReturn(updateResult);
+        when(accessExternalClient.updateUnitbyId(any(), any(), any())).thenReturn(updateResult);
         // Test method
-        final RequestResponseOK results = (RequestResponseOK) UserInterfaceTransactionManager.updateUnits(JsonHandler
+        final RequestResponseOK results = (RequestResponseOK) userInterfaceTransactionManager.updateUnits(JsonHandler
             .getFromString(UPDATE_UNIT_DSL_QUERY), "1", context);
         assertTrue(results.getHits().getTotal() == 1);
     }
@@ -218,13 +217,13 @@ public class UserInterfaceTransactionManagerTest {
                 "{$hits: {'total':'1'}, $results:[{'#id': '1', 'Title': 'Archive 1', 'DescriptionLevel': 'Archive Mock'}],$context :" +
                     SEARCH_UNIT_DSL_QUERY + "}",
                 RequestResponseOK.class, JsonNode.class);
-        when(accessClient.selectObjectMetadatasByUnitId(
+        when(accessExternalClient.selectObjectMetadatasByUnitId(
             any(),
             eq(JsonHandler.getFromString(OBJECT_GROUP_QUERY)), eq(ID_OBJECT_GROUP)))
-                .thenReturn(result);
+            .thenReturn(result);
         // Test method
         final RequestResponseOK<JsonNode> objectGroup =
-            (RequestResponseOK) UserInterfaceTransactionManager
+            (RequestResponseOK) userInterfaceTransactionManager
                 .selectObjectbyId(JsonHandler.getFromString(OBJECT_GROUP_QUERY), ID_OBJECT_GROUP, context);
         assertTrue(
             objectGroup.getResults().get(0).get("#id").textValue().equals("1"));
@@ -234,12 +233,12 @@ public class UserInterfaceTransactionManagerTest {
     @RunWithCustomExecutor
     public void testSuccessGetObjectAsInputStream()
         throws Exception {
-        when(accessClient.getObjectStreamByUnitId(
+        when(accessExternalClient.getObjectStreamByUnitId(
             any(),
             eq(ID_OBJECT_GROUP), eq("usage"), eq(1)))
                 .thenReturn(new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE, null));
-        assertTrue(UserInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
+        assertTrue(userInterfaceTransactionManager.getObjectAsInputStream(asynResponse,
             ID_OBJECT_GROUP, "usage", 1, "vitam_test", context));
     }
 
@@ -250,14 +249,14 @@ public class UserInterfaceTransactionManagerTest {
         String encodedTimeStampToken = IOUtils.toString(tokenFile, "UTF-8");
 
         final JsonNode timeStampInfo =
-            UserInterfaceTransactionManager.extractInformationFromTimestamp(encodedTimeStampToken);
+            userInterfaceTransactionManager.extractInformationFromTimestamp(encodedTimeStampToken);
         assertTrue(!timeStampInfo.isNull());
         assertTrue("2017-05-26T17:25:26".equals(timeStampInfo.get("genTime").asText()));
         assertTrue(
             "C=FR,ST=idf,L=paris,O=Vitam.,CN=CA_timestamping".equals(timeStampInfo.get("signerCertIssuer").asText()));
 
         try {
-            UserInterfaceTransactionManager.extractInformationFromTimestamp("FakeTimeStamp");
+            userInterfaceTransactionManager.extractInformationFromTimestamp("FakeTimeStamp");
             fail("Should raized an exception");
         } catch (BadRequestException e) {
             // do nothing

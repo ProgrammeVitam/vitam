@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>PROD-signed</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <fileSets>
+        <!-- TODO : add the public key ONLY for signed rpm -->
+        <fileSet>
+            <directory>.</directory>
+            <outputDirectory>rpm_signed/</outputDirectory>
+            <includes>
+                <include>RPM-GPG-KEY-vitam</include>
+            </includes>
+        </fileSet>
+        <!-- Add all vitam-external rpm -->
+        <fileSet>
+            <directory>rpm_signed/vitam-product/</directory>
+            <outputDirectory>rpm_signed/vitam-product</outputDirectory>
+            <excludes>
+                <exclude>**/*ihm-recette-*.rpm</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
+            <directory>rpm_signed/vitam-external/</directory>
+            <outputDirectory>rpm_signed/vitam-external</outputDirectory>
+            <excludes>
+                <exclude>**/vitam-gatling-*.rpm</exclude>
+                <exclude>**/metricbeat-*.rpm</exclude>
+                <exclude>**/packetbeat-*.rpm</exclude>
+            </excludes>
+        </fileSet>
+        <!-- Add sources -->
+        <fileSet>
+            <directory>..</directory>
+            <outputDirectory>sources</outputDirectory>
+            <excludes>
+                <!-- IntelliJ project files -->
+                <exclude>**/*.iml</exclude>
+                <exclude>**/.idea/**</exclude>
+                <!-- Various build files & folders -->
+                <exclude>**/build/**</exclude>
+                <exclude>**/_build/**</exclude>
+                <exclude>**/target/**</exclude>
+                <exclude>**/*.class</exclude>
+                <exclude>**/*.log</exclude>
+                <!-- RPM build files -->
+                <exclude>**/RPMS/**</exclude>
+                <exclude>**/SRPMS/**</exclude>
+                <exclude>**/BUILD/**</exclude>
+                <exclude>**/BUILDROOT/**</exclude>
+                <!-- Eclipse project files -->
+                <exclude>**/.classpath</exclude>
+                <exclude>**/.project</exclude>
+                <exclude>**/.settings/**</exclude>
+                <!-- Ansible temp files -->
+                <exclude>**/*.retry</exclude>
+                <!-- Git-related -->
+                <exclude>**/.git/**</exclude>
+                <!-- Other -->
+                <exclude>**/node_modules/**</exclude>
+                <exclude>**/evosuite-tests/**</exclude>
+                <exclude>**/rpm_signed/**</exclude>
+            </excludes>
+        </fileSet>
+        <!-- Add ansible deployment files -->
+        <fileSet>
+            <directory>../deployment</directory>
+            <outputDirectory>deployment</outputDirectory>
+            <excludes>
+                <exclude>**/*.retry</exclude>
+                <exclude>demo_backup_vitam.sh</exclude>
+                <exclude>environments/antivirus/scan-dev.sh</exclude>
+                <exclude>ansible-vitam-extra</exclude>
+                <exclude>vault_pass.txt</exclude>
+                <exclude>environments/hosts.local</exclude>
+                <exclude>environments/hosts.fulllocal</exclude>
+                <exclude>environments/hosts.cots</exclude>
+                <exclude>environments/group_vars/all/vault-extra.example</exclude>
+                <exclude>environments/group_vars/all/vault-keystores.yml</exclude>
+                <exclude>environments/group_vars/all/vault-vitam.yml</exclude>
+                <exclude>environments/group_vars/all/offers_opts.yml</exclude>
+                <exclude>vitam-conf-dev</exclude>
+                <exclude>environments/certs/vault-certs.yml</exclude>
+                <exclude>deployment/pki/ca/*</exclude>
+                <exclude>deployment/pki/config/*</exclude>
+                <exclude>deployment/pki/scripts/*.sh</exclude>
+                <exclude>**/*.crt</exclude>
+                <exclude>**/*.key</exclude>
+                <exclude>**/*.p12</exclude>
+                <exclude>**/*.jks</exclude>
+            </excludes>
+        </fileSet>
+    </fileSets>
+    <dependencySets>
+        <!-- Add documentation files -->
+        <dependencySet>
+            <outputDirectory>/doc</outputDirectory>
+            <unpack>true</unpack>
+            <includes>
+                <include>fr.gouv.vitam.doc:*:zip</include>
+            </includes>
+        </dependencySet>
+    </dependencySets>
+</assembly>

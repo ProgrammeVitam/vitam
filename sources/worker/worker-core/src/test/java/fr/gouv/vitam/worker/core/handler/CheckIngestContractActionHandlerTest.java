@@ -1,20 +1,6 @@
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.xml.stream.XMLStreamException;
-
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -35,22 +21,22 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore("javax.net.ssl.*")
-@PrepareForTest({AdminManagementClientFactory.class})
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
 public class CheckIngestContractActionHandlerTest {
     CheckIngestContractActionHandler handler;
     private static final String HANDLER_ID = "CHECK_CONTRACT_INGEST";
@@ -76,12 +62,10 @@ public class CheckIngestContractActionHandlerTest {
 
     @Before
     public void setUp() throws ProcessingException, FileNotFoundException {
-        PowerMockito.mockStatic(AdminManagementClientFactory.class);
         adminClient = mock(AdminManagementClient.class);
         guid = GUIDFactory.newGUID();
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
-        PowerMockito.when(AdminManagementClientFactory.getInstance()).thenReturn(adminManagementClientFactory);
-        PowerMockito.when(AdminManagementClientFactory.getInstance().getClient()).thenReturn(adminClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminClient);
     }
 
     @Test
@@ -97,7 +81,7 @@ public class CheckIngestContractActionHandlerTest {
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
-        handler = new CheckIngestContractActionHandler();
+        handler = new CheckIngestContractActionHandler(adminManagementClientFactory);
         assertEquals(CheckIngestContractActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
@@ -113,15 +97,11 @@ public class CheckIngestContractActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipWithoutContractThenReturnResponseKO()
-        throws XMLStreamException, IOException, ProcessingException, InvalidParseOperationException,
-        InvalidCreateOperationException, AdminManagementClientServerException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
-        ReferentialNotFoundException {
+    public void givenSipWithoutContractThenReturnResponseKO() {
 
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(false));
 
-        handler = new CheckIngestContractActionHandler();
+        handler = new CheckIngestContractActionHandler(adminManagementClientFactory);
         assertEquals(CheckIngestContractActionHandler.getId(), HANDLER_ID);
 
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);

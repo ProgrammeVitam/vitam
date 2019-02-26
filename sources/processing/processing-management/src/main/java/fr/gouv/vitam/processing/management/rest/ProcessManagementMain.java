@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.processing.management.rest;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -40,6 +41,8 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.core.Application;
 
 
 /**
@@ -56,11 +59,28 @@ public class ProcessManagementMain {
     public ProcessManagementMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(ServerConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
+        vitamStarter = new VitamStarter(ServerConfiguration.class, configurationFile, BusinessApplication.class,
+            AdminApplication.class);
         VitamApplicationInitializr.get().initialize(configurationFile);
         vitamStarter.getVitamServer().getServer()
             .addLifeCycleListener(VitamApplicationInitializr.get().getVitamServerLifeCycle());
+    }
+
+    @VisibleForTesting
+    public ProcessManagementMain(String configurationFile,
+        Class<? extends Application> businessApplication,
+        Class<? extends Application> adminApplication) {
+        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+            CONF_FILE_NAME), configurationFile);
+        if (null == businessApplication) {
+            businessApplication = BusinessApplication.class;
+        }
+
+        if (null == adminApplication) {
+            adminApplication = AdminApplication.class;
+        }
+        vitamStarter =
+            new VitamStarter(ServerConfiguration.class, configurationFile, businessApplication, adminApplication);
     }
 
     public static void main(String[] args) {

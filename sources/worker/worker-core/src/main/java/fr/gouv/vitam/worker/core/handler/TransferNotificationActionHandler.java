@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveTransferReplyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CodeListVersionsType;
@@ -65,6 +66,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument;
@@ -73,7 +75,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -87,7 +88,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.common.utils.DataObjectDetail;
 import fr.gouv.vitam.worker.common.utils.SedaUtils;
-import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.worker.core.MarshallerObjectCache;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -154,11 +154,23 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String TEST_STATUS_PREFIX = "Test ";
     private String statusPrefix = "";
 
-    /**
-     * Constructor TransferNotificationActionHandler
-     */
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final StorageClientFactory storageClientFactory;
+    private final ValidationXsdUtils validationXsdUtils;
+
     public TransferNotificationActionHandler() {
-         for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
+        this(LogbookOperationsClientFactory.getInstance(), StorageClientFactory.getInstance(),
+            ValidationXsdUtils.getInstance());
+    }
+
+    @VisibleForTesting
+    public TransferNotificationActionHandler(
+        LogbookOperationsClientFactory logbookOperationsClientFactory, StorageClientFactory storageClientFactory,
+        ValidationXsdUtils validationXsdUtils) {
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.storageClientFactory = storageClientFactory;
+        this.validationXsdUtils = validationXsdUtils;
+        for (int i = 0; i < HANDLER_IO_PARAMETER_NUMBER; i++) {
             handlerInitialIOList.add(File.class);
         }
     }
@@ -173,7 +185,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) {
         checkMandatoryParameters(params);
-        final StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
         String eventDetailData;
 
 
@@ -192,7 +203,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             File atrFile;
 
             final LogbookOperation logbookOperation;
-            try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
                 Select select = new Select();
                 select.setQuery(QueryHelper.eq(EVENT_ID_PROCESS, params.getContainerName()));
                 final JsonNode node = client.selectOperationById(params.getContainerName());
@@ -229,7 +240,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             itemStatus.setEvDetailData(eventDetailData);
 
             try {
-                ValidationXsdUtils.checkWithXSD(new FileInputStream(atrFile), SedaUtils.SEDA_XSD_VERSION);
+                validationXsdUtils.checkWithXSD(new FileInputStream(atrFile), SedaUtils.SEDA_XSD_VERSION);
             } catch (SAXException e) {
                 if (e.getCause() == null) {
                     LOGGER.error("ATR File is not valid with the XSD", e);
@@ -302,7 +313,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             List<String> statusToBeChecked = new ArrayList();
 
             //ATR KO
-            if (workflowStatus.isGreaterOrEqualToKo()){
+            if (workflowStatus.isGreaterOrEqualToKo()) {
                 statusToBeChecked.add(StatusCode.FATAL.toString());
                 statusToBeChecked.add(StatusCode.KO.toString());
             } else { //ATR OK
@@ -316,10 +327,12 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 addOperation(archiveTransferReply, logbookOperation, statusToBeChecked);
             }
 
-            addDataObjectPackage(archiveTransferReply, params.getContainerName(), statusToBeChecked);
+            addDataObjectPackage(handlerIO, archiveTransferReply, params.getContainerName(), statusToBeChecked);
 
-            Marshaller archiveTransferReplyMarshaller = marshallerObjectCache.getMarshaller(ArchiveTransferReplyType.class);
-            archiveTransferReplyMarshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION, NAMESPACE_URI+" "+SedaUtils.SEDA_XSD_VERSION);
+            Marshaller archiveTransferReplyMarshaller =
+                marshallerObjectCache.getMarshaller(ArchiveTransferReplyType.class);
+            archiveTransferReplyMarshaller
+                .setProperty(Marshaller.JAXB_SCHEMA_LOCATION, NAMESPACE_URI + " " + SedaUtils.SEDA_XSD_VERSION);
             archiveTransferReplyMarshaller.marshal(archiveTransferReply, atrFile);
 
         } catch (IOException | InvalidCreateOperationException e) {
@@ -383,30 +396,35 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 )
             );
         }
-        
+
         CodeListVersionsType codeListVersions = objectFactory.createCodeListVersionsType();
         archiveTransferReply.setCodeListVersions(codeListVersions);
 
-        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null && 
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null) {
+        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null &&
+            infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION) != null) {
             codeListVersions.setReplyCodeListVersion(buildCodeType(
-                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION).textValue()));
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_REPLY_CODE_LIST_VERSION)
+                    .textValue()));
         } else {
             codeListVersions.setReplyCodeListVersion(buildCodeType(""));
         }
 
-        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null && 
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null) {
+        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null &&
+            infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION) != null) {
             codeListVersions.setMessageDigestAlgorithmCodeListVersion(buildCodeType(
-                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()));
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS)
+                    .get(SedaConstants.TAG_MESSAGE_DIGEST_ALGORITHM_CODE_LIST_VERSION).textValue()));
         } else {
             codeListVersions.setMessageDigestAlgorithmCodeListVersion(buildCodeType(""));
         }
 
-        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null && 
-                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) != null) {
+        if (infoATR != null && infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS) != null &&
+            infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION) !=
+                null) {
             codeListVersions.setFileFormatCodeListVersion(buildCodeType(
-                    infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION).textValue()));
+                infoATR.get(SedaConstants.TAG_CODE_LIST_VERSIONS).get(SedaConstants.TAG_FILE_FORMAT_CODE_LIST_VERSION)
+                    .textValue()));
         } else {
             codeListVersions.setFileFormatCodeListVersion(buildCodeType(""));
         }
@@ -452,22 +470,22 @@ public class TransferNotificationActionHandler extends ActionHandler {
         return null;
     }
 
-    private IdentifierType buildIdentifierType(String value){
+    private IdentifierType buildIdentifierType(String value) {
         IdentifierType identifierType = objectFactory.createIdentifierType();
         identifierType.setValue(value);
 
         return identifierType;
     }
 
-    private CodeType buildCodeType(String value){
+    private CodeType buildCodeType(String value) {
         CodeType codeType = objectFactory.createCodeType();
         codeType.setValue(value);
 
         return codeType;
     }
 
-    private OrganizationWithIdType  buildOrganizationWithIdType(String value){
-        OrganizationWithIdType organizationWithIdType  = objectFactory.createOrganizationWithIdType();
+    private OrganizationWithIdType buildOrganizationWithIdType(String value) {
+        OrganizationWithIdType organizationWithIdType = objectFactory.createOrganizationWithIdType();
         organizationWithIdType.setIdentifier(buildIdentifierType(value));
 
         return organizationWithIdType;
@@ -501,6 +519,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     /**
      * Add DataObjectPackage element to the ATR xml
+     *
      * @param archiveTransferReply the archiveTransferReplyType object to populate
      * @param containerName the operation identifier
      * @param statusToBeChecked depends of ATR status (KO={FATAL,KO} or OK=Warning)
@@ -509,12 +528,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
      * @throws InvalidParseOperationException InvalidParseOperationException
      * @throws InvalidCreateOperationException InvalidCreateOperationException
      */
-    private void addDataObjectPackage(ArchiveTransferReplyType archiveTransferReply, String containerName,
+    private void addDataObjectPackage(HandlerIO handlerIO, ArchiveTransferReplyType archiveTransferReply,
+        String containerName,
         List<String> statusToBeChecked)
         throws ProcessingException, FileNotFoundException, InvalidParseOperationException,
         InvalidCreateOperationException {
 
-        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
+        try (LogbookLifeCyclesClient client = handlerIO.getLifecyclesClient()) {
             ////Build DescriptiveMetadata/List(ArchiveUnit)
             try {
 
@@ -534,12 +554,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
                             systemGuidArchiveUnitId.put(entry.getValue().toString(), entry.getKey());
                         }
                         //build archiveUnit List
-                        List<ArchiveUnitType> auList = archiveTransferReply.getDataObjectPackage().getDescriptiveMetadata().getArchiveUnit();
+                        List<ArchiveUnitType> auList =
+                            archiveTransferReply.getDataObjectPackage().getDescriptiveMetadata().getArchiveUnit();
                         //case KO or OK with warning
-                        if (workflowStatus.isGreaterOrEqualToKo() || StatusCode.WARNING.name().equals(workflowStatus.name())) {
+                        if (workflowStatus.isGreaterOrEqualToKo() ||
+                            StatusCode.WARNING.name().equals(workflowStatus.name())) {
 
                             LifecyclesSpliterator<JsonNode> lifecyclesSpliterator =
-                                handlerLogbookLifeCycleUnit(containerName, client, LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                                handlerLogbookLifeCycleUnit(containerName, client,
+                                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
 
                             // Iterate over all response in LifecyclesSpliterator
                             StreamSupport.stream(lifecyclesSpliterator, false)
@@ -568,18 +591,21 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 final File dataObjectMapTmpFile = (File) handlerIO.getInput(DATAOBJECT_MAP_RANK);
                 final File bdoObjectGroupStoredMapTmpFile = (File) handlerIO.getInput(BDO_OG_STORED_MAP_RANK);
                 final File objectGroupSystemGuidTmpFile = (File) handlerIO.getInput(OBJECT_GROUP_ID_TO_GUID_MAP_RANK);
-                final File dataObjectToDetailDataObjectMapTmpFile = (File) handlerIO.getInput(DATAOBJECT_ID_TO_DATAOBJECT_DETAIL_MAP_RANK);
+                final File dataObjectToDetailDataObjectMapTmpFile =
+                    (File) handlerIO.getInput(DATAOBJECT_ID_TO_DATAOBJECT_DETAIL_MAP_RANK);
 
-                final File existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile =  (File) handlerIO.getInput(
-                        EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK);
+                final File existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile = (File) handlerIO.getInput(
+                    EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK);
 
                 Map<String, Object> dataObjectSystemGuid;
                 if (dataObjectMapTmpFile != null && bdoObjectGroupStoredMapTmpFile != null) {
                     try (InputStream binaryDataObjectMapTmpFIS = new FileInputStream(dataObjectMapTmpFile);
-                        InputStream bdoObjectGroupStoredMapTmpFIStream = new FileInputStream(bdoObjectGroupStoredMapTmpFile)){
+                        InputStream bdoObjectGroupStoredMapTmpFIStream = new FileInputStream(
+                            bdoObjectGroupStoredMapTmpFile)) {
 
                         dataObjectSystemGuid = JsonHandler.getMapFromInputStream(binaryDataObjectMapTmpFIS);
-                        bdoObjectGroupSystemGuid = JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFIStream);
+                        bdoObjectGroupSystemGuid =
+                            JsonHandler.getMapFromInputStream(bdoObjectGroupStoredMapTmpFIStream);
                     } catch (IOException e) {
                         throw new ProcessingException(e);
                     }
@@ -615,7 +641,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 Map<String, DataObjectDetail> dataObjectToDetailDataObject;
 
                 if (dataObjectToDetailDataObjectMapTmpFile != null) {
-                    final InputStream dataObjectToDetailDataObjectMapFIS = new FileInputStream(dataObjectToDetailDataObjectMapTmpFile);
+                    final InputStream dataObjectToDetailDataObjectMapFIS =
+                        new FileInputStream(dataObjectToDetailDataObjectMapTmpFile);
                     dataObjectToDetailDataObject =
                         JsonHandler.getMapFromInputStream(dataObjectToDetailDataObjectMapFIS,
                             DataObjectDetail.class);
@@ -626,7 +653,8 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 final Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
 
                 if (existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile != null) {
-                    final InputStream existingGOTGUIDToNewGotGUIDInAttachmentMapFIS = new FileInputStream(existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile);
+                    final InputStream existingGOTGUIDToNewGotGUIDInAttachmentMapFIS =
+                        new FileInputStream(existingGOTGUIDToNewGotGUIDInAttachmentMapTmpFile);
                     existingGOTGUIDToNewGotGUIDInAttachment =
                         JsonHandler.getMapFromInputStream(existingGOTGUIDToNewGotGUIDInAttachmentMapFIS, String.class);
                 } else {
@@ -634,11 +662,13 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 }
 
                 //build DataObjectGroup object List
-                List<Object> dataObjectGroupList = archiveTransferReply.getDataObjectPackage().getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
+                List<Object> dataObjectGroupList = archiveTransferReply.getDataObjectPackage()
+                    .getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject();
 
                 if (dataObjectSystemGuid != null) {
                     //case KO or OK with warning
-                    if (workflowStatus.isGreaterOrEqualToKo() || StatusCode.WARNING.name().equals(workflowStatus.name())) {
+                    if (workflowStatus.isGreaterOrEqualToKo() ||
+                        StatusCode.WARNING.name().equals(workflowStatus.name())) {
 
                         LifecyclesSpliterator<JsonNode> lifecyclesSpliterator =
                             handleLogbookLifeCyclesObjectGroup(containerName, client,
@@ -647,14 +677,17 @@ public class TransferNotificationActionHandler extends ActionHandler {
                         StreamSupport.stream(lifecyclesSpliterator, false)
                             .map(LogbookLifeCycleObjectGroupInProcess::new)
                             .forEach(logbookLifeCycleObjectGroup -> dataObjectGroupList.add(
-                                buildDataObjectGroup(statusToBeChecked, objectGroupGuid, dataObjectsForOG, dataObjectSystemGuid,
-                                    dataObjectToDetailDataObject, existingGOTGUIDToNewGotGUIDInAttachment, logbookLifeCycleObjectGroup))
+                                buildDataObjectGroup(statusToBeChecked, objectGroupGuid, dataObjectsForOG,
+                                    dataObjectSystemGuid,
+                                    dataObjectToDetailDataObject, existingGOTGUIDToNewGotGUIDInAttachment,
+                                    logbookLifeCycleObjectGroup))
                             );
                     } else {
 
                         dataObjectGroupList.addAll(
                             buildListOfSimpleDataObjectGroup(dataObjectsForOG, dataObjectSystemGuid,
-                            dataObjectToDetailDataObject, objectGroupSystemGuid, existingGOTGUIDToNewGotGUIDInAttachment)
+                                dataObjectToDetailDataObject, objectGroupSystemGuid,
+                                existingGOTGUIDToNewGotGUIDInAttachment)
                         );
                     }
                 }
@@ -692,7 +725,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
         ArchiveUnitType archiveUnit = objectFactory.createArchiveUnitType();
         DescriptiveMetadataContentType descMetadataContent = objectFactory.createDescriptiveMetadataContentType();
-        
+
         if (!systemGuidArchiveUnitId.isEmpty() &&
             logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID) != null &&
             systemGuidArchiveUnitId
@@ -706,15 +739,16 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 logbookLifeCycleUnit.get(SedaConstants.PREFIX_ID).toString()
             );
         }
-        
+
         archiveUnit.setContent(descMetadataContent);
 
         ManagementType archiveUnitMgmt = objectFactory.createManagementType();
 
-        if(logbookLifeCycleUnitEvents != null && !logbookLifeCycleUnitEvents.isEmpty()){
+        if (logbookLifeCycleUnitEvents != null && !logbookLifeCycleUnitEvents.isEmpty()) {
             LogBookType logbook = new LogBookType();
             for (final Document document : logbookLifeCycleUnitEvents) {
-                EventType eventObject = buildEventByContainerType(document, SedaConstants.TAG_ARCHIVE_UNIT, statusToBeChecked, null);
+                EventType eventObject =
+                    buildEventByContainerType(document, SedaConstants.TAG_ARCHIVE_UNIT, statusToBeChecked, null);
                 if (eventObject != null) {
                     logbook.getEvent().add(eventObject);
                 }
@@ -732,14 +766,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
     }
 
     private List<DataObjectGroupType> buildListOfSimpleDataObjectGroup(Map<String, List<String>> dataObjectsForOG,
-            Map<String, Object> dataObjectSystemGuid, Map<String, DataObjectDetail> dataObjectToDetailDataObject,
-            Map<String, Object> objectGroupSystemGuid, Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment) {
+        Map<String, Object> dataObjectSystemGuid, Map<String, DataObjectDetail> dataObjectToDetailDataObject,
+        Map<String, Object> objectGroupSystemGuid, Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment) {
 
         final List<DataObjectGroupType> dataObjectGroupList = new ArrayList<>();
 
         final Set<String> usedDataObjectGroup = new HashSet<>();
 
-        for(final Map.Entry<String, List<String>> dataObjectGroupEntry : dataObjectsForOG.entrySet()) {
+        for (final Map.Entry<String, List<String>> dataObjectGroupEntry : dataObjectsForOG.entrySet()) {
 
             DataObjectGroupType dataObjectGroup = objectFactory.createDataObjectGroupType();
 
@@ -798,7 +832,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
         Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment,
         LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGroup) {
 
-        Map<String, String>  dataObjectSystemGUIDToID = new TreeMap<>();
+        Map<String, String> dataObjectSystemGUIDToID = new TreeMap<>();
 
         DataObjectGroupType dataObjectGroup = objectFactory.createDataObjectGroupType();
         MinimalDataObjectType binaryOrPhysicalDataObject = null;
@@ -810,7 +844,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 : "";
         String existingObjectGroupSystemGUID = new String(ogGUID);
         //look, in case of GOT attachment, mapping (existing Got in DB --> new GOT)
-        if(existingGOTGUIDToNewGotGUIDInAttachment.containsKey(ogGUID)){
+        if (existingGOTGUIDToNewGotGUIDInAttachment.containsKey(ogGUID)) {
             ogGUID = existingGOTGUIDToNewGotGUIDInAttachment.get(ogGUID);
         }
 
@@ -840,7 +874,9 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 }
 
                 binaryOrPhysicalDataObject.setDataObjectVersion(
-                    dataObjectToDetailDataObject.get(idObj) != null ? dataObjectToDetailDataObject.get(idObj).getVersion() : "");
+                    dataObjectToDetailDataObject.get(idObj) != null ?
+                        dataObjectToDetailDataObject.get(idObj).getVersion() :
+                        "");
 
                 //add  dataObject to dataObjectGroup
                 dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject().add(binaryOrPhysicalDataObject);
@@ -871,10 +907,10 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private Object findDataObjectById(DataObjectGroupType dataObjectGroup, String objectId) {
         MinimalDataObjectType dataObject = null;
-        if(objectId != null) {
+        if (objectId != null) {
 
             for (MinimalDataObjectType object : dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject()) {
-                if (objectId.equals(object.getId())){
+                if (objectId.equals(object.getId())) {
                     dataObject = object;
                     break;
                 }
@@ -885,7 +921,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     }
 
     private void addOperation(ArchiveTransferReplyType archiveTransferReply, LogbookOperation logbookOperation,
-        List<String> statusToBeChecked){
+        List<String> statusToBeChecked) {
 
         final List<Document> logbookOperationEvents =
             (List<Document>) logbookOperation.get(LogbookDocument.EVENTS.toString());
@@ -936,16 +972,14 @@ public class TransferNotificationActionHandler extends ActionHandler {
     /**
      * Construct the event object for a given object type in managementMetadata item of ATR
      * Type can be : OperationType, ArchiveUnitType or DataObjectGroupType item
+     *
      * @param document mongo document holding event infos
      * @param dataObjectToReference DataObject to reference from the LoogBook/event object to create
-     * @return
-     *          EventType object for operationType and ArchiveUnitType
-     *          DataObjectGroupType.Event for DataObjectGroupType
-     *
+     * @return EventType object for operationType and ArchiveUnitType
+     * DataObjectGroupType.Event for DataObjectGroupType
      */
     private EventType buildEventByContainerType(Document document, String eventType,
-        List<String> statusToBeChecked, Object dataObjectToReference)
-    {
+        List<String> statusToBeChecked, Object dataObjectToReference) {
         EventType eventObject = null;
 
         if (document.get(LogbookMongoDbName.outcome.getDbname()) != null &&
@@ -955,7 +989,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
             if (SedaConstants.TAG_DATA_OBJECT_GROUP.equals(eventType)) {
                 eventObject = new EventLogBookOgType();
 
-                if(dataObjectToReference != null) {
+                if (dataObjectToReference != null) {
                     ((EventLogBookOgType) eventObject).setDataObjectReferenceId(dataObjectToReference);
                 }
             } else {
@@ -968,7 +1002,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
                 if (SedaConstants.TAG_OPERATION.equals(eventType)) {
                     eventObject.setEventType(
                         VitamLogbookMessages
-                        .getLabelOp(document.get(LogbookMongoDbName.eventType.getDbname()).toString())
+                            .getLabelOp(document.get(LogbookMongoDbName.eventType.getDbname()).toString())
                     );
                 } else if (SedaConstants.TAG_ARCHIVE_UNIT.equals(eventType) || SedaConstants.TAG_DATA_OBJECT_GROUP
                     .equals(eventType)) {
@@ -1007,6 +1041,6 @@ public class TransferNotificationActionHandler extends ActionHandler {
             }
 
         }
-         return eventObject;
+        return eventObject;
     }
 }

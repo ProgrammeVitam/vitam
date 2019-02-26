@@ -29,9 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -55,11 +53,10 @@ import org.assertj.core.util.Lists;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -72,7 +69,6 @@ import static org.mockito.Mockito.when;
 /**
  * UnitMetadataUpdateCheckPermission tests
  */
-@RunWith(MockitoJUnitRunner.class)
 public class UnitMetadataUpdateCheckPermissionTest {
 
     private static final String UNIT_UPDATE_CHECK_PERMISSIONS_CONTRACT_WITHOUT_WRITING_PERMISSION_JSON =
@@ -107,6 +103,9 @@ public class UnitMetadataUpdateCheckPermissionTest {
 
     private WorkerParameters parameters;
     private String operationId;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private HandlerIO handlerIO;

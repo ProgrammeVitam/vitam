@@ -31,6 +31,8 @@ Installation des greffons
 
 .. note:: Fonctionnalité apparue en R9.
 
+.. caution:: Cette version de Vitam ne mettant pas encore en oeuvre de mesure d'isolation particulière des griffons, il est recommandé de veiller à ce que l'usage de chaque griffon soit en conformité avec la politique de sécurité de l'entité. Il est en particulier déconseillé d'utiliser un griffon qui utiliserait un outil externe qui n'est plus maintenu.
+
 Il est possible de choisir les greffons installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``environments/group_vars/all/vitam-vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
 
 Exemple::

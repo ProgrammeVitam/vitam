@@ -72,7 +72,8 @@ public abstract class ContentAddressableStorageTestAbstract {
 
     // Container
     @Test
-    public void givenContainerNotFoundWhenCheckContainerExistenceThenRetunFalse() {
+    public void givenContainerNotFoundWhenCheckContainerExistenceThenRetunFalse()
+			throws ContentAddressableStorageServerException {
         assertFalse(storage.isExistingContainer(CONTAINER_NAME));
     }
 

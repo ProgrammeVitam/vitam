@@ -26,16 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.external.rest.v2.rest;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.util.List;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
@@ -52,6 +42,16 @@ import fr.gouv.vitam.common.security.rest.Secured;
 import fr.gouv.vitam.common.security.rest.Unsecured;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.OPTIONS;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.util.List;
+
 /**
  * Access External Resource
  */
@@ -63,6 +63,7 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     private static final String CODE_VITAM = "code_vitam";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessExternalResourceV2.class);
     private final SecureEndpointRegistry secureEndpointRegistry;
+    private final AccessInternalClientFactory accessInternalClientFactory;
 
     /**
      * Constructor
@@ -70,7 +71,13 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
      * @param secureEndpointRegistry endpoint list registry
      */
     public AccessExternalResourceV2(SecureEndpointRegistry secureEndpointRegistry) {
+        this(secureEndpointRegistry, AccessInternalClientFactory.getInstance());
+    }
+
+    public AccessExternalResourceV2(SecureEndpointRegistry secureEndpointRegistry,
+        AccessInternalClientFactory accessInternalClientFactory) {
         this.secureEndpointRegistry = secureEndpointRegistry;
+        this.accessInternalClientFactory = accessInternalClientFactory;
         LOGGER.debug("AccessExternalResourceV2 initialized");
     }
 
@@ -105,7 +112,7 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = "dipexportv2:create", description = "Générer le DIP à partir d'un DSL")
     public Response exportDIP(DipExportRequest dipExportRequest) {
-        try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             SanityChecker.checkJsonAll(dipExportRequest.getDslRequest());
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(dipExportRequest.getDslRequest());
@@ -129,9 +136,9 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     @Deprecated
     private VitamError getErrorEntity(Status status, String message) {
         String aMessage =
-                (message != null && !message.trim().isEmpty()) ? message
-                        : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+            (message != null && !message.trim().isEmpty()) ? message
+                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(ACCESS_EXTERNAL_MODULE)
-                .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
     }
 }

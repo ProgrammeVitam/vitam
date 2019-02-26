@@ -26,12 +26,12 @@
  */
 package fr.gouv.vitam.common.format.identification;
 
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-
-import fr.gouv.vitam.common.format.identification.model.FormatIdentifierInfo;
-import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 
 /**
  * Mock client implementation for FormatIdentifier
@@ -54,11 +54,6 @@ class FormatIdentifierMock implements FormatIdentifier {
     @Override
     public FormatIdentifierInfo status() {
         return new FormatIdentifierInfo("1.0", "FormatIdentifierMock");
-    }
-
-    @Override
-    public void close() {
-        // Nothing to do
     }
 }
 

@@ -26,17 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.handler;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.InputStream;
-
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
@@ -47,6 +36,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -56,6 +46,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.worker.core.plugin.UpdateObjectGroupPlugin;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
 import org.junit.After;
 import org.junit.Before;
@@ -66,7 +57,18 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.InputStream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 /**
+ *
  */
 public class UpdateObjectGroupPluginTest {
 
@@ -105,6 +107,14 @@ public class UpdateObjectGroupPluginTest {
     @Mock
     private WorkspaceClient workspaceClient;
 
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    @Mock
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+
     @Before
     public void setUp() throws Exception {
 
@@ -115,9 +125,14 @@ public class UpdateObjectGroupPluginTest {
         LogbookOperationsClientFactory.changeMode(null);
         LogbookLifeCyclesClientFactory.changeMode(null);
 
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
+
         handler = new UpdateObjectGroupPlugin();
 
-        handlerIO = new HandlerIOImpl(workspaceClient, "UpdateObjectGroupPluginTest", "workerId", com.google.common.collect.Lists.newArrayList());
+        handlerIO =
+            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "UpdateObjectGroupPluginTest",
+                "workerId", com.google.common.collect.Lists.newArrayList());
 
         final InputStream guid1 =
             PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_GUID_1);

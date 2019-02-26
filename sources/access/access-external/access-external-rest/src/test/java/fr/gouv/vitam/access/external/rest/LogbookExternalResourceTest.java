@@ -1,35 +1,11 @@
 package fr.gouv.vitam.access.external.rest;
 
-import static io.restassured.RestAssured.given;
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.reset;
-import static org.powermock.api.mockito.PowerMockito.mock;
-import static org.powermock.api.mockito.PowerMockito.when;
-
-import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.client.VitamClientFactory;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import io.restassured.response.Response;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -38,15 +14,34 @@ import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.server.VitamServer;
+import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
+import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import io.restassured.response.Response;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response.Status;
+import java.util.Set;
+
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 
-@RunWith(PowerMockRunner.class)
-@PowerMockIgnore({"javax.net.ssl.*", "javax.management.*"})
-@PrepareForTest({AccessInternalClientFactory.class})
-public class LogbookExternalResourceTest {
+public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
     private static final String TRACEABILITY_OPERATION_ID = "op_id";
 
@@ -56,14 +51,12 @@ public class LogbookExternalResourceTest {
     private static final String ACCESS_RESOURCE_URI = "access-external/v1";
 
     private static AccessExternalMain application;
-    private static VitamServer vitamServer;
 
     // LOGGER
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResourceTest.class);
 
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int port = junitHelper.findAvailablePort();
-    private static AccessInternalClient accessInternalClient;
 
     private static final String TENANT_ID = "0";
     private static final String UNEXISTING_TENANT_ID = "25";
@@ -85,12 +78,36 @@ public class LogbookExternalResourceTest {
     private static String good_id = "goodId";
     private static String bad_id = "badId";
 
+    private final static BusinessApplicationTest businessApplicationTest = new BusinessApplicationTest();
+
+    private final static AccessInternalClientFactory accessInternalClientFactory =
+        businessApplicationTest.getAccessInternalClientFactory();
+    private final static AccessInternalClient accessInternalClient = mock(AccessInternalClient.class);
+
+    private final static AdminManagementClientFactory adminManagementClientFactory =
+        businessApplicationTest.getAdminManagementClientFactory();
+    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+
+    private final static IngestInternalClientFactory ingestInternalClientFactory =
+        businessApplicationTest.getIngestInternalClientFactory();
+    private final static IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
+
+    @Override
+    public Set<Object> getResources() {
+        return businessApplicationTest.getSingletons();
+    }
+
+    @Override
+    public Set<Class<?>> getClasses() {
+        return businessApplicationTest.getClasses();
+    }
+
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
+    public static void setUpBeforeClass() {
         junitHelper = JunitHelper.getInstance();
         port = junitHelper.findAvailablePort();
         try {
-            application = new AccessExternalMain(ACCESS_CONF, BusinessApplicationTest.class, null);
+            application = new AccessExternalMain(ACCESS_CONF, LogbookExternalResourceTest.class, null);
             application.start();
             RestAssured.port = port;
             RestAssured.basePath = ACCESS_RESOURCE_URI;
@@ -106,15 +123,17 @@ public class LogbookExternalResourceTest {
 
     @Before
     public void setUpBefore() throws Exception {
+        reset(accessInternalClient);
+        reset(accessInternalClientFactory);
+        reset(adminManagementClient);
+        reset(adminManagementClientFactory);
+        reset(ingestInternalClient);
+        reset(ingestInternalClientFactory);
 
-        PowerMockito.mockStatic(AccessInternalClientFactory.class);
-        accessInternalClient = mock(AccessInternalClient.class);
-        final AccessInternalClientFactory clientAccessInternalFactory =
-            mock(AccessInternalClientFactory.class);
-        when(AccessInternalClientFactory.getInstance()).thenReturn(clientAccessInternalFactory);
-        when(AccessInternalClientFactory.getInstance().getClient())
-            .thenReturn(accessInternalClient);
 
+        when(accessInternalClientFactory.getClient()).thenReturn(accessInternalClient);
+        when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
         when(accessInternalClient.selectOperation(any()))
             .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
 
@@ -138,15 +157,14 @@ public class LogbookExternalResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         LOGGER.debug("Ending tests");
         try {
-            if (vitamServer != null) {
-                vitamServer.stop();
-            }
-            junitHelper.releasePort(port);
-        } catch (final VitamApplicationServerException e) {
+            application.stop();
+        } catch (final Exception e) {
             LOGGER.error(e);
+        } finally {
+            junitHelper.releasePort(port);
         }
         VitamClientFactory.resetConnections();
     }
@@ -221,7 +239,6 @@ public class LogbookExternalResourceTest {
 
     @Test
     public void testSelect_NotFound() throws Exception {
-        reset(accessInternalClient);
         when(accessInternalClient.selectUnitLifeCycleById(any(), any()))
             .thenThrow(new LogbookClientNotFoundException(""));
         when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any()))
@@ -296,7 +313,7 @@ public class LogbookExternalResourceTest {
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
         when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(
             request)))
-                .thenThrow(new LogbookClientException(""));
+            .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -359,7 +376,7 @@ public class LogbookExternalResourceTest {
     public void testSelectOperationById_InternalServerError() throws Exception {
         when(
             accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
-                .thenThrow(new LogbookClientException(""));
+            .thenThrow(new LogbookClientException(""));
 
         given()
             .contentType(ContentType.JSON)

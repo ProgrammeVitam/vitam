@@ -30,6 +30,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -60,12 +61,16 @@ public class CheckVersionActionHandler extends ActionHandler {
     private static final String INCORRECT_VERSION_FORMAT = "IncorrectVersionFormat";
     private static final String INCORRECT_URI = "IncorrectUri";
     private static final String INCORRECT_PHYSICAL_ID = "IncorrectPhysicalId";
+    private final SedaUtilsFactory sedaUtilsFactory;
 
-    /**
-     * Constructor with parameter SedaUtilsFactory
-     */
+
     public CheckVersionActionHandler() {
-        // empty constructor
+       this(SedaUtilsFactory.getInstance());
+    }
+
+    @VisibleForTesting
+    public CheckVersionActionHandler(SedaUtilsFactory sedaUtilsFactory) {
+        this.sedaUtilsFactory = sedaUtilsFactory;
     }
 
     /**
@@ -81,7 +86,7 @@ public class CheckVersionActionHandler extends ActionHandler {
 
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
-        final SedaUtils sedaUtils = SedaUtilsFactory.create(handlerIO);
+        final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtils(handlerIO);
 
         try {
             checkMandatoryIOParameter(handlerIO);

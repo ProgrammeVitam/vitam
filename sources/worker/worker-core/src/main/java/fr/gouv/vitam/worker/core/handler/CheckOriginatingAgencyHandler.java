@@ -45,7 +45,6 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
     private static final String HANDLER_ID = "CHECK_AGENT";
     public static final String EMPTY_REQUIRED_FIELD = "EMPTY_REQUIRED_FIELD";
     private final AdminManagementClientFactory adminManagementClientFactory;
-    private HandlerIO handlerIO;
     final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
 
     /**
@@ -76,15 +75,14 @@ public class CheckOriginatingAgencyHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) {
 
         checkMandatoryParameters(param);
-        handlerIO = handler;
         final ItemStatus itemStatus = new ItemStatus(HANDLER_ID);
         Set<String> missingserviceAgents;
 
         try {
-            checkMandatoryIOParameter(handler);
+            checkMandatoryIOParameter(handlerIO);
 
             Map<String, Object> mandatoryValueMap = (Map<String, Object>) handlerIO.getInput(AGENT_RANK);
 

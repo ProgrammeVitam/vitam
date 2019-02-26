@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -827,10 +828,10 @@ public class VitamConfiguration {
         if (null != parameters.getDistributionThreshold()) {
             setDistributionThreshold(parameters.getDistributionThreshold());
         }
-        if(null != parameters.getEliminationAnalysisThreshold()) {
+        if (null != parameters.getEliminationAnalysisThreshold()) {
             setEliminationAnalysisThreshold(parameters.getEliminationAnalysisThreshold());
         }
-        if(null != parameters.getEliminationActionThreshold()) {
+        if (null != parameters.getEliminationActionThreshold()) {
             setEliminationActionThreshold(parameters.getEliminationActionThreshold());
         }
         if (null != parameters.getCacheControlDelay()) {
@@ -905,7 +906,7 @@ public class VitamConfiguration {
             setTextMaxLength(parameters.getTextMaxLength());
         }
 
-        if(null != parameters.getClassificationLevel()){
+        if (null != parameters.getClassificationLevel()) {
             setClassificationLevel(parameters.getClassificationLevel());
         }
 
@@ -931,6 +932,11 @@ public class VitamConfiguration {
         if (!(tmpDir.isDirectory() && logDir.isDirectory() && dataDir.isDirectory() && configDir.isDirectory())) {
             SysErrLogger.FAKE_LOGGER.syserr("One of the directories in the VitamConfiguration is not correct");
         }
+    }
+
+    @VisibleForTesting
+    public static void reinit() {
+        checkVitamConfiguration();
     }
 
     /**

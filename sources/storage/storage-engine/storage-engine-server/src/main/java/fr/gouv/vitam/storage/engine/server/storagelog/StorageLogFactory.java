@@ -17,7 +17,12 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -78,6 +83,11 @@ public class StorageLogFactory implements StorageLog {
         return instance;
     }
 
+    public static synchronized StorageLog getInstanceForTest(List<Integer> tenants, Path basePath) throws IOException {
+        instance = new StorageLogFactory(tenants, basePath);
+        return instance;
+    }
+
     /**
      * Creates storage directory if not exists.
      *
@@ -126,7 +136,7 @@ public class StorageLogFactory implements StorageLog {
         LocalDateTime date = LocalDateUtil.now();
         DateTimeFormatter formatter = getDateTimeFormatter();
         String file_name =
-                tenant.toString() + "_" + date.format(formatter) + "_" + UUID.randomUUID().toString() + ".log";
+            tenant.toString() + "_" + date.format(formatter) + "_" + UUID.randomUUID().toString() + ".log";
         Path appenderPath;
         if (isWriteOperation) {
             appenderPath = this.writeOperationLogPath.resolve(file_name);
@@ -139,10 +149,10 @@ public class StorageLogFactory implements StorageLog {
     private DateTimeFormatter getDateTimeFormatter() {
         // Cannot use yyyyMMddHHmmssSSS due to Java 8 bug https://bugs.java.com/view_bug.do?bug_id=8031085
         return new DateTimeFormatterBuilder()
-                .appendPattern("yyyyMMddHHmmss")
-                .appendValue(ChronoField.MILLI_OF_SECOND, 3)
-                .toFormatter()
-                .withZone(ZoneOffset.UTC);
+            .appendPattern("yyyyMMddHHmmss")
+            .appendValue(ChronoField.MILLI_OF_SECOND, 3)
+            .toFormatter()
+            .withZone(ZoneOffset.UTC);
     }
 
     @Override
@@ -155,12 +165,14 @@ public class StorageLogFactory implements StorageLog {
         append(tenant, parameters, false);
     }
 
-    private void append(Integer tenant, StorageLogStructure parameters, Boolean isWriteLog) throws IOException {
-        Object lock = writeLockers.get(tenant);
-        synchronized (lock) {
-            if (isWriteLog) {
+    private void append(Integer tenant, StorageLogStructure parameters, Boolean isWriteOperation) throws IOException {
+
+        if (isWriteOperation) {
+            synchronized (writeLockers.get(tenant)) {
                 writeOperationLogAppenders.get(tenant).append(parameters);
-            } else {
+            }
+        } else {
+            synchronized (accessLockers.get(tenant)) {
                 accessOperationLogAppenders.get(tenant).append(parameters);
             }
         }
@@ -168,30 +180,28 @@ public class StorageLogFactory implements StorageLog {
 
     @Override
     public List<LogInformation> rotateLogFile(Integer tenant, boolean isWriteOperation) throws IOException {
-        Map<Integer, StorageLogAppender> storageLogAppender;
-        Map<Integer, Object> lockers;
-        if (isWriteOperation)  {
-            storageLogAppender = writeOperationLogAppenders;
-            lockers = writeLockers;
+
+        if (isWriteOperation) {
+            synchronized (writeLockers.get(tenant)) {
+                writeOperationLogAppenders.get(tenant).close();
+                List<LogInformation> storageLogToBackup = listStorageLogsToBackup(tenant, isWriteOperation);
+                writeOperationLogAppenders.put(tenant, createAppender(tenant, isWriteOperation));
+                return storageLogToBackup;
+            }
+
         } else {
-            storageLogAppender = accessOperationLogAppenders;
-            lockers = accessLockers;
-        }
-
-        Object lock = lockers.get(tenant);
-        synchronized (lock) {
-            storageLogAppender.get(tenant).close();
-            List<LogInformation> storageLogToBackup = listStorageLogsToBackup(tenant, isWriteOperation);
-            storageLogAppender.put(tenant, createAppender(tenant, isWriteOperation));
-
-            return storageLogToBackup;
+            synchronized (accessLockers.get(tenant)) {
+                accessOperationLogAppenders.get(tenant).close();
+                List<LogInformation> storageLogToBackup = listStorageLogsToBackup(tenant, isWriteOperation);
+                accessOperationLogAppenders.put(tenant, createAppender(tenant, isWriteOperation));
+                return storageLogToBackup;
+            }
         }
     }
 
     public void initializeStorageLogs(Path basePath) throws IOException {
-        Map<Integer, StorageLogAppender> appenders;
-       writeOperationLogPath = createStoragePathDirectory(basePath, true);
-       accessOperationLogPath = createStoragePathDirectory(basePath, false);
+        writeOperationLogPath = createStoragePathDirectory(basePath, true);
+        accessOperationLogPath = createStoragePathDirectory(basePath, false);
 
         for (Integer tenant : tenants) {
             writeOperationLogAppenders.put(tenant, createAppender(tenant, true));
@@ -261,13 +271,10 @@ public class StorageLogFactory implements StorageLog {
     @Override
     public void close() {
         for (Integer tenant : this.tenants) {
-            Object lock = writeLockers.get(tenant);
-            synchronized (lock) {
+            synchronized (writeLockers.get(tenant)) {
                 writeOperationLogAppenders.get(tenant).close();
             }
-
-            Object accessLock = accessLockers.get(tenant);
-            synchronized (accessLock) {
+            synchronized (accessLockers.get(tenant)) {
                 accessOperationLogAppenders.get(tenant).close();
             }
         }

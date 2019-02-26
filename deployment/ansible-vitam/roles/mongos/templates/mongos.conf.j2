@@ -13,7 +13,7 @@ systemLog:
 # network interfaces
 net:
   port: {{ mongodb.mongos_port }}
-  bindIp: {{ ip_service }}{% if groups['hosts-dev-tools'] >0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
+  bindIp: {{ ip_service }}{% if groups['hosts-dev-tools'] | length > 0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
 
 sharding:
   configDB: configsvr/{% for item in mongoc_list %}{{ hostvars[item]['ip_service'] }}:{{ mongodb.mongoc_port }}{% if not loop.last %},{% endif %}{% endfor %}

@@ -1,5 +1,7 @@
 package fr.gouv.vitam.access.external.rest;
 
+import fr.gouv.vitam.access.internal.client.AccessInternalClient;
+import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -10,6 +12,8 @@ import fr.gouv.vitam.common.server.application.resources.VitamStatusService;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
+import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,22 +30,30 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 public class AdminManagementExternalResourcePreservationTest {
 
     public @Rule MockitoRule mockitoJUnit = MockitoJUnit.rule();
 
     @Mock private AdminManagementClientFactory managementClientFactory;
+    @Mock private IngestInternalClientFactory ingestInternalClientFactory;
+    @Mock private AccessInternalClientFactory accessInternalClientFactory;
     @Mock private AdminManagementClient adminManagementClient;
+    @Mock private IngestInternalClient ingestInternalClient;
+    @Mock private AccessInternalClient accessInternalClient;
 
     private AdminManagementExternalResource externalResource;
 
     @Before
     public void setUp() {
         when(managementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
+        when(accessInternalClientFactory.getClient()).thenReturn(accessInternalClient);
 
         SecureEndpointRegistry registry = mock(SecureEndpointRegistry.class);
         VitamStatusService statusService = mock(VitamStatusService.class);
-        externalResource = new AdminManagementExternalResource(statusService, registry, managementClientFactory);
+        externalResource = new AdminManagementExternalResource(statusService, registry, managementClientFactory,
+            ingestInternalClientFactory, accessInternalClientFactory);
     }
 
     @Test
@@ -99,7 +111,8 @@ public class AdminManagementExternalResourcePreservationTest {
         //Given
         PreservationScenarioModel scenario = new PreservationScenarioModel();
         scenario.setName("preservation");
-        RequestResponse<PreservationScenarioModel> requestResponse = new RequestResponseOK<PreservationScenarioModel>().addResult(scenario);
+        RequestResponse<PreservationScenarioModel> requestResponse =
+            new RequestResponseOK<PreservationScenarioModel>().addResult(scenario);
 
         //when
         when(adminManagementClient.findPreservationByID("id")).thenReturn(requestResponse);

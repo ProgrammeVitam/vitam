@@ -1,5 +1,6 @@
 package fr.gouv.vitam.access.internal.rest;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -13,6 +14,8 @@ import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 
+import javax.ws.rs.core.Application;
+
 public class AccessInternalMain {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalMain.class);
 
@@ -21,7 +24,7 @@ public class AccessInternalMain {
     private static final String CONF_FILE_NAME = "access-internal.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
     private VitamStarter vitamStarter;
-    
+
     static AccessInternalModule mock = null;
 
     public AccessInternalMain(String configurationFile) {
@@ -29,6 +32,23 @@ public class AccessInternalMain {
             CONF_FILE_NAME), configurationFile);
         vitamStarter = new VitamStarter(AccessInternalConfiguration.class, configurationFile,
             BusinessApplication.class, AdminApplication.class);
+    }
+
+    @VisibleForTesting
+    public AccessInternalMain(String configurationFile,
+        Class<? extends Application> testBusinessApplication,
+        Class<? extends Application> testAdminApplication) {
+        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
+            CONF_FILE_NAME), configurationFile);
+        if (null == testBusinessApplication) {
+            testBusinessApplication = BusinessApplication.class;
+        }
+
+        if (null == testAdminApplication) {
+            testAdminApplication = AdminApplication.class;
+        }
+        vitamStarter = new VitamStarter(AccessInternalConfiguration.class, configurationFile,
+            testBusinessApplication, testAdminApplication);
     }
 
     public static void main(String[] args) {
@@ -47,7 +67,8 @@ public class AccessInternalMain {
 
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) + e.getMessage(), e);
+            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(), e);
 
             System.exit(1);
         }
@@ -64,7 +85,7 @@ public class AccessInternalMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-    
+
     public final VitamStarter getVitamServer() {
         return vitamStarter;
     }

@@ -77,7 +77,10 @@ public enum ErrorMessage {
      * Container name and Object name are a mandatory parameter
      */
     CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER("Container name and Object name are a mandatory parameter"),
-
+    /**
+     * Container name, Object name and size are a mandatory parameter
+     */
+    CONTAINER_OBJECT_NAMES_SIZE_ARE_A_MANDATORY_PARAMETER("Container name, Object name and Size are a mandatory parameter"),
     /**
      * Internal Server Error
      */

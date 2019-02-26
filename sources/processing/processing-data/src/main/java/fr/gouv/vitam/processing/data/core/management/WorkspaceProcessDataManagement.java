@@ -27,21 +27,9 @@
 
 package fr.gouv.vitam.processing.data.core.management;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -59,6 +47,17 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * Workspace implemenation for workflows datas management
  */
@@ -68,8 +67,15 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
 
     private static final ProcessDataManagement INSTANCE = new WorkspaceProcessDataManagement();
 
+    private WorkspaceClientFactory workspaceClientFactory;
+
     private WorkspaceProcessDataManagement() {
-        // Nothing
+        this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
+    }
+
+    @VisibleForTesting
+    public WorkspaceProcessDataManagement(WorkspaceClientFactory workspaceClientFactory) {
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     /**
@@ -86,10 +92,10 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         if (isProcessContainerExist()) {
             return false;
         }
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             client.createContainer(PROCESS_CONTAINER);
             return true;
-        } catch (ContentAddressableStorageAlreadyExistException e){
+        } catch (ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(e);
             return true;
         } catch (ContentAddressableStorageServerException exc) {
@@ -100,7 +106,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
 
     @Override
     public boolean isProcessContainerExist() throws ProcessingStorageWorkspaceException {
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             return client.isExistingContainer(PROCESS_CONTAINER);
         } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
@@ -112,7 +118,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         if (isFolderExist(folderName)) {
             return false;
         }
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             client.createFolder(PROCESS_CONTAINER, folderName);
             return true;
         } catch (ContentAddressableStorageServerException exc) {
@@ -125,7 +131,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
 
     @Override
     public boolean isFolderExist(String folderName) throws ProcessingStorageWorkspaceException {
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             return client.isExistingFolder(PROCESS_CONTAINER, folderName);
         } catch (ContentAddressableStorageServerException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
@@ -137,7 +143,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         if (!isFolderExist(folderName)) {
             return false;
         }
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             client.deleteFolder(PROCESS_CONTAINER, folderName);
             return true;
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
@@ -149,7 +155,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     public void persistProcessWorkflow(String folderName, String asyncId, ProcessWorkflow processWorkflow)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
         LOGGER.debug("[PERSIST] workflow process with execution status : <{}>", processWorkflow.getState());
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             // XXX: ugly way to do this (bytearray) ?
             client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId),
                 new ByteArrayInputStream(JsonHandler.writeAsString(processWorkflow).getBytes()));
@@ -161,7 +167,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     @Override
     public void persistDistributorIndex(String folderName, String fileName, DistributorIndex distributorIndex)
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             client.putObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, fileName),
                 new ByteArrayInputStream(JsonHandler.writeAsString(distributorIndex).getBytes()));
         } catch (ContentAddressableStorageServerException exc) {
@@ -174,7 +180,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         throws ProcessingStorageWorkspaceException, InvalidParseOperationException {
         Response response = null;
         InputStream is = null;
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, fileName));
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 is = (InputStream) response.getEntity();
@@ -203,7 +209,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
         // MultiException stack 1 of 1
         // java.lang.IllegalStateException: ServiceLocatorImpl(__HK2_Generated_30,31,1929030508) has been shut down
 
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             response = client.getObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId));
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 is = (InputStream) response.getEntity();
@@ -225,7 +231,7 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
 
     @Override
     public void removeProcessWorkflow(String folderName, String asyncId) throws ProcessingStorageWorkspaceException {
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             client.deleteObject(PROCESS_CONTAINER, getPathToObjectFromFolder(folderName, asyncId));
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException exc) {
             throw new ProcessingStorageWorkspaceException(exc);
@@ -236,11 +242,12 @@ public class WorkspaceProcessDataManagement implements ProcessDataManagement {
     public Map<String, ProcessWorkflow> getProcessWorkflowFor(Integer tenantId, String folderName)
         throws ProcessingStorageWorkspaceException {
         Map<String, ProcessWorkflow> result = new ConcurrentHashMap<>();
-        try (WorkspaceClient client = WorkspaceClientFactory.getInstance().getClient()) {
+        try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             List<URI> uris =
                 JsonHandler
                     .getFromStringAsTypeRefence(client.getListUriDigitalObjectFromFolder(PROCESS_CONTAINER, folderName)
-                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {});
+                        .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
+                    });
             for (URI uri : uris) {
                 try {
                     String processId = uri.getPath().substring(0,

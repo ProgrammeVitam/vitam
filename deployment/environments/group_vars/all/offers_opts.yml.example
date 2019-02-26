@@ -46,6 +46,29 @@ vitam_offers:
     swiftReadTimeout: 2000
     #Time (in seconds) to renew a token before expiration occurs (blocking)
     swiftHardRenewTokenDelayBeforeExpireTime: 60
+  offer-s3-1:
+    # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
+    provider: 'amazon-s3-v1'
+    # s3Endpoint :  : URL of connection to S3
+    s3Endpoint: https://s3.domain/
+    # s3RegionName (optional):  Region name (default value us-east-1)
+    s3RegionName: us-east-1
+    # s3SignerType (optional):  Signing algorithm.
+    #     - signature V4 : 'AWSS3V4SignerType' (default value)
+    #     - signature V2 : 'S3SignerType'
+    s3SignerType: AWSS3V4SignerType
+    # s3PathStyleAccessEnabled (optional):  'true' to access bucket in "path-style", else "virtual-hosted-style" (false by default in java client, true by default in ansible scripts) 
+    s3PathStyleAccessEnabled: true
+    # s3MaxConnections (optional): Max total connection (concurrent connections) (50 by default)
+    s3MaxConnections: 50
+    # s3ConnectionTimeout (optional): Max time (in milliseconds) for waiting to establish connection (10000 by default)
+    s3ConnectionTimeout: 10000
+    # s3SocketTimeout (optional): Max time (in milliseconds) for reading from a connected socket (50000 by default)
+    s3SocketTimeout: 50000
+    # s3RequestTimeout (optional): Max time (in milliseconds) for a request (0 by default, disabled)
+    s3RequestTimeout: 0
+    # s3ClientExecutionTimeout (optional): Max time (in milliseconds) for a request by java client (0 by default, disabled)
+    s3ClientExecutionTimeout: 0
 
     #Time (in seconds) to renew a token before expiration occurs
     swiftSoftRenewTokenDelayBeforeExpireTime: 300
