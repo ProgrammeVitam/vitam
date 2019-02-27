@@ -51,7 +51,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
@@ -89,7 +91,8 @@ public class EvidenceAuditFinalize extends ActionHandler {
                 handlerIO.getUriList(handlerIO.getContainerName(), param.getObjectName());
 
             try (FileOutputStream fileOutputStream = new FileOutputStream(reportFile);
-                BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
+                OutputStreamWriter buffWriter = new OutputStreamWriter(new BufferedOutputStream(fileOutputStream),
+                    StandardCharsets.UTF_8);
             ) {
 
                 for (URI uri : uriListObjectsWorkspace) {
@@ -98,6 +101,8 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
                     EvidenceAuditReportLine reportLine = JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
                     if (reportLine.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
+                        buffWriter.write(unprettyPrint(reportLine));
+                        buffWriter.write(System.lineSeparator());
                         evidenceStatusWarn = EvidenceStatus.WARN;
                     }
                     if (!reportLine.getEvidenceStatus().equals(EvidenceStatus.KO)) {
@@ -105,12 +110,12 @@ public class EvidenceAuditFinalize extends ActionHandler {
                     }
                     evidenceStatusKo = EvidenceStatus.KO;
 
-                    buffOut.write(unprettyPrint(reportLine).getBytes());
-                    buffOut.write(System.lineSeparator().getBytes());
+                    buffWriter.write(unprettyPrint(reportLine));
+                    buffWriter.write(System.lineSeparator());
 
                 }
 
-                buffOut.flush();
+                buffWriter.flush();
                 backupService
                     .backup(new FileInputStream(reportFile), DataCategory.REPORT,
                         handlerIO.getContainerName() + ".json");
