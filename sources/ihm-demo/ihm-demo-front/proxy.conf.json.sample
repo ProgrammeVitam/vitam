@@ -2,7 +2,7 @@
   "/ihm-demo": {
     "target":  {
       "host": "localhost",
-      "protocol": "http:",
+      "protocol": "https:",
       "port": 80
     },
     "secure": false,
