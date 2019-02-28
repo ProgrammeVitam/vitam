@@ -44,8 +44,8 @@ public class PreservationReportModel {
     public static final String STATUS = "status";
     public static final String ACTION = "action";
     public static final String ANALYSE_RESULT = "analyseResult";
-    public static final String INPUT_NAME = "inputName";
-    public static final String OUTPUT_NAME = "outputName";
+    public static final String INPUT_NAME = "inputObjectId";
+    public static final String OUTPUT_NAME = "outputObjectId";
 
 
     @JsonProperty(ID)
@@ -76,15 +76,15 @@ public class PreservationReportModel {
     private String analyseResult;
 
     @JsonProperty(INPUT_NAME)
-    private String inputName;
+    private String inputObjectId;
 
     @JsonProperty(OUTPUT_NAME)
-    private String outputName;
+    private String outputObjectId;
 
     public PreservationReportModel() {
     }
 
-    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputName, String outputName) {
+    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputObjectId, String outputObjectId) {
         this.id = id;
         this.processId = processId;
         this.tenant = tenant;
@@ -94,8 +94,8 @@ public class PreservationReportModel {
         this.objectGroupId = objectGroupId;
         this.action = action;
         this.analyseResult = analyseResult;
-        this.inputName = inputName;
-        this.outputName = outputName;
+        this.inputObjectId = inputObjectId;
+        this.outputObjectId = outputObjectId;
     }
 
     public String getId() {
@@ -154,20 +154,20 @@ public class PreservationReportModel {
         this.objectGroupId = objectGroupId;
     }
 
-    public String getInputName() {
-        return inputName;
+    public String getInputObjectId() {
+        return inputObjectId;
     }
 
-    public void setInputName(String inputName) {
-        this.inputName = inputName;
+    public void setInputObjectId(String inputObjectId) {
+        this.inputObjectId = inputObjectId;
     }
 
-    public String getOutputName() {
-        return outputName;
+    public String getOutputObjectId() {
+        return outputObjectId;
     }
 
-    public void setOutputName(String outputName) {
-        this.outputName = outputName;
+    public void setOutputObjectId(String outputObjectId) {
+        this.outputObjectId = outputObjectId;
     }
 
     public ActionTypePreservation getAction() {

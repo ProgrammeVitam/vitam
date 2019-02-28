@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.objectgroup;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.json.Difference;
 
 import java.util.Objects;
 
@@ -97,14 +98,38 @@ public class DbFormatIdentificationModel {
         if (o == null || getClass() != o.getClass())
             return false;
         DbFormatIdentificationModel that = (DbFormatIdentificationModel) o;
-        return formatLitteral.equals(that.formatLitteral)
-            && mimeType.equals(that.mimeType)
-            && formatId.equals(that.formatId)
+        return Objects.equals(formatLitteral, that.formatLitteral)
+            && Objects.equals(mimeType, that.mimeType)
+            && Objects.equals(formatId, that.formatId)
             && Objects.equals(encoding, that.encoding);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(formatLitteral, mimeType, formatId, encoding);
+    }
+
+    public Difference difference(Object o) {
+        if (this == o) {
+            return Difference.empty();
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return Difference.empty();
+        }
+        DbFormatIdentificationModel that = (DbFormatIdentificationModel) o;
+        Difference<String> difference = new Difference<>(FormatIdentificationModel.class.getSimpleName());
+        if (!Objects.equals(formatLitteral, that.formatLitteral)) {
+            difference.add("formatLitteral", formatLitteral, that.formatLitteral);
+        }
+        if (!Objects.equals(mimeType, that.mimeType)) {
+            difference.add("mimeType",mimeType, that.mimeType);
+        }
+        if (!Objects.equals(formatId, that.formatId)) {
+            difference.add("formatId",formatId, that.formatId);
+        }
+        if (!Objects.equals(encoding, that.encoding)) {
+            difference.add("encoding",encoding, that.encoding);
+        }
+        return difference;
     }
 }

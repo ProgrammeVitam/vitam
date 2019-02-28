@@ -35,6 +35,8 @@ import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import fr.gouv.vitam.common.json.Difference;
+import fr.gouv.vitam.common.json.Differences;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -62,13 +64,13 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -78,6 +80,7 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.digestPreservationGeneration;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
@@ -86,37 +89,6 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     private static final String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
     private final MetaDataClientFactory metaDataClientFactory;
-
-    private final BiFunction<OutputExtra, DbVersionsModel, DbVersionsModel> createNewVersionIdentified = (outputExtra, version) -> {
-        DbFormatIdentificationModel format = outputExtra.getOutput().getFormatIdentification();
-        if (format == null) {
-            throw new VitamRuntimeException("FormatIdentification cannot be null.");
-        }
-        return DbVersionsModel.newVersionsFrom(version, format);
-    };
-
-    private final BiFunction<OutputExtra, DbVersionsModel, DbVersionsModel> createNewVersionExtracted = (outputExtra, version) -> {
-        ExtractedMetadata extractedMetadata = outputExtra.getOutput().getExtractedMetadata();
-        if (extractedMetadata == null) {
-            throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
-        }
-
-        Map<String, Object> otherMetadata = new HashMap<>(version.getOtherMetadata());
-        otherMetadata.putAll(extractedMetadata.getMetadataToReplace());
-
-        for (Entry<String, List<String>> entry : extractedMetadata.getMetadataToAdd().entrySet()) {
-            String key = entry.getKey();
-            List<String> value = entry.getValue();
-            if (otherMetadata.containsKey(key)) {
-                List<String> metadataToAdd = (List<String>) otherMetadata.get(key);
-                metadataToAdd.addAll(value);
-            } else {
-                otherMetadata.put(key, value);
-            }
-        }
-
-        return DbVersionsModel.newVersionsFrom(version, otherMetadata);
-    };
 
     public PreservationUpdateObjectGroupPlugin() {
         this(MetaDataClientFactory.getInstance());
@@ -176,14 +148,19 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             JsonNode firstResult = ((RequestResponseOK<JsonNode>) requestResponse).getFirstResult();
             DbObjectGroupModel dbObjectGroupModel = JsonHandler.getFromJsonNode(firstResult, DbObjectGroupModel.class);
 
+            List<Difference> differences = new ArrayList<>();
             List<DbQualifiersModel> qualifiersWithIdentification = dbObjectGroupModel.getQualifiers()
                 .stream()
-                .map(qualifier -> mapQualifierBinary(batchResult, qualifier, identifyOkActions, this.createNewVersionIdentified))
-                .map(qualifier -> mapQualifierBinary(batchResult, qualifier, extractedOkActions, this.createNewVersionExtracted))
+                .map(qualifier -> mapQualifierBinary(batchResult, qualifier, identifyOkActions, differences))
+                .map(qualifier -> mapQualifierBinary(batchResult, qualifier, extractedOkActions, differences))
                 .collect(Collectors.toList());
 
             List<DbQualifiersModel> finalQualifiersToUpdate = addGeneratedQualifiersIfUpdate(batchResult, generateOkActions, qualifiersWithIdentification);
-            if (!isQualifiersUpdated(dbObjectGroupModel.getQualifiers(), finalQualifiersToUpdate))  {
+            List<Difference> differencesFiltered = differences.stream()
+                .filter(Difference::hasDifference)
+                .collect(Collectors.toList());
+
+            if (differencesFiltered.isEmpty() && generateOkActions.isEmpty())  {
                 return new ItemStatus(PLUGIN_NAME).disableLfc();
             }
 
@@ -209,15 +186,11 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
             metaDataClient.updateObjectGroupById(query.getFinalUpdate(), batchResult.getGotId());
 
-            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, OK, EventDetails.of("Update completed."));
+            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, OK, new Differences(differences));
         } catch (Exception e) {
             logger.error(e);
             return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, FATAL, EventDetails.of(String.format("FATAL ERROR IN %s ACTION.", PLUGIN_NAME))).disableLfc();
         }
-    }
-
-    private boolean isQualifiersUpdated(List<DbQualifiersModel> qualifiers, List<DbQualifiersModel> updatedQualifier) {
-        return !CollectionUtils.isEqualCollection(qualifiers, updatedQualifier);
     }
 
     private List<DbQualifiersModel> addGeneratedQualifiersIfUpdate(WorkflowBatchResult batchResult, List<OutputExtra> generateOkActions, List<DbQualifiersModel> qualifiers) {
@@ -229,7 +202,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         int lastVersion = getLastVersion(qualifierModelToUpdate);
 
         List<DbVersionsModel> versionsModelToInsert = IntStream.range(0, generateOkActions.size())
-            .mapToObj(i -> createVersion(generateOkActions.get(i), batchResult, lastVersion + i))
+            .mapToObj(i -> createVersion(generateOkActions.get(i), batchResult, lastVersion + i + 1))
             .collect(Collectors.toList());
 
         List<DbVersionsModel> versions = qualifierModelToUpdate.getVersions();
@@ -252,7 +225,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             .map(dataObjectVersion -> dataObjectVersion.split("_")[1])
             .map(Integer::parseInt)
             .max(Comparator.naturalOrder())
-            .orElse(1);
+            .orElse(0);
     }
 
     private DbQualifiersModel findQualifier(WorkflowBatchResult batchResult, List<DbQualifiersModel> qualifiers) {
@@ -269,24 +242,84 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             .orElse(new DbQualifiersModel(batchResult.getTargetUse(), 0, new ArrayList<>()));
     }
 
-    private DbQualifiersModel mapQualifierBinary(WorkflowBatchResult batchResult, DbQualifiersModel qualifier, List<OutputExtra> actions, BiFunction<OutputExtra, DbVersionsModel, DbVersionsModel> mapFunction) {
+    private DbQualifiersModel mapQualifierBinary(WorkflowBatchResult batchResult, DbQualifiersModel qualifier, List<OutputExtra> actions, List<Difference> differences) {
         if (actions.isEmpty() || !qualifier.getQualifier().equals(batchResult.getSourceUse())) {
             return qualifier;
         }
 
         List<DbVersionsModel> versions = qualifier.getVersions()
             .stream()
-            .map(v -> mapVersionModel(actions, mapFunction, v))
+            .map(v -> mapVersionModel(actions, v, differences))
             .collect(Collectors.toList());
         return new DbQualifiersModel(qualifier.getQualifier(), qualifier.getNbc(), versions);
     }
 
-    private DbVersionsModel mapVersionModel(List<OutputExtra> actions, BiFunction<OutputExtra, DbVersionsModel, DbVersionsModel> mapVersion, DbVersionsModel version) {
+    private DbVersionsModel mapVersionModel(List<OutputExtra> actions, DbVersionsModel version, List<Difference> differences) {
         return actions.stream()
             .filter(o -> o.getOutput().getInputPreservation().getName().equals(version.getId()))
             .findFirst()
-            .map(outputExtra -> mapVersion.apply(outputExtra, version))
+            .map(outputExtra -> IDENTIFY.equals(outputExtra.getOutput().getAction())
+                ? createNewVersionIdentified(outputExtra, version, differences)
+                : createNewVersionExtracted(outputExtra, version, differences))
             .orElse(version);
+    }
+
+    private DbVersionsModel createNewVersionIdentified(OutputExtra outputExtra, DbVersionsModel version, List<Difference> differences) {
+        DbFormatIdentificationModel format = outputExtra.getOutput().getFormatIdentification();
+        if (format == null) {
+            throw new VitamRuntimeException("FormatIdentification cannot be null.");
+        }
+        Difference difference = format.difference(version.getFormatIdentificationModel());
+        if (difference.hasDifference()) {
+            differences.add(difference);
+            return DbVersionsModel.newVersionsFrom(version, format);
+        }
+        return version;
+    }
+
+    private DbVersionsModel createNewVersionExtracted(OutputExtra outputExtra, DbVersionsModel version, List<Difference> differences) {
+        ExtractedMetadata extractedMetadata = outputExtra.getOutput().getExtractedMetadata();
+        if (extractedMetadata == null) {
+            throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
+        }
+
+        Difference<String> diffOtherMetadataToReplace = new Difference<>("OtherMetadataToReplace");
+        Difference<List<String>> diffOtherMetadataToAdd = new Difference<>("OtherMetadataToAdd");
+
+        Map<String, Object> oldMetadata = version.getOtherMetadata();
+        Map<String, Object> otherMetadata = new HashMap<>(oldMetadata);
+
+
+        extractedMetadata.getMetadataToReplace()
+            .forEach((key, value) -> {
+                String oldValue = (String) otherMetadata.put(key, value);
+                if (!value.equals(oldValue)) {
+                    diffOtherMetadataToReplace.add(key, oldValue, value);
+                }
+            });
+
+        for (Entry<String, List<String>> entry : extractedMetadata.getMetadataToAdd().entrySet()) {
+            String key = entry.getKey();
+            List<String> value = entry.getValue();
+
+            if (otherMetadata.containsKey(key)) {
+                List<String> metadataToAdd = (List<String>) otherMetadata.get(key);
+                diffOtherMetadataToAdd.add(key, metadataToAdd, new ArrayList<>(CollectionUtils.union(metadataToAdd, value)));
+                metadataToAdd.addAll(value);
+            } else {
+                diffOtherMetadataToAdd.add(key, Collections.emptyList(), value);
+                otherMetadata.put(key, value);
+            }
+        }
+
+        if (diffOtherMetadataToAdd.hasDifference() || diffOtherMetadataToReplace.hasDifference()) {
+            differences.add(diffOtherMetadataToAdd);
+            differences.add(diffOtherMetadataToReplace);
+
+            return DbVersionsModel.newVersionsFrom(version, otherMetadata);
+        }
+
+        return version;
     }
 
     private DbVersionsModel createVersion(OutputExtra outputExtra, WorkflowBatchResult workflowBatchResult, Integer newDataObjectVersion) {
