@@ -98,7 +98,7 @@ vitam:
         host: "functional-administration.service.{{ consul_domain }}"
         port_service: 8004
         port_admin: 18004
-        baseuri: "functional-administration"
+        baseuri: "adminmanagement"
         https_enabled: false
         secret_platform: "true"
         cluster_name: "{{ elasticsearch.data.cluster_name }}"
@@ -128,7 +128,7 @@ vitam:
         host: "batch-report.service.{{ consul_domain }}"
         port_service: 8015
         port_admin: 18015
-        baseuri: "batch-report"
+        baseuri: "batchreport"
         https_enabled: false
         secret_platform: "false"
         # log_level: "DEBUG"
@@ -171,7 +171,7 @@ vitam:
         host: "ingest-internal.service.{{ consul_domain }}"
         port_service: 8100
         port_admin: 28100
-        baseuri: "ingest-internal"
+        baseuri: "ingest"
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"
@@ -284,7 +284,7 @@ vitam:
         host: "storage.service.{{ consul_domain }}"
         port_service: 9102
         port_admin: 29102
-        baseuri: "storage-engine"
+        baseuri: "storage"
         https_enabled: false
         secret_platform: "true"
         storageTraceabilityOverlapDelay: 300
@@ -307,7 +307,7 @@ vitam:
         vitam_component: "offer"
         port_service: 9900
         port_admin: 29900
-        baseuri: "storage-offer-default"
+        baseuri: "offer"
         https_enabled: false
         secret_platform: "true"
         # log_level: "DEBUG"

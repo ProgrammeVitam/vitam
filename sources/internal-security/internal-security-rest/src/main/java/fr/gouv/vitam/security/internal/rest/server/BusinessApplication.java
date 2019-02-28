@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
+import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.security.internal.rest.mapper.CertificateExceptionMapper;
@@ -106,6 +107,7 @@ public class BusinessApplication extends ConfigurationApplication {
             singletons.add(new HeaderIdContainerFilter());
             singletons.add(new JsonParseExceptionMapper());
             singletons.add(new PersonalCertificateExceptionMapper());
+            singletons.add(new ApplicationStatusResource());
 
         } catch (IOException e) {
             throw new RuntimeException(e);
