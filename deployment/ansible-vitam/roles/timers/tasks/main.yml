@@ -1,0 +1,29 @@
+---
+
+- name: Set Debian systemd directory
+  set_fact:
+    systemd_directory: "/lib/systemd/system"
+  when: ansible_os_family == "Debian"
+  tags:
+    - update_vitam_configuration
+    - update_timers_frequency
+
+- name: Set Centos systemd directory
+  set_fact:
+    systemd_directory: "/usr/lib/systemd/system"
+  when: ansible_os_family == "RedHat"
+  tags:
+    - update_vitam_configuration
+    - update_timers_frequency
+
+- name: Apply timer conf
+  replace:
+    path: "{{ systemd_directory }}/{{ item.name }}.timer"
+    regexp: "^\\s*OnCalendar=.*"
+    replace: "OnCalendar={{ item.frequency }}"
+  loop: "{{ timers_list }}"
+  tags:
+    - update_vitam_configuration
+    - update_timers_frequency
+  notify:
+   - Daemon reload
