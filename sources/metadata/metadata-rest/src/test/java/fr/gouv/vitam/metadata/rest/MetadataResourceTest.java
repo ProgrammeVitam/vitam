@@ -497,11 +497,19 @@ public class MetadataResourceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_find_accession_register_on_object_group() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        Document doc = (Document) (new ObjectGroup(
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))));
+        VitamRepositoryFactory factory = VitamRepositoryFactory.get();
+        VitamMongoRepository mongo =
+            factory.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+        mongo.save(doc);
+        VitamElasticsearchRepository es = factory.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
+        es.save(doc);
         String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
-        MetadataCollections.OBJECTGROUP.getCollection()
-            .insertOne(new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-                "/object_sp1_1.json"))));
+        
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()

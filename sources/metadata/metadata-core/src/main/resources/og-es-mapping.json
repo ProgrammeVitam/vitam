@@ -72,6 +72,9 @@
               "DataObjectVersion": {
                 "type": "keyword"
               },
+              "_opi": {
+                "type": "keyword"
+              },
               "FileInfo": {
                 "properties": {
                   "CreatingApplicationName": {

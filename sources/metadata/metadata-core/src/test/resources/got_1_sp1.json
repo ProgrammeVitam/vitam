@@ -1,19 +1,19 @@
 {
-  "_id": "aebaaaaaaagbcaacaajo4ak4tr2z7laaannn",
+  "_id": "got1sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "_tenant": 0,
   "_profil": "",
   "_qualifiers": [
     {
       "qualifier": "PhysicalMaster",
-      "_nbc": 3,
+      "_nbc": 1,
       "versions": [
         {
-          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7qyaaaaq",
-          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2z7laaannn",
+          "_id": "got1sp1ph1aaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "DataObjectGroupId": "got1sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "DataObjectVersion": "PhysicalMaster_1",
           "PhysicalId": 123456789,
-          "_opi":"aedqaaabacgbcaacaar3kak4tr2o3wqaaaaq",
-          "storage": {
+          "_opi":"opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "_storage": {
             "_nbc": 1,
             "offerIds": [
               "localhost"
@@ -25,29 +25,30 @@
     },
     {
       "qualifier": "BinaryMaster",
-      "_nbc": 3,
+      "_nbc": 1,
       "versions": [
         {
-          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kyaaaaq",
-          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2z7laaannn",
+          "_id": "got1sp1bm1aaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "DataObjectGroupId": "got1sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "DataObjectVersion": "BinaryMaster_1",
-          "Size": 150,
+          "Size": 100,
+          "_opi":"opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
-          "_opi":"aedqaaabacgbcaacaar3kak4tr2o3wqaaaaq",
-          "storage": {
+          "_storage": {
             "_nbc": 1,
             "offerIds": [
               "localhost"
             ],
             "strategyId": "default"
           }
-        }, {
-          "_id": "aeaaaaaaaagbcaacaajo4ak4tr2o7kybbbaq",
-          "DataObjectGroupId": "aebaaaaaaagbcaacaajo4ak4tr2z7laaannn",
+        },
+        {
+          "_id": "got1sp1bm2aaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "DataObjectGroupId": "got1sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
           "DataObjectVersion": "BinaryMaster_2",
           "Size": 100,
-          "_opi":"aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq",
-          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE2.pdf",
+          "_opi":"opi4aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "Uri": "Content/5zC1uD6CvaYDipUhETOyUWVEbxHmE1.pdf",
           "_storage": {
             "_nbc": 1,
             "offerIds": [
@@ -60,16 +61,16 @@
     }
   ],
   "_up": [
-    "aeaqaaaaaagbcaacaajo4ak4tr2o7rqaaaaq"
+    "au1sp1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   ],
-  "_nbc": 3,
-  "_opi":"aedqaaabacgbcaacaar3kak4tr2o3wqaaaaq",
+  "_nbc": 0,
+  "_opi":"opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "_ops": [
-    "aedqaaabacgbcaacaar3kak4tr2o3wqaaaaq",
-    "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq"
+    "opi1aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "opi4aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
   ],
-  "_sp": "sp2",
+  "_sp": "sp1",
   "_sps": [
-    "sp2"
+    "sp1"
   ]
 }
