@@ -31,5 +31,31 @@ package fr.gouv.vitam.storage.offers.tape.dto;
  */
 public class TapeCartridge {
     private String volumeTag;
+    private String alternateVolumeTag;
+    private Integer slotIndex;
 
+    public String getVolumeTag() {
+        return volumeTag;
+    }
+
+    public void setVolumeTag(String volumeTag) {
+        this.volumeTag = volumeTag;
+    }
+
+
+    public String getAlternateVolumeTag() {
+        return alternateVolumeTag;
+    }
+
+    public void setAlternateVolumeTag(String alternateVolumeTag) {
+        this.alternateVolumeTag = alternateVolumeTag;
+    }
+
+    public Integer getSlotIndex() {
+        return slotIndex;
+    }
+
+    public void setSlotIndex(Integer slotIndex) {
+        this.slotIndex = slotIndex;
+    }
 }

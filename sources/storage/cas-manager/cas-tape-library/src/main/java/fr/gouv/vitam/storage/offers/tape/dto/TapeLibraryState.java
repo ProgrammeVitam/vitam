@@ -28,15 +28,23 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
+import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class TapeLibraryState {
     private Output output;
     private StatusCode status;
 
+    private String device;
+    private String driveCount;
+    private String slotsCount;
+    private String mailBoxCount;
+
     private List<TapeDrive> drives;
     private List<TapeSlot> slots;
+
 
     public Output getOutput() {
         return output;
@@ -54,6 +62,38 @@ public class TapeLibraryState {
         this.status = status;
     }
 
+    public String getDevice() {
+        return device;
+    }
+
+    public void setDevice(String device) {
+        this.device = device;
+    }
+
+    public String getDriveCount() {
+        return driveCount;
+    }
+
+    public void setDriveCount(String driveCount) {
+        this.driveCount = driveCount;
+    }
+
+    public String getSlotsCount() {
+        return slotsCount;
+    }
+
+    public void setSlotsCount(String slotsCount) {
+        this.slotsCount = slotsCount;
+    }
+
+    public String getMailBoxCount() {
+        return mailBoxCount;
+    }
+
+    public void setMailBoxCount(String mailBoxCount) {
+        this.mailBoxCount = mailBoxCount;
+    }
+
     public List<TapeDrive> getDrives() {
         return drives;
     }
@@ -68,5 +108,20 @@ public class TapeLibraryState {
 
     public void setSlots(List<TapeSlot> slots) {
         this.slots = slots;
+    }
+
+    public void addToDrives(TapeDrive tapeDrive) {
+        if (null == drives) {
+            drives = new ArrayList<>();
+        }
+        drives.add(tapeDrive);
+    }
+
+
+    public void addToSlots(TapeSlot tapeSlot) {
+        if (null == slots) {
+            slots = new ArrayList<>();
+        }
+        slots.add(tapeSlot);
     }
 }

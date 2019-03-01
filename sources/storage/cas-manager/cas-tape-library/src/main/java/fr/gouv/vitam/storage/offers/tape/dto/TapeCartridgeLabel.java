@@ -24,11 +24,27 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.spec;
+package fr.gouv.vitam.storage.offers.tape.dto;
 
+/**
+ */
+public class TapeCartridgeLabel {
+    private String volumeTag;
+    private String bucket;
 
-import fr.gouv.vitam.storage.offers.tape.process.Output;
+    public String getVolumeTag() {
+        return volumeTag;
+    }
 
-public interface ParseService {
-  <T> T parse(Output output, Class<T> clazz);
+    public void setVolumeTag(String volumeTag) {
+        this.volumeTag = volumeTag;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
 }

@@ -29,7 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 /**
  * Service to manipulate resource availability
  */
-public interface BeginEndService extends ParseService {
+public interface BeginEndService {
     String SPACE = " ";
 
     /**

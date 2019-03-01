@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -34,13 +37,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
-import fr.gouv.vitam.storage.offers.tape.impl.drive.MtTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
-
-import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 public class TarTapeLibraryService implements TapeReadWriteService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TarTapeLibraryService.class);
@@ -106,7 +105,7 @@ public class TarTapeLibraryService implements TapeReadWriteService {
             args);
         Output output = getExecutor().execute(tapeDriveConf.getTarPath(), timeoutInMillisecondes, args);
 
-        return parse(output, CommandResponse.class);
+        return parseCommonResponse(output);
     }
 
     @Override
@@ -122,11 +121,5 @@ public class TarTapeLibraryService implements TapeReadWriteService {
     @Override
     public void end() {
         canReadWrite.unlock();
-    }
-
-    @Override
-    public <T> T parse(Output output, Class<T> clazz) {
-
-        return null;
     }
 }

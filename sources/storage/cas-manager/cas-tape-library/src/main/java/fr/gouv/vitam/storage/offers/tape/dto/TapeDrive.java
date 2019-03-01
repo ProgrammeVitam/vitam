@@ -31,7 +31,7 @@ package fr.gouv.vitam.storage.offers.tape.dto;
  */
 public class TapeDrive {
     private Integer index;
-    private TapeSlot tapeSlot;
+    private TapeCartridge tape;
 
     public Integer getIndex() {
         return index;
@@ -41,11 +41,11 @@ public class TapeDrive {
         this.index = index;
     }
 
-    public TapeSlot getTapeSlot() {
-        return tapeSlot;
+    public TapeCartridge getTape() {
+        return tape;
     }
 
-    public void setTapeSlot(TapeSlot tapeSlot) {
-        this.tapeSlot = tapeSlot;
+    public void setTape(TapeCartridge tape) {
+        this.tape = tape;
     }
 }

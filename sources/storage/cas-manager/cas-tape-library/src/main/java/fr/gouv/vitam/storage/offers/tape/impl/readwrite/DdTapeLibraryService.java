@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
+import java.util.List;
+import java.util.concurrent.locks.Lock;
+
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -36,9 +39,6 @@ import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
-
-import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 public class DdTapeLibraryService implements TapeReadWriteService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DdTapeLibraryService.class);
@@ -109,10 +109,5 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     @Override
     public void end() {
         canReadWrite.unlock();
-    }
-
-    @Override
-    public <T> T parse(Output output, Class<T> clazz) {
-        return null;
     }
 }

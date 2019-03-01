@@ -151,9 +151,4 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
 
         return response;
     }
-
-    @Override
-    public <T> T parse(Output output, Class<T> clazz) {
-        return null;
-    }
 }

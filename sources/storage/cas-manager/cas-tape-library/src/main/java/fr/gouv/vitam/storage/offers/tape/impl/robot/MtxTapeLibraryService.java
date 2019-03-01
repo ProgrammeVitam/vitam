@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
+import fr.gouv.vitam.storage.offers.tape.parser.TapeLibraryStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
@@ -130,16 +131,20 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
 
 
     private TapeLibraryState parseTapeLibraryState(Output output) {
-        TapeLibraryState response = new TapeLibraryState();
-        response.setOutput(output);
+
 
         if (output.getExitCode() == 0) {
-            response.setStatus(StatusCode.OK);
+            final TapeLibraryStatusParser tapeLibraryStatusParser = new TapeLibraryStatusParser();
+            TapeLibraryState tapeLibraryState = tapeLibraryStatusParser.parse(output.getStdout());
+            tapeLibraryState.setStatus(StatusCode.OK);
+            tapeLibraryState.setOutput(output);
+            return tapeLibraryState;
         } else {
-            response.setStatus(StatusCode.KO);
+            TapeLibraryState tapeLibraryState = new TapeLibraryState();
+            tapeLibraryState.setOutput(output);
+            tapeLibraryState.setStatus(StatusCode.KO);
+            return tapeLibraryState;
         }
-
-        return response;
     }
 
     @Override
