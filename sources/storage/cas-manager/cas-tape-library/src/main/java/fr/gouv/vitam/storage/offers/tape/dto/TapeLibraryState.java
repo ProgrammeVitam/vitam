@@ -110,18 +110,21 @@ public class TapeLibraryState {
         this.slots = slots;
     }
 
-    public void addToDrives(TapeDrive tapeDrive) {
+    public List<TapeDrive> addToDrives(TapeDrive tapeDrive) {
         if (null == drives) {
             drives = new ArrayList<>();
         }
         drives.add(tapeDrive);
+
+        return drives;
     }
 
 
-    public void addToSlots(TapeSlot tapeSlot) {
+    public List<TapeSlot> addToSlots(TapeSlot tapeSlot) {
         if (null == slots) {
             slots = new ArrayList<>();
         }
         slots.add(tapeSlot);
+        return slots;
     }
 }

@@ -146,9 +146,4 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
             return tapeLibraryState;
         }
     }
-
-    @Override
-    public <T> T parse(Output output, Class<T> clazz) {
-        return null;
-    }
 }

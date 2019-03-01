@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
+import fr.gouv.vitam.storage.offers.tape.parser.TapeDriveStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
@@ -128,16 +129,18 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
 
 
     private TapeDriveState parseTapeDriveState(Output output) {
-        TapeDriveState response = new TapeDriveState();
-        response.setOutput(output);
-
         if (output.getExitCode() == 0) {
-            response.setStatus(StatusCode.OK);
+            final TapeDriveStatusParser tapeDriveStatusParser = new TapeDriveStatusParser();
+            TapeDriveState tapeDriveState = tapeDriveStatusParser.parse(output.getStdout());
+            tapeDriveState.setStatus(StatusCode.OK);
+            tapeDriveState.setOutput(output);
+            return tapeDriveState;
         } else {
-            response.setStatus(StatusCode.KO);
+            TapeDriveState tapeDriveState = new TapeDriveState();
+            tapeDriveState.setOutput(output);
+            tapeDriveState.setStatus(StatusCode.KO);
+            return tapeDriveState;
         }
-
-        return response;
     }
 
     private CommandResponse parseCommonResponse(Output output) {

@@ -26,9 +26,41 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
-public enum TapeDriveStatus{
-    ONLINE("ONLINE IM_REP_EN"),
-    DR_OPEN("DR_OPEN IM_REP_EN");
+public enum TapeDriveStatus {
+    // Tape position is just after a filemark
+    EOF("EOF"),
+
+    // Begin of tape
+    BOT("BOT"),
+
+    // End of tape
+    EOT("ONLINE IM_REP_EN"),
+
+    // Tape position is at Setmark
+    SM("SM"),
+
+    // End of data
+    EOD("EOD"),
+
+    // Write Protection (read only)
+    WR_PROT("WR_PROT"),
+
+    //Tape is in drive ready to read/write
+    ONLINE("ONLINE"),
+
+    // D_* density of drives
+    D_6250("D_6250"),
+    D_1600("D_1600"),
+    D_800("D_800"),
+
+    // Drive is empty (no tape)
+    DR_OPEN("DR_OPEN"),
+
+    // immediately report mode (1 if cache is enabled or no guarantee that data is physically written to tape. 0 if cache is disabled)
+    IM_REP_EN("IM_REP_EN"),
+
+    // Drive clean demand
+    CLN("CLN");
 
     String status;
 

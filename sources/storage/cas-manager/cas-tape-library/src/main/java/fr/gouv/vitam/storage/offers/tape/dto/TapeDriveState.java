@@ -26,18 +26,25 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 
 public class TapeDriveState {
     private Output output;
     private StatusCode status;
+    private String description;
     private Integer fileNumber;
     private Integer blockNumber;
+    private Integer partition;
     private Long tapeBlockSize;
     private String densityCode;
+    private String lto;
     private Integer errorCountSinceLastStatus;
-    private TapeDriveStatus driveStatus;
+    private String statusBits;
+    private List<TapeDriveStatus> driveStatuses;
 
     public Output getOutput() {
         return output;
@@ -45,6 +52,22 @@ public class TapeDriveState {
 
     public void setOutput(Output output) {
         this.output = output;
+    }
+
+    public StatusCode getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusCode status) {
+        this.status = status;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Integer getFileNumber() {
@@ -63,6 +86,14 @@ public class TapeDriveState {
         this.blockNumber = blockNumber;
     }
 
+    public Integer getPartition() {
+        return partition;
+    }
+
+    public void setPartition(Integer partition) {
+        this.partition = partition;
+    }
+
     public Long getTapeBlockSize() {
         return tapeBlockSize;
     }
@@ -79,6 +110,14 @@ public class TapeDriveState {
         this.densityCode = densityCode;
     }
 
+    public String getLto() {
+        return lto;
+    }
+
+    public void setLto(String lto) {
+        this.lto = lto;
+    }
+
     public Integer getErrorCountSinceLastStatus() {
         return errorCountSinceLastStatus;
     }
@@ -87,19 +126,29 @@ public class TapeDriveState {
         this.errorCountSinceLastStatus = errorCountSinceLastStatus;
     }
 
-    public StatusCode getStatus() {
-        return status;
+    public String getStatusBits() {
+        return statusBits;
     }
 
-    public void setStatus(StatusCode status) {
-        this.status = status;
+    public void setStatusBits(String statusBits) {
+        this.statusBits = statusBits;
     }
 
-    public TapeDriveStatus getDriveStatus() {
-        return driveStatus;
+    public List<TapeDriveStatus> getDriveStatuses() {
+        return driveStatuses;
     }
 
-    public void setDriveStatus(TapeDriveStatus driveStatus) {
-        this.driveStatus = driveStatus;
+    public void setDriveStatuses(List<TapeDriveStatus> driveStatuses) {
+        this.driveStatuses = driveStatuses;
+    }
+
+    public List<TapeDriveStatus> addToDriveStatuses(TapeDriveStatus driveStatus) {
+        if (null == driveStatuses) {
+            driveStatuses = new ArrayList<>();
+        }
+
+        driveStatuses.add(driveStatus);
+
+        return this.driveStatuses;
     }
 }
