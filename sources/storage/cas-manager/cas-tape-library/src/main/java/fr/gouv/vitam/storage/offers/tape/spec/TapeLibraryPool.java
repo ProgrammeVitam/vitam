@@ -26,53 +26,5 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import java.util.concurrent.TimeUnit;
-
-public interface TapeLibraryPool {
-
-    /**
-     * Retrieves and removes the head of this pool, waiting if necessary
-     * until an element becomes available.
-     *
-     * @return TapeRobotService
-     * @throws InterruptedException
-     */
-    TapeRobotService checkoutRobotService() throws InterruptedException;
-
-    /**
-     * Retrieves and removes the head of this queue, waiting up to the
-     * specified wait time if necessary for an element to become available.
-     *
-     * @param timeout
-     * @param unit
-     * @return TapeRobotService
-     * @throws InterruptedException
-     */
-    TapeRobotService checkoutRobotService(long timeout, TimeUnit unit) throws InterruptedException;
-
-
-    /**
-     * Retrieves and removes the head of this pool, waiting if necessary
-     * until an element becomes available.
-     *
-     * @return TapeDriveService
-     * @throws InterruptedException
-     */
-    TapeDriveService checkoutDriveService(Integer driveIndex) throws InterruptedException;
-
-    /**
-     * Return or add TapeRobotService to the pool
-     *
-     * @param tapeRobotService
-     * @throws InterruptedException
-     */
-    void pushRobotService(TapeRobotService tapeRobotService) throws InterruptedException;
-
-    /**
-     * Return or add TapeDriveService to the pool
-     *
-     * @param tapeDriveService
-     * @throws InterruptedException
-     */
-    void pushDriveService(TapeDriveService tapeDriveService) throws InterruptedException;
+public interface TapeLibraryPool extends TapeRobotPool, TapeDrivePool {
 }

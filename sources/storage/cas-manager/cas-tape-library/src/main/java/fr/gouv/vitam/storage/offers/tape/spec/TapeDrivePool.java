@@ -24,39 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.impl;
+package fr.gouv.vitam.storage.offers.tape.spec;
 
-import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
-import fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService;
-import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
-public class TapeRobotManager implements TapeRobotService {
-    private final TapeLoadUnloadService tapeLoadUnloadService;
-    private final TapeCatalogService tapeCatalogService;
-
-    public TapeRobotManager(TapeRebotConf tapeRebotConf, TapeCatalogService tapeCatalogService) {
-        this.tapeLoadUnloadService = new MtxTapeLibraryService(tapeRebotConf, ProcessExecutor.getInstance());
-        this.tapeCatalogService = tapeCatalogService;
-    }
+public interface TapeDrivePool {
+    /**
+     * Retrieves and removes the head of this pool, waiting if necessary
+     * until an element becomes available.
+     *
+     * @return TapeDriveService
+     * @throws InterruptedException
+     */
+    TapeDriveService checkoutDriveService(Integer driveIndex) throws InterruptedException;
 
 
-    @VisibleForTesting
-    public TapeRobotManager(TapeLoadUnloadService tapeLoadUnloadService, TapeCatalogService tapeCatalogService) {
-        this.tapeLoadUnloadService = tapeLoadUnloadService;
-        this.tapeCatalogService = tapeCatalogService;
-    }
+    /**
+     * Return or add TapeDriveService to the pool
+     *
+     * @param tapeDriveService
+     * @throws InterruptedException
+     */
+    void pushDriveService(TapeDriveService tapeDriveService) throws InterruptedException;
 
-    @Override
-    public TapeLoadUnloadService getLoadUnloadService() {
-        return tapeLoadUnloadService;
-    }
-
-    @Override
-    public TapeCatalogService getCatalogService() {
-        return tapeCatalogService;
-    }
+    Set<Map.Entry<Integer, TapeDriveService>> drives();
 }

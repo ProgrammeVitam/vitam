@@ -211,7 +211,7 @@ public class GlobalDataRest {
     public static final String TENANT_LIST = "tenantList";
 
     /**
-     * Timeout for finish worker task in millisecond
+     * Timeout for finish worker task in millisecondbackupoperations
      */
     public static final long TIMEOUT_END_WORKER_MILLISECOND = 600;
 

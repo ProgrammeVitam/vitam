@@ -44,6 +44,8 @@ public class TapeDriveConf {
     private String mtPath = "mt";
     private String ddPath = "dd";
     private String tarPath = "tar";
+    private ReadWritePriority readWritePriority;
+
     private long timeoutInMilliseconds = 60000;
 
     public Integer getIndex() {
@@ -84,6 +86,14 @@ public class TapeDriveConf {
 
     public void setTarPath(String tarPath) {
         this.tarPath = tarPath;
+    }
+
+    public ReadWritePriority getReadWritePriority() {
+        return readWritePriority;
+    }
+
+    public void setReadWritePriority(ReadWritePriority readWritePriority) {
+        this.readWritePriority = readWritePriority;
     }
 
     public long getTimeoutInMilliseconds() {

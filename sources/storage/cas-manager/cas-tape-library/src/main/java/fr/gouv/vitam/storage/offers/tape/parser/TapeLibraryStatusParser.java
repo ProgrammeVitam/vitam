@@ -14,7 +14,7 @@ public class TapeLibraryStatusParser {
     public static final String DRIVE_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag = ";
     public static final String SLOT_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag=";
     public static final String STORAGE_CHANGER = "Storage Changer";
-    public static final String SEPERATOR = ":";
+    public static final String SEPARATOR = ":";
     public static final String DRIVES = "Drives";
     public static final String SLOTS = "Slots ( ";
     public static final String IMPORT_EXPORT = "Import/Export";
@@ -89,7 +89,7 @@ public class TapeLibraryStatusParser {
             slotIndex = StringUtils.substringBetween(s, STORAGE_ELEMENT, IMPORT_EXPORT_TAG);
             tapeSlot.setStorageElementType(TapeSlotType.IMPORTEXPORT);
         } else {
-            slotIndex = StringUtils.substringBetween(s, STORAGE_ELEMENT, SEPERATOR);
+            slotIndex = StringUtils.substringBetween(s, STORAGE_ELEMENT, SEPARATOR);
             tapeSlot.setStorageElementType(TapeSlotType.READY);
         }
 
@@ -102,8 +102,8 @@ public class TapeLibraryStatusParser {
     }
 
     private void extractHeader(TapeLibraryState tapeLibraryState, String s) {
-        String device = StringUtils.substringBetween(s, STORAGE_CHANGER, SEPERATOR);
-        String driveCount = StringUtils.substringBetween(s, SEPERATOR, DRIVES);
+        String device = StringUtils.substringBetween(s, STORAGE_CHANGER, SEPARATOR);
+        String driveCount = StringUtils.substringBetween(s, SEPARATOR, DRIVES);
         String slotsCount = StringUtils.substringBetween(s, DRIVES, SLOTS);
         String mailBoxCount = StringUtils.substringBetween(s, SLOTS, IMPORT_EXPORT);
 

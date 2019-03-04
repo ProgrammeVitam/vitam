@@ -6,7 +6,9 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
+import fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.pool.TapeLibraryPoolImpl;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
@@ -39,7 +41,8 @@ public class TapeLibraryFactory {
 
 
             for (TapeRebotConf tapeRebotConf : tapeLibraryConf.getRobots()) {
-                final TapeRobotService robotService = new TapeRobotManager(tapeRebotConf);
+                // TODO: 05/03/19 Set TapeCatalogService implementation
+                final TapeRobotService robotService = new TapeRobotManager(tapeRebotConf, null);
                 robotServices.add(robotService);
             }
 

@@ -26,13 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.pool;
 
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeDrivePool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
 public class TapeLibraryPoolImpl implements TapeLibraryPool {
@@ -74,5 +78,10 @@ public class TapeLibraryPoolImpl implements TapeLibraryPool {
     public void pushDriveService(TapeDriveService tapeDriveService) {
         ParametersChecker.checkParameter("TapeDriveService is required", tapeDriveService);
         this.tapeDriveServicePool.put(tapeDriveService.getTapeDriveConf().getIndex(), tapeDriveService);
+    }
+
+    @Override
+    public Set<Map.Entry<Integer, TapeDriveService>> drives() {
+        return tapeDriveServicePool.entrySet();
     }
 }
