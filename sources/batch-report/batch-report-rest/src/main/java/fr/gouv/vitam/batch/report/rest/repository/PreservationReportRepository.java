@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.batch.report.rest.repository;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -116,14 +116,17 @@ public class PreservationReportRepository {
             Arrays.asList(
                 match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
                 Aggregates.project(Projections.fields(
-                    new Document("_id", 0),
+                    new Document("_id", "$_id"),
+                    new Document("_tenant", "$_tenant"),
+                    new Document("processId", "$processId"),
+                    new Document("creationDateTime", "$creationDateTime"),
                     new Document("unitId", "$unitId"),
                     new Document("objectGroupId", "$objectGroupId"),
                     new Document("status", "$status"),
-                    new Document("actions", "$actions"),
-                    new Document("inputName", "$inputName"),
+                    new Document("action", "$action"),
                     new Document("analyseResult", "$analyseResult"),
-                    new Document("outputName", "$outputName")
+                    new Document("inputObjectId", "$inputObjectId"),
+                    new Document("outputObjectId", "$outputObjectId")
                     )
                 ))
         ).allowDiskUse(true).map(this::mapToModel).iterator();

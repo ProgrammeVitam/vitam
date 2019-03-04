@@ -125,6 +125,40 @@ public class PreservationUpdateObjectGroupPluginTest {
     }
 
     @Test
+    public void should_add_multiple_generation() throws Exception {
+        // Given
+        ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        ArgumentCaptor<String> gotIdCaptor = ArgumentCaptor.forClass(String.class);
+
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(getOutputPreservation(GENERATE), getOutputPreservation(GENERATE), getOutputPreservation(GENERATE));
+        TestHandlerIO testHandlerIO = new TestHandlerIO();
+        testHandlerIO.addOutputResult(0, batchResults);
+        testHandlerIO.setInputs(batchResults);
+
+        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+            .addResult(JsonHandler.getFromInputStream(objectGroupStream))
+            .setHttpCode(Response.Status.OK.getStatusCode());
+        given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
+        doNothing().when(metaDataClient)
+            .updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
+
+        // When
+        List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
+
+        // Then
+        assertThat(itemStatuses)
+            .extracting(ItemStatus::getGlobalStatus)
+            .containsOnly(OK);
+
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/DataObjectVersion").asText()).isEqualTo("BinaryMaster_1");
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/1/DataObjectVersion").asText()).isEqualTo("BinaryMaster_2");
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/2/DataObjectVersion").asText()).isEqualTo("BinaryMaster_3");
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/3/DataObjectVersion").asText()).isEqualTo("BinaryMaster_4");
+    }
+
+    @Test
     public void should_update_objectGroup_with_new_binary_to_same_source_final_query() throws Exception {
         // Given
         ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
