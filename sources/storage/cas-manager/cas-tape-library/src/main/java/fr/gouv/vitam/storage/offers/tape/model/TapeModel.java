@@ -50,6 +50,7 @@ public class TapeModel {
     public static final String PREVIOUS_LOCATION = "previous_location";
     public static final String COMPRESSED = "compressed";
     public static final String WORM = "worm";
+    public static final String VERSION = "_v";
 
 
 
@@ -88,6 +89,9 @@ public class TapeModel {
 
     @JsonProperty(WORM)
     private boolean worm;
+
+    @JsonProperty(VERSION)
+    private int version;
 
     public String getId() {
         return id;
@@ -183,5 +187,13 @@ public class TapeModel {
 
     public void setWorm(boolean worm) {
         this.worm = worm;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 }

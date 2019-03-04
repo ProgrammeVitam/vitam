@@ -44,8 +44,8 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         repository.createTape(tapeModel);
     }
 
-    public void update(TapeModel tapeModel) throws InvalidParseOperationException {
-        repository.updateTape(tapeModel);
+    public void replace(TapeModel tapeModel) throws InvalidParseOperationException {
+        repository.replaceTape(tapeModel);
     }
 
     public TapeModel findById(String tapeId) throws InvalidParseOperationException {

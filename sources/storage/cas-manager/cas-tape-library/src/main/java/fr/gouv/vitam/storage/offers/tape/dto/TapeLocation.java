@@ -26,12 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * StorageElement
  */
+@JsonInclude(NON_NULL)
 public class TapeLocation {
+    public static final String INDEX = "index";
+    public static final String TYPE = "type";
+
+    @JsonProperty(INDEX)
     private Integer index;
-    private TapeCartridge tape;
+    @JsonProperty(TYPE)
+    private TapeLocationType type;
+
+
+    @JsonCreator
+    public TapeLocation(@JsonProperty(INDEX) Integer index, @JsonProperty(TYPE) TapeLocationType type) {
+        this.index = index;
+        this.type = type;
+    }
 
     public Integer getIndex() {
         return index;
@@ -41,11 +60,11 @@ public class TapeLocation {
         this.index = index;
     }
 
-    public TapeCartridge getTape() {
-        return tape;
+    public TapeLocationType getType() {
+        return type;
     }
 
-    public void setTape(TapeCartridge tape) {
-        this.tape = tape;
+    public void setType(TapeLocationType type) {
+        this.type = type;
     }
 }

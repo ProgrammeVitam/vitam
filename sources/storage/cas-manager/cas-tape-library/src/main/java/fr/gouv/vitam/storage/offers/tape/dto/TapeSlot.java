@@ -29,8 +29,26 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 /**
  * StorageElement
  */
-public class TapeSlot extends TapeLocation {
+public class TapeSlot {
+    private Integer index;
+    private TapeCartridge tape;
     private TapeSlotType storageElementType;
+
+    public Integer getIndex() {
+        return index;
+    }
+
+    public void setIndex(Integer index) {
+        this.index = index;
+    }
+
+    public TapeCartridge getTape() {
+        return tape;
+    }
+
+    public void setTape(TapeCartridge tape) {
+        this.tape = tape;
+    }
 
     public TapeSlotType getStorageElementType() {
         return storageElementType;

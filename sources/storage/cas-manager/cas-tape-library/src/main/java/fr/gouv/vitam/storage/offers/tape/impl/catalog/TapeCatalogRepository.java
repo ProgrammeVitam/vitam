@@ -28,13 +28,17 @@ package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
 import static com.mongodb.client.model.Filters.eq;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -48,7 +52,12 @@ public class TapeCatalogRepository {
 
     public static final String TAPE_CATALOG_COLLECTION = "TapeCatalog";
 
+    private static final String ALL_PARAMS_REQUIRED = "All params are required";
+
     private final MongoCollection<Document> tapeCollection;
+
+    String $_SET = "$set";
+    String $_INC = "$inc";
 
     @VisibleForTesting
     public TapeCatalogRepository(MongoDbAccess mongoDbAccess, String collectionName) {
@@ -66,37 +75,80 @@ public class TapeCatalogRepository {
      * @throws InvalidParseOperationException
      */
     public void createTape(TapeModel tapeModel) throws InvalidParseOperationException {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeModel);
+        tapeModel.setVersion(0);
         String json = JsonHandler.writeAsString(tapeModel);
         tapeCollection.insertOne(Document.parse(json));
     }
 
     /**
-     * create a tape model
+     * replace a tape model
      *
      * @param tapeModel
      * @throws InvalidParseOperationException
      */
-    public void updateTape(TapeModel tapeModel) throws InvalidParseOperationException {
+    public boolean replaceTape(TapeModel tapeModel) throws InvalidParseOperationException {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeModel);
+        tapeModel.setVersion(tapeModel.getVersion() + 1);
         String json = JsonHandler.writeAsString(tapeModel);
         final UpdateResult result = tapeCollection.replaceOne(eq(TapeModel.ID, tapeModel.getId()), Document.parse(json));
 
-        if(result.getMatchedCount() != 1) {
-            // TODO: 28/02/19 throw not found document
-        }
+        return result.getMatchedCount() == 1;
     }
 
     /**
-     * return tape model according to given identifier
+     * apply fields changes for tape tapeId
+     *
+     * @param tapeId
+     * @param fields
+     * @return true if changes have been applied otherwise false
+     */
+    public boolean updateTape(String tapeId, Map<String, String> fields) {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeId, fields);
+        if (fields.isEmpty()) {
+            throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
+        }
+
+        Document update = new Document();
+        fields.forEach((key, value) -> update.append(key, value));
+
+        Document data = new Document($_SET, update)
+                .append($_INC, new Document(TapeModel.VERSION, 1));
+
+        UpdateResult result = tapeCollection.updateOne(eq(TapeModel.ID, tapeId), data);
+
+        return result.getMatchedCount() == 1;
+    }
+
+    /**
+     * return tape models according to given fields
+     *
+     * @param fields
+     * @return
+     */
+    public List<Document> findTapeByFields(Map<String, String> fields) {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, fields);
+        if (fields.isEmpty()) {
+            throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
+        }
+        BasicDBObject filter = new BasicDBObject();
+        fields.forEach((key, value) -> filter.append(key, value));
+        return tapeCollection.find(filter).into(new ArrayList<Document>());
+    }
+
+    /**
+     * return tape model according to given ID
      *
      * @param tapeId
      * @return
      */
     public TapeModel findTapeById(String tapeId) throws InvalidParseOperationException {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeId);
         FindIterable<Document> models =
             tapeCollection.find(eq(TapeModel.ID, tapeId));
         Document first = models.first();
         if (first == null) {
-            // TODO: 28/02/19 throw not found exception
+            return null;
         }
         return JsonHandler.getFromString(JSON.serialize(first), TapeModel.class);
     }

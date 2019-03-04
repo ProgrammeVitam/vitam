@@ -111,7 +111,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapeId")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateTape(@PathParam("tapeId") String tapeId, TapeModel tapeModel) {
+    public Response replaceTape(@PathParam("tapeId") String tapeId, TapeModel tapeModel) {
 
         try {
             if (Strings.isNullOrEmpty(tapeId)) {
@@ -121,7 +121,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
 
             final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
 
-            tapeCatalogService.update(tapeModel);
+            tapeCatalogService.replace(tapeModel);
             return Response.status(Status.OK).entity(responseOK).build();
 
         } catch (Exception e) {

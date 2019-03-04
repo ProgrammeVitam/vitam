@@ -34,8 +34,8 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLocation;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLocationType;
 import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
 import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -111,8 +111,8 @@ public class TapeCatalogResourceTest {
         tapeModel.setType("LTO-6");
         tapeModel.setCompressed(false);
         tapeModel.setWorm(false);
-        tapeModel.setCurrentLocation(new TapeDrive());
-        tapeModel.setPreviousLocation(new TapeSlot());
+        tapeModel.setCurrentLocation(new TapeLocation(1, TapeLocationType.DIRVE));
+        tapeModel.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
         return tapeModel;
     }
 }
