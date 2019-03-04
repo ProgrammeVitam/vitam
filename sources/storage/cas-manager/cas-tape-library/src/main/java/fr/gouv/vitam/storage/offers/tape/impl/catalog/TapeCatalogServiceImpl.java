@@ -24,16 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.spec;
+package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 
-public interface TapeCatalogService {
+public class TapeCatalogServiceImpl implements TapeCatalogService {
 
-    void create(TapeModel tapeModel) throws InvalidParseOperationException;
+    private TapeCatalogRepository repository;
 
-    void update(TapeModel tapeModel) throws InvalidParseOperationException;
+    public TapeCatalogServiceImpl(TapeCatalogRepository repository) {
+        this.repository = repository;
+    }
 
-    TapeModel findById(String tapeId) throws InvalidParseOperationException;
+    public void create(TapeModel tapeModel) throws InvalidParseOperationException {
+        tapeModel.setId(GUIDFactory.newGUID().toString());
+        repository.createTape(tapeModel);
+    }
+
+    public void update(TapeModel tapeModel) throws InvalidParseOperationException {
+        repository.updateTape(tapeModel);
+    }
+
+    public TapeModel findById(String tapeId) throws InvalidParseOperationException {
+        return repository.findTapeById(tapeId);
+    }
 }

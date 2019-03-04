@@ -46,11 +46,16 @@ import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
+import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
+import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
+import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 
 /**
  * Offer register resources and filters
@@ -84,8 +89,12 @@ public class BusinessApplication extends Application {
             DefaultOfferService defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService);
             DefaultOfferResource defaultOfferResource = new DefaultOfferResource(defaultOfferService);
 
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(new SimpleMongoDBAccess(mongoClient, configuration.getDbName()));
+            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
+
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(defaultOfferResource);
+            singletons.add(new TapeCatalogResource(tapeCatalogService));
 
         } catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
             throw new RuntimeException(e);
