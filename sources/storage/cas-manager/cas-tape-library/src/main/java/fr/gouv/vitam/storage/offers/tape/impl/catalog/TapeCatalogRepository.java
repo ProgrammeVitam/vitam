@@ -103,7 +103,7 @@ public class TapeCatalogRepository {
      * @param fields
      * @return true if changes have been applied otherwise false
      */
-    public boolean updateTape(String tapeId, Map<String, String> fields) {
+    public boolean updateTape(String tapeId, Map<String, Object> fields) {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeId, fields);
         if (fields.isEmpty()) {
             throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
@@ -126,14 +126,20 @@ public class TapeCatalogRepository {
      * @param fields
      * @return
      */
-    public List<Document> findTapeByFields(Map<String, String> fields) {
+    public List<TapeModel> findTapeByFields(Map<String, Object> fields) throws InvalidParseOperationException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, fields);
         if (fields.isEmpty()) {
             throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
         }
         BasicDBObject filter = new BasicDBObject();
         fields.forEach((key, value) -> filter.append(key, value));
-        return tapeCollection.find(filter).into(new ArrayList<Document>());
+        List<TapeModel> result = new ArrayList<>();
+        List<Document> documents = tapeCollection.find(filter).into(new ArrayList<>());
+        for (Document doc : documents) {
+            result.add(JsonHandler.getFromString(JSON.serialize(doc), TapeModel.class));
+        }
+
+        return result;
     }
 
     /**

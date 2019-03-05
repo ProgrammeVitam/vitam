@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
+import java.util.List;
+import java.util.Map;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
@@ -39,16 +42,29 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         this.repository = repository;
     }
 
+    @Override
     public void create(TapeModel tapeModel) throws InvalidParseOperationException {
         tapeModel.setId(GUIDFactory.newGUID().toString());
         repository.createTape(tapeModel);
     }
 
-    public void replace(TapeModel tapeModel) throws InvalidParseOperationException {
-        repository.replaceTape(tapeModel);
+    @Override
+    public boolean replace(TapeModel tapeModel) throws InvalidParseOperationException {
+        return repository.replaceTape(tapeModel);
     }
 
+    @Override
+    public boolean update(String tapeId, Map<String, Object> criteria) {
+        return repository.updateTape(tapeId, criteria);
+    }
+
+    @Override
     public TapeModel findById(String tapeId) throws InvalidParseOperationException {
         return repository.findTapeById(tapeId);
+    }
+
+    @Override
+    public List<TapeModel> findByFields(Map<String, Object> fields) throws InvalidParseOperationException {
+        return repository.findTapeByFields(fields);
     }
 }

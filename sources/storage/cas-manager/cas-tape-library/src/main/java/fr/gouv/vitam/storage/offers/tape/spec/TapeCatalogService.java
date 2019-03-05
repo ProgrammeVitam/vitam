@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
+import java.util.List;
+import java.util.Map;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
 
@@ -33,7 +36,11 @@ public interface TapeCatalogService {
 
     void create(TapeModel tapeModel) throws InvalidParseOperationException;
 
-    void replace(TapeModel tapeModel) throws InvalidParseOperationException;
+    boolean replace(TapeModel tapeModel) throws InvalidParseOperationException;
+
+    boolean update(String tapeId, Map<String, Object> criteria) throws InvalidParseOperationException;
 
     TapeModel findById(String tapeId) throws InvalidParseOperationException;
+
+    List<TapeModel> findByFields(Map<String, Object> fields) throws InvalidParseOperationException;
 }

@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
@@ -42,14 +41,13 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLocation;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLocationType;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
 import org.bson.Document;
-import org.junit.Before;
-import org.junit.Rule;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 /**
@@ -59,18 +57,23 @@ public class TapeCatalogRepositoryTest {
 
     public static final String TAPE_CATALOG_COLLECTION = "TapeCatalog" + GUIDFactory.newGUID().getId();
 
-    @Rule
-    public MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);
+    @ClassRule
+    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);
 
-    private TapeCatalogRepository tapeCatalogRepository;
+    private static TapeCatalogRepository tapeCatalogRepository;
 
-    private MongoCollection<Document> tapeCollection;
+    private static MongoCollection<Document> tapeCollection;
 
-    @Before
-    public void setUp() {
+    @BeforeClass
+    public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess, TAPE_CATALOG_COLLECTION);
         tapeCollection = mongoRule.getMongoCollection(TAPE_CATALOG_COLLECTION);
+    }
+
+    @AfterClass
+    public static void setDownBeforeClass() {
+        mongoRule.handleAfter();
     }
 
     @Test
@@ -119,14 +122,14 @@ public class TapeCatalogRepositoryTest {
         tapeCatalogRepository.createTape(tapeModel);
 
         // When
-        Map<String, String> criteria = Maps.newHashMap();
+        Map<String, Object> criteria = Maps.newHashMap();
         criteria.put(TapeModel.CODE, tapeModel.getCode());
-        //criteria.put(TapeModel.CAPACITY, tapeModel.getCapacity().toString());
-        List<Document> result = tapeCatalogRepository.findTapeByFields(criteria);
+        criteria.put(TapeModel.CAPACITY, tapeModel.getCapacity());
+        List<TapeModel> result = tapeCatalogRepository.findTapeByFields(criteria);
 
         // Then
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getInteger(TapeModel.CAPACITY)).isEqualTo(tapeModel.getCapacity());
+        assertThat(result.get(0).getCapacity()).isEqualTo(tapeModel.getCapacity());
     }
 
     @Test
@@ -142,15 +145,18 @@ public class TapeCatalogRepositoryTest {
         TapeModel currentTape = tapeCatalogRepository.findTapeById(tapeModel.getId());
         assertThat(currentTape.getCode()).isEqualTo("VIT0001");
         assertThat(currentTape.getVersion()).isEqualTo(0);
+        assertThat(currentTape.getFileCount()).isEqualTo(200L);
 
-        Map<String, String> updates = Maps.newHashMap();
+        Map<String, Object> updates = Maps.newHashMap();
         updates.put(TapeModel.CODE, "FakeCode");
+        updates.put(TapeModel.FILE_COUNT, 201);
         tapeCatalogRepository.updateTape(id.toString(), updates);
 
         // Then
         TapeModel updatedTape = tapeCatalogRepository.findTapeById(tapeModel.getId());
         assertThat(updatedTape.getCode()).isEqualTo("FakeCode");
         assertThat(updatedTape.getVersion()).isEqualTo(1);
+        assertThat(updatedTape.getFileCount()).isEqualTo(201L);
     }
 
     @Test

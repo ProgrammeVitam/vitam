@@ -37,6 +37,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.Arrays;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
@@ -57,6 +58,8 @@ public class TapeCatalogResource extends ApplicationStatusResource {
 
     private static final String MISSING_THE_TAPE_ID =
         "Missing the tape ID or wrong ID";
+    private static final String MISSING_THE_SEARCH_CRITERIA =
+            "Missing or wrong search criteria";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeCatalogResource.class);
 
     private TapeCatalogService tapeCatalogService;
@@ -72,7 +75,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     }
 
     /**
-     * Get container object list
+     * Get a tape model from catalog
      *
      * @param tapeId
      * @return a tape model from catalog
@@ -90,8 +93,12 @@ public class TapeCatalogResource extends ApplicationStatusResource {
 
             final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
 
-            tapeCatalogService.findById(tapeId);
-            responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalogService.findById(tapeId))));
+            TapeModel tapeModel = tapeCatalogService.findById(tapeId);
+            if (tapeModel == null) {
+                LOGGER.error(String.format("Tape with id %s not found", tapeId));
+                return Response.status(Status.NOT_FOUND).build();
+            }
+            responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeModel)));
             LOGGER.debug("Result {}", responseOK);
             return Response.status(Status.OK).entity(responseOK).build();
 
@@ -102,7 +109,35 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     }
 
     /**
-     * updates a tape model by id.
+     * Get a list of tape model from catalog
+     *
+     * @param criteria
+     * @return a list of tape model from catalog
+     */
+    @GET
+    @Path("/")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getTapes(Map<String, Object> criteria) {
+        try {
+            if (criteria != null || criteria.isEmpty()) {
+                LOGGER.error(MISSING_THE_SEARCH_CRITERIA);
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+
+            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
+            responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalogService.findByFields(criteria))));
+            LOGGER.debug("Result {}", responseOK);
+            return Response.status(Status.OK).entity(responseOK).build();
+
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * replaces existing tape model by id.
      *
      * @param
      * @return
@@ -119,10 +154,46 @@ public class TapeCatalogResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).build();
             }
 
-            final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
+            boolean replaced = tapeCatalogService.replace(tapeModel);
+            if(!replaced) {
+                return Response.status(Status.NOT_MODIFIED).build();
+            }
+            return Response.status(Status.OK).build();
 
-            tapeCatalogService.replace(tapeModel);
-            return Response.status(Status.OK).entity(responseOK).build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.BAD_REQUEST).build();
+        }
+    }
+
+    /**
+     * updates existing tape model by id.
+     *
+     * @param
+     * @return
+     */
+    @PUT
+    @Path("/tapeId")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateTape(@PathParam("tapeId") String tapeId, Map<String, Object> fields) {
+
+        try {
+            if (Strings.isNullOrEmpty(tapeId)) {
+                LOGGER.error(MISSING_THE_TAPE_ID);
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+
+            if(fields == null || fields.isEmpty()) {
+                LOGGER.error(MISSING_THE_SEARCH_CRITERIA);
+                return Response.status(Status.BAD_REQUEST).build();
+            }
+
+            boolean updated = tapeCatalogService.update(tapeId, fields);
+            if(!updated) {
+                return Response.status(Status.NOT_MODIFIED).build();
+            }
+            return Response.status(Status.OK).build();
 
         } catch (Exception e) {
             LOGGER.error(e);

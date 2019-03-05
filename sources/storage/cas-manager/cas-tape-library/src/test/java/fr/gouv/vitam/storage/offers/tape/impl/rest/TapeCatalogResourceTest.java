@@ -63,7 +63,6 @@ public class TapeCatalogResourceTest {
         // Given
         String id = "tapeId";
         TapeModel tapeModel = getTapeModel(id);
-        tapeModel.setId(id);
         given(tapeCatalogService.findById(id)).willReturn(tapeModel);
 
         // When
@@ -72,32 +71,6 @@ public class TapeCatalogResourceTest {
         // Then
         assertThat(((RequestResponseOK<JsonNode>)result.getEntity()).getResults().get(0)).isEqualTo(JsonHandler.toJsonNode(tapeModel));
     }
-
-    /*@Test
-    public void should_return_not_found_exception_when_certificate_is_missing() throws Exception {
-        // Given
-        byte[] bytes = new byte[] {1, 2};
-        TapeModel tapeModel = new TapeModel();
-        tapeModel.setContextId("contextId");
-        given(tapeCatalogService.findIdentity(bytes)).willReturn(Optional.empty());
-
-        // When / Then
-        assertThatThrownBy(() -> tapeCatalogResource.findIdentityByCertificate(bytes))
-            .isInstanceOf(NotFoundException.class);
-    }
-
-    @Test
-    public void shouldFindContextIsUsed() {
-        // Given
-        final String CONTEXT_ID = "contextId";
-        TapeModel tapeModel = new TapeModel();
-        tapeModel.setContextId(CONTEXT_ID);
-        given(tapeCatalogService.contextIsUsed(CONTEXT_ID)).willReturn(true);
-
-        // When / Then
-        Response response = tapeCatalogResource.contextIsUsed(CONTEXT_ID);
-        assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-    }*/
 
     private TapeModel getTapeModel(String id) {
         TapeModel tapeModel = new TapeModel();
