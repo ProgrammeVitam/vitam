@@ -29,28 +29,32 @@ package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 import java.util.List;
 import java.util.Map;
 
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 
 public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     private TapeCatalogRepository repository;
 
-    public TapeCatalogServiceImpl(TapeCatalogRepository repository) {
-        this.repository = repository;
+    public TapeCatalogServiceImpl(MongoDbAccess mongoDbAccess) {
+        this.repository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
+                .getCollection(OfferCollections.OFFER_TAPE_CATALOG.getName()));
     }
 
     @Override
-    public void create(TapeModel tapeModel) throws InvalidParseOperationException {
-        tapeModel.setId(GUIDFactory.newGUID().toString());
-        repository.createTape(tapeModel);
+    public void create(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
+        tapeCatalog.setId(GUIDFactory.newGUID().toString());
+        repository.createTape(tapeCatalog);
     }
 
     @Override
-    public boolean replace(TapeModel tapeModel) throws InvalidParseOperationException {
-        return repository.replaceTape(tapeModel);
+    public boolean replace(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
+        return repository.replaceTape(tapeCatalog);
     }
 
     @Override
@@ -59,12 +63,12 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public TapeModel findById(String tapeId) throws InvalidParseOperationException {
+    public TapeCatalog findById(String tapeId) throws InvalidParseOperationException {
         return repository.findTapeById(tapeId);
     }
 
     @Override
-    public List<TapeModel> findByFields(Map<String, Object> fields) throws InvalidParseOperationException {
-        return repository.findTapeByFields(fields);
+    public List<TapeCatalog> find(List<QueryCriteria> criteria) throws InvalidParseOperationException {
+        return repository.findTapes(criteria);
     }
 }

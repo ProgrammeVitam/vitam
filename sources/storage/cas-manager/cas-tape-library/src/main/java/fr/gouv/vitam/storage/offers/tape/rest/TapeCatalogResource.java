@@ -37,6 +37,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,13 +47,14 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 
 /**
  * Default tape catalog REST Resource
  */
-@Path("/offer/tape/catalog/v1")
+@Path("/offer/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class TapeCatalogResource extends ApplicationStatusResource {
 
@@ -81,7 +83,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
      * @return a tape model from catalog
      */
     @GET
-    @Path("/{tapeId}")
+    @Path("/tapecatalog/{tapeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getTape(@PathParam("tapeId") String tapeId) {
@@ -93,12 +95,12 @@ public class TapeCatalogResource extends ApplicationStatusResource {
 
             final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
 
-            TapeModel tapeModel = tapeCatalogService.findById(tapeId);
-            if (tapeModel == null) {
+            TapeCatalog tapeCatalog = tapeCatalogService.findById(tapeId);
+            if (tapeCatalog == null) {
                 LOGGER.error(String.format("Tape with id %s not found", tapeId));
                 return Response.status(Status.NOT_FOUND).build();
             }
-            responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeModel)));
+            responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalog)));
             LOGGER.debug("Result {}", responseOK);
             return Response.status(Status.OK).entity(responseOK).build();
 
@@ -115,10 +117,10 @@ public class TapeCatalogResource extends ApplicationStatusResource {
      * @return a list of tape model from catalog
      */
     @GET
-    @Path("/")
+    @Path("/tapecatalog/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getTapes(Map<String, Object> criteria) {
+    public Response getTapes(List<QueryCriteria> criteria) {
         try {
             if (criteria != null || criteria.isEmpty()) {
                 LOGGER.error(MISSING_THE_SEARCH_CRITERIA);
@@ -126,7 +128,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
             }
 
             final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
-            responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalogService.findByFields(criteria))));
+            responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalogService.find(criteria))));
             LOGGER.debug("Result {}", responseOK);
             return Response.status(Status.OK).entity(responseOK).build();
 
@@ -143,10 +145,10 @@ public class TapeCatalogResource extends ApplicationStatusResource {
      * @return
      */
     @PUT
-    @Path("/tapeId")
+    @Path("/tapecatalog/tapeId")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response replaceTape(@PathParam("tapeId") String tapeId, TapeModel tapeModel) {
+    public Response replaceTape(@PathParam("tapeId") String tapeId, TapeCatalog tapeCatalog) {
 
         try {
             if (Strings.isNullOrEmpty(tapeId)) {
@@ -154,7 +156,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).build();
             }
 
-            boolean replaced = tapeCatalogService.replace(tapeModel);
+            boolean replaced = tapeCatalogService.replace(tapeCatalog);
             if(!replaced) {
                 return Response.status(Status.NOT_MODIFIED).build();
             }
@@ -173,7 +175,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
      * @return
      */
     @PUT
-    @Path("/tapeId")
+    @Path("/tapecatalog/tapeId")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateTape(@PathParam("tapeId") String tapeId, Map<String, Object> fields) {
@@ -208,15 +210,15 @@ public class TapeCatalogResource extends ApplicationStatusResource {
      * @return
      */
     @POST
-    @Path("/")
+    @Path("/tapecatalog/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createTape(TapeModel tapeModel) {
+    public Response createTape(TapeCatalog tapeCatalog) {
 
         try {
             final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<JsonNode>();
 
-            tapeCatalogService.create(tapeModel);
+            tapeCatalogService.create(tapeCatalog);
             return Response.status(Status.OK).entity(responseOK).build();
 
         } catch (Exception e) {

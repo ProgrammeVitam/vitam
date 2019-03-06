@@ -33,6 +33,7 @@ import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import org.bson.Document;
 import org.junit.After;

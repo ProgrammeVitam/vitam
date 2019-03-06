@@ -24,26 +24,25 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.model;
+package fr.gouv.vitam.storage.engine.common.model;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLocation;
 
 /**
- * TapeModel
+ * TapeCatalog
  */
 
 @JsonInclude(NON_NULL)
-public class TapeModel {
+public class TapeCatalog {
     public static final String ID = "_id";
     public static final String CODE = "code";
     public static final String LABEL = "label";
     public static final String LIBRARY = "library";
     public static final String TYPE = "type";
-    public static final String USED_SIZE = "used_size";
+    public static final String REMAINING_SIZE = "remaining_size";
     public static final String CAPACITY = "capacity";
     public static final String FILE_COUNT = "file_count";
     public static final String CURRENT_LOCATION = "current_location";
@@ -69,8 +68,8 @@ public class TapeModel {
     @JsonProperty(TYPE)
     private String type;
 
-    @JsonProperty(USED_SIZE)
-    private Long usedSize;
+    @JsonProperty(REMAINING_SIZE)
+    private Long remainingSize;
 
     @JsonProperty(CAPACITY)
     private Long capacity;
@@ -133,12 +132,12 @@ public class TapeModel {
         this.type = type;
     }
 
-    public Long getUsedSize() {
-        return usedSize;
+    public Long getRemainingSize() {
+        return remainingSize;
     }
 
-    public void setUsedSize(Long usedSize) {
-        this.usedSize = usedSize;
+    public void setRemainingSize(Long remainingSize) {
+        this.remainingSize = remainingSize;
     }
 
     public Long getCapacity() {

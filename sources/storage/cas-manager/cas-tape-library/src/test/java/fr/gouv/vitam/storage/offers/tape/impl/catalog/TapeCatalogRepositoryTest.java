@@ -26,25 +26,26 @@
  */
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
-import static com.mongodb.client.model.Filters.eq;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
-import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLocation;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLocationType;
-import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
-import org.bson.Document;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -55,25 +56,23 @@ import org.junit.Test;
  */
 public class TapeCatalogRepositoryTest {
 
-    public static final String TAPE_CATALOG_COLLECTION = "TapeCatalog" + GUIDFactory.newGUID().getId();
+    public static final String TAPE_CATALOG_COLLECTION = OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);
 
     private static TapeCatalogRepository tapeCatalogRepository;
 
-    private static MongoCollection<Document> tapeCollection;
-
     @BeforeClass
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess, TAPE_CATALOG_COLLECTION);
-        tapeCollection = mongoRule.getMongoCollection(TAPE_CATALOG_COLLECTION);
+        tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
+                .getCollection(TAPE_CATALOG_COLLECTION));
     }
 
     @AfterClass
-    public static void setDownBeforeClass() {
-        mongoRule.handleAfter();
+    public static void setDownAfterClass() {
+        mongoRule.handleAfterClass();
     }
 
     @Test
@@ -81,19 +80,18 @@ public class TapeCatalogRepositoryTest {
         // Given
         GUID id = GUIDFactory.newGUID();
 
-        TapeModel tapeModel = getTapeModel(id);
+        TapeCatalog tapeCatalog = getTapeModel(id);
 
         // When
-        tapeCatalogRepository.createTape(tapeModel);
+        tapeCatalogRepository.createTape(tapeCatalog);
 
         // Then
-        Document document = tapeCollection.find(eq("_id", id.toString())).first();
-        assertThat(document)
-            .isNotNull()
-            .containsEntry(TapeModel.CODE, "VIT0001")
-            .containsEntry(TapeModel.LABEL, "VIT-TAPE-1")
-            .containsEntry(TapeModel.CAPACITY, 10000)
-            .containsEntry(TapeModel.VERSION, 0);
+        TapeCatalog tape = tapeCatalogRepository.findTapeById(id.toString());
+        assertThat(tape).isNotNull();
+        assertThat(tape.getCode()).isEqualTo("VIT0001");
+        assertThat(tape.getLabel()).isEqualTo("VIT-TAPE-1");
+        assertThat(tape.getCapacity()).isEqualTo(10000);
+        assertThat(tape.getVersion()).isEqualTo(0);
     }
 
     @Test
@@ -101,35 +99,35 @@ public class TapeCatalogRepositoryTest {
         // Given
         GUID id = GUIDFactory.newGUID();
 
-        TapeModel tapeModel = getTapeModel(id);
+        TapeCatalog tapeCatalog = getTapeModel(id);
 
-        tapeCatalogRepository.createTape(tapeModel);
+        tapeCatalogRepository.createTape(tapeCatalog);
 
         // When
-        TapeModel result = tapeCatalogRepository.findTapeById(tapeModel.getId());
+        TapeCatalog result = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
 
         // Then
         assertThat(result.getId()).isEqualTo(id.toString());
     }
 
     @Test
-    public void shouldFindTapeByFields() throws InvalidParseOperationException {
+    public void shouldFindTapesByCriteria() throws InvalidParseOperationException {
         // Given
         GUID id = GUIDFactory.newGUID();
 
-        TapeModel tapeModel = getTapeModel(id);
+        TapeCatalog tapeCatalog = getTapeModel(id);
 
-        tapeCatalogRepository.createTape(tapeModel);
+        tapeCatalogRepository.createTape(tapeCatalog);
 
         // When
-        Map<String, Object> criteria = Maps.newHashMap();
-        criteria.put(TapeModel.CODE, tapeModel.getCode());
-        criteria.put(TapeModel.CAPACITY, tapeModel.getCapacity());
-        List<TapeModel> result = tapeCatalogRepository.findTapeByFields(criteria);
+        List<QueryCriteria> criteria = new ArrayList<>();
+        criteria.add(new QueryCriteria(TapeCatalog.CODE, tapeCatalog.getCode(), QueryCriteriaOperator.EQ));
+        criteria.add(new QueryCriteria(TapeCatalog.CAPACITY, 10000L, QueryCriteriaOperator.GTE));
+        List<TapeCatalog> result = tapeCatalogRepository.findTapes(criteria);
 
         // Then
         assertThat(result.size()).isEqualTo(1);
-        assertThat(result.get(0).getCapacity()).isEqualTo(tapeModel.getCapacity());
+        assertThat(result.get(0).getCapacity()).isEqualTo(tapeCatalog.getCapacity());
     }
 
     @Test
@@ -137,23 +135,23 @@ public class TapeCatalogRepositoryTest {
         // Given
         GUID id = GUIDFactory.newGUID();
 
-        TapeModel tapeModel = getTapeModel(id);
+        TapeCatalog tapeCatalog = getTapeModel(id);
 
-        tapeCatalogRepository.createTape(tapeModel);
+        tapeCatalogRepository.createTape(tapeCatalog);
 
         // When
-        TapeModel currentTape = tapeCatalogRepository.findTapeById(tapeModel.getId());
+        TapeCatalog currentTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
         assertThat(currentTape.getCode()).isEqualTo("VIT0001");
         assertThat(currentTape.getVersion()).isEqualTo(0);
         assertThat(currentTape.getFileCount()).isEqualTo(200L);
 
         Map<String, Object> updates = Maps.newHashMap();
-        updates.put(TapeModel.CODE, "FakeCode");
-        updates.put(TapeModel.FILE_COUNT, 201);
+        updates.put(TapeCatalog.CODE, "FakeCode");
+        updates.put(TapeCatalog.FILE_COUNT, 201);
         tapeCatalogRepository.updateTape(id.toString(), updates);
 
         // Then
-        TapeModel updatedTape = tapeCatalogRepository.findTapeById(tapeModel.getId());
+        TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
         assertThat(updatedTape.getCode()).isEqualTo("FakeCode");
         assertThat(updatedTape.getVersion()).isEqualTo(1);
         assertThat(updatedTape.getFileCount()).isEqualTo(201L);
@@ -164,12 +162,12 @@ public class TapeCatalogRepositoryTest {
         // Given
         GUID id = GUIDFactory.newGUID();
 
-        TapeModel tapeModel = getTapeModel(id);
+        TapeCatalog tapeCatalog = getTapeModel(id);
 
-        tapeCatalogRepository.createTape(tapeModel);
+        tapeCatalogRepository.createTape(tapeCatalog);
 
         // When
-        TapeModel currentTape = tapeCatalogRepository.findTapeById(tapeModel.getId());
+        TapeCatalog currentTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
         assertThat(currentTape.getCode()).isEqualTo("VIT0001");
         assertThat(currentTape.getVersion()).isEqualTo(0);
 
@@ -177,26 +175,26 @@ public class TapeCatalogRepositoryTest {
         tapeCatalogRepository.replaceTape(currentTape);
 
         // Then
-        TapeModel updatedTape = tapeCatalogRepository.findTapeById(tapeModel.getId());
+        TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
         assertThat(updatedTape.getCode()).isEqualTo("FakeCode");
         assertThat(updatedTape.getVersion()).isEqualTo(1);
     }
 
-    private TapeModel getTapeModel(GUID id) {
-        TapeModel tapeModel = new TapeModel();
-        tapeModel.setId(id.toString());
-        tapeModel.setCapacity(10000L);
-        tapeModel.setUsedSize(5000L);
-        tapeModel.setFileCount(200L);
-        tapeModel.setCode("VIT0001");
-        tapeModel.setLabel("VIT-TAPE-1");
-        tapeModel.setLibrary("VIT-LIB-1");
-        tapeModel.setType("LTO-6");
-        tapeModel.setCompressed(false);
-        tapeModel.setWorm(false);
-        tapeModel.setCurrentLocation(new TapeLocation(1, TapeLocationType.DIRVE));
-        tapeModel.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
-        return tapeModel;
+    private TapeCatalog getTapeModel(GUID id) {
+        TapeCatalog tapeCatalog = new TapeCatalog();
+        tapeCatalog.setId(id.toString());
+        tapeCatalog.setCapacity(10000L);
+        tapeCatalog.setRemainingSize(5000L);
+        tapeCatalog.setFileCount(200L);
+        tapeCatalog.setCode("VIT0001");
+        tapeCatalog.setLabel("VIT-TAPE-1");
+        tapeCatalog.setLibrary("VIT-LIB-1");
+        tapeCatalog.setType("LTO-6");
+        tapeCatalog.setCompressed(false);
+        tapeCatalog.setWorm(false);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.DIRVE));
+        tapeCatalog.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
+        return tapeCatalog;
     }
 
 }

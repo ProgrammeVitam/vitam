@@ -24,47 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.dto;
+package fr.gouv.vitam.common.database.server.query;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+public enum QueryCriteriaOperator {
+    EQ("EQ"),
+    LT("LT"),
+    LTE("LTE"),
+    GT("GT"),
+    GTE("GTE");
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
+    private String type;
 
-/**
- * StorageElement
- */
-@JsonInclude(NON_NULL)
-public class TapeLocation {
-    public static final String INDEX = "index";
-    public static final String TYPE = "type";
-
-    @JsonProperty(INDEX)
-    private Integer index;
-    @JsonProperty(TYPE)
-    private TapeLocationType type;
-
-
-    @JsonCreator
-    public TapeLocation(@JsonProperty(INDEX) Integer index, @JsonProperty(TYPE) TapeLocationType type) {
-        this.index = index;
+    QueryCriteriaOperator(String type) {
         this.type = type;
     }
 
-    public Integer getIndex() {
-        return index;
-    }
-
-    public void setIndex(Integer index) {
-        this.index = index;
-    }
-
-    public TapeLocationType getType() {
+    public String getType() {
         return type;
-    }
-
-    public void setType(TapeLocationType type) {
-        this.type = type;
     }
 }

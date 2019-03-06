@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
@@ -89,8 +90,8 @@ public class BusinessApplication extends Application {
             DefaultOfferService defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService);
             DefaultOfferResource defaultOfferResource = new DefaultOfferResource(defaultOfferService);
 
-            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(new SimpleMongoDBAccess(mongoClient, configuration.getDbName()));
-            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
+            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(
+                    new SimpleMongoDBAccess(mongoClient, configuration.getDbName()));
 
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(defaultOfferResource);

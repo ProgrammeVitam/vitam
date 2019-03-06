@@ -34,9 +34,9 @@ import javax.ws.rs.core.Response;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLocation;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLocationType;
-import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import org.junit.Rule;
@@ -62,30 +62,30 @@ public class TapeCatalogResourceTest {
     public void shouldFindTape() throws Exception {
         // Given
         String id = "tapeId";
-        TapeModel tapeModel = getTapeModel(id);
-        given(tapeCatalogService.findById(id)).willReturn(tapeModel);
+        TapeCatalog tapeCatalog = getTapeModel(id);
+        given(tapeCatalogService.findById(id)).willReturn(tapeCatalog);
 
         // When
         Response result = tapeCatalogResource.getTape(id);
 
         // Then
-        assertThat(((RequestResponseOK<JsonNode>)result.getEntity()).getResults().get(0)).isEqualTo(JsonHandler.toJsonNode(tapeModel));
+        assertThat(((RequestResponseOK<JsonNode>)result.getEntity()).getResults().get(0)).isEqualTo(JsonHandler.toJsonNode(tapeCatalog));
     }
 
-    private TapeModel getTapeModel(String id) {
-        TapeModel tapeModel = new TapeModel();
-        tapeModel.setId(id);
-        tapeModel.setCapacity(10000L);
-        tapeModel.setUsedSize(5000L);
-        tapeModel.setFileCount(200L);
-        tapeModel.setCode("VIT0001");
-        tapeModel.setLabel("VIT-TAPE-1");
-        tapeModel.setLibrary("VIT-LIB-1");
-        tapeModel.setType("LTO-6");
-        tapeModel.setCompressed(false);
-        tapeModel.setWorm(false);
-        tapeModel.setCurrentLocation(new TapeLocation(1, TapeLocationType.DIRVE));
-        tapeModel.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
-        return tapeModel;
+    private TapeCatalog getTapeModel(String id) {
+        TapeCatalog tapeCatalog = new TapeCatalog();
+        tapeCatalog.setId(id);
+        tapeCatalog.setCapacity(10000L);
+        tapeCatalog.setRemainingSize(5000L);
+        tapeCatalog.setFileCount(200L);
+        tapeCatalog.setCode("VIT0001");
+        tapeCatalog.setLabel("VIT-TAPE-1");
+        tapeCatalog.setLibrary("VIT-LIB-1");
+        tapeCatalog.setType("LTO-6");
+        tapeCatalog.setCompressed(false);
+        tapeCatalog.setWorm(false);
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.DIRVE));
+        tapeCatalog.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
+        return tapeCatalog;
     }
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/**
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,25 +23,86 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.spec;
+ */
+package fr.gouv.vitam.storage.engine.common.model;
 
-import java.util.List;
-import java.util.Map;
+import org.bson.Document;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+/**
+ * Offer sequence.
+ */
+public class OfferSequence {
 
-public interface TapeCatalogService {
+    public static final String COUNTER_FIELD = "Counter";
+    public static final String ID_FIELD = "_id";
 
-    void create(TapeCatalog tapeCatalog) throws InvalidParseOperationException;
+    private String id;
 
-    boolean replace(TapeCatalog tapeCatalog) throws InvalidParseOperationException;
+    private long counter;
 
-    boolean update(String tapeId, Map<String, Object> criteria) throws InvalidParseOperationException;
+    /**
+     * Constructor, jackson usage only
+     */
+    public OfferSequence() {}
 
-    TapeCatalog findById(String tapeId) throws InvalidParseOperationException;
+    /**
+     * Constructor
+     * 
+     * @param id id
+     */
+    public OfferSequence(String id) {
+        this.id = id;
+    }
 
-    List<TapeCatalog> find(List<QueryCriteria> criteria) throws InvalidParseOperationException;
+    /**
+     * Gets the id
+     * 
+     * @return the id
+     */
+    public String getId() {
+        return id;
+    }
+
+    /**
+     * Sets the id
+     * 
+     * @param id
+     */
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets the counter
+     * 
+     * @return counter
+     */
+    public long getCounter() {
+        return counter;
+    }
+
+    /**
+     * Sets the counter
+     * 
+     * @param counter counter
+     */
+    public void setCounter(long counter) {
+        this.counter = counter;
+    }
+
+    /**
+     * Ugly workaround to keep object type when convert JSON to Mongo Document
+     *
+     * TODO: switch to mongo-java-driver >= 3.5.0 and use PojoCodecProvider
+     *
+     * @return Document
+     * @see <a href=
+     *      "http://mongodb.github.io/mongo-java-driver/3.5/driver/getting-started/quick-start-pojo/#creating-a-custom-codecregistry">PojoCodecProvider</a>
+     */
+    public Document toDocument() {
+        Document document = new Document();
+        document.put(ID_FIELD, id);
+        document.put(COUNTER_FIELD, counter);
+        return document;
+    }
 }

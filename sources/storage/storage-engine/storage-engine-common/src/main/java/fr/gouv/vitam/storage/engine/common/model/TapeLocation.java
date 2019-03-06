@@ -24,24 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.spec;
+package fr.gouv.vitam.storage.engine.common.model;
 
-import java.util.List;
-import java.util.Map;
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public interface TapeCatalogService {
+/**
+ * StorageElement
+ */
+@JsonInclude(NON_NULL)
+public class TapeLocation {
+    public static final String INDEX = "index";
+    public static final String TYPE = "type";
 
-    void create(TapeCatalog tapeCatalog) throws InvalidParseOperationException;
+    @JsonProperty(INDEX)
+    private Integer index;
+    @JsonProperty(TYPE)
+    private TapeLocationType type;
 
-    boolean replace(TapeCatalog tapeCatalog) throws InvalidParseOperationException;
 
-    boolean update(String tapeId, Map<String, Object> criteria) throws InvalidParseOperationException;
+    @JsonCreator
+    public TapeLocation(@JsonProperty(INDEX) Integer index, @JsonProperty(TYPE) TapeLocationType type) {
+        this.index = index;
+        this.type = type;
+    }
 
-    TapeCatalog findById(String tapeId) throws InvalidParseOperationException;
+    public Integer getIndex() {
+        return index;
+    }
 
-    List<TapeCatalog> find(List<QueryCriteria> criteria) throws InvalidParseOperationException;
+    public void setIndex(Integer index) {
+        this.index = index;
+    }
+
+    public TapeLocationType getType() {
+        return type;
+    }
+
+    public void setType(TapeLocationType type) {
+        this.type = type;
+    }
 }

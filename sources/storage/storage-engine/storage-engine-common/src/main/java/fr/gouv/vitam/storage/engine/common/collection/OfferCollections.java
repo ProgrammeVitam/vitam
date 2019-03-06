@@ -1,10 +1,13 @@
-package fr.gouv.vitam.storage.offers.database;
+package fr.gouv.vitam.storage.engine.common.collection;
 
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 
 public enum OfferCollections {
     OFFER_LOG(OfferLog.class),
-    OFFER_SEQUENCE(OfferSequence.class);
+    OFFER_SEQUENCE(OfferSequence.class),
+    OFFER_TAPE_CATALOG(TapeCatalog.class);
 
     private final Class<?> clazz;
     private String name;

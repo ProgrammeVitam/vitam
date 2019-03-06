@@ -33,6 +33,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import org.bson.Document;
 import org.bson.conversions.Bson;

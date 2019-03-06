@@ -21,7 +21,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
 import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 import fr.gouv.vitam.security.internal.rest.repository.PersonalRepository;
-import fr.gouv.vitam.storage.offers.database.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import org.junit.ClassRule;
 import org.junit.Rule;
 

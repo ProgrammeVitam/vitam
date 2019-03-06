@@ -32,25 +32,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.offers.tape.model.TapeModel;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 /**
  * repository for Tapes Catalog management in mongo.
  */
 public class TapeCatalogRepository {
-
-    public static final String TAPE_CATALOG_COLLECTION = "TapeCatalog";
 
     private static final String ALL_PARAMS_REQUIRED = "All params are required";
 
@@ -59,39 +57,34 @@ public class TapeCatalogRepository {
     String $_SET = "$set";
     String $_INC = "$inc";
 
-    @VisibleForTesting
-    public TapeCatalogRepository(MongoDbAccess mongoDbAccess, String collectionName) {
-        tapeCollection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
-    }
-
-    public TapeCatalogRepository(MongoDbAccess mongoDbAccess) {
-        this(mongoDbAccess, TAPE_CATALOG_COLLECTION);
+    public TapeCatalogRepository(MongoCollection<Document> collection) {
+        tapeCollection = collection;
     }
 
     /**
      * create a tape model
      *
-     * @param tapeModel
+     * @param tapeCatalog
      * @throws InvalidParseOperationException
      */
-    public void createTape(TapeModel tapeModel) throws InvalidParseOperationException {
-        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeModel);
-        tapeModel.setVersion(0);
-        String json = JsonHandler.writeAsString(tapeModel);
+    public void createTape(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
+        tapeCatalog.setVersion(0);
+        String json = JsonHandler.writeAsString(tapeCatalog);
         tapeCollection.insertOne(Document.parse(json));
     }
 
     /**
      * replace a tape model
      *
-     * @param tapeModel
+     * @param tapeCatalog
      * @throws InvalidParseOperationException
      */
-    public boolean replaceTape(TapeModel tapeModel) throws InvalidParseOperationException {
-        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeModel);
-        tapeModel.setVersion(tapeModel.getVersion() + 1);
-        String json = JsonHandler.writeAsString(tapeModel);
-        final UpdateResult result = tapeCollection.replaceOne(eq(TapeModel.ID, tapeModel.getId()), Document.parse(json));
+    public boolean replaceTape(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
+        tapeCatalog.setVersion(tapeCatalog.getVersion() + 1);
+        String json = JsonHandler.writeAsString(tapeCatalog);
+        final UpdateResult result = tapeCollection.replaceOne(eq(TapeCatalog.ID, tapeCatalog.getId()), Document.parse(json));
 
         return result.getMatchedCount() == 1;
     }
@@ -113,9 +106,9 @@ public class TapeCatalogRepository {
         fields.forEach((key, value) -> update.append(key, value));
 
         Document data = new Document($_SET, update)
-                .append($_INC, new Document(TapeModel.VERSION, 1));
+                .append($_INC, new Document(TapeCatalog.VERSION, 1));
 
-        UpdateResult result = tapeCollection.updateOne(eq(TapeModel.ID, tapeId), data);
+        UpdateResult result = tapeCollection.updateOne(eq(TapeCatalog.ID, tapeId), data);
 
         return result.getMatchedCount() == 1;
     }
@@ -123,20 +116,39 @@ public class TapeCatalogRepository {
     /**
      * return tape models according to given fields
      *
-     * @param fields
+     * @param criteria
      * @return
      */
-    public List<TapeModel> findTapeByFields(Map<String, Object> fields) throws InvalidParseOperationException {
-        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, fields);
-        if (fields.isEmpty()) {
+    public List<TapeCatalog> findTapes(List<QueryCriteria> criteria) throws InvalidParseOperationException {
+        if (criteria == null || criteria.isEmpty()) {
             throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
         }
-        BasicDBObject filter = new BasicDBObject();
-        fields.forEach((key, value) -> filter.append(key, value));
-        List<TapeModel> result = new ArrayList<>();
-        List<Document> documents = tapeCollection.find(filter).into(new ArrayList<>());
+
+        List<Bson> filters = new ArrayList<>();
+        for (QueryCriteria criterion : criteria) {
+            switch (criterion.getOperator()) {
+                case EQ:
+                    filters.add(Filters.eq(criterion.getField(), criterion.getValue()));
+                    break;
+                case GT:
+                    filters.add(Filters.gt(criterion.getField(), criterion.getValue()));
+                    break;
+                case GTE:
+                    filters.add(Filters.gte(criterion.getField(), criterion.getValue()));
+                    break;
+                case LT:
+                    filters.add(Filters.lt(criterion.getField(), criterion.getValue()));
+                    break;
+                case LTE:
+                    filters.add(Filters.lte(criterion.getField(), criterion.getValue()));
+                    break;
+            }
+        }
+
+        List<TapeCatalog> result = new ArrayList<>();
+        List<Document> documents = tapeCollection.find(Filters.and(filters)).into(new ArrayList<>());
         for (Document doc : documents) {
-            result.add(JsonHandler.getFromString(JSON.serialize(doc), TapeModel.class));
+            result.add(JsonHandler.getFromString(JSON.serialize(doc), TapeCatalog.class));
         }
 
         return result;
@@ -148,15 +160,15 @@ public class TapeCatalogRepository {
      * @param tapeId
      * @return
      */
-    public TapeModel findTapeById(String tapeId) throws InvalidParseOperationException {
+    public TapeCatalog findTapeById(String tapeId) throws InvalidParseOperationException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeId);
         FindIterable<Document> models =
-            tapeCollection.find(eq(TapeModel.ID, tapeId));
+            tapeCollection.find(eq(TapeCatalog.ID, tapeId));
         Document first = models.first();
         if (first == null) {
             return null;
         }
-        return JsonHandler.getFromString(JSON.serialize(first), TapeModel.class);
+        return JsonHandler.getFromString(JSON.serialize(first), TapeCatalog.class);
     }
 
 }
