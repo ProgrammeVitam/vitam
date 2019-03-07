@@ -52,7 +52,7 @@ import org.bson.conversions.Bson;
 public class TapeCatalogRepository extends QueueRepositoryImpl {
 
     private static final String ALL_PARAMS_REQUIRED = "All params are required";
-    
+
     String $_SET = "$set";
     String $_INC = "$inc";
 
@@ -66,11 +66,12 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @param tapeCatalog
      * @throws InvalidParseOperationException
      */
-    public void createTape(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
+    public String createTape(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
         tapeCatalog.setVersion(0);
         String json = JsonHandler.writeAsString(tapeCatalog);
         collection.insertOne(Document.parse(json));
+        return tapeCatalog.getId();
     }
 
     /**

@@ -51,12 +51,11 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 /**
- * Test @TapeCatalogRepositoryImpl
+ * Test @TapeCatalogRepository
  */
 public class TapeCatalogRepositoryTest {
 
-    public static final String TAPE_CATALOG_COLLECTION =
-        OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
+    public static final String TAPE_CATALOG_COLLECTION = OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);
@@ -67,7 +66,7 @@ public class TapeCatalogRepositoryTest {
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(TAPE_CATALOG_COLLECTION));
+                .getCollection(TAPE_CATALOG_COLLECTION));
     }
 
     @AfterClass
@@ -83,7 +82,7 @@ public class TapeCatalogRepositoryTest {
         String id = tapeCatalog.getId();
 
         // When
-        tapeCatalogRepository.createTape(tapeCatalog);
+         tapeCatalogRepository.createTape(tapeCatalog);
 
         // Then
         TapeCatalog tape = tapeCatalogRepository.findTapeById(id);
@@ -104,10 +103,10 @@ public class TapeCatalogRepositoryTest {
         tapeCatalogRepository.createTape(tapeCatalog);
 
         // When
-        TapeCatalog result = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
+        TapeCatalog result = tapeCatalogRepository.findTapeById(id);
 
         // Then
-        assertThat(result.getId()).isEqualTo(id);
+        assertThat(result.getCode()).isEqualTo(tapeCatalog.getCode());
     }
 
     @Test
@@ -115,8 +114,6 @@ public class TapeCatalogRepositoryTest {
         // Given
 
         TapeCatalog tapeCatalog = getTapeModel();
-
-        String id = tapeCatalog.getId();
 
         tapeCatalogRepository.createTape(tapeCatalog);
 
@@ -141,7 +138,7 @@ public class TapeCatalogRepositoryTest {
         tapeCatalogRepository.createTape(tapeCatalog);
 
         // When
-        TapeCatalog currentTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
+        TapeCatalog currentTape = tapeCatalogRepository.findTapeById(id);
         assertThat(currentTape.getCode()).isEqualTo("VIT0001");
         assertThat(currentTape.getVersion()).isEqualTo(0);
         assertThat(currentTape.getFileCount()).isEqualTo(200L);
@@ -152,7 +149,7 @@ public class TapeCatalogRepositoryTest {
         tapeCatalogRepository.updateTape(id, updates);
 
         // Then
-        TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
+        TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(id);
         assertThat(updatedTape.getCode()).isEqualTo("FakeCode");
         assertThat(updatedTape.getVersion()).isEqualTo(1);
         assertThat(updatedTape.getFileCount()).isEqualTo(201L);
@@ -164,10 +161,10 @@ public class TapeCatalogRepositoryTest {
 
         TapeCatalog tapeCatalog = getTapeModel();
 
-        tapeCatalogRepository.createTape(tapeCatalog);
+        String id = tapeCatalogRepository.createTape(tapeCatalog);
 
         // When
-        TapeCatalog currentTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
+        TapeCatalog currentTape = tapeCatalogRepository.findTapeById(id);
         assertThat(currentTape.getCode()).isEqualTo("VIT0001");
         assertThat(currentTape.getVersion()).isEqualTo(0);
 
@@ -175,7 +172,7 @@ public class TapeCatalogRepositoryTest {
         tapeCatalogRepository.replaceTape(currentTape);
 
         // Then
-        TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
+        TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(id);
         assertThat(updatedTape.getCode()).isEqualTo("FakeCode");
         assertThat(updatedTape.getVersion()).isEqualTo(1);
     }
@@ -184,7 +181,7 @@ public class TapeCatalogRepositoryTest {
         TapeCatalog tapeCatalog = new TapeCatalog();
         tapeCatalog.setCapacity(10000L);
         tapeCatalog.setRemainingSize(5000L);
-        tapeCatalog.setFileCount(200L);
+        tapeCatalog.setFileCount(200);
         tapeCatalog.setCode("VIT0001");
         tapeCatalog.setLabel("VIT-TAPE-1");
         tapeCatalog.setLibrary("VIT-LIB-1");

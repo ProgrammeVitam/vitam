@@ -51,6 +51,18 @@ public class TapeLocation {
         this.type = type;
     }
 
+    public boolean equals(TapeLocation tapeLocation) {
+        if (!this.index.equals(tapeLocation.getIndex())) {
+            return false;
+        }
+
+        if (!this.type.getType().equals(tapeLocation.getType().getType())) {
+            return false;
+        }
+
+        return true;
+    }
+
     public Integer getIndex() {
         return index;
     }

@@ -26,18 +26,32 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 
 public class TapeCatalogServiceImpl implements TapeCatalogService {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeCatalogServiceImpl.class);
 
     private TapeCatalogRepository repository;
 
@@ -60,6 +74,96 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     @Override
     public boolean update(String tapeId, Map<String, Object> criteria) {
         return repository.updateTape(tapeId, criteria);
+    }
+
+    @Override
+    public boolean init(String tapeLibraryIdentifier, TapeLibraryState libraryState) {
+        QueryCriteria criteria = new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
+        Map<String, TapeCatalog> existingTapes;
+
+        try {
+            existingTapes = repository.findTapes(Arrays.asList(criteria)).stream().collect(Collectors.toMap(TapeCatalog::getCode, tape -> tape));
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            throw new RuntimeException(e);
+        }
+
+        for (TapeDrive drive : libraryState.getDrives()) {
+            if (drive.getTape() != null) {
+                TapeCatalog tape = new TapeCatalog();
+                tape.setCode(drive.getTape().getVolumeTag());
+                tape.setAlternativeCode(drive.getTape().getAlternateVolumeTag());
+                tape.setLibrary(tapeLibraryIdentifier);
+                tape.setCurrentLocation(new TapeLocation(drive.getIndex(), TapeLocationType.DIRVE));
+                if (drive.getTape().getSlotIndex() != null) {
+                    tape.setPreviousLocation(new TapeLocation(drive.getTape().getSlotIndex(), TapeLocationType.SLOT));
+                }
+
+                createOrUpdateTape(tape, existingTapes.get(tape.getCode()));
+            }
+        }
+
+        for (TapeSlot slot : libraryState.getSlots()) {
+            if (slot.getTape() != null) {
+                TapeCatalog tape = new TapeCatalog();
+                tape.setCode(slot.getTape().getVolumeTag());
+                tape.setAlternativeCode(slot.getTape().getAlternateVolumeTag());
+                tape.setLibrary(tapeLibraryIdentifier);
+                tape.setCurrentLocation(new TapeLocation(slot.getIndex(), TapeLocationType.SLOT));
+
+                createOrUpdateTape(tape, existingTapes.get(tape.getCode()));
+            }
+        }
+
+        return true;
+    }
+
+    private void createOrUpdateTape(TapeCatalog tape, TapeCatalog existingTape) {
+        if (existingTape != null) {
+            Map<String, Object> updates = getUpdates(tape, existingTape);
+
+            if (!updates.isEmpty()) {
+                boolean isUpdated = repository.updateTape(existingTape.getId(), updates);
+                if (!isUpdated) {
+                    String errorMsg = String.format("Error when updating tape %s", tape.getCode());
+                    LOGGER.error(errorMsg);
+                    throw new RuntimeException(errorMsg);
+                }
+            }
+
+        } else {
+            try {
+                repository.createTape(tape);
+            } catch (InvalidParseOperationException e) {
+                LOGGER.error(e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private Map<String, Object> getUpdates(TapeCatalog tape, TapeCatalog existingTape) {
+        Map<String, Object> updates;updates = new HashMap<>();
+        if (!existingTape.getAlternativeCode().equals(tape.getAlternativeCode())) {
+            updates.put(TapeCatalog.ALTERNATIVE_CODE, tape.getAlternativeCode());
+        }
+
+        if (!existingTape.getLibrary().equals(tape.getLibrary())) {
+            updates.put(TapeCatalog.LIBRARY, tape.getLibrary());
+        }
+
+        if (!existingTape.getCurrentLocation().equals(tape.getCurrentLocation())) {
+            updates.put(TapeCatalog.CURRENT_LOCATION, tape.getAlternativeCode());
+        }
+
+        if (tape.getPreviousLocation() != null
+                && (existingTape.getPreviousLocation() == null
+                        || !existingTape.getPreviousLocation().equals(tape.getPreviousLocation()))) {
+            updates.put(TapeCatalog.PREVIOUS_LOCATION, tape.getPreviousLocation());
+        } else if(existingTape.getPreviousLocation() != null) {
+            updates.put(TapeCatalog.PREVIOUS_LOCATION, tape.getPreviousLocation());
+        }
+
+        return updates;
     }
 
     @Override

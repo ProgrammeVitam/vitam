@@ -32,6 +32,7 @@ import java.util.Map;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 
 public interface TapeCatalogService {
 
@@ -40,6 +41,8 @@ public interface TapeCatalogService {
     boolean replace(TapeCatalog tapeCatalog) throws InvalidParseOperationException;
 
     boolean update(String tapeId, Map<String, Object> criteria) throws InvalidParseOperationException;
+
+    boolean init(String tapeLibraryIdentifier, TapeLibraryState libraryState);
 
     TapeCatalog findById(String tapeId) throws InvalidParseOperationException;
 

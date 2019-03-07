@@ -1,9 +1,13 @@
 package fr.gouv.vitam.storage.offers.tape;
 
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
 import fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService;
@@ -22,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 
 public class TapeLibraryFactory {
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibraryFactory.class);
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
     private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
 
@@ -29,10 +34,10 @@ public class TapeLibraryFactory {
     }
 
     public void initize(TapeLibraryConfiguration configuration) {
-        Map<String, TapeLibraryConf> libaries = configuration.getTapeLibraries();
+        Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
-        for (String tapeLibraryIdentifier : libaries.keySet()) {
-            TapeLibraryConf tapeLibraryConf = libaries.get(tapeLibraryIdentifier);
+        for (String tapeLibraryIdentifier : libraries.keySet()) {
+            TapeLibraryConf tapeLibraryConf = libraries.get(tapeLibraryIdentifier);
 
             BlockingQueue<TapeRobotService> robotServices =
                 new ArrayBlockingQueue<>(tapeLibraryConf.getRobots().size(), true);
@@ -54,6 +59,24 @@ public class TapeLibraryFactory {
             if (robotServices.size() > 0 && driveServices.size() > 0) {
                 tapeLibraryPool
                     .putIfAbsent(tapeLibraryIdentifier, new TapeLibraryPoolImpl(robotServices, driveServices));
+            }
+
+            // init tape catalog
+            TapeLibraryPool tapeLibraryPool = TapeLibraryFactory.tapeLibraryPool.get(tapeLibraryIdentifier);
+            try {
+                TapeRobotService robot = tapeLibraryPool.checkoutRobotService();
+                if (robot != null) {
+                    try {
+                        TapeLibraryState libraryState = robot.getLoadUnloadService().status(30000);
+                        robot.getCatalogService().init(tapeLibraryIdentifier, libraryState);
+                    } finally {
+                        tapeLibraryPool.pushRobotService(robot);
+                    }
+
+                }
+            } catch (InterruptedException e) {
+                LOGGER.error(e);
+                throw new RuntimeException(e);
             }
         }
 

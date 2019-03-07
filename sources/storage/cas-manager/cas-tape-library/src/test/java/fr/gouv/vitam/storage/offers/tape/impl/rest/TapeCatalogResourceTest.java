@@ -77,7 +77,7 @@ public class TapeCatalogResourceTest {
         tapeCatalog.setId(id);
         tapeCatalog.setCapacity(10000L);
         tapeCatalog.setRemainingSize(5000L);
-        tapeCatalog.setFileCount(200L);
+        tapeCatalog.setFileCount(200);
         tapeCatalog.setCode("VIT0001");
         tapeCatalog.setLabel("VIT-TAPE-1");
         tapeCatalog.setLibrary("VIT-LIB-1");

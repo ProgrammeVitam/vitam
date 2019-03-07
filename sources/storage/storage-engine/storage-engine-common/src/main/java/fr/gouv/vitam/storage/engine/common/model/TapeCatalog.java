@@ -39,6 +39,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 @JsonInclude(NON_NULL)
 public class TapeCatalog extends QueueEntity {
     public static final String CODE = "code";
+    public static final String ALTERNATIVE_CODE = "alternative_code";
+    public static final String BUCKET = "bucket";
     public static final String LABEL = "label";
     public static final String LIBRARY = "library";
     public static final String TYPE = "type";
@@ -53,6 +55,12 @@ public class TapeCatalog extends QueueEntity {
 
     @JsonProperty(CODE)
     private String code;
+
+    @JsonProperty(ALTERNATIVE_CODE)
+    private String alternativeCode;
+
+    @JsonProperty(BUCKET)
+    private String bucket;
 
     @JsonProperty(LABEL)
     private String label;
@@ -70,7 +78,7 @@ public class TapeCatalog extends QueueEntity {
     private Long capacity;
 
     @JsonProperty(FILE_COUNT)
-    private Long fileCount;
+    private Integer fileCount;
 
     @JsonProperty(CURRENT_LOCATION)
     private TapeLocation currentLocation;
@@ -139,11 +147,11 @@ public class TapeCatalog extends QueueEntity {
         this.capacity = capacity;
     }
 
-    public Long getFileCount() {
+    public Integer getFileCount() {
         return fileCount;
     }
 
-    public void setFileCount(Long fileCount) {
+    public void setFileCount(Integer fileCount) {
         this.fileCount = fileCount;
     }
 
@@ -185,5 +193,21 @@ public class TapeCatalog extends QueueEntity {
 
     public void setVersion(int version) {
         this.version = version;
+    }
+
+    public String getAlternativeCode() {
+        return alternativeCode;
+    }
+
+    public void setAlternativeCode(String alternativeCode) {
+        this.alternativeCode = alternativeCode;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
     }
 }
