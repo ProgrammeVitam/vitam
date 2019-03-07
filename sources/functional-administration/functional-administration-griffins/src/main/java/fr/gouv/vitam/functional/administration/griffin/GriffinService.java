@@ -450,7 +450,7 @@ public class GriffinService {
             griffinModel.setCreationDate(creationDate);
         } catch (
         DateTimeParseException e) {
-            throw new ReferentialException("Invalid date", e);
+            throw new ReferentialException(griffinModel.getIdentifier() + " Invalid " + GriffinModel.TAG_CREATION_DATE + " : " + griffinModel.getCreationDate() , e);
         }
     }
 
