@@ -1,13 +1,23 @@
 package fr.gouv.vitam.storage.offers.tape.order;
 
-public class ReadOrder implements Order {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+
+public class ReadOrder extends QueueEntity implements Order {
+    public static final String TAPE_CODE = "tapeCode";
+    public static final String FILE_POSITION = "filePosition";
+    @JsonProperty(TAPE_CODE)
     private String tapeCode;
+    @JsonProperty(FILE_POSITION)
     private Integer filePosition;
 
     public ReadOrder() {
+        super(GUIDFactory.newGUID().getId());
     }
 
     public ReadOrder(String tapeCode, Integer filePosition) {
+        this();
         this.tapeCode = tapeCode;
         this.filePosition = filePosition;
     }
@@ -16,16 +26,18 @@ public class ReadOrder implements Order {
         return tapeCode;
     }
 
-    public void setTapeCode(String tapeCode) {
+    public ReadOrder setTapeCode(String tapeCode) {
         this.tapeCode = tapeCode;
+        return this;
     }
 
     public Integer getFilePosition() {
         return filePosition;
     }
 
-    public void setFilePosition(Integer filePosition) {
+    public ReadOrder setFilePosition(Integer filePosition) {
         this.filePosition = filePosition;
+        return this;
     }
 
     @Override

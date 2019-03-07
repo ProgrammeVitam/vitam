@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -52,11 +51,12 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 /**
- * Test @TapeCatalogRepository
+ * Test @TapeCatalogRepositoryImpl
  */
 public class TapeCatalogRepositoryTest {
 
-    public static final String TAPE_CATALOG_COLLECTION = OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
+    public static final String TAPE_CATALOG_COLLECTION =
+        OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);
@@ -67,7 +67,7 @@ public class TapeCatalogRepositoryTest {
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
-                .getCollection(TAPE_CATALOG_COLLECTION));
+            .getCollection(TAPE_CATALOG_COLLECTION));
     }
 
     @AfterClass
@@ -78,15 +78,15 @@ public class TapeCatalogRepositoryTest {
     @Test
     public void shouldCreateTape() throws InvalidParseOperationException {
         // Given
-        GUID id = GUIDFactory.newGUID();
+        TapeCatalog tapeCatalog = getTapeModel();
 
-        TapeCatalog tapeCatalog = getTapeModel(id);
+        String id = tapeCatalog.getId();
 
         // When
         tapeCatalogRepository.createTape(tapeCatalog);
 
         // Then
-        TapeCatalog tape = tapeCatalogRepository.findTapeById(id.toString());
+        TapeCatalog tape = tapeCatalogRepository.findTapeById(id);
         assertThat(tape).isNotNull();
         assertThat(tape.getCode()).isEqualTo("VIT0001");
         assertThat(tape.getLabel()).isEqualTo("VIT-TAPE-1");
@@ -97,9 +97,9 @@ public class TapeCatalogRepositoryTest {
     @Test
     public void shouldFindTapeById() throws InvalidParseOperationException {
         // Given
-        GUID id = GUIDFactory.newGUID();
+        TapeCatalog tapeCatalog = getTapeModel();
 
-        TapeCatalog tapeCatalog = getTapeModel(id);
+        String id = tapeCatalog.getId();
 
         tapeCatalogRepository.createTape(tapeCatalog);
 
@@ -107,15 +107,16 @@ public class TapeCatalogRepositoryTest {
         TapeCatalog result = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
 
         // Then
-        assertThat(result.getId()).isEqualTo(id.toString());
+        assertThat(result.getId()).isEqualTo(id);
     }
 
     @Test
     public void shouldFindTapesByCriteria() throws InvalidParseOperationException {
         // Given
-        GUID id = GUIDFactory.newGUID();
 
-        TapeCatalog tapeCatalog = getTapeModel(id);
+        TapeCatalog tapeCatalog = getTapeModel();
+
+        String id = tapeCatalog.getId();
 
         tapeCatalogRepository.createTape(tapeCatalog);
 
@@ -133,9 +134,9 @@ public class TapeCatalogRepositoryTest {
     @Test
     public void shouldUpdateTape() throws InvalidParseOperationException {
         // Given
-        GUID id = GUIDFactory.newGUID();
+        TapeCatalog tapeCatalog = getTapeModel();
 
-        TapeCatalog tapeCatalog = getTapeModel(id);
+        String id = tapeCatalog.getId();
 
         tapeCatalogRepository.createTape(tapeCatalog);
 
@@ -148,7 +149,7 @@ public class TapeCatalogRepositoryTest {
         Map<String, Object> updates = Maps.newHashMap();
         updates.put(TapeCatalog.CODE, "FakeCode");
         updates.put(TapeCatalog.FILE_COUNT, 201);
-        tapeCatalogRepository.updateTape(id.toString(), updates);
+        tapeCatalogRepository.updateTape(id, updates);
 
         // Then
         TapeCatalog updatedTape = tapeCatalogRepository.findTapeById(tapeCatalog.getId());
@@ -160,9 +161,8 @@ public class TapeCatalogRepositoryTest {
     @Test
     public void shouldReplaceTape() throws InvalidParseOperationException {
         // Given
-        GUID id = GUIDFactory.newGUID();
 
-        TapeCatalog tapeCatalog = getTapeModel(id);
+        TapeCatalog tapeCatalog = getTapeModel();
 
         tapeCatalogRepository.createTape(tapeCatalog);
 
@@ -180,9 +180,8 @@ public class TapeCatalogRepositoryTest {
         assertThat(updatedTape.getVersion()).isEqualTo(1);
     }
 
-    private TapeCatalog getTapeModel(GUID id) {
+    private TapeCatalog getTapeModel() {
         TapeCatalog tapeCatalog = new TapeCatalog();
-        tapeCatalog.setId(id.toString());
         tapeCatalog.setCapacity(10000L);
         tapeCatalog.setRemainingSize(5000L);
         tapeCatalog.setFileCount(200L);

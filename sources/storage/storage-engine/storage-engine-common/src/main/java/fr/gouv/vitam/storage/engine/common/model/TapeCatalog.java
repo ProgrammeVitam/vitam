@@ -30,14 +30,14 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
 /**
  * TapeCatalog
  */
 
 @JsonInclude(NON_NULL)
-public class TapeCatalog {
-    public static final String ID = "_id";
+public class TapeCatalog extends QueueEntity {
     public static final String CODE = "code";
     public static final String LABEL = "label";
     public static final String LIBRARY = "library";
@@ -50,11 +50,6 @@ public class TapeCatalog {
     public static final String COMPRESSED = "compressed";
     public static final String WORM = "worm";
     public static final String VERSION = "_v";
-
-
-
-    @JsonProperty(ID)
-    private String id;
 
     @JsonProperty(CODE)
     private String code;
@@ -92,12 +87,8 @@ public class TapeCatalog {
     @JsonProperty(VERSION)
     private int version;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+    public TapeCatalog() {
+        super(GUIDFactory.newGUID().getId());
     }
 
     public String getCode() {

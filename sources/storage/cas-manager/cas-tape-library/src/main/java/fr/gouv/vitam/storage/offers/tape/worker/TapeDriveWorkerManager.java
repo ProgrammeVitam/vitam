@@ -3,7 +3,6 @@ package fr.gouv.vitam.storage.offers.tape.worker;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -12,31 +11,32 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueException;
 import fr.gouv.vitam.storage.offers.tape.order.Order;
+import fr.gouv.vitam.storage.offers.tape.order.ReadOrder;
+import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 
 public class TapeDriveWorkerManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorkerManager.class);
     public static final String TAPE_DRIVE_WORKER = "TapeDriveWorker_";
-    private final BlockingQueue<Order> writeQueue;
-    private final BlockingQueue<Order> readQueue;
+    private final QueueRepository readWriteQueue;
     private final List<TapeDriveWorker> workers;
 
     public TapeDriveWorkerManager(
-        BlockingQueue<Order> writeQueue,
-        BlockingQueue<Order> readQueue,
+        QueueRepository readWriteQueue,
         TapeLibraryPool tapeLibraryPool) {
 
         ParametersChecker
-            .checkParameter("All params is required required", tapeLibraryPool, writeQueue, readQueue);
-        this.writeQueue = writeQueue;
-        this.readQueue = readQueue;
+            .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue);
+        this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
-                new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), writeQueue, readQueue);
+                new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), readWriteQueue);
             workers.add(tapeDriveWorker);
 
             final Thread thread =
@@ -48,22 +48,10 @@ public class TapeDriveWorkerManager {
         }
     }
 
-    public void write(Order order) {
-        try {
-            this.writeQueue.put(order);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+    public <T> void enqueue(QueueEntity entity, Class<T> clazz) throws QueueException {
+        this.readWriteQueue.add(entity, clazz);
     }
 
-
-    public void read(Order order) {
-        try {
-            this.readQueue.put(order);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     public void shutdown() {
         List<CompletableFuture> completableFutures = new ArrayList<>();

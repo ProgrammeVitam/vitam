@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.order.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
@@ -15,12 +16,15 @@ public class WriteTask implements Future<ReadWriteResult> {
     protected boolean cancelled = false;
     protected boolean done = false;
 
+    private final TapeCatalog workerCurrentTape;
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
     private final WriteOrder writeOrder;
 
-    public WriteTask(WriteOrder writeOrder, TapeRobotPool tapeRobotPool, TapeDriveService tapeDriveService) {
+    public WriteTask(WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
+        TapeDriveService tapeDriveService) {
         this.writeOrder = writeOrder;
+        this.workerCurrentTape = workerCurrentTape;
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
     }
@@ -28,7 +32,10 @@ public class WriteTask implements Future<ReadWriteResult> {
     @Override
     public ReadWriteResult get() {
         // TODO: 05/03/19 implement write logic
-        return null;
+
+        final ReadWriteResult readWriteResult = new ReadWriteResult();
+        readWriteResult.setCurrentTape(workerCurrentTape);
+        return readWriteResult;
     }
 
     @Override

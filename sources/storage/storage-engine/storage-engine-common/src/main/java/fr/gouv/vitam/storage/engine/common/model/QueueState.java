@@ -26,19 +26,18 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
-public enum TapeLocationType {
-    DIRVE("DRIVE"),
-    SLOT("SLOT"),
-    OUTSIDE("OUTSIDE"),
-    IMPORTEXPORT("IMPORT/EXPORT");
+public enum QueueState {
+    READY("READY"),
+    RUNNING("RUNNING"),
+    COMPLETED("COMPLETED");
 
-    private final String type;
+    private final String state;
 
-    TapeLocationType(String type) {
-        this.type = type;
+    QueueState(String state) {
+        this.state = state;
     }
 
-    public String getType() {
-        return type;
+    public String getState() {
+        return state;
     }
 }

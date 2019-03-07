@@ -5,10 +5,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.ws.rs.core.Feature;
-
-import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
-import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.order.Order;
 import fr.gouv.vitam.storage.offers.tape.order.ReadOrder;
 import fr.gouv.vitam.storage.offers.tape.order.WriteOrder;
@@ -19,11 +16,11 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
 
     private final Future<ReadWriteResult> readWriteTask;
 
-    public ReadWriteTask(Order order, TapeRobotPool tapeRobotPool, TapeDriveService tapeDriveService) {
+    public ReadWriteTask(Order order, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool, TapeDriveService tapeDriveService) {
         if (order.isReadOrder()) {
-            readWriteTask = new ReadTask((ReadOrder) order, tapeRobotPool, tapeDriveService);
+            readWriteTask = new ReadTask((ReadOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService);
         } else {
-            readWriteTask = new WriteTask((WriteOrder) order, tapeRobotPool, tapeDriveService);
+            readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService);
 
         }
     }
