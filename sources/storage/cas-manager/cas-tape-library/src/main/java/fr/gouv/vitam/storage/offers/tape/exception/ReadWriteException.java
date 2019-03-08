@@ -26,28 +26,42 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.exception;
 
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
+
 public class ReadWriteException extends Exception {
 
     private final ReadWriteErrorCode readWriteErrorCode;
+    private final CommandResponse commandResponse;
 
     public ReadWriteException(Throwable cause) {
         super(cause);
         this.readWriteErrorCode = ReadWriteErrorCode.INTERNAL_ERROR_SERVER;
+        this.commandResponse = new CommandResponse().setStatus(StatusCode.FATAL);
     }
 
     public ReadWriteException(String message, ReadWriteErrorCode readWriteErrorCode) {
         super(message);
+        this.readWriteErrorCode = readWriteErrorCode;
+        this.commandResponse = new CommandResponse().setStatus(StatusCode.FATAL);
+    }
+
+    public ReadWriteException(String message, ReadWriteErrorCode readWriteErrorCode, CommandResponse commandResponse) {
+        super(message);
+        this.commandResponse = commandResponse;
         this.readWriteErrorCode = readWriteErrorCode;
     }
 
     public ReadWriteException(String message, Throwable cause) {
         super(message, cause);
         this.readWriteErrorCode = ReadWriteErrorCode.INTERNAL_ERROR_SERVER;
+        this.commandResponse = new CommandResponse().setStatus(StatusCode.FATAL);
     }
 
     public ReadWriteException(String message, Throwable cause, ReadWriteErrorCode readWriteErrorCode) {
         super(message, cause);
         this.readWriteErrorCode = readWriteErrorCode;
+        this.commandResponse = new CommandResponse().setStatus(StatusCode.FATAL);
     }
 
     public ReadWriteErrorCode getReadWriteErrorCode() {

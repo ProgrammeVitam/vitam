@@ -43,11 +43,11 @@ public class ProcessExecutor {
     /**
      * @param commandPath
      * @param asSudo
-     * @param timeoutInMillisecondes
+     * @param timeoutInMilliseconds
      * @param args
      * @return
      */
-    public Output execute(String commandPath, boolean asSudo, long timeoutInMillisecondes, List<String> args) {
+    public Output execute(String commandPath, boolean asSudo, long timeoutInMilliseconds, List<String> args) {
         List<String> command;
         if (asSudo) {
             command = Lists.newArrayList(SUDO, commandPath);
@@ -64,8 +64,12 @@ public class ProcessExecutor {
         Process process = null;
         try {
             process = processBuilder.start();
-            process.waitFor(timeoutInMillisecondes, TimeUnit.MILLISECONDS);
-            return new Output(process, processBuilder);
+            boolean processExit = process.waitFor(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
+            if (processExit) {
+                return new Output(process, process.exitValue(), processBuilder);
+            } else {
+                return new Output(process, Output.EXIT_CODE_WAIT_FOR_TIMEOUT, processBuilder);
+            }
         } catch (Exception e) {
             return new Output(e, process, processBuilder);
         }
@@ -73,12 +77,13 @@ public class ProcessExecutor {
 
     /**
      * Execute commands as sudo
+     *
      * @param commandPath
-     * @param timeoutInMillisecondes
+     * @param timeoutInMilliseconds
      * @param args
      * @return
      */
-    public Output execute(String commandPath, long timeoutInMillisecondes, List<String> args) {
-        return execute(commandPath, true, timeoutInMillisecondes, args);
+    public Output execute(String commandPath, long timeoutInMilliseconds, List<String> args) {
+        return execute(commandPath, true, timeoutInMilliseconds, args);
     }
 }

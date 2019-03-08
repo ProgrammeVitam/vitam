@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.storage.tapelibrary;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import fr.gouv.vitam.common.ParametersChecker;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -53,6 +54,7 @@ public class TapeDriveConf {
     }
 
     public void setIndex(Integer index) {
+        ParametersChecker.checkParameter("index param is required", index);
         this.index = index;
     }
 
@@ -61,6 +63,7 @@ public class TapeDriveConf {
     }
 
     public void setDevice(String device) {
+        ParametersChecker.checkParameter("device param is required", device);
         this.device = device;
     }
 

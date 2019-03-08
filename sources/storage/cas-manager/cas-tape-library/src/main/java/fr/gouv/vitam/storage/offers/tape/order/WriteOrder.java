@@ -78,8 +78,9 @@ public class WriteOrder extends QueueEntity implements Order {
         return size;
     }
 
-    public void setSize(long size) {
+    public WriteOrder setSize(long size) {
         this.size = size;
+        return this;
     }
 
     @Override

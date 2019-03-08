@@ -92,7 +92,7 @@ public class TarTapeLibraryService implements TapeReadWriteService {
         if (output.getExitCode() == 0) {
             response.setStatus(StatusCode.OK);
         } else {
-            response.setStatus(StatusCode.KO);
+            response.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
         }
 
         return response;

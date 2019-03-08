@@ -27,15 +27,27 @@
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 
 public class ReadWriteResult {
     private TapeCatalog currentTape;
+    private CommandResponse commandResponse;
 
     public TapeCatalog getCurrentTape() {
         return currentTape;
     }
 
-    public void setCurrentTape(TapeCatalog currentTape) {
+    public ReadWriteResult setCurrentTape(TapeCatalog currentTape) {
         this.currentTape = currentTape;
+        return this;
+    }
+
+    public CommandResponse getCommandResponse() {
+        return commandResponse;
+    }
+
+    public ReadWriteResult setCommandResponse(CommandResponse commandResponse) {
+        this.commandResponse = commandResponse;
+        return this;
     }
 }

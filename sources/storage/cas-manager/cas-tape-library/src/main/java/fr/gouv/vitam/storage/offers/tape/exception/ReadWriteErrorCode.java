@@ -35,6 +35,14 @@ public enum  ReadWriteErrorCode {
      * Current location should not be null
      */
     TAPE_LOCATION_CONFLICT,
-    NULL_CURRENT_TAPE
+    FILE_NOT_FOUND,
+    NULL_CURRENT_TAPE,
+    KO_DB_PERSIST,
+    KO_ON_STATUS,
+    KO_ON_LOAD_TAPE,
+    KO_ON_UNLOAD_TAPE,
+    KO_ON_WRITE_TO_TAPE,
+    KO_ON_WRITE_REWIND_TAPE,
+    KO_ON_WRITE_REWIND_FSF_TAPE,
 
-}
+    }

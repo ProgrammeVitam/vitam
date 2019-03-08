@@ -103,111 +103,126 @@ public class TapeCatalog extends QueueEntity {
         return code;
     }
 
-    public void setCode(String code) {
+    public TapeCatalog setCode(String code) {
         this.code = code;
+        return this;
     }
 
     public String getLabel() {
         return label;
     }
 
-    public void setLabel(String label) {
+    public TapeCatalog setLabel(String label) {
         this.label = label;
+        return this;
     }
 
     public String getLibrary() {
         return library;
     }
 
-    public void setLibrary(String library) {
+    public TapeCatalog setLibrary(String library) {
         this.library = library;
+        return this;
     }
+
 
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public TapeCatalog setType(String type) {
         this.type = type;
+        return this;
     }
 
     public Long getRemainingSize() {
         return remainingSize;
     }
 
-    public void setRemainingSize(Long remainingSize) {
+    public TapeCatalog setRemainingSize(Long remainingSize) {
         this.remainingSize = remainingSize;
+        return this;
     }
 
     public Long getCapacity() {
         return capacity;
     }
 
-    public void setCapacity(Long capacity) {
+    public TapeCatalog setCapacity(Long capacity) {
         this.capacity = capacity;
+        return this;
     }
 
     public Integer getFileCount() {
         return fileCount;
     }
 
-    public void setFileCount(Integer fileCount) {
+    public TapeCatalog setFileCount(Integer fileCount) {
         this.fileCount = fileCount;
+        return this;
     }
 
     public TapeLocation getCurrentLocation() {
         return currentLocation;
     }
 
-    public void setCurrentLocation(TapeLocation currentLocation) {
+    public TapeCatalog setCurrentLocation(TapeLocation currentLocation) {
         this.currentLocation = currentLocation;
+        return this;
     }
 
     public TapeLocation getPreviousLocation() {
         return previousLocation;
     }
 
-    public void setPreviousLocation(TapeLocation previousLocation) {
+    public TapeCatalog setPreviousLocation(TapeLocation previousLocation) {
         this.previousLocation = previousLocation;
+        return this;
     }
 
     public boolean isCompressed() {
         return compressed;
     }
 
-    public void setCompressed(boolean compressed) {
+    public TapeCatalog setCompressed(boolean compressed) {
         this.compressed = compressed;
+        return this;
     }
 
     public boolean isWorm() {
         return worm;
     }
 
-    public void setWorm(boolean worm) {
+    public TapeCatalog setWorm(boolean worm) {
         this.worm = worm;
+        return this;
     }
 
     public int getVersion() {
         return version;
     }
 
-    public void setVersion(int version) {
+    public TapeCatalog setVersion(int version) {
         this.version = version;
+        return this;
     }
 
     public String getAlternativeCode() {
         return alternativeCode;
     }
 
-    public void setAlternativeCode(String alternativeCode) {
+    public TapeCatalog setAlternativeCode(String alternativeCode) {
         this.alternativeCode = alternativeCode;
+        return this;
     }
 
     public String getBucket() {
         return bucket;
     }
 
-    public void setBucket(String bucket) {
+    public TapeCatalog setBucket(String bucket) {
         this.bucket = bucket;
+        return this;
     }
 }

@@ -45,6 +45,7 @@ public class TapeDriveManager implements TapeDriveService {
     private final TapeDriveCommandService tapeDriveCommandService;
 
     public TapeDriveManager(TapeDriveConf tapeDriveConf) {
+        ParametersChecker.checkParameter("TapeDriveConf param is required", tapeDriveConf);
         this.tapeDriveConf = tapeDriveConf;
         ProcessExecutor processExecutor = ProcessExecutor.getInstance();
         this.tarReadWriteService = new TarTapeLibraryService(tapeDriveConf, processExecutor);
@@ -56,6 +57,9 @@ public class TapeDriveManager implements TapeDriveService {
     public TapeDriveManager(TapeDriveConf tapeDriveConf, TapeReadWriteService tarReadWriteService,
         TapeReadWriteService ddReadWriteService,
         TapeDriveCommandService tapeDriveCommandService) {
+        ParametersChecker
+            .checkParameter("All params are required", tapeDriveConf, tarReadWriteService, ddReadWriteService,
+                tapeDriveCommandService);
         this.tapeDriveConf = tapeDriveConf;
         this.tarReadWriteService = tarReadWriteService;
         this.ddReadWriteService = ddReadWriteService;

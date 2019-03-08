@@ -42,6 +42,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class Output {
 
+    public static final int EXIT_CODE_WAIT_FOR_TIMEOUT = -1;
     private final List<String> command;
     private final Exception exception;
     private final String stdout;
@@ -53,7 +54,7 @@ public class Output {
 
         this.exception = exception;
         this.command = processBuilder.command();
-        this.exitCode = -1;
+        this.exitCode = EXIT_CODE_WAIT_FOR_TIMEOUT;
         if (null != process) {
             this.stdout = stdToString(process.getInputStream());
             this.stderr = stdToString(process.getErrorStream());
@@ -63,10 +64,10 @@ public class Output {
         }
     }
 
-    public Output(Process process, ProcessBuilder processBuilder) {
+    public Output(Process process, int exitCode, ProcessBuilder processBuilder) {
         this.command = processBuilder.command();
         this.exception = null;
-        this.exitCode = process.exitValue();
+        this.exitCode = exitCode;
         this.stdout = stdToString(process.getInputStream());
         this.stderr = stdToString(process.getErrorStream());
     }

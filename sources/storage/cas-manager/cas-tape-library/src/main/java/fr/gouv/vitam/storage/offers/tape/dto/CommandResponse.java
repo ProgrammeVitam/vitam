@@ -37,15 +37,17 @@ public class CommandResponse {
         return output;
     }
 
-    public void setOutput(Output output) {
+    public CommandResponse setOutput(Output output) {
         this.output = output;
+        return this;
     }
 
     public StatusCode getStatus() {
         return status;
     }
 
-    public void setStatus(StatusCode status) {
+    public CommandResponse setStatus(StatusCode status) {
         this.status = status;
+        return this;
     }
 }

@@ -38,6 +38,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -58,6 +59,7 @@ public class QueueRepositoryImpl implements QueueRepository {
     String $_SET = "$set";
 
     public QueueRepositoryImpl(MongoCollection<Document> collection) {
+        ParametersChecker.checkParameter("Collection param is required", collection);
         this.collection = collection;
     }
 

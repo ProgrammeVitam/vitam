@@ -29,12 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.offers.tape.process.Output;
-
-public class TapeDriveState {
-    private Output output;
-    private StatusCode status;
+public class TapeDriveState extends CommandResponse {
     private String description;
     private Integer fileNumber;
     private Integer blockNumber;
@@ -44,23 +39,7 @@ public class TapeDriveState {
     private String lto;
     private Integer errorCountSinceLastStatus;
     private String statusBits;
-    private List<TapeDriveStatus> driveStatuses;
-
-    public Output getOutput() {
-        return output;
-    }
-
-    public void setOutput(Output output) {
-        this.output = output;
-    }
-
-    public StatusCode getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusCode status) {
-        this.status = status;
-    }
+    private List<TapeDriveStatus> driveStatuses = new ArrayList<>();
 
     public String getDescription() {
         return description;
@@ -143,9 +122,6 @@ public class TapeDriveState {
     }
 
     public List<TapeDriveStatus> addToDriveStatuses(TapeDriveStatus driveStatus) {
-        if (null == driveStatuses) {
-            driveStatuses = new ArrayList<>();
-        }
 
         driveStatuses.add(driveStatus);
 

@@ -27,6 +27,8 @@
 package fr.gouv.vitam.common.storage.tapelibrary;
 
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * A barcode reader to identify tape cartridges and an automated method for loading tapes
  */
@@ -40,6 +42,7 @@ public class TapeRebotConf {
     }
 
     public void setDevice(String device) {
+        ParametersChecker.checkParameter("device param is required", device);
         this.device = device;
     }
 

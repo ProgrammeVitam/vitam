@@ -49,6 +49,7 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     private final Lock canReadWrite;
 
     public DdTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor) {
+        ParametersChecker.checkParameter("All params are required", tapeDriveConf, processExecutor);
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
         this.canReadWrite = tapeDriveConf.getLock();
@@ -90,7 +91,7 @@ public class DdTapeLibraryService implements TapeReadWriteService {
         if (output.getExitCode() == 0) {
             response.setStatus(StatusCode.OK);
         } else {
-            response.setStatus(StatusCode.KO);
+            response.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
         }
 
         return response;

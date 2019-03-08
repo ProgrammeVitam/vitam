@@ -59,6 +59,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     private final Lock driveLock;
 
     public MtTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor) {
+        ParametersChecker.checkParameter("All params are required", tapeDriveConf, processExecutor);
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
         this.driveLock = tapeDriveConf.getLock();
@@ -138,7 +139,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
         } else {
             TapeDriveState tapeDriveState = new TapeDriveState();
             tapeDriveState.setOutput(output);
-            tapeDriveState.setStatus(StatusCode.KO);
+            tapeDriveState.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
             return tapeDriveState;
         }
     }
@@ -149,7 +150,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
         if (output.getExitCode() == 0) {
             response.setStatus(StatusCode.OK);
         } else {
-            response.setStatus(StatusCode.KO);
+            response.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
         }
 
         return response;

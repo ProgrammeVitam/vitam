@@ -55,6 +55,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     private final ProcessExecutor processExecutor;
 
     public MtxTapeLibraryService(TapeRebotConf tapeRebotConf, ProcessExecutor processExecutor) {
+        ParametersChecker.checkParameter("All params are required", tapeRebotConf, processExecutor);
         this.tapeRebotConf = tapeRebotConf;
         this.processExecutor = processExecutor;
     }
@@ -123,7 +124,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
         if (output.getExitCode() == 0) {
             response.setStatus(StatusCode.OK);
         } else {
-            response.setStatus(StatusCode.KO);
+            response.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
         }
 
         return response;
@@ -142,7 +143,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
         } else {
             TapeLibraryState tapeLibraryState = new TapeLibraryState();
             tapeLibraryState.setOutput(output);
-            tapeLibraryState.setStatus(StatusCode.KO);
+            tapeLibraryState.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
             return tapeLibraryState;
         }
     }
