@@ -36,27 +36,19 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
 public class TapeRobotManager implements TapeRobotService {
     private final TapeLoadUnloadService tapeLoadUnloadService;
-    private final TapeCatalogService tapeCatalogService;
 
-    public TapeRobotManager(TapeRebotConf tapeRebotConf, TapeCatalogService tapeCatalogService) {
+    public TapeRobotManager(TapeRebotConf tapeRebotConf) {
         this.tapeLoadUnloadService = new MtxTapeLibraryService(tapeRebotConf, ProcessExecutor.getInstance());
-        this.tapeCatalogService = tapeCatalogService;
     }
 
 
     @VisibleForTesting
-    public TapeRobotManager(TapeLoadUnloadService tapeLoadUnloadService, TapeCatalogService tapeCatalogService) {
+    public TapeRobotManager(TapeLoadUnloadService tapeLoadUnloadService) {
         this.tapeLoadUnloadService = tapeLoadUnloadService;
-        this.tapeCatalogService = tapeCatalogService;
     }
 
     @Override
     public TapeLoadUnloadService getLoadUnloadService() {
         return tapeLoadUnloadService;
-    }
-
-    @Override
-    public TapeCatalogService getCatalogService() {
-        return tapeCatalogService;
     }
 }

@@ -61,7 +61,7 @@ public class TapeLibraryStatusParser {
                 TapeCartridge cartridge = new TapeCartridge();
                 tapeDrive.setTape(cartridge);
 
-                extractCartidgeSlotIndex(s, cartridge);
+                extractCartridgeSlotIndex(s, cartridge);
 
                 extractDriveVolumeTag(s, cartridge);
 
@@ -75,7 +75,7 @@ public class TapeLibraryStatusParser {
     }
 
 
-    private void extractCartidgeSlotIndex(String s, TapeCartridge cartridge) {
+    private void extractCartridgeSlotIndex(String s, TapeCartridge cartridge) {
         if (!s.contains(FULL_UNKNOWN_STORAGE_ELEMENT_LOADED)) {
             String slotIndex = StringUtils.substringBetween(s, STORAGE_ELEMENT, LOADED);
             cartridge.setSlotIndex(Integer.valueOf(slotIndex.trim()));

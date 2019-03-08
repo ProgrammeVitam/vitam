@@ -33,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDrivePool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
@@ -41,14 +42,18 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
 public class TapeLibraryPoolImpl implements TapeLibraryPool {
 
+    private final String libraryIdentifier;
     private final BlockingQueue<TapeRobotService> tapeRobotServicePool;
     private final ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool;
+    private final TapeCatalogService tapeCatalogService;
 
-    public TapeLibraryPoolImpl(
+    public TapeLibraryPoolImpl(String libraryIdentifier,
         BlockingQueue<TapeRobotService> tapeRobotServicePool,
-        ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool) {
+        ConcurrentHashMap<Integer, TapeDriveService> tapeDriveServicePool, TapeCatalogService tapeCatalogService) {
+        this.libraryIdentifier = libraryIdentifier;
         this.tapeRobotServicePool = tapeRobotServicePool;
         this.tapeDriveServicePool = tapeDriveServicePool;
+        this.tapeCatalogService = tapeCatalogService;
     }
 
     @Override
@@ -83,5 +88,15 @@ public class TapeLibraryPoolImpl implements TapeLibraryPool {
     @Override
     public Set<Map.Entry<Integer, TapeDriveService>> drives() {
         return tapeDriveServicePool.entrySet();
+    }
+
+    @Override
+    public String getLibraryIdentifier() {
+        return libraryIdentifier;
+    }
+
+    @Override
+    public TapeCatalogService getTapeCatalogService() {
+        return tapeCatalogService;
     }
 }

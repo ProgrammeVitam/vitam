@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -54,6 +55,7 @@ public class QueueRepositoryImpl implements QueueRepository {
 
     protected final MongoCollection<Document> collection;
 
+    String $_SET = "$set";
 
     public QueueRepositoryImpl(MongoCollection<Document> collection) {
         this.collection = collection;
@@ -80,10 +82,20 @@ public class QueueRepositoryImpl implements QueueRepository {
     }
 
     @Override
-    public long finish(String queueId) throws QueueException {
+    public long complete(String queueId) throws QueueException {
         try {
             return collection.updateOne(eq(VitamDocument.ID, queueId),
                 Updates.set(QueueEntity.STATE, QueueState.COMPLETED.getState())).getModifiedCount();
+        } catch (Exception e) {
+            throw new QueueException(e);
+        }
+    }
+
+    @Override
+    public long ready(String queueId) throws QueueException {
+        try {
+            return collection.updateOne(eq(VitamDocument.ID, queueId),
+                Updates.set(QueueEntity.STATE, QueueState.READY.getState())).getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);
         }

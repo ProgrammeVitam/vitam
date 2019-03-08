@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -66,12 +67,16 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @param tapeCatalog
      * @throws InvalidParseOperationException
      */
-    public String createTape(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
-        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
-        tapeCatalog.setVersion(0);
-        String json = JsonHandler.writeAsString(tapeCatalog);
-        collection.insertOne(Document.parse(json));
-        return tapeCatalog.getId();
+    public String createTape(TapeCatalog tapeCatalog) throws TapeCatalogException {
+        try {
+            ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
+            tapeCatalog.setVersion(0);
+            String json = JsonHandler.unprettyPrint(tapeCatalog);
+            collection.insertOne(Document.parse(json));
+            return tapeCatalog.getId();
+        } catch (Exception e) {
+            throw new TapeCatalogException(e);
+        }
     }
 
     /**
@@ -80,13 +85,18 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @param tapeCatalog
      * @throws InvalidParseOperationException
      */
-    public boolean replaceTape(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
-        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
-        tapeCatalog.setVersion(tapeCatalog.getVersion() + 1);
-        String json = JsonHandler.writeAsString(tapeCatalog);
-        final UpdateResult result = collection.replaceOne(eq(TapeCatalog.ID, tapeCatalog.getId()), Document.parse(json));
+    public boolean replaceTape(TapeCatalog tapeCatalog) throws TapeCatalogException {
+        try {
+            ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeCatalog);
+            tapeCatalog.setVersion(tapeCatalog.getVersion() + 1);
+            String json = JsonHandler.unprettyPrint(tapeCatalog);
+            final UpdateResult result =
+                collection.replaceOne(eq(TapeCatalog.ID, tapeCatalog.getId()), Document.parse(json));
 
-        return result.getMatchedCount() == 1;
+            return result.getMatchedCount() == 1;
+        } catch (Exception e) {
+            throw new TapeCatalogException(e);
+        }
     }
 
     /**
@@ -96,21 +106,25 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @param fields
      * @return true if changes have been applied otherwise false
      */
-    public boolean updateTape(String tapeId, Map<String, Object> fields) {
+    public boolean updateTape(String tapeId, Map<String, Object> fields) throws TapeCatalogException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeId, fields);
         if (fields.isEmpty()) {
-            throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
+            throw new TapeCatalogException(ALL_PARAMS_REQUIRED);
         }
 
-        Document update = new Document();
-        fields.forEach((key, value) -> update.append(key, value));
+        try {
+            Document update = new Document();
+            fields.forEach((key, value) -> update.append(key, value));
 
-        Document data = new Document($_SET, update)
+            Document data = new Document($_SET, update)
                 .append($_INC, new Document(TapeCatalog.VERSION, 1));
 
-        UpdateResult result = collection.updateOne(eq(TapeCatalog.ID, tapeId), data);
+            UpdateResult result = collection.updateOne(eq(TapeCatalog.ID, tapeId), data);
 
-        return result.getMatchedCount() == 1;
+            return result.getMatchedCount() == 1;
+        } catch (Exception e) {
+            throw new TapeCatalogException(e);
+        }
     }
 
     /**
@@ -119,7 +133,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @param criteria
      * @return
      */
-    public List<TapeCatalog> findTapes(List<QueryCriteria> criteria) throws InvalidParseOperationException {
+    public List<TapeCatalog> findTapes(List<QueryCriteria> criteria) throws TapeCatalogException {
         if (criteria == null || criteria.isEmpty()) {
             throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
         }
@@ -148,7 +162,11 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
         List<TapeCatalog> result = new ArrayList<>();
         List<Document> documents = collection.find(Filters.and(filters)).into(new ArrayList<>());
         for (Document doc : documents) {
-            result.add(JsonHandler.getFromString(JSON.serialize(doc), TapeCatalog.class));
+            try {
+                result.add(JsonHandler.getFromString(JSON.serialize(doc), TapeCatalog.class));
+            } catch (InvalidParseOperationException e) {
+                throw new TapeCatalogException(e);
+            }
         }
 
         return result;
@@ -160,7 +178,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      * @param tapeId
      * @return
      */
-    public TapeCatalog findTapeById(String tapeId) throws InvalidParseOperationException {
+    public TapeCatalog findTapeById(String tapeId) throws TapeCatalogException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tapeId);
         FindIterable<Document> models =
             collection.find(eq(TapeCatalog.ID, tapeId));
@@ -168,7 +186,11 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
         if (first == null) {
             return null;
         }
-        return JsonHandler.getFromString(JSON.serialize(first), TapeCatalog.class);
+        try {
+            return JsonHandler.getFromString(JSON.serialize(first), TapeCatalog.class);
+        } catch (InvalidParseOperationException e) {
+            throw new TapeCatalogException(e);
+        }
     }
 
 }

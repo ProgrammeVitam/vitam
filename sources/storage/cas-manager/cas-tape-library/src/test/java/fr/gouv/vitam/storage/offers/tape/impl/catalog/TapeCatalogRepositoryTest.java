@@ -45,6 +45,7 @@ import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -75,7 +76,7 @@ public class TapeCatalogRepositoryTest {
     }
 
     @Test
-    public void shouldCreateTape() throws InvalidParseOperationException {
+    public void shouldCreateTape() throws TapeCatalogException {
         // Given
         TapeCatalog tapeCatalog = getTapeModel();
 
@@ -94,7 +95,7 @@ public class TapeCatalogRepositoryTest {
     }
 
     @Test
-    public void shouldFindTapeById() throws InvalidParseOperationException {
+    public void shouldFindTapeById() throws TapeCatalogException {
         // Given
         TapeCatalog tapeCatalog = getTapeModel();
 
@@ -110,7 +111,7 @@ public class TapeCatalogRepositoryTest {
     }
 
     @Test
-    public void shouldFindTapesByCriteria() throws InvalidParseOperationException {
+    public void shouldFindTapesByCriteria() throws TapeCatalogException {
         // Given
 
         TapeCatalog tapeCatalog = getTapeModel();
@@ -129,7 +130,7 @@ public class TapeCatalogRepositoryTest {
     }
 
     @Test
-    public void shouldUpdateTape() throws InvalidParseOperationException {
+    public void shouldUpdateTape() throws TapeCatalogException {
         // Given
         TapeCatalog tapeCatalog = getTapeModel();
 
@@ -156,7 +157,7 @@ public class TapeCatalogRepositoryTest {
     }
 
     @Test
-    public void shouldReplaceTape() throws InvalidParseOperationException {
+    public void shouldReplaceTape() throws TapeCatalogException {
         // Given
 
         TapeCatalog tapeCatalog = getTapeModel();

@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public interface TapeRobotPool {
@@ -59,4 +57,9 @@ public interface TapeRobotPool {
      * @throws InterruptedException
      */
     void pushRobotService(TapeRobotService tapeRobotService) throws InterruptedException;
+
+
+    String getLibraryIdentifier();
+
+    TapeCatalogService getTapeCatalogService();
 }

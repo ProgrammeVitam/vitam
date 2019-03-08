@@ -26,28 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
+import org.bson.conversions.Bson;
 
 public class TapeCatalogServiceImpl implements TapeCatalogService {
 
@@ -57,36 +60,35 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     public TapeCatalogServiceImpl(MongoDbAccess mongoDbAccess) {
         this.repository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
-                .getCollection(OfferCollections.OFFER_TAPE_CATALOG.getName()));
+            .getCollection(OfferCollections.OFFER_TAPE_CATALOG.getName()));
     }
 
     @Override
-    public void create(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
+    public void create(TapeCatalog tapeCatalog) throws TapeCatalogException {
         tapeCatalog.setId(GUIDFactory.newGUID().toString());
         repository.createTape(tapeCatalog);
     }
 
     @Override
-    public boolean replace(TapeCatalog tapeCatalog) throws InvalidParseOperationException {
+    public boolean replace(TapeCatalog tapeCatalog) throws TapeCatalogException {
         return repository.replaceTape(tapeCatalog);
     }
 
     @Override
-    public boolean update(String tapeId, Map<String, Object> criteria) {
+    public boolean update(String tapeId, Map<String, Object> criteria) throws TapeCatalogException {
         return repository.updateTape(tapeId, criteria);
     }
 
     @Override
-    public boolean init(String tapeLibraryIdentifier, TapeLibraryState libraryState) {
-        QueryCriteria criteria = new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
+    public boolean init(String tapeLibraryIdentifier, TapeLibraryState libraryState) throws TapeCatalogException {
+        QueryCriteria criteria =
+            new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
         Map<String, TapeCatalog> existingTapes;
 
-        try {
-            existingTapes = repository.findTapes(Arrays.asList(criteria)).stream().collect(Collectors.toMap(TapeCatalog::getCode, tape -> tape));
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(e);
-            throw new RuntimeException(e);
-        }
+
+        existingTapes = repository.findTapes(Arrays.asList(criteria)).stream()
+            .collect(Collectors.toMap(TapeCatalog::getCode, tape -> tape));
+
 
         for (TapeDrive drive : libraryState.getDrives()) {
             if (drive.getTape() != null) {
@@ -118,9 +120,9 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         return true;
     }
 
-    private void createOrUpdateTape(TapeCatalog tape, TapeCatalog existingTape) {
+    private void createOrUpdateTape(TapeCatalog tape, TapeCatalog existingTape) throws TapeCatalogException {
         if (existingTape != null) {
-            Map<String, Object> updates = getUpdates(tape, existingTape);
+            Map<String, Object> updates = merge(tape, existingTape);
 
             if (!updates.isEmpty()) {
                 boolean isUpdated = repository.updateTape(existingTape.getId(), updates);
@@ -132,17 +134,13 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
             }
 
         } else {
-            try {
-                repository.createTape(tape);
-            } catch (InvalidParseOperationException e) {
-                LOGGER.error(e);
-                throw new RuntimeException(e);
-            }
+            repository.createTape(tape);
         }
     }
 
-    private Map<String, Object> getUpdates(TapeCatalog tape, TapeCatalog existingTape) {
-        Map<String, Object> updates;updates = new HashMap<>();
+    private Map<String, Object> merge(TapeCatalog tape, TapeCatalog existingTape) {
+        Map<String, Object> updates;
+        updates = new HashMap<>();
         if (!existingTape.getAlternativeCode().equals(tape.getAlternativeCode())) {
             updates.put(TapeCatalog.ALTERNATIVE_CODE, tape.getAlternativeCode());
         }
@@ -156,10 +154,10 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         }
 
         if (tape.getPreviousLocation() != null
-                && (existingTape.getPreviousLocation() == null
-                        || !existingTape.getPreviousLocation().equals(tape.getPreviousLocation()))) {
+            && (existingTape.getPreviousLocation() == null
+            || !existingTape.getPreviousLocation().equals(tape.getPreviousLocation()))) {
             updates.put(TapeCatalog.PREVIOUS_LOCATION, tape.getPreviousLocation());
-        } else if(existingTape.getPreviousLocation() != null) {
+        } else if (existingTape.getPreviousLocation() != null) {
             updates.put(TapeCatalog.PREVIOUS_LOCATION, tape.getPreviousLocation());
         }
 
@@ -167,12 +165,63 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public TapeCatalog findById(String tapeId) throws InvalidParseOperationException {
+    public TapeCatalog findById(String tapeId) throws TapeCatalogException {
         return repository.findTapeById(tapeId);
     }
 
     @Override
-    public List<TapeCatalog> find(List<QueryCriteria> criteria) throws InvalidParseOperationException {
+    public List<TapeCatalog> find(List<QueryCriteria> criteria) throws TapeCatalogException {
         return repository.findTapes(criteria);
+    }
+
+    @Override
+    public <T> void add(QueueEntity queue, Class<T> clazz) throws QueueException {
+        repository.add(queue, clazz);
+    }
+
+    @Override
+    public long remove(String queueId) throws QueueException {
+        return repository.remove(queueId);
+    }
+
+    @Override
+    public long complete(String queueId) throws QueueException {
+        return repository.complete(queueId);
+    }
+
+    @Override
+    public long ready(String queueId) throws QueueException {
+        return repository.ready(queueId);
+    }
+
+    @Override
+    public <T> Optional<T> peek(Class<T> clazz) throws QueueException {
+        return repository.peek(clazz);
+    }
+
+    @Override
+    public <T> Optional<T> peek(Class<T> clazz, boolean usePriority) throws QueueException {
+        return repository.peek(clazz, usePriority);
+    }
+
+    @Override
+    public <T> Optional<T> peek(Bson inQuery, Class<T> clazz) throws QueueException {
+        return repository.peek(inQuery, clazz);
+
+    }
+
+    @Override public <T> Optional<T> peek(Bson inQuery, Class<T> clazz, boolean usePriority) throws QueueException {
+        return repository.peek(inQuery, clazz, usePriority);
+    }
+
+    @Override
+    public <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz) throws QueueException {
+        return repository.peek(inQuery, inUpdate, clazz);
+    }
+
+    @Override
+    public <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz, boolean usePriority)
+        throws QueueException {
+        return repository.peek(inQuery, inUpdate, clazz, usePriority);
     }
 }

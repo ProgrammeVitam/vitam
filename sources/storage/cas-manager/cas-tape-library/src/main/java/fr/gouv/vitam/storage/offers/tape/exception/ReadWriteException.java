@@ -24,50 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.order;
+package fr.gouv.vitam.storage.offers.tape.exception;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+public class ReadWriteException extends Exception {
 
-public class ReadOrder extends QueueEntity implements Order {
-    public static final String TAPE_CODE = "tapeCode";
-    public static final String FILE_POSITION = "filePosition";
-    @JsonProperty(TAPE_CODE)
-    private String tapeCode;
-    @JsonProperty(FILE_POSITION)
-    private Integer filePosition;
+    private final ReadWriteErrorCode readWriteErrorCode;
 
-    public ReadOrder() {
-        super(GUIDFactory.newGUID().getId());
+    public ReadWriteException(Throwable cause) {
+        super(cause);
+        this.readWriteErrorCode = ReadWriteErrorCode.INTERNAL_ERROR_SERVER;
     }
 
-    public ReadOrder(String tapeCode, Integer filePosition) {
-        this();
-        this.tapeCode = tapeCode;
-        this.filePosition = filePosition;
+    public ReadWriteException(String message, ReadWriteErrorCode readWriteErrorCode) {
+        super(message);
+        this.readWriteErrorCode = readWriteErrorCode;
     }
 
-    public String getTapeCode() {
-        return tapeCode;
+    public ReadWriteException(String message, Throwable cause) {
+        super(message, cause);
+        this.readWriteErrorCode = ReadWriteErrorCode.INTERNAL_ERROR_SERVER;
     }
 
-    public ReadOrder setTapeCode(String tapeCode) {
-        this.tapeCode = tapeCode;
-        return this;
+    public ReadWriteException(String message, Throwable cause, ReadWriteErrorCode readWriteErrorCode) {
+        super(message, cause);
+        this.readWriteErrorCode = readWriteErrorCode;
     }
 
-    public Integer getFilePosition() {
-        return filePosition;
-    }
-
-    public ReadOrder setFilePosition(Integer filePosition) {
-        this.filePosition = filePosition;
-        return this;
-    }
-
-    @Override
-    public boolean isWriteOrder() {
-        return false;
+    public ReadWriteErrorCode getReadWriteErrorCode() {
+        return readWriteErrorCode;
     }
 }

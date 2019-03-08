@@ -33,18 +33,19 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 
-public interface TapeCatalogService {
+public interface TapeCatalogService extends QueueRepository {
 
-    void create(TapeCatalog tapeCatalog) throws InvalidParseOperationException;
+    void create(TapeCatalog tapeCatalog) throws TapeCatalogException;
 
-    boolean replace(TapeCatalog tapeCatalog) throws InvalidParseOperationException;
+    boolean replace(TapeCatalog tapeCatalog) throws TapeCatalogException;
 
-    boolean update(String tapeId, Map<String, Object> criteria) throws InvalidParseOperationException;
+    boolean update(String tapeId, Map<String, Object> criteria) throws TapeCatalogException;
 
-    boolean init(String tapeLibraryIdentifier, TapeLibraryState libraryState);
+    boolean init(String tapeLibraryIdentifier, TapeLibraryState libraryState) throws TapeCatalogException;
 
-    TapeCatalog findById(String tapeId) throws InvalidParseOperationException;
+    TapeCatalog findById(String tapeId) throws TapeCatalogException;
 
-    List<TapeCatalog> find(List<QueryCriteria> criteria) throws InvalidParseOperationException;
+    List<TapeCatalog> find(List<QueryCriteria> criteria) throws TapeCatalogException;
 }

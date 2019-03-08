@@ -29,7 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 import java.util.Optional;
 
 import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
-import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import org.bson.conversions.Bson;
 
 /**
@@ -41,7 +41,21 @@ public interface QueueRepository {
 
     long remove(String queueId) throws QueueException;
 
-    long finish(String queueId) throws QueueException;
+    /**
+     * Make QueueEntity COMPLETED
+     * @param queueId
+     * @return
+     * @throws QueueException
+     */
+    long complete(String queueId) throws QueueException;
+
+    /**
+     * Make queueEntity READY
+     * @param queueId
+     * @return
+     * @throws QueueException
+     */
+    long ready(String queueId) throws QueueException;
 
     <T> Optional<T> peek(Class<T> clazz) throws QueueException;
 

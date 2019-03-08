@@ -28,5 +28,4 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 
 public interface TapeRobotService extends TapeService {
     TapeLoadUnloadService getLoadUnloadService();
-    TapeCatalogService getCatalogService();
 }
