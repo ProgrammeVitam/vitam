@@ -186,7 +186,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
 
             metaDataClient.updateObjectGroupById(query.getFinalUpdate(), batchResult.getGotId());
 
-            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, OK, new Differences(differences));
+            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, OK, new Differences(differencesFiltered));
         } catch (Exception e) {
             logger.error(e);
             return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, FATAL, EventDetails.of(String.format("FATAL ERROR IN %s ACTION.", PLUGIN_NAME))).disableLfc();

@@ -74,6 +74,12 @@ import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegiste
 import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
 import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_SIZE;
 import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegisterModel.TOTAL_UNITS;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ACTION;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ANALYSE_RESULT;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.INPUT_NAME;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.OBJECT_GROUP_ID;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.OUTPUT_NAME;
+import static fr.gouv.vitam.batch.report.model.PreservationReportModel.UNIT_ID;
 
 /**
  * BatchReportService
@@ -123,32 +129,35 @@ public class BatchReportServiceImpl {
         eliminationActionObjectGroupRepository.bulkAppendReport(documents);
     }
 
-    public void appendPreservationReport(String processId, List<JsonNode> entries, int tenantId)
-        throws BatchReportException {
+    public void appendPreservationReport(String processId, List<JsonNode> entries, int tenantId) throws BatchReportException {
         List<PreservationReportModel> documents = entries.stream()
             .map(entry -> createPreservationReportModel(processId, tenantId, entry))
             .collect(Collectors.toList());
         preservationReportRepository.bulkAppendReport(documents);
     }
 
-    private PreservationReportModel createPreservationReportModel(String processId, int tenantId, JsonNode entry)
-        throws BatchReportException {
-        JsonNode outputName = entry.get("outputName");
-        String output = "";
-        if (outputName != null && !outputName.isNull()) {
-            output = outputName.asText();
-        }
+    private PreservationReportModel createPreservationReportModel(String processId, int tenantId, JsonNode entry) throws BatchReportException {
         return new PreservationReportModel(
             GUIDFactory.newGUID().toString(),
             processId,
             tenantId,
             LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
             PreservationStatus.valueOf(entry.get(STATUS).asText()),
-            checkValuePresent("unitId", entry).asText(),
-            checkValuePresent("objectGroupId", entry).asText(),
-            ActionTypePreservation.valueOf(checkValuePresent("action", entry).asText()),
-            entry.get("analyseResult") != null && entry.get("analyseResult").isTextual() ? entry.get("analyseResult").asText() : null,
-            checkValuePresent("inputName", entry).asText(), output);
+            checkValuePresent(UNIT_ID, entry).asText(),
+            checkValuePresent(OBJECT_GROUP_ID, entry).asText(),
+            ActionTypePreservation.valueOf(checkValuePresent(ACTION, entry).asText()),
+            entry.get(ANALYSE_RESULT) != null && entry.get(ANALYSE_RESULT).isTextual() ? entry.get(ANALYSE_RESULT).asText() : null,
+            checkValuePresent(INPUT_NAME, entry).asText(),
+            getOutputName(entry)
+        );
+    }
+
+    private String getOutputName(JsonNode entry) {
+        JsonNode outputName = entry.get(OUTPUT_NAME);
+        if (outputName != null && !outputName.isNull()) {
+            return outputName.asText();
+        }
+        return "";
     }
 
     private JsonNode checkValuePresent(String fieldName, JsonNode entry) throws BatchReportException {

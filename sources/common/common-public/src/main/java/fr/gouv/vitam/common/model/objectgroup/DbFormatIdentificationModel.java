@@ -122,13 +122,13 @@ public class DbFormatIdentificationModel {
             difference.add("formatLitteral", formatLitteral, that.formatLitteral);
         }
         if (!Objects.equals(mimeType, that.mimeType)) {
-            difference.add("mimeType",mimeType, that.mimeType);
+            difference.add("mimeType", mimeType, that.mimeType);
         }
         if (!Objects.equals(formatId, that.formatId)) {
-            difference.add("formatId",formatId, that.formatId);
+            difference.add("formatId", formatId, that.formatId);
         }
         if (!Objects.equals(encoding, that.encoding)) {
-            difference.add("encoding",encoding, that.encoding);
+            difference.add("encoding", encoding, that.encoding);
         }
         return difference;
     }
