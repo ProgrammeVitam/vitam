@@ -43,8 +43,9 @@ export class ArchiveUnitService {
   getObjectURL(ogId, options) {
     const tenant = this.resourceService.getTenant();
     const accessContract = this.resourceService.getAccessContract();
+    const encodedFileName = encodeURIComponent(options.filename);
     return `${this.resourceService.getBaseURL()}${this.ARCHIVE_OBJECT_GROUP_DOWNLOAD_URL}/${ogId}` +
-      `?usage=${options.usage}&filename=${options.filename}&tenantId=${tenant}&contractId=${accessContract}`;
+      `?usage=${options.usage}&filename=${encodedFileName}&tenantId=${tenant}&contractId=${accessContract}`;
   }
 
   getResults(body: any, offset: number = 0, limit: number = 125): Observable<VitamResponse> {
