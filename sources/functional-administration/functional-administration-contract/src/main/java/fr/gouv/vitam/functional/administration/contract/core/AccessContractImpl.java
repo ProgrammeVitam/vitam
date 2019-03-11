@@ -28,8 +28,9 @@ package fr.gouv.vitam.functional.administration.contract.core;
 
 import static com.mongodb.client.model.Filters.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-
+import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -71,6 +72,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
@@ -98,6 +100,8 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
 import fr.gouv.vitam.functional.administration.contract.api.ContractService;
 import fr.gouv.vitam.functional.administration.contract.core.GenericContractValidator.GenericRejectionCause;
+import fr.gouv.vitam.functional.administration.format.model.FunctionalOperationModel;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
@@ -109,6 +113,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import org.assertj.core.util.VisibleForTesting;
 import org.bson.conversions.Bson;
 
@@ -130,6 +136,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER = "access contracts is mandatory";
     private static final String CONTRACTS_IMPORT_EVENT = "STP_IMPORT_ACCESS_CONTRACT";
     private static final String CONTRACT_UPDATE_EVENT = "STP_UPDATE_ACCESS_CONTRACT";
+    private static final String CONTRACT_ACCESS_REPORT = "CONTRACT_ACCESS_REPORT";
     /**
      * STP_BACKUP_ACCESS_CONTRACT
      */
@@ -294,6 +301,8 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             final String err =
                 new StringBuilder("Import access contracts error > ").append(exp.getMessage()).toString();
             manager.logFatalError(err);
+            saveReport(eip,contractModelList, err);
+            manager.logKOError(err);
             return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
                 Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
@@ -311,6 +320,45 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 vitamCounterService.getNextSequenceAsString(ParameterHelper.getTenantParameter(),
                     SequenceType.ACCESS_CONTRACT_SEQUENCE);
             acm.setIdentifier(code);
+        }
+    }
+
+    private void saveReport(GUID eip, List<AccessContractModel> contractModelList, String errors) throws
+        StorageException {
+
+        ContractReport report = generateReport(contractModelList, errors);
+        try (InputStream reportInputStream = JsonHandler.writeToInpustream(report)) {
+            final String fileName = eip + ".json";
+            functionalBackupService.saveFile(reportInputStream, eip, CONTRACT_ACCESS_REPORT, DataCategory.REPORT, fileName);
+        } catch (IOException | VitamException e) {
+            throw new StorageException(e.getMessage(), e);
+        }
+    }
+
+    private ContractReport generateReport(List<AccessContractModel> accessContract, String errors) {
+
+        ContractReport report = new ContractReport();
+
+        FunctionalOperationModel operationModel = retrieveOperationModel();
+
+        report.setOperation(operationModel);
+
+        report.setStatusCode(StatusCode.KO);
+
+        report.setAccessContract(accessContract);
+
+        report.setErrors(errors);
+
+        return report;
+    }
+
+    private FunctionalOperationModel retrieveOperationModel() {
+        try {
+            JsonNode result = logbookClient.selectOperationById(
+                VitamThreadUtils.getVitamSession().getRequestId());
+            return JsonHandler.getFromJsonNode(result.get(TAG_RESULTS).get(0), FunctionalOperationModel.class);
+        } catch (LogbookClientException | InvalidParseOperationException e) {
+            throw new VitamRuntimeException("Could not load operation data", e);
         }
     }
 
@@ -433,6 +481,25 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
             logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
             logbookMessageError(errorsDetails, logbookParameters, KOEventType);
+            logbookClient.update(logbookParameters);
+        }
+
+        /**
+         * log ko error (system or technical error)
+         *
+         * @param errorsDetails
+         * @throws VitamException
+         */
+        private void logKOError(String errorsDetails) throws VitamException {
+            LOGGER.error("There validation errors on the input file {}", errorsDetails);
+            final GUID eipUsage = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+            final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+                .newLogbookOperationParameters(eipUsage, CONTRACTS_IMPORT_EVENT, eip, LogbookTypeProcess.MASTERDATA,
+                    StatusCode.KO,
+                    VitamLogbookMessages.getCodeOp(CONTRACTS_IMPORT_EVENT, StatusCode.KO), eip);
+            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, CONTRACTS_IMPORT_EVENT + "." +
+                StatusCode.KO);
+            logbookMessageError(errorsDetails, logbookParameters);
             logbookClient.update(logbookParameters);
         }
 

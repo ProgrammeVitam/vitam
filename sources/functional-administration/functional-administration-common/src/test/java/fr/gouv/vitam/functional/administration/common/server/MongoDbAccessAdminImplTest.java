@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
@@ -200,7 +201,8 @@ public class MongoDbAccessAdminImplTest {
             .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("10")
-            .setRuleMeasurement("Annee");
+            .setRuleMeasurement("Annee")
+            .setUpdateDate("2019-10-11");
 
         fileRules2 = new FileRules(TENANT_ID)
             .setCreationDate(now)
@@ -209,7 +211,8 @@ public class MongoDbAccessAdminImplTest {
             .setRuleType(REUSE_RULE)
             .setRuleDescription("testList")
             .setRuleDuration("20")
-            .setRuleMeasurement("Annee");
+            .setRuleMeasurement("Annee")
+            .setUpdateDate("2019-10-10");
 
         final RegisterValueDetailModel initialValue = new RegisterValueDetailModel().setIngested(1).setRemained(1);
         register = new AccessionRegisterDetail(TENANT_ID)
@@ -512,6 +515,7 @@ public class MongoDbAccessAdminImplTest {
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
         contract.setId(id);
         final JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        ((ObjectNode) jsonContract).put("Identifier", GUIDFactory.newGUID().toString());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
@@ -540,10 +544,19 @@ public class MongoDbAccessAdminImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
         final String id = GUIDFactory.newIngestContractGUID(TENANT_ID).getId();
-        contract.setId(id);
-        final JsonNode jsonContract = JsonHandler.toJsonNode(contract);
+        accessContract.setId(id);
+        final JsonNode jsonContract = JsonHandler.toJsonNode(accessContract);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
-        arrayNode.add(jsonContract);
+
+        ObjectNode contractToPersist = JsonHandler.getFromJsonNode(jsonContract, ObjectNode.class);
+        contractToPersist.put("Identifier", "Identifier" + GUIDFactory.newGUID().toString());
+        contractToPersist.put("AccessLog", ActivationStatus.INACTIVE.toString());
+        contractToPersist.put("EveryOriginatingAgency", false);
+        contractToPersist.put("WritingPermission", false);
+        contractToPersist.put("EveryDataObjectVersion", false);
+
+        arrayNode.add(JsonHandler.toJsonNode(contractToPersist));
+
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
 
         final Select select = new Select();
@@ -675,6 +688,13 @@ public class MongoDbAccessAdminImplTest {
         JsonNode node = JsonHandler.createObjectNode();
         ((ObjectNode) node).put(VitamDocument.ID, GUIDFactory.newIngestContractGUID(TENANT_ID).getId());
         ((ObjectNode) node).put(Context.IDENTIFIER, "contextId");
+        ((ObjectNode) node).put(Context.NAME, "contextName");
+        ((ObjectNode) node).put(Context.PERMISSION, new ArrayNode(null));
+        ((ObjectNode) node).put(Context.SECURITY_PROFILE, "contextName");
+        ((ObjectNode) node).put(Context.STATUS, ContextStatus.INACTIVE.toString());
+        ((ObjectNode) node).put("EnableControl", false);
+        ((ObjectNode) node).put("CreationDate", "2019-02-10");
+        ((ObjectNode) node).put("LastUpdate", "2019-02-11");
 
         final Context context = new Context(node);
 
