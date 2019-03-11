@@ -66,6 +66,10 @@ export class MetadataFieldComponent implements OnInit, OnChanges {
       }
     }
 
+    if (change.value && this.typeOfField == 'Array') {
+      this.init();
+    }
+    
     if(change.optionsFilter && this.updateMode && this.referentialHelper.useMultiSelect(this.originalTitle)) {
       this.options = this.referentialHelper.getOptions(this.originalTitle, this.optionsFilter);
     }

@@ -1,4 +1,4 @@
-import {Component, Input, OnInit} from '@angular/core';
+import {Component, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import { ManagementModel } from './management-model';
 import {ComputeRulesUtilsService} from './compute-rules-utils.service';
 
@@ -6,7 +6,7 @@ import {ComputeRulesUtilsService} from './compute-rules-utils.service';
   selector: 'vitam-archive-rule-bloc',
   templateUrl: './archive-rule-bloc.component.html'
 })
-export class ArchiveRuleBlocComponent implements OnInit {
+export class ArchiveRuleBlocComponent implements OnInit, OnChanges {
   @Input() unitId: string;
   @Input() data: any;
 
@@ -16,6 +16,12 @@ export class ArchiveRuleBlocComponent implements OnInit {
   unitProperties: any;
 
   constructor(private computeRulesUtilsService: ComputeRulesUtilsService) { }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if(changes.data){
+      this.init();
+    }
+  }
 
   ngOnInit() {
     this.init();
