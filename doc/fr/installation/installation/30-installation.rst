@@ -12,7 +12,7 @@ Déploiement
 Cas particulier : utilisation de ClamAv en environnement Debian
 ---------------------------------------------------------------
 
-Dans le cas de l'installation en environnement Debian, la base de donnée n'est pas intégrée avec l'installation de ClamAv, C'est la commande ``freshclam`` qui en assure la charge. Si vous n'êtes pas connecté à internet, la base de données doit s'installer manuellement. Les liens suivants indiquent la procédure à suivre: `Installation ClamAv <https://www.clamav.net/documents/installing-clamav>`_ et `Section Virus Database <https://www.clamav.net/downloads>`_
+Dans le cas de l'installation en environnement Debian, la base de données n'est pas intégrée avec l'installation de ClamAv, C'est la commande ``freshclam`` qui en assure la charge. Si vous n'êtes pas connecté à internet, la base de données doit s'installer manuellement. Les liens suivants indiquent la procédure à suivre: `Installation ClamAv <https://www.clamav.net/documents/installing-clamav>`_ et `Section Virus Database <https://www.clamav.net/downloads>`_
 
 Fichier de mot de passe
 -----------------------
@@ -49,12 +49,12 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 
   ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass
 
-.. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-".
+.. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-" .
 
-Génération des hostvars
------------------------
+Génération des *hostvars*
+--------------------------
 
-Une fois l'étape de PKI effectuée avec succès, il convient de procéder à la génération des hostvars, qui permettent de définir quelles interfaces réseau utiliser.
+Une fois l'étape de :term:`PKI` effectuée avec succès, il convient de procéder à la génération des *hostvars*, qui permettent de définir quelles interfaces réseau utiliser.
 Actuellement la solution logicielle Vitam est capable de gérer 2 interfaces réseau:
 
     - Une d'administration
@@ -89,88 +89,6 @@ A l'issue, vérifier le contenu des fichiers générés sous ``environments/host
 .. caution:: Cas d'une installation multi-sites. Sur site secondaire, s'assurer que, pour les machines hébergeant les offres, la directive ``ip_wan`` a bien été déclarée (l'ajouter manuellement, le cas échéant), pour que site le site "primaire" sache les contacter via une IP particulière. Par défaut, c'est l'IP de service qui sera utilisée.
 
 
-Passage des identifiants des référentiels en mode esclave
-----------------------------------------------------------
-
-La génération des identifiants des référentiels est géré par Vitam quand il fonctionne en mode maître.
-
-Par exemple :
-
-- Préfixé par PR- pour les profils
-- Préfixé par IC- pour les contrats d'entrée
-- Préfixé par AC- pour les contrats d'accès
-
-Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
-Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de Vitam, il faut modifier le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
-Un exemple de ce fichier se trouve dans la Documentation d’exploitation au chapitre "Exploitation des composants de la solution logicielle VITAM".
-
-.. code-block:: text
-
- # ExternalId configuration
-
- listEnableExternalIdentifiers:
-  0:
-    - INGEST_CONTRACT
-    - ACCESS_CONTRACT
-  1:
-    - INGEST_CONTRACT
-    - ACCESS_CONTRACT
-    - PROFILE
-    - SECURITY_PROFILE
-    - CONTEXT
-
-Depuis la version 1.0.4, la configuration par défaut de Vitam autorise des identifiants externes (ceux qui sont dans le fichier json importé).
-
- - pour le tenant 0 pour les référentiels : contrat d'entrée et contrat d'accès.
- - pour le tenant 1 pour les référentiels : contrat d'entrée, contrat d'accès, profil, profil de sécurité et contexte.
-
-La liste des choix possibles, pour chaque tenant, est :
-
-  - INGEST_CONTRACT : contrats d'entrée
-  - ACCESS_CONTRACT : contrats d'accès
-  - PROFILE : profils SEDA
-  - SECURITY_PROFILE : profils de sécurité (utile seulement sur le tenant d'administration)
-  - CONTEXT : contextes applicatifs (utile seulement sur le tenant d'administration)
-  - ARCHIVEUNITPROFILE : profils d'unités archivistiques
-
-Durées minimales permettant de contrôler les valeurs saisies
-------------------------------------------------------------
-
-Afin de se prémunir contre une alimentation du référentiel des règles de gestion avec des durées trop courtes susceptibles de déclencher des actions indésirables sur la plate-forme (ex. éliminations) – que cette tentative soit intentionnelle ou non –, la solution logicielle :term:`VITAM` vérifie que l’association de la durée et de l’unité de mesure saisies pour chaque champ est supérieure ou égale à une durée minimale définie lors du paramétrage de la plate-forme, dans un fichier de configuration.
-
-Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``listMinimumRuleDuration`` dans le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
-
-Exemple::
-
-  listMinimumRuleDuration:
-    2:
-      AppraisalRule : 1 year
-      DisseminationRule : 10 year
-
-    3:
-      AppraisaleRule : 5 year
-      StorageRule : 5 year
-      ReuseRule : 2 year
-
-
-Par tenant, les directives possibles sont :
-
-- AppraisalRule
-- DisseminationRule
-- StorageRule
-- ReuseRule
-- AccessRule (valeur par défaut : 0 year)
-- ClassificationRule
-
-Les valeurs associées sont une durée au format <nombre> <unité en angais, au singulier>
-
-Exemples::
-
-   6 month
-   1 year
-   5 year
-
-Pour plus de détails, se rapporter à la documentation métier "Règles de gestion".
 
 Déploiement
 -------------

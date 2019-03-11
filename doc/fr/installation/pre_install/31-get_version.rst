@@ -2,16 +2,16 @@ Récupération de la version
 ##########################
 
 
-Utilisation des dépôts open-source
-==================================
+Utilisation des dépôts *open-source*
+=====================================
 
-Les scripts de déploiement de VITAM sont disponibles dans le dépôt github `VITAM <https://github.com/ProgrammeVitam/vitam>`_ , dans le répertoire ``deployment``.
+Les scripts de déploiement de la solution logicielle :term:`VITAM` sont disponibles dans le `dépôt github VITAM <https://github.com/ProgrammeVitam/vitam>`_ , dans le répertoire ``deployment``.
 
-Les binaires de VITAM sont disponibles sur un dépôt vitam public indiqué ci-dessous par type de package; ces dépôts doivent être correctement configurés sur la plate-forme cible avant toute installation.
+Les binaires de VITAM sont disponibles sur des dépôts :term:`VITAM` publics indiqués ci-dessous par type de package; ces dépôts doivent être correctement configurés sur la plate-forme cible avant toute installation.
 
 
-Repository pour environnement CentOS
--------------------------------------
+*Repository* pour environnement CentOS
+---------------------------------------
 
 Sur les partitions cibles, configurer le fichier ``/etc/yum.repos.d/vitam-repositories.repo`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 
@@ -31,8 +31,22 @@ Sur les partitions cibles, configurer le fichier ``/etc/yum.repos.d/vitam-reposi
 
 .. note:: remplacer <vitam_version> par la version à déployer.
 
-Repository pour environnement Debian
--------------------------------------
+Cas de *griffins*
+~~~~~~~~~~~~~~~~~~~
+
+Un dépôt supplémentaire peut être à paramétrer pour pouvoir dérouler l'installation des *griffins* ::
+
+   [programmevitam-vitam-griffins]
+   name=programmevitam-vitam-griffins
+   baseurl=http://download.programmevitam.fr/vitam_griffins/<version_griffins>/rpm/
+   gpgcheck=0
+   repo_gpgcheck=0
+   enabled=1
+
+.. note:: remplacer <version_griffins> par la version à déployer.
+
+*Repository* pour environnement Debian
+---------------------------------------
 
 Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam-repositories.list`` (remplacer <branche_vitam> par le nom de la branche de support à installer) comme suit ::
 
@@ -40,6 +54,15 @@ Sur les partitions cibles, configurer le fichier ``/etc/apt/sources.list.d/vitam
 
 
 .. note:: remplacer <vitam_version> par la version à déployer.
+
+Cas de *griffins*
+~~~~~~~~~~~~~~~~~~~
+
+Un dépôt supplémentaire peut être à paramétrer pour pouvoir dérouler l'installation des *griffins* ::
+
+   deb [trusted=yes] http://download.programmevitam.fr/vitam_griffins/<version_griffins>/deb stretch .
+
+.. note:: remplacer <version_griffins> par la version à déployer.
 
 Utilisation du package global d'installation
 ============================================
@@ -54,4 +77,9 @@ Le package global d'installation contient :
 
 Sur la machine "ansible" dévouée au déploiement de :term:`VITAM`, décompacter le package (au format ``tar.gz``).
 
-Sur le repository "VITAM", récupérer également depuis le fichier d'extension tar.gz les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le repository.
+Pour l'installation des *griffins*, il convient de récupérer, puis décompacter, le package associé (au format ``zip``).
+
+Sur le *repository* "VITAM", récupérer également depuis le fichier d'extension ``tar.gz`` les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le *repository*.
+
+Sur le *repository* "*griffins*", récupérer également depuis le fichier d'extension ``zip`` les binaires d'installation (rpm pour CentOS ; deb pour Debian) et les faire prendre en compte par le *repository*.
+

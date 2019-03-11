@@ -13,7 +13,7 @@ Fichiers de déploiement
 
 Les fichiers de déploiement sont disponibles dans la version VITAM livrée dans le sous-répertoire |repertoire_deploiement| . Concernant l'installation, ils consistent en 2 parties :
 
- * les playbook ansible de déploiement, présents dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer ; ces fichiers ne sont normalement pas à modifier pour réaliser une installation.
+ * les *playbook* ansible de déploiement, présents dans le sous-répertoire |repertoire_playbook ansible|, qui est indépendant de l'environnement à déployer ; ces fichiers ne sont normalement pas à modifier pour réaliser une installation.
  * l'arborescence d'inventaire ; des fichiers d'exemple sont disponibles dans le sous-répertoire |repertoire_inventory|. Cette arborescence est valable pour le déploiement d'un environnement, et est à dupliquer lors de l'installation d'environnements ultérieurs. Les fichiers qui y sont contenus doivent être adaptés avant le déploiement, comme il est expliqué dans les paragraphes suivants.
 
 
