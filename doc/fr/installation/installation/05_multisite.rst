@@ -1,5 +1,5 @@
-Multi-sites
-###########
+Cas particulier d'une installation multi-sites
+###############################################
 
 Procédure d'installation
 ========================

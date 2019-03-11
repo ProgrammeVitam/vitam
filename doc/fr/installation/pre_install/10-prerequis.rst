@@ -7,7 +7,7 @@ Les pré-requis suivants sont nécessaires :
 Base commune
 ============
 
-* Tous les serveurs hébergeant la solution :term:`VITAM` doivent êre synchronisés sur un serveur de temps (pas de stratum 10)
+* Tous les serveurs hébergeant la solution logicielle :term:`VITAM` doivent êre synchronisés sur un serveur de temps (pas de *stratum* 10)
 * Disposer de la solution de déploiement basée sur ansible
 
 .. penser à ajouter une note sur /etc/hostname
@@ -16,9 +16,9 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 * packages nécessaires :
 
-  + ansible (version **2.7** minimale et conseillée ; se référer à la `documentation ansible <http://docs.ansible.com/ansible/latest/intro_installation.html>`_ pour la procédure d'installation)
-  + openssh-clients (client SSH utilisé par ansible)
-  + java-1.8.0-openjdk & openssl (du fait de la génération de certificats / stores, l'utilitaire ``keytool`` est nécessaire)
+  + **ansible** (version **2.7** minimale et conseillée ; se référer à la `documentation ansible <http://docs.ansible.com/ansible/latest/intro_installation.html>`_ pour la procédure d'installation)
+  + **openssh-client** (client SSH utilisé par ansible)
+  + **java-1.8.0-openjdk** et **openssl** (du fait de la génération de certificats / *stores*, l'utilitaire ``keytool`` est nécessaire)
 
 * un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.  
 * Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs sur lesquels la solution logicielle :term:`VITAM` doit être installée (fichier ``~/.ssh/known_hosts`` correctement renseigné)
@@ -29,13 +29,13 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 .. caution:: dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet.
 
-.. warning:: dans le cas d'une installation du composant ``vitam-offer`` en ``filesystem-hash``, il est fortement recommandé d'employer un système de fichiers ``xfs`` pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des filesystems dans :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option ``user_xattr``.
+.. warning:: dans le cas d'une installation du composant ``vitam-offer`` en ``filesystem-hash``, il est fortement recommandé d'employer un système de fichiers ``xfs`` pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des *filesystems* dans la solution logicielle :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option ``user_xattr``.
 
 
 PKI
 ===
 
-La solution VITAM nécessite des certificats pour son bon fonctionnement (cf. :term:`DAT` pour la liste des secrets et :doc:`/annexes/10-overview_certificats` pour une vue d'ensemble de leur usage.) La gestion de ces certificats, par le biais d'une ou plusieurs PKI, est à charge de l'équipe d'exploitation. La mise à disposition des certificats et des chaînes de validation CA, placés dans les répertoires de déploiement adéquats, est un pré-requis à tout déploiement en production de la solution VITAM. 
+La solution logicielle :term:`VITAM` nécessite des certificats pour son bon fonctionnement (cf. :term:`DAT` pour la liste des secrets et :doc:`/annexes/10-overview_certificats` pour une vue d'ensemble de leur usage.) La gestion de ces certificats, par le biais d'une ou plusieurs :term:`PKI`, est à charge de l'équipe d'exploitation. La mise à disposition des certificats et des chaînes de validation CA, placés dans les répertoires de déploiement adéquats, est un pré-requis à tout déploiement en production de la solution logicielle :term:`VITAM`.
 
 .. seealso:: Veuillez vous référer à la section :doc:`/annexes/10-overview_certificats` pour la liste des certificats nécessaires au déploiement de la solution VITAM, ainsi que pour leurs répertoires de déploiement.
 
@@ -50,7 +50,7 @@ Seules deux distributions Linux suivantes sont supportées à ce jour :
 
 SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
 
-.. note:: En cas de changement de mode SELinux, redémarrer les machines pour la bonne prise en compte de la modification.
+.. note:: En cas de changement de mode SELinux, redémarrer les machines pour la bonne prise en compte de la modification avant de lancer le déploiement.
 
 .. Sujets à adresser : préciser la version minimale ; donner une matrice de compatibilité -> post-V1
 
@@ -66,7 +66,8 @@ Déploiement sur environnement CentOS
   + une configuration des serveurs de noms correcte (cette configuration sera surchargée lors de l'installation)
   + un accès à un dépôt (ou son miroir) CentOS 7 (base et extras) et EPEL 7
 
-* Disposer des binaires VITAM : paquets RPM de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)
+* Disposer des binaires VITAM : paquets RPM de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec VITAM (vitam-external)
+* Disposer, si besoin, des binaires pour l'installation des *griffins*
 
 Déploiement sur environnement Debian
 ------------------------------------
@@ -79,7 +80,8 @@ Déploiement sur environnement Debian
   + un accès à un dépôt (ou son miroir) Debian (base et extras) et stretch-backports
   + un accès internet, car le dépôt docker sera ajouté
 
-* Disposer des binaires VITAM : paquets deb de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec Vitam (vitam-external)
+* Disposer des binaires VITAM : paquets deb de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec VITAM (vitam-external)
+* Disposer, si besoin, des binaires pour l'installation des *griffins*
 
 
 Matériel
@@ -89,10 +91,10 @@ Les prérequis matériel sont définis dans le :term:`DAT` ; à l'heure actuelle
 
 Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été défini ; cependant, sont à prévoir par la suite des espaces de stockage conséquents pour les composants suivants :
 
-* storage-offer-default
+* offer
 * solution de centralisation des logs (elasticsearch)
 * workspace
 * worker (temporairement, lors du traitement de chaque fichier à traiter)
-* elasticsearch des données Vitam
+* cluster elasticsearch des données :term:`VITAM`
 
 L'arborescence associée sur les partitions associées est : ``/vitam/data/<composant>``

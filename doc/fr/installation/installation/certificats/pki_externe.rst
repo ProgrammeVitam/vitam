@@ -12,9 +12,9 @@ Les étapes d'intégration des certificats à la solution Vitam sont les suivant
 * Générer les certificats avec les bons `key usage` par type de certificat
 * Déposer les certificats et les autorités de certifications correspondantes dans les bons répertoires.
 * Renseigner les mots de passe des clés privées des certificats dans le vault ansible ``environments/certs/vault-certs.yml``
-* Utiliser le script Vitam permettant de générer les différents keystores.
+* Utiliser le script VITAM permettant de générer les différents *keystores*.
 
-.. note:: Rappel pré-requis : vous devez disposer d'une ou plusieurs :term:`PKI` pour tout déploiement en production de la solution VITAM.
+.. note:: Rappel pré-requis : vous devez disposer d'une ou plusieurs :term:`PKI` pour tout déploiement en production de la solution logicielle :term:`VITAM`.
 
 Génération des certificats
 --------------------------
