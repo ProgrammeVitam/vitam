@@ -39,12 +39,12 @@ Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contie
 Déploiement des extra
 =====================
 
-Plusieurs playbook d'extra sont fournis pour usage "tel quel".
+Plusieurs *playbook* d'extra sont fournis pour usage "tel quel".
 
 ihm-recette
 -----------
 
-Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette.
+Ce *playbook* permet d'installer également le composant :term:`VITAM` ihm-recette.
 
 .. code-block:: console
 
@@ -57,7 +57,7 @@ Ce playbook permet d'installer également le composant :term:`VITAM` ihm-recette
 extra complet
 -------------
 
-Ce playbook permet d'installer :
+Ce *playbook* permet d'installer :
   - des éléments de monitoring système
   - un serveur Apache pour naviguer sur le ``/vitam``  des différentes machines hébergeant :term:`VITAM`
   - mongo-express (en docker ; une connexion internet est alors nécessaire)

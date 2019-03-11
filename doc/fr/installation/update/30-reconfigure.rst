@@ -39,3 +39,12 @@ Exemple:
 	ansible-playbook -i environments/hosts.deployment ansible-vitam-extra/extra.yml --ask-vault-pass --tags update_jvmoptions_vitam
 
 .. caution:: Limitation technique à ce jour ; il n'est pas possible de définir des variables JVM différentes pour des composants colocalisés sur une même partition.
+
+Cas de la mise à jour des *griffins*
+========================================
+
+Modifier la directive ``vitam_griffins`` contenue dans le fichier ``environments/group_vars/all/vitam-vars.yml``.
+
+.. note:: Dans le cas d'une montée de version des composant *griffins*, ne pas oublier de mettre à jour l'URL du dépôt de binaire associée.
+
+Relancer le script de déploiement en ajoutant en fin de ligne ``--tags griffins`` pour ne procéder qu'à l'installation/mise à jour des *griffins*.
