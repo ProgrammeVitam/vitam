@@ -1,2 +1,6 @@
 vitam-imagemagick-griffin
 vitam-jhove-griffin
+vitam-libreoffice-griffin
+vitam-odfvalidator-griffin
+vitam-siegfried-griffin
+vitam-tesseract-griffin

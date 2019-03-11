@@ -12,9 +12,7 @@ Paramétrages supplémentaires
 Tuning JVM
 ==========
 
-.. note:: Cette section est en cours de développement.
-
-.. caution:: en cas de colocalisation, bien prendre en compte la taille :term:`JVM` de chaque composant (VITAM : -Xmx512m par défaut) pour éviter de `swapper`.
+.. caution:: en cas de colocalisation, bien prendre en compte la taille :term:`JVM` de chaque composant (VITAM : ``-Xmx512m`` par défaut) pour éviter de `swapper`.
 
 
 Un `tuning` fin des paramètres JVM de chaque composant :term:`VITAM` est possible.
@@ -26,14 +24,14 @@ Pour chaque composant, il est possible de modifier ces 3 variables:
 * gc: parmètres gc
 * java: autres paramètres java
 
-Installation des greffons
-==========================
+Installation des *griffins*
+============================
 
 .. note:: Fonctionnalité apparue en R9.
 
-.. caution:: Cette version de Vitam ne mettant pas encore en oeuvre de mesure d'isolation particulière des griffons, il est recommandé de veiller à ce que l'usage de chaque griffon soit en conformité avec la politique de sécurité de l'entité. Il est en particulier déconseillé d'utiliser un griffon qui utiliserait un outil externe qui n'est plus maintenu.
+.. caution:: Cette version de :term:`VITAM` ne mettant pas encore en oeuvre de mesure d'isolation particulière des *griffins*, il est recommandé de veiller à ce que l'usage de chaque *griffin* soit en conformité avec la politique de sécurité de l'entité. Il est en particulier déconseillé d'utiliser un griffon qui utiliserait un outil externe qui n'est plus maintenu.
 
-Il est possible de choisir les greffons installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``environments/group_vars/all/vitam-vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
+Il est possible de choisir les *griffins* installables sur la plate-forme. Pour cela, il faut éditer le contenu du fichier ``environments/group_vars/all/vitam-vars.yml`` au niveau de la directive ``vitam_griffins``. Cette action est à rapprocher de l'incorporation des binaires d'installation : les binaires d'installation des greffons doivent être accessibles par les machines hébergeant le composant **worker**.
 
 Exemple::
 
@@ -44,6 +42,8 @@ Voici la liste des greffons disponibles au moment de la présente publication :
 
 .. literalinclude:: liste_griffins.txt
    :language: text
+
+.. warning:: Ne pas oublier d'avoir déclaré au préalable sur les machines cibles le dépôt de binaires associé aux *griffins*.
 
 Paramétrage de l'antivirus (ingest-externe)
 ===========================================
@@ -110,6 +110,98 @@ Il est possible d'en modifier le routage, qui par défaut redirige vers le serve
 Pour cela, il est nécessaire de placer un fichier de configuration dédié dans le dossier ``/etc/rsyslog.d/`` ; ce fichier sera automatiquement pris en compte par rsyslog. Pour la syntaxe de ce fichier de configuration rsyslog, se référer à la `documentation rsyslog <http://www.rsyslog.com/doc/v7-stable/>`_.
 
 .. tip:: Pour cela, il peut être utile de s'inspirer du fichier de référence VITAM ``deployment/ansible-vitam/roles/rsyslog/templates/vitam_transport.conf.j2`` (attention, il s'agit d'un fichier template ansible, non directement convertible en fichier de configuration sans en ôter les directives jinja2).
+
+Passage des identifiants des référentiels en mode esclave
+==============================================================
+
+La génération des identifiants des référentiels est géré par Vitam quand il fonctionne en mode maître.
+
+Par exemple :
+
+- Préfixé par PR- pour les profils
+- Préfixé par IC- pour les contrats d'entrée
+- Préfixé par AC- pour les contrats d'accès
+
+Si vous souhaitez gérer vous-même les identifiants sur un service référentiel, il faut qu'il soit en mode esclave.
+Par défaut tous les services référentiels de Vitam fonctionnent en mode maître. Pour désactiver le mode maître de :term:`VITAM`, il faut modifier le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
+
+Exemple du fichier par défaut :
+
+.. literalinclude:: ../../../../deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2
+     :language: yaml
+     :linenos:
+
+
+Un exemple de ce fichier se trouve dans la Documentation d’exploitation au chapitre "Exploitation des composants de la solution logicielle VITAM".
+
+.. code-block:: text
+
+ # ExternalId configuration
+
+ listEnableExternalIdentifiers:
+  0:
+    - INGEST_CONTRACT
+    - ACCESS_CONTRACT
+  1:
+    - INGEST_CONTRACT
+    - ACCESS_CONTRACT
+    - PROFILE
+    - SECURITY_PROFILE
+    - CONTEXT
+
+Depuis la version 1.0.4, la configuration par défaut de Vitam autorise des identifiants externes (ceux qui sont dans le fichier json importé).
+
+ - pour le tenant 0 pour les référentiels : contrat d'entrée et contrat d'accès.
+ - pour le tenant 1 pour les référentiels : contrat d'entrée, contrat d'accès, profil, profil de sécurité et contexte.
+
+La liste des choix possibles, pour chaque tenant, est :
+
+  - INGEST_CONTRACT : contrats d'entrée
+  - ACCESS_CONTRACT : contrats d'accès
+  - PROFILE : profils SEDA
+  - SECURITY_PROFILE : profils de sécurité (utile seulement sur le tenant d'administration)
+  - CONTEXT : contextes applicatifs (utile seulement sur le tenant d'administration)
+  - ARCHIVEUNITPROFILE : profils d'unités archivistiques
+
+Durées minimales permettant de contrôler les valeurs saisies
+==============================================================
+
+Afin de se prémunir contre une alimentation du référentiel des règles de gestion avec des durées trop courtes susceptibles de déclencher des actions indésirables sur la plate-forme (ex. éliminations) – que cette tentative soit intentionnelle ou non –, la solution logicielle :term:`VITAM` vérifie que l’association de la durée et de l’unité de mesure saisies pour chaque champ est supérieure ou égale à une durée minimale définie lors du paramétrage de la plate-forme, dans un fichier de configuration.
+
+Pour mettre en place le comportement attendu par le métier, il faut modifier le contenu de la directive ``listMinimumRuleDuration`` dans le fichier ansible ``deployment/ansible-vitam/roles/vitam/templates/functional-administration/functional-administration.conf.j2``.
+
+Exemple::
+
+  listMinimumRuleDuration:
+    2:
+      AppraisalRule : 1 year
+      DisseminationRule : 10 year
+
+    3:
+      AppraisaleRule : 5 year
+      StorageRule : 5 year
+      ReuseRule : 2 year
+
+
+Par tenant, les directives possibles sont :
+
+- AppraisalRule
+- DisseminationRule
+- StorageRule
+- ReuseRule
+- AccessRule (valeur par défaut : 0 year)
+- ClassificationRule
+
+Les valeurs associées sont une durée au format <nombre> <unité en angais, au singulier>
+
+Exemples::
+
+   6 month
+   1 year
+   5 year
+
+Pour plus de détails, se rapporter à la documentation métier "Règles de gestion".
+
 
 
 Fichiers complémentaires
