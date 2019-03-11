@@ -312,6 +312,8 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
+        # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer (if the calculated result is less than 60s, this time is used)
+        timeoutMsPerKB: 100
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
