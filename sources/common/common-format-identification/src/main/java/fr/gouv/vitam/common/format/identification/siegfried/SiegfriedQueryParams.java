@@ -33,17 +33,17 @@ public enum SiegfriedQueryParams {
     BASE64("Use URL-safe base64 encoding for the file or folder name", "base64", "true"),
     FORMAT("format (optional) - select the output format (csv, yaml, json, droid). " +
         "Default is yaml. Alternatively, HTTP content negotiation can be used.", "format", "json"),
-    SCAN_ENTRIES_WITHIN_ZIP("z (optional) - scan archive formats (zip, tar, gzip, warc, arc) with z=true. Default is false.",
-        "z", "false"),
-    SIGNATURE_FILE("sig (optional) - load a specific signature file. Default is default.sig.", "sig","default.sig");
+    SCAN_ENTRIES_WITHIN_ZIP(
+        "z (optional) - scan archive formats (zip, tar, gzip, warc, arc) with z=true. Default is false.",
+        "z", "false");
 
     String description;
-    String  parameter;
-    String  value;
+    String parameter;
+    String value;
 
-    SiegfriedQueryParams(String  description,
-        String  parameter,
-        String  value){
+    SiegfriedQueryParams(String description,
+        String parameter,
+        String value) {
         this.description = description;
         this.parameter = parameter;
         this.value = value;
