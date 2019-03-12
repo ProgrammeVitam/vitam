@@ -255,7 +255,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
             if (StringUtils.isEmpty(ruleAction.getRule())
                 && StringUtils.isEmpty(ruleAction.getStartDate())
-                && !ruleAction.isDeleteStartDate()) {
+                && (ruleAction == null || Boolean.FALSE.equals(ruleAction.isDeleteStartDate()))) {
 
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
@@ -288,7 +288,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 return Optional.of(errorInfo);
             }
 
-            if (StringUtils.isNotEmpty(ruleAction.getOldRule()) || ruleAction.isDeleteStartDate()) {
+            if (StringUtils.isNotEmpty(ruleAction.getOldRule()) || Boolean.TRUE.equals(ruleAction.isDeleteStartDate())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
@@ -320,7 +320,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
             if (StringUtils.isNotEmpty(ruleAction.getOldRule())
                 || StringUtils.isNotEmpty(ruleAction.getStartDate())
-                || ruleAction.isDeleteStartDate()) {
+                || Boolean.TRUE.equals(ruleAction.isDeleteStartDate())) {
 
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
