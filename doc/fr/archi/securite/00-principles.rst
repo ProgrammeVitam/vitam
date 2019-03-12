@@ -26,8 +26,8 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 
 * Chiffrement du transport des données entre les applications externes et VITAM via HTTPS ; par défaut, la configuration suivante est appliquée :
 
-    - Protocoles exclus : ``SSLv2``, ``SSLv3``
-    - Ciphers exclus : ``.*NULL.*``, ``.*RC4.*``, ``.*MD5.*``, ``.*DES.*``, ``.*DSS.*``
+    - Protocoles exclus par défaut : ``SSLv2``, ``SSLv3``, ``TLSv1.0``, ``TLSv1.1``
+    - Ciphers exclus par défaut: ``.*NULL.*``, ``.*RC4.*``, ``.*MD5.*``, ``.*DES.*``, ``.*DSS.*``, ``TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA``, ``TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA``, ``TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA``, ``TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA``, ``TLS_DHE_RSA_WITH_AES_256_CBC_SHA``, ``TLS_DHE_RSA_WITH_AES_128_CBC_SHA``
 
 .. note:: Les ciphers recommandés sont : ``TLS_ECDHE.*``, ``TLS_DHE_RSA.*``
 
