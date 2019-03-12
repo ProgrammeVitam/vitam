@@ -90,6 +90,12 @@ function getKeystorePassphrase {
 
     # Decrypt vault file
     ansible-vault decrypt ${VAULT_KEYSTORES} ${ANSIBLE_VAULT_PASSWD}
+    if [ ${?} != 0 ]; then
+        pki_logger "ERROR" "Failed to decrypt ${VAULT_KEYSTORES}"
+        pki_logger "ERROR" "Please check if the vault password is correct in vault_pass.txt file"
+        return 1
+    fi
+
     # Try/catch/finally stuff with bash (to make sure the vault stay encrypted)
     {
         # Try
