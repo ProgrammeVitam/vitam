@@ -6,7 +6,15 @@ if (! admin.getUser("{{ mongodb[mongo_cluster_name].localadmin.user }}")) {
         {
             user: "{{ mongodb[mongo_cluster_name].localadmin.user }}",
             pwd: "{{ mongodb[mongo_cluster_name].localadmin.password }}",
-            roles: [ { role: "clusterAdmin", db: "admin" } ]
+            roles: [
+                { role: "clusterAdmin", db: "admin" },
+                { role: "dbAdmin", db: "logbook" },
+                { role: "dbAdmin", db: "masterdata" },
+                { role: "dbAdmin", db: "identity" },
+                { role: "dbAdmin", db: "metadata" },
+                { role: "dbAdmin", db: "report" },
+                { role: "dbAdmin", db: "admin" }
+            ]
         }
     )
 }
@@ -15,7 +23,15 @@ else {
         "{{ mongodb[mongo_cluster_name].localadmin.user }}",
         {
             pwd: "{{ mongodb[mongo_cluster_name].localadmin.password }}",
-            roles: [ { role: "clusterAdmin", db: "admin" } ]
+            roles: [
+                { role: "clusterAdmin", db: "admin" },
+                { role: "dbAdmin", db: "logbook" },
+                { role: "dbAdmin", db: "masterdata" },
+                { role: "dbAdmin", db: "identity" },
+                { role: "dbAdmin", db: "metadata" },
+                { role: "dbAdmin", db: "report" },
+                { role: "dbAdmin", db: "admin" }
+            ]
         }
     )
 }
