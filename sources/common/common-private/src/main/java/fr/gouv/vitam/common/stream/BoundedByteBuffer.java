@@ -241,7 +241,7 @@ public class BoundedByteBuffer implements AutoCloseable {
         @Override
         public int read(byte[] buffer, int offset, int length) throws IOException {
 
-            if (offset < 0 || length < 0 || offset > buffer.length - offset) {
+            if (offset < 0 || length < 0 || offset + length > buffer.length) {
                 throw new IllegalArgumentException("Invalid length");
             }
 
