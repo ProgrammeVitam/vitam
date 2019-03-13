@@ -30,6 +30,7 @@ import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -96,6 +97,7 @@ public class PreservationFinalizationPluginTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_finalize_preservation_report() throws Exception {
         // Given
         // When

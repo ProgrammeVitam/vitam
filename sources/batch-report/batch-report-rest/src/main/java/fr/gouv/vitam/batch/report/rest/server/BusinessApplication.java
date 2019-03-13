@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.servlet.ServletConfig;

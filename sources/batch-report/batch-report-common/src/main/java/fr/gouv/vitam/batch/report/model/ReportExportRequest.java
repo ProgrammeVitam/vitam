@@ -33,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ReportExportRequest {
 
+    @JsonProperty("fileName")
+    private String filename;
 
     public ReportExportRequest() {
         // Empty constructor for deserialization
@@ -42,10 +44,6 @@ public class ReportExportRequest {
         this.filename = filename;
     }
 
-    @JsonProperty("fileName")
-    private String filename;
-
-
     public String getFilename() {
         return filename;
     }
@@ -53,4 +51,5 @@ public class ReportExportRequest {
     public void setFilename(String filename) {
         this.filename = filename;
     }
+
 }

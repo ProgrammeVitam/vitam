@@ -26,10 +26,18 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
-import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -42,6 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,13 +99,13 @@ public class PreservationReportServiceTest {
         // Given
         processId = "123456789";
         tenantId = 0;
-        PreservationReportModel preservationReportModel =
-            new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
+        PreservationReportEntry preservationReportEntry =
+            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
                 tenantId, "2018-11-15T11:13:20.986",
                 PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "");
-        List<PreservationReportModel> reports = new ArrayList<>();
-        reports.add(preservationReportModel);
+                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "outcome - TEST");
+        List<PreservationReportEntry> reports = new ArrayList<>();
+        reports.add(preservationReportEntry);
 
         // When
         ThrowingCallable appendPreservation = () -> preservationReportService.appendPreservationEntries(processId, reports);
@@ -107,8 +116,15 @@ public class PreservationReportServiceTest {
 
     @Test
     public void should_export_unit_does_not_throw_any_exception() {
+
+        OperationSummary operationSummary = new OperationSummary(tenantId, processId, "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.PRESERVATION, new ReportResults(), JsonHandler.createObjectNode());
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+
         // Given / When
-        ThrowingCallable exportReport = () -> preservationReportService.exportReport(processId, "filename");
+        ThrowingCallable exportReport = () -> preservationReportService.storeReport(reportInfo);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();

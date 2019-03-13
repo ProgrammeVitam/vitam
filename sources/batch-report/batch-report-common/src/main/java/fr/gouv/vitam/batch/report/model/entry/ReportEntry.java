@@ -24,51 +24,56 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.distribution;
+package fr.gouv.vitam.batch.report.model.entry;
 
-import fr.gouv.vitam.common.json.JsonHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+public class ReportEntry {
 
-public class JsonLineWriter implements AutoCloseable {
+    public static final String OUTCOME = "outcome";
+    public static final String DETAIL_TYPE = "detailType";
+    public static final String DETAIL_ID = "id";
 
-    private final Writer writer;
-    private boolean isEmpty = true;
+    @JsonProperty("outcome")
+    private String outcome; // Enum ?
 
-    public JsonLineWriter(OutputStream outputStream) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+    @JsonProperty("detailType")
+    private String detailType; // Enum ?
+
+    @JsonProperty("id")
+    private String detailId;
+
+    public ReportEntry() {
+        // Empty constructor for deserialization
     }
 
-    public JsonLineWriter(OutputStream outputStream, boolean isEmpty) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-        this.isEmpty = isEmpty;
+    public ReportEntry(String outcome, String detailType, String detailId) {
+        this.outcome = outcome;
+        this.detailType = detailType;
+        this.detailId = detailId;
     }
 
-    public void addEntry(JsonLineModel line) throws IOException {
-
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-
-        writer.append(JsonHandler.unprettyPrint(line));
+    public String getOutcome() {
+        return outcome;
     }
 
-    public void addEntry(Object line) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-        writer.append(JsonHandler.unprettyPrint(line));
+    public void setOutcome(String outcome) {
+        this.outcome = outcome;
     }
 
-    @Override
-    public void close() throws IOException {
-        writer.flush();
-        writer.close();
+    public String getDetailType() {
+        return detailType;
+    }
+
+    public void setDetailType(String detailType) {
+        this.detailType = detailType;
+    }
+
+    public String getDetailId() {
+        return detailId;
+    }
+
+    public void setDetailId(String detailId) {
+        this.detailId = detailId;
     }
 }

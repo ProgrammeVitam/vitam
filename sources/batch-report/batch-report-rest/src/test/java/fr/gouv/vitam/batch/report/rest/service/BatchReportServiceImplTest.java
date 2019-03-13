@@ -24,10 +24,19 @@ package fr.gouv.vitam.batch.report.rest.service; /******************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
@@ -35,6 +44,9 @@ import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
+import fr.gouv.vitam.functional.administration.common.BackupService;
+import fr.gouv.vitam.storage.engine.client.StorageClient;
+import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -61,6 +73,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.*;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -89,6 +103,15 @@ public class BatchReportServiceImplTest {
     @Mock
     private WorkspaceClient workspaceClient;
 
+    @Mock
+    private StorageClientFactory storageClientFactory;
+
+    @Mock
+    private StorageClient storageClient;
+
+    @Mock
+    private BackupService backupService;
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -102,9 +125,11 @@ public class BatchReportServiceImplTest {
 
     @Before
     public void setUp() throws Exception {
+        backupService = new BackupService(workspaceClientFactory, storageClientFactory);
+
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
-            eliminationActionObjectGroupRepository,
-            workspaceClientFactory, preservationReportRepository);
+            eliminationActionObjectGroupRepository, backupService, workspaceClientFactory,
+            preservationReportRepository);
     }
 
 
@@ -112,7 +137,7 @@ public class BatchReportServiceImplTest {
     public void should_append_elimination_object_group_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
         // When
         // Then
         assertThatCode(() ->
@@ -124,8 +149,8 @@ public class BatchReportServiceImplTest {
     @Test
     public void should_append_elimination_unit_report() throws Exception {
         // Given
-        InputStream stream = getClass().getResourceAsStream("/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        InputStream stream = getClass().getResourceAsStream("/eliminationUnitModel.json");
+        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
         // When
         // Then
         assertThatCode(() ->
@@ -137,7 +162,7 @@ public class BatchReportServiceImplTest {
     public void should_append_preservation_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/preservationReport.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, PreservationReportEntry.class);
 
         // When
         ThrowingCallable append = () -> batchReportServiceImpl.appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
@@ -147,61 +172,43 @@ public class BatchReportServiceImplTest {
     }
 
     @Test
-    public void should_export_objectgroup_report() throws Exception {
-        // Given
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        Document document = getObjectGroupDocument();
-        File folder = this.folder.newFolder();
-        Path report = Paths.get(folder.getAbsolutePath(), "objectGroupReport.json");
-        initialiseMockWhenPutObjectInWorkspace(report);
-        when(emptyMongoCursor.next()).thenReturn(document);
-        when(emptyMongoCursor.next()).thenReturn(document);
-        when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
-        when(eliminationActionObjectGroupRepository
-            .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
-            .thenReturn(emptyMongoCursor);
-        when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
-        // When
-        batchReportServiceImpl
-            .exportEliminationActionObjectGroupReport(PROCESS_ID, "objectGroupReport.json", TENANT_ID);
-        // Then
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
-            while (reader.ready()) {
-                String line = reader.readLine();
-                assertThat(line).isNotNull();
-                assertThat(line).contains(
-                    "{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaap\",\"params\":{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"opi\":\"test\",\"objectGroupId\":\"12345687\",\"status\":\"DELETED\",\"deletedParentUnitIds\":[\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaar\"]}}");
-            }
-        }
-    }
-
-    @Test
-    public void should_export_preservation_report() throws Exception {
+    public void should_store_preservation_report() throws Exception {
         // Given
         String processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
-        String filename = String.format("preservation-Report-%s.jsonl", processId);
+        String filename = String.format("report.jsonl", processId);
         Path report = initialisePathWithFileName(filename);
 
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
+
         PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>());
-        PreservationReportModel preservationReportModel =
-            new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
-                TENANT_ID, "2018-11-15T11:13:20.986",
-                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "");
-        FakeMongoCursor<PreservationReportModel> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationReportModel));
+        Document preservationData = getPreservationDocument(processId);
+        FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationData));
 
         initialiseMockWhenPutObjectInWorkspace(report);
         when(preservationReportRepository.findCollectionByProcessIdTenant(processId, TENANT_ID))
             .thenReturn(fakeMongoCursor);
         when(preservationReportRepository.stats(processId, TENANT_ID)).thenReturn(preservationStatus);
 
+        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.PRESERVATION, reportResults, JsonHandler.createObjectNode());
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+
         // When
-        batchReportServiceImpl.exportPreservationReport(processId, filename, TENANT_ID);
+        batchReportServiceImpl.storeReport(reportInfo);
 
         // Then
-        String accumulatorExpected = JsonHandler.unprettyPrint(preservationStatus) +"\n"+ JsonHandler.unprettyPrint(preservationReportModel)+"\n";
+        reportSummary.setExtendedInfo(JsonHandler.toJsonNode(preservationStatus));
+        String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
+            + "\n" + JsonHandler.unprettyPrint(reportSummary)
+            + "\n" + JsonHandler.unprettyPrint(context)
+            + "\n" + JsonHandler.unprettyPrint(preservationData);
+
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
 
@@ -212,32 +219,49 @@ public class BatchReportServiceImplTest {
 
 
     @Test
-    public void should_export_unit_report() throws Exception {
+    public void should_store_elimination_report() throws Exception {
         // Given
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        Document document = getUnitDocument();
-        File folder = this.folder.newFolder();
-        Path report = Paths.get(folder.getAbsolutePath(), "unitReport.json");
+        when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
+
+        String filename = "report.jsonl";
+        Path report = initialisePathWithFileName(filename);
         initialiseMockWhenPutObjectInWorkspace(report);
-        when(emptyMongoCursor.next()).thenReturn(document);
-        when(emptyMongoCursor.next()).thenReturn(document);
-        when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
+
+        Document unitData = getUnitDocument();
+        FakeMongoCursor<Document> fakeUnitMongoCursor = new FakeMongoCursor<>(Collections.singletonList(unitData));
+        Document objectGroupData = getObjectGroupDocument();
+        FakeMongoCursor<Document> fakeObjectGroupMongoCursor = new FakeMongoCursor<>(Collections.singletonList(objectGroupData));
+
         when(eliminationActionUnitRepository
             .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
-            .thenReturn(emptyMongoCursor);
-        when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
+            .thenReturn(fakeUnitMongoCursor);
+        when(eliminationActionObjectGroupRepository
+            .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(fakeObjectGroupMongoCursor);
+
+
+
+        OperationSummary operationSummary = new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.ELIMINATION_ACTION, reportResults, JsonHandler.createObjectNode());
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+
         // When
-        batchReportServiceImpl
-            .exportEliminationActionUnitReport(PROCESS_ID, "objectGroupReport.json", TENANT_ID);
+        batchReportServiceImpl.storeReport(reportInfo);
+
         // Then
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
-            while (reader.ready()) {
-                String line = reader.readLine();
-                assertThat(line).isNotNull();
-                assertThat(line).contains(
-                    "{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"params\":{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"opi\":\"test\",\"objectGroupId\":\"12345687\",\"unitId\":\"unitId\",\"status\":\"DESTROY\"}}");
-            }
-        }
+        String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
+            + "\n" + JsonHandler.unprettyPrint(reportSummary)
+            + "\n" + JsonHandler.unprettyPrint(context)
+            + "\n" + JsonHandler.unprettyPrint(unitData)
+            + "\n" + JsonHandler.unprettyPrint(objectGroupData);
+
+        assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
 
     @Test
@@ -291,6 +315,25 @@ public class BatchReportServiceImplTest {
             .putPOJO("deletedParentUnitIds",
                 Arrays.asList("aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq", "aeaaaaaaaafr5hk6abgeualfvd6jsniaaaar"))
         );
+        return document;
+    }
+
+    private Document getPreservationDocument(String processId) {
+        Document document = new Document();
+        document.put(OUTCOME, "Outcome - TEST");
+        document.put(DETAIL_TYPE, "preservation");
+        document.put(DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
+        document.put(ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
+        document.put(PreservationReportEntry.PROCESS_ID, processId);
+        document.put(TENANT, TENANT_ID);
+        document.put(CREATION_DATE_TIME, "2018-11-15T11:13:20.986");
+        document.put(STATUS, PreservationStatus.OK);
+        document.put(UNIT_ID, "unitId");
+        document.put(OBJECT_GROUP_ID, "objectGroupId");
+        document.put(ACTION, ANALYSE);
+        document.put(ANALYSE_RESULT, "VALID_ALL");
+        document.put(INPUT_OBJECT_ID, "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq");
+        document.put(OUTPUT_OBJECT_ID, "");
         return document;
     }
 

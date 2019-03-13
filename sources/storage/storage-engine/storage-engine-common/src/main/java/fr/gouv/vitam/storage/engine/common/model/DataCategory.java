@@ -82,15 +82,18 @@ public enum DataCategory {
      */
     RULES("rules", "rules", false, false),
 
-    PRESERVATION("preservation", "preservation", false, false),
+    /**
+     * Batch update reports - Hack, to be fixed with US #5621
+     */
+    BATCH_REPORT("batch_report", "report", false, false),
 
     /**
-     * Referential csv imported for rules
+     * Referential csv imported for rules - Hack, to be fixed with US #5621
      */
     REFERENTIAL_RULES_CSV("referential_rules_csv", "rules", false, false),
 
     /**
-     * Referential csv imported for agencies
+     * Referential csv imported for agencies - Hack, to be fixed with US #5621
      */
     REFERENTIAL_AGENCIES_CSV("referential_agencies_csv", "report", false, false),
 

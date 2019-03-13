@@ -956,10 +956,10 @@ public class AdminExternalClientRest extends DefaultClient implements AdminExter
     }
 
     @Override
-    public Response downloadPreservationReport(VitamContext vitamContext, String opId) throws VitamClientException {
+    public Response downloadBatchReport(VitamContext vitamContext, String opId) throws VitamClientException {
         Response response;
         try {
-            response = performRequest(HttpMethod.GET, AccessExtAPI.PRESERVATION_REPORT_API + opId,
+            response = performRequest(HttpMethod.GET, AccessExtAPI.BATCH_REPORT_API + opId,
                 vitamContext.getHeaders(), MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
         } catch (final VitamClientInternalException e) {

@@ -1,5 +1,6 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -21,7 +22,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisRes
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -152,14 +152,14 @@ public class EliminationActionUnitPreparationHandlerTest {
         assertThat(reportEntries.get(0).getUnitId()).isEqualTo("id_unit_2");
         assertThat(reportEntries.get(0).getOriginatingAgency()).isEqualTo("sp_2");
         assertThat(reportEntries.get(0).getInitialOperation()).isEqualTo("opi2");
-        assertThat(reportEntries.get(0).getStatus()).isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_KEEP);
+        assertThat(reportEntries.get(0).getStatus()).isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name());
         assertThat(reportEntries.get(0).getObjectGroupId()).isEqualTo("id_got_2");
 
         assertThat(reportEntries.get(1).getUnitId()).isEqualTo("id_unit_4");
         assertThat(reportEntries.get(1).getOriginatingAgency()).isEqualTo("sp_4");
         assertThat(reportEntries.get(1).getInitialOperation()).isEqualTo("opi4");
         assertThat(reportEntries.get(1).getStatus())
-            .isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT);
+            .isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name());
         assertThat(reportEntries.get(1).getObjectGroupId()).isEqualTo("id_got_4");
 
         ArgumentCaptor<File> fileArgumentCaptor = ArgumentCaptor.forClass(File.class);

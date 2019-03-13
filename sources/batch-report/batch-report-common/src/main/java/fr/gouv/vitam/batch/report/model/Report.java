@@ -24,51 +24,57 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.distribution;
+package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.util.List;
 
-public class JsonLineWriter implements AutoCloseable {
+public class Report {
 
-    private final Writer writer;
-    private boolean isEmpty = true;
+    @JsonProperty("operationSummary")
+    private OperationSummary operationSummary;
 
-    public JsonLineWriter(OutputStream outputStream) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+    @JsonProperty("reportSummary")
+    private ReportSummary reportSummary;
+
+    @JsonProperty("context")
+    private JsonNode context;
+
+    public Report() {
+        // Empty constructor for deserialization
     }
 
-    public JsonLineWriter(OutputStream outputStream, boolean isEmpty) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-        this.isEmpty = isEmpty;
+    public Report(OperationSummary operationSummary, ReportSummary reportSummary, JsonNode context) {
+        this.operationSummary = operationSummary;
+        this.reportSummary = reportSummary;
+        this.context = context;
     }
 
-    public void addEntry(JsonLineModel line) throws IOException {
-
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-
-        writer.append(JsonHandler.unprettyPrint(line));
+    public OperationSummary getOperationSummary() {
+        return operationSummary;
     }
 
-    public void addEntry(Object line) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-        writer.append(JsonHandler.unprettyPrint(line));
+    public void setOperationSummary(OperationSummary operationSummary) {
+        this.operationSummary = operationSummary;
     }
 
-    @Override
-    public void close() throws IOException {
-        writer.flush();
-        writer.close();
+    public ReportSummary getReportSummary() {
+        return reportSummary;
+    }
+
+    public void setReportSummary(ReportSummary reportSummary) {
+        this.reportSummary = reportSummary;
+    }
+
+    public JsonNode getContext() {
+        return context;
+    }
+
+    public void setContext(JsonNode context) {
+        this.context = context;
     }
 }

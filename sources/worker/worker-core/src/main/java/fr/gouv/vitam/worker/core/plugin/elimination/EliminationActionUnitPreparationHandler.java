@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -54,7 +55,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisRes
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.worker.core.utils.BufferedConsumer;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -191,7 +191,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                                 getField(unit, VitamFieldsHelper.originatingAgency()),
                                 getField(unit, VitamFieldsHelper.initialOperation()),
                                 getField(unit, VitamFieldsHelper.object()),
-                                status));
+                                status.name(), "outcome - TO BE DEFINED")); // FIXME !
 
                             nbNonDestroyableUnits++;
 

@@ -2413,12 +2413,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     @GET
-    @Path("/preservationreport/{opId}")
+    @Path("/batchreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = "preservationreport:id:read",
-        description = "Récupérer le rapport pour une opération d'import de règles de gestion")
-    public Response downloadPreservationAsStream(@PathParam("opId") String opId) {
-        return downloadObjectAsync(opId, IngestCollection.PRESERVATION);
+    @Secured(permission = "batchreport:id:read",
+        description = "Récupérer le rapport pour un traitement de masse (Elimination, Preservation, Audit, Mise à jour)")
+    public Response downloadBatchReportAsStream(@PathParam("opId") String opId) {
+        return downloadObjectAsync(opId, IngestCollection.BATCH_REPORT);
     }
 
     @GET

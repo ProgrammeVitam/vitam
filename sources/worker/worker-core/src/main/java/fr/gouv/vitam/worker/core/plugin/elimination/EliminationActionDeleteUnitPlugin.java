@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -55,7 +56,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import org.apache.commons.collections4.SetUtils;
 
 import java.util.ArrayList;
@@ -169,7 +169,7 @@ public class EliminationActionDeleteUnitPlugin extends ActionHandler {
                 unit.get(VitamFieldsHelper.originatingAgency()).asText() : null;
 
             eliminationUnitReportEntries.add(new EliminationActionUnitReportEntry(
-                unitId, originatingAgency, initialOperation, objectGroupId, eliminationActionUnitStatus));
+                unitId, originatingAgency, initialOperation, objectGroupId, eliminationActionUnitStatus.name(), "Outcome - TO BE DEFINED")); // FIXME !
         }
 
         eliminationActionReportService.appendUnitEntries(processId, eliminationUnitReportEntries);

@@ -28,6 +28,8 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupObjectVersion;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -54,8 +56,6 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupObjectVersion;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.collections4.ListUtils;
@@ -209,8 +209,7 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
                 eliminationObjectGroupReportEntries.add(new EliminationActionObjectGroupReportEntry(objectGroup.getId(),
                     objectGroup.getOriginatingAgency(), objectGroup.getOpi(), null,
-                    new HashSet<>(objectsToDelete), EliminationActionObjectGroupStatus.DELETED, objectVersions));
-
+                    new HashSet<>(objectsToDelete), EliminationActionObjectGroupStatus.DELETED.name(), objectVersions, "Outcome - TO BE DEFINED")); // FIXME : Put correct value
             } else {
 
                 if (LOGGER.isDebugEnabled()) {
@@ -224,10 +223,8 @@ public class EliminationActionObjectGroupPreparationHandler extends ActionHandle
 
                 eliminationObjectGroupReportEntries
                     .add(new EliminationActionObjectGroupReportEntry(objectGroup.getId(),
-                        objectGroup.getOriginatingAgency(),
-                        objectGroup.getOpi(),
-                        removedParentUnits,
-                        null, EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT, null));
+                        objectGroup.getOriginatingAgency(), objectGroup.getOpi(), removedParentUnits,
+                        null, EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT.name(), null, "Outcome - TO BE DEFINED")); // FIXME : Put correct value
             }
         }
 

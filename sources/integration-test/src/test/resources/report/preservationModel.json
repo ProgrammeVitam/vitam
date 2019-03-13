@@ -1,0 +1,17 @@
+{
+  "processId": "123456789",
+  "reportType":"PRESERVATION",
+  "entries": [
+    {
+      "processId": "opi0",
+      "unitId": "idUnit",
+      "objectGroupId": "idOG",
+      "status": "OK",
+      "action": "IDENTIFY",
+      "analyseResult": "SoCool",
+      "inputName": "input",
+      "outputName": "output"
+    }
+  ]
+}
+

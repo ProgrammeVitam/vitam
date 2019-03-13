@@ -36,6 +36,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import org.bson.Document;
 
@@ -54,7 +55,7 @@ import static fr.gouv.vitam.batch.report.model.EliminationActionAccessionRegiste
 /**
  * ReportRepository
  */
-public class EliminationActionUnitRepository extends EliminationCommonRepository {
+public class EliminationActionUnitRepository extends ReportCommonRepository {
 
     public static final String ELIMINATION_ACTION_UNIT = "EliminationActionUnit";
     public static final String METADATA_OBJECT_GROUP_ID = "_metadata.objectGroupId";
@@ -73,7 +74,7 @@ public class EliminationActionUnitRepository extends EliminationCommonRepository
         Set<EliminationActionUnitModel> reportsWithoutDuplicate = new HashSet<>(reports);
         List<Document> eliminationUnitDocument =
             reportsWithoutDuplicate.stream()
-                .map(EliminationCommonRepository::pojoToDocument)
+                .map(ReportCommonRepository::pojoToDocument)
                 .collect(Collectors.toList());
         super.bulkAppendReport(eliminationUnitDocument, unitReportCollection);
     }

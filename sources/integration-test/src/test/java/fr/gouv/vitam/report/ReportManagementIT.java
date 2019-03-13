@@ -30,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,10 +40,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
@@ -63,6 +72,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -128,7 +138,8 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<EliminationActionUnitReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
         // When
         // Then
         RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
@@ -140,7 +151,21 @@ public class ReportManagementIT extends VitamRuleRunner {
     public void should_append_objectGroup_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<EliminationActionObjectGroupReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
+        // When
+        // Then
+        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
+        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_append_preservation_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/report/preservationModel.json");
+        ReportBody<PreservationReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, PreservationReportEntry.class);
         // When
         // Then
         RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
@@ -150,44 +175,11 @@ public class ReportManagementIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void should_export_objectGroup_report() throws Exception {
-        // Given
-        InputStream stream = getClass().getResourceAsStream("/report/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
-        ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
-        batchReportClient.appendReportEntries(reportBody);
-        // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionObjectGroupReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
-
-        checkGeneratedReportEqualsExpectedJsonl("test.json", "report/eliminationObjectGroupModel_expectedReport.jsonl");
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_export_unit_report() throws Exception {
-        // Given
-        InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
-        ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
-        batchReportClient.appendReportEntries(reportBody);
-        // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
-
-        checkGeneratedReportEqualsExpectedJsonl("test.json", "report/eliminationUnitModel_expectedReport.jsonl");
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void should_export_distinct_objectgroup_in_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<EliminationActionUnitReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
         ReportExportRequest reportExportRequest = new ReportExportRequest("test.json");
         batchReportClient.appendReportEntries(reportBody);
         // When
@@ -200,79 +192,77 @@ public class ReportManagementIT extends VitamRuleRunner {
             "report/eliminationUnitModel_expectedDistinctObjectGroupReport.jsonl");
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void should_store_preservation_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/report/preservationModel.json");
+        ReportBody<PreservationReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, PreservationReportEntry.class);
+        batchReportClient.appendReportEntries(reportBody);
+
+        Integer tenant = TENANT_0;
+        String evId = PROCESS_ID;
+        JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", JsonHandler.createObjectNode(), evDetData);
+
+        String date = LocalDateUtil.getString(LocalDateTime.now());
+        ReportType reportType = ReportType.PRESERVATION;
+        ReportResults vitamResults = new ReportResults();
+        JsonNode extendedInfo = JsonHandler.createObjectNode();
+        ReportSummary reportSummary = new ReportSummary(date, date, reportType, vitamResults, extendedInfo);
+
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report report = new Report(operationSummary, reportSummary, context);
+
+        // When
+        RequestResponse<JsonNode> storeResponse = batchReportClient.storeReport(report);
+
+        // Then
+        assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+    }
 
     @Test
     @RunWithCustomExecutor
-    public void should_export_accession_register() throws Exception {
+    public void should_store_elimination_report() throws Exception {
         // Given
-        InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitWithDuplicateUnit.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
-        ReportExportRequest reportExportRequest = new ReportExportRequest("test_1.json");
+        InputStream stream = getClass().getResourceAsStream("/report/eliminationObjectGroupModel.json");
+        ReportBody<EliminationActionObjectGroupReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
         batchReportClient.appendReportEntries(reportBody);
+
+        InputStream stream2 = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
+        ReportBody<EliminationActionUnitReportEntry> reportBody2 =
+            JsonHandler.getFromInputStream(stream2, ReportBody.class, EliminationActionUnitReportEntry.class);
+        batchReportClient.appendReportEntries(reportBody2);
+
+        Integer tenant = TENANT_0;
+        String evId = PROCESS_ID;
+        JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", JsonHandler.createObjectNode(), evDetData);
+
+        String date = LocalDateUtil.getString(LocalDateTime.now());
+        ReportType reportType = ReportType.ELIMINATION_ACTION;
+        ReportResults vitamResults = new ReportResults();
+        JsonNode extendedInfo = JsonHandler.createObjectNode();
+        ReportSummary reportSummary = new ReportSummary(date, date, reportType, vitamResults, extendedInfo);
+
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report report = new Report(operationSummary, reportSummary, context);
+
         // When
-        RequestResponse<JsonNode> requestResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
-        // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
-
-        checkGeneratedReportEqualsExpectedJsonl("test_1.json",
-            "report/eliminationUnitWithDuplicateUnit_expectedReport.jsonl");
-
-        // Given
-        stream = getClass().getResourceAsStream("/report/eliminationObjectGroupWithDuplicateObjectGroup.json");
-        reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
-        reportExportRequest = new ReportExportRequest("test_2.json");
-        batchReportClient.appendReportEntries(reportBody);
-        // When
-        requestResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), reportExportRequest);
+        RequestResponse<JsonNode> storeResponse = batchReportClient.storeReport(report);
 
         // Then
-        assertThat(requestResponse.getStatus()).isEqualTo(200);
-
-        checkGeneratedReportEqualsExpectedJsonl("test_2.json",
-            "report/eliminationObjectGroupWithDuplicateObjectGroup_expectedReport.jsonl");
-
-        reportExportRequest = new ReportExportRequest("accession_register.json");
-
-        batchReportClient
-            .generateEliminationActionAccessionRegisterReport(reportBody.getProcessId(), reportExportRequest);
-
-        checkGeneratedReportEqualsExpectedJsonl("accession_register.json",
-            "report/accessionRegister_expectedReport.jsonl");
-
-
+        // TODO ??
+        assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
 
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_clean_unit_report() throws Exception {
-        // Given
-        InputStream stream = getClass().getResourceAsStream("/report/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
-        batchReportClient.appendReportEntries(reportBody);
-        // When
-        RequestResponse<JsonNode> response =
-            batchReportClient.cleanupReport(reportBody.getProcessId(), ReportType.ELIMINATION_ACTION_UNIT);
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Response.Status.NO_CONTENT.getStatusCode());
-
-        RequestResponse<JsonNode> findResponse = batchReportClient
-            .generateEliminationActionUnitReport(reportBody.getProcessId(), new ReportExportRequest(REPORT_JSON));
-        assertThat(findResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-        Response responseEmptyExport = workspaceClient.getObject(reportBody.getProcessId(), REPORT_JSON);
-
-        InputStream inputStream = responseEmptyExport.readEntity(InputStream.class);
-
-        try (JsonLineIterator jsonLineIterator = new JsonLineIterator(inputStream)) {
-            assertThat(jsonLineIterator.hasNext()).isFalse();
-        }
-    }
 
     private void checkGeneratedReportEqualsExpectedJsonl(String workspaceReportFile, String expectedJsonlResources)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
-
 
         try (InputStream reportIS = new VitamAsyncInputStream(
             workspaceClient.getObject(PROCESS_ID, workspaceReportFile));
@@ -285,7 +275,7 @@ public class ReportManagementIT extends VitamRuleRunner {
             assertThat(reportEntriesById.keySet()).containsExactlyInAnyOrderElementsOf(expectedEntriesById.keySet());
 
             for (String id : expectedEntriesById.keySet()) {
-                JsonAssert.assertJsonEquals(expectedEntriesById.get(id), reportEntriesById.get(id));
+                JsonAssert.assertJsonEquals(expectedEntriesById.get(id), reportEntriesById.get(id), JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
             }
         }
     }

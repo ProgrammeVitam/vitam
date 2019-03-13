@@ -29,7 +29,7 @@ package fr.gouv.vitam.batch.report.rest.repository;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
@@ -62,7 +62,7 @@ public class PreservationReportRepositoryTest {
     private PreservationReportRepository repository;
 
     private MongoCollection<Document> preservationReportCollection;
-    private PreservationReportModel preservationReportModel;
+    private PreservationReportEntry preservationReportEntry;
     private String processId;
 
     @Before
@@ -71,10 +71,10 @@ public class PreservationReportRepositoryTest {
         repository = new PreservationReportRepository(mongoDbAccess, PRESERVATION_REPORT);
         preservationReportCollection = mongoRule.getMongoCollection(PRESERVATION_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
-        preservationReportModel = new PreservationReportModel("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
+        preservationReportEntry = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
             TENANT_ID, "2018-11-15T11:13:20.986",
             PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "");
+            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST");
     }
 
     @Test
@@ -84,13 +84,13 @@ public class PreservationReportRepositoryTest {
 
         // When
         Document report = preservationReportCollection.find(
-            and(eq("_id", "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"), eq(PreservationReportModel.TENANT, 0))).first();
+            and(eq(PreservationReportEntry.ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"), eq(PreservationReportEntry.TENANT, 0))).first();
 
         // Then
-        assertThat(report.get("_id")).isEqualTo(preservationReportModel.getId());
-        assertThat(report.get("objectGroupId")).isEqualTo(preservationReportModel.getObjectGroupId());
-        assertThat(PreservationStatus.valueOf(report.get("status").toString())).isEqualTo(preservationReportModel.getStatus());
-        assertThat(report.get("analyseResult")).isEqualTo(preservationReportModel.getAnalyseResult());
+        assertThat(report.get(PreservationReportEntry.ID)).isEqualTo(preservationReportEntry.getPreservationId());
+        assertThat(report.get(PreservationReportEntry.OBJECT_GROUP_ID)).isEqualTo(preservationReportEntry.getObjectGroupId());
+        assertThat(PreservationStatus.valueOf(report.get(PreservationReportEntry.STATUS).toString())).isEqualTo(preservationReportEntry.getStatus());
+        assertThat(report.get(PreservationReportEntry.ANALYSE_RESULT)).isEqualTo(preservationReportEntry.getAnalyseResult());
     }
 
     @Test
@@ -98,21 +98,21 @@ public class PreservationReportRepositoryTest {
         // Given
         populateDatabase();
         // When
-        MongoCursor<PreservationReportModel> iterator =
+        MongoCursor<Document> iterator =
             repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
 
         // Then
-        List<PreservationReportModel> documents = new ArrayList<>();
+        List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
-            PreservationReportModel reportModel = iterator.next();
+            Document reportModel = iterator.next();
             documents.add(reportModel);
         }
         assertThat(documents.size()).isEqualTo(1);
     }
 
     private void populateDatabase() {
-        List<PreservationReportModel> reports = new ArrayList<>();
-        reports.add(preservationReportModel);
+        List<PreservationReportEntry> reports = new ArrayList<>();
+        reports.add(preservationReportEntry);
         repository.bulkAppendReport(reports);
     }
 

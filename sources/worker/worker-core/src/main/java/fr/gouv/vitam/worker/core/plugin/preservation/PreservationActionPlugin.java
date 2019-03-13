@@ -27,7 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -240,11 +240,11 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     private void createReport(ResultPreservation resultPreservation, List<PreservationDistributionLine> entries, int tenant) throws VitamClientInternalException {
-        List<PreservationReportModel> reportModels = toReportModel(resultPreservation, entries, tenant, now());
+        List<PreservationReportEntry> reportModels = toReportModel(resultPreservation, entries, tenant, now());
         reportService.appendPreservationEntries(resultPreservation.getRequestId(), reportModels);
     }
 
-    private List<PreservationReportModel> toReportModel(ResultPreservation outputs, List<PreservationDistributionLine> entries, int tenant, LocalDateTime now) {
+    private List<PreservationReportEntry> toReportModel(ResultPreservation outputs, List<PreservationDistributionLine> entries, int tenant, LocalDateTime now) {
         return outputs.getOutputs().entrySet()
             .stream()
             .flatMap(entry -> entry.getValue()
@@ -253,10 +253,10 @@ public class PreservationActionPlugin extends ActionHandler {
             ).collect(Collectors.toList());
     }
 
-    private PreservationReportModel getPreservationReportModel(ResultPreservation outputs, int tenant, LocalDateTime now, OutputPreservation value, List<PreservationDistributionLine> entries) {
+    private PreservationReportEntry getPreservationReportModel(ResultPreservation outputs, int tenant, LocalDateTime now, OutputPreservation value, List<PreservationDistributionLine> entries) {
         PreservationDistributionLine model = IterableUtils.find(entries, j -> j.getObjectId().equals(value.getInputPreservation().getName()));
 
-        return new PreservationReportModel(
+        return new PreservationReportEntry(
             outputs.getRequestId(),
             outputs.getId(),
             tenant,
@@ -267,7 +267,8 @@ public class PreservationActionPlugin extends ActionHandler {
             value.getAction(),
             value.getAnalyseResult(),
             value.getInputPreservation().getName(),
-            value.getOutputName()
+            value.getOutputName(),
+            "Outcome - TO BE DEFINED" // FIXME: Put outcome here !
         );
     }
 }

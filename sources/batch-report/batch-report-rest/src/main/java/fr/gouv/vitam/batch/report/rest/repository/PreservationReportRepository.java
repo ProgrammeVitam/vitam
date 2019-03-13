@@ -35,8 +35,9 @@ import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
 import com.mongodb.client.result.DeleteResult;
-import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -61,15 +62,8 @@ import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Projections.include;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ACTION;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ANALYSE_RESULT;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.ID;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.OBJECT_GROUP_ID;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.PROCESS_ID;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.STATUS;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.TENANT;
-import static fr.gouv.vitam.batch.report.model.PreservationReportModel.UNIT_ID;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.KO;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.EXTRACT;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
@@ -90,7 +84,7 @@ public class PreservationReportRepository {
         this(mongoDbAccess, PRESERVATION_REPORT);
     }
 
-    public void bulkAppendReport(List<PreservationReportModel> reports) {
+    public void bulkAppendReport(List<PreservationReportEntry> reports) {
         List<WriteModel<Document>> preservationDocument = reports.stream()
             .distinct()
             .map(PreservationReportRepository::modelToWriteDocument)
@@ -99,10 +93,10 @@ public class PreservationReportRepository {
         collection.bulkWrite(preservationDocument);
     }
 
-    private static WriteModel<Document> modelToWriteDocument(PreservationReportModel model) {
+    private static WriteModel<Document> modelToWriteDocument(PreservationReportEntry model) {
         try {
             return new UpdateOneModel<>(
-                and(eq(PROCESS_ID, model.getProcessId()), eq(ID, model.getId())),
+                and(eq(PROCESS_ID, model.getProcessId()), eq(ID, model.getPreservationId())),
                 new Document("$set", Document.parse(JsonHandler.writeAsString(model))),
                 new UpdateOptions().upsert(true)
             );
@@ -111,33 +105,36 @@ public class PreservationReportRepository {
         }
     }
 
-    public MongoCursor<PreservationReportModel> findCollectionByProcessIdTenant(String processId, int tenantId) {
+    private static WriteModel<Document> modelToWriteDocument(Report report) {
+        try {
+            return new UpdateOneModel<>(
+                eq(PROCESS_ID, report.getOperationSummary().getEvId()),
+                new Document("$set", Document.parse(JsonHandler.writeAsString(report))),
+                new UpdateOptions().upsert(true)
+            );
+        } catch (InvalidParseOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
         return collection.aggregate(
             Arrays.asList(
                 match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
                 Aggregates.project(Projections.fields(
-                    new Document("_id", "$_id"),
-                    new Document("_tenant", "$_tenant"),
-                    new Document("processId", "$processId"),
-                    new Document("creationDateTime", "$creationDateTime"),
-                    new Document("unitId", "$unitId"),
-                    new Document("objectGroupId", "$objectGroupId"),
-                    new Document("status", "$status"),
-                    new Document("action", "$action"),
-                    new Document("analyseResult", "$analyseResult"),
-                    new Document("inputObjectId", "$inputObjectId"),
-                    new Document("outputObjectId", "$outputObjectId")
+                    new Document(ID, "$preservationId"),
+                    new Document(PROCESS_ID, "$processId"),
+                    new Document(CREATION_DATE_TIME, "$creationDateTime"),
+                    new Document(UNIT_ID, "$unitId"),
+                    new Document(OBJECT_GROUP_ID, "$objectGroupId"),
+                    new Document(STATUS, "$status"),
+                    new Document(ACTION, "$actions"),
+                    new Document(ANALYSE_RESULT, "$analyseResult"),
+                    new Document(INPUT_OBJECT_ID, "$inputObjectId"),
+                    new Document(OUTPUT_OBJECT_ID, "$outputObjectId")
                     )
                 ))
-        ).allowDiskUse(true).map(this::mapToModel).iterator();
-    }
-
-    private PreservationReportModel mapToModel(Document document) {
-        try {
-            return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(document), PreservationReportModel.class);
-        } catch (InvalidParseOperationException e) {
-            throw new RuntimeException(e);
-        }
+        ).allowDiskUse(true).iterator();
     }
 
     public PreservationStatsModel stats(String processId, int tenantId) {

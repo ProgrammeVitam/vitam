@@ -24,17 +24,16 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.elimination.report;
+package fr.gouv.vitam.batch.report.model.entry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
 
 import java.util.List;
 import java.util.Set;
 
-public class EliminationActionObjectGroupReportEntry {
+public class EliminationActionObjectGroupReportEntry extends ReportEntry {
 
-    @JsonProperty("id")
+    @JsonProperty("objectGroupId")
     private String objectGroupId;
     @JsonProperty("originatingAgency")
     private String originatingAgency;
@@ -47,7 +46,7 @@ public class EliminationActionObjectGroupReportEntry {
     @JsonProperty("objectVersions")
     private List<EliminationActionObjectGroupObjectVersion> objectVersions;
     @JsonProperty("status")
-    private EliminationActionObjectGroupStatus status;
+    private String status;
 
     public EliminationActionObjectGroupReportEntry() {
         // Empty constructor for deserialization
@@ -55,8 +54,9 @@ public class EliminationActionObjectGroupReportEntry {
 
     public EliminationActionObjectGroupReportEntry(String objectGroupId, String originatingAgency,
         String initialOperation, Set<String> deletedParentUnitIds,
-        Set<String> objectIds, EliminationActionObjectGroupStatus status,
-        List<EliminationActionObjectGroupObjectVersion> objectVersions) {
+        Set<String> objectIds, String status,
+        List<EliminationActionObjectGroupObjectVersion> objectVersions, String outcome) {
+        super(outcome, "objectGroup", objectGroupId);
         this.objectGroupId = objectGroupId;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;
@@ -106,11 +106,11 @@ public class EliminationActionObjectGroupReportEntry {
         this.objectIds = objectIds;
     }
 
-    public EliminationActionObjectGroupStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(EliminationActionObjectGroupStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
