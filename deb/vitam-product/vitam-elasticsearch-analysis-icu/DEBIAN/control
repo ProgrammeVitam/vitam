@@ -1,5 +1,5 @@
 Package: vitam-elasticsearch-analysis-icu
-Version: 6.6.0
+Version: 6.6.2
 Section: database
 Priority: optional
 Architecture: all
