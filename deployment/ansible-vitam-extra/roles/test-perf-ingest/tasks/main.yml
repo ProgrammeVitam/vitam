@@ -41,7 +41,7 @@
       Host: "{{ ip_service }}"
     validate_certs: no
   run_once: true
-  no_log: true
+  no_log: "{{ hide_passwords_during_deploy }}"
   register: connected
 
 # KWA comment : better with a template... and a loop !
