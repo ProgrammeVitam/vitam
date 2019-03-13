@@ -24,18 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.batch.report.model.entry;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonInclude(NON_NULL)
-public class PreservationReportModel {
+public class PreservationReportEntry extends ReportEntry {
 
-    public static final String ID = "_id";
+    public static final String ID = "preservationId";
     public static final String UNIT_ID = "unitId";
     public static final String OBJECT_GROUP_ID = "objectGroupId";
     public static final String PROCESS_ID = "processId";
@@ -44,12 +45,11 @@ public class PreservationReportModel {
     public static final String STATUS = "status";
     public static final String ACTION = "action";
     public static final String ANALYSE_RESULT = "analyseResult";
-    public static final String INPUT_NAME = "inputObjectId";
-    public static final String OUTPUT_NAME = "outputObjectId";
-
+    public static final String INPUT_OBJECT_ID = "inputObjectId";
+    public static final String OUTPUT_OBJECT_ID = "outputObjectId";
 
     @JsonProperty(ID)
-    private String id;
+    private String preservationId;
 
     @JsonProperty(PROCESS_ID)
     private String processId;
@@ -75,17 +75,19 @@ public class PreservationReportModel {
     @JsonProperty(ANALYSE_RESULT)
     private String analyseResult;
 
-    @JsonProperty(INPUT_NAME)
+    @JsonProperty(INPUT_OBJECT_ID)
     private String inputObjectId;
 
-    @JsonProperty(OUTPUT_NAME)
+    @JsonProperty(OUTPUT_OBJECT_ID)
     private String outputObjectId;
 
-    public PreservationReportModel() {
+    public PreservationReportEntry() {
+        // Empty constructor for deserialization
     }
 
-    public PreservationReportModel(String id, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputObjectId, String outputObjectId) {
-        this.id = id;
+    public PreservationReportEntry(String preservationId, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputObjectId, String outputObjectId, String outcome) {
+        super(outcome, "preservation", preservationId);
+        this.preservationId = preservationId;
         this.processId = processId;
         this.tenant = tenant;
         this.creationDateTime = creationDateTime;
@@ -98,12 +100,12 @@ public class PreservationReportModel {
         this.outputObjectId = outputObjectId;
     }
 
-    public String getId() {
-        return id;
+    public String getPreservationId() {
+        return preservationId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setPreservationId(String preservationId) {
+        this.preservationId = preservationId;
     }
 
     public String getProcessId() {

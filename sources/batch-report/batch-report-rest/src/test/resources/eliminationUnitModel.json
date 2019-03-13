@@ -1,11 +1,15 @@
 {
   "processId": "123456789",
+  "reportType": "ELIMINATION_ACTION_UNIT",
   "entries": [
     {
       "opi": "opi0",
       "objectGroupId": "id2",
       "originatingAgency": "sp1",
       "status": "DELETED",
+      "unitId": "unitId1",
+      "outcome": "Outcome - TEST",
+      "detailType": "Unit",
       "id": "unitId1"
     },
     {
@@ -13,6 +17,9 @@
       "objectGroupId": "id1",
       "originatingAgency": "sp1",
       "status": "PARTIAL_DESTROY",
+      "unitId": "unitId2",
+      "outcome": "Outcome - TEST",
+      "detailType": "Unit",
       "id": "unitId2"
 
     },
@@ -21,6 +28,9 @@
       "objectGroupId": "id1",
       "originatingAgency": "sp1",
       "status": "DELETED",
+      "unitId": "unitId3",
+      "outcome": "Outcome - TEST",
+      "detailType": "Unit",
       "id": "unitId3"
     },
     {
@@ -28,6 +38,9 @@
       "objectGroupId": "id3",
       "originatingAgency": "sp2",
       "status": "DELETED",
+      "unitId": "unitId4",
+      "outcome": "Outcome - TEST",
+      "detailType": "Unit",
       "id": "unitId4"
     }
   ]

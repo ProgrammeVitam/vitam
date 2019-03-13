@@ -24,51 +24,79 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.distribution;
+package fr.gouv.vitam.batch.report.model;
 
-import fr.gouv.vitam.common.json.JsonHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.time.LocalDateTime;
 
-public class JsonLineWriter implements AutoCloseable {
+public class ReportSummary {
 
-    private final Writer writer;
-    private boolean isEmpty = true;
+    @JsonProperty("evStartDateTime")
+    private String evStartDateTime;
 
-    public JsonLineWriter(OutputStream outputStream) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+    @JsonProperty("evEndDateTime")
+    private String evEndDateTime;
+
+    @JsonProperty("reportType")
+    private ReportType reportType;
+
+    @JsonProperty("vitamResults")
+    private ReportResults vitamResults;
+
+    @JsonProperty("extendedInfo")
+    private JsonNode extendedInfo;
+
+    public ReportSummary() {
+        // Empty constructor for deserialization
     }
 
-    public JsonLineWriter(OutputStream outputStream, boolean isEmpty) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-        this.isEmpty = isEmpty;
+    public ReportSummary(String startDate, String endDate, ReportType reportType, ReportResults vitamResults, JsonNode extendedInfo) {
+        this.evStartDateTime = startDate;
+        this.evEndDateTime = endDate;
+        this.reportType = reportType;
+        this.vitamResults = vitamResults;
+        this.extendedInfo = extendedInfo;
     }
 
-    public void addEntry(JsonLineModel line) throws IOException {
-
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-
-        writer.append(JsonHandler.unprettyPrint(line));
+    public String getEvStartDateTime() {
+        return evStartDateTime;
     }
 
-    public void addEntry(Object line) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-        writer.append(JsonHandler.unprettyPrint(line));
+    public void setEvStartDateTime(String evStartDateTime) {
+        this.evStartDateTime = evStartDateTime;
     }
 
-    @Override
-    public void close() throws IOException {
-        writer.flush();
-        writer.close();
+    public String getEvEndDateTime() {
+        return evEndDateTime;
+    }
+
+    public void setEvEndDateTime(String evEndDateTime) {
+        this.evEndDateTime = evEndDateTime;
+    }
+
+    public ReportType getReportType() {
+        return reportType;
+    }
+
+    public void setReportType(ReportType reportType) {
+        this.reportType = reportType;
+    }
+
+    public ReportResults getVitamResults() {
+        return vitamResults;
+    }
+
+    public void setVitamResults(ReportResults vitamResults) {
+        this.vitamResults = vitamResults;
+    }
+
+    public JsonNode getExtendedInfo() {
+        return extendedInfo;
+    }
+
+    public void setExtendedInfo(JsonNode extendedInfo) {
+        this.extendedInfo = extendedInfo;
     }
 }

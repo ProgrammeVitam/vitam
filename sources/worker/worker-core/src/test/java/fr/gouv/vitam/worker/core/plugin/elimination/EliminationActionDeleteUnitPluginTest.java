@@ -1,6 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -19,7 +20,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -118,13 +118,13 @@ public class EliminationActionDeleteUnitPluginTest {
 
         assertThat(reportEntries).hasSize(4);
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_1")).findFirst().get()
-            .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
+            .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_2")).findFirst().get()
-            .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED);
+            .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED.name());
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_4")).findFirst().get()
-            .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
+            .getStatus()).isEqualTo(EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
         assertThat(reportEntries.stream().filter(e -> e.getUnitId().equals("id_unit_5")).findFirst().get()
-            .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED);
+            .getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED.name());
 
         verify(eliminationActionDeleteService).deleteUnits(eq(new HashSet<>(Arrays.asList("id_unit_2", "id_unit_5"))));
     }

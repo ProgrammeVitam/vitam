@@ -24,51 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.distribution;
+package fr.gouv.vitam.batch.report.model.entry;
 
-import fr.gouv.vitam.common.json.JsonHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+public class EliminationActionObjectGroupObjectVersion {
 
-public class JsonLineWriter implements AutoCloseable {
+    @JsonProperty("opi")
+    private String opi;
 
-    private final Writer writer;
-    private boolean isEmpty = true;
+    @JsonProperty("size")
+    private Long size;
 
-    public JsonLineWriter(OutputStream outputStream) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+    public EliminationActionObjectGroupObjectVersion() {
+        // Empty constructor for deserialization
     }
 
-    public JsonLineWriter(OutputStream outputStream, boolean isEmpty) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-        this.isEmpty = isEmpty;
+    public EliminationActionObjectGroupObjectVersion(String opi, Long size) {
+        this.opi = opi;
+        this.size = size;
     }
 
-    public void addEntry(JsonLineModel line) throws IOException {
-
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-
-        writer.append(JsonHandler.unprettyPrint(line));
+    public String getOpi() {
+        return opi;
     }
 
-    public void addEntry(Object line) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-        writer.append(JsonHandler.unprettyPrint(line));
+    public void setOpi(String opi) {
+        this.opi = opi;
     }
 
-    @Override
-    public void close() throws IOException {
-        writer.flush();
-        writer.close();
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
     }
 }

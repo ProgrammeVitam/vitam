@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import fr.gouv.vitam.batch.report.model.PreservationReportModel;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -114,7 +114,7 @@ public class PreservationActionPluginTest {
     public TemporaryFolder tmpGriffinFolder = new TemporaryFolder();
 
     @Captor
-    private ArgumentCaptor<List<PreservationReportModel>> captor;
+    private ArgumentCaptor<List<PreservationReportEntry>> captor;
 
     private HandlerIO handler = new TestHandlerIO();
 
@@ -166,7 +166,7 @@ public class PreservationActionPluginTest {
         verify(reportService).appendPreservationEntries(eq("REQUEST_ID"), captor.capture());
 
         // Then
-        assertThat(captor.getValue()).extracting(PreservationReportModel::getAnalyseResult).contains("NOT_VALID");
+        assertThat(captor.getValue()).extracting(PreservationReportEntry::getAnalyseResult).contains("NOT_VALID");
     }
 
     @Test

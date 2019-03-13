@@ -1,6 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -19,7 +20,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionObjectGroupStatus;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.collections4.SetUtils;
@@ -175,7 +175,7 @@ public class EliminationActionObjectGroupPreparationHandlerTest {
         assertThat(entry.getObjectGroupId()).isEqualTo(id);
         assertThat(entry.getOriginatingAgency()).isEqualTo(sp);
         assertThat(entry.getInitialOperation()).isEqualTo(opi);
-        assertThat(entry.getStatus()).isEqualTo(status);
+        assertThat(entry.getStatus()).isEqualTo(status.name());
         assertThat(SetUtils.emptyIfNull(entry.getObjectIds()))
             .containsExactlyInAnyOrder(ListUtils.emptyIfNull(deletedObjectIds).toArray(new String[0]));
         assertThat(SetUtils.emptyIfNull(entry.getDeletedParentUnitIds()))

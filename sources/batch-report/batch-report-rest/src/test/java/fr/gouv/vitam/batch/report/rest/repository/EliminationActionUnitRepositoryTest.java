@@ -30,6 +30,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -95,7 +96,7 @@ public class EliminationActionUnitRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"originatingAgency\":\"sp1\",\"status\":\"DELETED\",\"id\":\"unitId1\"}");
+            "{\"outcome\":\"Outcome - TEST\",\"detailType\":\"Unit\",\"id\":\"unitId1\",\"unitId\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         repository.bulkAppendReport(eliminationActionUnitModels);
         assertThat(eliminationUnitCollection.count()).isEqualTo(4);
@@ -152,7 +153,7 @@ public class EliminationActionUnitRepositoryTest {
 
     private List<EliminationActionUnitModel> getDocuments(String filename) throws InvalidParseOperationException {
         InputStream stream = getClass().getResourceAsStream(filename);
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<EliminationActionUnitReportEntry> reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
         return reportBody.getEntries().stream()
             .map(md -> {
                 EliminationActionUnitModel eliminationActionUnitModel = new EliminationActionUnitModel();

@@ -27,13 +27,22 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
+import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportResults;
+import fr.gouv.vitam.batch.report.model.ReportSummary;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -44,7 +53,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.elimination.exception.EliminationException;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionObjectGroupReportExportEntry;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.io.BufferedOutputStream;
@@ -53,6 +61,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.time.LocalDateTime;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
@@ -66,8 +75,6 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         VitamLoggerFactory.getInstance(EliminationActionReportGenerationHandler.class);
 
     private static final String ELIMINATION_ACTION_REPORT_GENERATION = "ELIMINATION_ACTION_REPORT_GENERATION";
-
-    static final String REPORT_JSON = "report.json";
 
     private final EliminationActionReportService eliminationActionReportService;
     private final BackupService backupService;
@@ -97,14 +104,10 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         throws ProcessingException, ContentAddressableStorageServerException {
 
         try {
-
-            File report = generateEliminationReport(param, handler);
-
-            storeEliminationReport(handler, report);
+            generateEliminationReport(param);
 
             LOGGER.info("Elimination action finalization succeeded");
             return buildItemStatus(ELIMINATION_ACTION_REPORT_GENERATION, StatusCode.OK, null);
-
         } catch (EliminationException e) {
             LOGGER.error(
                 String.format("Elimination action finalization failed with status [%s]", e.getStatusCode()), e);
@@ -112,58 +115,31 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         }
     }
 
-    private File generateEliminationReport(WorkerParameters param, HandlerIO handler) throws EliminationException {
-        File report = handler.getNewLocalFile(REPORT_JSON);
+    private void generateEliminationReport(WorkerParameters param) throws EliminationException {
+        Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
+        String evId = param.getContainerName();
+        String evType = ""; // FIXME To be Fill in a post commit
+        String outcome = ""; // FIXME To be Fill in a post commit
+        String outMsg = ""; // FIXME To be Fill in a post commit
+        // VitamThreadUtils.getVitamSession().getContractId();
+        // VitamThreadUtils.getVitamSession().getContextId();
+        // rSI = {AccessContract: contractId, Context: contextId }
+        // FIXME: What should we put in rightsStatementIdentifier for Elimination ?
+        JsonNode rSI = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
+        JsonNode evDetData = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, evType, outcome, outMsg, rSI, evDetData);
 
-        try (OutputStream outputStream = new BufferedOutputStream(new FileOutputStream(report));
-            JsonGenerator jsonGenerator = JsonHandler.createJsonGenerator(outputStream)) {
+        String startDate = null; // FIXME To be Fill in a post commit
+        String endDate = LocalDateUtil.getString(LocalDateTime.now());
+        ReportType reportType = ReportType.ELIMINATION_ACTION;
+        ReportResults vitamResults = new ReportResults(); // FIXME To be Fill in a post commit
+        JsonNode extendedInfo = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
+        ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
 
-            jsonGenerator.writeStartObject();
+        JsonNode context = JsonHandler.createObjectNode();
 
-            jsonGenerator.writeFieldName("units");
-            jsonGenerator.writeStartArray();
-
-            try (CloseableIterator<EliminationActionUnitReportEntry>
-                unitIterator = eliminationActionReportService.exportUnits(param.getContainerName())) {
-
-                while (unitIterator.hasNext()) {
-                    EliminationActionUnitReportEntry unitEliminationExport = unitIterator.next();
-                    jsonGenerator.writeObject(unitEliminationExport);
-                }
-            }
-
-            jsonGenerator.writeEndArray();
-
-            jsonGenerator.writeFieldName("objectGroups");
-            jsonGenerator.writeStartArray();
-
-            try (CloseableIterator<EliminationActionObjectGroupReportExportEntry> objectGroupIterator =
-                eliminationActionReportService.exportObjectGroups(param.getContainerName())) {
-
-                while (objectGroupIterator.hasNext()) {
-                    EliminationActionObjectGroupReportExportEntry objectGroupEliminationExport =
-                        objectGroupIterator.next();
-                    jsonGenerator.writeObject(objectGroupEliminationExport);
-                }
-            }
-
-            jsonGenerator.writeEndArray();
-            jsonGenerator.writeEndObject();
-
-        } catch (IOException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not export elimination report", e);
-        }
-        return report;
-    }
-
-    private void storeEliminationReport(HandlerIO handler, File report) throws EliminationException {
-        try {
-            backupService.backup(new FileInputStream(report), DataCategory.REPORT,
-                handler.getContainerName() + ".json");
-
-        } catch (IOException | BackupServiceException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not store elimination report", e);
-        }
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+        eliminationActionReportService.storeReport(reportInfo);
     }
 
     @Override

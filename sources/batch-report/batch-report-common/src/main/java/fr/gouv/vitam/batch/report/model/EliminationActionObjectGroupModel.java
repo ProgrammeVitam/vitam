@@ -28,6 +28,8 @@ package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Objects;
 
@@ -52,7 +54,7 @@ public class EliminationActionObjectGroupModel {
     private String creationDateTime;
 
     @JsonProperty(METADATA)
-    private JsonNode metadata;
+    private EliminationActionObjectGroupReportEntry metadata;
 
     @JsonProperty(TENANT)
     private int tenant;
@@ -62,7 +64,7 @@ public class EliminationActionObjectGroupModel {
     }
 
     public EliminationActionObjectGroupModel(String id, String processId, String creationDateTime,
-        JsonNode metadata, int tenant) {
+        EliminationActionObjectGroupReportEntry metadata, int tenant) {
         this.id = id;
         this.processId = processId;
         this.creationDateTime = creationDateTime;
@@ -94,11 +96,11 @@ public class EliminationActionObjectGroupModel {
         this.creationDateTime = creationDateTime;
     }
 
-    public JsonNode getMetadata() {
+    public EliminationActionObjectGroupReportEntry getMetadata() {
         return metadata;
     }
 
-    public void setMetadata(JsonNode metadata) {
+    public void setMetadata(EliminationActionObjectGroupReportEntry metadata) {
         this.metadata = metadata;
     }
 
@@ -125,18 +127,16 @@ public class EliminationActionObjectGroupModel {
     }
 
     private static String getMetadataId(EliminationActionObjectGroupModel eliminationActionUnitModel) {
-
-        if (eliminationActionUnitModel.getMetadata() == null ||
-            !eliminationActionUnitModel.getMetadata().has("id") ||
-            !eliminationActionUnitModel.getMetadata().get("id").isTextual()) {
+        if (eliminationActionUnitModel.getMetadata() == null
+            || StringUtils.isEmpty(eliminationActionUnitModel.getMetadata().getDetailId())) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 
-        return eliminationActionUnitModel.getMetadata().get("id").asText();
+        return eliminationActionUnitModel.getMetadata().getDetailId();
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(metadata.get("id").asText(), processId, tenant);
+        return Objects.hash(metadata.getDetailId(), processId, tenant);
     }
 }

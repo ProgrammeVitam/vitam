@@ -26,11 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.elimination.report;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -50,7 +53,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class EliminationActionReportService {
 
@@ -88,59 +90,25 @@ public class EliminationActionReportService {
         appendEntries(processId, entries, ReportType.ELIMINATION_ACTION_OBJECTGROUP);
     }
 
-    private void appendEntries(String processId, List<?> entries, ReportType reportType)
+    private void appendEntries(String processId, List<? extends ReportEntry> entries, ReportType reportType)
         throws EliminationException {
-
-        List<JsonNode> metadataEntries = entries.stream()
-            .map(EliminationActionReportService::pojoToJson).collect(Collectors.toList());
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             ReportBody reportBody = new ReportBody();
             reportBody.setProcessId(processId);
             reportBody.setReportType(reportType);
-            reportBody.setEntries(metadataEntries);
+            reportBody.setEntries(entries);
             batchReportClient.appendReportEntries(reportBody);
         } catch (VitamClientInternalException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not append entries into report", e);
         }
     }
 
-    private static JsonNode pojoToJson(Object entry) {
-        try {
-            return JsonHandler.toJsonNode(entry);
-        } catch (InvalidParseOperationException e) {
-            throw new RuntimeException("Could not serialize entries", e);
-        }
-    }
-
-    public CloseableIterator<EliminationActionUnitReportEntry> exportUnits(String processId)
-        throws EliminationException {
-
+    public void storeReport(Report reportInfo) throws EliminationException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-            batchReportClient.generateEliminationActionUnitReport(processId,
-                new ReportExportRequest(UNIT_REPORT_JSONL));
-
+            batchReportClient.storeReport(reportInfo);
         } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not generate unit report to workspace", e);
-        }
-
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-            Response reportResponse = workspaceClient.getObject(processId, UNIT_REPORT_JSONL);
-            JsonLineIterator jsonLineIterator = new JsonLineIterator(new VitamAsyncInputStream(reportResponse));
-
-            return CloseableIteratorUtils.map(jsonLineIterator, jsonLineModel -> {
-                try {
-                    return JsonHandler
-                        .getFromJsonNode(jsonLineModel.getParams(), EliminationActionUnitReportEntry.class);
-                } catch (InvalidParseOperationException e) {
-                    throw new RuntimeException("Could not parse json line entry", e);
-                }
-            });
-
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load report from workspace", e);
+            throw new EliminationException(StatusCode.FATAL, "Could not append entries into report", e);
         }
     }
 
@@ -162,38 +130,6 @@ public class EliminationActionReportService {
             JsonLineIterator jsonLineIterator = new JsonLineIterator(new VitamAsyncInputStream(reportResponse));
 
             return CloseableIteratorUtils.map(jsonLineIterator, JsonLineModel::getId);
-
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not load report from workspace", e);
-        }
-    }
-
-    public CloseableIterator<EliminationActionObjectGroupReportExportEntry> exportObjectGroups(String processId)
-        throws EliminationException {
-
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-            batchReportClient.generateEliminationActionObjectGroupReport(processId,
-                new ReportExportRequest(OBJECT_GROUP_REPORT_JSONL));
-
-        } catch (VitamClientInternalException e) {
-            throw new EliminationException(StatusCode.FATAL, "Could not generate unit report to workspace", e);
-        }
-
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
-            Response reportResponse = workspaceClient.getObject(processId, OBJECT_GROUP_REPORT_JSONL);
-            JsonLineIterator jsonLineIterator = new JsonLineIterator(new VitamAsyncInputStream(reportResponse));
-
-            return CloseableIteratorUtils.map(jsonLineIterator, jsonLineModel -> {
-                try {
-                    return JsonHandler
-                        .getFromJsonNode(jsonLineModel.getParams(),
-                            EliminationActionObjectGroupReportExportEntry.class);
-                } catch (InvalidParseOperationException e) {
-                    throw new RuntimeException("Could not parse json line entry", e);
-                }
-            });
 
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
             throw new EliminationException(StatusCode.FATAL, "Could not load report from workspace", e);

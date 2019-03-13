@@ -24,40 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.elimination.report;
+package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class EliminationActionObjectGroupObjectVersion {
+public class ReportResults {
+    @JsonProperty("OK")
+    private Integer nbOk;
 
-    @JsonProperty("opi")
-    private String opi;
+    @JsonProperty("KO")
+    private Integer nbKo;
 
-    @JsonProperty("size")
-    private Long size;
+    @JsonProperty("WARNING")
+    private Integer nbWarning;
 
-    public EliminationActionObjectGroupObjectVersion() {
+    @JsonProperty("total")
+    private Integer total;
+
+    public ReportResults() {
         // Empty constructor for deserialization
     }
 
-    public EliminationActionObjectGroupObjectVersion(String opi, Long size) {
-        this.opi = opi;
-        this.size = size;
-    }
-
-    public String getOpi() {
-        return opi;
-    }
-
-    public void setOpi(String opi) {
-        this.opi = opi;
-    }
-
-    public Long getSize() {
-        return size;
-    }
-
-    public void setSize(Long size) {
-        this.size = size;
+    public ReportResults(Integer nbOk, Integer nbKo, Integer nbWarning, Integer total) {
+        this.nbOk = nbOk;
+        this.nbKo = nbKo;
+        this.nbWarning = nbWarning;
+        this.total = total;
     }
 }

@@ -30,6 +30,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.batch.report.model.EliminationActionObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -189,7 +192,7 @@ public class EliminationActionObjectGroupRepositoryTest {
     private List<EliminationActionObjectGroupModel> getDocuments(String filename)
         throws InvalidParseOperationException {
         InputStream stream = getClass().getResourceAsStream(filename);
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class);
+        ReportBody<EliminationActionObjectGroupReportEntry> reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
         return reportBody.getEntries().stream()
             .map(md -> {
                 EliminationActionObjectGroupModel
@@ -202,6 +205,10 @@ public class EliminationActionObjectGroupRepositoryTest {
                 eliminationActionObjectGroupModel.setMetadata(md);
                 return eliminationActionObjectGroupModel;
             }).collect(Collectors.toList());
+    }
+
+    private EliminationActionUnitReportEntry castEntry(ReportEntry entry) {
+        return (EliminationActionUnitReportEntry) entry;
     }
 
     @Test

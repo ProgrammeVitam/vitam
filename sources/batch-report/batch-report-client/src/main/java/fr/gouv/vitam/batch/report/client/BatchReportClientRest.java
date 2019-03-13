@@ -27,14 +27,18 @@
 package fr.gouv.vitam.batch.report.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
@@ -49,6 +53,7 @@ import javax.ws.rs.core.Response;
 public class BatchReportClientRest extends DefaultClient implements BatchReportClient {
 
     private static final String APPEND = "append";
+    private static final String STORE = "store";
     private static final String CLEANUP = "cleanup";
     private static final String EXPORT_ELIMINATION_ACTION_UNIT = "elimination_action_unit/unit_export/";
     private static final String EXPORT_PRESERVATION_REPORT = "/preservation/export/";
@@ -69,38 +74,6 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public RequestResponse<JsonNode> generateEliminationActionUnitReport(String processId,
-        ReportExportRequest reportExportRequest) throws VitamClientInternalException {
-
-        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
-            reportExportRequest);
-
-        return httpPost(EXPORT_ELIMINATION_ACTION_UNIT + processId, reportExportRequest);
-    }
-
-    @Override
-    public RequestResponse<JsonNode> generateEliminationActionObjectGroupReport(String processId,
-        ReportExportRequest reportExportRequest)
-        throws VitamClientInternalException {
-
-        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
-            reportExportRequest);
-
-        return httpPost(EXPORT_ELIMINATION_ACTION_OBJECTGROUP + processId, reportExportRequest);
-    }
-
-    @Override
-    public RequestResponse<JsonNode> generatePreservationReport(String processId,
-        ReportExportRequest reportExportRequest)
-        throws VitamClientInternalException {
-
-        ParametersChecker.checkParameter("processId and reportExportRequest should be filled", processId,
-            reportExportRequest);
-
-        return httpPost(EXPORT_PRESERVATION_REPORT + processId, reportExportRequest);
-    }
-
-    @Override
     public RequestResponse<JsonNode> generateEliminationActionDistinctObjectGroupInUnitReport(String processId,
         ReportExportRequest reportExportRequest) throws VitamClientInternalException {
 
@@ -115,7 +88,21 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
         throws VitamClientInternalException {
         ParametersChecker.checkParameter("Body should be filled", reportBody);
 
-        return httpPost(APPEND, reportBody);
+        JsonNode body;
+        try {
+            body = JsonHandler.toJsonNode(reportBody);
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientInternalException(e);
+        }
+
+        return httpPost(APPEND, body);
+    }
+
+    @Override
+    public RequestResponse<JsonNode> storeReport(Report reportEntry) throws VitamClientInternalException {
+        ParametersChecker.checkParameter("Body should be filled", reportEntry);
+
+        return httpPost(STORE, reportEntry);
     }
 
     @Override

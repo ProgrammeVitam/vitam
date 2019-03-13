@@ -28,9 +28,13 @@ package fr.gouv.vitam.batch.report.rest.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.exception.BatchReportException;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -42,6 +46,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import javax.ws.rs.BadRequestException;
@@ -76,77 +81,64 @@ public class BatchReportResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response appendReport(ReportBody reportBody,
+    public Response appendReport(JsonNode body,
         @HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId) {
 
-        switch (reportBody.getReportType()) {
-            case ELIMINATION_ACTION_UNIT:
-                batchReportServiceImpl
-                    .appendEliminationActionUnitReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
-                break;
-            case ELIMINATION_ACTION_OBJECTGROUP:
-                batchReportServiceImpl.appendEliminationActionObjectGroupReport(reportBody.getProcessId(), reportBody.getEntries(),
-                        tenantId);
-                break;
-            case PRESERVATION:
-                try {
-                    batchReportServiceImpl.appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), tenantId);
-                } catch (BatchReportException e) {
-                    LOGGER.error(e);
-                    Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
-                }
-                break;
-            default:
-                throw new IllegalStateException("Unsupported report type " + reportBody.getReportType());
+        try {
+            String type = body.get("reportType").asText();
+            ReportType reportType = ReportType.valueOf(type);
+            switch (reportType) {
+                case ELIMINATION_ACTION_UNIT:
+                    ReportBody<EliminationActionUnitReportEntry> eliminationUnitReportBody =
+                        JsonHandler.getFromJsonNode(body, ReportBody.class, EliminationActionUnitReportEntry.class);
+                    batchReportServiceImpl
+                        .appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(),
+                            eliminationUnitReportBody.getEntries(), tenantId);
+                    break;
+                case ELIMINATION_ACTION_OBJECTGROUP:
+                    ReportBody<EliminationActionObjectGroupReportEntry> eliminationObjectGroupReportBody =
+                        JsonHandler.getFromJsonNode(body, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
+                    batchReportServiceImpl
+                        .appendEliminationActionObjectGroupReport(eliminationObjectGroupReportBody.getProcessId(),
+                            eliminationObjectGroupReportBody.getEntries(), tenantId);
+                    break;
+                case PRESERVATION:
+                        ReportBody<PreservationReportEntry> preservationReportBody =
+                            JsonHandler.getFromJsonNode(body, ReportBody.class, PreservationReportEntry.class);
+                        batchReportServiceImpl
+                            .appendPreservationReport(preservationReportBody.getProcessId(), preservationReportBody.getEntries(), tenantId);
+                    break;
+                default:
+                    throw new IllegalStateException("Unsupported report type " + reportType);
+            }
+        } catch (InvalidParseOperationException e) {
+            Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (BatchReportException e) {
+            Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
         }
         return Response.status(Response.Status.CREATED).build();
     }
 
-
-    @Path("/elimination_action_unit/unit_export/{processId}")
+    @Path("/store")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportUnitReport(
-        @PathParam("processId") String processId, JsonNode body)
-        throws ContentAddressableStorageServerException, IOException {
+    public Response storeReport(Report reportInfo) {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
-        try {
-            ParametersChecker.checkParameter("processId should be filed", processId);
-
-            ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
-
-            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-
-            batchReportServiceImpl
-                .exportEliminationActionUnitReport(processId, reportExportRequest.getFilename(), tenantId);
-            return Response.status(Response.Status.OK).build();
-
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            throw new BadRequestException(e);
+        ParametersChecker.checkParameter("processId should be filed", reportInfo.getOperationSummary().getEvId());
+        ParametersChecker.checkParameter("tenantId should be filed", reportInfo.getOperationSummary().getTenant());
+        if (tenantId != reportInfo.getOperationSummary().getTenant()) {
+            throw new IllegalArgumentException("Tenant id in request should match header. Header: " + tenantId + ", request: " + reportInfo.getOperationSummary().getTenant() + ".");
         }
-    }
-
-    @Path("/elimination_action_objectgroup/objectgroup_export/{processId}")
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportObjectGroup(@PathParam("processId") String processId, JsonNode body)
-        throws ContentAddressableStorageServerException, IOException {
 
         try {
-
-            ParametersChecker.checkParameter("processId should be filed", processId);
-
-            ReportExportRequest reportExportRequest = parseEliminationReportRequest(body);
-            int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-
-            batchReportServiceImpl
-                .exportEliminationActionObjectGroupReport(processId, reportExportRequest.getFilename(), tenantId);
+            batchReportServiceImpl.storeReport(reportInfo);
             return Response.status(Response.Status.OK).build();
-
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            throw new BadRequestException(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+        } catch (BackupServiceException | IOException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 
@@ -253,8 +245,7 @@ public class BatchReportResource extends ApplicationStatusResource {
                         .setDescription("Report type not find");
                     return Response.status(status).entity(vitamError).build();
             }
-            Response.Status status = Response.Status.NO_CONTENT;
-            return Response.status(status).build();
+            return Response.status(Response.Status.NO_CONTENT).build();
 
         } catch (IllegalArgumentException e) {
             throw new BadRequestException(e);

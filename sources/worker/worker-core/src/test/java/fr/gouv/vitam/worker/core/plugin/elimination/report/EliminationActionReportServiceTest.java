@@ -3,6 +3,10 @@ package fr.gouv.vitam.worker.core.plugin.elimination.report;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupObjectVersion;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -84,9 +88,9 @@ public class EliminationActionReportServiceTest {
 
         // Given
         List<EliminationActionUnitReportEntry> entries = Arrays.asList(
-            new EliminationActionUnitReportEntry("unit1", "sp1", "opi1", "got1", EliminationActionUnitStatus.DELETED),
+            new EliminationActionUnitReportEntry("unit1", "sp1", "opi1", "got1", EliminationActionUnitStatus.DELETED.name(), "Outcome - TEST"),
             new EliminationActionUnitReportEntry("unit2", "sp2", "opi2", "got2",
-                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP)
+                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name(), "Outcome - TEST")
         );
 
         // When
@@ -100,29 +104,29 @@ public class EliminationActionReportServiceTest {
         assertThat(reportBody.getReportType()).isEqualTo(ReportType.ELIMINATION_ACTION_UNIT);
         assertThat(reportBody.getProcessId()).isEqualTo(PROC_ID);
         assertThat(reportBody.getEntries()).hasSize(2);
-        assertThat(reportBody.getEntries().get(0).get("id").asText()).isEqualTo("unit1");
-        assertThat(reportBody.getEntries().get(0).get("opi").asText()).isEqualTo("opi1");
-        assertThat(reportBody.getEntries().get(0).get("originatingAgency").asText()).isEqualTo("sp1");
-        assertThat(reportBody.getEntries().get(0).get("objectGroupId").asText()).isEqualTo("got1");
-        assertThat(reportBody.getEntries().get(0).get("status").asText())
-            .isEqualTo(EliminationActionUnitStatus.DELETED.name());
+        ReportEntry entry = (ReportEntry) reportBody.getEntries().get(0);
+        assertThat(entry).isOfAnyClassIn(EliminationActionUnitReportEntry.class);
+        EliminationActionUnitReportEntry unitEntry = (EliminationActionUnitReportEntry)entry;
+        assertThat(unitEntry.getUnitId()).isEqualTo("unit1");
+        assertThat(unitEntry.getInitialOperation()).isEqualTo("opi1");
+        assertThat(unitEntry.getOriginatingAgency()).isEqualTo("sp1");
+        assertThat(unitEntry.getObjectGroupId()).isEqualTo("got1");
+        assertThat(unitEntry.getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED.name());
     }
 
     @Test
     @RunWithCustomExecutor
     public void appendEntries() throws Exception {
-
-
         // Given
         List<EliminationActionObjectGroupReportEntry> entries = Arrays.asList(
             new EliminationActionObjectGroupReportEntry("got1", "sp1", "opi1",
-                null, new HashSet<>(Arrays.asList("o1", "o2")), EliminationActionObjectGroupStatus.DELETED,
+                null, new HashSet<>(Arrays.asList("o1", "o2")), EliminationActionObjectGroupStatus.DELETED.name(),
                 Arrays.asList(
                     new EliminationActionObjectGroupObjectVersion("opi_o_1", 10L),
-                    new EliminationActionObjectGroupObjectVersion("opi_o_2", 100L))),
+                    new EliminationActionObjectGroupObjectVersion("opi_o_2", 100L)), "Outcome - TEST"),
             new EliminationActionObjectGroupReportEntry("got2", "sp2", "opi2",
-                new HashSet<>(Arrays.asList("unit3")), null, EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT,
-                null)
+                new HashSet<>(Arrays.asList("unit3")), null, EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT.name(),
+                null, "Outcome - TEST")
         );
 
         // When
@@ -136,58 +140,27 @@ public class EliminationActionReportServiceTest {
         assertThat(reportBody.getReportType()).isEqualTo(ReportType.ELIMINATION_ACTION_OBJECTGROUP);
         assertThat(reportBody.getProcessId()).isEqualTo(PROC_ID);
         assertThat(reportBody.getEntries()).hasSize(2);
-        assertThat(reportBody.getEntries().get(0).get("id").asText()).isEqualTo("got1");
-        assertThat(reportBody.getEntries().get(0).get("opi").asText()).isEqualTo("opi1");
-        assertThat(reportBody.getEntries().get(0).get("originatingAgency").asText()).isEqualTo("sp1");
-        assertThat(reportBody.getEntries().get(0).get("objectIds")).hasSize(2);
-        assertThat(reportBody.getEntries().get(0).get("objectIds").get(0).asText()).isEqualTo("o1");
-        assertThat(reportBody.getEntries().get(0).get("objectIds").get(1).asText()).isEqualTo("o2");
-        assertThat(reportBody.getEntries().get(0).get("deletedParentUnitIds")).isNull();
-        assertThat(reportBody.getEntries().get(0).get("status").asText())
-            .isEqualTo(EliminationActionObjectGroupStatus.DELETED.name());
 
+        ReportEntry entry = (ReportEntry) reportBody.getEntries().get(0);
+        assertThat(entry).isOfAnyClassIn(EliminationActionObjectGroupReportEntry.class);
+        EliminationActionObjectGroupReportEntry objectGroup = (EliminationActionObjectGroupReportEntry) entry;
+        ReportEntry entry2 = (ReportEntry) reportBody.getEntries().get(1);
+        assertThat(entry2).isOfAnyClassIn(EliminationActionObjectGroupReportEntry.class);
+        EliminationActionObjectGroupReportEntry objectGroup2 = (EliminationActionObjectGroupReportEntry) entry2;
 
-        assertThat(reportBody.getEntries().get(1).get("id").asText()).isEqualTo("got2");
-        assertThat(reportBody.getEntries().get(1).get("opi").asText()).isEqualTo("opi2");
-        assertThat(reportBody.getEntries().get(1).get("originatingAgency").asText()).isEqualTo("sp2");
-        assertThat(reportBody.getEntries().get(1).get("objectIds")).isNull();
-        assertThat(reportBody.getEntries().get(1).get("deletedParentUnitIds")).hasSize(1);
-        assertThat(reportBody.getEntries().get(1).get("deletedParentUnitIds").get(0).asText()).isEqualTo("unit3");
-        assertThat(reportBody.getEntries().get(1).get("status").asText())
-            .isEqualTo(EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT.name());
-    }
+        assertThat(objectGroup.getObjectGroupId()).isEqualTo("got1");
+        assertThat(objectGroup.getInitialOperation()).isEqualTo("opi1");
+        assertThat(objectGroup.getOriginatingAgency()).isEqualTo("sp1");
+        assertThat(objectGroup.getObjectIds()).containsExactly("o1", "o2");
+        assertThat(objectGroup.getDeletedParentUnitIds()).isNull();
+        assertThat(objectGroup.getStatus()).isEqualTo(EliminationActionObjectGroupStatus.DELETED.name());
 
-    @Test
-    @RunWithCustomExecutor
-    public void exportUnits() throws Exception {
-
-        // Given
-        InputStream is =
-            PropertiesUtils
-                .getResourceAsStream("EliminationAction/EliminationActionUnitReportService/unitReport.jsonl");
-        Response response = mock(Response.class);
-        doReturn(is).when(response).readEntity(InputStream.class);
-        doReturn(response).when(workspaceClient).getObject(PROC_ID, UNIT_REPORT_JSONL);
-
-        // When
-        CloseableIterator<EliminationActionUnitReportEntry> entries =
-            instance.exportUnits(PROC_ID);
-
-        // Then
-        ArgumentCaptor<ReportExportRequest> reportExportRequestArgumentCaptor =
-            ArgumentCaptor.forClass(ReportExportRequest.class);
-        verify(batchReportClient)
-            .generateEliminationActionUnitReport(eq(PROC_ID), reportExportRequestArgumentCaptor.capture());
-        assertThat(reportExportRequestArgumentCaptor.getValue().getFilename()).isEqualTo(
-            UNIT_REPORT_JSONL);
-
-        List<EliminationActionUnitReportEntry> entryList = IteratorUtils.toList(entries);
-        assertThat(entryList).hasSize(2);
-        assertThat(entryList.get(0).getUnitId()).isEqualTo("unit1");
-        assertThat(entryList.get(0).getInitialOperation()).isEqualTo("opi1");
-        assertThat(entryList.get(0).getOriginatingAgency()).isEqualTo("sp1");
-        assertThat(entryList.get(0).getObjectGroupId()).isEqualTo("got1");
-        assertThat(entryList.get(0).getStatus()).isEqualTo(EliminationActionUnitStatus.DELETED);
+        assertThat(objectGroup2.getObjectGroupId()).isEqualTo("got2");
+        assertThat(objectGroup2.getInitialOperation()).isEqualTo("opi2");
+        assertThat(objectGroup2.getOriginatingAgency()).isEqualTo("sp2");
+        assertThat(objectGroup2.getObjectIds()).isNull();
+        assertThat(objectGroup2.getDeletedParentUnitIds()).containsExactly("unit3");
+        assertThat(objectGroup2.getStatus()).isEqualTo(EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT.name());
     }
 
     @Test
@@ -215,45 +188,6 @@ public class EliminationActionReportServiceTest {
             .isEqualTo(DISTINCT_REPORT_JSONL);
 
         assertThat(IteratorUtils.toList(entries)).containsExactly("got1", "got2");
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void exportObjectGroups() throws Exception {
-
-        // Given
-        InputStream is = PropertiesUtils.getResourceAsStream(
-            "EliminationAction/EliminationActionObjectGroupReportService/objectGroupReport.jsonl");
-        Response response = mock(Response.class);
-        doReturn(is).when(response).readEntity(InputStream.class);
-        doReturn(response).when(workspaceClient).getObject(PROC_ID, OBJECT_GROUP_REPORT_JSONL);
-
-        // When
-        CloseableIterator<EliminationActionObjectGroupReportExportEntry> entries =
-            instance.exportObjectGroups(PROC_ID);
-
-        // Then
-        ArgumentCaptor<ReportExportRequest> reportExportRequestArgumentCaptor =
-            ArgumentCaptor.forClass(ReportExportRequest.class);
-        verify(batchReportClient)
-            .generateEliminationActionObjectGroupReport(eq(PROC_ID), reportExportRequestArgumentCaptor.capture());
-        assertThat(reportExportRequestArgumentCaptor.getValue().getFilename())
-            .isEqualTo(OBJECT_GROUP_REPORT_JSONL);
-
-        List<EliminationActionObjectGroupReportExportEntry> entryList = IteratorUtils.toList(entries);
-        assertThat(entryList).hasSize(2);
-        assertThat(entryList.get(0).getObjectGroupId()).isEqualTo("got1");
-        assertThat(entryList.get(0).getInitialOperation()).isEqualTo("opi1");
-        assertThat(entryList.get(0).getOriginatingAgency()).isEqualTo("sp1");
-        assertThat(entryList.get(0).getObjectIds()).containsExactlyInAnyOrder("o1", "o2");
-        assertThat(entryList.get(0).getDeletedParentUnitIds()).isNull();
-        assertThat(entryList.get(0).getStatus()).isEqualTo(EliminationActionObjectGroupStatus.DELETED);
-
-
-        assertThat(entryList.get(1).getObjectGroupId()).isEqualTo("got2");
-        assertThat(entryList.get(1).getObjectIds()).isNull();
-        assertThat(entryList.get(1).getDeletedParentUnitIds()).containsExactlyInAnyOrder("unit3");
-        assertThat(entryList.get(1).getStatus()).isEqualTo(EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT);
     }
 
     @Test

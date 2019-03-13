@@ -5,6 +5,7 @@
     {
       "opi": "opi0",
       "id": "id2",
+      "objectGroupId": "id2",
       "originatingAgency": "sp1",
       "status": "DELETED",
       "objectIds": [
@@ -15,6 +16,7 @@
     {
       "opi": "opi1",
       "id": "id3",
+      "objectGroupId": "id3",
       "originatingAgency": "sp1",
       "status": "PARTIAL_DESTROY",
       "deletedParentUnitIds": [
@@ -24,6 +26,7 @@
     },
     {
       "opi": "opi2",
+      "objectGroupId": "id1",
       "id": "id1",
       "originatingAgency": "sp1",
       "status": "DELETED",
@@ -35,6 +38,7 @@
     {
       "opi": "opi3",
       "id": "id4",
+      "objectGroupId": "id4",
       "originatingAgency": "sp2",
       "status": "DELETED",
       "objectIds": [

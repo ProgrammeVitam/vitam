@@ -45,11 +45,11 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 /**
- * EliminationCommonRepository
+ * ReportCommonRepository
  */
-public abstract class EliminationCommonRepository {
+public abstract class ReportCommonRepository {
 
-    VitamLogger LOGGER = VitamLoggerFactory.getInstance(EliminationCommonRepository.class);
+    VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReportCommonRepository.class);
 
     /**
      * Insert List of document in the given collection

@@ -24,51 +24,78 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.distribution;
+package fr.gouv.vitam.batch.report.model.entry;
 
-import fr.gouv.vitam.common.json.JsonHandler;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+public class EliminationActionUnitReportEntry extends ReportEntry {
 
-public class JsonLineWriter implements AutoCloseable {
+    @JsonProperty("unitId")
+    private String unitId;
 
-    private final Writer writer;
-    private boolean isEmpty = true;
+    @JsonProperty("originatingAgency")
+    private String originatingAgency;
 
-    public JsonLineWriter(OutputStream outputStream) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
+    @JsonProperty("opi")
+    private String initialOperation;
+
+    @JsonProperty("objectGroupId")
+    private String objectGroupId;
+
+    @JsonProperty("status")
+    private String status;
+
+    public EliminationActionUnitReportEntry() {
+        // Empty constructor for deserialization
     }
 
-    public JsonLineWriter(OutputStream outputStream, boolean isEmpty) {
-        this.writer = new BufferedWriter(new OutputStreamWriter(outputStream));
-        this.isEmpty = isEmpty;
+    public EliminationActionUnitReportEntry(String unitId, String originatingAgency, String initialOperation,
+        String objectGroupId, String status, String outcome) {
+        super(outcome, "unit", unitId);
+        this.unitId = unitId;
+        this.originatingAgency = originatingAgency;
+        this.initialOperation = initialOperation;
+        this.objectGroupId = objectGroupId;
+        this.status = status;
     }
 
-    public void addEntry(JsonLineModel line) throws IOException {
-
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-
-        writer.append(JsonHandler.unprettyPrint(line));
+    public String getUnitId() {
+        return unitId;
     }
 
-    public void addEntry(Object line) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
-        }
-        isEmpty = false;
-        writer.append(JsonHandler.unprettyPrint(line));
+    public void setUnitId(String unitId) {
+        this.unitId = unitId;
     }
 
-    @Override
-    public void close() throws IOException {
-        writer.flush();
-        writer.close();
+    public String getOriginatingAgency() {
+        return originatingAgency;
+    }
+
+    public void setOriginatingAgency(String originatingAgency) {
+        this.originatingAgency = originatingAgency;
+    }
+
+    public String getInitialOperation() {
+        return initialOperation;
+    }
+
+    public void setInitialOperation(String initialOperation) {
+        this.initialOperation = initialOperation;
+    }
+
+    public String getObjectGroupId() {
+        return objectGroupId;
+    }
+
+    public void setObjectGroupId(String objectGroupId) {
+        this.objectGroupId = objectGroupId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

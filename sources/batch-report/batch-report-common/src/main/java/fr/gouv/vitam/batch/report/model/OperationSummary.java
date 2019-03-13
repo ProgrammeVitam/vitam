@@ -24,78 +24,101 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.elimination.report;
+package fr.gouv.vitam.batch.report.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationActionUnitStatus;
+import com.fasterxml.jackson.databind.JsonNode;
 
-public class EliminationActionUnitReportEntry {
+public class OperationSummary {
 
-    @JsonProperty("id")
-    private String unitId;
+    @JsonProperty("tenant")
+    private Integer tenant;
 
-    @JsonProperty("originatingAgency")
-    private String originatingAgency;
+    @JsonProperty("evId")
+    private String evId;
 
-    @JsonProperty("opi")
-    private String initialOperation;
+    @JsonProperty("evType")
+    private String evType;
 
-    @JsonProperty("objectGroupId")
-    private String objectGroupId;
+    @JsonProperty("outcome")
+    private String outcome;
 
-    @JsonProperty("status")
-    private EliminationActionUnitStatus status;
+    @JsonProperty("outMsg")
+    private String outMsg;
 
-    public EliminationActionUnitReportEntry() {
+    @JsonProperty("rightsStatementIdentifier")
+    private JsonNode rightsStatementIdentifier;
+
+    @JsonProperty("evDetData")
+    private JsonNode evDetData;
+
+    public OperationSummary() {
         // Empty constructor for deserialization
     }
 
-    public EliminationActionUnitReportEntry(String unitId, String originatingAgency, String initialOperation,
-        String objectGroupId, EliminationActionUnitStatus status) {
-        this.unitId = unitId;
-        this.originatingAgency = originatingAgency;
-        this.initialOperation = initialOperation;
-        this.objectGroupId = objectGroupId;
-        this.status = status;
+    public OperationSummary(Integer tenant, String evId, String evType, String outcome, String outMsg, JsonNode rSI, JsonNode evDetData) {
+        this.tenant = tenant;
+        this.evId = evId;
+        this.evType = evType;
+        this.outcome = outcome;
+        this.outMsg = outMsg;
+        this.rightsStatementIdentifier = rSI;
+        this.evDetData = evDetData;
     }
 
-    public String getUnitId() {
-        return unitId;
+    public Integer getTenant() {
+        return tenant;
     }
 
-    public void setUnitId(String unitId) {
-        this.unitId = unitId;
+    public void setTenant(Integer tenant) {
+        this.tenant = tenant;
     }
 
-    public String getOriginatingAgency() {
-        return originatingAgency;
+    public String getEvId() {
+        return evId;
     }
 
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
+    public void setEvId(String evId) {
+        this.evId = evId;
     }
 
-    public String getInitialOperation() {
-        return initialOperation;
+    public String getEvType() {
+        return evType;
     }
 
-    public void setInitialOperation(String initialOperation) {
-        this.initialOperation = initialOperation;
+    public void setEvType(String evType) {
+        this.evType = evType;
     }
 
-    public String getObjectGroupId() {
-        return objectGroupId;
+    public String getOutcome() {
+        return outcome;
     }
 
-    public void setObjectGroupId(String objectGroupId) {
-        this.objectGroupId = objectGroupId;
+    public void setOutcome(String outcome) {
+        this.outcome = outcome;
     }
 
-    public EliminationActionUnitStatus getStatus() {
-        return status;
+    public String getOutMsg() {
+        return outMsg;
     }
 
-    public void setStatus(EliminationActionUnitStatus status) {
-        this.status = status;
+    public void setOutMsg(String outMsg) {
+        this.outMsg = outMsg;
+    }
+
+    public JsonNode getRightsStatementIdentifier() {
+        return rightsStatementIdentifier;
+    }
+
+    public void setRightsStatementIdentifier(JsonNode rightsStatementIdentifier) {
+        this.rightsStatementIdentifier = rightsStatementIdentifier;
+    }
+
+    public JsonNode getEvDetData() {
+        return evDetData;
+    }
+
+    public void setEvDetData(JsonNode evDetData) {
+        this.evDetData = evDetData;
     }
 }
