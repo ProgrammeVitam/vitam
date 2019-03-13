@@ -28,7 +28,7 @@
       "stepName": "STP_AUDIT",
       "behavior": "BLOCKING",
       "distribution": {
-        "kind": "LIST_IN_FILE",
+        "kind": "LIST_IN_JSONL_FILE",
         "element": "AUDIT_OG",
         "type" : "ObjectGroup"
       },
