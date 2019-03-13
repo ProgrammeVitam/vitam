@@ -18,6 +18,34 @@
     - update_package_vitam
   notify:
     - restart service
+  when: force_vitam_version is not defined
+
+# Force a specific version to install (even downgrade)
+- block:
+
+    - name: Install {{ package_name }} package
+      apt:
+        name: "{{ package_name }}={{ force_vitam_version }}"
+        force: yes
+        state: present
+      tags:
+        - update_package_vitam
+      notify:
+        - restart service
+      when: ansible_os_family == "Debian"
+
+    - name: Install {{ package_name }} package
+      yum:
+        allow_downgrade : yes
+        name: "{{ package_name }}-{{ force_vitam_version }}"
+        state: present
+      tags:
+        - update_package_vitam
+      notify:
+        - restart service
+      when: ansible_os_family == "RedHat"
+
+  when: force_vitam_version is defined
 
 - name: ensure {{ package_name }} service is enabled
   service:
