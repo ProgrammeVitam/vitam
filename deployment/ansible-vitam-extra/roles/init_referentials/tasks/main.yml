@@ -26,7 +26,7 @@
       body_format: json
       Host: "{{ ip_service }}"
   run_once: true # only 1st account is used
-  no_log: true
+  no_log: "{{ hide_passwords_during_deploy }}"
   register: connected
 
 - name: upload PRONOM
