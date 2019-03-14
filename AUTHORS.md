@@ -1,6 +1,6 @@
 # Authors of Vitam
 
-## Release 9 (V2) active development team (02/2019)
+## Release 9 (V2) active development team (03/2019)
 
 ### French government team
 
@@ -31,6 +31,7 @@
 * Jean-Baptiste Petit
 * Romain Chauveau
 * Nabil El Hajjioui
+* Gaëlle Fournier
 
 
 ### Thales integration team
@@ -76,7 +77,6 @@
 * Charles Pouplin
 * Zhang Chen
 * Ba Tuan Ngo
-* Gaëlle Fournier
 * Germain Ledroit
 * Cédric Legrand
 * Hassen Bamri
@@ -119,5 +119,3 @@
 
 * Julie Garnier
 * Gernada Kuci
-
-
