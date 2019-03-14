@@ -106,7 +106,8 @@ hosts-security-internal
 
 
 [hosts-workspace]
-# TODO: Put here servers where this service will be deployed : workspace
+# TODO: Put the server where this service will be deployed : workspace
+# WARNING: put only one server for this service, not more !
 
 
 [hosts-ingest-internal]
@@ -126,7 +127,8 @@ hosts-security-internal
 
 
 [hosts-processing]
-# TODO: Put here servers where this service will be deployed : processing
+# TODO: Put the server where this service will be deployed : processing
+# WARNING: put only one server for this service, not more !
 
 
 [hosts-storage-engine]
@@ -166,6 +168,7 @@ hosts-mongod-offer
 # WARNING : DO NOT COLLOCATE WITH [hosts-mongos-data]
 # TODO: put here servers where this service will be deployed : mongos cluster for storage offers
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
+# The recommended practice is to install the mongos instance on the same servers as the mongoc instances
 # Example (for a more complete one, see the one in the group hosts-mongos-data) :
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1
@@ -180,6 +183,7 @@ hosts-mongod-offer
 # Mandatory param : mongo_cluster_name : name of the cluster (should exist in the offer_conf configuration)
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
 # Optional param : mongo_arbiter=true : the node will be only an arbiter ; do not add this paramter on a mongo_rs_bootstrap node
+# Recommended practice in production: use 3 instances
 # Example :
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1                       mongo_rs_bootstrap=true
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1
@@ -198,6 +202,7 @@ hosts-mongod-offer
 # Mandatory param : id of the current shard, increment by 1 from 0 to n
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
 # Optional param : mongo_arbiter=true : the node will be only an arbiter ; do not add this paramter on a mongo_rs_bootstrap node
+# Recommended practice in production: use 3 instances per shard
 # Example :
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1    mongo_shard_id=0                   mongo_rs_bootstrap=true
 # vitam-mongo-swift-offer-02   mongo_cluster_name=offer-swift-1    mongo_shard_id=0
@@ -239,20 +244,22 @@ hosts-mongod-data
 # WARNING : DO NOT COLLOCATE WITH [hosts-mongos-offer]
 # TODO: Put here servers where this service will be deployed : mongos cluster
 # Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
+# The recommended practice is to install the mongos instance on the same servers as the mongoc instances
 # Example :
 # vitam-mdbs-01   mongo_cluster_name=mongo-data
-# vitam-mdbs-01   mongo_cluster_name=mongo-data
-# vitam-mdbs-01   mongo_cluster_name=mongo-data
+# vitam-mdbs-02   mongo_cluster_name=mongo-data
+# vitam-mdbs-03   mongo_cluster_name=mongo-data
 
 [hosts-mongoc-data]
 # WARNING : DO NOT COLLOCATE WITH [hosts-mongoc-offer]
 # TODO: Put here servers where this service will be deployed : mongoc cluster
 # Mandatory param : mongo_cluster_name=mongo-data  ("mongo-data" is mandatory)
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
+# Recommended practice in production: use 3 instances
 # Example :
 # vitam-mdbc-01   mongo_cluster_name=mongo-data                     mongo_rs_bootstrap=true
-# vitam-mdbc-01   mongo_cluster_name=mongo-data
-# vitam-mdbc-01   mongo_cluster_name=mongo-data
+# vitam-mdbc-02   mongo_cluster_name=mongo-data
+# vitam-mdbc-03   mongo_cluster_name=mongo-data
 
 [hosts-mongod-data]
 # WARNING : DO NOT COLLOCATE WITH [hosts-mongod-offer]
@@ -262,6 +269,7 @@ hosts-mongod-data
 # Mandatory param : mongo_cluster_name=mongo-data ("mongo-data" is mandatory)
 # Mandatory param : id of the current shard, increment by 1 from 0 to n
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
+# Recommended practice in production: use 3 instances per shard
 # Example:
 # vitam-mdbd-01  mongo_cluster_name=mongo-data   mongo_shard_id=0  mongo_rs_bootstrap=true
 # vitam-mdbd-02  mongo_cluster_name=mongo-data   mongo_shard_id=0
