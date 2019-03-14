@@ -74,7 +74,8 @@
   copy:
     src: "{{ item }}"
     dest: "/var/www/html-{{ vitam_site_name }}/"
-    owner: "root"
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
     mode: 0644
   with_items:
       - css
@@ -88,7 +89,8 @@
   template:
     src: "index.html.j2"
     dest: "/var/www/html-{{ vitam_site_name }}/index.html"
-    owner: "root"
+    owner: "{{ apache_user }}"
+    group: "{{ apache_group }}"
     mode: 0644
   tags:
     - update_package_vitam
@@ -135,7 +137,7 @@
     - update_package_vitam
   notify:
      - reload apache
-   
+
 - name: activate httpd configuration for debian
   file:
     src: /etc/{{ apache_service }}/sites-available/zz_{{ vitam_reverse_external_dns }}.conf
