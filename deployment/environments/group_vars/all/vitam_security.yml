@@ -1,7 +1,7 @@
 
 ---
 
-# Business vars
+hide_passwords_during_deploy: true
 
 ### Admin context name and tenants ###
 admin_context_name: "admin-context"

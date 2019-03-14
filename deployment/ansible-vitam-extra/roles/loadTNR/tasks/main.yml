@@ -24,7 +24,7 @@
   ignore_errors: true
   run_once: true
   register: login
-  #no_log: true
+  #no_log: "{{ hide_passwords_during_deploy }}"
 
 - name: Purge database collections before launching TNR
   uri:
