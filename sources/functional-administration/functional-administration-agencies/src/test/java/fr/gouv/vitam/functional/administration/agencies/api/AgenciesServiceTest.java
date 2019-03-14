@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -322,7 +323,7 @@ public class AgenciesServiceTest {
         Mockito.reset(functionalBackupService);
         LogbookOperationsClient logbookOperationsclient = mock(LogbookOperationsClient.class);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsclient);
-        when(logbookOperationsclient.selectOperation(anyObject()))
+        when(logbookOperationsclient.selectOperation(any()))
             .thenReturn(getJsonResult(StatusCode.OK.name(), TENANT_ID));
 
         instantiateAgencyService();
@@ -331,67 +332,69 @@ public class AgenciesServiceTest {
         agencyService.checkFile(new FileInputStream(file));
     }
 
+    static String _id = GUIDFactory.newGUID().toString();
     static String contract = "{ \"_tenant\": 1,\n" +
-        "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
-        "    \"Identifier\": \"AC-000018\",\n" +
-        "    \"Description\": \"aDescription of the contract\",\n" +
-        "    \"Status\": \"ACTIVE\",\n" +
-        "    \"CreationDate\": \"2016-12-10T00:00:00.000\",\n" +
-        "    \"LastUpdate\": \"2017-10-06T01:53:22.544\",\n" +
-        "    \"ActivationDate\": \"2016-12-10T00:00:00.000\",\n" +
-        "    \"DeactivationDate\": \"2016-12-10T00:00:00.000\",\n" +
-        "    \"DataObjectVersion\": [],\n" +
-        "    \"OriginatingAgencies\": [\n" +
-        "        \"FRAN_NP_005568\",\n" +
-        "        \"AG-000001\"\n" +
-        "    ],\n" +
-        "    \"WritingPermission\": true,\n" +
-        "    \"EveryOriginatingAgency\": true,\n" +
-        "    \"EveryDataObjectVersion\": false,\n" +
-        "    \"_v\": 0\n" +
-        "}";
+            "    \"_id\": \""+_id+"\", \n "+
+            "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
+            "    \"Identifier\": \"AC-000018\",\n" +
+            "    \"Description\": \"aDescription of the contract\",\n" +
+            "    \"Status\": \"ACTIVE\",\n" +
+            "    \"CreationDate\": \"2016-12-10T00:00:00.000\",\n" +
+            "    \"LastUpdate\": \"2017-10-06T01:53:22.544\",\n" +
+            "    \"ActivationDate\": \"2016-12-10T00:00:00.000\",\n" +
+            "    \"DeactivationDate\": \"2016-12-10T00:00:00.000\",\n" +
+            "    \"DataObjectVersion\": [],\n" +
+            "    \"OriginatingAgencies\": [\n" +
+            "        \"FRAN_NP_005568\",\n" +
+            "        \"AG-000001\"\n" +
+            "    ],\n" +
+            "    \"WritingPermission\": true,\n" +
+            "    \"EveryOriginatingAgency\": true,\n" +
+            "    \"EveryDataObjectVersion\": false,\n" +
+            "    \"_v\": 0\n" +
+            "}";
 
     private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
         return JsonHandler.getFromString(String.format("{\n" +
-            "     \"httpCode\": 200,\n" +
-            "     \"$hits\": {\n" +
-            "          \"total\": 1,\n" +
-            "          \"offset\": 0,\n" +
-            "          \"limit\": 1,\n" +
-            "          \"size\": 1\n" +
-            "     },\n" +
-            "     \"$results\": [\n" +
-            "          {\n" +
-            "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
-            "               \"events\": [\n" +
-            "                    {\n" +
-            "                         \"outcome\": \"%s\"\n" +
-            "                    }\n" +
-            "               ],\n" +
-            "               \"_v\": 0,\n" +
-            "               \"_tenant\": %d\n" +
-            "          }\n" +
-            "     ],\n" +
-            "     \"$context\": {\n" +
-            "          \"$query\": {\n" +
-            "               \"$eq\": {\n" +
-            "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
-            "               }\n" +
-            "          },\n" +
-            "          \"$filter\": {\n" +
-            "               \"$limit\": 1,\n" +
-            "               \"$orderby\": {\n" +
-            "                    \"evDateTime\": -1\n" +
-            "               }\n" +
-            "          },\n" +
-            "          \"$projection\": {\n" +
-            "               \"$fields\": {\n" +
-            "                    \"#id\": 1,\n" +
-            "                    \"events.outcome\": 1\n" +
-            "               }\n" +
-            "          }\n" +
-            "     }\n" +
-            "}", outcome, tenantId));
+                "     \"httpCode\": 200,\n" +
+                "     \"$hits\": {\n" +
+                "          \"total\": 1,\n" +
+                "          \"offset\": 0,\n" +
+                "          \"limit\": 1,\n" +
+                "          \"size\": 1\n" +
+                "     },\n" +
+                "     \"$results\": [\n" +
+                "          {\n" +
+                "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
+                "               \"events\": [\n" +
+                "                    {\n" +
+                "                         \"outcome\": \"%s\"\n" +
+                "                    }\n" +
+                "               ],\n" +
+                "               \"_v\": 0,\n" +
+                "               \"_tenant\": %d\n" +
+                "          }\n" +
+                "     ],\n" +
+                "     \"$context\": {\n" +
+                "          \"$query\": {\n" +
+                "               \"$eq\": {\n" +
+                "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
+                "               }\n" +
+                "          },\n" +
+                "          \"$filter\": {\n" +
+                "               \"$limit\": 1,\n" +
+                "               \"$orderby\": {\n" +
+                "                    \"evDateTime\": -1\n" +
+                "               }\n" +
+                "          },\n" +
+                "          \"$projection\": {\n" +
+                "               \"$fields\": {\n" +
+                "                    \"#id\": 1,\n" +
+                "                    \"events.outcome\": 1\n" +
+                "               }\n" +
+                "          }\n" +
+                "     }\n" +
+                "}", outcome, tenantId));
     }
 
 

@@ -52,6 +52,7 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -82,6 +83,9 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
+import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
+import fr.gouv.vitam.common.guid.GUID;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -109,6 +113,23 @@ import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.SearchHits;
 import org.elasticsearch.search.sort.SortBuilder;
+
+import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getConcernedDiffLines;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.getUnifiedDiff;
+import static fr.gouv.vitam.common.server.HeaderIdHelper.getTenantId;
 
 /**
  * This class execute all request single in Vitam
@@ -236,21 +257,15 @@ public class DbRequestSingle {
             if (vitamCollection.isMultiTenant()) {
                 obj.append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
             }
+
+            if (!obj.containsKey(VitamDocument.ID)) {
+                GUID uuid = GUIDFactory.newGUID();
+                obj.put(VitamDocument.ID, uuid.toString());
+            }
+
             //Validate the document against the collection's json schema
             //TODO extends json schema validation to other collections
-            if ("Ontology".equals(vitamCollection.getName())) {
-                try {
-                    SchemaValidationUtils validator = new SchemaValidationUtils();
-                    JsonNode jsonDocument = JsonHandler.toJsonNode(obj);
-                    SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getName());
-                    if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                        throw new SchemaValidationException(status.getValidationMessage());
-                    }
-                } catch (FileNotFoundException | ProcessingException e) {
-                    LOGGER.debug("Unable to initialize Json Validator : " + e.getMessage());
-                    throw new InvalidParseOperationException(e);
-                }
-            }
+            validateDocumentOverJsonSchema(JsonHandler.toJsonNode(obj));
 
             vitamDocumentList.add(obj);
         }
@@ -259,12 +274,28 @@ public class DbRequestSingle {
         try {
             collection.insertMany(vitamDocumentList);
         } catch (final MongoException e) {
-            LOGGER.warn(e);
             throw new DatabaseException(e);
         }
         insertToElasticsearch(vitamDocumentList);
         return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
     }
+
+    private void validateDocumentOverJsonSchema(JsonNode jsonDocument) throws InvalidParseOperationException, SchemaValidationException {
+        if (vitamCollection.getName().contains("VitamSequence") ||  vitamCollection.getName().contains("AccessionRegisterSymbolic")) {
+            return;
+        }
+        try {
+            SchemaValidationUtils validator = new SchemaValidationUtils();
+            SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getClasz().getSimpleName());
+            if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                throw new SchemaValidationException(status.getValidationMessage());
+            }
+        } catch (FileNotFoundException | ProcessingException e) {
+            throw new InvalidParseOperationException("Unable to initialize Json Validator : ", e);
+        }
+
+    }
+
 
     /**
      * @param arrayNode
@@ -305,8 +336,7 @@ public class DbRequestSingle {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
                 final BulkResponse bulkResponse = addEntryIndexes(mapIdJson);
                 if (bulkResponse.hasFailures()) {
-                    LOGGER.error("Insert Documents Exception");
-                    throw new DatabaseException("Insert Document Exception");
+                    throw new DatabaseException("Insert Document Exception" + bulkResponse.buildFailureMessage());
                 }
                 mapIdJson.clear();
             }
@@ -368,7 +398,7 @@ public class DbRequestSingle {
      * Private method to select Elasticsearch or MongoDb
      *
      * @param select
-     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
+     * @return MongoCursor<VitamDocument < ?>>
      * @throws DatabaseException
      * @throws BadRequestException
      */
@@ -378,7 +408,7 @@ public class DbRequestSingle {
             final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
             parser.parse(select);
             if (vitamCollection.isMultiTenant()) {
-                parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), HeaderIdHelper.getTenantId()));
+                parser.addCondition(QueryHelper.eq(VitamFieldsHelper.tenant(), getTenantId()));
             }
             if (vitamCollection.getEsClient() != null) {
                 return selectElasticsearchExecute(parser);
@@ -395,7 +425,7 @@ public class DbRequestSingle {
      * Private method for select using ElasticsearchDbRequestSingle
      *
      * @param parser
-     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
+     * @return MongoCursor<VitamDocument < ?>>
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      * @throws InvalidCreateOperationException
@@ -440,7 +470,7 @@ public class DbRequestSingle {
      * @param parser
      * @param list   list of Ids
      * @param list   list of scores for each Ids
-     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
+     * @return MongoCursor<VitamDocument < ?>>
      * @throws InvalidParseOperationException  when query is not correct
      * @throws InvalidCreateOperationException
      */
@@ -455,7 +485,7 @@ public class DbRequestSingle {
      * Private method for select using MongoDb
      *
      * @param parser
-     * @return MongoCursor<VitamDocument                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ?>>
+     * @return MongoCursor<VitamDocument < ?>>
      * @throws InvalidParseOperationException when query is not correctBson
      */
     @SuppressWarnings("unchecked")
@@ -606,17 +636,7 @@ public class DbRequestSingle {
                 ObjectNode updatedJsonDocument =
                     (ObjectNode) mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
 
-                try {
-                    SchemaValidationUtils validator = new SchemaValidationUtils();
-                    SchemaValidationStatus status =
-                        validator.validateJson(updatedJsonDocument, vitamCollection.getName());
-                    if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                        throw new SchemaValidationException(status.getValidationMessage());
-                    }
-                } catch (FileNotFoundException | ProcessingException e) {
-                    LOGGER.debug("Unable to initialize Json Validator : " + e.getMessage());
-                    throw new InvalidCreateOperationException(e);
-                }
+                validateDocumentOverJsonSchema(updatedJsonDocument);
 
                 updatedDocument = document.newInstance(updatedJsonDocument);
                 if (!document.equals(updatedDocument)) {
@@ -757,5 +777,44 @@ public class DbRequestSingle {
             return countDeleted + bulkResponse.getItems().length;
         }
         return countDeleted;
+    }
+
+    public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,
+        VitamCollection vitamCollection) throws DatabaseException {
+
+        Bson documentCondition = getDocumentSelectionQuery(identifierValue, identifierKey, vitamCollection);
+
+        VitamDocument<?> documentInDataBase =
+            (VitamDocument<?>) vitamCollection.getCollection().find(documentCondition)
+                .projection(Projections.include(VitamDocument.ID, VitamDocument.VERSION)).first();
+
+        ((ObjectNode) document).put(VitamDocument.ID, documentInDataBase.getId());
+        VitamDocument<?> updatedDocument = documentInDataBase.newInstance(document);
+
+        updatedDocument.put(VitamDocument.VERSION, documentInDataBase.getVersion() + 1);
+
+        Bson condition = and(
+            eq(VitamDocument.ID, documentInDataBase.getId()),
+            eq(VitamDocument.VERSION, documentInDataBase.getVersion()));
+
+        MongoCollection collection = vitamCollection.getCollection();
+
+        UpdateResult updateResult = collection.replaceOne(condition, updatedDocument);
+
+        if (updateResult.getModifiedCount() == 0) {
+            throw new VitamFatalRuntimeException(
+                "Document updated or deleted concurrently? id=" + documentInDataBase.getId());
+        }
+
+        insertToElasticsearch(Collections.singletonList(updatedDocument));
+    }
+
+    private Bson getDocumentSelectionQuery(String identifierValue, String identifierKey, VitamCollection vitamCollection) {
+
+        if (vitamCollection.isMultiTenant()) {
+            return and(eq(identifierKey, identifierValue), eq(VitamDocument.TENANT_ID, getTenantId()));
+        }
+
+        return eq(identifierKey, identifierValue);
     }
 }
