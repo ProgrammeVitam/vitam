@@ -118,4 +118,4 @@
 ## Thanks for support
 
 * Julie Garnier
-* Gernada Kuci
+* Genarda Kuci
