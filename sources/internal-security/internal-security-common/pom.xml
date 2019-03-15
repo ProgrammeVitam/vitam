@@ -7,7 +7,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>internal-security</artifactId>
-        <version>2.1.3</version>
+        <version>2.1.4-SNAPSHOT</version>
     </parent>
 
     <artifactId>internal-security-common</artifactId>
