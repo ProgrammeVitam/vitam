@@ -33,20 +33,24 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder{
     public static final String TAPE_CODE = "tapeCode";
     public static final String FILE_POSITION = "filePosition";
+    public static final String FILE_NAME = "fileName";
     @JsonProperty(TAPE_CODE)
     private String tapeCode;
     @JsonProperty(FILE_POSITION)
     private Integer filePosition;
+    @JsonProperty(FILE_NAME)
+    private String fileName;
 
     public ReadOrder() {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.ReadOrder);
     }
 
-    public ReadOrder(String tapeCode, Integer filePosition) {
+    public ReadOrder(String tapeCode, Integer filePosition, String fileName) {
         this();
         ParametersChecker.checkParameter("All params are required", tapeCode, filePosition);
         this.tapeCode = tapeCode;
         this.filePosition = filePosition;
+        this.fileName = fileName;
     }
 
     public String getTapeCode() {
@@ -72,5 +76,13 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder{
     @Override
     public boolean isWriteOrder() {
         return false;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 }

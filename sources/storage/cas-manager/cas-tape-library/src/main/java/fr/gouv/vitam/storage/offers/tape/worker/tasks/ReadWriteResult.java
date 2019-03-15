@@ -26,12 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 
 public class ReadWriteResult {
+    private StatusCode status;
     private TapeCatalog currentTape;
     private TapeResponse tapeResponse;
+
+    public StatusCode getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusCode status) {
+        this.status = status;
+    }
 
     public TapeCatalog getCurrentTape() {
         return currentTape;

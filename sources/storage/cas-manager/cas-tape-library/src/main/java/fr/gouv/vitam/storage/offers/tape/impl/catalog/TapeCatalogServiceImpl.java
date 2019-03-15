@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
@@ -47,12 +40,18 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import org.bson.conversions.Bson;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class TapeCatalogServiceImpl implements TapeCatalogService {
 
@@ -82,7 +81,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public boolean init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState) throws TapeCatalogException {
+    public void init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState) throws TapeCatalogException {
         QueryCriteria criteria =
             new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
         Map<String, TapeCatalog> existingTapes;
@@ -118,8 +117,6 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 createOrUpdateTape(tape, existingTapes.get(tape.getCode()));
             }
         }
-
-        return true;
     }
 
     private void createOrUpdateTape(TapeCatalog tape, TapeCatalog existingTape) throws TapeCatalogException {

@@ -657,7 +657,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         Integer slotIndex;
 
         if (null != workerCurrentTape.getPreviousLocation()) {
-            switch (workerCurrentTape.getPreviousLocation().getType()) {
+            switch (workerCurrentTape.getPreviousLocation().getLocationType()) {
                 case SLOT:
                     slotIndex = workerCurrentTape.getPreviousLocation().getIndex();
                     break;

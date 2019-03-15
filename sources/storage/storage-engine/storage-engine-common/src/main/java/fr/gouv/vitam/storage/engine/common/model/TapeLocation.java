@@ -37,18 +37,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonInclude(NON_NULL)
 public class TapeLocation {
     public static final String INDEX = "index";
-    public static final String TYPE = "type";
+    public static final String TYPE = "locationType";
 
     @JsonProperty(INDEX)
     private Integer index;
     @JsonProperty(TYPE)
-    private TapeLocationType type;
+    private TapeLocationType locationType;
 
 
     @JsonCreator
-    public TapeLocation(@JsonProperty(INDEX) Integer index, @JsonProperty(TYPE) TapeLocationType type) {
+    public TapeLocation(@JsonProperty(INDEX) Integer index, @JsonProperty(TYPE) TapeLocationType locationType) {
         this.index = index;
-        this.type = type;
+        this.locationType = locationType;
     }
 
     public boolean equals(TapeLocation tapeLocation) {
@@ -56,7 +56,7 @@ public class TapeLocation {
             return false;
         }
 
-        if (!this.type.getType().equals(tapeLocation.getType().getType())) {
+        if (!this.locationType.getType().equals(tapeLocation.getLocationType().getType())) {
             return false;
         }
 
@@ -71,11 +71,11 @@ public class TapeLocation {
         this.index = index;
     }
 
-    public TapeLocationType getType() {
-        return type;
+    public TapeLocationType getLocationType() {
+        return locationType;
     }
 
-    public void setType(TapeLocationType type) {
-        this.type = type;
+    public void setLocationType(TapeLocationType locationType) {
+        this.locationType = locationType;
     }
 }
