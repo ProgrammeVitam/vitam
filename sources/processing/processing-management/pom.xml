@@ -3,7 +3,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>processing</artifactId>
-		<version>1.4.13-SNAPSHOT</version>
+		<version>1.4.14-SNAPSHOT</version>
 	</parent>
 	<artifactId>processing-management</artifactId>
 	<name>Processing Management</name>
