@@ -1,0 +1,24 @@
+[
+  {
+    "Name":"aName1",
+    "Description":"aDummyDescription of the contract",
+    "Status":"ACTIVE",
+    "OriginatingAgencies":["FR_ORG_AGEN"],
+    "RootUnits":["GUID11", "GUID22", "GUID33"],
+    "ExcludedRootUnits":["GUID1", "GUID2", "GUID3"],
+    "LastUpdate":"28/02/2019",
+    "CreationDate":"28/02/2019",
+    "ActivationDate":"28/02/2019",
+    "DeactivationDate":"28/02/2019"
+  },
+  {
+    "Name":"aName2",
+    "Description":"aDummyDescription of the contract",
+    "Status":"ACTIVE",
+    "OriginatingAgencies":["FR_ORG_AGEN"],
+    "LastUpdate":"28/02/2019",
+    "CreationDate":"28/02/2019",
+    "ActivationDate":"28/02/2019",
+    "DeactivationDate":"28/02/2019"
+  }
+]

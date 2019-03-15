@@ -801,6 +801,24 @@ public class AccessContractImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenAccessContractsTestNotExistingBothRootUnitsAndExcludedRootUnits() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        final File fileContracts =
+            PropertiesUtils.getResourceFile("contracts_access_not_existing_rootunits_and_excludedrootunits.json");
+
+        when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        final List<AccessContractModel> accessContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
+            });
+        final RequestResponse response = accessContractService.createContracts(accessContractModelList);
+
+        assertThat(response.isOk()).isFalse();
+        assertEquals( ((VitamError) response).getErrors().get(0).getMessage(), "STP_IMPORT_ACCESS_CONTRACT.VALIDATION_ERROR.KO" );
+        assertThat(response.toString()).contains("ExcludedRootUnits and RootUnits (GUID11,GUID22,GUID33,GUID1,GUID2,GUID3) not found in database");
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void givenAccessContractsTestExistingExcludedRootUnitsOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok_excluded_root_units.json");
