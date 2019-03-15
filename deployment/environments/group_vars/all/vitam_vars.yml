@@ -38,6 +38,57 @@ classificationList: ["Non protégé","Secret Défense", "Confidentiel Défense"]
 # Used in ingest, unitary update, mass-update
 classificationLevelOptional: true
 
+vitam_timers:
+# systemd nomenclature
+#    minutely → *-*-* *:*:00
+#    hourly → *-*-* *:00:00
+#    daily → *-*-* 00:00:00
+#    monthly → *-*-01 00:00:00
+#    weekly → Mon *-*-* 00:00:00
+#    yearly → *-01-01 00:00:00
+#    quarterly → *-01,04,07,10-01 00:00:00
+#    semiannually → *-01,07-01 00:00:00
+    logbook: # all have to run on only one machine
+        # Sécurisation des journaux des opérations
+        - name: vitam-traceability-operations
+          frequency: "*-*-* 0/2:00:00" # each 2 hours
+        # Sécurisation des journaux du cycle de vie des groupes d'objets
+        - name: vitam-traceability-lfc-objectgroup
+          frequency: "*-*-* 0/4:00:00" # each 4 hours
+        # Sécurisation des journaux du cycle de vie des unités archivistiques
+        - name: vitam-traceability-lfc-unit
+          frequency: "*-*-* 0/3:00:00" # each 3 hours
+        # Audit de traçabilité
+        - name: vitam-traceability-audit
+          frequency: "*-*-* 00:00:00"
+        # Reconstruction
+        - name: vitam-logbook-reconstruction
+          frequency: "*-*-* *:0/5:00"
+    storage:
+        # Sauvegarde des journaux des écritures
+        - name: vitam-storage-accesslog-backup
+          frequency: "*-*-* 0/4:00:00" # each 4 hours
+        # Sécurisation du journal des écritures
+        - name: vitam-storage-log-backup
+          frequency: "*-*-* 0/2:00:00" # each 2 hours
+        # Log traceability
+        - name: vitam-storage-log-traceability
+          frequency: "*-*-* 0/2:10:00" # each 2 hours (10 minutes)
+    functional_administration:
+        - name: vitam-create-accession-register-symbolic
+          frequency: "*-*-* 00:00:00"
+        - name: vitam-functional-administration-accession-register-reconstruction
+          frequency: "*-*-* *:0/5:00"
+        - name: vitam-rule-management-audit
+          frequency: "*-*-* *:00:00"
+        - name: vitam-functional-administration-reconstruction
+          frequency: "*-*-* *:0/5:00"
+    metadata:
+        - name: vitam-metadata-store-graph
+          frequency: "*-*-* *:0/30:00"
+        - name: vitam-metadata-reconstruction
+          frequency: "*-*-* *:0/5:00"
+
 
 ### consul ###
 # FIXME: Consul à la racine pour le moment à cause de problèmes de récursivité dans le parsing yaml
