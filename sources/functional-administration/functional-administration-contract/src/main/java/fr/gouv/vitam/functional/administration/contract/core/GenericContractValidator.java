@@ -88,6 +88,10 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
             "Error while validating contract (%s), RootUnits (%s) not found in database";
         private static final String ERR_CONTRACT_ROOT_GUID_INCLUDED_AND_EXCLUDED =
                 "Error while validating contract (%s), root GUID (%s) can not be included and excluded at the same time";
+        private static final String ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND =
+            "Error while validating contract (%s), ExcludedRootUnits (%s) not found in database";
+        private static final String ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND =
+            "Error while validating contract (%s), ExcludedRootUnits and RootUnits (%s) not found in database";
         private static final String ERR_MANDATORY_FIELD = "The field %s is mandatory";
         private static final String ERR_WRONG_LINK_PARENT_ID =
             "the id of the AU %s is not in filing nor holding schema";
@@ -190,6 +194,30 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         public static GenericRejectionCause rejectRootGuidIncludedAndExcluded(String contractName, String guid) {
             return new GenericRejectionCause(
                     String.format(ERR_CONTRACT_ROOT_GUID_INCLUDED_AND_EXCLUDED, contractName, guid));
+        }
+
+        /**
+         * Generate RejectionCause for not found unit for given GUID
+         *
+         * @param contractName the contract name or identifier
+         * @param guidArrayAsString root units as string (guid array as string)
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectExcludedRootUnitsNotFound(String contractName, String guidArrayAsString) {
+            return new GenericRejectionCause(
+                String.format(ERR_CONTRACT_EXCLUDED_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
+        }
+
+        /**
+         * Generate RejectionCause for not found unit for given GUID
+         *
+         * @param contractName the contract name or identifier
+         * @param guidArrayAsString root units as string (guid array as string)
+         * @return GenericRejectionCause
+         */
+        public static GenericRejectionCause rejectExcludedAndRootUnitsNotFound(String contractName, String guidArrayAsString) {
+            return new GenericRejectionCause(
+                String.format(ERR_CONTRACT_EXCLUDED_AND_ROOT_UNITS_NOT_FOUND, contractName, guidArrayAsString));
         }
 
         /**
