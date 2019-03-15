@@ -1,3 +1,9 @@
+# SMALL sizing example host file
+# 3 servers
+# Use-case: test environment
+# Not recommended for production
+# WARNING: JVM sizing calculation is not done
+
 [hosts]
 
 [hosts:children]
@@ -37,13 +43,13 @@ zone-admin
 ##### Zone externe
 
 [hosts-ihm-recette]
-localhost
+small-vm-2
 
 [zone-external:children]
 hosts-ihm-demo
 
 [hosts-ihm-demo]
-localhost
+small-vm-2
 
 
 ##### Zone access
@@ -53,10 +59,10 @@ hosts-ingest-external
 hosts-access-external
 
 [hosts-ingest-external]
-localhost
+small-vm-1
 
 [hosts-access-external]
-localhost
+small-vm-1
 
 ##### Zone applicative
 
@@ -74,37 +80,37 @@ hosts-storage-engine
 hosts-security-internal
 
 [hosts-security-internal]
-localhost
+small-vm-2
 
 [hosts-logbook]
-localhost
+small-vm-2
 
 [hosts-workspace]
-localhost
+small-vm-1
 
 [hosts-ingest-internal]
-localhost
+small-vm-1
 
 [hosts-access-internal]
-localhost
+small-vm-1
 
 [hosts-metadata]
-localhost
+small-vm-2
 
 [hosts-functional-administration]
-localhost
+small-vm-2
 
 [hosts-processing]
-localhost
+small-vm-1
 
 [hosts-storage-engine]
-localhost
+small-vm-1
 
 [hosts-batch-report]
-localhost
+small-vm-2
 
 [hosts-worker]
-localhost
+small-vm-1
 
 
 ##### Zone storage
@@ -114,7 +120,7 @@ hosts-storage-offer-default
 hosts-mongodb-offer
 
 [hosts-storage-offer-default]
-localhost offer_conf=offer-fs-1
+small-vm-3 offer_conf=offer-fs-1
 
 [hosts-mongodb-offer:children]
 hosts-mongos-offer
@@ -122,13 +128,13 @@ hosts-mongoc-offer
 hosts-mongod-offer
 
 [hosts-mongos-offer]
-localhost
+small-vm-3    mongo_cluster_name=offer-fs-1
 
 [hosts-mongoc-offer]
-localhost                       mongo_rs_bootstrap=true
+small-vm-3    mongo_cluster_name=offer-fs-1                       mongo_rs_bootstrap=true
 
 [hosts-mongod-offer]
-localhost   mongo_shard_id=0    mongo_rs_bootstrap=true
+small-vm-3    mongo_cluster_name=offer-fs-1   mongo_shard_id=0    mongo_rs_bootstrap=true
 
 ##### Zone data
 
@@ -137,7 +143,7 @@ hosts-elasticsearch-data
 hosts-mongodb-data
 
 [hosts-elasticsearch-data]
-localhost elasticsearch_memory=256m
+small-vm-2 elasticsearch_memory=256m
 
 [hosts-mongodb-data:children]
 hosts-mongos-data
@@ -148,13 +154,13 @@ hosts-mongod-data
 mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
-localhost
+small-vm-2  mongo_cluster_name=mongo-data
 
 [hosts-mongoc-data]
-localhost                        mongo_rs_bootstrap=true
+small-vm-2  mongo_cluster_name=mongo-data                        mongo_rs_bootstrap=true
 
 [hosts-mongod-data]
-localhost      mongo_shard_id=0  mongo_rs_bootstrap=true
+small-vm-2  mongo_cluster_name=mongo-data      mongo_shard_id=0  mongo_rs_bootstrap=true
 
 ###### Zone admin
 
@@ -166,13 +172,12 @@ log-servers
 hosts-elasticsearch-log
 
 [hosts-cerebro]
-localhost
+small-vm-3
 
 [hosts-consul-server]
-localhost
+small-vm-3
 
 [hosts-kibana-data]
-localhost
 
 [log-servers:children]
 hosts-kibana-log
@@ -199,7 +204,7 @@ ansible_become=true
 dns_servers=["10.100.211.222", "8.8.8.8"]
 
 ### memory settings ###
-memory_opts="-Xms32m -Xmx256m"
+memory_opts="-Xms1024m -Xmx1024m"
 
 ### tenants ###
 vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
@@ -217,13 +222,13 @@ primary_site=true
 
 # environnement=local
 ### vitam-itest repository ###
-vitam_tests_branch=master
+vitam_tests_branch=master_2.1.x
 vitam_tests_gitrepo_protocol=https
-vitam_tests_gitrepo_baseurl=gitlab.dev.programmevitam.fr
-vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/vitam/vitam-itests.git
+vitam_tests_gitrepo_baseurl=github.com
+vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/ProgrammeVitam/vitam-itests.git
 
 ### reverse proxy ###
 reverse_proxy_port=80
 http_proxy_environnement=
-vitam_reverse_external_dns=localhost
+vitam_reverse_external_dns=
 vitam_reverse_external_protocol=http
