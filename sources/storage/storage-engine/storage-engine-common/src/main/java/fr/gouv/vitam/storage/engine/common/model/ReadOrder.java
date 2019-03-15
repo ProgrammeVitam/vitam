@@ -24,14 +24,53 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.order;
+package fr.gouv.vitam.storage.engine.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
-public interface Order {
-    String WRITE_ORDER_FIELD = "WriteOrder";
+public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder{
+    public static final String TAPE_CODE = "tapeCode";
+    public static final String FILE_POSITION = "filePosition";
+    @JsonProperty(TAPE_CODE)
+    private String tapeCode;
+    @JsonProperty(FILE_POSITION)
+    private Integer filePosition;
 
-    @JsonProperty(WRITE_ORDER_FIELD)
-    boolean isWriteOrder();
+    public ReadOrder() {
+        super(GUIDFactory.newGUID().getId(), QueueMessageType.ReadOrder);
+    }
 
+    public ReadOrder(String tapeCode, Integer filePosition) {
+        this();
+        ParametersChecker.checkParameter("All params are required", tapeCode, filePosition);
+        this.tapeCode = tapeCode;
+        this.filePosition = filePosition;
+    }
+
+    public String getTapeCode() {
+        return tapeCode;
+    }
+
+    public ReadOrder setTapeCode(String tapeCode) {
+        ParametersChecker.checkParameter("tapeCode params is required", tapeCode);
+        this.tapeCode = tapeCode;
+        return this;
+    }
+
+    public Integer getFilePosition() {
+        return filePosition;
+    }
+
+    public ReadOrder setFilePosition(Integer filePosition) {
+        ParametersChecker.checkParameter("filePosition param is required", filePosition);
+        this.filePosition = filePosition;
+        return this;
+    }
+
+    @Override
+    public boolean isWriteOrder() {
+        return false;
+    }
 }

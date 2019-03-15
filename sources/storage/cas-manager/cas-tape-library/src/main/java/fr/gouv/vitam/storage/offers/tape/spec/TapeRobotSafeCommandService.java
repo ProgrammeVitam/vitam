@@ -31,7 +31,7 @@ import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 
 public interface TapeRobotSafeCommandService {
 
-    TapeLibraryState status(long timeoutInMillisecondes);
+    TapeLibraryState status();
 
     ProcessExecutor getExecutor();
 }

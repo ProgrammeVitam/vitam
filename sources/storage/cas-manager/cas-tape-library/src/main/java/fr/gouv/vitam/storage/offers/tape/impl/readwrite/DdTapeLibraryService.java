@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
-import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
@@ -56,42 +56,46 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     }
 
     @Override
-    public CommandResponse writeToTape(long timeoutInMillisecondes, String workingDir, String inputPath) {
+    public TapeResponse writeToTape(String workingDir, String inputPath) {
         ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
 
         List<String> args = Lists.newArrayList(IF + workingDir + inputPath, OF + tapeDriveConf.getDevice());
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
             args);
-        Output output = getExecutor().execute(tapeDriveConf.getDdPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeDriveConf.getDdPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
 
     @Override
-    public CommandResponse readFromTape(long timeoutInMillisecondes, String workingDir, String outputPath) {
+    public TapeResponse readFromTape(String workingDir, String outputPath) {
         ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
 
         List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(), OF + workingDir + "/" + outputPath);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
             args);
-        Output output = getExecutor().execute(tapeDriveConf.getDdPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeDriveConf.getDdPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
 
     @Override
-    public CommandResponse listFromTape(long timeoutInMillisecondes) {
+    public TapeResponse listFromTape() {
         throw new IllegalStateException("Not implemented for dd command");
     }
 
 
-    private CommandResponse parseCommonResponse(Output output) {
-        CommandResponse response = new CommandResponse();
-        response.setOutput(output);
+    private TapeResponse parseCommonResponse(Output output) {
+        TapeResponse response;
+
         if (output.getExitCode() == 0) {
-            response.setStatus(StatusCode.OK);
+            response = new TapeResponse(output, StatusCode.OK);
         } else {
-            response.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
+            response = new TapeResponse(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
         }
 
         return response;

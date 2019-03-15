@@ -38,9 +38,9 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
-import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
@@ -52,7 +52,7 @@ import org.junit.Test;
 
 public class TapeLibraryIT {
     public static final String OFFER_TAPE_TEST_CONF = "offer-tape-test.conf";
-    public static final long TIMEOUT_IN_MILLISECONDES = 60000L;
+    public static final long TIMEOUT_IN_MILLISECONDS = 60000L;
     public static final Integer SLOT_INDEX = 10;
     public static final Integer DRIVE_INDEX = 2;
 
@@ -68,7 +68,7 @@ public class TapeLibraryIT {
             PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
                 TapeLibraryConfiguration.class);
         tapeLibraryFacotry = TapeLibraryFactory.getInstance();
-        tapeLibraryFacotry.initize(configuration, mock(MongoDbAccess.class));
+        tapeLibraryFacotry.initialize(configuration, mock(MongoDbAccess.class));
     }
 
 
@@ -82,20 +82,20 @@ public class TapeLibraryIT {
         TapeLibraryPool tapeLibraryPool = tapeLibraryFacotry.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
-            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDES, TimeUnit.MILLISECONDS);
+            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
         assertThat(tapeRobotService).isNotNull();
 
         try {
-            TapeLibraryState state = tapeRobotService.getLoadUnloadService().status(TIMEOUT_IN_MILLISECONDES);
+            TapeLibraryState state = tapeRobotService.getLoadUnloadService().status();
             assertThat(state).isNotNull();
-            assertThat(state.getOutput()).isNotNull();
+            assertThat(state.getEntity()).isNotNull();
             assertThat(state.getStatus()).isEqualTo(StatusCode.OK);
 
             // TODO: 25/02/19 Check parse response
 
             // As only one robot exists, then should return null
             TapeRobotService tapeRobotService1 =
-                tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDES, TimeUnit.MILLISECONDS);
+                tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
             assertThat(tapeRobotService1).isNull();
         } finally {
             tapeLibraryPool.pushRobotService(tapeRobotService);
@@ -104,7 +104,7 @@ public class TapeLibraryIT {
 
 
         TapeRobotService tapeRobotService2 =
-            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDES, TimeUnit.MILLISECONDS);
+            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
         try {
             assertThat(tapeRobotService2).isNotNull();
             // TODO: 25/02/19 Check parse response
@@ -119,10 +119,10 @@ public class TapeLibraryIT {
 
         try {
             TapeDriveState driveState1 =
-                tapeDriveService1.getDriveCommandService().status(TIMEOUT_IN_MILLISECONDES);
+                tapeDriveService1.getDriveCommandService().status();
             assertThat(driveState1).isNotNull();
 
-            assertThat(driveState1.getOutput()).isNotNull();
+            assertThat(driveState1.getEntity()).isNotNull();
             assertThat(driveState1.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
         } finally {
@@ -134,10 +134,10 @@ public class TapeLibraryIT {
 
         try {
             TapeDriveState driveState2 =
-                tapeDriveService2.getDriveCommandService().status(TIMEOUT_IN_MILLISECONDES);
+                tapeDriveService2.getDriveCommandService().status();
             assertThat(driveState2).isNotNull();
 
-            assertThat(driveState2.getOutput()).isNotNull();
+            assertThat(driveState2.getEntity()).isNotNull();
             assertThat(driveState2.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
         } finally {
@@ -149,10 +149,10 @@ public class TapeLibraryIT {
             tapeLibraryPool.checkoutDriveService(2);
         try {
             TapeDriveState driveState3 =
-                tapeDriveService3.getDriveCommandService().status(TIMEOUT_IN_MILLISECONDES);
+                tapeDriveService3.getDriveCommandService().status();
             assertThat(driveState3).isNotNull();
 
-            assertThat(driveState3.getOutput()).isNotNull();
+            assertThat(driveState3.getEntity()).isNotNull();
             assertThat(driveState3.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
         } finally {
@@ -164,10 +164,10 @@ public class TapeLibraryIT {
             tapeLibraryPool.checkoutDriveService(3);
         try {
             TapeDriveState driveState4 =
-                tapeDriveService4.getDriveCommandService().status(TIMEOUT_IN_MILLISECONDES);
+                tapeDriveService4.getDriveCommandService().status();
             assertThat(driveState4).isNotNull();
 
-            assertThat(driveState4.getOutput()).isNotNull();
+            assertThat(driveState4.getEntity()).isNotNull();
             assertThat(driveState4.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
         } finally {
@@ -183,19 +183,19 @@ public class TapeLibraryIT {
         TapeLibraryPool tapeLibraryPool = tapeLibraryFacotry.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
-            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDES, TimeUnit.MILLISECONDS);
+            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
         assertThat(tapeRobotService).isNotNull();
 
         try {
-            TapeLibraryState state = tapeRobotService.getLoadUnloadService().status(TIMEOUT_IN_MILLISECONDES);
+            TapeLibraryState state = tapeRobotService.getLoadUnloadService().status();
             assertThat(state).isNotNull();
-            assertThat(state.getOutput()).isNotNull();
+            assertThat(state.getEntity()).isNotNull();
             assertThat(state.getStatus()).isEqualTo(StatusCode.OK);
 
 
 
-            CommandResponse result = tapeRobotService.getLoadUnloadService()
-                .loadTape(TIMEOUT_IN_MILLISECONDES, SLOT_INDEX, DRIVE_INDEX);
+            TapeResponse result = tapeRobotService.getLoadUnloadService()
+                .loadTape(SLOT_INDEX, DRIVE_INDEX);
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -204,7 +204,7 @@ public class TapeLibraryIT {
 
             // Load already loaded tape KO
             result = tapeRobotService.getLoadUnloadService()
-                .loadTape(TIMEOUT_IN_MILLISECONDES, SLOT_INDEX, DRIVE_INDEX);
+                .loadTape(SLOT_INDEX, DRIVE_INDEX);
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(StatusCode.KO);
@@ -213,7 +213,7 @@ public class TapeLibraryIT {
 
             // unload tape OK
             result = tapeRobotService.getLoadUnloadService()
-                .unloadTape(TIMEOUT_IN_MILLISECONDES, SLOT_INDEX, DRIVE_INDEX);
+                .unloadTape(SLOT_INDEX, DRIVE_INDEX);
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -221,7 +221,7 @@ public class TapeLibraryIT {
 
             // unload already loaded tape KO
             result = tapeRobotService.getLoadUnloadService()
-                .unloadTape(TIMEOUT_IN_MILLISECONDES, SLOT_INDEX, DRIVE_INDEX);
+                .unloadTape(SLOT_INDEX, DRIVE_INDEX);
 
             assertThat(result).isNotNull();
             assertThat(result.getStatus()).isEqualTo(StatusCode.KO);
@@ -234,31 +234,31 @@ public class TapeLibraryIT {
     }
 
     @Test
-    public void test_load_erase_write_read_rewind_then_unload_tape() throws InterruptedException,
+    public void test_load_rewind_write_read_rewind_then_unload_tape() throws InterruptedException,
         IOException {
 
         TapeLibraryPool tapeLibraryPool = tapeLibraryFacotry.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
-            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDES, TimeUnit.MILLISECONDS);
+            tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
         assertThat(tapeRobotService).isNotNull();
 
         TapeDriveService tapeDriveService = tapeLibraryPool.checkoutDriveService(DRIVE_INDEX);
         assertThat(tapeDriveService).isNotNull();
 
         try {
-            TapeLibraryState state = tapeRobotService.getLoadUnloadService().status(TIMEOUT_IN_MILLISECONDES);
+            TapeLibraryState state = tapeRobotService.getLoadUnloadService().status();
             assertThat(state).isNotNull();
-            assertThat(state.getOutput()).isNotNull();
+            assertThat(state.getEntity()).isNotNull();
             assertThat(state.getStatus()).isEqualTo(StatusCode.OK);
 
 
             // 1 Load Tape
-            CommandResponse response = tapeRobotService.getLoadUnloadService()
-                .loadTape(TIMEOUT_IN_MILLISECONDES, SLOT_INDEX, DRIVE_INDEX);
+            TapeResponse response = tapeRobotService.getLoadUnloadService()
+                .loadTape(SLOT_INDEX, DRIVE_INDEX);
 
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
@@ -275,9 +275,9 @@ public class TapeLibraryIT {
 
 
             // 2 erase tape
-            response = driveCommandService.erase(TIMEOUT_IN_MILLISECONDES);
+            response = driveCommandService.rewind();
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
@@ -285,17 +285,17 @@ public class TapeLibraryIT {
             //3 Write file to tape
 
             String workingDir = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
-            response = ddRreadWriteService.writeToTape(TIMEOUT_IN_MILLISECONDES, workingDir + "/", "testtar.tar");
+            response = ddRreadWriteService.writeToTape(workingDir + "/", "testtar.tar");
 
             Assertions.assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             Assertions.assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
 
 
             //4 Rewind
-            response = driveCommandService.rewind(TIMEOUT_IN_MILLISECONDES);
+            response = driveCommandService.rewind();
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
@@ -304,50 +304,50 @@ public class TapeLibraryIT {
             // 5 Read file from tape with dd command
             String outDir1 = tempFolderRule.newFolder().getAbsolutePath();
 
-            response = ddRreadWriteService.readFromTape(TIMEOUT_IN_MILLISECONDES, outDir1, "testtar.tar");
+            response = ddRreadWriteService.readFromTape(outDir1, "testtar.tar");
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
 
 
             //6 Rewind
-            response = driveCommandService.rewind(TIMEOUT_IN_MILLISECONDES);
+            response = driveCommandService.rewind();
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
 
             // 7 Read file from tape with tar command
             String outDir2 = tempFolderRule.newFolder().getAbsolutePath();
-            response = tarRreadWriteService.readFromTape(TIMEOUT_IN_MILLISECONDES, outDir2, "");
+            response = tarRreadWriteService.readFromTape(outDir2, "");
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
 
             //8 Rewind
-            response = driveCommandService.rewind(TIMEOUT_IN_MILLISECONDES);
+            response = driveCommandService.rewind();
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
 
             // 9 Read file from tape with tar command
             String outDir3 = tempFolderRule.newFolder().getAbsolutePath();
-            response = tarRreadWriteService.readFromTape(TIMEOUT_IN_MILLISECONDES, outDir3, "file1");
+            response = tarRreadWriteService.readFromTape(outDir3, "file1");
             assertThat(response).isNotNull();
-            Assertions.assertThat(response.getOutput()).isNotNull();
+            Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
             // TODO: 25/02/19 Check parse response
 
         } finally {
             try {
-                tapeRobotService.getLoadUnloadService().unloadTape(TIMEOUT_IN_MILLISECONDES, SLOT_INDEX, DRIVE_INDEX);
+                tapeRobotService.getLoadUnloadService().unloadTape(SLOT_INDEX, DRIVE_INDEX);
             } finally {
                 tapeLibraryPool.pushDriveService(tapeDriveService);
                 tapeLibraryPool.pushRobotService(tapeRobotService);

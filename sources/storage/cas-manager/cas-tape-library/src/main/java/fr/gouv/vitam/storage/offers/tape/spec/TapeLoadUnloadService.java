@@ -26,16 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 
 public interface TapeLoadUnloadService extends TapeRobotSafeCommandService, BeginEndService {
 
-    CommandResponse loadTape(long timeoutInMillisecondes, String tapeIndex, String driveIndex);
+    TapeResponse loadTape(String tapeIndex, String driveIndex);
 
-    CommandResponse unloadTape(long timeoutInMillisecondes, String tapeIndex, String driveIndex);
+    TapeResponse unloadTape(String tapeIndex, String driveIndex);
 
-    CommandResponse loadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex);
+    TapeResponse loadTape(Integer tapeIndex, Integer driveIndex);
 
-    CommandResponse unloadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex);
+    TapeResponse unloadTape(Integer tapeIndex, Integer driveIndex);
 
 }

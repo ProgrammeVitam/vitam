@@ -41,7 +41,7 @@ public enum  ReadWriteErrorCode {
     KO_ON_STATUS,
     KO_ON_LOAD_TAPE,
     KO_ON_UNLOAD_TAPE,
-    KO_ON_WRITE_TO_TAPE,
+    KO_ON_WRITE_TO_TAPE, // TODO CloseIncident Tape
     KO_ON_WRITE_REWIND_TAPE,
     KO_ON_WRITE_REWIND_FSF_TAPE,
 

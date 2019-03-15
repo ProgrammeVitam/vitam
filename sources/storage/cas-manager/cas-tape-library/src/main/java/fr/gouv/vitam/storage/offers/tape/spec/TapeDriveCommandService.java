@@ -26,40 +26,29 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 
 public interface TapeDriveCommandService extends TapeDriveSafeCommandService, BeginEndService {
     /**
      * fsf
      *
-     * @param timeoutInMillisecondes
      * @param position
-     * @return CommandResponse
+     * @return TapeResponse
      */
-    CommandResponse goToPosition(long timeoutInMillisecondes, String position);
+    TapeResponse goToPosition(Integer position);
 
     /**
      * Go to start
      *
-     * @param timeoutInMillisecondes
-     * @return CommandResponse
+     * @return TapeResponse
      */
-    CommandResponse rewind(long timeoutInMillisecondes);
+    TapeResponse rewind();
 
     /**
      * EOD end of data
      *
-     * @param timeoutInMillisecondes
-     * @return CommandResponse
+     * @return TapeResponse
      */
-    CommandResponse goToEnd(long timeoutInMillisecondes);
-
-
-    /**
-     *  Erase tape
-     * @param timeoutInMillisecondes
-     * @return CommandResponse
-     */
-    CommandResponse erase(long timeoutInMillisecondes);
+    TapeResponse goToEnd();
 
 }

@@ -73,7 +73,8 @@ public class Output {
     }
 
     private static String stdToString(InputStream std) {
-        CircularFifoQueue<String> lastLines = new CircularFifoQueue<>(250);
+        // TODO: 15/03/19  2000 must be configurable
+        CircularFifoQueue<String> lastLines = new CircularFifoQueue<>(2000);
         List<String> firstLines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(std, UTF_8))) {
             String c;

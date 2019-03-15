@@ -28,6 +28,13 @@ package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
 
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -36,21 +43,14 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
-import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 public class TarTapeLibraryServiceTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TarTapeLibraryServiceTest.class);
@@ -86,11 +86,11 @@ public class TarTapeLibraryServiceTest {
             new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance());
 
         String workingDir = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
-        CommandResponse response =
-            tarTapeLibraryService.writeToTape(tapeDriveConf.getTimeoutInMilliseconds(), workingDir + "/", "testtar.tar");
+        TapeResponse response =
+            tarTapeLibraryService.writeToTape(workingDir + "/", "testtar.tar");
 
         assertThat(response).isNotNull();
-        assertThat(response.getOutput()).isNotNull();
+        assertThat(response.getEntity()).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
 
         try (ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
@@ -117,7 +117,7 @@ public class TarTapeLibraryServiceTest {
             new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance());
 
         String workingDir = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
-        tarTapeLibraryService.writeToTape(tapeDriveConf.getTimeoutInMilliseconds(), workingDir + "/", "testtar.tar");
+        tarTapeLibraryService.writeToTape(workingDir + "/", "testtar.tar");
     }
 
     @Test
@@ -129,13 +129,13 @@ public class TarTapeLibraryServiceTest {
         TarTapeLibraryService tarTapeLibraryService =
             new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance());
 
-        CommandResponse response =
-            tarTapeLibraryService.writeToTape(tapeDriveConf.getTimeoutInMilliseconds(), "", "testtar.tar");
+        TapeResponse response =
+            tarTapeLibraryService.writeToTape("", "testtar.tar");
 
         assertThat(response).isNotNull();
-        assertThat(response.getOutput()).isNotNull();
+        assertThat(response.getEntity()).isNotNull();
         assertThat(response.getStatus()).isEqualTo(StatusCode.KO);
-        assertThat(response.getOutput().getStderr())
+        assertThat(response.getEntity(Output.class).getStderr())
             .contains("tar: testtar.tar: Cannot stat: No such file or directory");
 
     }

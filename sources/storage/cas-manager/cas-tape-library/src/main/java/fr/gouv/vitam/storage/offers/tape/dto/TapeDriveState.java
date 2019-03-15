@@ -29,17 +29,27 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TapeDriveState extends CommandResponse {
+import fr.gouv.vitam.common.model.StatusCode;
+
+public class TapeDriveState extends TapeResponse {
     private String description;
     private Integer fileNumber;
     private Integer blockNumber;
     private Integer partition;
     private Long tapeBlockSize;
     private String densityCode;
-    private String lto;
+    private String cartridge;
     private Integer errorCountSinceLastStatus;
     private String statusBits;
     private List<TapeDriveStatus> driveStatuses = new ArrayList<>();
+
+    public TapeDriveState(StatusCode status) {
+        super(status);
+    }
+
+    public TapeDriveState(Object entity, StatusCode status) {
+        super(entity, status);
+    }
 
     public String getDescription() {
         return description;
@@ -89,12 +99,12 @@ public class TapeDriveState extends CommandResponse {
         this.densityCode = densityCode;
     }
 
-    public String getLto() {
-        return lto;
+    public String getCartridge() {
+        return cartridge;
     }
 
-    public void setLto(String lto) {
-        this.lto = lto;
+    public void setCartridge(String cartridge) {
+        this.cartridge = cartridge;
     }
 
     public Integer getErrorCountSinceLastStatus() {

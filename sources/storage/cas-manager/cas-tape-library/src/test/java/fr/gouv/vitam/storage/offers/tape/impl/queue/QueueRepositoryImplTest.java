@@ -36,11 +36,12 @@ import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
+import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
+import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.order.ReadOrder;
-import fr.gouv.vitam.storage.offers.tape.order.WriteOrder;
 import org.bson.conversions.Bson;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -76,15 +77,15 @@ public class QueueRepositoryImplTest {
     public void testAddWriteOrder() throws QueueException {
 
         WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(WriteOrder.class);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket");
         assertThat(found.get().getFilePath()).isEqualTo("myFilePath");
 
-        found = queueRepositoryImpl.peek(WriteOrder.class);
+        found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
     }
 
@@ -92,26 +93,26 @@ public class QueueRepositoryImplTest {
     public void testAddReadOrder() throws QueueException {
 
         ReadOrder entity = new ReadOrder().setTapeCode("VIT0001").setFilePosition(3);
-        queueRepositoryImpl.add(entity, ReadOrder.class);
+        queueRepositoryImpl.add(entity);
 
-        Optional<ReadOrder> found = queueRepositoryImpl.peek(ReadOrder.class);
+        Optional<ReadOrder> found = queueRepositoryImpl.receive(QueueMessageType.ReadOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getTapeCode()).isEqualTo("VIT0001");
         assertThat(found.get().getFilePosition()).isEqualTo(3);
 
-        found = queueRepositoryImpl.peek(ReadOrder.class);
+        found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
     }
 
     @Test
     public void testRemoveOk() throws QueueException {
         WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.remove(entity.getId());
 
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(WriteOrder.class);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
 
     }
@@ -120,11 +121,11 @@ public class QueueRepositoryImplTest {
     @Test
     public void testcompleteOk() throws QueueException {
         WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
 
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(WriteOrder.class);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
 
     }
@@ -132,22 +133,22 @@ public class QueueRepositoryImplTest {
     @Test
     public void testPutOk() throws QueueException {
         WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
 
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(WriteOrder.class);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
 
         queueRepositoryImpl.ready(entity.getId());
 
-        found = queueRepositoryImpl.peek(WriteOrder.class);
+        found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
 
         queueRepositoryImpl.complete(entity.getId());
 
-        found = queueRepositoryImpl.peek(WriteOrder.class);
+        found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
 
 
@@ -159,21 +160,21 @@ public class QueueRepositoryImplTest {
         // Given document with priority 2
         WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
         entity.setPriority(2);
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
         entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(WriteOrder.class);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
         assertThat(found.get().getFilePath()).isEqualTo("myFilePath_2");
 
         // Given document with priority 2
-        found = queueRepositoryImpl.peek(WriteOrder.class);
+        found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_1");
@@ -186,21 +187,21 @@ public class QueueRepositoryImplTest {
         // Given document with priority 2
         WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
         entity.setPriority(2);
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
         entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Then get the first inserted document
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(WriteOrder.class, false);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_1");
         assertThat(found.get().getFilePath()).isEqualTo("myFilePath_1");
 
         // Then get the second inserted document
-        found = queueRepositoryImpl.peek(WriteOrder.class, false);
+        found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
@@ -213,24 +214,24 @@ public class QueueRepositoryImplTest {
         // Given document with priority 2
         WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
         entity.setPriority(2);
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
         entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
         entity.setPriority(2);
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
         entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_3");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
 
 
         Bson query = Filters.eq(WriteOrder.BUCKET, "mybucket_2");
-        Bson update = Updates.set(QueueEntity.PRIORITY, 5);
+        Bson update = Updates.set(QueueMessageEntity.PRIORITY, 5);
 
         // Then get the first inserted document
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(query, update, WriteOrder.class);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(query, update, QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
@@ -245,24 +246,24 @@ public class QueueRepositoryImplTest {
         // Given document with priority 2
         WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
         entity.setPriority(2);
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
         entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
         entity.setPriority(2);
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
         entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_3");
-        queueRepositoryImpl.add(entity, WriteOrder.class);
+        queueRepositoryImpl.add(entity);
 
 
 
         Bson query = Filters.eq(WriteOrder.BUCKET, "mybucket_2");
-        Bson update = Updates.set(QueueEntity.PRIORITY, 5);
+        Bson update = Updates.set(QueueMessageEntity.PRIORITY, 5);
 
         // Then get the first inserted document
-        Optional<WriteOrder> found = queueRepositoryImpl.peek(query, update, WriteOrder.class, false);
+        Optional<WriteOrder> found = queueRepositoryImpl.receive(query, update, QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");

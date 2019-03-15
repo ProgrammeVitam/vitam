@@ -30,11 +30,13 @@ public enum TapeSlotType {
     READY(""),
     IMPORTEXPORT("IMPORT/EXPORT");
 
-    private String type;
-    TapeSlotType(String type) {
-        this.type = type;
+    private final String message;
+
+    TapeSlotType(String message) {
+        this.message = message;
     }
-    public String getType() {
-        return type;
+
+    public String getMessage() {
+        return message;
     }
 }

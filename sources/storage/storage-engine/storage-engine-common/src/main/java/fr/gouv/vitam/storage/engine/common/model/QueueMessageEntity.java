@@ -4,12 +4,13 @@ import java.util.Calendar;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class QueueEntity {
+public class QueueMessageEntity {
     public static final String ID = "_id";
     public static final String STATE = "state";
     public static final String CREATED = "created";
     public static final String PRIORITY = "priority";
     public static final String LAST_UPDATE = "lastUpdate";
+    public static final String MESSAGE_TYPE = "messageType";
 
 
     @JsonProperty(ID)
@@ -25,12 +26,16 @@ public class QueueEntity {
     @JsonProperty(CREATED)
     private long created = Calendar.getInstance().getTimeInMillis();
 
+    @JsonProperty(MESSAGE_TYPE)
+    private QueueMessageType messageType;
+
     @JsonProperty(PRIORITY)
     private int priority = 1;
 
 
-    public QueueEntity(String id) {
+    public QueueMessageEntity(String id, QueueMessageType messageType) {
         this.id = id;
+        this.messageType = messageType;
     }
 
     public String getId() {
@@ -71,5 +76,13 @@ public class QueueEntity {
 
     public void setPriority(int priority) {
         this.priority = priority;
+    }
+
+    public QueueMessageType getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(QueueMessageType messageType) {
+        this.messageType = messageType;
     }
 }

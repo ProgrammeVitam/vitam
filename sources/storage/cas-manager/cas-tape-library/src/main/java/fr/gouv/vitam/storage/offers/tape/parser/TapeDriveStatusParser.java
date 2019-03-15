@@ -1,6 +1,7 @@
 package fr.gouv.vitam.storage.offers.tape.parser;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +20,9 @@ public class TapeDriveStatusParser {
     public static final String POINT = ".";
 
     public TapeDriveState parse(String output) {
-        ParametersChecker.checkParameter("Output param is required", output);
+        ParametersChecker.checkParameter("All params is required", output);
 
-        final TapeDriveState tapeDriveState = new TapeDriveState();
+        final TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
         for (String s : output.split("\n")) {
 
             if (s.contains(TAPE_DRIVE)) {
@@ -57,7 +58,7 @@ public class TapeDriveStatusParser {
         tapeDriveState.setDensityCode(densityCode.trim());
 
         String lto = StringUtils.substringBetween(s, OPEN_PARENTHESIS, CLOSE_PARENTHESIS);
-        tapeDriveState.setLto(lto);
+        tapeDriveState.setCartridge(lto);
     }
 
     private void extractFileAndBlockNumberAndPartition(TapeDriveState tapeDriveState, String s) {
@@ -72,7 +73,7 @@ public class TapeDriveStatusParser {
         tapeDriveState.setPartition(Integer.valueOf(partition.trim()));
 
         String lto = StringUtils.substringBetween(s, OPEN_PARENTHESIS, CLOSE_PARENTHESIS);
-        tapeDriveState.setLto(lto);
+        tapeDriveState.setCartridge(lto);
     }
 
     private void extractSoftErrorCount(TapeDriveState tapeDriveState, String s) {

@@ -29,14 +29,24 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TapeLibraryState extends CommandResponse {
+import fr.gouv.vitam.common.model.StatusCode;
+
+public class TapeLibraryState extends TapeResponse {
     private String device;
-    private String driveCount;
-    private String slotsCount;
-    private String mailBoxCount;
+    private int driveCount;
+    private int slotsCount;
+    private int mailBoxCount;
 
     private List<TapeDrive> drives;
     private List<TapeSlot> slots;
+
+    public TapeLibraryState(StatusCode status) {
+        super(status);
+    }
+
+    public TapeLibraryState(Object entity, StatusCode status) {
+        super(entity, status);
+    }
 
     public String getDevice() {
         return device;
@@ -46,27 +56,27 @@ public class TapeLibraryState extends CommandResponse {
         this.device = device;
     }
 
-    public String getDriveCount() {
+    public int getDriveCount() {
         return driveCount;
     }
 
-    public void setDriveCount(String driveCount) {
+    public void setDriveCount(int driveCount) {
         this.driveCount = driveCount;
     }
 
-    public String getSlotsCount() {
+    public int getSlotsCount() {
         return slotsCount;
     }
 
-    public void setSlotsCount(String slotsCount) {
+    public void setSlotsCount(int slotsCount) {
         this.slotsCount = slotsCount;
     }
 
-    public String getMailBoxCount() {
+    public int getMailBoxCount() {
         return mailBoxCount;
     }
 
-    public void setMailBoxCount(String mailBoxCount) {
+    public void setMailBoxCount(int mailBoxCount) {
         this.mailBoxCount = mailBoxCount;
     }
 

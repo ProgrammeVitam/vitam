@@ -31,10 +31,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
+import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.offers.tape.order.Order;
-import fr.gouv.vitam.storage.offers.tape.order.ReadOrder;
-import fr.gouv.vitam.storage.offers.tape.order.WriteOrder;
+import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
@@ -43,11 +43,14 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
 
     private final Future<ReadWriteResult> readWriteTask;
 
-    public ReadWriteTask(Order order, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool, TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
+    public ReadWriteTask(ReadWriteOrder order, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
+        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
         if (order.isWriteOrder()) {
-            readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService,
+                tapeCatalogService);
         } else {
-            readWriteTask = new ReadTask((ReadOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            readWriteTask =
+                new ReadTask((ReadOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService, tapeCatalogService);
         }
     }
 

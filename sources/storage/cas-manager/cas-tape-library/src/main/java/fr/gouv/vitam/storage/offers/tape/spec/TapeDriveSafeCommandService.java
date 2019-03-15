@@ -31,7 +31,7 @@ import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 
 public interface TapeDriveSafeCommandService {
 
-    TapeDriveState status(long timeoutInMillisecondes);
+    TapeDriveState status();
 
     ProcessExecutor getExecutor();
 }

@@ -1,6 +1,7 @@
 package fr.gouv.vitam.storage.offers.tape.parser;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeCartridge;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
@@ -29,7 +30,7 @@ public class TapeLibraryStatusParser {
     public TapeLibraryState parse(String output) {
         ParametersChecker.checkParameter("Output param is required", output);
 
-        final TapeLibraryState tapeLibraryState = new TapeLibraryState();
+        final TapeLibraryState tapeLibraryState = new TapeLibraryState(StatusCode.OK);
         for (String s : output.split("\\|")) {
 
             // Slots
@@ -108,9 +109,9 @@ public class TapeLibraryStatusParser {
         String mailBoxCount = StringUtils.substringBetween(s, SLOTS, IMPORT_EXPORT);
 
         tapeLibraryState.setDevice(device.trim());
-        tapeLibraryState.setDriveCount(driveCount.trim());
-        tapeLibraryState.setSlotsCount(slotsCount.trim());
-        tapeLibraryState.setMailBoxCount(mailBoxCount.trim());
+        tapeLibraryState.setDriveCount(Integer.valueOf(driveCount.trim()));
+        tapeLibraryState.setSlotsCount(Integer.valueOf(slotsCount.trim()));
+        tapeLibraryState.setMailBoxCount(Integer.valueOf(mailBoxCount.trim()));
     }
 
     private void extractDriveVolumeTag(String s, TapeCartridge cartridge) {

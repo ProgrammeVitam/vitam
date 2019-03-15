@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * StorageElement
  */
@@ -39,6 +41,7 @@ public class TapeSlot {
     }
 
     public void setIndex(Integer index) {
+        ParametersChecker.checkParameter("index param is required", index);
         this.index = index;
     }
 

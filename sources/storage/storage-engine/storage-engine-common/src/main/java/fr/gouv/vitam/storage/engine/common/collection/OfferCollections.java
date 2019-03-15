@@ -2,14 +2,14 @@ package fr.gouv.vitam.storage.engine.common.collection;
 
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 
 public enum OfferCollections {
     OFFER_LOG(OfferLog.class),
     OFFER_SEQUENCE(OfferSequence.class),
     OFFER_TAPE_CATALOG(TapeCatalog.class),
-    OFFER_QUEUE(QueueEntity.class);
+    OFFER_QUEUE(QueueMessageEntity.class);
 
     private final Class<?> clazz;
     private String name;

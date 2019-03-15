@@ -42,7 +42,8 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
@@ -56,18 +57,15 @@ public class QueueRepositoryImpl implements QueueRepository {
 
     protected final MongoCollection<Document> collection;
 
-    String $_SET = "$set";
-
     public QueueRepositoryImpl(MongoCollection<Document> collection) {
         ParametersChecker.checkParameter("Collection param is required", collection);
         this.collection = collection;
     }
 
     @Override
-    public <T> void add(QueueEntity queue, Class<T> clazz) throws QueueException {
+    public void add(QueueMessageEntity queue) throws QueueException {
         try {
-            T casted = clazz.cast(queue);
-            Document doc = Document.parse(JsonHandler.unprettyPrint(casted));
+            Document doc = Document.parse(JsonHandler.unprettyPrint(queue));
             collection.insertOne(doc);
         } catch (Exception e) {
             throw new QueueException(e);
@@ -87,7 +85,7 @@ public class QueueRepositoryImpl implements QueueRepository {
     public long complete(String queueId) throws QueueException {
         try {
             return collection.updateOne(eq(VitamDocument.ID, queueId),
-                Updates.set(QueueEntity.STATE, QueueState.COMPLETED.getState())).getModifiedCount();
+                Updates.set(QueueMessageEntity.STATE, QueueState.COMPLETED.getState())).getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);
         }
@@ -97,71 +95,67 @@ public class QueueRepositoryImpl implements QueueRepository {
     public long ready(String queueId) throws QueueException {
         try {
             return collection.updateOne(eq(VitamDocument.ID, queueId),
-                Updates.set(QueueEntity.STATE, QueueState.READY.getState())).getModifiedCount();
+                Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())).getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);
         }
     }
 
     @Override
-    public <T> Optional<T> peek(Class<T> clazz) throws QueueException {
-        return peek(clazz, true);
+    public <T> Optional<T> receive(QueueMessageType messageType) throws QueueException {
+        return receive(messageType, true);
     }
 
     @Override
-    public <T> Optional<T> peek(Class<T> clazz, boolean usePriority) throws QueueException {
-
-        Bson query = eq(QueueEntity.STATE, QueueState.READY.getState());
-
-        Bson update = Updates.combine(
-            Updates.set(QueueEntity.STATE, QueueState.RUNNING.getState()),
-            Updates.set(QueueEntity.LAST_UPDATE, Calendar.getInstance().getTimeInMillis())
-        );
-
-        return peek(query, update, clazz, usePriority);
+    public <T> Optional<T> receive(QueueMessageType messageType, boolean usePriority) throws QueueException {
+        return receive(null, null, messageType, usePriority);
     }
 
     @Override
-    public <T> Optional<T> peek(Bson inQuery, Class<T> clazz) throws QueueException {
-        return peek(inQuery, clazz, true);
+    public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType) throws QueueException {
+        return receive(inQuery, messageType, true);
     }
 
     @Override
-    public <T> Optional<T> peek(Bson inQuery, Class<T> clazz, boolean usePriority) throws QueueException {
-        return peek(inQuery, null, clazz, usePriority);
+    public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
+        throws QueueException {
+        return receive(inQuery, null, messageType, usePriority);
     }
 
     @Override
-    public <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz) throws QueueException {
-        return peek(inQuery, inUpdate, clazz, true);
+    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException {
+        return receive(inQuery, inUpdate, messageType, true);
     }
 
     @Override
-    public <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz, boolean usePriority)
+    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
 
         Bson query = inQuery != null ?
-            and(eq(QueueEntity.STATE, QueueState.READY.getState()), inQuery) :
-            eq(QueueEntity.STATE, QueueState.READY.getState());
+            and(eq(QueueMessageEntity.STATE, QueueState.READY.getState()),
+                eq(QueueMessageEntity.MESSAGE_TYPE, messageType.name()), inQuery)
+            :
+            and(eq(QueueMessageEntity.STATE, QueueState.READY.getState()),
+                eq(QueueMessageEntity.MESSAGE_TYPE, messageType.name()));
 
         FindOneAndUpdateOptions option = new FindOneAndUpdateOptions();
         option.returnDocument(ReturnDocument.AFTER);
         if (usePriority) {
-            option.sort(Sorts.ascending(QueueEntity.PRIORITY, QueueEntity.CREATED));
+            option.sort(Sorts.ascending(QueueMessageEntity.PRIORITY, QueueMessageEntity.CREATED));
         } else {
-            option.sort(Sorts.ascending(QueueEntity.CREATED));
+            option.sort(Sorts.ascending(QueueMessageEntity.CREATED));
         }
         option.upsert(false);
 
         Bson update = inUpdate != null ?
             Updates.combine(
-                Updates.set(QueueEntity.STATE, QueueState.RUNNING.getState()),
-                Updates.set(QueueEntity.LAST_UPDATE, Calendar.getInstance().getTimeInMillis()),
+                Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
+                Updates.set(QueueMessageEntity.LAST_UPDATE, Calendar.getInstance().getTimeInMillis()),
                 inUpdate)
             :
             Updates.combine(
-                Updates.set(QueueEntity.STATE, QueueState.RUNNING.getState()),
-                Updates.set(QueueEntity.LAST_UPDATE, Calendar.getInstance().getTimeInMillis()));
+                Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
+                Updates.set(QueueMessageEntity.LAST_UPDATE, Calendar.getInstance().getTimeInMillis()));
 
         Document sequence = collection.findOneAndUpdate(query, update, option);
 
@@ -170,7 +164,7 @@ public class QueueRepositoryImpl implements QueueRepository {
         }
 
         try {
-            return Optional.of(JsonHandler.getFromString(JSON.serialize(sequence), clazz));
+            return Optional.of(JsonHandler.getFromString(JSON.serialize(sequence), (Class<T>) messageType.getClazz()));
         } catch (InvalidParseOperationException e) {
             throw new QueueException(e);
         }

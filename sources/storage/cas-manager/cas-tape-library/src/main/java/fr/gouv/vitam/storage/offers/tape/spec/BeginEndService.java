@@ -30,8 +30,6 @@ package fr.gouv.vitam.storage.offers.tape.spec;
  * Service to manipulate resource availability
  */
 public interface BeginEndService {
-    String SPACE = " ";
-
     /**
      * if (begin()) {
      *   try {

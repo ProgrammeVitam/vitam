@@ -70,6 +70,7 @@ public class TapeLibraryPoolImpl implements TapeLibraryPool {
 
     @Override
     public TapeDriveService checkoutDriveService(Integer driveIndex) {
+        ParametersChecker.checkParameter("driveIndex is required", driveIndex);
         return this.tapeDriveServicePool.remove(driveIndex);
     }
 

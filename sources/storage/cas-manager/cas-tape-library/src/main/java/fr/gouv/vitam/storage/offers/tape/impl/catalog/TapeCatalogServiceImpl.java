@@ -40,7 +40,8 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
@@ -175,8 +176,8 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public <T> void add(QueueEntity queue, Class<T> clazz) throws QueueException {
-        repository.add(queue, clazz);
+    public void add(QueueMessageEntity queue) throws QueueException {
+        repository.add(queue);
     }
 
     @Override
@@ -195,33 +196,34 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public <T> Optional<T> peek(Class<T> clazz) throws QueueException {
-        return repository.peek(clazz);
+    public <T> Optional<T> receive(QueueMessageType messageType) throws QueueException {
+        return repository.receive(messageType);
     }
 
     @Override
-    public <T> Optional<T> peek(Class<T> clazz, boolean usePriority) throws QueueException {
-        return repository.peek(clazz, usePriority);
+    public <T> Optional<T> receive(QueueMessageType messageType, boolean usePriority) throws QueueException {
+        return repository.receive(messageType, usePriority);
     }
 
     @Override
-    public <T> Optional<T> peek(Bson inQuery, Class<T> clazz) throws QueueException {
-        return repository.peek(inQuery, clazz);
+    public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType) throws QueueException {
+        return repository.receive(inQuery, messageType);
 
     }
 
-    @Override public <T> Optional<T> peek(Bson inQuery, Class<T> clazz, boolean usePriority) throws QueueException {
-        return repository.peek(inQuery, clazz, usePriority);
-    }
-
-    @Override
-    public <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz) throws QueueException {
-        return repository.peek(inQuery, inUpdate, clazz);
-    }
-
-    @Override
-    public <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz, boolean usePriority)
+    @Override public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
-        return repository.peek(inQuery, inUpdate, clazz, usePriority);
+        return repository.receive(inQuery, messageType, usePriority);
+    }
+
+    @Override
+    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException {
+        return repository.receive(inQuery, inUpdate, messageType);
+    }
+
+    @Override
+    public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
+        throws QueueException {
+        return repository.receive(inQuery, inUpdate, messageType, usePriority);
     }
 }

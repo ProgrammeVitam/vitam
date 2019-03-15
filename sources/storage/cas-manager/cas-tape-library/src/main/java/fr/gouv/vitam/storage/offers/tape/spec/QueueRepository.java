@@ -28,7 +28,8 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 
 import java.util.Optional;
 
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import org.bson.conversions.Bson;
 
@@ -37,36 +38,39 @@ import org.bson.conversions.Bson;
  */
 public interface QueueRepository {
 
-    <T> void add(QueueEntity queue, Class<T> clazz) throws QueueException;
+    void add(QueueMessageEntity queueMessageEntity) throws QueueException;
 
-    long remove(String queueId) throws QueueException;
+    long remove(String queueMessageId) throws QueueException;
 
     /**
-     * Make QueueEntity COMPLETED
-     * @param queueId
+     * Make QueueMessageEntity COMPLETED
+     *
+     * @param queueMessageId
      * @return
      * @throws QueueException
      */
-    long complete(String queueId) throws QueueException;
+    long complete(String queueMessageId) throws QueueException;
 
     /**
      * Make queueEntity READY
-     * @param queueId
+     *
+     * @param queueMessageId
      * @return
      * @throws QueueException
      */
-    long ready(String queueId) throws QueueException;
+    long ready(String queueMessageId) throws QueueException;
 
-    <T> Optional<T> peek(Class<T> clazz) throws QueueException;
+    <T> Optional<T> receive(QueueMessageType messageType) throws QueueException;
 
-    <T> Optional<T> peek(Class<T> clazz, boolean usePriority) throws QueueException;
+    <T> Optional<T> receive(QueueMessageType messageType, boolean usePriority) throws QueueException;
 
-    <T> Optional<T> peek(Bson inQuery, Class<T> clazz) throws QueueException;
+    <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType) throws QueueException;
 
-    <T> Optional<T> peek(Bson inQuery, Class<T> clazz, boolean usePriority) throws QueueException;
+    <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority) throws QueueException;
 
-    <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz) throws QueueException;
+    <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException;
 
-    <T> Optional<T> peek(Bson inQuery, Bson inUpdate, Class<T> clazz, boolean usePriority) throws QueueException;
+    <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
+        throws QueueException;
 
 }

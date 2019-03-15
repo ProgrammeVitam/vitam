@@ -24,67 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.order;
+package fr.gouv.vitam.storage.offers.tape.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.common.model.StatusCode;
 
-public class WriteOrder extends QueueEntity implements Order {
+public class TapeResponse {
 
-    public static final String BUCKET = "bucket";
-    public static final String FILE_PATH = "filePath";
-    public static final String SIZE = "size";
+    private Object entity;
+    private StatusCode status;
 
-    @JsonProperty(BUCKET)
-    private String bucket;
-
-    @JsonProperty(FILE_PATH)
-    private String filePath;
-
-    @JsonProperty(SIZE)
-    private long size;
-
-    public WriteOrder() {
-        super(GUIDFactory.newGUID().getId());
+    public TapeResponse(StatusCode status) {
+        this.status = status;
     }
 
-    public WriteOrder(String bucket, String filePath, long size) {
-        this();
-        this.bucket = bucket;
-        this.filePath = filePath;
-        this.size = size;
+    public TapeResponse(Object entity, StatusCode status) {
+        this.entity = entity;
+        this.status = status;
     }
 
-    public String getBucket() {
-        return bucket;
+    public <T> T getEntity(Class<T> entityType) {
+        return entityType.cast(entity);
     }
 
-    public WriteOrder setBucket(String bucket) {
-        this.bucket = bucket;
-        return this;
+    public Object getEntity() {
+        return entity;
     }
 
-    public String getFilePath() {
-        return filePath;
+    public void setEntity(Object entity) {
+        this.entity = entity;
     }
 
-    public WriteOrder setFilePath(String filePath) {
-        this.filePath = filePath;
-        return this;
+    public boolean hasEntity() {
+        return entity != null;
     }
 
-    public long getSize() {
-        return size;
+    public StatusCode getStatus() {
+        return status;
     }
 
-    public WriteOrder setSize(long size) {
-        this.size = size;
-        return this;
-    }
-
-    @Override
-    public boolean isWriteOrder() {
-        return true;
+    public void setStatus(StatusCode status) {
+        this.status = status;
     }
 }

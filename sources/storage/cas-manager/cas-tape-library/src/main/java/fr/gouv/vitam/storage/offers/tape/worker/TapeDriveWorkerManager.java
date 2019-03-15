@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -73,8 +73,8 @@ public class TapeDriveWorkerManager {
         }
     }
 
-    public <T> void enqueue(QueueEntity entity, Class<T> clazz) throws QueueException {
-        this.readWriteQueue.add(entity, clazz);
+    public void enqueue(QueueMessageEntity entity) throws QueueException {
+        this.readWriteQueue.add(entity);
     }
 
 

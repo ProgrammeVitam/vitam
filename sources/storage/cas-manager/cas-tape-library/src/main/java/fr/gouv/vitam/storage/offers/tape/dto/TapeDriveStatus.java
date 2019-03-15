@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+/**
+ * For more information, @see http://manpagesfr.free.fr/man/man4/st.4.html
+ */
 public enum TapeDriveStatus {
     // Tape position is just after a filemark
     EOF("EOF"),
@@ -34,7 +37,7 @@ public enum TapeDriveStatus {
     BOT("BOT"),
 
     // End of tape
-    EOT("ONLINE IM_REP_EN"),
+    EOT("EOT"),
 
     // Tape position is at Setmark
     SM("SM"),

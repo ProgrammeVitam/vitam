@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import fr.gouv.vitam.common.ParametersChecker;
+
 /**
  * TapeDrive or tape drive
  */
@@ -38,6 +40,7 @@ public class TapeDrive {
     }
 
     public void setIndex(Integer index) {
+        ParametersChecker.checkParameter("index param is required", index);
         this.index = index;
     }
 

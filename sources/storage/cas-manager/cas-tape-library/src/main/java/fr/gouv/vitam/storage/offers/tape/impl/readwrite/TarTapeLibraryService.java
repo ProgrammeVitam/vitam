@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
-import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
@@ -59,20 +59,22 @@ public class TarTapeLibraryService implements TapeReadWriteService {
     }
 
     @Override
-    public CommandResponse writeToTape(long timeoutInMillisecondes, String workingDir, String filePath) {
+    public TapeResponse writeToTape(String workingDir, String filePath) {
         ParametersChecker
             .checkParameter("Arguments device and inputPath is required", tapeDriveConf.getDevice(), filePath);
 
         List<String> args = Lists.newArrayList(CVF, tapeDriveConf.getDevice(), workingDir + filePath);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getTarPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getTarPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
             args);
-        Output output = getExecutor().execute(tapeDriveConf.getTarPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeDriveConf.getTarPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
 
     @Override
-    public CommandResponse readFromTape(long timeoutInMillisecondes, String workingDir, String filetoExtract) {
+    public TapeResponse readFromTape(String workingDir, String filetoExtract) {
 
         List<String> args = Lists.newArrayList(C, workingDir, XVF, tapeDriveConf.getDevice());
 
@@ -80,30 +82,34 @@ public class TarTapeLibraryService implements TapeReadWriteService {
             args.add(filetoExtract);
         }
 
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getTarPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getTarPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
             args);
-        Output output = getExecutor().execute(tapeDriveConf.getTarPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeDriveConf.getTarPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
         return parseCommonResponse(output);
     }
 
-    private CommandResponse parseCommonResponse(Output output) {
-        CommandResponse response = new CommandResponse();
-        response.setOutput(output);
+    private TapeResponse parseCommonResponse(Output output) {
+        TapeResponse response;
+
         if (output.getExitCode() == 0) {
-            response.setStatus(StatusCode.OK);
+            response = new TapeResponse(output, StatusCode.OK);
         } else {
-            response.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
+            response = new TapeResponse(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
         }
 
         return response;
     }
 
     @Override
-    public CommandResponse listFromTape(long timeoutInMillisecondes) {
+    public TapeResponse listFromTape() {
         List<String> args = Lists.newArrayList(TVF, tapeDriveConf.getDevice());
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getTarPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getTarPath(),
+            tapeDriveConf.getTimeoutInMilliseconds(),
             args);
-        Output output = getExecutor().execute(tapeDriveConf.getTarPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeDriveConf.getTarPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }

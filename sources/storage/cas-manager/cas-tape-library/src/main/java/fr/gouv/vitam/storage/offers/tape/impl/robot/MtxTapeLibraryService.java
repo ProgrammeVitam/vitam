@@ -36,8 +36,8 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
-import fr.gouv.vitam.storage.offers.tape.dto.CommandResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeLibraryStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
@@ -61,46 +61,52 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     }
 
     @Override
-    public TapeLibraryState status(long timeoutInMillisecondes) {
+    public TapeLibraryState status() {
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), STATUS);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(),
+            tapeRebotConf.getTimeoutInMilliseconds(),
             args);
-        Output output = getExecutor().execute(tapeRebotConf.getMtxPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeRebotConf.getMtxPath(), tapeRebotConf.getTimeoutInMilliseconds(), args);
         return parseTapeLibraryState(output);
     }
 
     @Override
-    public CommandResponse loadTape(long timeoutInMillisecondes, String tapeIndex, String driveIndex) {
+    public TapeResponse loadTape(String tapeIndex, String driveIndex) {
         ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
 
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), LOAD, tapeIndex, driveIndex);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(),
+            tapeRebotConf.getTimeoutInMilliseconds(),
             args);
-        Output output = getExecutor().execute(tapeRebotConf.getMtxPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeRebotConf.getMtxPath(), tapeRebotConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
 
     @Override
-    public CommandResponse unloadTape(long timeoutInMillisecondes, String tapeIndex, String driveIndex) {
+    public TapeResponse unloadTape(String tapeIndex, String driveIndex) {
         ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
 
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), UNLOAD, tapeIndex, driveIndex);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(), timeoutInMillisecondes,
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(),
+            tapeRebotConf.getTimeoutInMilliseconds(),
             args);
 
-        Output output = getExecutor().execute(tapeRebotConf.getMtxPath(), timeoutInMillisecondes, args);
+        Output output =
+            getExecutor().execute(tapeRebotConf.getMtxPath(), tapeRebotConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
 
     @Override
-    public CommandResponse loadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex) {
-        return loadTape(timeoutInMillisecondes, tapeIndex.toString(), driveIndex.toString());
+    public TapeResponse loadTape(Integer tapeIndex, Integer driveIndex) {
+        return loadTape(tapeIndex.toString(), driveIndex.toString());
     }
 
-    @Override public CommandResponse unloadTape(long timeoutInMillisecondes, Integer tapeIndex, Integer driveIndex) {
-        return unloadTape(timeoutInMillisecondes, tapeIndex.toString(), driveIndex.toString());
+    @Override public TapeResponse unloadTape(Integer tapeIndex, Integer driveIndex) {
+        return unloadTape(tapeIndex.toString(), driveIndex.toString());
     }
 
     @Override
@@ -118,13 +124,12 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
         lock.unlock();
     }
 
-    private CommandResponse parseCommonResponse(Output output) {
-        CommandResponse response = new CommandResponse();
-        response.setOutput(output);
+    private TapeResponse parseCommonResponse(Output output) {
+        TapeResponse response;
         if (output.getExitCode() == 0) {
-            response.setStatus(StatusCode.OK);
+            response = new TapeResponse(output, StatusCode.OK);
         } else {
-            response.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
+            response = new TapeResponse(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
         }
 
         return response;
@@ -132,17 +137,15 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
 
 
     private TapeLibraryState parseTapeLibraryState(Output output) {
-
-
         if (output.getExitCode() == 0) {
             final TapeLibraryStatusParser tapeLibraryStatusParser = new TapeLibraryStatusParser();
             TapeLibraryState tapeLibraryState = tapeLibraryStatusParser.parse(output.getStdout());
             tapeLibraryState.setStatus(StatusCode.OK);
-            tapeLibraryState.setOutput(output);
+            tapeLibraryState.setEntity(output);
             return tapeLibraryState;
         } else {
-            TapeLibraryState tapeLibraryState = new TapeLibraryState();
-            tapeLibraryState.setOutput(output);
+            TapeLibraryState tapeLibraryState =
+                new TapeLibraryState(output, output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
             tapeLibraryState.setStatus(output.getExitCode() == -1 ? StatusCode.WARNING : StatusCode.KO);
             return tapeLibraryState;
         }

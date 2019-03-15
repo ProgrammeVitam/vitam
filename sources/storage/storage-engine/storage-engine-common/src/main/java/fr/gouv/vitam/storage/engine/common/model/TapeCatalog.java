@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
  */
 
 @JsonInclude(NON_NULL)
-public class TapeCatalog extends QueueEntity {
+public class TapeCatalog extends QueueMessageEntity {
     public static final String CODE = "code";
     public static final String ALTERNATIVE_CODE = "alternative_code";
     public static final String BUCKET = "bucket";
@@ -78,7 +78,7 @@ public class TapeCatalog extends QueueEntity {
     private Long capacity;
 
     @JsonProperty(FILE_COUNT)
-    private Integer fileCount;
+    private Integer fileCount = 0;
 
     @JsonProperty(CURRENT_LOCATION)
     private TapeLocation currentLocation;
@@ -96,7 +96,7 @@ public class TapeCatalog extends QueueEntity {
     private int version;
 
     public TapeCatalog() {
-        super(GUIDFactory.newGUID().getId());
+        super(GUIDFactory.newGUID().getId(), QueueMessageType.TapeCatalog);
     }
 
     public String getCode() {

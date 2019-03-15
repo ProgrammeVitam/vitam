@@ -27,7 +27,9 @@
 package fr.gouv.vitam.storage.offers.tape.worker;
 
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -36,12 +38,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
-import fr.gouv.vitam.storage.engine.common.model.QueueEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
+import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.order.Order;
-import fr.gouv.vitam.storage.offers.tape.order.ReadOrder;
-import fr.gouv.vitam.storage.offers.tape.order.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -58,9 +61,9 @@ public class TapeDriveWorker implements Runnable {
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
     private final TapeCatalogService tapeCatalogService;
-    private volatile boolean stop = false;
-    private volatile boolean died = false;
+    private final AtomicBoolean stop = new AtomicBoolean(false);
     private ReadWriteResult previousReadWriteResult;
+    private final CountDownLatch shutdownSignal;
 
     public TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
@@ -75,84 +78,99 @@ public class TapeDriveWorker implements Runnable {
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.readWriteQueue = readWriteQueue;
+        this.shutdownSignal = new CountDownLatch(1);
     }
 
     @Override
     public void run() {
         try {
-            final StopWatch exceptionStopWatch = StopWatch.createStarted();
+            StopWatch exceptionStopWatch = null;
             final StopWatch loopStopWatch = StopWatch.createStarted();
-            while (!stop) {
-                LOGGER.debug("Start take order from queue ");
+            while (!stop.get()) {
+                LOGGER.debug("Start take readWriteOrder from queue ");
 
-                Order order = null;
+                ReadWriteOrder readWriteOrder = null;
                 loopStopWatch.reset();
                 loopStopWatch.start();
 
                 try {
                     if (tapeDriveService.getTapeDriveConf().getReadWritePriority() == ReadWritePriority.WRITE) {
-                        Optional<WriteOrder> write = readWriteQueue.peek(WriteOrder.class);
+                        Optional<WriteOrder> write = readWriteQueue.receive(QueueMessageType.WriteOrder);
                         if (write.isPresent()) {
-                            LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
-                            order = write.get();
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
+                            }
+                            readWriteOrder = write.get();
 
                         } else {
-                            Optional<ReadOrder> read = readWriteQueue.peek(ReadOrder.class);
+                            Optional<ReadOrder> read = readWriteQueue.receive(QueueMessageType.ReadOrder);
                             if (read.isPresent()) {
-                                LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
-                                order = read.get();
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
+                                }
+                                readWriteOrder = read.get();
                             }
                         }
                     } else {
-                        Optional<ReadOrder> read = readWriteQueue.peek(ReadOrder.class);
+                        Optional<ReadOrder> read = readWriteQueue.receive(QueueMessageType.ReadOrder);
                         if (read.isPresent()) {
-                            LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
-                            order = read.get();
+                            if (LOGGER.isDebugEnabled()) {
+                                LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
+                            }
+                            readWriteOrder = read.get();
 
                         } else {
-                            Optional<WriteOrder> write = readWriteQueue.peek(WriteOrder.class);
+                            Optional<WriteOrder> write = readWriteQueue.receive(QueueMessageType.WriteOrder);
                             if (write.isPresent()) {
-                                LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
-                                order = write.get();
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
+                                }
+                                readWriteOrder = write.get();
 
                             }
                         }
                     }
 
                 } catch (QueueException e) {
-                    LOGGER.debug("Sleep " + SLEEP_TIME + " ms because of exception : ", e);
-                    Thread.sleep(SLEEP_TIME);
-
-                    // Log every one minute
-                    if (exceptionStopWatch.getTime(TimeUnit.MINUTES) >= 1) {
+                    if (null == exceptionStopWatch) {
                         LOGGER.error(e);
-                        exceptionStopWatch.reset();
-                        exceptionStopWatch.start();
+                        exceptionStopWatch = StopWatch.createStarted();
+
+                    } else {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Sleep " + SLEEP_TIME + " ms because of exception : ", e);
+                        }
+                        Thread.sleep(SLEEP_TIME);
+
+                        // Log every one minute
+                        if (exceptionStopWatch.getTime(TimeUnit.MINUTES) >= 1) {
+                            LOGGER.error(e);
+                            exceptionStopWatch.reset();
+                            exceptionStopWatch.start();
+                        }
                     }
                 }
 
-
-
-                if (order != null) {
+                if (readWriteOrder != null) {
 
                     // Reset StopWatch
-                    exceptionStopWatch.reset();
+                    exceptionStopWatch = null;
 
                     TapeCatalog
                         currentTape =
                         (previousReadWriteResult != null) ? previousReadWriteResult.getCurrentTape() : null;
+
                     ReadWriteTask readWriteTask =
-                        new ReadWriteTask(order, currentTape, tapeRobotPool, tapeDriveService, tapeCatalogService);
+                        new ReadWriteTask(readWriteOrder, currentTape, tapeRobotPool, tapeDriveService,
+                            tapeCatalogService);
                     previousReadWriteResult = readWriteTask.get();
                     // TODO: 12/03/19 update catalog
                     // TODO: 11/03/19 update index
-                }
 
 
-                if (order != null) {
                     PerformanceLogger
-                        .getInstance().log("STP_Offer_Tape", ((QueueEntity) order).getId(),
-                        order.isWriteOrder() ? "WRITE_TO_TAPE" : "READ_FROM_TAPE",
+                        .getInstance().log("STP_Offer_Tape", ((QueueMessageEntity) readWriteOrder).getId(),
+                        readWriteOrder.isWriteOrder() ? "WRITE_TO_TAPE" : "READ_FROM_TAPE",
                         loopStopWatch.getTime(TimeUnit.MILLISECONDS));
                 }
 
@@ -161,32 +179,27 @@ public class TapeDriveWorker implements Runnable {
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            died = true;
+            this.shutdownSignal.countDown();
         }
     }
 
 
     public void stop() {
-        this.stop = true;
-        while (!died) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+        this.stop.compareAndSet(false, true);
+        try {
+            this.shutdownSignal.await();
+        } catch (InterruptedException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 
 
     public void stop(long timeout, TimeUnit timeUnit) {
-        StopWatch stopWatch = StopWatch.createStarted();
-        this.stop = true;
-        while (!died && stopWatch.getTime(timeUnit) < timeout) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            }
+        this.stop.compareAndSet(false, true);
+        try {
+            this.shutdownSignal.await(timeout, timeUnit);
+        } catch (InterruptedException e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 
