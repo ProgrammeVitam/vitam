@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.common.model;
 
 import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -94,6 +95,10 @@ public class TapeCatalog extends QueueMessageEntity {
 
     @JsonProperty(VERSION)
     private int version;
+
+    @JsonIgnore
+    private Integer currentPosition;
+
 
     public TapeCatalog() {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.TapeCatalog);
@@ -224,5 +229,13 @@ public class TapeCatalog extends QueueMessageEntity {
     public TapeCatalog setBucket(String bucket) {
         this.bucket = bucket;
         return this;
+    }
+
+    public Integer getCurrentPosition() {
+        return currentPosition;
+    }
+
+    public void setCurrentPosition(Integer currentPosition) {
+        this.currentPosition = currentPosition;
     }
 }

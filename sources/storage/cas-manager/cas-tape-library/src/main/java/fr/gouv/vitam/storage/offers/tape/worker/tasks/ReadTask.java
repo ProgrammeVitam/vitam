@@ -160,9 +160,9 @@ public class ReadTask implements Future<ReadWriteResult> {
         try {
             // move drive to the given position
             // FIXME: 13/03/19 voir si on peut recupérer la position courante (gestion dans le catalogue?)
-            tapeDriveService.getDriveCommandService().rewind(TIMEOUT_IN_MILLISECONDS);
+            tapeDriveService.getDriveCommandService().rewind(TIMEOUT_IN_MILLISECONDS, workerCurrentTape);
             if (readOrder.getFilePosition() > 0) {
-                tapeDriveService.getDriveCommandService().goToPosition(TIMEOUT_IN_MILLISECONDS,
+                tapeDriveService.getDriveCommandService().goToPosition(TIMEOUT_IN_MILLISECONDS, workerCurrentTape,
                         readOrder.getFilePosition().toString());
             }
 
