@@ -59,7 +59,7 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     public TapeResponse writeToTape(String workingDir, String inputPath) {
         ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
 
-        List<String> args = Lists.newArrayList(IF + workingDir + inputPath, OF + tapeDriveConf.getDevice());
+        List<String> args = Lists.newArrayList(IF + workingDir  + "/" + inputPath, OF + tapeDriveConf.getDevice());
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);

@@ -49,6 +49,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     public static final String F = "-f";
     public static final String STATUS = "status";
     public static final String FSF = "fsf";
+    public static final String BSF = "bsf";
     public static final String REWIND = "rewind";
     public static final String EOD = "eod";
     private final TapeDriveConf tapeDriveConf;
@@ -78,13 +79,18 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
 
     @Override
     public TapeResponse goToPosition(Integer position) {
+        return goToPosition(position, false);
+    }
+
+    @Override
+    public TapeResponse goToPosition(Integer position, boolean isBackword) {
         ParametersChecker.checkParameter("Arguments position is required", position);
-        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), FSF, position.toString());
+        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), isBackword ? BSF : FSF, position.toString());
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-            tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+                tapeDriveConf.getTimeoutInMilliseconds(),
+                args);
         Output output =
-            getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+                getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
         return parseCommonResponse(output);
     }
 

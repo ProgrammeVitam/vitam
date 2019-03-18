@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape;
 
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -52,18 +45,22 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 public class TapeLibraryFactory {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibraryFactory.class);
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
-    private static ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool;
+    private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
 
     private TapeLibraryFactory() {
     }
 
     public void initialize(TapeLibraryConfiguration configuration, MongoDbAccess mongoDbAccess) {
-        tapeLibraryPool = new ConcurrentHashMap<>();
-
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
         final TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
@@ -82,22 +79,17 @@ public class TapeLibraryFactory {
                 robotServices.add(robotService);
             }
 
-            if (robotServices.size() == 0) {
-                throw new RuntimeException("Not robot found");
-            }
-
             for (TapeDriveConf tapeDriveConf : tapeLibraryConf.getDrives()) {
                 final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf);
                 driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);
             }
 
-            if (driveServices.size() == 0) {
-                throw new RuntimeException("Not drive found");
+            if (robotServices.size() > 0 && driveServices.size() > 0) {
+                tapeLibraryPool
+                    .putIfAbsent(tapeLibraryIdentifier,
+                        new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices,
+                            tapeCatalogService));
             }
-
-            tapeLibraryPool.put(tapeLibraryIdentifier,
-                new TapeLibraryPoolImpl(tapeLibraryIdentifier, robotServices, driveServices, tapeCatalogService));
-
 
             // init tape catalog
             TapeLibraryPool tapeLibraryPool = TapeLibraryFactory.tapeLibraryPool.get(tapeLibraryIdentifier);
@@ -113,6 +105,7 @@ public class TapeLibraryFactory {
 
                 }
             } catch (InterruptedException | TapeCatalogException e) {
+                LOGGER.error(e);
                 throw new RuntimeException(e);
             }
         }
@@ -127,7 +120,6 @@ public class TapeLibraryFactory {
         return tapeLibraryPool;
     }
 
-    @VisibleForTesting
     public TapeLibraryPool getFirstTapeLibraryPool() {
         return tapeLibraryPool.values().iterator().next();
     }

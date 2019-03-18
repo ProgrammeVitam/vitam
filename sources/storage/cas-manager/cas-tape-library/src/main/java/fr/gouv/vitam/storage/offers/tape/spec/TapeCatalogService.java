@@ -42,7 +42,7 @@ public interface TapeCatalogService extends QueueRepository {
 
     boolean update(String tapeId, Map<String, Object> criteria) throws TapeCatalogException;
 
-    boolean init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState) throws TapeCatalogException;
+    void init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState) throws TapeCatalogException;
 
     TapeCatalog findById(String tapeId) throws TapeCatalogException;
 

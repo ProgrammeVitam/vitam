@@ -146,10 +146,10 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case KO_ON_WRITE_TO_TAPE:
                     // FIXME: 19/03/19 error while write file in the tape. perhaps timeout ?!!
                     break;
-                case KO_ON_WRITE_REWIND_TAPE:
+                case KO_ON_REWIND_TAPE:
                     // FIXME: 19/03/19 cannot rewind the tape
                     break;
-                case KO_ON_WRITE_REWIND_FSF_TAPE:
+                case KO_ON_REWIND_FSF_BSF_TAPE:
                     // FIXME: 19/03/19 cannot forward in the tape
                     break;
                 case NULL_CURRENT_TAPE:
@@ -497,13 +497,13 @@ public class WriteTask implements Future<ReadWriteResult> {
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         " Action : Write KO > Rewind KO > GoToPosition KO, Order: " +
                         JsonHandler.unprettyPrint(writeOrder) + ", Entity: " +
-                        JsonHandler.unprettyPrint(response.getEntity()), ReadWriteErrorCode.KO_ON_WRITE_REWIND_FSF_TAPE,
+                        JsonHandler.unprettyPrint(response.getEntity()), ReadWriteErrorCode.KO_ON_REWIND_FSF_BSF_TAPE,
                         response);
                 }
             } else {
                 throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                     " Action : Write KO > Rewind KO, Order: " + JsonHandler.unprettyPrint(writeOrder) + ", Entity: " +
-                    JsonHandler.unprettyPrint(response.getEntity()), ReadWriteErrorCode.KO_ON_WRITE_REWIND_TAPE,
+                    JsonHandler.unprettyPrint(response.getEntity()), ReadWriteErrorCode.KO_ON_REWIND_TAPE,
                     response);
             }
 

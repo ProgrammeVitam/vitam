@@ -71,6 +71,7 @@ public class TapeLibraryIT {
     public static final long TIMEOUT_IN_MILLISECONDS = 60000L;
     public static final Integer SLOT_INDEX = 10;
     public static final Integer DRIVE_INDEX = 2;
+    private MongoDbAccess mongoDbAccess;
 
     @Rule
     public TempFolderRule tempFolderRule = new TempFolderRule();
@@ -89,8 +90,7 @@ public class TapeLibraryIT {
             PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
                 TapeLibraryConfiguration.class);
         tapeLibraryFacotry = TapeLibraryFactory.getInstance();
-
-        MongoDbAccess  mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
+        mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeLibraryFacotry.initialize(configuration, mongoDbAccess);
     }
 
@@ -426,8 +426,8 @@ public class TapeLibraryIT {
             Assertions.assertThat(response.isOK()).isTrue();
 
             // read file from tape with given position
+            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
             String tapeCode = state.getSlots().get(SLOT_INDEX - 1).getTape().getVolumeTag();
-            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB));
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
                     Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 

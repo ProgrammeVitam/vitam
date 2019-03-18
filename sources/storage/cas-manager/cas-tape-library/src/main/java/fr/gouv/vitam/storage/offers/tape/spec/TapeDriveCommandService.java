@@ -38,6 +38,15 @@ public interface TapeDriveCommandService extends TapeDriveSafeCommandService, Be
     TapeResponse goToPosition(Integer position);
 
     /**
+     * fsf / bsf
+     *
+     * @param position
+     * @param isBackword
+     * @return TapeResponse
+     */
+    TapeResponse goToPosition(Integer position, boolean isBackword);
+
+    /**
      * Go to start
      *
      * @return TapeResponse
