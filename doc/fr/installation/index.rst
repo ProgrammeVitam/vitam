@@ -13,6 +13,7 @@
    installation/_toc
    update/_toc
    post_install/_toc
+   upgrade/_toc
    annexes/_toc
 
 
