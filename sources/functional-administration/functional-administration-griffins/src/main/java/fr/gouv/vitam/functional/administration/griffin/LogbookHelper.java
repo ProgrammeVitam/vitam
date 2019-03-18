@@ -46,6 +46,7 @@ import static fr.gouv.vitam.common.i18n.VitamLogbookMessages.getCodeOp;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetail;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.newLogbookOperationParameters;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.MASTERDATA;
@@ -83,6 +84,23 @@ class LogbookHelper {
             newLogbookOperationParameters(guiEvent, stepName, guid, MASTERDATA, OK, codeOp, guid);
 
         String parameterValue = stepName + "." + OK;
+        logbookParameters.putParameterValue(outcomeDetail, parameterValue);
+
+        LogbookOperationsClient client = factory.getClient();
+        client.update(logbookParameters);
+    }
+
+    static void createLogbookEventWarning(LogbookOperationsClientFactory factory, GUID guid, String stepName)
+        throws LogbookClientBadRequestException, LogbookClientServerException,
+        LogbookClientNotFoundException {
+
+        GUID guiEvent = newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        String codeOp = getCodeOp(stepName, WARNING);
+
+        LogbookOperationParameters logbookParameters =
+            newLogbookOperationParameters(guiEvent, stepName, guid, MASTERDATA, WARNING, codeOp, guid);
+
+        String parameterValue = stepName + "." + WARNING;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
 
         LogbookOperationsClient client = factory.getClient();

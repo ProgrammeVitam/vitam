@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
