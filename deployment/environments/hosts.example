@@ -336,6 +336,7 @@ vitam_tenant_admin=1
 days_to_delete_logback_logfiles=
 
 # Define local Consul datacenter name
+# CAUTION !!! Only alphanumeric characters when using s3 as offer backend !!!
 vitam_site_name=prod-dc1
 # On offer, value is the prefix for all containers' names. If upgrading from R8, you MUST UNCOMMENT this parameter AS IS !!!
 #vitam_prefix_offer=""
