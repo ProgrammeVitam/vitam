@@ -45,6 +45,7 @@ import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSessio
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.anyOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
@@ -56,6 +57,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -536,6 +538,43 @@ public class PreservationIT extends VitamRuleRunner {
         }
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void import_griffin_with_warning_when_used_in_preservation_scenario() throws Exception {
+        getVitamSession().setTenantId(0);
+
+        GUID guid = newGUID();
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();) {
+
+            getVitamSession().setRequestId(guid);
+
+            guid = newGUID();
+            getVitamSession().setRequestId(guid);
+
+            List<GriffinModel> griffinlListMode = getGriffinModels("preservation/griffins_to_update_with_warning.json");
+            client.importGriffins(griffinlListMode);
+
+            // When
+            ArrayNode jsonNode = (ArrayNode) accessClient
+                .selectOperationById(guid.getId(), new SelectMultiQuery().getFinalSelect()).toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
+
+            GriffinReport griffinReport = getGriffinReport(storageClient, guid.toString());
+
+            // Then
+            assertThat(jsonNode.iterator())
+                .extracting(j -> j.get("outcome").asText())
+                .containsExactly(StatusCode.OK.name(),StatusCode.OK.name(),StatusCode.WARNING.name());
+
+            assertThat(griffinReport.getStatusCode()).isEqualTo(StatusCode.WARNING);
+
+        }
+
+    }
 
     @Test
     @RunWithCustomExecutor
