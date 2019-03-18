@@ -1,3 +1,8 @@
+# XLARGE sizing example host file
+# 56 servers
+# Use-case: Big productions
+# WARNING: JVM sizing calculation is not done
+
 [hosts]
 
 [hosts:children]
@@ -37,13 +42,12 @@ zone-admin
 ##### Zone externe
 
 [hosts-ihm-recette]
-localhost
 
 [zone-external:children]
 hosts-ihm-demo
 
 [hosts-ihm-demo]
-localhost
+xlarge-access-vm-1
 
 
 ##### Zone access
@@ -53,10 +57,12 @@ hosts-ingest-external
 hosts-access-external
 
 [hosts-ingest-external]
-localhost
+xlarge-external-vm-1
+xlarge-external-vm-2
 
 [hosts-access-external]
-localhost
+xlarge-external-vm-1
+xlarge-external-vm-2
 
 ##### Zone applicative
 
@@ -74,37 +80,59 @@ hosts-storage-engine
 hosts-security-internal
 
 [hosts-security-internal]
-localhost
+xlarge-app-vm-3
+xlarge-app-vm-4
+xlarge-app-vm-5
 
 [hosts-logbook]
-localhost
+xlarge-app-vm-3
+xlarge-app-vm-4
+xlarge-app-vm-5
 
 [hosts-workspace]
-localhost
+xlarge-app-vm-10
 
 [hosts-ingest-internal]
-localhost
+xlarge-app-vm-1
+xlarge-app-vm-2
 
 [hosts-access-internal]
-localhost
+xlarge-app-vm-1
+xlarge-app-vm-2
 
 [hosts-metadata]
-localhost
+xlarge-app-vm-6
+xlarge-app-vm-7
+xlarge-app-vm-8
 
 [hosts-functional-administration]
-localhost
+xlarge-app-vm-6
+xlarge-app-vm-7
+xlarge-app-vm-8
 
 [hosts-processing]
-localhost
+xlarge-app-vm-9
 
 [hosts-storage-engine]
-localhost
+xlarge-app-vm-22
+xlarge-app-vm-23
+xlarge-app-vm-24
+xlarge-app-vm-25
 
 [hosts-batch-report]
-localhost
+xlarge-app-vm-11
 
 [hosts-worker]
-localhost
+xlarge-app-vm-12
+xlarge-app-vm-13
+xlarge-app-vm-14
+xlarge-app-vm-15
+xlarge-app-vm-16
+xlarge-app-vm-17
+xlarge-app-vm-18
+xlarge-app-vm-19
+xlarge-app-vm-20
+xlarge-app-vm-21
 
 
 ##### Zone storage
@@ -114,7 +142,8 @@ hosts-storage-offer-default
 hosts-mongodb-offer
 
 [hosts-storage-offer-default]
-localhost offer_conf=offer-fs-1
+xlarge-storage-vm-1 offer_conf=offer-s3-1
+xlarge-storage-vm-2 offer_conf=offer-s3-1
 
 [hosts-mongodb-offer:children]
 hosts-mongos-offer
@@ -122,13 +151,19 @@ hosts-mongoc-offer
 hosts-mongod-offer
 
 [hosts-mongos-offer]
-localhost
+xlarge-storage-vm-3  mongo_cluster_name=offer-s3-1
+xlarge-storage-vm-4  mongo_cluster_name=offer-s3-1
+xlarge-storage-vm-5  mongo_cluster_name=offer-s3-1
 
 [hosts-mongoc-offer]
-localhost                       mongo_rs_bootstrap=true
+xlarge-storage-vm-3  mongo_cluster_name=offer-s3-1                       mongo_rs_bootstrap=true
+xlarge-storage-vm-4  mongo_cluster_name=offer-s3-1
+xlarge-storage-vm-5  mongo_cluster_name=offer-s3-1
 
 [hosts-mongod-offer]
-localhost   mongo_shard_id=0    mongo_rs_bootstrap=true
+xlarge-storage-vm-6  mongo_cluster_name=offer-s3-1  mongo_shard_id=0     mongo_rs_bootstrap=true
+xlarge-storage-vm-7  mongo_cluster_name=offer-s3-1  mongo_shard_id=0
+xlarge-storage-vm-8  mongo_cluster_name=offer-s3-1  mongo_shard_id=0
 
 ##### Zone data
 
@@ -137,7 +172,12 @@ hosts-elasticsearch-data
 hosts-mongodb-data
 
 [hosts-elasticsearch-data]
-localhost elasticsearch_memory=256m
+xlarge-data-vm-1
+xlarge-data-vm-2
+xlarge-data-vm-3
+xlarge-data-vm-4
+xlarge-data-vm-5
+xlarge-data-vm-6
 
 [hosts-mongodb-data:children]
 hosts-mongos-data
@@ -148,13 +188,22 @@ hosts-mongod-data
 mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
-localhost
+xlarge-data-vm-7  mongo_cluster_name=mongo-data
+xlarge-data-vm-8  mongo_cluster_name=mongo-data
+xlarge-data-vm-9  mongo_cluster_name=mongo-data
 
 [hosts-mongoc-data]
-localhost                        mongo_rs_bootstrap=true
+xlarge-data-vm-7  mongo_cluster_name=mongo-data                         mongo_rs_bootstrap=true
+xlarge-data-vm-8  mongo_cluster_name=mongo-data
+xlarge-data-vm-9  mongo_cluster_name=mongo-data
 
 [hosts-mongod-data]
-localhost      mongo_shard_id=0  mongo_rs_bootstrap=true
+xlarge-data-vm-10  mongo_cluster_name=mongo-data      mongo_shard_id=0  mongo_rs_bootstrap=true
+xlarge-data-vm-11  mongo_cluster_name=mongo-data      mongo_shard_id=0
+xlarge-data-vm-12  mongo_cluster_name=mongo-data      mongo_shard_id=0
+xlarge-data-vm-13  mongo_cluster_name=mongo-data      mongo_shard_id=1  mongo_rs_bootstrap=true
+xlarge-data-vm-14  mongo_cluster_name=mongo-data      mongo_shard_id=1
+xlarge-data-vm-15  mongo_cluster_name=mongo-data      mongo_shard_id=1
 
 ###### Zone admin
 
@@ -166,23 +215,30 @@ log-servers
 hosts-elasticsearch-log
 
 [hosts-cerebro]
-localhost
+xlarge-admin-vm-1
 
 [hosts-consul-server]
-localhost
+xlarge-admin-vm-3
+xlarge-admin-vm-4
+xlarge-admin-vm-5
 
 [hosts-kibana-data]
-localhost
 
 [log-servers:children]
 hosts-kibana-log
 hosts-logstash
 
 [hosts-logstash]
+xlarge-admin-vm-1
+xlarge-admin-vm-2
 
 [hosts-kibana-log]
+xlarge-admin-vm-1
 
 [hosts-elasticsearch-log]
+xlarge-admin-vm-3
+xlarge-admin-vm-4
+xlarge-admin-vm-5
 
 ########### Global vars ###########
 
@@ -199,7 +255,7 @@ ansible_become=true
 dns_servers=["10.100.211.222", "8.8.8.8"]
 
 ### memory settings ###
-memory_opts="-Xms32m -Xmx256m"
+memory_opts="-Xms1024m -Xmx1024m"
 
 ### tenants ###
 vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
@@ -217,13 +273,13 @@ primary_site=true
 
 # environnement=local
 ### vitam-itest repository ###
-vitam_tests_branch=master
+vitam_tests_branch=master_2.1.x
 vitam_tests_gitrepo_protocol=https
-vitam_tests_gitrepo_baseurl=gitlab.dev.programmevitam.fr
-vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/vitam/vitam-itests.git
+vitam_tests_gitrepo_baseurl=github.com
+vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/ProgrammeVitam/vitam-itests.git
 
 ### reverse proxy ###
 reverse_proxy_port=80
 http_proxy_environnement=
-vitam_reverse_external_dns=localhost
+vitam_reverse_external_dns=
 vitam_reverse_external_protocol=http

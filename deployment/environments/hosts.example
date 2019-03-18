@@ -50,7 +50,6 @@ zone-admin
 
 [zone-external:children]
 hosts-ihm-demo
-hosts-cerebro
 hosts-ihm-recette
 
 
@@ -61,9 +60,6 @@ hosts-ihm-recette
 
 [hosts-ihm-recette]
 # TODO: Put here servers where this service will be deployed : ihm-recette (extra feature)
-
-[hosts-cerebro]
-# TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
 
 
 ##### Zone access
@@ -282,10 +278,14 @@ hosts-mongod-data
 
 # Group definition ; DO NOT MODIFY
 [zone-admin:children]
+hosts-cerebro
 hosts-consul-server
 hosts-kibana-data
 log-servers
 hosts-elasticsearch-log
+
+[hosts-cerebro]
+# TODO: Put here servers where this service will be deployed : vitam-elasticsearch-cerebro
 
 [hosts-consul-server]
 # TODO: Put here servers where this service will be deployed : consul

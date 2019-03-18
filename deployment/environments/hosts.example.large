@@ -1,3 +1,8 @@
+# LARGE sizing example host file
+# 28 servers
+# Use-case: Standard productions with resilience
+# WARNING: JVM sizing calculation is not done
+
 [hosts]
 
 [hosts:children]
@@ -37,13 +42,12 @@ zone-admin
 ##### Zone externe
 
 [hosts-ihm-recette]
-localhost
 
 [zone-external:children]
 hosts-ihm-demo
 
 [hosts-ihm-demo]
-localhost
+large-access-vm-1
 
 
 ##### Zone access
@@ -53,10 +57,12 @@ hosts-ingest-external
 hosts-access-external
 
 [hosts-ingest-external]
-localhost
+large-external-vm-1
+large-external-vm-2
 
 [hosts-access-external]
-localhost
+large-external-vm-1
+large-external-vm-2
 
 ##### Zone applicative
 
@@ -74,37 +80,46 @@ hosts-storage-engine
 hosts-security-internal
 
 [hosts-security-internal]
-localhost
+large-app-vm-3
+large-app-vm-4
 
 [hosts-logbook]
-localhost
+large-app-vm-3
+large-app-vm-4
 
 [hosts-workspace]
-localhost
+large-app-vm-8
 
 [hosts-ingest-internal]
-localhost
+large-app-vm-1
+large-app-vm-2
 
 [hosts-access-internal]
-localhost
+large-app-vm-1
+large-app-vm-2
 
 [hosts-metadata]
-localhost
+large-app-vm-3
+large-app-vm-4
 
 [hosts-functional-administration]
-localhost
+large-app-vm-1
+large-app-vm-2
 
 [hosts-processing]
-localhost
+large-app-vm-8
 
 [hosts-storage-engine]
-localhost
+large-app-vm-3
+large-app-vm-4
 
 [hosts-batch-report]
-localhost
+large-app-vm-8
 
 [hosts-worker]
-localhost
+large-app-vm-5
+large-app-vm-6
+large-app-vm-7
 
 
 ##### Zone storage
@@ -114,7 +129,9 @@ hosts-storage-offer-default
 hosts-mongodb-offer
 
 [hosts-storage-offer-default]
-localhost offer_conf=offer-fs-1
+large-storage-vm-1 offer_conf=offer-s3-1
+large-storage-vm-2 offer_conf=offer-s3-1
+large-storage-vm-3 offer_conf=offer-s3-1
 
 [hosts-mongodb-offer:children]
 hosts-mongos-offer
@@ -122,13 +139,19 @@ hosts-mongoc-offer
 hosts-mongod-offer
 
 [hosts-mongos-offer]
-localhost
+large-storage-vm-1  mongo_cluster_name=offer-s3-1
+large-storage-vm-2  mongo_cluster_name=offer-s3-1
+large-storage-vm-3  mongo_cluster_name=offer-s3-1
 
 [hosts-mongoc-offer]
-localhost                       mongo_rs_bootstrap=true
+large-storage-vm-1  mongo_cluster_name=offer-s3-1                       mongo_rs_bootstrap=true
+large-storage-vm-2  mongo_cluster_name=offer-s3-1
+large-storage-vm-3  mongo_cluster_name=offer-s3-1
 
 [hosts-mongod-offer]
-localhost   mongo_shard_id=0    mongo_rs_bootstrap=true
+large-storage-vm-1  mongo_cluster_name=offer-s3-1  mongo_shard_id=0     mongo_rs_bootstrap=true
+large-storage-vm-2  mongo_cluster_name=offer-s3-1  mongo_shard_id=0
+large-storage-vm-3  mongo_cluster_name=offer-s3-1  mongo_shard_id=0
 
 ##### Zone data
 
@@ -137,7 +160,9 @@ hosts-elasticsearch-data
 hosts-mongodb-data
 
 [hosts-elasticsearch-data]
-localhost elasticsearch_memory=256m
+large-data-vm-1
+large-data-vm-2
+large-data-vm-3
 
 [hosts-mongodb-data:children]
 hosts-mongos-data
@@ -148,13 +173,19 @@ hosts-mongod-data
 mongo_cluster_name=mongo-data
 
 [hosts-mongos-data]
-localhost
+large-data-vm-4  mongo_cluster_name=mongo-data
+large-data-vm-5  mongo_cluster_name=mongo-data
+large-data-vm-6  mongo_cluster_name=mongo-data
 
 [hosts-mongoc-data]
-localhost                        mongo_rs_bootstrap=true
+large-data-vm-4  mongo_cluster_name=mongo-data                        mongo_rs_bootstrap=true
+large-data-vm-5  mongo_cluster_name=mongo-data
+large-data-vm-6  mongo_cluster_name=mongo-data
 
 [hosts-mongod-data]
-localhost      mongo_shard_id=0  mongo_rs_bootstrap=true
+large-data-vm-7  mongo_cluster_name=mongo-data      mongo_shard_id=0  mongo_rs_bootstrap=true
+large-data-vm-8  mongo_cluster_name=mongo-data      mongo_shard_id=0
+large-data-vm-9  mongo_cluster_name=mongo-data      mongo_shard_id=0
 
 ###### Zone admin
 
@@ -166,23 +197,30 @@ log-servers
 hosts-elasticsearch-log
 
 [hosts-cerebro]
-localhost
+large-admin-vm-1
 
 [hosts-consul-server]
-localhost
+large-admin-vm-3
+large-admin-vm-4
+large-admin-vm-5
 
 [hosts-kibana-data]
-localhost
 
 [log-servers:children]
 hosts-kibana-log
 hosts-logstash
 
 [hosts-logstash]
+large-admin-vm-1
+large-admin-vm-2
 
 [hosts-kibana-log]
+large-admin-vm-1
 
 [hosts-elasticsearch-log]
+large-admin-vm-3
+large-admin-vm-4
+large-admin-vm-5
 
 ########### Global vars ###########
 
@@ -199,7 +237,7 @@ ansible_become=true
 dns_servers=["10.100.211.222", "8.8.8.8"]
 
 ### memory settings ###
-memory_opts="-Xms32m -Xmx256m"
+memory_opts="-Xms1024m -Xmx1024m"
 
 ### tenants ###
 vitam_tenant_ids=[0,1,2,3,4,5,6,7,8,9]
@@ -217,13 +255,13 @@ primary_site=true
 
 # environnement=local
 ### vitam-itest repository ###
-vitam_tests_branch=master
+vitam_tests_branch=master_2.1.x
 vitam_tests_gitrepo_protocol=https
-vitam_tests_gitrepo_baseurl=gitlab.dev.programmevitam.fr
-vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/vitam/vitam-itests.git
+vitam_tests_gitrepo_baseurl=github.com
+vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/ProgrammeVitam/vitam-itests.git
 
 ### reverse proxy ###
 reverse_proxy_port=80
 http_proxy_environnement=
-vitam_reverse_external_dns=localhost
+vitam_reverse_external_dns=
 vitam_reverse_external_protocol=http
