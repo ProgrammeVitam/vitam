@@ -1,6 +1,22 @@
 ---
 
-- name: Install griffins package
+- name: Get installed packages list
+  package_facts:
+    manager: auto
+  tags: griffins
+
+- name: Remove useless griffins
+  package:
+    name: "{{ item }}"
+    state: absent
+  when:
+    - item is match("vitam-\S*-griffin")
+    - item not in vitam_griffins
+  loop: "{{ ansible_facts.packages |list }}"
+  tags: griffins
+
+# vitam_griffins var is a list
+- name: Install griffins packages
   package:
     name: "{{ vitam_griffins }}"
     state: latest
