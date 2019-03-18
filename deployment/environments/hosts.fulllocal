@@ -43,13 +43,10 @@ localhost
 
 [zone-external:children]
 hosts-ihm-demo
-hosts-cerebro
 
 [hosts-ihm-demo]
 localhost
 
-[hosts-cerebro]
-localhost
 
 ##### Zone access
 
@@ -165,10 +162,14 @@ localhost      mongo_shard_id=0  mongo_rs_bootstrap=true
 ###### Zone admin
 
 [zone-admin:children]
+hosts-cerebro
 hosts-consul-server
 hosts-kibana-data
 log-servers
 hosts-elasticsearch-log
+
+[hosts-cerebro]
+localhost
 
 [hosts-consul-server]
 localhost
