@@ -71,7 +71,7 @@ public class TapeLibraryIT {
     public static final long TIMEOUT_IN_MILLISECONDS = 60000L;
     public static final Integer SLOT_INDEX = 10;
     public static final Integer DRIVE_INDEX = 2;
-    private MongoDbAccess mongoDbAccess;
+    private static MongoDbAccess mongoDbAccess;
 
     @Rule
     public TempFolderRule tempFolderRule = new TempFolderRule();
