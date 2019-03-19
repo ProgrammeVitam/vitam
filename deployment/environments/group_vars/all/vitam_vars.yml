@@ -64,9 +64,6 @@ vitam_timers:
         - name: vitam-logbook-reconstruction
           frequency: "*-*-* *:0/5:00"
     storage:
-        # Sauvegarde des journaux des écritures
-        - name: vitam-storage-accesslog-backup
-          frequency: "*-*-* 0/4:00:00" # each 4 hours
         # Sécurisation du journal des écritures
         - name: vitam-storage-log-backup
           frequency: "*-*-* 0/2:00:00" # each 2 hours
