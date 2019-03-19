@@ -35,7 +35,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 public class TapeRebotConf {
     private String device;
     private String mtxPath = "mtx";
-    private long timeoutInMilliseconds;
+    private long timeoutInMilliseconds = 60000;
 
     public String getDevice() {
         return device;
