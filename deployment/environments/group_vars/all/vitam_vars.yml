@@ -71,10 +71,6 @@ vitam_timers:
         - name: vitam-storage-log-traceability
           frequency: "*-*-* 0/2:10:00" # each 2 hours (10 minutes)
     functional_administration:
-        - name: vitam-create-accession-register-symbolic
-          frequency: "*-*-* 00:00:00"
-        - name: vitam-functional-administration-accession-register-reconstruction
-          frequency: "*-*-* *:0/5:00"
         - name: vitam-rule-management-audit
           frequency: "*-*-* *:00:00"
         - name: vitam-functional-administration-reconstruction
