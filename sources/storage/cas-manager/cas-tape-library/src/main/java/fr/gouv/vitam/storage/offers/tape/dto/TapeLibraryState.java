@@ -31,7 +31,7 @@ import java.util.List;
 
 import fr.gouv.vitam.common.model.StatusCode;
 
-public class TapeLibraryState extends TapeResponse {
+public class TapeLibraryState extends TapeResponse implements TapeLibrarySpec {
     private String device;
     private int driveCount;
     private int slotsCount;
@@ -48,6 +48,7 @@ public class TapeLibraryState extends TapeResponse {
         super(entity, status);
     }
 
+    @Override
     public String getDevice() {
         return device;
     }
@@ -56,6 +57,7 @@ public class TapeLibraryState extends TapeResponse {
         this.device = device;
     }
 
+    @Override
     public int getDriveCount() {
         return driveCount;
     }
@@ -64,6 +66,7 @@ public class TapeLibraryState extends TapeResponse {
         this.driveCount = driveCount;
     }
 
+    @Override
     public int getSlotsCount() {
         return slotsCount;
     }
@@ -72,6 +75,7 @@ public class TapeLibraryState extends TapeResponse {
         this.slotsCount = slotsCount;
     }
 
+    @Override
     public int getMailBoxCount() {
         return mailBoxCount;
     }
@@ -80,6 +84,7 @@ public class TapeLibraryState extends TapeResponse {
         this.mailBoxCount = mailBoxCount;
     }
 
+    @Override
     public List<TapeDrive> getDrives() {
         return drives;
     }
@@ -88,6 +93,7 @@ public class TapeLibraryState extends TapeResponse {
         this.drives = drives;
     }
 
+    @Override
     public List<TapeSlot> getSlots() {
         return slots;
     }
@@ -112,5 +118,30 @@ public class TapeLibraryState extends TapeResponse {
         }
         slots.add(tapeSlot);
         return slots;
+    }
+
+    @Override
+    public boolean isOK() {
+        return super.isOK();
+    }
+
+    @Override
+    public boolean isWarn() {
+        return super.isWarn();
+    }
+
+    @Override
+    public Object getEntity() {
+        return super.getEntity();
+    }
+
+    @Override
+    public <T> T getEntity(Class<T> entityType) {
+        return super.getEntity(entityType);
+    }
+
+    @Override
+    public boolean hasEntity() {
+        return super.hasEntity();
     }
 }

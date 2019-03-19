@@ -65,4 +65,12 @@ public class TapeResponse {
     public void setStatus(StatusCode status) {
         this.status = status;
     }
+
+    public boolean isOK() {
+        return StatusCode.OK.equals(getStatus());
+    }
+
+    public boolean isWarn() {
+        return StatusCode.WARNING.equals(getStatus());
+    }
 }

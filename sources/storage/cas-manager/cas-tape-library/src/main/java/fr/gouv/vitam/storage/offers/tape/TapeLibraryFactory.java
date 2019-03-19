@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
@@ -104,7 +105,7 @@ public class TapeLibraryFactory {
                 TapeRobotService robot = tapeLibraryPool.checkoutRobotService();
                 if (robot != null) {
                     try {
-                        TapeLibraryState libraryState = robot.getLoadUnloadService().status();
+                        TapeLibrarySpec libraryState = robot.getLoadUnloadService().status();
                         tapeCatalogService.init(tapeLibraryIdentifier, libraryState);
                     } finally {
                         tapeLibraryPool.pushRobotService(robot);

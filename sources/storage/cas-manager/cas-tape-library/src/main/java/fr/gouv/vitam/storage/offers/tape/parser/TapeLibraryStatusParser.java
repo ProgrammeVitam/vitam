@@ -16,7 +16,7 @@ public class TapeLibraryStatusParser {
     public static final String SLOT_ALTERNATE_VOLUME_TAG = ":AlternateVolumeTag=";
     public static final String STORAGE_CHANGER = "Storage Changer";
     public static final String SEPARATOR = ":";
-    public static final String DRIVES = "Drives";
+    public static final String DRIVES = "Drives,";
     public static final String SLOTS = "Slots ( ";
     public static final String IMPORT_EXPORT = "Import/Export";
     public static final String IMPORT_EXPORT_TAG = " IMPORT/EXPORT";

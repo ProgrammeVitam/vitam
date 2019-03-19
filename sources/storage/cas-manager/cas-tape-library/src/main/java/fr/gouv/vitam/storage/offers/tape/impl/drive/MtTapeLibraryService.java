@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeDriveStatusParser;
@@ -65,7 +66,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     }
 
     @Override
-    public TapeDriveState status() {
+    public TapeDriveSpec status() {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), STATUS);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
@@ -126,7 +127,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     }
 
 
-    private TapeDriveState parseTapeDriveState(Output output) {
+    private TapeDriveSpec parseTapeDriveState(Output output) {
         if (output.getExitCode() == 0) {
             final TapeDriveStatusParser tapeDriveStatusParser = new TapeDriveStatusParser();
             TapeDriveState tapeDriveState = tapeDriveStatusParser.parse(output.getStdout());

@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeLibraryStatusParser;
@@ -61,7 +62,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     }
 
     @Override
-    public TapeLibraryState status() {
+    public TapeLibrarySpec status() {
         List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), STATUS);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(),
             tapeRebotConf.getTimeoutInMilliseconds(),
@@ -136,7 +137,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     }
 
 
-    private TapeLibraryState parseTapeLibraryState(Output output) {
+    private TapeLibrarySpec parseTapeLibraryState(Output output) {
         if (output.getExitCode() == 0) {
             final TapeLibraryStatusParser tapeLibraryStatusParser = new TapeLibraryStatusParser();
             TapeLibraryState tapeLibraryState = tapeLibraryStatusParser.parse(output.getStdout());

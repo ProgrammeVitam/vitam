@@ -46,6 +46,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
@@ -81,7 +82,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public boolean init(String tapeLibraryIdentifier, TapeLibraryState libraryState) throws TapeCatalogException {
+    public boolean init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState) throws TapeCatalogException {
         QueryCriteria criteria =
             new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
         Map<String, TapeCatalog> existingTapes;

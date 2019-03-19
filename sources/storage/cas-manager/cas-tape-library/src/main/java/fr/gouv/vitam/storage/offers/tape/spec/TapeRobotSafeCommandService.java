@@ -26,12 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 
 public interface TapeRobotSafeCommandService {
 
-    TapeLibraryState status();
+    TapeLibrarySpec status();
 
     ProcessExecutor getExecutor();
 }

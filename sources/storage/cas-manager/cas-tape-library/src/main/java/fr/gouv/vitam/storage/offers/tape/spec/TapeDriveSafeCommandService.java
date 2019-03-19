@@ -26,12 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 
 public interface TapeDriveSafeCommandService {
 
-    TapeDriveState status();
+    TapeDriveSpec status();
 
     ProcessExecutor getExecutor();
 }

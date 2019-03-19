@@ -31,7 +31,7 @@ import java.util.List;
 
 import fr.gouv.vitam.common.model.StatusCode;
 
-public class TapeDriveState extends TapeResponse {
+public class TapeDriveState extends TapeResponse implements TapeDriveSpec {
     private String description;
     private Integer fileNumber;
     private Integer blockNumber;
@@ -51,6 +51,7 @@ public class TapeDriveState extends TapeResponse {
         super(entity, status);
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
@@ -59,6 +60,7 @@ public class TapeDriveState extends TapeResponse {
         this.description = description;
     }
 
+    @Override
     public Integer getFileNumber() {
         return fileNumber;
     }
@@ -99,6 +101,7 @@ public class TapeDriveState extends TapeResponse {
         this.densityCode = densityCode;
     }
 
+    @Override
     public String getCartridge() {
         return cartridge;
     }
@@ -107,6 +110,7 @@ public class TapeDriveState extends TapeResponse {
         this.cartridge = cartridge;
     }
 
+    @Override
     public Integer getErrorCountSinceLastStatus() {
         return errorCountSinceLastStatus;
     }
@@ -123,8 +127,34 @@ public class TapeDriveState extends TapeResponse {
         this.statusBits = statusBits;
     }
 
+    @Override
     public List<TapeDriveStatus> getDriveStatuses() {
         return driveStatuses;
+    }
+
+    @Override
+    public boolean isOK() {
+        return super.isOK();
+    }
+
+    @Override
+    public boolean isWarn() {
+        return super.isWarn();
+    }
+
+    @Override
+    public Object getEntity() {
+        return super.getEntity();
+    }
+
+    @Override
+    public <T> T getEntity(Class<T> entityType) {
+        return super.getEntity(entityType);
+    }
+
+    @Override
+    public boolean hasEntity() {
+        return super.hasEntity();
     }
 
     public void setDriveStatuses(List<TapeDriveStatus> driveStatuses) {

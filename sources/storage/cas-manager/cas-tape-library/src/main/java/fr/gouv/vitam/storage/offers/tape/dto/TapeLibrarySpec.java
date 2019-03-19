@@ -24,32 +24,31 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.exception;
+package fr.gouv.vitam.storage.offers.tape.dto;
 
-public enum ReadWriteErrorCode {
-    INTERNAL_ERROR_SERVER,
-    TAPE_NOT_FOUND_IN_CATALOG,
-    NO_EMPTY_SLOT_FOUND,
-    /**
-     * Previous location should not be a drive, but a slot or mailbox
-     * Current location should not be null
-     */
-    TAPE_LOCATION_CONFLICT,
-    FILE_NOT_FOUND,
-    NULL_CURRENT_TAPE,
-    KO_DB_PERSIST,
-    KO_ON_LOAD_TAPE,
-    KO_ON_UNLOAD_TAPE,
-    KO_ON_WRITE_TO_TAPE, // TODO CloseIncident Tape
-    KO_ON_WRITE_REWIND_TAPE,
-    KO_ON_WRITE_REWIND_FSF_TAPE,
-    KO_END_OF_TAPE,
+import java.util.List;
 
-    KO_ON_STATUS,
-    KO_ON_LOAD_THEN_STATUS,
-    KO_ON_UNLOAD_THEN_STATUS,
-    KO_ON_WRITE_THEN_STATUS,
+public interface TapeLibrarySpec {
 
+    String getDevice();
 
+    int getDriveCount();
 
+    int getSlotsCount();
+
+    int getMailBoxCount();
+
+    List<TapeDrive> getDrives();
+
+    List<TapeSlot> getSlots();
+
+    boolean isOK();
+
+    boolean isWarn();
+
+    Object getEntity();
+
+    <T> T getEntity(Class<T> entityType);
+
+    boolean hasEntity();
 }
