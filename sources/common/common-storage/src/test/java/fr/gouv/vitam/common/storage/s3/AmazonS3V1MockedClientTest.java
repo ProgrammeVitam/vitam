@@ -165,7 +165,7 @@ public class AmazonS3V1MockedClientTest {
         Mockito.when(amazonS3Client.getObjectMetadata(any(GetObjectMetadataRequest.class)))
                 .thenThrow(new SdkBaseException("Client error"));
         assertThatThrownBy(() -> {
-            amazonS3V1.getObjectMetadatas(CONTAINER_0, OBJECT_ID_0, false);
+            amazonS3V1.getObjectMetadata(CONTAINER_0, OBJECT_ID_0, false);
         }).isInstanceOf(ContentAddressableStorageServerException.class)
                 .hasMessage("Error when trying to get metadatas of object");
     }

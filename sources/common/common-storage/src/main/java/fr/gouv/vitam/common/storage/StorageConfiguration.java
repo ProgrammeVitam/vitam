@@ -2,7 +2,7 @@
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
- * 
+ *
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
@@ -451,5 +451,4 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
         this.s3ClientExecutionTimeout = s3ClientExecutionTimeout;
         return this;
     }
-
 }

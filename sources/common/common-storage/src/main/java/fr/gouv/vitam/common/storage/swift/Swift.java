@@ -332,13 +332,11 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache) {
+    public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache) {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
         SwiftObject object = osClient.get().objectStorage().objects().get(containerName, objectId);
-        // ugly
-        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
         // ugly
         result.setType(containerName.split("_")[1]);
         result.setObjectName(objectId);

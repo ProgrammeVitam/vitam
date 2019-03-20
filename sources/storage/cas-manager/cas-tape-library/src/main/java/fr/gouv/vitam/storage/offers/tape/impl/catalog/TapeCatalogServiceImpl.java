@@ -30,13 +30,18 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -51,6 +56,7 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
 public class TapeCatalogServiceImpl implements TapeCatalogService {
@@ -140,24 +146,25 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     private Map<String, Object> merge(TapeCatalog tape, TapeCatalog existingTape) {
         Map<String, Object> updates;
         updates = new HashMap<>();
-        if (!existingTape.getAlternativeCode().equals(tape.getAlternativeCode())) {
+
+        if (!Objects.equals(existingTape.getAlternativeCode(), tape.getAlternativeCode())) {
             updates.put(TapeCatalog.ALTERNATIVE_CODE, tape.getAlternativeCode());
         }
 
-        if (!existingTape.getLibrary().equals(tape.getLibrary())) {
+        if (!Objects.equals(existingTape.getLibrary(), tape.getLibrary())) {
             updates.put(TapeCatalog.LIBRARY, tape.getLibrary());
         }
 
-        if (!existingTape.getCurrentLocation().equals(tape.getCurrentLocation())) {
+        if (!Objects.equals(existingTape.getCurrentLocation(), tape.getCurrentLocation())) {
             updates.put(TapeCatalog.CURRENT_LOCATION, tape.getAlternativeCode());
         }
 
         if (tape.getPreviousLocation() != null
             && (existingTape.getPreviousLocation() == null
             || !existingTape.getPreviousLocation().equals(tape.getPreviousLocation()))) {
-            updates.put(TapeCatalog.PREVIOUS_LOCATION, tape.getPreviousLocation());
+            updates.put(TapeCatalog.PREVIOUS_LOCATION, toBson(tape.getPreviousLocation()));
         } else if (existingTape.getPreviousLocation() != null) {
-            updates.put(TapeCatalog.PREVIOUS_LOCATION, tape.getPreviousLocation());
+            updates.put(TapeCatalog.PREVIOUS_LOCATION, toBson(tape.getPreviousLocation()));
         }
 
         return updates;
@@ -228,5 +235,14 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
         return repository.receive(inQuery, inUpdate, messageType, usePriority);
+    }
+
+    private Document toBson(Object object) {
+        return Document.parse(JsonHandler.unprettyPrint(object));
+    }
+
+    private <T> T fromBson(Document document, Class<T> clazz)
+        throws InvalidParseOperationException {
+        return JsonHandler.getFromString(JSON.serialize(document), clazz);
     }
 }

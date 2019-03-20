@@ -20,6 +20,11 @@
 			<artifactId>cas-container-swift</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>cas-tape-library</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

@@ -228,13 +228,11 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
+    public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectId);
         MetadatasStorageObject result = new MetadatasStorageObject();
-        // TODO store vitam metadatas
-        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
         result.setType(containerName.split("_")[1]);
         result.setLastAccessDate(null);
         SwiftObject swiftobject = getSwiftAPi().getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName)

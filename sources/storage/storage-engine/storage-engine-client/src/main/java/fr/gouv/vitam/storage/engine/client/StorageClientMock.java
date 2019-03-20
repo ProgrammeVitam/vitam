@@ -235,7 +235,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
             StorageMetadataResult metaData =
                 new StorageMetadataResult("aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq", "object",
                     "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e",
-                    6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+                    6096, "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
             offerIdToMetadata.set("localhost", JsonHandler.toJsonNode(metaData));
             return offerIdToMetadata;
         } catch (InvalidParseOperationException e) {

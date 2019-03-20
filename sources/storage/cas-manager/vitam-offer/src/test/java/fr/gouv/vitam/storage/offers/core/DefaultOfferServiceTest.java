@@ -31,12 +31,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
@@ -116,6 +118,8 @@ public class DefaultOfferServiceTest {
 
     @Mock
     private OfferLogDatabaseService offerDatabaseService;
+    @Mock
+    private MongoDbAccess mongoDbAccess;
 
     @BeforeClass
     public static void beforeClass() {
@@ -132,18 +136,18 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void initOKTest() throws Exception {
-        new DefaultOfferServiceImpl(offerDatabaseService);
+        new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
     }
 
     @Test
     public void createObjectTestNoContainer() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
     }
 
     @Test
     public void createContainerTest() throws Exception {
-        final DefaultOfferServiceImpl offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferServiceImpl offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
 
         offerService.ensureContainerExists(CONTAINER_PATH);
@@ -158,7 +162,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void createObjectTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
 
         String computedDigest;
@@ -183,7 +187,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getObjectTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
@@ -197,7 +201,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getCapacityOk() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
@@ -208,23 +212,23 @@ public class DefaultOfferServiceTest {
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
-        final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
-        assertNotNull(jsonNode);
-        assertNotNull(jsonNode.get("usableSpace"));
+        final ContainerInformation capacity = offerService.getCapacity(CONTAINER_PATH);
+        assertNotNull(capacity);
+        assertThat(capacity.getUsableSpace()).isGreaterThan(0L);
     }
 
     @Test
     public void getCapacityNoContainerOK() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
-        final JsonNode jsonNode = offerService.getCapacity(CONTAINER_PATH);
-        assertNotNull(jsonNode);
-        assertNotNull(jsonNode.get("usableSpace"));
+        final ContainerInformation capacity = offerService.getCapacity(CONTAINER_PATH);
+        assertNotNull(capacity);
+        assertThat(capacity.getUsableSpace()).isGreaterThan(0L);
     }
 
     @Test
     public void deleteObjectTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
 
         // creation of an object
@@ -258,14 +262,14 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void listCreateCursorNoContainerTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
         offerService.createCursor(CONTAINER_PATH);
     }
 
     @Test
     public void listCreateCursorTest() throws Exception {
-        final DefaultOfferServiceImpl offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferServiceImpl offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
         offerService.ensureContainerExists(CONTAINER_PATH);
         String cursorId = offerService.createCursor(CONTAINER_PATH);
@@ -280,7 +284,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void finalizeCursorTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
         String id = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(id);
@@ -289,7 +293,7 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void listCursorTest() throws Exception {
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
         for (int i = 0; i < 150; i++) {
             offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
@@ -326,7 +330,7 @@ public class DefaultOfferServiceTest {
             .thenThrow(new ContentAddressableStorageDatabaseException("database error"));
         when(offerDatabaseService.searchOfferLog(CONTAINER_PATH, 5L, 4, Order.DESC))
             .thenThrow(new ContentAddressableStorageServerException("parse error"));
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
 
         assertThatCode(() -> {
@@ -359,7 +363,7 @@ public class DefaultOfferServiceTest {
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
 
         // When
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         StorageBulkPutResult storageBulkPutResult = offerService.bulkPutObjects(
             CONTAINER_PATH,
             Collections.singletonList(OBJECT_ID),
@@ -385,7 +389,7 @@ public class DefaultOfferServiceTest {
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1, file2, file3);
 
         // When
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         StorageBulkPutResult storageBulkPutResult = offerService.bulkPutObjects(
             CONTAINER_PATH,
             Arrays.asList(OBJECT_ID, OBJECT_ID_2, OBJECT_ID_3),
@@ -407,7 +411,7 @@ public class DefaultOfferServiceTest {
 
         // Given
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
 
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
@@ -435,7 +439,7 @@ public class DefaultOfferServiceTest {
         // Given
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
 
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
@@ -464,7 +468,7 @@ public class DefaultOfferServiceTest {
         // Given
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
-        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
 
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);

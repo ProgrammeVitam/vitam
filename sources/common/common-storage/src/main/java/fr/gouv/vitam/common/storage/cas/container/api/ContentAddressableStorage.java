@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.cas.container.api;
 
-import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
@@ -38,23 +37,16 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * The ContentAddressableStorage interface.
- *
  */
 public interface ContentAddressableStorage extends VitamAutoCloseable {
-
-
 
     /**
      * Creates a container
      *
      * @param containerName name of container to create
-     *
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      */
     void createContainer(String containerName)
@@ -75,7 +67,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param containerName container to place the object.
      * @param objectName fully qualified object name relative to the container.
      * @param stream the data
-     *
      * @param digestType parameter to compute an hash.
      * @param size size off the input stream
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
@@ -93,7 +84,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
      * @return the object you intended to receive
-     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
@@ -106,9 +96,8 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      *
      * @param containerName container where this exists.
      * @param objectName fully qualified name relative to the container.
-     *
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located or the blob cannot
-     *         be located in the container.
+     * be located in the container.
      * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
      */
 
@@ -134,11 +123,10 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @param objectName fully qualified name relative to the container.
      * @param algo Digest algo
      * @param noCache forces full digest computation
-     *
+     * @return the digest object as String
      * @throws ContentAddressableStorageNotFoundException Thrown when the container or the object cannot be located
      * @throws ContentAddressableStorageServerException Thrown when internal server error happens
      * @throws ContentAddressableStorageException Thrown when put action failed due some other failure
-     * @return the digest object as String
      */
     String getObjectDigest(String containerName, String objectName, DigestType algo, boolean noCache)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException,
@@ -165,7 +153,7 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws IOException if an IOException is encountered with files
      * @throws IllegalArgumentException thrown when containerName or objectId is null
      */
-    MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
+    MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException, IOException;
 
     /**

@@ -33,10 +33,13 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
+import fr.gouv.vitam.cas.container.swift.OpenstackSwift;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -51,6 +54,13 @@ import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
+import fr.gouv.vitam.common.storage.constants.StorageProvider;
+import fr.gouv.vitam.common.storage.filesystem.FileSystem;
+import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystem;
+import fr.gouv.vitam.common.storage.s3.AmazonS3V1;
+import fr.gouv.vitam.common.storage.swift.Swift;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -61,6 +71,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.tape.TapeStorageFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -99,7 +110,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
-    public DefaultOfferServiceImpl(OfferLogDatabaseService offerDatabaseService)
+    public DefaultOfferServiceImpl(OfferLogDatabaseService offerDatabaseService, MongoDbAccess mongoDBAccess)
             throws CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException {
         this.offerDatabaseService = offerDatabaseService;
         try {
@@ -112,7 +123,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             LOGGER.error(exc);
             throw new ExceptionInInitializerError(exc);
         }
-        defaultStorage = StoreContextBuilder.newStoreContext(configuration);
+        defaultStorage = StoreContextBuilder.newStoreContext(configuration, mongoDBAccess);
         mapXCusor = new HashMap<>();
     }
 
@@ -301,9 +312,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public JsonNode getCapacity(String containerName)
+    public ContainerInformation getCapacity(String containerName)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        final ObjectNode result = JsonHandler.createObjectNode();
         Stopwatch times = Stopwatch.createStarted();
         ContainerInformation containerInformation;
         try {
@@ -312,9 +322,8 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             defaultStorage.createContainer(containerName);
             containerInformation = defaultStorage.getContainerInformation(containerName);
         }
-        result.put("usableSpace", containerInformation.getUsableSpace());
         PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "CHECK_CAPACITY", times.elapsed(TimeUnit.MILLISECONDS));
-        return result;
+        return containerInformation;
     }
 
 
@@ -355,11 +364,11 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public StorageMetadataResult getMetadatas(String containerName, String objectId, boolean noCache)
+    public StorageMetadataResult getMetadata(String containerName, String objectId, boolean noCache)
             throws ContentAddressableStorageException, IOException {
         Stopwatch times = Stopwatch.createStarted();
         try {
-            return new StorageMetadataResult(defaultStorage.getObjectMetadatas(containerName, objectId, noCache));
+            return new StorageMetadataResult(defaultStorage.getObjectMetadata(containerName, objectId, noCache));
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GET_METADATA", times.elapsed(TimeUnit.MILLISECONDS));
         }

@@ -354,7 +354,7 @@ public class AmazonS3V1MockedServerTest {
                         "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418")
                 .withHeader("X-Amz-Meta-Digest-Type", "SHA-512")));
         assertThatCode(() -> {
-            amazonS3V1.getObjectMetadatas(CONTAINER_1, OBJECT_ID_1, false);
+            amazonS3V1.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
         }).doesNotThrowAnyException();
     }
 
@@ -364,7 +364,7 @@ public class AmazonS3V1MockedServerTest {
         s3WireMockRule.stubFor(head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1))
                 .willReturn(aResponse().withStatus(404).withHeader(AMZ_REQUEST_ID, "XXXXXX")));
         assertThatThrownBy(() -> {
-            amazonS3V1.getObjectMetadatas(CONTAINER_1, OBJECT_ID_1, false);
+            amazonS3V1.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
         }).isInstanceOf(ContentAddressableStorageNotFoundException.class);
     }
 
@@ -373,7 +373,7 @@ public class AmazonS3V1MockedServerTest {
 
         s3WireMockRule.stubFor(head(urlMatching(BUCKET_1 + "/" + OBJECT_ID_1)).willReturn(aResponse().withStatus(500)));
         assertThatThrownBy(() -> {
-            amazonS3V1.getObjectMetadatas(CONTAINER_1, OBJECT_ID_1, false);
+            amazonS3V1.getObjectMetadata(CONTAINER_1, OBJECT_ID_1, false);
         }).isInstanceOf(ContentAddressableStorageServerException.class);
     }
 

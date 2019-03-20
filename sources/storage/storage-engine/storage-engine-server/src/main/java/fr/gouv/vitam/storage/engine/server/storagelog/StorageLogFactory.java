@@ -14,10 +14,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
-import java.time.temporal.ChronoField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +25,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static fr.gouv.vitam.common.LocalDateUtil.getDateTimeFormatterForFileNames;
 
 public class StorageLogFactory implements StorageLog {
 
@@ -136,7 +135,7 @@ public class StorageLogFactory implements StorageLog {
      */
     private StorageLogAppender createAppender(Integer tenant, Boolean isWriteOperation) throws IOException {
         LocalDateTime date = LocalDateUtil.now();
-        DateTimeFormatter formatter = getDateTimeFormatter();
+        DateTimeFormatter formatter = getDateTimeFormatterForFileNames();
         String file_name =
             tenant.toString() + "_" + date.format(formatter) + "_" + UUID.randomUUID().toString() + ".log";
         Path appenderPath;
@@ -146,15 +145,6 @@ public class StorageLogFactory implements StorageLog {
             appenderPath = this.accessOperationLogPath.resolve(file_name);
         }
         return new StorageLogAppender(appenderPath);
-    }
-
-    private DateTimeFormatter getDateTimeFormatter() {
-        // Cannot use yyyyMMddHHmmssSSS due to Java 8 bug https://bugs.java.com/view_bug.do?bug_id=8031085
-        return new DateTimeFormatterBuilder()
-            .appendPattern("yyyyMMddHHmmss")
-            .appendValue(ChronoField.MILLI_OF_SECOND, 3)
-            .toFormatter()
-            .withZone(ZoneOffset.UTC);
     }
 
     @Override
@@ -251,7 +241,7 @@ public class StorageLogFactory implements StorageLog {
 
         String creationDateStr = matcher.group(FILENAME_PATTERN_CREATION_DATE_GROUP);
 
-        DateTimeFormatter dateTimeFormatter = getDateTimeFormatter();
+        DateTimeFormatter dateTimeFormatter = getDateTimeFormatterForFileNames();
         try {
             LocalDateTime creationDate = LocalDateTime.parse(creationDateStr, dateTimeFormatter);
             return Optional.of(creationDate);

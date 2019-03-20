@@ -35,6 +35,7 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
     public static final String BUCKET = "bucket";
     public static final String FILE_PATH = "filePath";
     public static final String SIZE = "size";
+    public static final String DIGEST = "digest";
 
     @JsonProperty(BUCKET)
     private String bucket;
@@ -45,15 +46,19 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
     @JsonProperty(SIZE)
     private long size;
 
+    @JsonProperty(DIGEST)
+    private String digest;
+
     public WriteOrder() {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.WriteOrder);
     }
 
-    public WriteOrder(String bucket, String filePath, long size) {
+    public WriteOrder(String bucket, String filePath, long size, String digest) {
         this();
         this.bucket = bucket;
         this.filePath = filePath;
         this.size = size;
+        this.digest = digest;
     }
 
     public String getBucket() {
@@ -84,9 +89,17 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
         return this;
     }
 
+    public String getDigest() {
+        return digest;
+    }
+
+    public WriteOrder setDigest(String digest) {
+        this.digest = digest;
+        return this;
+    }
 
     @Override
     public boolean isWriteOrder() {
-        return false;
+        return true;
     }
 }

@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.offers.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
@@ -114,7 +115,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
      * @throws ContentAddressableStorageServerException
      */
-    JsonNode getCapacity(String containerName)
+    ContainerInformation getCapacity(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
@@ -141,7 +142,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageException
      * @throws IOException
      */
-    StorageMetadataResult getMetadatas(String containerName, String objectId, boolean noCache)
+    StorageMetadataResult getMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException, IOException;
 
     /**

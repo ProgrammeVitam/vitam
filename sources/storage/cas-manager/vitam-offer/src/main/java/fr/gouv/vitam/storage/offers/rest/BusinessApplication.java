@@ -26,8 +26,37 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import com.mongodb.MongoClient;
+import com.mongodb.MongoClientOptions;
+import com.mongodb.client.MongoDatabase;
+import fr.gouv.vitam.cas.container.swift.OpenstackSwift;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
+import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
+import fr.gouv.vitam.common.storage.constants.StorageProvider;
+import fr.gouv.vitam.common.storage.filesystem.FileSystem;
+import fr.gouv.vitam.common.storage.filesystem.v2.HashFileSystem;
+import fr.gouv.vitam.common.storage.s3.AmazonS3V1;
+import fr.gouv.vitam.common.storage.swift.Swift;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
+import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
+import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
+import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
+import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
+import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
+import fr.gouv.vitam.storage.offers.tape.TapeStorageFactory;
+import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
+import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
+import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyManagementException;
@@ -36,25 +65,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.HashSet;
 import java.util.Set;
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.client.MongoDatabase;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
-import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
-import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
-import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
-import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * Offer register resources and filters
@@ -65,7 +77,8 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     /**
-     * Constructor 
+     * Constructor
+     *
      * @param servletConfig the servlet configuration
      */
     public BusinessApplication(@Context ServletConfig servletConfig) {
@@ -85,11 +98,13 @@ public class BusinessApplication extends Application {
             OfferLogDatabaseService offerDatabaseService =
                 new OfferLogDatabaseService(offerSequenceDatabaseService, database);
 
-            DefaultOfferService defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService);
+            SimpleMongoDBAccess mongoDBAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
+
+            DefaultOfferService defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDBAccess);
             DefaultOfferResource defaultOfferResource = new DefaultOfferResource(defaultOfferService);
 
             TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(
-                    new SimpleMongoDBAccess(mongoClient, configuration.getDbName()));
+                mongoDBAccess);
 
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(defaultOfferResource);

@@ -836,7 +836,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     private StorageMetadataResult mockMetadatasObjectResult() {
         return new StorageMetadataResult(OBJECT_ID, TYPE, "abcdef", 6096,
-            "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+            "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
     }
 
     @Test(expected = StorageDriverException.class)

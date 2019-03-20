@@ -30,26 +30,115 @@ import java.util.List;
 import java.util.Map;
 
 public class TapeLibraryConfiguration {
+
+    /*
+     * Tape storage configuration
+     */
+    /**
+     * Folder for storing incoming files
+     */
+    private String inputFileStorageFolder;
+    /**
+     * Folder for storing tar file to send to tape library
+     */
+    private String inputTarStorageFolder;
+    /**
+     * Folder for storing tar file to read from to tape library
+     */
+    private String outputTarStorageFolder;
+
+    /**
+     * Max single entry size. Must not exceed TarConstants.MAXSIZE
+     */
+    private long maxTarEntrySize = 1_000_000_000L;
+    /**
+     * Max tar file size
+     */
+    private long maxTarFileSize = 10_000_000_000L;
+
+    /**
+     * File bucket & bucket configuration
+     */
+    private TapeLibraryTopologyConfiguration topology;
+
     private List<TapeBatch> tapeBatches;
     private Map<String, TapeLibraryConf> tapeLibraries;
     private String inputDirectory;
     private String outputDirectory;
 
+    public TapeLibraryTopologyConfiguration getTopology() {
+        return topology;
+    }
+
+    public TapeLibraryConfiguration setTopology(TapeLibraryTopologyConfiguration topology) {
+        this.topology = topology;
+        return this;
+    }
+
     public List<TapeBatch> getTapeBatches() {
         return tapeBatches;
     }
 
-    public void setTapeBatches(List<TapeBatch> tapeBatches) {
+    public TapeLibraryConfiguration setTapeBatches(List<TapeBatch> tapeBatches) {
         this.tapeBatches = tapeBatches;
+        return this;
     }
 
     public Map<String, TapeLibraryConf> getTapeLibraries() {
         return tapeLibraries;
     }
 
-    public void setTapeLibraries(
+    public TapeLibraryConfiguration setTapeLibraries(
         Map<String, TapeLibraryConf> tapeLibraries) {
         this.tapeLibraries = tapeLibraries;
+        return this;
+    }
+
+    public String getInputFileStorageFolder() {
+        return inputFileStorageFolder;
+    }
+
+    public TapeLibraryConfiguration setInputFileStorageFolder(
+        String inputFileStorageFolder) {
+        this.inputFileStorageFolder = inputFileStorageFolder;
+        return this;
+    }
+
+    public String getInputTarStorageFolder() {
+        return inputTarStorageFolder;
+    }
+
+    public TapeLibraryConfiguration setInputTarStorageFolder(String inputTarStorageFolder) {
+        this.inputTarStorageFolder = inputTarStorageFolder;
+        return this;
+    }
+
+    public String getOutputTarStorageFolder() {
+        return outputTarStorageFolder;
+    }
+
+    public TapeLibraryConfiguration setOutputTarStorageFolder(
+        String outputTarStorageFolder) {
+        this.outputTarStorageFolder = outputTarStorageFolder;
+        return this;
+    }
+
+    public long getMaxTarEntrySize() {
+        return maxTarEntrySize;
+    }
+
+    public TapeLibraryConfiguration setMaxTarEntrySize(long maxTarEntrySize) {
+        this.maxTarEntrySize = maxTarEntrySize;
+        return this;
+    }
+
+    public long getMaxTarFileSize() {
+        return maxTarFileSize;
+    }
+
+    public TapeLibraryConfiguration setMaxTarFileSize(long maxTarFileSize) {
+        this.maxTarFileSize = maxTarFileSize;
+        return this;
     }
 
     public String getInputDirectory() {

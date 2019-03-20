@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
+import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
@@ -89,6 +90,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.buildContainerName;
 
 /**
  * Default offer REST Resource
@@ -138,9 +141,9 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
         final String containerName = buildContainerName(type, xTenantId);
         try {
-            ObjectNode result = (ObjectNode) defaultOfferService.getCapacity(containerName);
+            ContainerInformation capacity = defaultOfferService.getCapacity(containerName);
             Response.ResponseBuilder response = Response.status(Status.OK);
-            response.header("X-Usable-Space", result.get("usableSpace"));
+            response.header("X-Usable-Space", capacity.getUsableSpace());
             response.header(GlobalDataRest.X_TENANT_ID, xTenantId);
             return response.build();
         } catch (final ContentAddressableStorageNotFoundException exc) {
@@ -547,7 +550,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         final String containerName = buildContainerName(type, xTenantId);
         try {
             SanityChecker.checkParameter(idObject);
-            StorageMetadataResult result = defaultOfferService.getMetadatas(containerName, idObject, noCache);
+            StorageMetadataResult result = defaultOfferService.getMetadata(containerName, idObject, noCache);
             return Response.status(Response.Status.OK).entity(result).build();
         } catch (ContentAddressableStorageNotFoundException e) {
             LOGGER.warn(e);
@@ -572,16 +575,5 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 .setMessage(vitamCode.getMessage())
                 .setDescription(vitamCode.getMessage()))
             .toString()).build();
-    }
-
-    private String buildContainerName(DataCategory type, String tenantId) {
-        if (type == null || Strings.isNullOrEmpty(type.getFolder()) || Strings.isNullOrEmpty(tenantId)) {
-            return null;
-        }
-        String environmentName = Strings.isNullOrEmpty(VitamConfiguration.getEnvironmentName()) ?
-            "" :
-            VitamConfiguration.getEnvironmentName() + "_";
-
-        return environmentName + tenantId + "_" + type.getFolder();
     }
 }

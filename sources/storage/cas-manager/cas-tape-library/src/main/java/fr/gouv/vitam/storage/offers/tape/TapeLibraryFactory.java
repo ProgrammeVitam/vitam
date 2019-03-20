@@ -33,16 +33,20 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
+import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
 import fr.gouv.vitam.storage.offers.tape.pool.TapeLibraryPoolImpl;
+import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
 
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -55,6 +59,8 @@ public class TapeLibraryFactory {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibraryFactory.class);
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
     private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers =
+        new ConcurrentHashMap<>();
 
     private TapeLibraryFactory() {
     }
@@ -63,6 +69,9 @@ public class TapeLibraryFactory {
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
         final TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
+
+        final QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
+            OfferCollections.OFFER_QUEUE.getName()));
 
         for (String tapeLibraryIdentifier : libraries.keySet()) {
             TapeLibraryConf tapeLibraryConf = libraries.get(tapeLibraryIdentifier);
@@ -92,15 +101,15 @@ public class TapeLibraryFactory {
             }
 
             // init tape catalog
-            TapeLibraryPool tapeLibraryPool = TapeLibraryFactory.tapeLibraryPool.get(tapeLibraryIdentifier);
+            TapeLibraryPool libraryPool = tapeLibraryPool.get(tapeLibraryIdentifier);
             try {
-                TapeRobotService robot = tapeLibraryPool.checkoutRobotService();
+                TapeRobotService robot = libraryPool.checkoutRobotService();
                 if (robot != null) {
                     try {
                         TapeLibrarySpec libraryState = robot.getLoadUnloadService().status();
                         tapeCatalogService.init(tapeLibraryIdentifier, libraryState);
                     } finally {
-                        tapeLibraryPool.pushRobotService(robot);
+                        libraryPool.pushRobotService(robot);
                     }
 
                 }
@@ -108,7 +117,11 @@ public class TapeLibraryFactory {
                 LOGGER.error(e);
                 throw new RuntimeException(e);
             }
+
+            tapeDriveWorkerManagers.put(tapeLibraryIdentifier, new TapeDriveWorkerManager(readWriteQueue, libraryPool));
+
         }
+
 
     }
 
@@ -122,5 +135,16 @@ public class TapeLibraryFactory {
 
     public TapeLibraryPool getFirstTapeLibraryPool() {
         return tapeLibraryPool.values().iterator().next();
+    }
+
+    public ConcurrentMap<String, TapeDriveWorkerManager> getTapeDriveWorkerManagers() {
+        return tapeDriveWorkerManagers;
+    }
+
+    public QueueRepository getReadWriteQueue() {
+        if (tapeDriveWorkerManagers.isEmpty()) {
+            throw new IllegalStateException("No queue initialized");
+        }
+        return tapeDriveWorkerManagers.values().iterator().next().getReadWriteQueue();
     }
 }

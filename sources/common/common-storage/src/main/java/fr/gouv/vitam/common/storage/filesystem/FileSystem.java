@@ -155,7 +155,7 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
+    public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws IOException, ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -171,7 +171,6 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             result.setFileSize(size);
             // TODO store vitam metadatas
             result.setType(containerName.split("_")[1]);
-            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
             result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
             result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
         } finally {
