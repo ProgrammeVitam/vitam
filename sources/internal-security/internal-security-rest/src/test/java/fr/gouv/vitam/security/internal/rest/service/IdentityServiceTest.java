@@ -26,9 +26,19 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
-import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
-import fr.gouv.vitam.security.internal.common.model.IdentityModel;
-import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
+import static com.google.common.io.ByteStreams.toByteArray;
+import static java.util.Optional.of;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.doReturn;
+
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.util.Optional;
+
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -37,18 +47,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.util.Optional;
-
-import static com.google.common.io.ByteStreams.toByteArray;
-import static java.util.Optional.of;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.BDDMockito.then;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
+import fr.gouv.vitam.security.internal.common.model.IdentityInsertModel;
+import fr.gouv.vitam.security.internal.common.model.IdentityModel;
+import fr.gouv.vitam.security.internal.rest.repository.IdentityRepository;
 
 public class IdentityServiceTest {
 
@@ -80,7 +81,7 @@ public class IdentityServiceTest {
 
         assertThat(identityModel.getSubjectDN()).isEqualTo(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
-        assertThat(identityModel.getSerialNumber()).isEqualTo(BigInteger.ZERO);
+        assertThat(identityModel.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.ZERO));
         assertThat(identityModel.getIssuerDN()).isEqualTo(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA");
         assertThat(identityModel.getCertificate()).isEqualTo(certificate);
@@ -93,7 +94,7 @@ public class IdentityServiceTest {
         byte[] certBinary = toByteArray(stream);
         IdentityModel identityModel = new IdentityModel();
         identityModel.setCertificate(certBinary);
-        doReturn(Optional.of(identityModel)).when(identityRepository).findIdentity(any(),any());
+        doReturn(Optional.of(identityModel)).when(identityRepository).findIdentity(any(), any());
 
         // When
         identityService.findIdentity(certBinary);
@@ -101,7 +102,7 @@ public class IdentityServiceTest {
         // Then
         then(identityRepository).should().findIdentity(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO);
+            String.valueOf(BigInteger.ZERO));
     }
 
     @Test
@@ -116,7 +117,7 @@ public class IdentityServiceTest {
         IdentityModel identityModel = new IdentityModel();
         given(identityRepository.findIdentity(
             "EMAILADDRESS=personal-basic@thawte.com, CN=Thawte Personal Basic CA, OU=Certification Services Division, O=Thawte Consulting, L=Cape Town, ST=Western Cape, C=ZA",
-            BigInteger.ZERO)).willReturn(of(identityModel));
+            String.valueOf(BigInteger.ZERO))).willReturn(of(identityModel));
 
         // When
         identityInsertModel.setContextId(contextId);
@@ -126,9 +127,8 @@ public class IdentityServiceTest {
         then(identityRepository).should()
             .linkContextToIdentity(identityModel.getSubjectDN(), identityModel.getContextId(),
                 identityModel.getSerialNumber());
-        assertThat(result).isPresent().hasValueSatisfying(identity ->
-            assertThat(identity.getContextId()).isEqualTo(contextId)
-        );
+        assertThat(result).isPresent()
+            .hasValueSatisfying(identity -> assertThat(identity.getContextId()).isEqualTo(contextId));
     }
 
     @Test

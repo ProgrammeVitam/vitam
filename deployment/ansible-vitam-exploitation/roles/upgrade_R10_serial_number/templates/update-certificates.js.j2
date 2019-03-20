@@ -1,0 +1,33 @@
+// Switch to identity database
+db = db.getSiblingDB('identity')
+
+
+// Update certificate  SerialNumber as a string
+db.Certificate.find({}).forEach(function(item)
+{
+   item.SerialNumber="" + item.SerialNumber;
+   db.Certificate.update({_id: item._id}, item);
+});
+
+// Update PersonalCertificate  SerialNumber as a string
+db.PersonalCertificate.find({}).forEach(function(item)
+{
+   item.SerialNumber="" + item.SerialNumber;
+   db.PersonalCertificate.update({_id: item._id}, item);
+});
+
+// Below is the int version
+// Update certificate  SerialNumber as a string
+/*db.Certificate.find({}).forEach(function(item)
+{
+   item.SerialNumber=NumberInt(item.SerialNumber);
+   db.Certificate.update({_id: item._id}, item);
+});
+
+// Update PersonalCertificate  SerialNumber as a string
+db.PersonalCertificate.find({}).forEach(function(item)
+{
+   item.SerialNumber=NumberInt(item.SerialNumber);
+   db.PersonalCertificate.update({_id: item._id}, item);
+});
+*/
