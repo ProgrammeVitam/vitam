@@ -200,46 +200,6 @@ public enum LogbookCollections {
     }
 
     /**
-     * @return the casted MongoCollection
-     */
-    @SuppressWarnings("unchecked")
-    protected static final MongoCollection<LogbookOperation> getOperationCollection() {
-        return (MongoCollection<LogbookOperation>) OPERATION.vitamCollection;
-    }
-
-    /**
-     * @return the casted MongoCollection
-     */
-    @SuppressWarnings("unchecked")
-    protected static final MongoCollection<LogbookLifeCycleUnit> getLifeCycleUnitCollection() {
-        return (MongoCollection<LogbookLifeCycleUnit>) LIFECYCLE_UNIT.vitamCollection;
-    }
-
-    /**
-     * @return the casted MongoCollection
-     */
-    @SuppressWarnings("unchecked")
-    protected static final MongoCollection<LogbookLifeCycleObjectGroup> getLifeCycleObjectGroupCollection() {
-        return (MongoCollection<LogbookLifeCycleObjectGroup>) LIFECYCLE_OBJECTGROUP.vitamCollection;
-    }
-
-    /**
-     * @return the casted MongoCollection
-     */
-    @SuppressWarnings("unchecked")
-    protected static final MongoCollection<LogbookLifeCycleUnitInProcess> getLifeCycleUnitInProcessCollection() {
-        return (MongoCollection<LogbookLifeCycleUnitInProcess>) LIFECYCLE_UNIT_IN_PROCESS.vitamCollection;
-    }
-
-    /**
-     * @return the casted MongoCollection
-     */
-    @SuppressWarnings("unchecked")
-    protected static final MongoCollection<LogbookLifeCycleObjectGroupInProcess> getLifeCycleObjectGroupInProcessCollection() {
-        return (MongoCollection<LogbookLifeCycleObjectGroupInProcess>) LIFECYCLE_OBJECTGROUP_IN_PROCESS.vitamCollection;
-    }
-
-    /**
      * @return the associated class
      */
     public Class<?> getClasz() {

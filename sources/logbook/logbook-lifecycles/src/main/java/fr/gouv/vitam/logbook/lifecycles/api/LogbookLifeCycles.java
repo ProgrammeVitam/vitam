@@ -27,6 +27,8 @@
 package fr.gouv.vitam.logbook.lifecycles.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -137,78 +139,38 @@ public interface LogbookLifeCycles {
         LogbookAlreadyExistsException;
 
     /**
-     * Select logbook LifeCycle entries
+     * Selects life cycle entries
      *
      * @param select the select request in format of JsonNode
      * @param sliced the boolean sliced filtering events or not
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
+     *        (LIFECYCLE_OBJECT_GROUP/LIFECYCLE_UNIT) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS/LIFECYCLE_UNIT_IN_PROCESS)
      * @return List of the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    List<LogbookLifeCycle> selectUnit(JsonNode select, boolean sliced, LogbookCollections collection)
+    List<LogbookLifeCycle> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
 
     /**
-     * Selects object group life cycle entries
+     * Selects life cycle entry
      *
-     * @param select the select request in format of JsonNode
-     * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
-     * @return List of the logbook LifeCycle
-     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
-     * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
-     */
-    List<LogbookLifeCycle> selectObjectGroup(JsonNode select, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
-
-    /**
-     * Selects object group life cycle entries
-     *
-     * @param select the select request in format of JsonNode
+     * @param lifecycleId the lifecycle id
+     * @param queryDsl the select projection in format of JsonNode
      * @param sliced the boolean sliced filtering events or not
      * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_OBJECT_GROUP) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS)
-     * @return List of the logbook LifeCycle
+     *        (LIFECYCLE_OBJECT_GROUP/LIFECYCLE_UNIT) or Working collection (LIFECYCLE_OBJECT_GROUP_IN_PROCESS/LIFECYCLE_UNIT_IN_PROCESS)
+     * @return the logbook LifeCycle
      * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
+     * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    List<LogbookLifeCycle> selectObjectGroup(JsonNode select, boolean sliced, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException;
-
-    /**
-     * Select logbook LifeCycle entry by operation
-     *
-     * @param idOperation the operation id
-     * @param idLc the logbook identifier
-     * @return the Unit Logbook Lifecycle
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
-     * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
-     */
-    LogbookLifeCycleUnit getUnitByOperationIdAndByUnitId(String idOperation, String idLc)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
-
-    /**
-     * Select logbook LifeCycle entry by operation
-     *
-     * @param idOperation the operation identifier
-     * @param idLc the logbook identifier
-     * @return the ObjectGroup Logbook Lifecycle
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
-     * @throws InvalidParseOperationException if invalid parse for selecting the LifeCycle
-     */
-    LogbookLifeCycleObjectGroup getObjectGroupByOperationIdAndByObjectGroupId(String idOperation, String idLc)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException;
-
+    LogbookLifeCycle selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced, LogbookCollections collection)
+            throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException, InvalidCreateOperationException;
 
     /**
      * Rollback logbook LifeCycle entries
@@ -229,40 +191,6 @@ public interface LogbookLifeCycles {
      * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
      */
     void rollbackObjectGroup(String idOperation, String idLc) throws LogbookNotFoundException, LogbookDatabaseException;
-
-    /**
-     * Select logbook life cycle by the lifecycle's ID
-     *
-     * @param idUnit the unit identifier
-     * @return the logbook LifeCycle found by the ID
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
-     */
-    LogbookLifeCycleUnit getUnitById(String idUnit) throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
-     * Selects logbook life cycle by lifecycle ID (using a queryDsl)
-     *
-     * @param queryDsl the query as a json
-     * @param collection the collection on which the select operation will be done : Production collection
-     *        (LIFECYCLE_UNIT) or Working collection (LIFECYCLE_UNIT_IN_PROCESS)
-     * @return the logbook LifeCycle found by the ID
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
-     */
-    LogbookLifeCycle getUnitById(JsonNode queryDsl, LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
-     * Select logbook life cycle by the lifecycle's ID
-     *
-     * @param idObject the object group identifier
-     * @return the logbook LifeCycle found by the ID
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException if no LifeCycle selected cannot be found
-     */
-    LogbookLifeCycleObjectGroup getObjectGroupById(String idObject)
-        throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Create one Logbook Lifecycle with already multiple sub-events

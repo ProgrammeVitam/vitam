@@ -197,18 +197,6 @@ public interface AccessInternalClient extends MockOrRestClient {
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
-     * selectUnitLifeCycleById
-     *
-     * @param queryDsl
-     * @return a response containing a json node
-     * @throws LogbookClientException
-     * @throws InvalidParseOperationException
-     * @throws AccessUnauthorizedException
-     */
-    RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException;
-
-    /**
      * selectObjectGroupLifeCycleById
      *
      * @param idObject

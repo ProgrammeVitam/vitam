@@ -909,12 +909,14 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void selectExecution() throws Exception {
+        final String BODY_WITHOUT_ID =
+                "{\"$query\": {}, \"$projection\": {}, \"$filter\": {}}";
         final String BODY_WITH_ID =
             "{\"$query\": {\"$eq\": {\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\" }}, \"$projection\": {}, \"$filter\": {}}";
 
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
-            client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
         } catch (final LogbookClientNotFoundException e) {
 
@@ -922,7 +924,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         try {
-            client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
         } catch (final LogbookClientNotFoundException e) {
 
@@ -938,7 +940,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
-            client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            client.selectObjectGroupLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
         } catch (final LogbookClientException e) {
 
@@ -946,7 +948,7 @@ public class LogbookLifeCyclesClientRestTest extends ResteasyTestApplication {
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
         try {
-            client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITH_ID));
+            client.selectUnitLifeCycleById("id", JsonHandler.getFromString(BODY_WITHOUT_ID));
             fail("Should raise an exception");
         } catch (final LogbookClientException e) {
 

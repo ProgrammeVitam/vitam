@@ -76,7 +76,6 @@ public class LogbookExternalResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookExternalResource.class);
     private static final String EVENT_ID_PROCESS = "evIdProc";
-    private static final String OB_ID = "obId";
     private static final String INVALID_ARGUMENT = "Invalid argument: ";
     private static final String CONTRACT_ACCESS_DOES_NOT_ALLOW = "Contract access does not allow ";
     private static final String COULD_NOT_MODIFY_QUERY = "Could not modify search query: ";
@@ -224,7 +223,6 @@ public class LogbookExternalResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            select.setQuery(QueryHelper.eq(OB_ID, unitLifeCycleId));
             RequestResponse<JsonNode> result = client.selectUnitLifeCycleById(unitLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
@@ -243,11 +241,6 @@ public class LogbookExternalResource {
             return VitamCodeHelper
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_UNIT_LIFECYCLE_BY_ID_ERROR, e.getLocalizedMessage())
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper
@@ -275,9 +268,7 @@ public class LogbookExternalResource {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(queryDsl);
             Select select = parser.getRequest();
-            select.setQuery(QueryHelper.eq(OB_ID, objectGroupLifeCycleId));
-            RequestResponse<JsonNode> result =
-                client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
+            RequestResponse<JsonNode> result = client.selectObjectGroupLifeCycleById(objectGroupLifeCycleId, select.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (LogbookClientNotFoundException e) {
@@ -298,12 +289,6 @@ public class LogbookExternalResource {
                 .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
                     e.getLocalizedMessage())
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error(COULD_NOT_MODIFY_QUERY, e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_SELECT_OBJECT_GROUP_LIFECYCLE_BY_ID_ERROR,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.BAD_REQUEST.getStatusCode()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error(CONTRACT_ACCESS_DOES_NOT_ALLOW, e);
             return VitamCodeHelper

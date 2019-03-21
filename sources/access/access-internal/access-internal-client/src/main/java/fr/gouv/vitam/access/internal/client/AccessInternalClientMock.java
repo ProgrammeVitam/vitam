@@ -149,12 +149,6 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public RequestResponse<JsonNode> selectUnitLifeCycle(JsonNode queryDsl)
-        throws LogbookClientException, InvalidParseOperationException {
-        return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());
-    }
-
-    @Override
     public RequestResponse<JsonNode> selectObjectGroupLifeCycleById(String idObject, JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException {
         return new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation());

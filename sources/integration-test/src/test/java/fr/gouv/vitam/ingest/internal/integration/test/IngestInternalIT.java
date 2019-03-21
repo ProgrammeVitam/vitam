@@ -584,7 +584,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         final SelectParserSingle parser = new SelectParserSingle();
         Select selectLFC = new Select();
         parser.parse(selectLFC.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("obId", unitId));
         ObjectNode queryDsl = parser.getRequest().getFinalSelect();
 
         JsonNode lfcResponse = accessClient.selectUnitLifeCycleById(unitId, queryDsl).toJsonNode();
@@ -600,7 +599,6 @@ public class IngestInternalIT extends VitamRuleRunner {
         final SelectParserSingle parser = new SelectParserSingle();
         Select selectLFC = new Select();
         parser.parse(selectLFC.getFinalSelect());
-        parser.addCondition(QueryHelper.eq("obId", gotId));
         ObjectNode queryDsl = parser.getRequest().getFinalSelect();
 
         JsonNode lfcResponse = accessClient.selectObjectGroupLifeCycleById(gotId, queryDsl).toJsonNode();

@@ -35,7 +35,15 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -65,18 +73,11 @@ import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleUnit;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycle;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 public class LogbookLifeCyclesImplWithMongoTest {
 
@@ -223,18 +224,11 @@ public class LogbookLifeCyclesImplWithMongoTest {
         } catch (final LogbookAlreadyExistsException e) {
         }
 
-        // get objectgroup
-        final LogbookLifeCycleUnit logbookLifeCycle = logbookLifeCyclesImpl.getUnitById(
-            logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+        // get unit
+        final LogbookLifeCycle logbookLifeCycle = logbookLifeCyclesImpl.selectLifeCycleById(
+                logbookLifeCyclesUnitParametersStart.getParameterValue(LogbookParameterName.objectIdentifier), 
+                null, false, LogbookCollections.LIFECYCLE_UNIT);
         assertNotNull(logbookLifeCycle);
-        final LogbookLifeCycleUnit logbookLifeCycle2 =
-            logbookLifeCyclesImpl
-                .getUnitByOperationIdAndByUnitId(logbookLifeCyclesUnitParametersStart
-                        .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                    logbookLifeCyclesUnitParametersStart
-                        .getParameterValue(LogbookParameterName.objectIdentifier));
-        assertNotNull(logbookLifeCycle2);
-
     }
 
     private void createUpdateAndCommitUnitLifecycles()
@@ -304,14 +298,16 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectUnit(JsonHandler.getFromString(select.getFinalSelect().toString()),
+        logbookLifeCyclesImpl.selectLifeCycles(JsonHandler.getFromString(select.getFinalSelect().toString()),
             true, LogbookCollections.LIFECYCLE_UNIT);
     }
 
     @Test(expected = LogbookNotFoundException.class)
+    @RunWithCustomExecutor
     public void given_find_When_UnitNotExist_ThenThrow_NotFoundException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
-        logbookLifeCyclesImpl.getUnitById("notExist");
+        logbookLifeCyclesImpl.selectLifeCycleById("notExist", null, false, LogbookCollections.LIFECYCLE_UNIT);
     }
 
     /**
@@ -345,16 +341,10 @@ public class LogbookLifeCyclesImplWithMongoTest {
 
 
         // get objectgroup
-        final LogbookLifeCycleObjectGroup logbookLifeCycle = logbookLifeCyclesImpl.getObjectGroupById(
-            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier));
+        final LogbookLifeCycle logbookLifeCycle = logbookLifeCyclesImpl.selectLifeCycleById(
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier),
+                null, false, LogbookCollections.LIFECYCLE_OBJECTGROUP);
         assertNotNull(logbookLifeCycle);
-        final LogbookLifeCycleObjectGroup logbookLifeCycle2 =
-            logbookLifeCyclesImpl
-                .getObjectGroupByOperationIdAndByObjectGroupId(logbookLifeCyclesObjectGroupParametersStart
-                        .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                    logbookLifeCyclesObjectGroupParametersStart
-                        .getParameterValue(LogbookParameterName.objectIdentifier));
-        assertNotNull(logbookLifeCycle2);
     }
 
     private void createUpdateAndCommitOGLfc()
@@ -420,14 +410,16 @@ public class LogbookLifeCyclesImplWithMongoTest {
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
         final Select select = new Select();
         select.setQuery(exists("mavar1"));
-        logbookLifeCyclesImpl.selectObjectGroup(JsonHandler.getFromString(select.getFinalSelect().toString()),
-            LogbookCollections.LIFECYCLE_UNIT);
+        logbookLifeCyclesImpl.selectLifeCycles(JsonHandler.getFromString(select.getFinalSelect().toString()), false,
+                LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
 
     @Test(expected = LogbookNotFoundException.class)
+    @RunWithCustomExecutor
     public void given_find_When_ObjectGroupNotExist_ThenThrow_NotFoundException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         logbookLifeCyclesImpl = new LogbookLifeCyclesImpl(mongoDbAccess);
-        logbookLifeCyclesImpl.getObjectGroupById("notExist");
+        logbookLifeCyclesImpl.selectLifeCycleById("notExist", null, false, LogbookCollections.LIFECYCLE_OBJECTGROUP);
     }
 
 }

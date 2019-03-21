@@ -123,7 +123,6 @@ public class LogbookInternalResourceImpl {
     private static final String CODE_VITAM = "code_vitam";
 
     private static final String EVENT_ID_PROCESS = "evIdProc";
-    private static final String OB_ID = "obId";
     private static final String DSLQUERY_TO_CHECK_TRACEABILITY_OPERATION_NOT_FOUND =
         "DSL Query to start traceability check was not found.";
 
@@ -288,42 +287,6 @@ public class LogbookInternalResourceImpl {
     }
 
     /**
-     * gets the unit life cycle based on its id
-     *
-     * @param queryDsl dsl query containing obId
-     * @return the unit life cycle
-     */
-    @GET
-    @Path("/unitlifecycles")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getUnitLifeCycle(JsonNode queryDsl) {
-        Status status;
-        try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-            SanityChecker.checkJsonAll(queryDsl);
-            final SelectParserSingle parser = new SelectParserSingle();
-            Select select = new Select();
-            parser.parse(select.getFinalSelect());
-            parser.addCondition(QueryHelper.eq(OB_ID, queryDsl.findValue(OB_ID).asText()));
-            queryDsl = parser.getRequest().getFinalSelect();
-            final JsonNode result = client.selectUnitLifeCycle(queryDsl);
-            return Response.status(Status.OK).entity(result).build();
-        } catch (final LogbookClientException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (final InvalidParseOperationException e) {
-            LOGGER.error(e);
-            status = Status.PRECONDITION_FAILED;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        } catch (InvalidCreateOperationException e) {
-            LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        }
-    }
-
-
-    /**
      * gets the object group life cycle based on its id
      *
      * @param objectGroupLifeCycleId the object group life cycle id
@@ -333,7 +296,7 @@ public class LogbookInternalResourceImpl {
     @GET
     @Path("/objectgrouplifecycles/{id_lc}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getObjectGroupLifeCycle(@PathParam("id_lc") String objectGroupLifeCycleId, JsonNode queryDsl) {
+    public Response getObjectGroupLifeCycleById(@PathParam("id_lc") String objectGroupLifeCycleId, JsonNode queryDsl) {
         Status status;
         try (LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
             SanityChecker.checkParameter(objectGroupLifeCycleId);
