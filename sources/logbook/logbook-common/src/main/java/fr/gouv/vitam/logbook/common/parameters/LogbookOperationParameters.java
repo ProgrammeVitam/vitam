@@ -26,18 +26,35 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.parameters;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 /**
  * Parameters for the logbook operation
  */
-@JsonSerialize(using = LogbookParametersSerializer.class)
+@JsonSerialize(using = LogbookOperationParametersSerializer.class)
+@JsonDeserialize(using = LogbookOperationParametersDeserializer.class)
 public class LogbookOperationParameters extends AbstractParameters {
+
+    @JsonProperty("events")
+    private Set<LogbookParameters> events = new HashSet<>();
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationParameters.class);
+
     /**
      * Constructor use by the factory to initialize the set of mandatories
      *
@@ -59,4 +76,42 @@ public class LogbookOperationParameters extends AbstractParameters {
         super(LogbookParametersFactory.getDefaultOperationMandatory());
         setMap(map);
     }
+
+    @Override
+    public String toString() {
+        try {
+            HashMap finalMap = new HashMap<String, Object>();
+            for (final Entry<LogbookParameterName, String> item : getMapParameters().entrySet()) {
+                finalMap.put(item.getKey().name(), item.getValue());
+            }
+            finalMap.put(LogbookParameterName.events.name(), getEvents());
+
+            return JsonHandler.writeAsString(finalMap);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error("Cannot convert to String", e);
+            return getMapParameters().toString();
+        }
+    }
+
+    /**
+     * Set event list
+     * 
+     * @param events the list of events
+     */
+    @JsonProperty("events")
+    public void setEvents(Set<LogbookParameters> events) {
+        this.events = events;
+    }
+
+
+    /**
+     * Get event list
+     * 
+     * @return the event list
+     */
+    @JsonProperty("events")
+    public Set<LogbookParameters> getEvents() {
+        return events;
+    }
+
 }

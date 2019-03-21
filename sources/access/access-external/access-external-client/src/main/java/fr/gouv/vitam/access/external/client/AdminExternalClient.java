@@ -36,13 +36,15 @@ import fr.gouv.vitam.access.external.common.exception.AccessExternalClientExcept
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientServerException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.LogbookExternalClientException;
+import fr.gouv.vitam.access.external.common.exception.LogbookExternalException;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.BasicClient;
-import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -53,14 +55,15 @@ import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.FileFormatModel;
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
-import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
-import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.model.processing.WorkFlow;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
 /**
  * Admin External Client Interface
@@ -593,7 +596,7 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
      *
      * @param vitamContext the vitam context
      * @param action an action as a string among "RESUME" (resume workflow till the end), "NEXT" (launch next step),
-     * "REPLAY" (replay the step) and PAUSE" (pause the workflow)
+     *        "REPLAY" (replay the step) and PAUSE" (pause the workflow)
      * @param operationId
      * @return the status
      * @throws VitamClientException
@@ -792,8 +795,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
 
     /**
-     * Create a ArchiveUnitProfile after passing the validation steps. If profiles are json and valid, they are stored in
-     * the collection and indexed. </BR>
+     * Create a ArchiveUnitProfile after passing the validation steps. If profiles are json and valid, they are stored
+     * in the collection and indexed. </BR>
      * The input is invalid in the following situations : </BR>
      * <ul>
      * <li>The json of file is unparsable or invalid</li>
@@ -838,8 +841,8 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     /**
      * Import a set of ontologies metadata. </BR>
-     * If all the ontologies are valid, they will be stored in the ontology collection and indexed. The
-     * input is invalid in the following situations : </BR>
+     * If all the ontologies are valid, they will be stored in the ontology collection and indexed. The input is invalid
+     * in the following situations : </BR>
      * <ul>
      * <li>The json is invalid</li>
      * <li>The json contains an already used identifier</li>
@@ -875,5 +878,17 @@ public interface AdminExternalClient extends BasicClient, OperationStatusClient 
 
     RequestResponse<GriffinModel> findGriffin(VitamContext vitamContext, JsonNode select)
         throws VitamClientException;
+
+    /**
+     * Create external logbook operation entry <br>
+     * <br>
+     *
+     * @param logbookOperationparams the logbook parameters to be created
+     * @param vitamContext the vitam context
+     * @return RequestResponse status of the insertion
+     * @throws LogbookExternalClientException
+     */
+    RequestResponse createExternalOperation(VitamContext vitamContext, LogbookOperationParameters logbookOperationparams)
+        throws LogbookExternalClientException;
 
 }

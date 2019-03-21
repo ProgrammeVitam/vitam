@@ -1,0 +1,20 @@
+{
+    "eventIdentifier": "entryId",
+    "eventType": "externalOperation",
+    "eventDateTime": "2015-07-14T17:32:05Z",
+    "eventIdentifierProcess": "workflowId",
+    "eventTypeProcess": "EXTERNAL",
+    "outcome" : "STARTED",
+    "eventOutcomeDetail": "404_123456",
+    "eventOutcomeDetailMessage": "Error message",
+    "agentIdentifier": "server_identifier",
+    "agentIdentifierApplication": "remoteApplicationId",
+    "agentIdentifierApplicationSession": "X-AID",
+    "eventIdentifierRequest": "W-Request-Id",
+    "agentIdentifierSubmission": "Submission_agency_Id",
+    "agentIdentifierOriginating": "Originating_agency_Id",
+    "objectIdentifier": "Object_or_SIP_Id",
+    "objectIdentifierRequest": "Request_selecting_objects",
+    "objectIdentifierIncome": "MessageIdentifier_in_SEDA",
+    "events": []
+  }

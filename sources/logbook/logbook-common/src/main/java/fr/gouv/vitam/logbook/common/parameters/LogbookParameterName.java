@@ -171,5 +171,9 @@ public enum LogbookParameterName {
      * <br>
      * Can be null
      */
-    eventDetailData
+    eventDetailData,
+    /**
+     * events list
+     */
+    events
 }

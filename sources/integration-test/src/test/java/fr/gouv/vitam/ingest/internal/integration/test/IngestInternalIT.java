@@ -26,11 +26,55 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.integration.test;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static io.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.FileUtils;
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
+
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -39,6 +83,7 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -103,6 +148,8 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsExceptio
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
@@ -130,45 +177,6 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
-import org.apache.commons.io.FileUtils;
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static io.restassured.RestAssured.get;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 /**
  * Ingest Internal integration test
@@ -191,8 +199,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 WorkspaceMain.class,
                 ProcessManagementMain.class,
                 AccessInternalMain.class,
-                IngestInternalMain.class
-            ));
+                IngestInternalMain.class));
 
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
@@ -1730,8 +1737,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // import contrat
         File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
         List<AccessContractModel> accessContractModelList = JsonHandler
-            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-            });
+            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
         client.importAccessContracts(accessContractModelList);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
@@ -2000,9 +2006,8 @@ public class IngestInternalIT extends VitamRuleRunner {
         // UniqueTitleChild : aeaqaaaaaahmtusqabktwaldc34sm5iaaabq
         final List<Document> unitList =
             JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
-                    .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
-                new TypeReference<List<Unit>>() {
-                });
+                .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
+                new TypeReference<List<Unit>>() {});
 
         // Save units in Mongo
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
@@ -2102,7 +2107,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertThat(res.getResults()).hasSize(1);
             assertThat(res.getResults().iterator().next().toString()).contains("UniqueTitleChild");
 
-            // Set rootUnit to UniqueTitleChild guid. The first query should not return result as root unit restrict access
+            // Set rootUnit to UniqueTitleChild guid. The first query should not return result as root unit restrict
+            // access
             // => So for the second query no roots => should not return result
             accessContractModel.getRootUnits().clear();
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
@@ -2120,7 +2126,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
 
             //////////////////////////
-            ///   Test Depth negative
+            /// Test Depth negative
             /////////////////////////
             query_1 =
                 QueryHelper.eq("Title", "UniqueTitleChild");
@@ -2137,7 +2143,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
 
 
-            // Get UniqueTitleChild then Get parent UniqueTitleParent even AccessContract restrict access only UniqueTitleChild
+            // Get UniqueTitleChild then Get parent UniqueTitleParent even AccessContract restrict access only
+            // UniqueTitleChild
             // => should not return result
             newJson =
                 AccessContractRestrictionHelper
@@ -2422,7 +2429,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            //select.setProjectionSliceOnQualifier();
+            // select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("#id");
@@ -2474,5 +2481,76 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(ok, processWorkflow.getStatus());
     }
+
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testExternalLogbook() throws Exception {
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        prepareVitamSession();
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+
+        // external logbook creation
+
+        // root logbook
+        final LogbookOperationParameters logbookOperationparams =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "External_Operation", operationGuid,
+                LogbookTypeProcess.EXTERNAL, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+
+        final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
+        final LogbookOperationParameters eventParameters = LogbookParametersFactory
+            .newLogbookOperationParameters(
+                eventGuid,
+                "External_Operation",
+                operationGuid,
+                LogbookTypeProcess.EXTERNAL,
+                StatusCode.OK,
+                "outcomeDetailMessage",
+                operationGuid);
+        Set<LogbookParameters> events = new LinkedHashSet<>();
+        events.add(eventParameters);
+        logbookOperationparams.setEvents(events);
+
+        final LogbookOperationParameters logbookOperationparamsWrongType =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "External_Operation", operationGuid,
+                LogbookTypeProcess.AUDIT, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+
+            assertEquals(Status.CREATED, client.createExternalOperation(logbookOperationparams));
+
+            JsonNode logbookOperation =
+                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                    .toJsonNode();
+            assertEquals(1, logbookOperation.get("$results").get(0).get("events").size());
+            logbookOperation.get("$results").get(0).get("events").forEach(event -> {
+                if (event.get("evType").asText().contains("STP_UPLOAD_SIP")) {
+                    assertThat(event.get(LogbookParameterName.eventTypeProcess.name()).asText())
+                        .contains(LogbookTypeProcess.EXTERNAL.name());
+                }
+            });
+
+
+            try {
+                client.createExternalOperation(logbookOperationparamsWrongType);
+                fail("this should throw an exception as the audit type shouldn't be accepted");
+            } catch (BadRequestException e) {
+                // do nothing as the external logbook is rejected -> wrong type
+            }
+
+        }
+
+
+
+    }
+
 
 }

@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -35,12 +34,20 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.collect.Sets;
+
 import fr.gouv.vitam.access.external.api.AccessExtAPI;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientException;
 import fr.gouv.vitam.access.external.common.exception.AccessExternalClientNotFoundException;
+import fr.gouv.vitam.access.external.common.exception.LogbookExternalClientException;
 import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -50,7 +57,6 @@ import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.external.client.configuration.ClientConfigurationImpl;
@@ -74,11 +80,8 @@ import fr.gouv.vitam.common.model.processing.ProcessDetail;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 public class AdminExternalClientRestTest extends ResteasyTestApplication {
 
@@ -93,8 +96,8 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
     private final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static AdminExternalClientFactory factory = AdminExternalClientFactory.getInstance();
-    public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(AdminExternalClientRestTest.class, factory);
+    public static VitamServerTestRunner vitamServerTestRunner =
+        new VitamServerTestRunner(AdminExternalClientRestTest.class, factory);
 
 
     @BeforeClass
@@ -284,6 +287,14 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response probativeValueExport(String query) {
+            return expectedResponse.post();
+        }
+
+        @Path(AccessExtAPI.LOGBOOK_OPERATIONS)
+        @POST
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response createExternalOperation(JsonNode operation) {
             return expectedResponse.post();
         }
 
@@ -869,7 +880,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
             assertThat(
                 client.findAccessionRegister(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
                     JsonHandler.getFromString(queryDsql)).getHttpCode())
-                .isEqualTo(Status.OK.getStatusCode());
+                        .isEqualTo(Status.OK.getStatusCode());
         }
     }
 
@@ -934,7 +945,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(
                 client.launchAudit(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), auditOption).getHttpCode())
-                .isEqualTo(Status.OK.getStatusCode());
+                    .isEqualTo(Status.OK.getStatusCode());
         }
     }
 
@@ -978,7 +989,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(client.updateProfile(
                 new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
-                .isTrue();
+                    .isTrue();
         }
     }
 
@@ -1241,7 +1252,7 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
             assertThat(client.updateArchiveUnitProfile(
                 new VitamContext(TENANT_ID).setAccessContract(CONTRACT), ID, JsonHandler.createObjectNode()).isOk())
-                .isTrue();
+                    .isTrue();
         }
     }
 
@@ -1362,6 +1373,55 @@ public class AdminExternalClientRestTest extends ResteasyTestApplication {
         }
     }
 
+
+    /**
+     * Testing creation of external operations
+     * 
+     * @throws LogbookExternalClientException
+     */
+    @Test
+    public void createExternalOperations()
+        throws VitamClientException, LogbookExternalClientException {
+
+        LogbookOperationParameters logbook = LogbookParametersFactory.newLogbookOperationParameters();
+
+        when(mock.post()).thenReturn(
+            Response.status(Status.CREATED).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse resp =
+                client.createExternalOperation(new VitamContext(TENANT_ID).setAccessContract(null),
+                    logbook);
+            assertEquals(resp.getHttpCode(), Status.CREATED.getStatusCode());
+        }
+
+        when(mock.post()).thenReturn(
+            Response.status(Status.CONFLICT).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse resp =
+                client.createExternalOperation(new VitamContext(TENANT_ID).setAccessContract(null),
+                    logbook);
+            assertEquals(resp.getHttpCode(), Status.CONFLICT.getStatusCode());
+        }
+
+        when(mock.post()).thenReturn(
+            Response.status(Status.BAD_REQUEST).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse resp =
+                client.createExternalOperation(new VitamContext(TENANT_ID).setAccessContract(null),
+                    logbook);
+            assertEquals(resp.getHttpCode(), Status.BAD_REQUEST.getStatusCode());
+        }
+
+        
+        when(mock.post()).thenReturn(
+            Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        try (AdminExternalClientRest client = (AdminExternalClientRest) vitamServerTestRunner.getClient()) {
+            RequestResponse resp =
+                client.createExternalOperation(new VitamContext(TENANT_ID).setAccessContract(null),
+                    logbook);
+            assertEquals(resp.getHttpCode(), Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        }
+    }
 
 
 }

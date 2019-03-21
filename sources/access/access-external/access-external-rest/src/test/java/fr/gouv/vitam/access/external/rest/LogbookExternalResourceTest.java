@@ -1,14 +1,34 @@
 package fr.gouv.vitam.access.external.rest;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.util.Set;
+
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -21,24 +41,12 @@ import fr.gouv.vitam.ingest.internal.client.IngestInternalClient;
 import fr.gouv.vitam.ingest.internal.client.IngestInternalClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response.Status;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.GlobalDataRest.X_HTTP_METHOD_OVERRIDE;
-import static io.restassured.RestAssured.given;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 
 public class LogbookExternalResourceTest extends ResteasyTestApplication {
@@ -58,7 +66,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     private static JunitHelper junitHelper = JunitHelper.getInstance();
     private static int port = junitHelper.findAvailablePort();
 
-    private static final String TENANT_ID = "0";
+    private static final int TENANT_ID = 0;
     private static final String UNEXISTING_TENANT_ID = "25";
 
     private static final String OPERATIONS_URI = "/logbookoperations";
@@ -152,7 +160,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
         // Mock AccessInternal response for download TRACEABILITY operation request
         when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID))
-            .thenReturn(ClientMockResultHelper.getObjectStream());
+            .thenReturn(ClientMockResultHelper.getObjectStream());        
 
     }
 
@@ -313,7 +321,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
         when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(
             request)))
-            .thenThrow(new LogbookClientException(""));
+                .thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -376,7 +384,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     public void testSelectOperationById_InternalServerError() throws Exception {
         when(
             accessInternalClient.selectOperationById(bad_id, JsonHandler.getFromString(request)))
-            .thenThrow(new LogbookClientException(""));
+                .thenThrow(new LogbookClientException(""));
 
         given()
             .contentType(ContentType.JSON)
@@ -765,5 +773,6 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .get("/logbookobjectslifecycles/" + good_id)
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
+
 
 }

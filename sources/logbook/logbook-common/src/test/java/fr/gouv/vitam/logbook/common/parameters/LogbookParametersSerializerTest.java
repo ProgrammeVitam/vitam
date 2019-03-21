@@ -44,13 +44,47 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 public class LogbookParametersSerializerTest {
 
     @Test
-    public void shouldSerializeUnitParameters() throws IOException {
-        final LogbookLifeCycleObjectGroupParameters params =
-            LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters();
+    public void shouldSerializeOperationParameters() throws IOException {
+        final LogbookOperationParameters params =
+            LogbookParametersFactory.newLogbookOperationParameters();
         assertNotNull(params);
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
-            params.putParameterValue(value, value.name());
+            if (!value.name().equals(LogbookParameterName.events.name())) {
+                params.putParameterValue(value, value.name());
+            }
+        }
+
+        final LogbookOperationParametersSerializer logbookParametersSerializer = new LogbookOperationParametersSerializer();
+        final StringWriter stringJson = new StringWriter();
+        final JsonGenerator generator = new JsonFactory().createGenerator(stringJson);
+        final SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
+        logbookParametersSerializer.serialize(params, generator, serializerProvider);
+        generator.flush();
+        assertThat(stringJson.toString(),
+            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":\"parentEventIdentifier\"," +
+                "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
+                "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
+                "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
+                "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +
+                "\"agentIdentifierPersonae\":\"agentIdentifierPersonae\"," +
+                "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +
+                "\"objectIdentifier\":\"objectIdentifier\",\"lifeCycleIdentifier\":\"lifeCycleIdentifier\",\"objectIdentifierRequest\":\"objectIdentifierRequest\"," +
+                "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"rightsStatementIdentifier\":\"rightsStatementIdentifier\"," +
+                "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}")));
+    }
+
+    
+    @Test
+    public void shouldSerializeUnitParameters() throws IOException {
+        final LogbookLifeCycleUnitParameters params =
+            LogbookParametersFactory.newLogbookLifeCycleUnitParameters();
+        assertNotNull(params);
+
+        for (final LogbookParameterName value : LogbookParameterName.values()) {
+            if (!value.name().equals(LogbookParameterName.events.name())) {
+                params.putParameterValue(value, value.name());
+            }
         }
 
         final LogbookParametersSerializer logbookParametersSerializer = new LogbookParametersSerializer();
@@ -71,7 +105,6 @@ public class LogbookParametersSerializerTest {
                 "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"rightsStatementIdentifier\":\"rightsStatementIdentifier\"," +
                 "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}")));
     }
-
 
 
 }

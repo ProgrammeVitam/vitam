@@ -41,7 +41,6 @@ import java.util.List;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.model.ProcessPause;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -56,9 +55,9 @@ import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
@@ -73,6 +72,8 @@ import fr.gouv.vitam.functional.administration.common.exception.FileFormatExcept
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 
 public class AdminManagementClientMockTest {
@@ -429,4 +430,11 @@ public class AdminManagementClientMockTest {
         assertTrue(resp.isOk());
     }
 
+    @Test
+    public void createExternalOperation() throws Exception {
+        LogbookOperationParameters logbook = LogbookParametersFactory.newLogbookOperationParameters();
+        Status resp = client.createExternalOperation(logbook);
+        assertEquals(resp, Status.CREATED);
+    }
+    
 }

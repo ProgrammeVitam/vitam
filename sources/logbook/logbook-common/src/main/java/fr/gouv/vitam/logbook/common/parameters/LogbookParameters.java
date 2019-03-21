@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.common.parameters;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.parameter.VitamParameter;
@@ -118,7 +119,7 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      *
      * @param handlerId the Handler Id
      * @param subTaskId the subTask Id if any (may be null)
-     * @param code the Status Code
+     * @param code the Status CodeAdminManagementClientRestTest
      * @param additionalMessage the additional message (as " Details= ...") if any (may be null)
      * @param params the additional parameters for the message if any (may be null)
      * @return this
@@ -137,4 +138,5 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      */
     LogbookParameters setBeginningLog(String handlerId, String subTaskId, String additionalMessage,
         String... params);
+
 }

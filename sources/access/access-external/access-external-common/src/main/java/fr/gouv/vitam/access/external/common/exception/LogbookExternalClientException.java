@@ -24,36 +24,44 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.logbook.common.parameters;
 
-import java.io.IOException;
-import java.util.Map.Entry;
+package fr.gouv.vitam.access.external.common.exception;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import fr.gouv.vitam.common.exception.VitamException;
 
 /**
- * AbstractParameters Serializer for Jackson
+ * Main Logbook External Client Exception
  */
-class LogbookParametersSerializer extends JsonSerializer<AbstractParameters> {
+public class LogbookExternalClientException extends VitamException {
+
+
+    private static final long serialVersionUID = 3988644111162202710L;
 
     /**
-     * Empty constructor
+     * constructor with message
+     *
+     * @param message associated message
      */
-    public LogbookParametersSerializer() {
-        // empty
+    public LogbookExternalClientException(String message) {
+        super(message);
     }
 
-    @Override
-    public void serialize(AbstractParameters value, JsonGenerator gen,
-        SerializerProvider serializers)
-        throws IOException {
-        gen.writeStartObject();
-        for (final Entry<LogbookParameterName, String> item : value.getMapParameters().entrySet()) {
-            gen.writeStringField(item.getKey().name(), item.getValue());
-        }
-        gen.writeEndObject();
+    /**
+     * constructor with throwable
+     *
+     * @param cause associated cause
+     */
+    public LogbookExternalClientException(Throwable cause) {
+        super(cause);
     }
 
+    /**
+     * constructor with message and throwable
+     *
+     * @param messsage associated message
+     * @param cause associated cause
+     */
+    public LogbookExternalClientException(String messsage, Throwable cause) {
+        super(messsage, cause);
+    }
 }

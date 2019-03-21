@@ -26,13 +26,39 @@
  *******************************************************************************/
 package fr.gouv.vitam.functional.administration.client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
@@ -71,29 +97,8 @@ import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflict
 import fr.gouv.vitam.functional.administration.common.exception.FileRulesException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 
 public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
@@ -111,8 +116,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private final static ExpectedResults mock = mock(ExpectedResults.class);
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
+    public static VitamServerTestRunner vitamServerTestRunner =
         new VitamServerTestRunner(AdminManagementClientRestTest.class, AdminManagementClientFactory.getInstance());
 
 
@@ -141,8 +145,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
             new ProbativeValueResourceMock(mock),
             new ProfileResourceMock(mock),
             new ReindexationResourceMock(mock),
-            new SecurityProfileResourceMock(mock)
-        );
+            new SecurityProfileResourceMock(mock));
     }
 
     @Before
@@ -529,15 +532,13 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
     private List<AccessContractModel> getAccessContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("contracts_access_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {
-        });
+        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<AccessContractModel>>() {});
     }
 
     private List<IngestContractModel> getIngestContracts()
         throws FileNotFoundException, InvalidParseOperationException {
         File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-        });
+        return JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {});
     }
 
 
@@ -674,8 +675,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private List<ProfileModel> getProfiles() throws FileNotFoundException, InvalidParseOperationException {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {
-        });
+        return JsonHandler.getFromFileAsTypeRefence(fileProfiles, new TypeReference<List<ProfileModel>>() {});
     }
 
     @Test
@@ -720,8 +720,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
 
     private List<ContextModel> getContexts() throws FileNotFoundException, InvalidParseOperationException {
         File fileContexts = PropertiesUtils.getResourceFile("contexts_ok.json");
-        return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {
-        });
+        return JsonHandler.getFromFileAsTypeRefence(fileContexts, new TypeReference<List<ContextModel>>() {});
     }
 
     @Test
@@ -872,8 +871,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         throws FileNotFoundException, InvalidParseOperationException {
         File fileArchiveUnitProfiles = PropertiesUtils.getResourceFile("archive_unit_profile_ok.json");
         return JsonHandler
-            .getFromFileAsTypeRefence(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {
-            });
+            .getFromFileAsTypeRefence(fileArchiveUnitProfiles, new TypeReference<List<ArchiveUnitProfileModel>>() {});
     }
 
     @Test
@@ -901,6 +899,49 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
             RequestResponse<ProcessPause> resp = client.removeForcePause(info);
             assertEquals(Status.OK.getStatusCode(), resp.getHttpCode());
+        }
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void createExternalOperation()
+        throws AdminManagementClientServerException, InvalidParseOperationException,
+        LogbookClientAlreadyExistsException, BadRequestException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.CREATED)
+            .entity(new RequestResponseOK()).build());
+        try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
+            Status status = client.createExternalOperation(LogbookParametersFactory.newLogbookOperationParameters());
+            assertThat(status).isEqualTo(Status.CREATED);
+        }
+    }
+
+    @Test(expected = BadRequestException.class)
+    @RunWithCustomExecutor
+    public void createExternalOperationBadRequest()
+        throws AdminManagementClientServerException, InvalidParseOperationException,
+        LogbookClientAlreadyExistsException, BadRequestException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.BAD_REQUEST)
+            .entity(new RequestResponseOK()).build());
+        try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
+            client.createExternalOperation(LogbookParametersFactory.newLogbookOperationParameters());
+
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void createExternalOperationInternalServerError()
+        throws AdminManagementClientServerException, InvalidParseOperationException,
+        LogbookClientAlreadyExistsException, BadRequestException {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR)
+            .entity(new RequestResponseOK()).build());
+        try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
+            Status status = client.createExternalOperation(LogbookParametersFactory.newLogbookOperationParameters());
+            assertThat(status).isEqualTo(Status.INTERNAL_SERVER_ERROR);
         }
     }
 
