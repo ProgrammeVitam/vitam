@@ -44,12 +44,12 @@ public class TapeDriveManager implements TapeDriveService {
     private final TapeReadWriteService ddReadWriteService;
     private final TapeDriveCommandService tapeDriveCommandService;
 
-    public TapeDriveManager(TapeDriveConf tapeDriveConf) {
+    public TapeDriveManager(TapeDriveConf tapeDriveConf, String inputDirectory, String outputDirectory) {
         ParametersChecker.checkParameter("TapeDriveConf param is required", tapeDriveConf);
         this.tapeDriveConf = tapeDriveConf;
         ProcessExecutor processExecutor = ProcessExecutor.getInstance();
-        this.tarReadWriteService = new TarTapeLibraryService(tapeDriveConf, processExecutor);
-        this.ddReadWriteService = new DdTapeLibraryService(tapeDriveConf, processExecutor);
+        this.tarReadWriteService = new TarTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
+        this.ddReadWriteService = new DdTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
         this.tapeDriveCommandService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
     }
 

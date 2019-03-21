@@ -32,18 +32,16 @@ import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 public interface TapeReadWriteService extends BeginEndService {
 
     /**
-     * @param workingDir folder where files are stocked
      * @param inputPath  mini-path to file from workingDir
      * @return TapeResponse
      */
-    TapeResponse writeToTape(String workingDir, String inputPath);
+    TapeResponse writeToTape(String inputPath);
 
     /**
-     * @param workingDir folder where files will be extracted when read from tape
      * @param outputPath in case dd implementation, outputPath is mini-path to file from workingDir. In case of tar implmentation, outputPath is the file inside tar to extrac
      * @return TapeResponse
      */
-    TapeResponse readFromTape(String workingDir, String outputPath);
+    TapeResponse readFromTape(String outputPath);
 
     /**
      * Just implemented for tar and list tar content

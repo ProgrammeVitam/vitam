@@ -47,19 +47,24 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
     private final Lock canReadWrite;
+    private final String inputDirectory;
+    private final String outputDirectory;
 
-    public DdTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor) {
+    public DdTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor,
+                                String inputDirectory, String outputDirectory) {
         ParametersChecker.checkParameter("All params are required", tapeDriveConf, processExecutor);
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
         this.canReadWrite = tapeDriveConf.getLock();
+        this.inputDirectory = inputDirectory;
+        this.outputDirectory = outputDirectory;
     }
 
     @Override
-    public TapeResponse writeToTape(String workingDir, String inputPath) {
+    public TapeResponse writeToTape(String inputPath) {
         ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
 
-        List<String> args = Lists.newArrayList(IF + workingDir  + "/" + inputPath, OF + tapeDriveConf.getDevice());
+        List<String> args = Lists.newArrayList(IF + inputDirectory  + "/" + inputPath, OF + tapeDriveConf.getDevice());
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
@@ -70,10 +75,10 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     }
 
     @Override
-    public TapeResponse readFromTape(String workingDir, String outputPath) {
+    public TapeResponse readFromTape(String outputPath) {
         ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
 
-        List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(), OF + workingDir + "/" + outputPath);
+        List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(), OF + outputDirectory + "/" + outputPath);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);

@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
@@ -80,7 +79,8 @@ public class TapeLibraryFactory {
             }
 
             for (TapeDriveConf tapeDriveConf : tapeLibraryConf.getDrives()) {
-                final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf);
+                final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf,
+                        configuration.getInputDirectory(), configuration.getOutputDirectory());
                 driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);
             }
 

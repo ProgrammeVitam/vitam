@@ -62,18 +62,18 @@ public class TarTapeLibraryServiceTest {
     @Test
     public void testServiceConstructor() {
         try {
-            new TarTapeLibraryService(null, ProcessExecutor.getInstance());
+            new TarTapeLibraryService(null, ProcessExecutor.getInstance(), "/tmp", "/tmp");
             fail("should fail constructor: tapeDriveConf");
         } catch (Exception e) {
         }
 
         try {
-            new TarTapeLibraryService(new TapeDriveConf(), null);
+            new TarTapeLibraryService(new TapeDriveConf(), null, "/tmp", "/tmp");
             fail("should fail constructor: processExecutor");
         } catch (Exception e) {
         }
 
-        new TarTapeLibraryService(new TapeDriveConf(), ProcessExecutor.getInstance());
+        new TarTapeLibraryService(new TapeDriveConf(), ProcessExecutor.getInstance(), "/tmp", "/tmp");
     }
 
     @Test
@@ -82,12 +82,12 @@ public class TarTapeLibraryServiceTest {
         tapeDriveConf.setTimeoutInMilliseconds(TIMEOUT_IN_MILLISECONDS);
         String device = tempFolderRule.newFile().getAbsolutePath();
         tapeDriveConf.setDevice(device);
+        String workingDir = PropertiesUtils.getResourceFile("tar").getAbsolutePath();
         TarTapeLibraryService tarTapeLibraryService =
-            new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance());
+            new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance(), workingDir, "");
 
-        String workingDir = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
         TapeResponse response =
-            tarTapeLibraryService.writeToTape(workingDir + "/", "testtar.tar");
+            tarTapeLibraryService.writeToTape("testtar.tar");
 
         assertThat(response).isNotNull();
         assertThat(response.getEntity()).isNotNull();
@@ -113,11 +113,11 @@ public class TarTapeLibraryServiceTest {
     public void testWriteToTapeIllegalArgumentException() throws FileNotFoundException {
         TapeDriveConf tapeDriveConf = new TapeDriveConf();
         tapeDriveConf.setTimeoutInMilliseconds(TIMEOUT_IN_MILLISECONDS);
+        String workingDir = PropertiesUtils.getResourceFile("tar").getAbsolutePath();
         TarTapeLibraryService tarTapeLibraryService =
-            new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance());
+            new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance(), workingDir, "");
 
-        String workingDir = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
-        tarTapeLibraryService.writeToTape(workingDir + "/", "testtar.tar");
+        tarTapeLibraryService.writeToTape("testtar.tar");
     }
 
     @Test
@@ -127,10 +127,10 @@ public class TarTapeLibraryServiceTest {
         String device = tempFolderRule.newFile().getAbsolutePath();
         tapeDriveConf.setDevice(device);
         TarTapeLibraryService tarTapeLibraryService =
-            new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance());
+            new TarTapeLibraryService(tapeDriveConf, ProcessExecutor.getInstance(), ".", "");
 
         TapeResponse response =
-            tarTapeLibraryService.writeToTape("", "testtar.tar");
+            tarTapeLibraryService.writeToTape("testtar.tar");
 
         assertThat(response).isNotNull();
         assertThat(response.getEntity()).isNotNull();

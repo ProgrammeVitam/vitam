@@ -27,11 +27,13 @@
 package fr.gouv.vitam.storage.offers.tape.dto;
 
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 
 public class TapeResponse {
 
     private Object entity;
     private StatusCode status;
+    private ReadWriteErrorCode errorCode;
 
     public TapeResponse(StatusCode status) {
         this.status = status;
@@ -39,6 +41,11 @@ public class TapeResponse {
 
     public TapeResponse(Object entity, StatusCode status) {
         this.entity = entity;
+        this.status = status;
+    }
+
+    public TapeResponse(ReadWriteErrorCode errorCode, StatusCode status) {
+        this.errorCode = errorCode;
         this.status = status;
     }
 
@@ -72,5 +79,9 @@ public class TapeResponse {
 
     public boolean isWarn() {
         return StatusCode.WARNING.equals(getStatus());
+    }
+
+    public ReadWriteErrorCode getErrorCode() {
+        return errorCode;
     }
 }

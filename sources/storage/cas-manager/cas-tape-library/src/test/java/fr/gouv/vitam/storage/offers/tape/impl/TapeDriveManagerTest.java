@@ -14,7 +14,7 @@ public class TapeDriveManagerTest {
 
     @Test
     public void testConstructorOneOK() {
-        TapeDriveManager tapeDriveManager = new TapeDriveManager(mock(TapeDriveConf.class));
+        TapeDriveManager tapeDriveManager = new TapeDriveManager(mock(TapeDriveConf.class), "", "");
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)).isNotNull();
@@ -38,7 +38,7 @@ public class TapeDriveManagerTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorOneNullTapeDriveConfKO() {
-        new TapeDriveManager(null);
+        new TapeDriveManager(null, "", "");
     }
 
 

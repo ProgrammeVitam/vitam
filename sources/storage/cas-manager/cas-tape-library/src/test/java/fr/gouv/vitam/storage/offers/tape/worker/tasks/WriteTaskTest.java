@@ -116,10 +116,10 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
 
-        when(tapeReadWriteService.writeToTape(anyString(), contains(WriteTask.TAPE_LABEL)))
+        when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-        when(tapeReadWriteService.writeToTape(anyString(), eq(writeOrder.getFilePath())))
+        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t

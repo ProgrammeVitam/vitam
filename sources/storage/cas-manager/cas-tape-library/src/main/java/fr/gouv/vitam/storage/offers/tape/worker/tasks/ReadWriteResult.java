@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
@@ -38,8 +37,18 @@ public class ReadWriteResult {
     private TapeCatalog currentTape;
     private TapeResponse tapeResponse;
 
-    public StatusCode getStatus() {
-        return status;
+    public ReadWriteResult() {
+    }
+
+    public ReadWriteResult(QueueState state, TapeCatalog currentTape, TapeResponse tapeResponse) {
+        this.orderState = state;
+        this.currentTape = currentTape;
+        this.tapeResponse = tapeResponse;
+    }
+
+    public ReadWriteResult(QueueState state, TapeCatalog currentTape) {
+        this.orderState = state;
+        this.currentTape = currentTape;
     }
 
     public void setStatus(StatusCode status) {

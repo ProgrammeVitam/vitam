@@ -32,6 +32,8 @@ import java.util.Map;
 public class TapeLibraryConfiguration {
     private List<TapeBatch> tapeBatches;
     private Map<String, TapeLibraryConf> tapeLibraries;
+    private String inputDirectory;
+    private String outputDirectory;
 
     public List<TapeBatch> getTapeBatches() {
         return tapeBatches;
@@ -48,5 +50,21 @@ public class TapeLibraryConfiguration {
     public void setTapeLibraries(
         Map<String, TapeLibraryConf> tapeLibraries) {
         this.tapeLibraries = tapeLibraries;
+    }
+
+    public String getInputDirectory() {
+        return inputDirectory;
+    }
+
+    public void setInputDirectory(String inputDirectory) {
+        this.inputDirectory = inputDirectory;
+    }
+
+    public String getOutputDirectory() {
+        return outputDirectory;
+    }
+
+    public void setOutputDirectory(String outputDirectory) {
+        this.outputDirectory = outputDirectory;
     }
 }

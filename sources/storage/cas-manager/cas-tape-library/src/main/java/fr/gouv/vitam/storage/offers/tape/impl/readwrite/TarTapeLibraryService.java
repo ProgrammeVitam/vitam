@@ -50,20 +50,24 @@ public class TarTapeLibraryService implements TapeReadWriteService {
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
     private final Lock canReadWrite;
+    private final String inputDirectory;
+    private final String outputDirectory;
 
-    public TarTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor) {
+    public TarTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor, String inputDirectory, String outputDirectory) {
         ParametersChecker.checkParameter("Params are required", tapeDriveConf, processExecutor);
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
         this.canReadWrite = tapeDriveConf.getLock();
+        this.inputDirectory = inputDirectory;
+        this.outputDirectory = outputDirectory;
     }
 
     @Override
-    public TapeResponse writeToTape(String workingDir, String filePath) {
+    public TapeResponse writeToTape(String filePath) {
         ParametersChecker
             .checkParameter("Arguments device and inputPath is required", tapeDriveConf.getDevice(), filePath);
 
-        List<String> args = Lists.newArrayList(CVF, tapeDriveConf.getDevice(), workingDir + filePath);
+        List<String> args = Lists.newArrayList(CVF, tapeDriveConf.getDevice(), inputDirectory + "/" + filePath);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getTarPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
@@ -74,9 +78,9 @@ public class TarTapeLibraryService implements TapeReadWriteService {
     }
 
     @Override
-    public TapeResponse readFromTape(String workingDir, String filetoExtract) {
+    public TapeResponse readFromTape(String filetoExtract) {
 
-        List<String> args = Lists.newArrayList(C, workingDir, XVF, tapeDriveConf.getDevice());
+        List<String> args = Lists.newArrayList(C, outputDirectory, XVF, tapeDriveConf.getDevice());
 
         if (!Strings.isNullOrEmpty(filetoExtract)) {
             args.add(filetoExtract);

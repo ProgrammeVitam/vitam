@@ -24,31 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.exception;
+package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
-public enum ReadWriteErrorCode {
-    INTERNAL_ERROR_SERVER,
-    TAPE_NOT_FOUND_IN_CATALOG,
-    NO_EMPTY_SLOT_FOUND,
-    /**
-     * Previous location should not be a drive, but a slot or mailbox
-     * Current location should not be null
-     */
-    TAPE_LOCATION_CONFLICT,
-    FILE_NOT_FOUND,
-    NULL_CURRENT_TAPE,
-    KO_DB_PERSIST,
-    KO_ON_LOAD_TAPE,
-    KO_ON_UNLOAD_TAPE,
-    KO_ON_WRITE_TO_TAPE, // TODO CloseIncident Tape
-    KO_ON_REWIND_TAPE,
-    KO_ON_REWIND_FSF_BSF_TAPE,
-    KO_END_OF_TAPE,
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 
-    KO_ON_STATUS,
-    KO_ON_LOAD_THEN_STATUS,
-    KO_ON_UNLOAD_THEN_STATUS,
-    KO_ON_WRITE_THEN_STATUS,
-    KO_ON_READ_FROM_TAPE,
-    TAPE_LOCATION_UNKNOWN
+public class CatalogResponse {
+    private StatusCode status;
+    private TapeCatalog currentTape;
+
+    public CatalogResponse(StatusCode status, TapeCatalog currentTape) {
+        this.status = status;
+        this.currentTape = currentTape;
+    }
+
+    public CatalogResponse(StatusCode status) {
+        this.status = status;
+    }
+
+    public StatusCode getStatus() {
+        return status;
+    }
+
+   public TapeCatalog getCurrentTape() {
+        return currentTape;
+    }
+
 }

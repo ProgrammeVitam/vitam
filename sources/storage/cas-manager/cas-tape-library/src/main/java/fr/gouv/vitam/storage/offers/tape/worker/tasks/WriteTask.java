@@ -389,7 +389,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             long fileSize = labelFile.length();
 
             TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .writeToTape(WORKING_DIR, labelFile.getAbsolutePath());
+                .writeToTape(labelFile.getAbsolutePath());
 
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
@@ -403,6 +403,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             }
 
             workerCurrentTape.setFileCount(1);
+            workerCurrentTape.setCurrentPosition(0);
             workerCurrentTape.setLabel(JsonHandler.unprettyPrint(objLabel));
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + fileSize);
 
@@ -429,7 +430,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         try {
             // TODO: 20/03/19 make tape write lock to true
             TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .writeToTape(WORKING_DIR, file.getAbsolutePath());
+                .writeToTape(file.getAbsolutePath());
 
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
@@ -455,6 +456,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             }
 
             workerCurrentTape.setFileCount(workerCurrentTape.getFileCount() + 1);
+            workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount() - 1);
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + file.length());
 
             doUpdateTapeCatalog(workerCurrentTape);
@@ -497,7 +499,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             }
 
             response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .writeToTape(WORKING_DIR, file.getAbsolutePath());
+                .writeToTape(file.getAbsolutePath());
         }
 
         if (!response.isOK()) {
@@ -514,7 +516,8 @@ public class WriteTask implements Future<ReadWriteResult> {
      */
     private void goToPosition(ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException {
         TapeResponse fsfResponse = tapeDriveService.getDriveCommandService()
-            .goToPosition(workerCurrentTape.getFileCount());
+            .goToPosition(workerCurrentTape.getFileCount() - 1);
+        workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount() - 1);
 
 
         if (!fsfResponse.isOK()) {
@@ -536,6 +539,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         // Rewind
         TapeResponse rewindResponse =
             tapeDriveService.getDriveCommandService().rewind();
+        workerCurrentTape.setCurrentPosition(0);
 
         if (!rewindResponse.isOK()) {
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +

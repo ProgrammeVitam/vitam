@@ -33,9 +33,11 @@ import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
+import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
@@ -73,8 +75,8 @@ public class TapeLibraryIT {
     public static final Integer DRIVE_INDEX = 2;
     private static MongoDbAccess mongoDbAccess;
 
-    @Rule
-    public TempFolderRule tempFolderRule = new TempFolderRule();
+    @ClassRule
+    public static TempFolderRule tempFolderRule = new TempFolderRule();
 
 
     @ClassRule
@@ -89,6 +91,9 @@ public class TapeLibraryIT {
         configuration =
             PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
                 TapeLibraryConfiguration.class);
+
+        configuration.setInputDirectory(PropertiesUtils.getResourceFile("tar/").getAbsolutePath());
+        configuration.setOutputDirectory(tempFolderRule.newFolder().getAbsolutePath());
         tapeLibraryFacotry = TapeLibraryFactory.getInstance();
         mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeLibraryFacotry.initialize(configuration, mongoDbAccess);
@@ -279,8 +284,6 @@ public class TapeLibraryIT {
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.isOK()).isTrue();
 
-
-
             TapeReadWriteService ddRreadWriteService =
                 tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD);
 
@@ -299,9 +302,7 @@ public class TapeLibraryIT {
 
 
             //3 Write file to tape
-
-            String workingDir = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
-            response = ddRreadWriteService.writeToTape(workingDir + "/", "testtar.tar");
+            response = ddRreadWriteService.writeToTape("testtar.tar");
 
             Assertions.assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
@@ -317,9 +318,7 @@ public class TapeLibraryIT {
 
 
             // 5 Read file from tape with dd command
-            String outDir1 = tempFolderRule.newFolder().getAbsolutePath();
-
-            response = ddRreadWriteService.readFromTape(outDir1, "testtar.tar");
+            response = ddRreadWriteService.readFromTape("testtar.tar");
             assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.isOK()).isTrue();
@@ -336,8 +335,7 @@ public class TapeLibraryIT {
 
 
             // 7 Read file from tape with tar command
-            String outDir2 = tempFolderRule.newFolder().getAbsolutePath();
-            response = tarRreadWriteService.readFromTape(outDir2, "");
+            response = tarRreadWriteService.readFromTape("");
             assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
@@ -353,8 +351,7 @@ public class TapeLibraryIT {
 
 
             // 9 Read file from tape with tar command
-            String outDir3 = tempFolderRule.newFolder().getAbsolutePath();
-            response = tarRreadWriteService.readFromTape(outDir3, "file1");
+            response = tarRreadWriteService.readFromTape("file1");
             assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
@@ -411,15 +408,14 @@ public class TapeLibraryIT {
 
             //3 Write files to tape
             // file 1
-            String workingDir = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
-            response = ddReadWriteService.writeToTape(workingDir + "/", "testtar.tar");
+            response = ddReadWriteService.writeToTape("testtar.tar");
 
             Assertions.assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
             Assertions.assertThat(response.isOK()).isTrue();
 
             // file 2
-            response = ddReadWriteService.writeToTape(workingDir + "/", "testtar_2.tar");
+            response = ddReadWriteService.writeToTape("testtar_2.tar");
 
             Assertions.assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
@@ -439,11 +435,11 @@ public class TapeLibraryIT {
 
             ReadWriteResult result1 = readTask1.get();
             assertThat(result1).isNotNull();
-            assertThat(result1.getStatus()).isEqualTo(StatusCode.OK);
+            assertThat(result1.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
             ReadWriteResult result2 = readTask2.get();
             assertThat(result2).isNotNull();
-            assertThat(result2.getStatus()).isEqualTo(StatusCode.OK);
+            assertThat(result2.getOrderState()).isEqualTo(QueueState.COMPLETED);
 
         } catch (TapeCatalogException e) {
             e.printStackTrace();
