@@ -45,6 +45,7 @@ import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -181,7 +182,7 @@ public class TapeCatalogRepositoryTest {
     private TapeCatalog getTapeModel() {
         TapeCatalog tapeCatalog = new TapeCatalog();
         tapeCatalog.setCapacity(10000L);
-        tapeCatalog.setRemainingSize(5000L);
+        tapeCatalog.setTapeState(TapeState.OPEN);
         tapeCatalog.setFileCount(200);
         tapeCatalog.setCode("VIT0001");
         tapeCatalog.setLabel("VIT-TAPE-1");

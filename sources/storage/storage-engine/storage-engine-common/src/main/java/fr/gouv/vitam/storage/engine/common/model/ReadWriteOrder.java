@@ -27,5 +27,6 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 public interface ReadWriteOrder {
+    String getId();
     boolean isWriteOrder();
 }

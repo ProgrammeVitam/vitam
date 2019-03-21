@@ -24,69 +24,17 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.common.model;
+package fr.gouv.vitam.storage.offers.tape.worker;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import java.util.Optional;
 
-public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
+import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 
-    public static final String BUCKET = "bucket";
-    public static final String FILE_PATH = "filePath";
-    public static final String SIZE = "size";
+public interface TapeDriveOrderConsumer {
 
-    @JsonProperty(BUCKET)
-    private String bucket;
+    Optional<? extends ReadWriteOrder> consume(TapeDriveWorker driveWorker) throws QueueException;
 
-    @JsonProperty(FILE_PATH)
-    private String filePath;
-
-    @JsonProperty(SIZE)
-    private long size;
-
-    public WriteOrder() {
-        super(GUIDFactory.newGUID().getId(), QueueMessageType.WriteOrder);
-    }
-
-    public WriteOrder(String bucket, String filePath, long size) {
-        this();
-        this.bucket = bucket;
-        this.filePath = filePath;
-        this.size = size;
-    }
-
-    public String getBucket() {
-        return bucket;
-    }
-
-    public WriteOrder setBucket(String bucket) {
-        ParametersChecker.checkParameter("bucket is required", bucket);
-        this.bucket = bucket;
-        return this;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public WriteOrder setFilePath(String filePath) {
-        this.filePath = filePath;
-        return this;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public WriteOrder setSize(long size) {
-        this.size = size;
-        return this;
-    }
-
-
-    @Override
-    public boolean isWriteOrder() {
-        return false;
-    }
+    QueueRepository getQueue();
 }

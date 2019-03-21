@@ -30,7 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 
-public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder{
+public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
     public static final String TAPE_CODE = "tapeCode";
     public static final String FILE_POSITION = "filePosition";
     public static final String FILE_NAME = "fileName";

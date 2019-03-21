@@ -14,6 +14,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -106,7 +107,7 @@ public class WriteTaskTest {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog tapeCatalog =
-            new TapeCatalog().setLibrary(FAKE_LIBRARY).setBucket(FAKE_BUCKET).setRemainingSize(11l);
+            new TapeCatalog().setLibrary(FAKE_LIBRARY).setBucket(FAKE_BUCKET).setTapeState(TapeState.OPEN);
 
         String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
 
@@ -125,17 +126,5 @@ public class WriteTaskTest {
         ReadWriteResult result = writeTask.get();
 
 
-    }
-
-    @Test
-    public void cancel() {
-    }
-
-    @Test
-    public void isCancelled() {
-    }
-
-    @Test
-    public void isDone() {
     }
 }

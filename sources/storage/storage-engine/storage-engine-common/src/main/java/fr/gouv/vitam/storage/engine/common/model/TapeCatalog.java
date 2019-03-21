@@ -45,7 +45,6 @@ public class TapeCatalog extends QueueMessageEntity {
     public static final String LABEL = "label";
     public static final String LIBRARY = "library";
     public static final String TYPE = "type";
-    public static final String REMAINING_SIZE = "remaining_size";
     public static final String CAPACITY = "capacity";
     public static final String FILE_COUNT = "file_count";
     public static final String CURRENT_LOCATION = "current_location";
@@ -53,6 +52,8 @@ public class TapeCatalog extends QueueMessageEntity {
     public static final String COMPRESSED = "compressed";
     public static final String WORM = "worm";
     public static final String VERSION = "_v";
+    public static final String WRITTEN_BYTES = "written_bytes";
+    public static final String TAPE_STATE = "tape_state";
 
     @JsonProperty(CODE)
     private String code;
@@ -72,8 +73,11 @@ public class TapeCatalog extends QueueMessageEntity {
     @JsonProperty(TYPE)
     private String type;
 
-    @JsonProperty(REMAINING_SIZE)
-    private Long remainingSize;
+    @JsonProperty(WRITTEN_BYTES)
+    private Long writtenBytes = 0l;
+
+    @JsonProperty(TAPE_STATE)
+    private TapeState tapeState;
 
     @JsonProperty(CAPACITY)
     private Long capacity;
@@ -141,12 +145,20 @@ public class TapeCatalog extends QueueMessageEntity {
         return this;
     }
 
-    public Long getRemainingSize() {
-        return remainingSize;
+    public Long getWrittenBytes() {
+        return writtenBytes;
     }
 
-    public TapeCatalog setRemainingSize(Long remainingSize) {
-        this.remainingSize = remainingSize;
+    public void setWrittenBytes(Long writtenBytes) {
+        this.writtenBytes = writtenBytes;
+    }
+
+    public TapeState getTapeState() {
+        return tapeState;
+    }
+
+    public TapeCatalog setTapeState(TapeState tapeState) {
+        this.tapeState = tapeState;
         return this;
     }
 

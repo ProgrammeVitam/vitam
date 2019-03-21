@@ -30,7 +30,9 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
+import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -39,13 +41,11 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
-import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
+import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.retry.Retry;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
@@ -56,28 +56,30 @@ import org.apache.commons.lang3.time.StopWatch;
 public class TapeDriveWorker implements Runnable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorker.class);
     public static final int SLEEP_TIME = 1000;
+    public static final int MAX_ATTEMPTS = 3;
+    public static final int RETRY_WAIT_SECONDS = 1000;
 
-    private final QueueRepository readWriteQueue;
+    private final TapeDriveOrderConsumer receiver;
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
     private final TapeCatalogService tapeCatalogService;
     private final AtomicBoolean stop = new AtomicBoolean(false);
-    private ReadWriteResult previousReadWriteResult;
+    private ReadWriteResult readWriteResult;
     private final CountDownLatch shutdownSignal;
 
     public TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
-        QueueRepository readWriteQueue
+        TapeDriveOrderConsumer receiver
     ) {
         this.tapeCatalogService = tapeCatalogService;
         ParametersChecker
-            .checkParameter("All params is required required", tapeRobotPool, tapeDriveService, readWriteQueue,
-                readWriteQueue);
+            .checkParameter("All params is required required", tapeRobotPool, tapeDriveService, receiver,
+                receiver);
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
-        this.readWriteQueue = readWriteQueue;
+        this.receiver = receiver;
         this.shutdownSignal = new CountDownLatch(1);
     }
 
@@ -94,41 +96,13 @@ public class TapeDriveWorker implements Runnable {
                 loopStopWatch.start();
 
                 try {
-                    if (tapeDriveService.getTapeDriveConf().getReadWritePriority() == ReadWritePriority.WRITE) {
-                        Optional<WriteOrder> write = readWriteQueue.receive(QueueMessageType.WriteOrder);
-                        if (write.isPresent()) {
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
-                            }
-                            readWriteOrder = write.get();
+                    Optional<? extends ReadWriteOrder> order = receiver.consume(this);
 
-                        } else {
-                            Optional<ReadOrder> read = readWriteQueue.receive(QueueMessageType.ReadOrder);
-                            if (read.isPresent()) {
-                                if (LOGGER.isDebugEnabled()) {
-                                    LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
-                                }
-                                readWriteOrder = read.get();
-                            }
+                    if (order.isPresent()) {
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(order.get()));
                         }
-                    } else {
-                        Optional<ReadOrder> read = readWriteQueue.receive(QueueMessageType.ReadOrder);
-                        if (read.isPresent()) {
-                            if (LOGGER.isDebugEnabled()) {
-                                LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
-                            }
-                            readWriteOrder = read.get();
-
-                        } else {
-                            Optional<WriteOrder> write = readWriteQueue.receive(QueueMessageType.WriteOrder);
-                            if (write.isPresent()) {
-                                if (LOGGER.isDebugEnabled()) {
-                                    LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
-                                }
-                                readWriteOrder = write.get();
-
-                            }
-                        }
+                        readWriteOrder = order.get();
                     }
 
                 } catch (QueueException e) {
@@ -158,15 +132,38 @@ public class TapeDriveWorker implements Runnable {
 
                     TapeCatalog
                         currentTape =
-                        (previousReadWriteResult != null) ? previousReadWriteResult.getCurrentTape() : null;
+                        (readWriteResult != null) ? readWriteResult.getCurrentTape() : null;
 
                     ReadWriteTask readWriteTask =
                         new ReadWriteTask(readWriteOrder, currentTape, tapeRobotPool, tapeDriveService,
                             tapeCatalogService);
-                    previousReadWriteResult = readWriteTask.get();
-                    // TODO: 12/03/19 update catalog
-                    // TODO: 11/03/19 update index
+                    readWriteResult = readWriteTask.get();
 
+
+                    QueueState orderState = readWriteResult.getOrderState();
+                    final String orderId = readWriteOrder.getId();
+
+
+                    Retry<Long> retry = new Retry<>(MAX_ATTEMPTS, RETRY_WAIT_SECONDS);
+                    switch (orderState) {
+                        case ERROR:
+                            // Mark order as error state
+                            retry.execute(() -> receiver.getQueue().markError(orderId));
+                            break;
+
+                        case READY:
+                            // Re-enqueue order
+                            retry.execute(() -> receiver.getQueue().markReady(orderId));
+                            break;
+
+                        case COMPLETED:
+                            // Remove order from queue
+                            retry.execute(() -> receiver.getQueue().remove(orderId));
+                            break;
+
+                        default:
+                            throw new IllegalStateException("Order should have state Completed, Ready or Error");
+                    }
 
                     PerformanceLogger
                         .getInstance().log("STP_Offer_Tape", ((QueueMessageEntity) readWriteOrder).getId(),
@@ -203,4 +200,20 @@ public class TapeDriveWorker implements Runnable {
         }
     }
 
+    public int getIndex() {
+        return tapeDriveService.getTapeDriveConf().getIndex();
+    }
+
+
+    public ReadWritePriority getPriority() {
+        return tapeDriveService.getTapeDriveConf().getReadWritePriority();
+    }
+
+    public ReadWriteResult getReadWriteResult() {
+        return readWriteResult;
+    }
+
+    public TapeCatalog getCurrentTape() {
+        return readWriteResult == null ? null : readWriteResult.getCurrentTape();
+    }
 }

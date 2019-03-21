@@ -27,11 +27,14 @@
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 
 public class ReadWriteResult {
     private StatusCode status;
+    private QueueState orderState;
     private TapeCatalog currentTape;
     private TapeResponse tapeResponse;
 
@@ -58,6 +61,15 @@ public class ReadWriteResult {
 
     public ReadWriteResult setTapeResponse(TapeResponse tapeResponse) {
         this.tapeResponse = tapeResponse;
+        return this;
+    }
+
+    public QueueState getOrderState() {
+        return orderState;
+    }
+
+    public ReadWriteResult setOrderState(QueueState orderState) {
+        this.orderState = orderState;
         return this;
     }
 }

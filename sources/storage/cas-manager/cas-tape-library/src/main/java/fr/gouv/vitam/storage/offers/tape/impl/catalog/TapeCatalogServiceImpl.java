@@ -26,6 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
@@ -45,13 +52,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import org.bson.conversions.Bson;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class TapeCatalogServiceImpl implements TapeCatalogService {
 
@@ -189,8 +189,13 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public long ready(String queueId) throws QueueException {
-        return repository.ready(queueId);
+    public long markError(String queueMessageId) throws QueueException {
+        return repository.markError(queueMessageId);
+    }
+
+    @Override
+    public long markReady(String queueId) throws QueueException {
+        return repository.markReady(queueId);
     }
 
     @Override

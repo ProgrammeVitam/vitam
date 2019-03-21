@@ -48,7 +48,7 @@ public enum TapeDriveStatus {
     // Write Protection (read only)
     WR_PROT("WR_PROT"),
 
-    //Tape is in drive ready to read/write
+    //Tape is in drive markReady to read/write
     ONLINE("ONLINE"),
 
     // D_* density of drives

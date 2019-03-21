@@ -29,25 +29,39 @@ package fr.gouv.vitam.storage.offers.tape.worker;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
+import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
+import org.bson.conversions.Bson;
 
-public class TapeDriveWorkerManager {
+public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDriveOrderProducer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorkerManager.class);
     public static final String TAPE_DRIVE_WORKER = "TapeDriveWorker_";
     private final QueueRepository readWriteQueue;
     private final List<TapeDriveWorker> workers;
+
+    // Drive index with current tape
+    private final Map<Integer, TapeCatalog> driveWorkerCurrentCatalog = new ConcurrentHashMap<>();
+
 
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
@@ -61,7 +75,7 @@ public class TapeDriveWorkerManager {
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
-                    readWriteQueue);
+                    this);
             workers.add(tapeDriveWorker);
 
             final Thread thread =
@@ -92,5 +106,70 @@ public class TapeDriveWorkerManager {
             .add(CompletableFuture
                 .runAsync(() -> w.stop(timeout, timeUnit), VitamThreadPoolExecutor.getDefaultExecutor())));
         CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[workers.size()])).join();
+    }
+
+    @Override
+    public QueueRepository getQueue() {
+        return readWriteQueue;
+    }
+
+    @Override
+    public Optional<? extends ReadWriteOrder> consume(TapeDriveWorker driveWorker) throws QueueException {
+        return produce(driveWorker);
+    }
+
+    @Override
+    public Optional<? extends ReadWriteOrder> produce(TapeDriveWorker driveWorker) throws QueueException {
+
+        Integer driveIndex = driveWorker.getIndex();
+        ReadWritePriority readWritePriority = driveWorker.getPriority();
+
+        driveWorkerCurrentCatalog.put(driveIndex, driveWorker.getCurrentTape());
+
+
+        // TODO: 21/03/19 construct optimized query to get order
+        Bson query = null;
+
+        if (ReadWritePriority.WRITE.equals(readWritePriority)) {
+            Optional<? extends ReadWriteOrder> write = readWriteQueue.receive(query, QueueMessageType.WriteOrder);
+            if (write.isPresent()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
+                }
+                return write;
+
+            } else {
+                Optional<ReadOrder> read = readWriteQueue.receive(query, QueueMessageType.ReadOrder);
+                if (read.isPresent()) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
+                    }
+                    return read;
+                }
+            }
+        } else {
+            Optional<ReadOrder> read = readWriteQueue.receive(query, QueueMessageType.ReadOrder);
+            if (read.isPresent()) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
+                }
+                return read;
+
+            } else {
+                Optional<WriteOrder> write = readWriteQueue.receive(query, QueueMessageType.WriteOrder);
+                if (write.isPresent()) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
+                    }
+                    return write;
+                }
+            }
+        }
+
+        // Each drive have a current tape
+        // Order that should go to the given tape should be produced to the drive that have the tape on
+
+
+        return null;
     }
 }

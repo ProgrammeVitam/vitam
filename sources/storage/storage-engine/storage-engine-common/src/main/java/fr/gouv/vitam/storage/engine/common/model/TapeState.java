@@ -26,67 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+/**
+ *
+ */
+public enum TapeState {
 
-public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
+    EMPTY,
+    OPEN,
+    FULL,
+    CONFLICT
 
-    public static final String BUCKET = "bucket";
-    public static final String FILE_PATH = "filePath";
-    public static final String SIZE = "size";
-
-    @JsonProperty(BUCKET)
-    private String bucket;
-
-    @JsonProperty(FILE_PATH)
-    private String filePath;
-
-    @JsonProperty(SIZE)
-    private long size;
-
-    public WriteOrder() {
-        super(GUIDFactory.newGUID().getId(), QueueMessageType.WriteOrder);
-    }
-
-    public WriteOrder(String bucket, String filePath, long size) {
-        this();
-        this.bucket = bucket;
-        this.filePath = filePath;
-        this.size = size;
-    }
-
-    public String getBucket() {
-        return bucket;
-    }
-
-    public WriteOrder setBucket(String bucket) {
-        ParametersChecker.checkParameter("bucket is required", bucket);
-        this.bucket = bucket;
-        return this;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public WriteOrder setFilePath(String filePath) {
-        this.filePath = filePath;
-        return this;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public WriteOrder setSize(long size) {
-        this.size = size;
-        return this;
-    }
-
-
-    @Override
-    public boolean isWriteOrder() {
-        return false;
-    }
 }

@@ -338,7 +338,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             updateTapeLocation(new TapeLocation(slotIndex, TapeLocationType.SLOT));
 
             // release the tape
-            tapeCatalogService.ready(workerCurrentTape.getId());
+            tapeCatalogService.markReady(workerCurrentTape.getId());
 
         } catch (InterruptedException | TapeCatalogException | QueueException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode(), e);

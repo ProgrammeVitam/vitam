@@ -24,69 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.common.model;
+package fr.gouv.vitam.storage.offers.tape.retry;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import com.google.common.collect.Lists;
 
-public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
-
-    public static final String BUCKET = "bucket";
-    public static final String FILE_PATH = "filePath";
-    public static final String SIZE = "size";
-
-    @JsonProperty(BUCKET)
-    private String bucket;
-
-    @JsonProperty(FILE_PATH)
-    private String filePath;
-
-    @JsonProperty(SIZE)
-    private long size;
-
-    public WriteOrder() {
-        super(GUIDFactory.newGUID().getId(), QueueMessageType.WriteOrder);
-    }
-
-    public WriteOrder(String bucket, String filePath, long size) {
-        this();
-        this.bucket = bucket;
-        this.filePath = filePath;
-        this.size = size;
-    }
-
-    public String getBucket() {
-        return bucket;
-    }
-
-    public WriteOrder setBucket(String bucket) {
-        ParametersChecker.checkParameter("bucket is required", bucket);
-        this.bucket = bucket;
-        return this;
-    }
-
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public WriteOrder setFilePath(String filePath) {
-        this.filePath = filePath;
-        return this;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public WriteOrder setSize(long size) {
-        this.size = size;
-        return this;
+public class Retry<T> {
+    public interface Delegate<T> {
+        T call() throws Exception;
     }
 
 
-    @Override
-    public boolean isWriteOrder() {
-        return false;
+    private int maxAttempts;
+    private int retryWaitInMilliseconds;
+
+    public Retry(int maxAttempts, int retryWaitSeconds) {
+        this.maxAttempts = maxAttempts;
+        this.retryWaitInMilliseconds = retryWaitSeconds;
+    }
+
+    public T execute(Delegate<T> caller, Class... retryExceptionType) throws Exception {
+        int remainingAttempts = maxAttempts;
+
+        while (true) {
+            try {
+                return caller.call();
+            } catch (Exception e) {
+                if (retryExceptionType.length == 0 || Lists.newArrayList(retryExceptionType).contains(e.getClass())) {
+
+                    if (--remainingAttempts == 0) {
+                        throw e;
+                    }
+
+                    try {
+                        Thread.sleep((retryWaitInMilliseconds));
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        new RuntimeException(ie);
+                    }
+
+                } else {
+                    throw e;
+                }
+            }
+        }
     }
 }

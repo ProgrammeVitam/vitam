@@ -92,9 +92,19 @@ public class QueueRepositoryImpl implements QueueRepository {
     }
 
     @Override
-    public long ready(String queueId) throws QueueException {
+    public long markError(String queueMessageId) throws QueueException {
         try {
-            return collection.updateOne(eq(VitamDocument.ID, queueId),
+            return collection.updateOne(eq(VitamDocument.ID, queueMessageId),
+                Updates.set(QueueMessageEntity.STATE, QueueState.ERROR.getState())).getModifiedCount();
+        } catch (Exception e) {
+            throw new QueueException(e);
+        }
+    }
+
+    @Override
+    public long markReady(String queueMessageId) throws QueueException {
+        try {
+            return collection.updateOne(eq(VitamDocument.ID, queueMessageId),
                 Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())).getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);

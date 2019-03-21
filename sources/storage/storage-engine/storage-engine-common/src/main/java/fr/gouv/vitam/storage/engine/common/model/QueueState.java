@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.common.model;
 public enum QueueState {
     READY("READY"),
     RUNNING("RUNNING"),
+    ERROR("ERROR"),
     COMPLETED("COMPLETED");
 
     private final String state;

@@ -140,7 +140,7 @@ public class QueueRepositoryImplTest {
         Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
 
-        queueRepositoryImpl.ready(entity.getId());
+        queueRepositoryImpl.markReady(entity.getId());
 
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();

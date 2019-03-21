@@ -51,14 +51,25 @@ public interface QueueRepository {
      */
     long complete(String queueMessageId) throws QueueException;
 
+
     /**
-     * Make queueEntity READY
+     * Mark queueEntity as Error
      *
      * @param queueMessageId
      * @return
      * @throws QueueException
      */
-    long ready(String queueMessageId) throws QueueException;
+    long markError(String queueMessageId) throws QueueException;
+
+
+    /**
+     * Mark queueEntity as READY
+     *
+     * @param queueMessageId
+     * @return
+     * @throws QueueException
+     */
+    long markReady(String queueMessageId) throws QueueException;
 
     <T> Optional<T> receive(QueueMessageType messageType) throws QueueException;
 
@@ -70,6 +81,15 @@ public interface QueueRepository {
 
     <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException;
 
+    /**
+     * @param inQuery     filter
+     * @param inUpdate    atomic update
+     * @param messageType
+     * @param usePriority if true sort by priority and take first
+     * @param <T>
+     * @return
+     * @throws QueueException
+     */
     <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
         throws QueueException;
 
