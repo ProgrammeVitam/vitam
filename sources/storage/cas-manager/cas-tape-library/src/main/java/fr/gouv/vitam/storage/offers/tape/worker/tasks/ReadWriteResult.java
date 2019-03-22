@@ -53,34 +53,35 @@ public class ReadWriteResult {
         this.currentTape = currentTape;
     }
 
+    public StatusCode getStatus() {
+        return status;
+    }
+
     public void setStatus(StatusCode status) {
         this.status = status;
-    }
-
-    public TapeCatalog getCurrentTape() {
-        return currentTape;
-    }
-
-    public ReadWriteResult setCurrentTape(TapeCatalog currentTape) {
-        this.currentTape = currentTape;
-        return this;
-    }
-
-    public TapeResponse getTapeResponse() {
-        return tapeResponse;
-    }
-
-    public ReadWriteResult setTapeResponse(TapeResponse tapeResponse) {
-        this.tapeResponse = tapeResponse;
-        return this;
     }
 
     public QueueState getOrderState() {
         return orderState;
     }
 
-    public ReadWriteResult setOrderState(QueueState orderState) {
+    public void setOrderState(QueueState orderState) {
         this.orderState = orderState;
-        return this;
+    }
+
+    public TapeCatalog getCurrentTape() {
+        return currentTape;
+    }
+
+    public void setCurrentTape(TapeCatalog currentTape) {
+        this.currentTape = currentTape;
+    }
+
+    public TapeResponse getTapeResponse() {
+        return tapeResponse;
+    }
+
+    public void setTapeResponse(TapeResponse tapeResponse) {
+        this.tapeResponse = tapeResponse;
     }
 }

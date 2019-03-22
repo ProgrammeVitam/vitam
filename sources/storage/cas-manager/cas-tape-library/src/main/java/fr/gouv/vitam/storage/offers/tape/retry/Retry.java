@@ -35,9 +35,9 @@ public class Retry<T> {
 
 
     private int maxAttempts;
-    private int retryWaitInMilliseconds;
+    private long retryWaitInMilliseconds;
 
-    public Retry(int maxAttempts, int retryWaitSeconds) {
+    public Retry(int maxAttempts, long retryWaitSeconds) {
         this.maxAttempts = maxAttempts;
         this.retryWaitInMilliseconds = retryWaitSeconds;
     }

@@ -83,7 +83,7 @@ public class TapeLibraryIT {
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), OfferCollections.OFFER_TAPE_CATALOG.getName());
 
 
-    private static TapeLibraryFactory tapeLibraryFacotry;
+    private static TapeLibraryFactory tapeLibraryFactory;
     private static TapeLibraryConfiguration configuration;
 
     @BeforeClass
@@ -94,9 +94,9 @@ public class TapeLibraryIT {
 
         configuration.setInputDirectory(PropertiesUtils.getResourceFile("tar/").getAbsolutePath());
         configuration.setOutputDirectory(tempFolderRule.newFolder().getAbsolutePath());
-        tapeLibraryFacotry = TapeLibraryFactory.getInstance();
+        tapeLibraryFactory = TapeLibraryFactory.getInstance();
         mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        tapeLibraryFacotry.initialize(configuration, mongoDbAccess);
+        tapeLibraryFactory.initialize(configuration, mongoDbAccess);
     }
 
     @AfterClass
@@ -108,12 +108,12 @@ public class TapeLibraryIT {
 
     @Test
     public void statusInitialization() {
-        Assertions.assertThat(tapeLibraryFacotry.getTapeLibraryPool()).hasSize(1);
+        Assertions.assertThat(tapeLibraryFactory.getTapeLibraryPool()).hasSize(1);
     }
 
     @Test
     public void statusRobotStatus() throws InterruptedException {
-        TapeLibraryPool tapeLibraryPool = tapeLibraryFacotry.getFirstTapeLibraryPool();
+        TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
             tapeLibraryPool.checkoutRobotService(5, TimeUnit.MILLISECONDS);
@@ -207,7 +207,7 @@ public class TapeLibraryIT {
     @Test
     public void testLoadUnloadTape() throws InterruptedException {
 
-        TapeLibraryPool tapeLibraryPool = tapeLibraryFacotry.getFirstTapeLibraryPool();
+        TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
             tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
@@ -260,7 +260,7 @@ public class TapeLibraryIT {
     public void test_load_rewind_write_read_rewind_then_unload_tape() throws InterruptedException,
         IOException {
 
-        TapeLibraryPool tapeLibraryPool = tapeLibraryFacotry.getFirstTapeLibraryPool();
+        TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
             tapeLibraryPool.checkoutRobotService(TIMEOUT_IN_MILLISECONDS, TimeUnit.MILLISECONDS);
@@ -372,7 +372,7 @@ public class TapeLibraryIT {
     @Test
     public void test_read_files_from_tape() throws InterruptedException, IOException {
 
-        TapeLibraryPool tapeLibraryPool = tapeLibraryFacotry.getFirstTapeLibraryPool();
+        TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
                 tapeLibraryPool.checkoutRobotService(10, TimeUnit.MILLISECONDS);
