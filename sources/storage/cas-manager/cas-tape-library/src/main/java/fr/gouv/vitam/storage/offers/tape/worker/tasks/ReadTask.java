@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -78,7 +79,12 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     protected AtomicBoolean done = new AtomicBoolean(false);
 
-    public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool, TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
+    public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
+                    TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
+        ParametersChecker.checkParameter("WriteOrder param is required.", readOrder);
+        ParametersChecker.checkParameter("TapeRobotPool param is required.", tapeRobotPool);
+        ParametersChecker.checkParameter("TapeDriveService param is required.", tapeDriveService);
+        ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
         this.readOrder = readOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeRobotPool = tapeRobotPool;
@@ -117,13 +123,16 @@ public class ReadTask implements Future<ReadWriteResult> {
                         return new ReadWriteResult(QueueState.ERROR, workerCurrentTape);
                 }
 
+                workerCurrentTape = catalogResponse.getCurrentTape();
                 TapeResponse tapeResponse = loadTape();
                 switch (tapeResponse.getStatus()) {
                     case KO:
                     case WARNING: // FIXME: 21/03/19 revoir le traitement de ce cas
-                        return new ReadWriteResult(QueueState.READY, workerCurrentTape);
+                        workerCurrentTape = null;
+                        return new ReadWriteResult(QueueState.READY, null);
                     case FATAL:
-                        return new ReadWriteResult(QueueState.ERROR, workerCurrentTape);
+                        workerCurrentTape = null;
+                        return new ReadWriteResult(QueueState.ERROR, null);
                 }
             }
 
@@ -226,6 +235,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
                 return response;
             }
+            workerCurrentTape.setCurrentPosition(0);
         }
 
         if (offset != 0) {
@@ -234,7 +244,10 @@ public class ReadTask implements Future<ReadWriteResult> {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         " Action : Go to position Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                         JsonHandler.unprettyPrint(response.getEntity()));
+
+                return response;
             }
+            workerCurrentTape.setCurrentPosition(workerCurrentTape.getCurrentPosition() + offset);
         }
 
         return response;
@@ -249,7 +262,10 @@ public class ReadTask implements Future<ReadWriteResult> {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                     " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                     JsonHandler.unprettyPrint(response.getEntity()));
+            return response;
         }
+
+        workerCurrentTape.setCurrentPosition(workerCurrentTape.getCurrentPosition() + 1);
 
         return response;
     }
@@ -272,7 +288,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                     return new CatalogResponse(StatusCode.KO);
                 }
             }
-            if (found.get().getCurrentLocation().getLocationType().getType().equals(TapeLocationType.OUTSIDE)) {
+            if (found.get().getCurrentLocation().getLocationType().equals(TapeLocationType.OUTSIDE)) {
                LOGGER.error(MSG_PREFIX +
                         " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
                         ", Error: no tape found in the catalog with expected library and/or bucket",
@@ -315,8 +331,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
             if (StatusCode.OK.equals(response.getStatus())) {
                 // update catalog
-                workerCurrentTape.setCurrentPosition(0);
-                updateTapeLocation(new TapeLocation(driveIndex, TapeLocationType.DIRVE));
+                updateTapeLocation(new TapeLocation(driveIndex, TapeLocationType.DRIVE));
             }
 
         } catch (InterruptedException e) {
@@ -343,7 +358,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             case SLOT:
                 slotIndex = workerCurrentTape.getPreviousLocation().getIndex();
                 break;
-            case DIRVE:
+            case DRIVE:
             case OUTSIDE:
             case IMPORTEXPORT:
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +

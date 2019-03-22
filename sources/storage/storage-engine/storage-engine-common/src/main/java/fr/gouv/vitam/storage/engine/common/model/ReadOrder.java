@@ -82,7 +82,8 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
         return fileName;
     }
 
-    public void setFileName(String fileName) {
+    public ReadOrder setFileName(String fileName) {
         this.fileName = fileName;
+        return this;
     }
 }

@@ -247,7 +247,8 @@ public class TapeCatalog extends QueueMessageEntity {
         return currentPosition;
     }
 
-    public void setCurrentPosition(Integer currentPosition) {
+    public TapeCatalog setCurrentPosition(Integer currentPosition) {
         this.currentPosition = currentPosition;
+        return this;
     }
 }

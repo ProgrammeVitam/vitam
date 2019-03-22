@@ -85,7 +85,7 @@ public class TapeCatalogResourceTest {
         tapeCatalog.setType("LTO-6");
         tapeCatalog.setCompressed(false);
         tapeCatalog.setWorm(false);
-        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.DIRVE));
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.DRIVE));
         tapeCatalog.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
         return tapeCatalog;
     }

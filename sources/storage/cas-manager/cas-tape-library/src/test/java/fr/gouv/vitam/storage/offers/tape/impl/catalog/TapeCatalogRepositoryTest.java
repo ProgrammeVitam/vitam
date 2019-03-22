@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -190,7 +189,7 @@ public class TapeCatalogRepositoryTest {
         tapeCatalog.setType("LTO-6");
         tapeCatalog.setCompressed(false);
         tapeCatalog.setWorm(false);
-        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.DIRVE));
+        tapeCatalog.setCurrentLocation(new TapeLocation(1, TapeLocationType.DRIVE));
         tapeCatalog.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
         return tapeCatalog;
     }

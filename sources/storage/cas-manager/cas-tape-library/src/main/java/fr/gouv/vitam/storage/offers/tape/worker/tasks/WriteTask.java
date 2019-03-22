@@ -655,7 +655,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case SLOT:
                     slotIndex = workerCurrentTape.getPreviousLocation().getIndex();
                     break;
-                case DIRVE:
+                case DRIVE:
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         ", Error: previous location should no be in drive",
                         ReadWriteErrorCode.TAPE_LOCATION_CONFLICT);

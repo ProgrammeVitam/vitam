@@ -97,7 +97,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 tape.setCode(drive.getTape().getVolumeTag());
                 tape.setAlternativeCode(drive.getTape().getAlternateVolumeTag());
                 tape.setLibrary(tapeLibraryIdentifier);
-                tape.setCurrentLocation(new TapeLocation(drive.getIndex(), TapeLocationType.DIRVE));
+                tape.setCurrentLocation(new TapeLocation(drive.getIndex(), TapeLocationType.DRIVE));
                 if (drive.getTape().getSlotIndex() != null) {
                     tape.setPreviousLocation(new TapeLocation(drive.getTape().getSlotIndex(), TapeLocationType.SLOT));
                 }

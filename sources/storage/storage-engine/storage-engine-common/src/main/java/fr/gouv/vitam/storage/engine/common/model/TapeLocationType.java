@@ -27,7 +27,7 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 public enum TapeLocationType {
-    DIRVE("DRIVE"),
+    DRIVE("DRIVE"),
     SLOT("SLOT"),
     OUTSIDE("OUTSIDE"),
     IMPORTEXPORT("IMPORT/EXPORT");
