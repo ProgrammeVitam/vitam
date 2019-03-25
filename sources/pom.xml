@@ -538,6 +538,7 @@
                     <version>4.0.2</version>
 		            <configuration>
                         <failBuildOnCVSS>8</failBuildOnCVSS>
+                        <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                     </configuration>
                     <executions>
                         <execution>
