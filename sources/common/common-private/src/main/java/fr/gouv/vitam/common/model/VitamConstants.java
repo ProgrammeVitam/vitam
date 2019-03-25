@@ -70,7 +70,7 @@ public class VitamConstants {
      */
     public static final String EVERY_ORIGINATING_AGENCY = "EveryOriginatingAgency";
 
-    public static final String MANIFEST_FILE_NAME_REGEX = "^(([a-zA-Z0-9]{1,56}[_-]{1}){0,1}|_{0,1})(manifest.xml)\\b";
+    public static final String MANIFEST_FILE_NAME_REGEX = "^([a-zA-Z0-9_\\-]{0,56}[_-]{1}){0,1}(manifest.xml)\\b";
 
     private static List<String> ruleTypes = null;
 
