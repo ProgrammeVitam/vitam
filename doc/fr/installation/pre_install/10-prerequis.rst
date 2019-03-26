@@ -20,7 +20,7 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
   + openssh-clients (client SSH utilisé par ansible)
   + java-1.8.0-openjdk & openssl (du fait de la génération de certificats / stores, l'utilitaire ``keytool`` est nécessaire)
 
-* un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.  
+* un accès ssh vers un utilisateur d'administration avec élévation de privilèges vers les droits root, vitam, vitamdb sur les serveurs cibles.
 * Le compte utilisé sur le serveur d'administration doit avoir confiance dans les serveurs sur lesquels la solution logicielle :term:`VITAM` doit être installée (fichier ``~/.ssh/known_hosts`` correctement renseigné)
 
 .. note:: Se référer à la `documentation d'usage <http://docs.ansible.com/ansible/latest/intro_getting_started.html>`_ pour les procédures de connexion aux machines-cibles depuis le serveur ansible.
@@ -35,7 +35,7 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 PKI
 ===
 
-La solution VITAM nécessite des certificats pour son bon fonctionnement (cf. :term:`DAT` pour la liste des secrets et :doc:`/annexes/10-overview_certificats` pour une vue d'ensemble de leur usage.) La gestion de ces certificats, par le biais d'une ou plusieurs PKI, est à charge de l'équipe d'exploitation. La mise à disposition des certificats et des chaînes de validation CA, placés dans les répertoires de déploiement adéquats, est un pré-requis à tout déploiement en production de la solution VITAM. 
+La solution VITAM nécessite des certificats pour son bon fonctionnement (cf. :term:`DAT` pour la liste des secrets et :doc:`/annexes/10-overview_certificats` pour une vue d'ensemble de leur usage.) La gestion de ces certificats, par le biais d'une ou plusieurs PKI, est à charge de l'équipe d'exploitation. La mise à disposition des certificats et des chaînes de validation CA, placés dans les répertoires de déploiement adéquats, est un pré-requis à tout déploiement en production de la solution VITAM.
 
 .. seealso:: Veuillez vous référer à la section :doc:`/annexes/10-overview_certificats` pour la liste des certificats nécessaires au déploiement de la solution VITAM, ainsi que pour leurs répertoires de déploiement.
 
@@ -47,6 +47,8 @@ Seules deux distributions Linux suivantes sont supportées à ce jour :
 
 * CentOS 7
 * Debian 8 (jessie)
+
+.. warning:: Le dépot jessie-backports de Debian 8 Jessie est maintenant sur archive.debian.org, il est aussi nécessaire de désactiver les dépots jessie-updates qui n'existent plus. Pour plus d'informations, vous pouvez consulter `cet article <https://www.lucas-nussbaum.net/blog/?p=947>`_.
 
 SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
 

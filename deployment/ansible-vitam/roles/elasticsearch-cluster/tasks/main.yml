@@ -39,12 +39,14 @@
 
 # Only prerequisite for Debian : install openjdk from jessie-backports
 
-- name: install openjdk from jessie-backports only when Debian (prerequisite for elasticsearch package)
+- name: install openjdk from jessie-backports (prerequisite for cerebro) only when Debian
   apt:
-    name: "openjdk-8-jre-headless"
-    update_cache: yes
+    name: "{{ item }}"
     state: latest
     default_release: jessie-backports
+  with_items:
+    - ca-certificates-java
+    - openjdk-8-jre-headless
   when: ansible_os_family == "Debian"
 
 - name: install vitam-{{composant.cluster_name}} package
