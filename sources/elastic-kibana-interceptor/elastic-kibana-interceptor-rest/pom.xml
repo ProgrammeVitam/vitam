@@ -122,6 +122,23 @@
                             </resources>
                         </configuration>
                     </execution>
+                    <execution>
+						<id>copy-script-resources</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/script</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/main/script</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+
                 </executions>
             </plugin>
 
@@ -183,6 +200,20 @@
                                 </source>
                             </sources>
                         </mapping>
+                        <mapping>
+							<directory>/vitam/script/${unix.name}</directory>
+							<!-- OMA : change to 750 and change directive if not correct
+														<defaultFileMode>640</defaultFileMode>
+							-->
+							<filemode>750</filemode>
+							<username>${unix.user}</username>
+							<groupname>${unix.user}</groupname>
+							<sources>
+								<source>
+									<location>${project.build.directory}/script</location>
+								</source>
+							</sources>
+						</mapping>
                         <mapping>
                             <directory>/usr/lib/systemd/system/</directory>
                             <filemode>644</filemode>

@@ -4,12 +4,13 @@ After=network.target
 After=syslog.target
 
 [Service]
-Type=simple
+Type=forking
 EnvironmentFile=/vitam/conf/${unix.name}/sysconfig/entry_opts
 EnvironmentFile=-/vitam/conf/${unix.name}/sysconfig/java_opts
-ExecStart=/usr/bin/env java $JAVA_OPTS $JAVA_ENTRYPOINT $JAVA_ARGS
+ExecStart=/vitam/script/${unix.name}/${unix.name}.sh
 User=${unix.user}
 Group=${unix.group}
+PIDFile=/vitam/run/${unix.name}/${unix.name}.pid
 
 
 [Install]

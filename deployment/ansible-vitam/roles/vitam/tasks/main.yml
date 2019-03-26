@@ -112,6 +112,7 @@
     - log
     - script
     - tmp
+    - run
   notify:
     - restart service
 

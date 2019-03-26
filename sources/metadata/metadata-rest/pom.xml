@@ -104,10 +104,6 @@
     </dependencies>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-			</plugins>
-		</pluginManagement>
 
 		<plugins>
 			<plugin>
@@ -296,6 +292,7 @@
 				<artifactId>jetty-maven-plugin</artifactId>
 				<version>${jetty.version}</version>
 			</plugin>
+			
 			<plugin>
 				<artifactId>jdeb</artifactId>
 				<groupId>org.vafer</groupId>
