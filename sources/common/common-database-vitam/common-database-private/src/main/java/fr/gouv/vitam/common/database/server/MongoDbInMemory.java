@@ -534,7 +534,7 @@ public class MongoDbInMemory {
                 unitRule.put(RULE_KEY, ruleAction.getRule());
             }
 
-            if (ruleAction.isDeleteStartDate()) {
+            if (ruleAction.isDeleteStartDate() != null && ruleAction.isDeleteStartDate()) {
                 unitRule.remove(START_DATE_KEY);
                 unitRule.remove(END_DATE_KEY);
                 return;
