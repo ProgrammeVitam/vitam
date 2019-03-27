@@ -27,12 +27,44 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
+import static fr.gouv.vitam.common.SedaConstants.STRATEGY_ID;
+import static java.util.Collections.singletonList;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang3.StringUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -105,35 +137,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
-import static fr.gouv.vitam.common.SedaConstants.STRATEGY_ID;
-import static java.util.Collections.singletonList;
 
 /**
  * StorageDistribution service Implementation process continue if needed)
@@ -1189,54 +1192,50 @@ public class StorageDistributionImpl implements StorageDistribution {
         return offerIdToMetadata;
     }
 
-    /**
-     * Verify if object exists
-     *
-     * @param strategyId id of the strategy
-     * @param objectId id of the object
-     * @param category category
-     * @param offerIds list id of offers  @return
-     * @throws StorageException StorageException
-     */
     @Override
-    public boolean checkObjectExisting(String strategyId, String objectId, DataCategory
-        category, List<String> offerIds)
-        throws StorageException {
+    public Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
+            List<String> offerIds) throws StorageException {
         // Check input params
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, objectId);
         ParametersChecker.checkParameter(OFFER_IDS_IS_MANDATORY, offerIds);
 
+        Map<String, Boolean> resultByOffer = new HashMap<String, Boolean>();
+
         HotStrategy hotStrategy = checkStrategy(strategyId);
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
 
-        List<String> offerReferencesIds =
-            offerReferences.stream().map(OfferReference::getId).collect(Collectors.toList());
-        if (!offerReferencesIds.containsAll(offerIds)) {
-            return false;
-        }
+        List<String> offerReferencesIds = offerReferences.stream().map(OfferReference::getId)
+                .collect(Collectors.toList());
+        resultByOffer.putAll(offerIds.stream().filter(offer -> !offerReferencesIds.contains(offer))
+                .collect(Collectors.toMap(offerId -> offerId, offerId -> Boolean.FALSE)));
+
         for (final String offerId : offerIds) {
-            final Driver driver = retrieveDriverInternal(offerId);
-            final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
-            try (Connection connection = driver.connect(offer.getId())) {
-                final StorageObjectRequest request =
-                    new StorageObjectRequest(tenantId, category.getFolder(),
-                        objectId);
-                if (!connection.objectExistsInOffer(request)) {
-                    return false;
+            if (!resultByOffer.containsKey(offerId)) {
+                final Driver driver = retrieveDriverInternal(offerId);
+                final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
+                try (Connection connection = driver.connect(offer.getId())) {
+                    final StorageObjectRequest request = new StorageObjectRequest(tenantId, category.getFolder(),
+                            objectId);
+                    if (!connection.objectExistsInOffer(request)) {
+                        resultByOffer.put(offerId, Boolean.FALSE);
+                    } else {
+                        resultByOffer.put(offerId, Boolean.TRUE);
+                    }
+                } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException e) {
+                    LOGGER.warn(ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY, e);
+                    resultByOffer.put(offerId, Boolean.FALSE);
+                } catch (final StorageDriverException e) {
+                    LOGGER.warn(ERROR_WITH_THE_STORAGE_TAKE_THE_NEXT_OFFER_IN_THE_STRATEGY_BY_PRIORITY, e);
+                    resultByOffer.put(offerId, Boolean.FALSE);
                 }
-            } catch (final fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException e) {
-                LOGGER.warn(ERROR_WITH_THE_STORAGE_OBJECT_NOT_FOUND_TAKE_NEXT_OFFER_IN_STRATEGY_BY_PRIORITY,
-                    e);
-                return false;
-            } catch (final StorageDriverException e) {
-                LOGGER.warn(ERROR_WITH_THE_STORAGE_TAKE_THE_NEXT_OFFER_IN_THE_STRATEGY_BY_PRIORITY, e);
-                return false;
             }
+            
         }
-        return true;
+        return resultByOffer;
     }
+
 
     @Deprecated
     private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String

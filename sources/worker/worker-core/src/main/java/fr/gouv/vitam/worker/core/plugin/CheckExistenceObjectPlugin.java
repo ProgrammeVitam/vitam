@@ -28,12 +28,13 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import com.google.common.annotations.VisibleForTesting;
+
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -105,8 +106,9 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                         for (JsonNode offerId : storageInformation.get("offerIds")) {
                             offerIds.add(offerId.textValue());
                         }
-                        if (storageClient.exists(strategy, DataCategory.OBJECT,
-                            version.get("#id").asText(), offerIds)) {
+                        Map<String, Boolean> resultExists = storageClient.exists(strategy, DataCategory.OBJECT,
+                                version.get("#id").asText(), offerIds);
+                        if (resultExists != null && resultExists.containsValue(Boolean.TRUE)) {
                             nbObjectPhysicalKO += 1;
                             ObjectNode objectError = JsonHandler.createObjectNode();
                             objectError.put("IdObj", version.get("#id").textValue());
@@ -127,14 +129,15 @@ public class CheckExistenceObjectPlugin extends ActionHandler {
                         offerIds.add(offerId.textValue());
                     }
 
-                    if (!storageClient.exists(strategy, DataCategory.OBJECT,
-                        version.get("#id").asText(), offerIds)) {
+                    Map<String, Boolean> resultExists = storageClient.exists(strategy, DataCategory.OBJECT,
+                            version.get("#id").asText(), offerIds);
+                    if (resultExists == null || resultExists.containsValue(Boolean.FALSE)) {
                         nbObjectKO += 1;
                         ObjectNode objectError = JsonHandler.createObjectNode();
                         objectError.put("IdObj", version.get("#id").textValue());
                         objectError.put("Usage", version.get("DataObjectVersion").textValue());
                         objectError.putArray("IdAU").addAll((ArrayNode) unitsUpsList);
-                        errors.add(objectError);                        
+                        errors.add(objectError);
                     } else {
                         nbObjectOK += 1;
                     }

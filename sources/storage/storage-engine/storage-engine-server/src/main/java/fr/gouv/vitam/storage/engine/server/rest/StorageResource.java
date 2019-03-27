@@ -27,8 +27,47 @@
 
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Paths;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.lang.BooleanUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -86,39 +125,6 @@ import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.StorageTraceabilityAdministration;
 import fr.gouv.vitam.storage.engine.server.storagetraceability.TraceabilityStorageService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Paths;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 /**
  * Storage Resource implementation
@@ -887,7 +893,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
         String strategyId;
-        final Response response = checkTenantStrategyHeader(headers);
+        Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
             strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
             if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)) {
@@ -896,15 +902,26 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
             List<String> offerIds = Arrays.asList(listOffer.split(","));
             try {
-                if (!distribution.checkObjectExisting(strategyId, objectId, DataCategory.OBJECT, offerIds)) {
-                    return Response.status(Status.NOT_FOUND).build();
+                Map<String, Boolean> resultByOffer = distribution.checkObjectExisting(strategyId, objectId,
+                        DataCategory.OBJECT, offerIds);
+                final ResponseBuilder responseBuilder;
+                if (resultByOffer.containsValue(Boolean.FALSE)) {
+                    responseBuilder = Response.status(Status.NOT_FOUND);
+                } else {
+                    responseBuilder = Response.status(Status.NO_CONTENT);
                 }
+                resultByOffer.entrySet().forEach(entry -> {
+                    responseBuilder.header(entry.getKey(), BooleanUtils.toStringTrueFalse(entry.getValue()));
+                });
+                response = responseBuilder.build();
+
             } catch (final StorageException e) {
                 LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+                response = buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
             }
         }
-        return Response.status(Status.NO_CONTENT).build();
+
+        return response;
     }
 
     /**

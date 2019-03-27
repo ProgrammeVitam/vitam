@@ -27,7 +27,22 @@
 
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+
+import org.apache.commons.lang.BooleanUtils;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
@@ -55,15 +70,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * StorageClient Abstract class use to set generic client configuration (not depending on client type)
@@ -222,7 +228,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public boolean exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
+    public Map<String, Boolean> exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_MUST_HAVE_A_VALID_VALUE, strategyId);
@@ -235,9 +241,17 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
 
         try {
-            response = performRequest(HttpMethod.HEAD, "/" + type.getCollectionName() + "/" + guid,
-                headers, MediaType.APPLICATION_JSON_TYPE);
-            return notContentResponseToBoolean(handleNoContentResponseStatus(response));
+            response = performRequest(HttpMethod.HEAD, "/" + type.getCollectionName() + "/" + guid, headers,
+                    MediaType.APPLICATION_JSON_TYPE);
+            notContentResponseToBoolean(handleNoContentResponseStatus(response));
+            Map<String, Boolean> result = new HashMap<String, Boolean>();
+            for (String offerId : offerIds) {
+                result.put(offerId,
+                        response.getHeaders().containsKey(offerId) && response.getHeaders().get(offerId) != null
+                                ? BooleanUtils.toBoolean(response.getHeaderString(offerId))
+                                : Boolean.FALSE);
+            }
+            return result;
         } catch (final VitamClientInternalException e) {
             final String errorMessage =
                 VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);

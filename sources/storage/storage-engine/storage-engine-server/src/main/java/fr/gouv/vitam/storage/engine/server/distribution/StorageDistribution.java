@@ -46,6 +46,7 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 
 import javax.ws.rs.core.Response;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Interface Storage Distribution for Storage Operations
@@ -230,16 +231,19 @@ public interface StorageDistribution extends VitamAutoCloseable {
         List<String> offerIds, boolean noCache) throws StorageException;
 
 
+
     /**
-     * Verify if object exists
+     * Verify if object exists. If an offer is not in hot offers in strategy, it is
+     * considered as not existing.
      *
      * @param strategyId id of the strategy
-     * @param objectId id of the object
-     * @param offerIds list id of offers
-     * @return boolean
+     * @param objectId   id of the object
+     * @param category   category
+     * @param offerIds   list id of offers
+     * @return list of result existence by offerId
      * @throws StorageException StorageException
      */
-    boolean checkObjectExisting(String strategyId, String objectId, DataCategory category,
+    Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
         List<String> offerIds) throws StorageException;
 
 

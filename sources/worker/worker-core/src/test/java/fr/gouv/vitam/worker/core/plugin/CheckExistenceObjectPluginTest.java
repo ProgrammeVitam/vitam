@@ -20,6 +20,8 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +31,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -99,10 +102,10 @@ public class CheckExistenceObjectPluginTest {
         reset(storageClient);
         // binary master -> binary exists on offers
         when(storageClient.exists(any(), any(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), any()))
-            .thenReturn(true);
+            .thenReturn(Collections.singletonMap("localhost", true));
         // physical master -> binary exists on offers
         when(storageClient.exists(any(), any(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), any()))
-            .thenReturn(false);
+            .thenReturn(Collections.singletonMap("localhost", false));
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -115,10 +118,10 @@ public class CheckExistenceObjectPluginTest {
         reset(storageClient);
         // binary master -> binary does not exist on offers
         when(storageClient.exists(any(), any(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), any()))
-            .thenReturn(false);
+            .thenReturn(Collections.singletonMap("localhost", false));
         // physical master -> binary does not exists on offers
         when(storageClient.exists(any(), any(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), any()))
-            .thenReturn(false);
+            .thenReturn(Collections.singletonMap("localhost", false));
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
@@ -134,10 +137,10 @@ public class CheckExistenceObjectPluginTest {
         reset(storageClient);
         // binary master -> binary exists on offers
         when(storageClient.exists(any(), any(), eq("aeaaaaaaaaesq6c3abnimak6qzrse5qaaaaq"), any()))
-            .thenReturn(true);
+            .thenReturn(Collections.singletonMap("localhost", true));
         // physical master -> binary exists on offers
         when(storageClient.exists(any(), any(), eq("aeaaaaaaaagesnmfaaglialcsywj2haaaaba"), any()))
-            .thenReturn(true);
+            .thenReturn(Collections.singletonMap("localhost", true));
 
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.KO, response.getGlobalStatus());
