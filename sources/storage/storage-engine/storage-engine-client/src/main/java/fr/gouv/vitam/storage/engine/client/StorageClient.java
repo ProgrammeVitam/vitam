@@ -26,7 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import java.io.InputStream;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.BasicClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
@@ -45,11 +53,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Storage Client interface
@@ -124,10 +127,10 @@ public interface StorageClient extends BasicClient {
      * @param strategyId the storage strategy id
      * @param type the type of object collection
      * @param guid vitam guid
-     * @return true if exist
+     * @return true/false for each offer
      * @throws StorageServerClientException if the Server got an internal error
      */
-    boolean exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
+    Map<String, Boolean> exists(String strategyId, DataCategory type, String guid, List<String> offerIds)
         throws StorageServerClientException;
 
 

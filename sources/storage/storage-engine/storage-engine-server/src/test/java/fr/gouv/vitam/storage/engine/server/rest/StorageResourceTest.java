@@ -26,7 +26,45 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -73,40 +111,6 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -151,6 +155,8 @@ public class StorageResourceTest {
     private static final String STORAGE_BACKUP_OPERATION_ID_URI = "/{operationId}";
 
     private static final String ID_O1 = "idO1";
+    private static final String OFFER_ID = "offerId";
+    private static final String OFFER_ID_KO = "offerIdKo";
 
     private static JunitHelper junitHelper;
 
@@ -201,7 +207,7 @@ public class StorageResourceTest {
 
         given().contentType(ContentType.JSON).body("").accept(MediaType.APPLICATION_OCTET_STREAM).when()
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_E, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
+                TENANT_ID_E, VitamHttpHeader.OFFERS_IDS.getName(), OFFER_ID)
             .get(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
 
@@ -211,7 +217,7 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET, VitamHttpHeader.OFFERS_IDS.getName(),
-                "offerId", VitamHttpHeader.OFFER_NO_CACHE.getName(), "true")
+                OFFER_ID, VitamHttpHeader.OFFER_NO_CACHE.getName(), "true")
             .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
         given().contentType(ContentType.JSON)
@@ -267,12 +273,24 @@ public class StorageResourceTest {
             .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
+        .headers(
+            VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
+            VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
+            VitamHttpHeader.OFFERS_IDS.getName(), OFFER_ID+","+OFFER_ID_KO
+        )
+        .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1)
+        .then().statusCode(Status.NOT_FOUND.getStatusCode())
+        .and().header(OFFER_ID, "true").and().header(OFFER_ID_KO, "false");
+        
+        given().contentType(ContentType.JSON)
             .headers(
                 VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
                 VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
-                VitamHttpHeader.OFFERS_IDS.getName(), "offerId"
+                VitamHttpHeader.OFFERS_IDS.getName(), OFFER_ID
             )
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.NO_CONTENT.getStatusCode());
+            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1)
+            .then().statusCode(Status.NO_CONTENT.getStatusCode())
+            .and().header(OFFER_ID, "true");
 
     }
 
@@ -679,9 +697,10 @@ public class StorageResourceTest {
     @Test
     public void getObjectOk() {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
-            .body(AccessLogUtils.getNoLogAccessLog()).when().get(OBJECTS_URI + OBJECT_ID_URI, "id0")
-            .then().statusCode(Status.OK.getStatusCode());
+                .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(),
+                        STRATEGY_ID)
+                .body(AccessLogUtils.getNoLogAccessLog()).when().get(OBJECTS_URI + OBJECT_ID_URI, "id0").then()
+                .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -1374,9 +1393,9 @@ public class StorageResourceTest {
         }
 
         @Override
-        public boolean checkObjectExisting(String strategyId, String objectId, DataCategory category,
+        public Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
             List<String> offerIds) {
-            return true;
+            return offerIds.stream().collect(Collectors.toMap(offer -> offer, offer -> offer.equals(OFFER_ID) ? Boolean.TRUE:Boolean.FALSE));
         }
 
         @Override

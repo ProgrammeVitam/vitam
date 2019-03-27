@@ -26,9 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Map;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.Before;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.SingletonUtils;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -40,15 +55,6 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import org.apache.commons.io.IOUtils;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-
-import static org.junit.Assert.*;
 
 /**
  * StorageClientMock test
@@ -96,7 +102,13 @@ public class StorageClientMockTest {
     public void checkExists() throws VitamClientException {
         final StorageClient client = StorageClientFactory.getInstance().getClient();
         assertNotNull(client);
-        assertTrue(client.exists("idStrategy", DataCategory.OBJECT, "guid", SingletonUtils.singletonList()));
+        Map<String, Boolean> existsResult = client.exists("idStrategy", DataCategory.OBJECT, "guid",
+                Arrays.asList("offerId"));
+        assertNotNull(existsResult);
+        assertEquals(existsResult.size(), 1);
+        assertTrue(existsResult.containsKey("offerId"));
+        assertEquals(existsResult.get("offerId"), Boolean.TRUE);
+        assertFalse(existsResult.containsKey("offerIdFake"));
         assertTrue(client.existsContainer("idStrategy"));
     }
 

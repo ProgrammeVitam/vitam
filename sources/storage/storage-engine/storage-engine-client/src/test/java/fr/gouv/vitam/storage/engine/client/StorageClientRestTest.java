@@ -26,8 +26,48 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.client;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
+
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.IntStream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.apache.commons.io.IOUtils;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Rule;
+import org.junit.Test;
+
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
+
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -48,6 +88,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -59,42 +100,6 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
-import org.apache.commons.io.IOUtils;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.IntStream;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
 
 /**
  * StorageClientRest Test
@@ -205,20 +210,20 @@ public class StorageClientRestTest extends ResteasyTestApplication {
 
         @HEAD
         @Path("/units/{id_unit}")
-        public Response checkUnit(@PathParam("id_unit") String idUnit) {
-            return expectedResponse.head();
+        public Response checkUnit(@PathParam("id_unit") String idUnit) throws StorageClientException {
+            throw new StorageServerClientException("NotYetImplemented");
         }
 
         @HEAD
         @Path("/logbooks/{id_logbook}")
-        public Response checkLogbook(@PathParam("id_logbook") String idLogbook) {
-            return expectedResponse.head();
+        public Response checkLogbook(@PathParam("id_logbook") String idLogbook) throws StorageClientException {
+            throw new StorageServerClientException("NotYetImplemented");
         }
 
         @HEAD
         @Path("/objectgroups/{id_objectgroup}")
-        public Response checkObjectGroup(@PathParam("id_objectgroup") String idObjectGroup) {
-            return expectedResponse.head();
+        public Response checkObjectGroup(@PathParam("id_objectgroup") String idObjectGroup) throws StorageClientException {
+            throw new StorageServerClientException("NotYetImplemented");
         }
 
 
@@ -411,14 +416,8 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         assertTrue(client.existsContainer("idStrategy"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertTrue(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertTrue(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertTrue(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertTrue(
-            client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
+        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+
     }
 
     @RunWithCustomExecutor
@@ -428,38 +427,55 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.head()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
         assertFalse(client.existsContainer("idStrategy"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertFalse(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+        assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
+    }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void existsNotYetImplemented() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertFalse(client.exists("idStrategy", DataCategory.UNIT, "idUnits", SingletonUtils.singletonList()));
+        // should throw exception
+        assertThatThrownBy(() -> {
+            client.exists("idStrategy", DataCategory.UNIT, "idUnit", SingletonUtils.singletonList());
+        }).isInstanceOf(StorageServerClientException.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertFalse(client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbooks", SingletonUtils.singletonList()));
+        assertThatThrownBy(() -> {
+            client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbook", SingletonUtils.singletonList());
+        }).isInstanceOf(StorageServerClientException.class);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertFalse(
-            client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroups", SingletonUtils.singletonList()));
+        assertThatThrownBy(() -> {
+            client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroup", SingletonUtils.singletonList());
+        }).isInstanceOf(StorageServerClientException.class);
     }
 
     @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void existsWithTenantIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(null);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+        assertThatThrownBy(() -> {
+            client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 
     @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void existsWithStrategyIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+        assertThatThrownBy(() -> {
+            client.exists("", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList());
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 
     @RunWithCustomExecutor
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void existsWithObjectIdIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(mock.head()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
-        client.exists("idStrategy", DataCategory.OBJECT, "", SingletonUtils.singletonList());
+        assertThatThrownBy(() -> {
+            client.exists("idStrategy", DataCategory.OBJECT, "", SingletonUtils.singletonList());
+        }).isInstanceOf(IllegalArgumentException.class);
     }
 
     @RunWithCustomExecutor
