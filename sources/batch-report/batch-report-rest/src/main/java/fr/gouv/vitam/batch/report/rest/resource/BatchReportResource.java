@@ -26,12 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.resource;
 
+import java.io.IOException;
+
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.batch.report.exception.BatchReportException;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
@@ -48,18 +63,6 @@ import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResour
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 /**
  * public resource to mass-report
@@ -107,6 +110,12 @@ public class BatchReportResource extends ApplicationStatusResource {
                             JsonHandler.getFromJsonNode(body, ReportBody.class, PreservationReportEntry.class);
                         batchReportServiceImpl
                             .appendPreservationReport(preservationReportBody.getProcessId(), preservationReportBody.getEntries(), tenantId);
+                    break;
+                case AUDIT:
+                    ReportBody<AuditObjectGroupReportEntry> auditReportBody = JsonHandler.getFromJsonNode(body,
+                            ReportBody.class, AuditObjectGroupReportEntry.class);
+                    batchReportServiceImpl.appendAuditReport(auditReportBody.getProcessId(), auditReportBody.getEntries(),
+                            tenantId);
                     break;
                 default:
                     throw new IllegalStateException("Unsupported report type " + reportType);
@@ -183,7 +192,7 @@ public class BatchReportResource extends ApplicationStatusResource {
             throw new BadRequestException(e);
         }
     }
-
+    
     @Path("/elimination_action/accession_register_export/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -238,11 +247,14 @@ public class BatchReportResource extends ApplicationStatusResource {
                 case PRESERVATION:
                     batchReportServiceImpl.deletePreservationByIdAndTenant(processId, tenantId);
                     break;
+                case AUDIT:
+                    batchReportServiceImpl.deleteAuditByIdAndTenant(processId, tenantId);
+                    break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;
                     VitamError vitamError = new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                        .setMessage("Report type not find")
-                        .setDescription("Report type not find");
+                        .setMessage("Report type not found")
+                        .setDescription("Report type not found");
                     return Response.status(status).entity(vitamError).build();
             }
             return Response.status(Response.Status.NO_CONTENT).build();

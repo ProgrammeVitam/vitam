@@ -26,9 +26,21 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.server;
 
+import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.core.Context;
+
 import com.fasterxml.jackson.jaxrs.base.JsonParseExceptionMapper;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
+
+import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
@@ -41,17 +53,7 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.server.HeaderIdContainerFilter;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Context;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashSet;
-import java.util.Set;
-
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
 /**
  * BusinessApplication
@@ -86,11 +88,12 @@ public class BusinessApplication extends ConfigurationApplication {
                 new EliminationActionObjectGroupRepository(mongoDbAccess);
             PreservationReportRepository preservationReportRepository =
                 new PreservationReportRepository(mongoDbAccess);
+            AuditReportRepository auditReportRepository = new AuditReportRepository(mongoDbAccess);
             WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
             WorkspaceClientFactory workspaceClientFactory = WorkspaceClientFactory.getInstance();
             BatchReportServiceImpl batchReportServiceImpl =
                 new BatchReportServiceImpl(eliminationActionUnitRepository, eliminationActionObjectGroupRepository,
-                    workspaceClientFactory, preservationReportRepository);
+                    workspaceClientFactory, preservationReportRepository, auditReportRepository);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons.addAll(commonBusinessApplication.getResources());
