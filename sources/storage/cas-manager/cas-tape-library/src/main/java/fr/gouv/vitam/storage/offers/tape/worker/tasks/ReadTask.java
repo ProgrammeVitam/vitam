@@ -63,11 +63,12 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 
 public class ReadTask implements Future<ReadWriteResult> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadTask.class);
     public static final String TAPE_MSG = " [Tape] : ";
-    private static final long TIMEOUT_IN_MILLISECONDES = 30000;
+    private static final long SLEEP_TIME = 30000;
 
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
@@ -100,12 +101,9 @@ public class ReadTask implements Future<ReadWriteResult> {
             if (null != workerCurrentTape && !workerCurrentTape.getCode().equals(readOrder.getTapeCode())) {
                 // Unload current tape
                 TapeResponse tapeResponse = unloadTape();
-                switch (tapeResponse.getStatus()) {
-                    case KO:
-                    case WARNING: // FIXME: 21/03/19 revoir le traitement de ce cas
-                        return new ReadWriteResult(QueueState.READY, workerCurrentTape);
-                    case FATAL:
-                        return new ReadWriteResult(QueueState.ERROR, workerCurrentTape);
+                if (!tapeResponse.isOK()) {
+                    return new ReadWriteResult(tapeResponse.getStatus(), tapeResponse.getStatus() == StatusCode.FATAL ?
+                            QueueState.ERROR : QueueState.READY, workerCurrentTape);
                 }
                 workerCurrentTape = null;
             }
@@ -116,23 +114,17 @@ public class ReadTask implements Future<ReadWriteResult> {
                 // If tape ok load tape to drive
                 // Do status to get tape TYPE and some other information (update catalog)
                 CatalogResponse catalogResponse = getTapeFromCatalog();
-                switch (catalogResponse.getStatus()) {
-                    case KO:
-                        return new ReadWriteResult(QueueState.READY, workerCurrentTape);
-                    case FATAL:
-                        return new ReadWriteResult(QueueState.ERROR, workerCurrentTape);
+                if (!catalogResponse.isOK()) {
+                    return new ReadWriteResult(catalogResponse.getStatus(), catalogResponse.getStatus() == StatusCode.FATAL ?
+                            QueueState.ERROR : QueueState.READY, workerCurrentTape);
                 }
 
                 workerCurrentTape = catalogResponse.getCurrentTape();
                 TapeResponse tapeResponse = loadTape();
-                switch (tapeResponse.getStatus()) {
-                    case KO:
-                    case WARNING: // FIXME: 21/03/19 revoir le traitement de ce cas
-                        workerCurrentTape = null;
-                        return new ReadWriteResult(QueueState.READY, null);
-                    case FATAL:
-                        workerCurrentTape = null;
-                        return new ReadWriteResult(QueueState.ERROR, null);
+                if (!tapeResponse.isOK()) {
+                    workerCurrentTape = null;
+                    return new ReadWriteResult(tapeResponse.getStatus(), tapeResponse.getStatus() == StatusCode.FATAL ?
+                            QueueState.ERROR : QueueState.READY, workerCurrentTape);
                 }
             }
 
@@ -166,8 +158,6 @@ public class ReadTask implements Future<ReadWriteResult> {
     }
 
     private ReadWriteResult doRead() {
-
-        boolean occuredError;
         // move drive to the given position
         int offset = readOrder.getFilePosition();
         boolean toRewind = true;
@@ -177,50 +167,41 @@ public class ReadTask implements Future<ReadWriteResult> {
         }
 
         TapeResponse response = moveToPosition(toRewind, offset);
-        occuredError = !StatusCode.OK.equals(response.getStatus());
 
         // read file from tape
-        if (!occuredError) {
+        if (response.isOK()) {
             response = readFromTape();
-            occuredError = !StatusCode.OK.equals(response.getStatus());
         }
 
-        if (occuredError) {
-            // retry
-            int nbRetry = 2;
-            while (nbRetry != 0 && occuredError) {
-                try {
-                    Thread.sleep(TIMEOUT_IN_MILLISECONDES);
-                } catch (InterruptedException e) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                }
+        // retry
+        int nbRetry = 2;
+        while (nbRetry != 0 && !response.isOK()) {
+            try {
+                Thread.sleep(SLEEP_TIME);
+            } catch (InterruptedException e) {
+                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            }
 
-                nbRetry--;
+            nbRetry--;
 
-                // Rewind
-                response = moveToPosition(true, readOrder.getFilePosition());
-                occuredError = !StatusCode.OK.equals(response.getStatus());
-                if (occuredError) {
-                    continue;
-                }
+            // Rewind
+            response = moveToPosition(true, readOrder.getFilePosition());
+            if (!response.isOK()) {
+                continue;
+            }
 
-                response = readFromTape();
-                occuredError = !StatusCode.OK.equals(response.getStatus());
-                if (occuredError) {
-                    continue;
-                }
+            response = readFromTape();
+            if (!response.isOK()) {
+                continue;
             }
         }
 
-        switch (response.getStatus()) {
-            case KO:
-            case WARNING: // FIXME: 21/03/19 revoir le traitement de ce cas
-                return new ReadWriteResult(QueueState.READY, workerCurrentTape);
-            case FATAL:
-                return new ReadWriteResult(QueueState.ERROR, workerCurrentTape);
-            default:
-                return new ReadWriteResult(QueueState.COMPLETED, workerCurrentTape, response);
+        if (!response.isOK()) {
+            return new ReadWriteResult(response.getStatus(), response.getStatus() == StatusCode.FATAL ?
+                    QueueState.ERROR : QueueState.READY, workerCurrentTape);
         }
+
+        return new ReadWriteResult(StatusCode.OK, QueueState.COMPLETED, workerCurrentTape, response);
     }
 
     private TapeResponse moveToPosition(boolean rewind, int offset) {
@@ -228,7 +209,7 @@ public class ReadTask implements Future<ReadWriteResult> {
         TapeResponse response = new TapeResponse(StatusCode.OK);
         if (rewind) {
             response = tapeDriveService.getDriveCommandService().rewind();
-            if (!StatusCode.OK.equals(response.getStatus())) {
+            if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         " Action : Rewind Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                         JsonHandler.unprettyPrint(response.getEntity()));
@@ -240,7 +221,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
         if (offset != 0) {
             response = tapeDriveService.getDriveCommandService().goToPosition(Math.abs(offset) - 1, offset < 0);
-            if (!StatusCode.OK.equals(response.getStatus())) {
+            if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         " Action : Go to position Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                         JsonHandler.unprettyPrint(response.getEntity()));
@@ -258,7 +239,7 @@ public class ReadTask implements Future<ReadWriteResult> {
         TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
                 .readFromTape(readOrder.getFileName());
 
-        if (!StatusCode.OK.equals(response.getStatus())) {
+        if (!response.isOK()) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                     " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                     JsonHandler.unprettyPrint(response.getEntity()));
@@ -285,7 +266,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                 if (tapes.size() == 0) {
                     return new CatalogResponse(StatusCode.FATAL);
                 } else {
-                    return new CatalogResponse(StatusCode.KO);
+                    return new CatalogResponse(KO);
                 }
             }
             if (found.get().getCurrentLocation().getLocationType().equals(TapeLocationType.OUTSIDE)) {
@@ -299,7 +280,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             return new CatalogResponse(StatusCode.OK, found.get());
 
         } catch (QueueException | TapeCatalogException e) {
-            return new CatalogResponse(StatusCode.KO);
+            return new CatalogResponse(KO);
         }
     }
 
@@ -324,12 +305,12 @@ public class ReadTask implements Future<ReadWriteResult> {
             response = tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                             .loadTape(slotIndex, driveIndex);
 
-            if (StatusCode.OK.equals(response.getStatus())) {
+            if (response.isOK()) {
                 // rewind
                 response = moveToPosition(true, 0);
             }
 
-            if (StatusCode.OK.equals(response.getStatus())) {
+            if (response.isOK()) {
                 // update catalog
                 updateTapeLocation(new TapeLocation(driveIndex, TapeLocationType.DRIVE));
             }
@@ -339,7 +320,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             response = new TapeResponse(e.getMessage(), StatusCode.FATAL);
         } catch (TapeCatalogException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode(), e);
-            response = new TapeResponse(e.getMessage(), StatusCode.KO);
+            response = new TapeResponse(e.getMessage(), KO);
         }
 
         return response;
@@ -376,17 +357,18 @@ public class ReadTask implements Future<ReadWriteResult> {
             response = tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                     .unloadTape(slotIndex, driveIndex);
 
-            // update catalog
-            updateTapeLocation(new TapeLocation(slotIndex, TapeLocationType.SLOT));
+            if (response.isOK()) {
+                // update catalog
+                updateTapeLocation(new TapeLocation(slotIndex, TapeLocationType.SLOT));
 
-            // release the tape
-            tapeCatalogService.markReady(workerCurrentTape.getId());
-
+                // release the tape
+                tapeCatalogService.markReady(workerCurrentTape.getId());
+            }
         } catch (InterruptedException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode(), e);
             response = new TapeResponse(e.getMessage(), StatusCode.FATAL);
         } catch (TapeCatalogException | QueueException e) {
-            response = new TapeResponse(e.getMessage(), StatusCode.KO);
+            response = new TapeResponse(e.getMessage(), KO);
         }
 
         return response;

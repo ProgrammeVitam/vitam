@@ -40,13 +40,15 @@ public class ReadWriteResult {
     public ReadWriteResult() {
     }
 
-    public ReadWriteResult(QueueState state, TapeCatalog currentTape, TapeResponse tapeResponse) {
+    public ReadWriteResult(StatusCode status, QueueState state, TapeCatalog currentTape, TapeResponse tapeResponse) {
+        this.status = status;
         this.orderState = state;
         this.currentTape = currentTape;
         this.tapeResponse = tapeResponse;
     }
 
-    public ReadWriteResult(QueueState state, TapeCatalog currentTape) {
+    public ReadWriteResult(StatusCode status, QueueState state, TapeCatalog currentTape) {
+        this.status = status;
         this.orderState = state;
         this.currentTape = currentTape;
     }

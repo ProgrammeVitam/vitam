@@ -50,4 +50,7 @@ public class CatalogResponse {
         return currentTape;
     }
 
+    public boolean isOK() {
+        return this.status == StatusCode.OK;
+    }
 }
