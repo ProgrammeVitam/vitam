@@ -535,10 +535,16 @@
                     <!-- Security check for dependencies -->
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>4.0.2</version>
+                    <version>5.0.0-M2</version>
 		            <configuration>
-                        <failBuildOnCVSS>8</failBuildOnCVSS>
+                        <!-- <failBuildOnCVSS>8</failBuildOnCVSS> -->
                         <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
+			            <failOnError>false</failOnError>
+                        <!-- we created a mirror -->
+                        <cveUrl12Modified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-modified.xml.gz</cveUrl12Modified>
+                        <cveUrl20Modified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-2.0-modified.xml.gz</cveUrl20Modified>
+                        <cveUrl12Base>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-%d.xml</cveUrl12Base>
+                        <cveUrl20Base>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-2.0-%d.xml</cveUrl20Base>
                     </configuration>
                     <executions>
                         <execution>
