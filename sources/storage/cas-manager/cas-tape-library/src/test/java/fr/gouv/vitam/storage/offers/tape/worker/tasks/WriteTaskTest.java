@@ -158,7 +158,6 @@ public class WriteTaskTest {
         when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
-
         WriteTask writeTask =
             new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
 
@@ -181,7 +180,7 @@ public class WriteTaskTest {
 
         assertThat(label).isNotNull();
         assertThat(label)
-            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
@@ -197,8 +196,6 @@ public class WriteTaskTest {
 
         when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
             .thenReturn(new TapeResponse(StatusCode.OK));
-
-
 
         WriteTask writeTask =
             new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
@@ -222,7 +219,7 @@ public class WriteTaskTest {
 
         assertThat(label).isNotNull();
         assertThat(label)
-            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
@@ -274,7 +271,7 @@ public class WriteTaskTest {
 
         assertThat(label).isNotNull();
         assertThat(label)
-            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
@@ -337,7 +334,7 @@ public class WriteTaskTest {
 
         assertThat(label).isNotNull();
         assertThat(label)
-            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
@@ -390,7 +387,7 @@ public class WriteTaskTest {
         verify(tapeRobotPool, new Times(1)).checkoutRobotService();
         verify(tapeRobotService, new Times(1)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(2)).status();
-        verify(tapeDriveCommandService, new Times(2)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
         verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
@@ -507,7 +504,7 @@ public class WriteTaskTest {
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeReadWriteService.readFromTape(anyString())).thenAnswer(o -> {
-            String filePath = o.getArgument(1);
+            String filePath = o.getArgument(0);
             JsonHandler.writeAsFile(new TapeCatalogLabel("DISCARDED_GUID", "FAKE_CODE"), new File(filePath));
             return new TapeResponse(JsonHandler.createObjectNode(), StatusCode.OK);
         });
@@ -622,6 +619,12 @@ public class WriteTaskTest {
             .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(tapeDriveState);
 
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.goToPosition(anyInt()))
+            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
+            .thenReturn(new TapeResponse(StatusCode.OK));
 
         // When Write Label and file to tape
         when(tapeReadWriteService.writeToTape(contains(WriteTask.TAPE_LABEL)))
@@ -636,6 +639,9 @@ public class WriteTaskTest {
         verify(tapeRobotPool, new Times(2)).checkoutRobotService();
         verify(tapeRobotService, new Times(2)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(2)).status();
+        verify(tapeDriveCommandService, new Times(1)).rewind();
+        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
+
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
@@ -655,7 +661,7 @@ public class WriteTaskTest {
 
         assertThat(label).isNotNull();
         assertThat(label)
-            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
@@ -709,12 +715,19 @@ public class WriteTaskTest {
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
+        when(tapeDriveCommandService.goToPosition(anyInt()))
+            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
+
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeResponse(StatusCode.OK));
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeRobotPool, new Times(2)).checkoutRobotService();
         verify(tapeRobotService, new Times(2)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(3)).status();
+        verify(tapeDriveCommandService, new Times(1)).rewind();
+        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
@@ -734,7 +747,7 @@ public class WriteTaskTest {
 
         assertThat(label).isNotNull();
         assertThat(label)
-            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
@@ -783,18 +796,20 @@ public class WriteTaskTest {
 
         when(tapeDriveCommandService.rewind())
             .thenReturn(new TapeResponse(StatusCode.OK))
+            .thenReturn(new TapeResponse(StatusCode.OK))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeDriveCommandService.goToPosition(anyInt()))
             .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenReturn(new TapeResponse(StatusCode.OK))
+            .thenReturn(new TapeResponse(JsonHandler.createArrayNode(), StatusCode.KO));
 
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeDriveCommandService, new Times(2)).status();
-        verify(tapeDriveCommandService, new Times(2)).rewind();
-        verify(tapeDriveCommandService, new Times(2)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(3)).rewind();
+        verify(tapeDriveCommandService, new Times(3)).goToPosition(anyInt());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
@@ -814,7 +829,7 @@ public class WriteTaskTest {
 
         assertThat(label).isNotNull();
         assertThat(label)
-            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
             .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
@@ -869,14 +884,12 @@ public class WriteTaskTest {
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
 
         when(tapeDriveCommandService.rewind())
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK))
-            .thenReturn(new TapeResponse(StatusCode.OK));
+            .thenAnswer(o -> new TapeResponse(StatusCode.OK));
 
         when(tapeDriveCommandService.goToPosition(anyInt()))
             .thenReturn(new TapeResponse(StatusCode.OK))
             .thenReturn(new TapeResponse(StatusCode.OK))
+            .thenReturn(new TapeResponse(JsonHandler.createArrayNode(), StatusCode.KO))
             .thenReturn(new TapeResponse(StatusCode.OK))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -884,8 +897,8 @@ public class WriteTaskTest {
 
         // Then
         verify(tapeDriveCommandService, new Times(3)).status();
-        verify(tapeDriveCommandService, new Times(4)).rewind();
-        verify(tapeDriveCommandService, new Times(4)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(5)).rewind();
+        verify(tapeDriveCommandService, new Times(5)).goToPosition(anyInt());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
         verify(tapeLoadUnloadService, new Times(1)).unloadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
@@ -947,7 +960,7 @@ public class WriteTaskTest {
         ReadWriteResult result = writeTask.get();
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getStatus()).isEqualTo(StatusCode.WARNING);
         assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
 
@@ -967,7 +980,6 @@ public class WriteTaskTest {
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
                 tapeCatalogService);
-
 
         when(tapeDriveCommandService.status())
             .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))

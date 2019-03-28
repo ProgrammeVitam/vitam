@@ -176,11 +176,6 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case NULL_CURRENT_TAPE:
                     // TODO: 19/03/19 should not get this error, only if somme methods called directly
                     break;
-                case KO_DB_PERSIST:
-                    // Can't update database
-                    readWriteResult.setStatus(StatusCode.FATAL);
-                    readWriteResult.setOrderState(QueueState.READY);
-                    break;
                 case KO_ON_END_OF_TAPE:
                     workerCurrentTape.setTapeState(TapeState.FULL);
                     // Re-call get, to unload current tape, load new tape then do write
@@ -206,9 +201,10 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case KO_ON_GOTO_FILE_COUNT:
                     break;
 
-                case KO_LABEL_NOT_FOUND:
+                case KO_DB_PERSIST:
                 case KO_LABEL_DISCORDING:
                 case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
+                case KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT:
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.READY);
                     break;
@@ -302,6 +298,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             // Check empty tape
             TapeResponse moveResponse = tapeDriveService.getDriveCommandService().goToPosition(1);
             if (moveResponse.isOK()) {
+                workerCurrentTape.setCurrentPosition(workerCurrentTape.getCurrentPosition() + 1);
                 throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                     " Action : Is Tape Empty, Order: " + JsonHandler.unprettyPrint(writeOrder) +
                     ", Error: Tape not empty but tape catalog is empty",
@@ -369,8 +366,17 @@ public class WriteTask implements Future<ReadWriteResult> {
             throw new ReadWriteException(
                 MSG_PREFIX + ", Error: can't write, current tape is null.", ReadWriteErrorCode.NULL_CURRENT_TAPE);
         }
+        if (workerCurrentTape.getFileCount() != workerCurrentTape.getCurrentPosition()) {
+            if (workerCurrentTape.getFileCount() < workerCurrentTape.getCurrentPosition()) {
+                throw new ReadWriteException(
+                    MSG_PREFIX + ", Error: current position must be <= to fileCount.",
+                    ReadWriteErrorCode.KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT);
+            }
 
-        goToPosition(ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
+            Integer positionSeek = workerCurrentTape.getFileCount() - workerCurrentTape.getCurrentPosition();
+
+            goToPosition(positionSeek, ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
+        }
 
         if (null == workerCurrentTape.getLabel()) {
             // Check if new tape then write label
@@ -501,7 +507,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             }
 
             workerCurrentTape.setFileCount(1);
-            workerCurrentTape.setCurrentPosition(0);
+            workerCurrentTape.setCurrentPosition(1);
             workerCurrentTape.setLabel(objLabel);
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + fileSize);
             workerCurrentTape.setTapeState(TapeState.OPEN);
@@ -559,7 +565,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             cartridgeRetry = CARTRIDGE_RETRY;
             workerCurrentTape.setFileCount(workerCurrentTape.getFileCount() + 1);
-            workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount() - 1);
+            workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount());
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + file.length());
             workerCurrentTape.setTapeState(TapeState.OPEN);
 
@@ -593,7 +599,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             doRewindTape();
 
             // FSF
-            goToPosition(ReadWriteErrorCode.KO_ON_REWIND_FSF_BSF_TAPE);
+            goToPosition(workerCurrentTape.getFileCount(), ReadWriteErrorCode.KO_ON_REWIND_FSF_BSF_TAPE);
 
 
             try {
@@ -626,10 +632,10 @@ public class WriteTask implements Future<ReadWriteResult> {
      *
      * @throws ReadWriteException
      */
-    private void goToPosition(ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException {
+    private void goToPosition(Integer position, ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException {
         TapeResponse fsfResponse = tapeDriveService.getDriveCommandService()
-            .goToPosition(workerCurrentTape.getFileCount() - 1);
-        workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount() - 1);
+            .goToPosition(position);
+        workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount());
 
 
         if (!fsfResponse.isOK()) {

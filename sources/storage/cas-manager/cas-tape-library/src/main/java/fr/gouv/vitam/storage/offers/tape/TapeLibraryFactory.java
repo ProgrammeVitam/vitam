@@ -142,7 +142,7 @@ public class TapeLibraryFactory {
         return tapeDriveWorkerManagers;
     }
 
-    public QueueRepository getQueueRepository() {
+    public QueueRepository getReadWriteQueue() {
         if (tapeDriveWorkerManagers.isEmpty()) {
             throw new IllegalStateException("No QueueRepository initialized");
         }

@@ -101,7 +101,7 @@ public class TapeCatalog extends QueueMessageEntity {
     private int version;
 
     @JsonIgnore
-    private Integer currentPosition;
+    private Integer currentPosition = 0;
 
 
     public TapeCatalog() {

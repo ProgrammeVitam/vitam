@@ -61,8 +61,6 @@ public class TapeStorageFactory {
         tapeLibraryFactory.initialize(configuration, mongoDbAccess);
 
         QueueRepository readWriteQueue = tapeLibraryFactory.getReadWriteQueue();
-        // TODO : do stuff with readWriteQueue
-
 
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(configuration, objectReferentialRepository,
             tarReferentialRepository, bucketTopologyHelper, readWriteQueue);
