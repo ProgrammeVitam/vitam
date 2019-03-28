@@ -671,7 +671,14 @@ public class DslQueryHelper {
                 continue;
             }
             if (searchKeys.equalsIgnoreCase(UiConstants.ID.getReceivedCriteria())) {
-                andQuery.add(eq(UiConstants.ID.getResultCriteria(), (String) searchValue));
+                BooleanQuery idQuery = or().add(eq(UiConstants.ID.getResultCriteria(), (String) searchValue));
+                idQuery.add(eq("FilePlanPosition",(String) searchValue));
+                idQuery.add(eq("OriginatingSystemId",(String) searchValue));
+                idQuery.add(eq("OriginatingAgencySystemId",(String) searchValue));
+                idQuery.add(eq("TransferringAgencySystemId",(String) searchValue));
+                idQuery.add(eq("ArchivalAgencySystemId",(String) searchValue));
+                
+                andQuery.add(idQuery);
                 continue;
             }
             if (searchKeys.equals(ELIMINATION_OPERATION_ID)) {

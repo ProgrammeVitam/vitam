@@ -215,12 +215,21 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     }
                 }
 
-                final Set<String> CheckParentId = acm.getCheckParentId();
-                if (CheckParentId != null) {
-                    if (!manager.checkIfAllUnitExist(CheckParentId)) {
+                final Set<String> checkParentId = acm.getCheckParentId();
+                if (checkParentId != null) {
+                    if (!checkParentId.isEmpty()
+                        && IngestContractCheckState.UNAUTHORIZED.equals(acm.getCheckParentLink())) {
                         error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                             GenericRejectionCause
-                                .rejectAuNotFoundInDatabase(String.join(" ", CheckParentId))
+                                .rejectInconsistentContract(acm.getName(),
+                                    "attachments not authorized but checkParentId field is not empty")
+                                .getReason(), StatusCode.KO));
+                        continue;
+                    }
+                    if (!manager.checkIfAllUnitExist(checkParentId)) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            GenericRejectionCause
+                                .rejectAuNotFoundInDatabase(String.join(" ", checkParentId))
                                 .getReason(), StatusCode.KO));
                         continue;
                     }
@@ -273,9 +282,11 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(VitamError::getDescription).distinct().collect(Collectors.joining(","));
+                    error.getErrors().stream().map(VitamError::getDescription).distinct()
+                        .collect(Collectors.joining(","));
 
-                manager.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT, error.getErrors().get(0).getMessage());
+                manager
+                    .logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT, error.getErrors().get(0).getMessage());
                 return error;
             }
             contractsToPersist = JsonHandler.createArrayNode();
@@ -832,7 +843,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
 
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             }
         }
 
@@ -845,16 +857,25 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 if (!linkParentId.equals("")) {
                     if (!manager.checkIfUnitExist(linkParentId)) {
                         error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                GenericRejectionCause.rejectAuNotFoundInDatabase(linkParentId).getReason(), StatusCode.KO)
-                                .setMessage(UPDATE_KO));
+                            GenericRejectionCause.rejectAuNotFoundInDatabase(linkParentId).getReason(), StatusCode.KO)
+                            .setMessage(UPDATE_KO));
                     }
                 }
             }
+            boolean isAttachmentAuthorized = true;
+            JsonNode checkParentLink = queryDsl.findValue(IngestContractModel.TAG_CHECK_PARENT_LINK);
+            IngestContractCheckState checkState = (checkParentLink == null) ?
+                ingestContractModel.getCheckParentLink() :
+                IngestContractCheckState.valueOf(checkParentLink.asText());
+            if (IngestContractCheckState.UNAUTHORIZED.equals(checkState)) {
+                isAttachmentAuthorized = false;
+            }
 
             JsonNode checkParentIdsNode = queryDsl.findValue(IngestContractModel.TAG_CHECK_PARENT_ID);
+            Set<String> checkParentIds = new HashSet<>();
             if (checkParentIdsNode != null) {
                 if (checkParentIdsNode.isArray()) {
-                    Set<String> checkParentIds = new HashSet<>();
+
                     for (JsonNode checkParentId : checkParentIdsNode) {
                         checkParentIds.add(checkParentId.asText());
                     }
@@ -862,15 +883,24 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     if (!checkParentIds.isEmpty()) {
                         if (!manager.checkIfAllUnitExist(checkParentIds)) {
                             error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                    GenericRejectionCause.rejectAuNotFoundInDatabase(String.join(" ", checkParentIds))
-                                        .getReason(), StatusCode.KO)
-                                    .setMessage(UPDATE_KO));
+                                GenericRejectionCause.rejectAuNotFoundInDatabase(String.join(" ", checkParentIds))
+                                    .getReason(), StatusCode.KO)
+                                .setMessage(UPDATE_KO));
                         }
                     }
                 }
+            } else {
+                checkParentIds.addAll(ingestContractModel.getCheckParentId());
             }
 
 
+            if (!isAttachmentAuthorized && !checkParentIds.isEmpty()) {
+                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                    GenericRejectionCause
+                        .rejectInconsistentContract(ingestContractModel.getName(),
+                            "attachments not authorized but checkParentId field is not empty")
+                        .getReason(), StatusCode.KO));
+            }
 
             final JsonNode archiveProfilesNode = queryDsl.findValue(IngestContractModel.ARCHIVE_PROFILES);
             if (archiveProfilesNode != null) {

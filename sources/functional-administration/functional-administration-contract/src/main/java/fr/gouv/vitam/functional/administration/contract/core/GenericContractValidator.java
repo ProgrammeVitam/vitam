@@ -75,13 +75,13 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
     /**
      * Generic Rejection Cause inner class
      */
-    public class GenericRejectionCause {
+    class GenericRejectionCause {
 
         private static final String ERR_DUPLICATE_CONTRACT_ENTRY =
             "One or many contracts in the imported list have the same name : %s";
         private static final String ERR_ID_NOT_ALLOWED_IN_CREATE = "Id must be null when creating contracts (%s)";
         private static final String ERR_DUPLICATE_CONTRACT = "The contract %s already exists in database";
-        private static String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT =
+        private static final String ERR_ARCHIVEPROFILE_NOT_FOUND_CONTRACT =
             "One or multiple archive profiles or the contract %s not found in db";
         private static final String ERR_CONTRACT_EXCEPTION_OCCURRED = "Exception while validating contract (%s), %s : %s";
         private static final String ERR_CONTRACT_ROOT_UNITS_NOT_FOUND =
@@ -92,6 +92,7 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
         private static final String ERR_IDS_NOT_FOUND =
             "At least one AU id %s not found";
         private static final String ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT = "One or multiple file format %s not found in db";
+        private static final String ERR_INCONSISTENT_CONTRACT_DEFINITION = "Error while validating contract (%s) : %s";
 
         private String reason;
 
@@ -210,6 +211,10 @@ public interface GenericContractValidator<T extends AbstractContractModel> {
          */
         public static GenericRejectionCause rejectFormatFileTypeNotFoundInDatabase(String contractName) {
             return new GenericRejectionCause(String.format(ERR_FORMATFILETYPE_NOT_FOUND_CONTRACT, contractName));
+        }
+
+        public static GenericRejectionCause rejectInconsistentContract(String contractName, String reason) {
+            return new GenericRejectionCause((String.format(ERR_INCONSISTENT_CONTRACT_DEFINITION, contractName, reason)));
         }
 
         /**
