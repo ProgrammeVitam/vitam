@@ -90,7 +90,7 @@ public class TapeLibraryFactory {
 
             for (TapeDriveConf tapeDriveConf : tapeLibraryConf.getDrives()) {
                 final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf,
-                        configuration.getInputDirectory(), configuration.getOutputDirectory());
+                        configuration.getInputTarStorageFolder(), configuration.getOutputTarStorageFolder());
                 driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);
             }
 

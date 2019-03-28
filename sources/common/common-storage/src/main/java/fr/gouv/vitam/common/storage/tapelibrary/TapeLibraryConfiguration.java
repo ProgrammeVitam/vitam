@@ -63,8 +63,6 @@ public class TapeLibraryConfiguration {
 
     private List<TapeBatch> tapeBatches;
     private Map<String, TapeLibraryConf> tapeLibraries;
-    private String inputDirectory;
-    private String outputDirectory;
 
     public TapeLibraryTopologyConfiguration getTopology() {
         return topology;
@@ -139,21 +137,5 @@ public class TapeLibraryConfiguration {
     public TapeLibraryConfiguration setMaxTarFileSize(long maxTarFileSize) {
         this.maxTarFileSize = maxTarFileSize;
         return this;
-    }
-
-    public String getInputDirectory() {
-        return inputDirectory;
-    }
-
-    public void setInputDirectory(String inputDirectory) {
-        this.inputDirectory = inputDirectory;
-    }
-
-    public String getOutputDirectory() {
-        return outputDirectory;
-    }
-
-    public void setOutputDirectory(String outputDirectory) {
-        this.outputDirectory = outputDirectory;
     }
 }
