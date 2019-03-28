@@ -124,7 +124,10 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         Integer driveIndex = driveWorker.getIndex();
         ReadWritePriority readWritePriority = driveWorker.getPriority();
 
-        driveWorkerCurrentCatalog.put(driveIndex, driveWorker.getCurrentTape());
+        TapeCatalog currentTape = driveWorker.getCurrentTape();
+        if(currentTape != null) {
+            driveWorkerCurrentCatalog.put(driveIndex, currentTape);
+        }
 
 
         // TODO: 21/03/19 construct optimized query to get order
@@ -168,8 +171,10 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
         // Each drive have a current tape
         // Order that should go to the given tape should be produced to the drive that have the tape on
+        return Optional.empty();
+    }
 
-
-        return null;
+    public QueueRepository getReadWriteQueue() {
+        return readWriteQueue;
     }
 }

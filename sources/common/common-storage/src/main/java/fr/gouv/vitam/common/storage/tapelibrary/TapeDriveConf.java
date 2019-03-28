@@ -45,7 +45,7 @@ public class TapeDriveConf {
     private String mtPath = "mt";
     private String ddPath = "dd";
     private String tarPath = "tar";
-    private ReadWritePriority readWritePriority;
+    private ReadWritePriority readWritePriority = ReadWritePriority.WRITE;
 
     private long timeoutInMilliseconds = 60000;
 
