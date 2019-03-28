@@ -29,12 +29,14 @@ package fr.gouv.vitam.worker.core.plugin;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.SchemaValidationFactory;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -88,8 +90,19 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     private boolean isUpdateJsonMandatory = false;
     private boolean asyncIO = false;
 
+    private  SchemaValidationFactory schemaValidatorFactory;
+
+
     public CheckArchiveUnitSchemaActionPlugin() {
-        //Empty
+        this(SchemaValidationFactory.getInstance());
+    }
+
+    /**
+     * Empty constructor CheckArchiveUnitSchemaActionPlugin
+     */
+    @VisibleForTesting
+    public CheckArchiveUnitSchemaActionPlugin(SchemaValidationFactory schemaValidatorFactory) {
+        this.schemaValidatorFactory = schemaValidatorFactory;
     }
 
     @Override
@@ -172,7 +185,8 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         try (InputStream archiveUnitToJson =
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
                 File.separator + objectName)) {
-            SchemaValidationUtils validator = new SchemaValidationUtils();
+            SchemaValidationUtils validator = schemaValidatorFactory.createSchemaValidator();
+
             JsonNode archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
 
             // sanityChecker
@@ -209,9 +223,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {
             LOGGER.error(WORKSPACE_SERVER_ERROR);
-            throw new ProcessingException(e);
-        } catch (com.github.fge.jsonschema.core.exceptions.ProcessingException e) {
-            LOGGER.error(SCHEMA_ERROR);
             throw new ProcessingException(e);
         }
     }

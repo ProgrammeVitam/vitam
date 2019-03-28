@@ -98,7 +98,7 @@ public class SchemaValidationUtils {
     /**
      * archive-unit-schema
      */
-    private static final String ARCHIVE_UNIT_SCHEMA_FILENAME = "json-schema/archive-unit-schema.json";
+    public static final String ARCHIVE_UNIT_SCHEMA_FILENAME = "json-schema/archive-unit-schema.json";
     /**
      * access-contract-schema
      */
