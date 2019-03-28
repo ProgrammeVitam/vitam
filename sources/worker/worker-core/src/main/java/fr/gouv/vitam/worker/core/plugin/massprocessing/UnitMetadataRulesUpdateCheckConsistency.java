@@ -219,6 +219,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
     private Optional<JsonNode> checkDate(String startDateAsString, String category) {
         try {
+            if(startDateAsString == null) return Optional.empty();
             LocalDate startDate = LocalDate.parse(startDateAsString);
             if (startDate.getYear() >= 9000) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();

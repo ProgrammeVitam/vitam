@@ -28,19 +28,20 @@ package fr.gouv.vitam.common.model.massupdate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public class RuleActions {
 
     @JsonProperty("add")
-    List<Map<String, RuleCategoryAction>> add;
+    List<Map<String, RuleCategoryAction>> add = new ArrayList<>();
 
     @JsonProperty("update")
-    List<Map<String, RuleCategoryAction>> update;
+    List<Map<String, RuleCategoryAction>> update = new ArrayList<>();
 
     @JsonProperty("delete")
-    List<Map<String, RuleCategoryAction>> delete;
+    List<Map<String, RuleCategoryAction>> delete = new ArrayList<>();
 
     @JsonProperty("addOrUpdateMetadata")
     ManagementMetadataAction addOrUpdateMetadata;
