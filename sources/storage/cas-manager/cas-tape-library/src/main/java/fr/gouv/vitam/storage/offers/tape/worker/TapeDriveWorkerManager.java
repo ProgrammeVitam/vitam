@@ -26,6 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +46,6 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
-import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
@@ -65,7 +67,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
-        TapeLibraryPool tapeLibraryPool) {
+        TapeLibraryPool tapeLibraryPool,
+        Map<Integer, TapeCatalog> driveTape) {
 
         ParametersChecker
             .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue);
@@ -75,7 +78,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
-                    this);
+                    this, driveTape.get(driveEntry.getKey()));
             workers.add(tapeDriveWorker);
 
             final Thread thread =
@@ -124,57 +127,92 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         Integer driveIndex = driveWorker.getIndex();
         ReadWritePriority readWritePriority = driveWorker.getPriority();
 
-        TapeCatalog currentTape = driveWorker.getCurrentTape();
-        if(currentTape != null) {
-            driveWorkerCurrentCatalog.put(driveIndex, currentTape);
+        Bson bucketFilter = null;
+        if (driveWorker.getCurrentTape() != null) {
+
+            if (null != driveWorker.getCurrentTape().getBucket()) {
+                bucketFilter = eq(WriteOrder.BUCKET, driveWorker.getCurrentTape().getBucket());
+            }
+
+
+            driveWorkerCurrentCatalog.put(driveIndex, driveWorker.getCurrentTape());
+        } else {
+            driveWorkerCurrentCatalog.remove(driveIndex);
         }
 
+        // TODO: 28/03/19 parallelism (parallel drive by bucket)
 
-        // TODO: 21/03/19 construct optimized query to get order
-        Bson query = null;
+        Bson query;
+        Bson orderFilter;
+        Optional<? extends ReadWriteOrder> order;
 
-        if (ReadWritePriority.WRITE.equals(readWritePriority)) {
-            Optional<? extends ReadWriteOrder> write = readWriteQueue.receive(query, QueueMessageType.WriteOrder);
-            if (write.isPresent()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
-                }
-                return write;
+        // If write priority, take write orders. If not order found try with read orders
+        // If read priority, take read orders, If no order found try in default case to take an opposite of origin priority an retry
+        switch (readWritePriority) {
+            case WRITE:
 
-            } else {
-                Optional<ReadOrder> read = readWriteQueue.receive(query, QueueMessageType.ReadOrder);
-                if (read.isPresent()) {
+                orderFilter = eq(ReadWriteOrder.WRITE_ORDER, true);
+                query = bucketFilter != null ? and(orderFilter, bucketFilter) : orderFilter;
+
+                order = readWriteQueue.receive(query, QueueMessageType.WriteOrder);
+                if (order.isPresent()) {
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
+                        LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(order.get()));
                     }
-                    return read;
-                }
-            }
-        } else {
-            Optional<ReadOrder> read = readWriteQueue.receive(query, QueueMessageType.ReadOrder);
-            if (read.isPresent()) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(read.get()));
-                }
-                return read;
+                    return order;
 
-            } else {
-                Optional<WriteOrder> write = readWriteQueue.receive(query, QueueMessageType.WriteOrder);
-                if (write.isPresent()) {
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(write.get()));
-                    }
-                    return write;
                 }
-            }
+            case READ:
+
+                orderFilter = eq(ReadWriteOrder.WRITE_ORDER, false);
+                query = bucketFilter != null ? and(orderFilter, bucketFilter) : orderFilter;
+
+
+                order = readWriteQueue.receive(query, QueueMessageType.ReadOrder);
+                if (order.isPresent()) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Process read order :" + JsonHandler.unprettyPrint(order.get()));
+                    }
+                    return order;
+
+                }
+            default:
+                // if origin readWriteOrder is write then try with read order else try with write order
+                QueueMessageType queueMessageType;
+
+                if (readWritePriority == ReadWritePriority.WRITE) {
+                    queueMessageType = QueueMessageType.ReadOrder;
+                    orderFilter = eq(ReadWriteOrder.WRITE_ORDER, false);
+                } else {
+                    queueMessageType = QueueMessageType.WriteOrder;
+                    orderFilter = eq(ReadWriteOrder.WRITE_ORDER, true);
+                }
+
+                query = bucketFilter != null ? and(orderFilter, bucketFilter) : orderFilter;
+
+
+                order = readWriteQueue.receive(query, queueMessageType);
+                if (order.isPresent()) {
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(order.get()));
+                    }
+                    return order;
+
+                } else {
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        LOGGER.error(e);
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
+                    }
+                }
+
         }
 
         // Each drive have a current tape
         // Order that should go to the given tape should be produced to the drive that have the tape on
-        return Optional.empty();
-    }
 
-    public QueueRepository getReadWriteQueue() {
-        return readWriteQueue;
+        return Optional.empty();
     }
 }

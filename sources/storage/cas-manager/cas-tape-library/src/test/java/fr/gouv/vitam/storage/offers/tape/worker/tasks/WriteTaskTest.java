@@ -13,11 +13,9 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.io.FileNotFoundException;
+import java.io.File;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.MongoException;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -26,6 +24,7 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
@@ -33,7 +32,6 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
-import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
@@ -42,7 +40,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
-import org.jclouds.json.Json;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -57,6 +54,7 @@ public class WriteTaskTest {
     public static final String FAKE_LIBRARY = "fakeLibrary";
     public static final String LTO_6 = "LTO-6";
     public static final String TAPE_CODE = "VIT0001";
+    public static final String TEST_TAR = "tar/testtar.tar";
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -147,7 +145,7 @@ public class WriteTaskTest {
     public void test_current_tape_not_null_and_empty_label_success() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // Given WriterOrder and TapeCatalog
         WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
@@ -179,17 +177,19 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getFileCount()).isEqualTo(2);
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
     @Test
     public void test_current_tape_not_null_and_have_label_success() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
 
@@ -218,10 +218,12 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getFileCount()).isEqualTo(1);
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
 
@@ -229,7 +231,7 @@ public class WriteTaskTest {
     public void test_current_tape_not_null_and_empty_label_with_retry_success() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
 
@@ -268,10 +270,12 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
 
@@ -279,7 +283,8 @@ public class WriteTaskTest {
     public void test_current_tape_not_null_and_have_label__with_retry_success() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(
+            TEST_TAR).getAbsolutePath();
 
         WriteOrder writeOrder = new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
 
@@ -328,10 +333,12 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getFileCount()).isEqualTo(1);
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
 
@@ -340,7 +347,7 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // given
         WriteOrder writeOrder =
@@ -356,7 +363,7 @@ public class WriteTaskTest {
         when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
         TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
-        tapeDriveState.setCartridge("VIT0001");
+        tapeDriveState.setCartridge("LTO-6");
 
         when(tapeDriveCommandService.status())
             .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))
@@ -370,15 +377,24 @@ public class WriteTaskTest {
         when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.goToPosition(anyInt()))
+            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO))
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
         ReadWriteResult result = writeTask.get();
 
         // Then
         verify(tapeRobotPool, new Times(1)).checkoutRobotService();
         verify(tapeRobotService, new Times(1)).getLoadUnloadService();
         verify(tapeDriveCommandService, new Times(2)).status();
+        verify(tapeDriveCommandService, new Times(2)).goToPosition(anyInt());
         verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
         verify(tapeReadWriteService, new Times(1)).writeToTape(contains(WriteTask.TAPE_LABEL));
         verify(tapeReadWriteService, new Times(1)).writeToTape(eq(writeOrder.getFilePath()));
+        //verify(tapeReadWriteService, new Times(1)).readFromTape(anyString());
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);
@@ -390,10 +406,187 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting("id", TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
+    }
+
+    /**
+     * TapeCatalog does not contains label
+     * Loaded tape already contains file
+     * Discard between tapeCatalog and loaded tape (perhaps someone changed manually the tape in the slot without re-init catalog)
+     */
+    @Test
+    public void test_current_tape_null_then_load_tape_with_empty_label_and_loaded_tape_not_empty_error()
+        throws Exception {
+        // When
+        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
+
+        // given
+        WriteOrder writeOrder =
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+
+        WriteTask writeTask =
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+
+        TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
+        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+            Optional.of(tapeCatalog));
+
+        when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+
+        TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
+        tapeDriveState.setCartridge("LTO-6");
+
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.goToPosition(anyInt()))
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        ReadWriteResult result = writeTask.get();
+
+        // Then
+        verify(tapeRobotPool, new Times(1)).checkoutRobotService();
+        verify(tapeRobotService, new Times(1)).getLoadUnloadService();
+        verify(tapeDriveCommandService, new Times(1)).goToPosition(anyInt());
+        verify(tapeDriveCommandService, new Times(1)).rewind();
+        verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
+
+        assertThat(result.getCurrentTape()).isNotNull();
+
+        assertThat(result.getCurrentTape().getFileCount()).isEqualTo(0);
+        assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
+        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.EMPTY);
+
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
+        assertThat(label).isNull();
+    }
+
+
+    /**
+     * Check label of tape catalog and loaded tape
+     * Tape catalog declare a not empty label but different from the label of loaded tape
+     */
+    @Test
+    public void test_current_tape_null_then_load_tape_check_label_discord_error()
+        throws Exception {
+        // When
+        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
+
+        // given
+        WriteOrder writeOrder =
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+
+        WriteTask writeTask =
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+
+        TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
+        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+            Optional.of(tapeCatalog));
+
+        when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+
+        TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
+        tapeDriveState.setCartridge("LTO-6");
+
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.goToPosition(anyInt()))
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeReadWriteService.readFromTape(anyString())).thenAnswer(o -> {
+            String filePath = o.getArgument(1);
+            JsonHandler.writeAsFile(new TapeCatalogLabel("DISCARDED_GUID", "FAKE_CODE"), new File(filePath));
+            return new TapeResponse(JsonHandler.createObjectNode(), StatusCode.OK);
+        });
+
+        ReadWriteResult result = writeTask.get();
+
+        // Then
+        verify(tapeRobotPool, new Times(1)).checkoutRobotService();
+        verify(tapeRobotService, new Times(1)).getLoadUnloadService();
+        verify(tapeDriveCommandService, new Times(1)).rewind();
+        verify(tapeReadWriteService, new Times(1)).readFromTape(anyString());
+        verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
+
+        assertThat(result.getCurrentTape()).isNotNull();
+
+        assertThat(result.getCurrentTape().getFileCount()).isEqualTo(0);
+        assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
+        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
+    }
+
+    /**
+     * Check label of tape catalog and loaded tape
+     * Tape catalog declare a not empty label
+     * when try to read label of loaded tape then error KO_LABEL_NOT_FOUND
+     */
+    @Test
+    public void test_current_tape_null_then_load_tape_check_label_read_label_error()
+        throws Exception {
+        // When
+        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
+
+        // given
+        WriteOrder writeOrder =
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+
+        WriteTask writeTask =
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+
+        TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
+        when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
+            Optional.of(tapeCatalog));
+
+        when(tapeLoadUnloadService.loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+
+        TapeDriveState tapeDriveState = new TapeDriveState(StatusCode.OK);
+        tapeDriveState.setCartridge("LTO-6");
+
+        when(tapeDriveCommandService.rewind())
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.goToPosition(anyInt()))
+            .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeReadWriteService.readFromTape(anyString()))
+            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
+
+        ReadWriteResult result = writeTask.get();
+
+        // Then
+        verify(tapeRobotPool, new Times(1)).checkoutRobotService();
+        verify(tapeRobotService, new Times(1)).getLoadUnloadService();
+        verify(tapeDriveCommandService, new Times(1)).rewind();
+        verify(tapeReadWriteService, new Times(1)).readFromTape(anyString());
+        verify(tapeLoadUnloadService, new Times(1)).loadTape(anyInt(), anyInt());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
+
+        assertThat(result.getCurrentTape()).isNotNull();
+
+        assertThat(result.getCurrentTape().getFileCount()).isEqualTo(0);
+        assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
+        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
     }
 
     /**
@@ -404,7 +597,7 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // given
         WriteOrder writeOrder =
@@ -458,10 +651,12 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
     /**
@@ -475,7 +670,7 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // given
         WriteOrder writeOrder =
@@ -535,10 +730,12 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
     @Test
@@ -546,7 +743,7 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // given
         WriteOrder writeOrder =
@@ -613,10 +810,12 @@ public class WriteTaskTest {
         assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
         assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
 
-        String label = result.getCurrentTape().getLabel();
+        TapeCatalogLabel label = result.getCurrentTape().getLabel();
+
         assertThat(label).isNotNull();
-        assertThat(label).contains(tapeCatalog.getBucket(), tapeCatalog.getId(), tapeCatalog.getCode(),
-            tapeCatalog.getType());
+        assertThat(label)
+            .extracting(TapeCatalogLabel.ID, TapeCatalogLabel.CODE, TapeCatalogLabel.BUCKET, TapeCatalogLabel.TYPE)
+            .contains(tapeCatalog.getId(), tapeCatalog.getCode(), tapeCatalog.getBucket(), tapeCatalog.getType());
     }
 
     //***************************************
@@ -628,7 +827,7 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // given
         WriteOrder writeOrder =
@@ -705,7 +904,7 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // given
         WriteOrder writeOrder =
@@ -759,7 +958,7 @@ public class WriteTaskTest {
         throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
-        String file = PropertiesUtils.getResourceFile("tar/testtar.tar").getAbsolutePath();
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
 
         // given
         WriteOrder writeOrder =
@@ -802,14 +1001,12 @@ public class WriteTaskTest {
             .setTapeState(tapeState);
 
         if (withLabel) {
-            ObjectNode objLabel = JsonHandler.createObjectNode();
-            objLabel.put(TapeCatalog.CODE, tapeCatalog.getCode());
-            objLabel.put(TapeCatalog.ALTERNATIVE_CODE, tapeCatalog.getAlternativeCode());
-            objLabel.put(TapeCatalog.BUCKET, tapeCatalog.getBucket());
-            objLabel.put(TapeCatalog.TYPE, tapeCatalog.getType());
-            objLabel.put(TapeCatalog.ID, tapeCatalog.getId());
+            TapeCatalogLabel objLabel = new TapeCatalogLabel(tapeCatalog.getId(), tapeCatalog.getCode());
+            objLabel.setAlternativeCode(tapeCatalog.getAlternativeCode());
+            objLabel.setBucket(tapeCatalog.getBucket());
+            objLabel.setType(tapeCatalog.getType());
 
-            tapeCatalog.setLabel(JsonHandler.unprettyPrint(objLabel));
+            tapeCatalog.setLabel(objLabel);
         }
 
         tapeCatalog.setPreviousLocation(new TapeLocation(1, TapeLocationType.SLOT));

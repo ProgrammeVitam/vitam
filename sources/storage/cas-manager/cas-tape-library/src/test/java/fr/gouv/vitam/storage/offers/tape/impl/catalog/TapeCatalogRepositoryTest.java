@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
@@ -56,7 +57,8 @@ import org.junit.Test;
  */
 public class TapeCatalogRepositoryTest {
 
-    public static final String TAPE_CATALOG_COLLECTION = OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
+    public static final String TAPE_CATALOG_COLLECTION =
+        OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);
@@ -67,7 +69,7 @@ public class TapeCatalogRepositoryTest {
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
-                .getCollection(TAPE_CATALOG_COLLECTION));
+            .getCollection(TAPE_CATALOG_COLLECTION));
     }
 
     @AfterClass
@@ -83,7 +85,7 @@ public class TapeCatalogRepositoryTest {
         String id = tapeCatalog.getId();
 
         // When
-         tapeCatalogRepository.createTape(tapeCatalog);
+        tapeCatalogRepository.createTape(tapeCatalog);
 
         // Then
         TapeCatalog tape = tapeCatalogRepository.findTapeById(id);
@@ -184,7 +186,7 @@ public class TapeCatalogRepositoryTest {
         tapeCatalog.setTapeState(TapeState.OPEN);
         tapeCatalog.setFileCount(200);
         tapeCatalog.setCode("VIT0001");
-        tapeCatalog.setLabel("VIT-TAPE-1");
+        tapeCatalog.setLabel(new TapeCatalogLabel(GUIDFactory.newGUID().getId(), "VIT-TAPE-1"));
         tapeCatalog.setLibrary("VIT-LIB-1");
         tapeCatalog.setType("LTO-6");
         tapeCatalog.setCompressed(false);

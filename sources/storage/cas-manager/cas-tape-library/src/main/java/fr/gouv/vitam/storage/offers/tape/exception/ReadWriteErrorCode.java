@@ -43,12 +43,24 @@ public enum ReadWriteErrorCode {
     KO_ON_WRITE_TO_TAPE, // TODO CloseIncident Tape
     KO_ON_REWIND_TAPE,
     KO_ON_REWIND_FSF_BSF_TAPE,
-    KO_END_OF_TAPE,
+    /**
+     * Tape is full
+     */
+    KO_ON_END_OF_TAPE,
+
+    /**
+     * Ko on move to end of data (eod)
+     */
+    KO_ON_GOTO_FILE_COUNT,
 
     KO_ON_STATUS,
     KO_ON_LOAD_THEN_STATUS,
     KO_ON_UNLOAD_THEN_STATUS,
     KO_ON_WRITE_THEN_STATUS,
     KO_ON_READ_FROM_TAPE,
+    KO_LABEL_DISCORDING_NOT_EMPTY_TAPE,
+    KO_LABEL_DISCORDING,
+    KO_LABEL_NOT_FOUND,
     TAPE_LOCATION_UNKNOWN
+
 }

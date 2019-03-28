@@ -71,7 +71,8 @@ public class TapeDriveWorker implements Runnable {
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
-        TapeDriveOrderConsumer receiver
+        TapeDriveOrderConsumer receiver,
+        TapeCatalog currentTape
     ) {
         this.tapeCatalogService = tapeCatalogService;
         ParametersChecker
@@ -81,6 +82,11 @@ public class TapeDriveWorker implements Runnable {
         this.tapeDriveService = tapeDriveService;
         this.receiver = receiver;
         this.shutdownSignal = new CountDownLatch(1);
+
+        if (null != currentTape) {
+            readWriteResult = new ReadWriteResult();
+            readWriteResult.setCurrentTape(currentTape);
+        }
     }
 
     @Override

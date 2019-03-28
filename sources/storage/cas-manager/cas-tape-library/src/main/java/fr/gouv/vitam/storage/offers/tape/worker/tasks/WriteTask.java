@@ -42,7 +42,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -55,6 +54,7 @@ import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
@@ -72,7 +72,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
-import org.apache.logging.log4j.util.Strings;
 import org.bson.conversions.Bson;
 
 public class WriteTask implements Future<ReadWriteResult> {
@@ -84,6 +83,7 @@ public class WriteTask implements Future<ReadWriteResult> {
     public static final String WORKING_DIR = "";
     public static final long SLEEP_TIME = 20l;
     public static final int CARTRIDGE_RETRY = 1;
+    public static final int MAX_ATTEMPTS = 3;
 
     public final String MSG_PREFIX;
     protected boolean cancelled = false;
@@ -181,13 +181,13 @@ public class WriteTask implements Future<ReadWriteResult> {
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.READY);
                     break;
-                case KO_END_OF_TAPE:
+                case KO_ON_END_OF_TAPE:
                     workerCurrentTape.setTapeState(TapeState.FULL);
                     // Re-call get, to unload current tape, load new tape then do write
                     return get();
                 case FILE_NOT_FOUND:
                     // Mark write order as error state
-                    readWriteResult.setStatus(StatusCode.FATAL);
+                    readWriteResult.setStatus(StatusCode.WARNING);
                     readWriteResult.setOrderState(QueueState.ERROR);
                     break;
                 case NO_EMPTY_SLOT_FOUND:
@@ -200,7 +200,21 @@ public class WriteTask implements Future<ReadWriteResult> {
                 case TAPE_NOT_FOUND_IN_CATALOG:
                     // TODO: 19/03/19 log security error and send information to load in mailbox concerning tape
                     break;
+
+                case KO_ON_READ_FROM_TAPE:
+                    break;
+                case KO_ON_GOTO_FILE_COUNT:
+                    break;
+
+                case KO_LABEL_NOT_FOUND:
+                case KO_LABEL_DISCORDING:
+                case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
+                    readWriteResult.setStatus(StatusCode.FATAL);
+                    readWriteResult.setOrderState(QueueState.READY);
+                    break;
                 case INTERNAL_ERROR_SERVER:
+                    readWriteResult.setStatus(StatusCode.FATAL);
+                    readWriteResult.setOrderState(QueueState.ERROR);
                 default:
                     // TODO: 11/03/19 FATAL stop current Drive worker
             }
@@ -272,8 +286,27 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         withRetryDoUpdateTapeCatalog(workerCurrentTape);
 
+        doRewindTape();
+
+        doCheckTapeLabel();
+
+
+        return true;
+    }
+
+    private void doCheckTapeLabel() throws ReadWriteException {
+
         // If no label then cartridge is unknown
-        if (Strings.isEmpty(workerCurrentTape.getLabel())) {
+        if (null == workerCurrentTape.getLabel()) {
+
+            // Check empty tape
+            TapeResponse moveResponse = tapeDriveService.getDriveCommandService().goToPosition(1);
+            if (moveResponse.isOK()) {
+                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                    " Action : Is Tape Empty, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                    ", Error: Tape not empty but tape catalog is empty",
+                    ReadWriteErrorCode.KO_LABEL_DISCORDING_NOT_EMPTY_TAPE, moveResponse);
+            }
 
             // Do status to get tape TYPE and some other information (update catalog)
             LOGGER.debug(
@@ -285,9 +318,44 @@ public class WriteTask implements Future<ReadWriteResult> {
             workerCurrentTape.setBucket(writeOrder.getBucket());
 
             withRetryDoUpdateTapeCatalog(workerCurrentTape);
-        }
 
-        return true;
+        } else {
+
+            // Read Label from tape
+            File labelFile = null;
+            try {
+                labelFile = File.createTempFile(TAPE_LABEL, GUIDFactory.newGUID().getId());
+
+                TapeResponse readStatus =
+                    tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
+                        .readFromTape(labelFile.getAbsolutePath());
+
+                if (!readStatus.isOK()) {
+                    throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                        " Action : Read from tape, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                        ", Entity: " + JsonHandler.unprettyPrint(readStatus.getEntity()),
+                        ReadWriteErrorCode.KO_LABEL_NOT_FOUND, readStatus);
+                }
+
+                final TapeCatalogLabel tapeLabel = JsonHandler.getFromFile(labelFile, TapeCatalogLabel.class);
+                final TapeCatalogLabel tapeCatalogLabel = workerCurrentTape.getLabel();
+
+                if (tapeLabel == null || !Objects.equals(tapeLabel.getId(), tapeCatalogLabel.getId())) {
+                    throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                        " Action : Check tape label, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                        ", Entity: " + JsonHandler.unprettyPrint(readStatus.getEntity()),
+                        ReadWriteErrorCode.KO_LABEL_DISCORDING, readStatus);
+                }
+            } catch (Exception e) {
+                if (e instanceof ReadWriteException) {
+                    throw (ReadWriteException) e;
+                }
+                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode(), e);
+            } finally {
+                labelFile.delete();
+            }
+
+        }
     }
 
     /**
@@ -302,7 +370,9 @@ public class WriteTask implements Future<ReadWriteResult> {
                 MSG_PREFIX + ", Error: can't write, current tape is null.", ReadWriteErrorCode.NULL_CURRENT_TAPE);
         }
 
-        if (Strings.isEmpty(workerCurrentTape.getLabel())) {
+        goToPosition(ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
+
+        if (null == workerCurrentTape.getLabel()) {
             // Check if new tape then write label
             tryWriteLabelToTape();
         }
@@ -405,12 +475,12 @@ public class WriteTask implements Future<ReadWriteResult> {
      */
     private void tryWriteLabelToTape() throws ReadWriteException {
 
-        ObjectNode objLabel = JsonHandler.createObjectNode();
-        objLabel.put(TapeCatalog.CODE, workerCurrentTape.getCode());
-        objLabel.put(TapeCatalog.ALTERNATIVE_CODE, workerCurrentTape.getAlternativeCode());
-        objLabel.put(TapeCatalog.BUCKET, workerCurrentTape.getBucket());
-        objLabel.put(TapeCatalog.TYPE, workerCurrentTape.getType());
-        objLabel.put(TapeCatalog.ID, workerCurrentTape.getId());
+        TapeCatalogLabel objLabel = new TapeCatalogLabel();
+        objLabel.setId(workerCurrentTape.getId());
+        objLabel.setCode(workerCurrentTape.getCode());
+        objLabel.setAlternativeCode(workerCurrentTape.getAlternativeCode());
+        objLabel.setBucket(workerCurrentTape.getBucket());
+        objLabel.setType(workerCurrentTape.getType());
 
         File labelFile = null;
         try {
@@ -432,7 +502,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             workerCurrentTape.setFileCount(1);
             workerCurrentTape.setCurrentPosition(0);
-            workerCurrentTape.setLabel(JsonHandler.unprettyPrint(objLabel));
+            workerCurrentTape.setLabel(objLabel);
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + fileSize);
             workerCurrentTape.setTapeState(TapeState.OPEN);
 
@@ -447,7 +517,6 @@ public class WriteTask implements Future<ReadWriteResult> {
             labelFile.delete();
         }
     }
-
 
     /**
      * Write writeOrder to tape and update currentTape information
@@ -472,7 +541,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         " Action : Write, Order: " + JsonHandler.unprettyPrint(writeOrder) + ", Drive Status: " +
                         JsonHandler.unprettyPrint(status.getEntity()) + ", Error: End of tape",
-                        ReadWriteErrorCode.KO_END_OF_TAPE, response);
+                        ReadWriteErrorCode.KO_ON_END_OF_TAPE, response);
                 }
 
                 if (!workerCurrentTape.isWorm() || retryEnabled) {
@@ -651,7 +720,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     private void withRetry(Retry.Delegate<?> delegate) throws ReadWriteException {
         try {
-            new Retry(3, SLEEP_TIME).execute(delegate);
+            new Retry(MAX_ATTEMPTS, SLEEP_TIME).execute(delegate);
         } catch (Exception e) {
             if (e instanceof ReadWriteException) {
                 throw (ReadWriteException) e;
@@ -662,6 +731,8 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     /**
      * Load current tape to drive
+     * This method should be called after unloadTape success
+     * At this point drive should not have any tape on
      *
      * @throws ReadWriteException if not success ReadWriteException will be thrown
      */

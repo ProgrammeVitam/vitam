@@ -65,7 +65,7 @@ public class TapeCatalog extends QueueMessageEntity {
     private String bucket;
 
     @JsonProperty(LABEL)
-    private String label;
+    private TapeCatalogLabel label;
 
     @JsonProperty(LIBRARY)
     private String library;
@@ -117,11 +117,11 @@ public class TapeCatalog extends QueueMessageEntity {
         return this;
     }
 
-    public String getLabel() {
+    public TapeCatalogLabel getLabel() {
         return label;
     }
 
-    public TapeCatalog setLabel(String label) {
+    public TapeCatalog setLabel(TapeCatalogLabel label) {
         this.label = label;
         return this;
     }

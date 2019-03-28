@@ -26,13 +26,94 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 
-public interface ReadWriteOrder {
 
-    String WRITE_ORDER = "WriteOrder";
+public class TapeCatalogLabel {
+    public static final String ID = "_id";
+    public static final String CODE = "code";
+    public static final String ALTERNATIVE_CODE = "alternative_code";
+    public static final String BUCKET = "bucket";
+    public static final String TYPE = "type";
+    public static final String TAG_CREATION_DATE = "creationDate";
 
-    String getId();
-    @JsonProperty(WRITE_ORDER)
-    boolean isWriteOrder();
+
+    @JsonProperty(ID)
+    private String id = GUIDFactory.newGUID().getId();
+
+    @JsonProperty(CODE)
+    private String code;
+
+    @JsonProperty(ALTERNATIVE_CODE)
+    private String alternativeCode;
+
+    @JsonProperty(BUCKET)
+    private String bucket;
+
+    @JsonProperty(TYPE)
+    private String type;
+
+    @JsonProperty(TAG_CREATION_DATE)
+    private String created = LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now());
+
+
+    public TapeCatalogLabel() {
+    }
+
+    public TapeCatalogLabel(String id, String code) {
+        this.id = id;
+        this.code = code;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getAlternativeCode() {
+        return alternativeCode;
+    }
+
+    public void setAlternativeCode(String alternativeCode) {
+        this.alternativeCode = alternativeCode;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public void setBucket(String bucket) {
+        this.bucket = bucket;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getCreated() {
+        return created;
+    }
+
+    public void setCreated(String created) {
+        this.created = created;
+    }
 }

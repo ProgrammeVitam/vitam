@@ -151,21 +151,21 @@ public class QueueRepositoryImpl implements QueueRepository {
         FindOneAndUpdateOptions option = new FindOneAndUpdateOptions();
         option.returnDocument(ReturnDocument.AFTER);
         if (usePriority) {
-            option.sort(Sorts.ascending(QueueMessageEntity.PRIORITY, QueueMessageEntity.CREATED));
+            option.sort(Sorts.ascending(QueueMessageEntity.PRIORITY, QueueMessageEntity.TAG_CREATION_DATE));
         } else {
-            option.sort(Sorts.ascending(QueueMessageEntity.CREATED));
+            option.sort(Sorts.ascending(QueueMessageEntity.TAG_CREATION_DATE));
         }
         option.upsert(false);
 
         Bson update = inUpdate != null ?
             Updates.combine(
                 Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
-                Updates.set(QueueMessageEntity.LAST_UPDATE, Calendar.getInstance().getTimeInMillis()),
+                Updates.set(QueueMessageEntity.TAG_LAST_UPDATE, Calendar.getInstance().getTimeInMillis()),
                 inUpdate)
             :
             Updates.combine(
                 Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
-                Updates.set(QueueMessageEntity.LAST_UPDATE, Calendar.getInstance().getTimeInMillis()));
+                Updates.set(QueueMessageEntity.TAG_LAST_UPDATE, Calendar.getInstance().getTimeInMillis()));
 
         Document sequence = collection.findOneAndUpdate(query, update, option);
 

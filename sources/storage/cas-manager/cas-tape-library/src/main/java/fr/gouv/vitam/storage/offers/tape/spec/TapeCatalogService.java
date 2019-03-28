@@ -42,7 +42,17 @@ public interface TapeCatalogService extends QueueRepository {
 
     boolean update(String tapeId, Map<String, Object> criteria) throws TapeCatalogException;
 
-    void init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState) throws TapeCatalogException;
+    /**
+     * Return map of drive index with his current tape
+     * If all drive are empty then return an empty map
+     *
+     * @param tapeLibraryIdentifier
+     * @param libraryState
+     * @return
+     * @throws TapeCatalogException
+     */
+    Map<Integer, TapeCatalog> init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState)
+        throws TapeCatalogException;
 
     TapeCatalog findById(String tapeId) throws TapeCatalogException;
 

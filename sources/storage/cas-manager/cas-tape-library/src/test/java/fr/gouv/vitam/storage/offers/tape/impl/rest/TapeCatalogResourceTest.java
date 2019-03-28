@@ -32,9 +32,11 @@ import static org.mockito.BDDMockito.given;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
@@ -57,8 +59,8 @@ public class TapeCatalogResourceTest {
 
     @Mock
     private TapeCatalogService tapeCatalogService;
-    
-    
+
+
     @Test
     public void shouldFindTape() throws Exception {
         // Given
@@ -70,7 +72,8 @@ public class TapeCatalogResourceTest {
         Response result = tapeCatalogResource.getTape(id);
 
         // Then
-        assertThat(((RequestResponseOK<JsonNode>)result.getEntity()).getResults().get(0)).isEqualTo(JsonHandler.toJsonNode(tapeCatalog));
+        assertThat(((RequestResponseOK<JsonNode>) result.getEntity()).getResults().get(0))
+            .isEqualTo(JsonHandler.toJsonNode(tapeCatalog));
     }
 
     private TapeCatalog getTapeModel(String id) {
@@ -80,7 +83,7 @@ public class TapeCatalogResourceTest {
         tapeCatalog.setTapeState(TapeState.OPEN);
         tapeCatalog.setFileCount(200);
         tapeCatalog.setCode("VIT0001");
-        tapeCatalog.setLabel("VIT-TAPE-1");
+        tapeCatalog.setLabel(new TapeCatalogLabel(GUIDFactory.newGUID().getId(), "VIT-TAPE-1"));
         tapeCatalog.setLibrary("VIT-LIB-1");
         tapeCatalog.setType("LTO-6");
         tapeCatalog.setCompressed(false);

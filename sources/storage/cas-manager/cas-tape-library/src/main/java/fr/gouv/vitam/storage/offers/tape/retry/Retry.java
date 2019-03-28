@@ -59,7 +59,7 @@ public class Retry<T> {
                         Thread.sleep((retryWaitInMilliseconds));
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
-                        new RuntimeException(ie);
+                        throw new RuntimeException(ie);
                     }
 
                 } else {

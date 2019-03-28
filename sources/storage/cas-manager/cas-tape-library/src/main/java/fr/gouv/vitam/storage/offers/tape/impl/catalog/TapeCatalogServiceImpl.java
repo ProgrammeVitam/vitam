@@ -87,7 +87,8 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
-    public void init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState) throws TapeCatalogException {
+    public Map<Integer, TapeCatalog> init(String tapeLibraryIdentifier, TapeLibrarySpec libraryState)
+        throws TapeCatalogException {
         QueryCriteria criteria =
             new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
         Map<String, TapeCatalog> existingTapes;
@@ -96,7 +97,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         existingTapes = repository.findTapes(Arrays.asList(criteria)).stream()
             .collect(Collectors.toMap(TapeCatalog::getCode, tape -> tape));
 
-
+        Map<Integer, TapeCatalog> driveTape = new HashMap<>();
         for (TapeDrive drive : libraryState.getDrives()) {
             if (drive.getTape() != null) {
                 TapeCatalog tape = new TapeCatalog();
@@ -108,7 +109,15 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                     tape.setPreviousLocation(new TapeLocation(drive.getTape().getSlotIndex(), TapeLocationType.SLOT));
                 }
 
-                createOrUpdateTape(tape, existingTapes.get(tape.getCode()));
+                TapeCatalog existingTape = existingTapes.get(tape.getCode());
+                createOrUpdateTape(tape, existingTape);
+
+                String tapeGuid = tape.getId();
+                if (null != existingTape) {
+                    tapeGuid = existingTape.getId();
+                }
+                driveTape.put(drive.getIndex(), findById(tapeGuid));
+
             }
         }
 
@@ -119,10 +128,13 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 tape.setAlternativeCode(slot.getTape().getAlternateVolumeTag());
                 tape.setLibrary(tapeLibraryIdentifier);
                 tape.setCurrentLocation(new TapeLocation(slot.getIndex(), TapeLocationType.SLOT));
+                tape.setPreviousLocation(new TapeLocation(slot.getIndex(), TapeLocationType.SLOT));
 
                 createOrUpdateTape(tape, existingTapes.get(tape.getCode()));
             }
         }
+
+        return driveTape;
     }
 
     private void createOrUpdateTape(TapeCatalog tape, TapeCatalog existingTape) throws TapeCatalogException {
@@ -146,7 +158,6 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     private Map<String, Object> merge(TapeCatalog tape, TapeCatalog existingTape) {
         Map<String, Object> updates;
         updates = new HashMap<>();
-
         if (!Objects.equals(existingTape.getAlternativeCode(), tape.getAlternativeCode())) {
             updates.put(TapeCatalog.ALTERNATIVE_CODE, tape.getAlternativeCode());
         }
@@ -159,13 +170,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
             updates.put(TapeCatalog.CURRENT_LOCATION, tape.getAlternativeCode());
         }
 
-        if (tape.getPreviousLocation() != null
-            && (existingTape.getPreviousLocation() == null
-            || !existingTape.getPreviousLocation().equals(tape.getPreviousLocation()))) {
-            updates.put(TapeCatalog.PREVIOUS_LOCATION, toBson(tape.getPreviousLocation()));
-        } else if (existingTape.getPreviousLocation() != null) {
-            updates.put(TapeCatalog.PREVIOUS_LOCATION, toBson(tape.getPreviousLocation()));
-        }
+        existingTape.setCurrentLocation(tape.getCurrentLocation());
 
         return updates;
     }
