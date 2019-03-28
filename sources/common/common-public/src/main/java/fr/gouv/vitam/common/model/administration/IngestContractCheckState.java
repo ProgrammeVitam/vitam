@@ -31,5 +31,15 @@ package fr.gouv.vitam.common.model.administration;
  */
 public enum IngestContractCheckState {
 
-    AUTHORIZED, REQUIRED, UNAUTHORIZED
+    AUTHORIZED, REQUIRED, UNAUTHORIZED;
+
+    public static boolean contains(String name) {
+        for(IngestContractCheckState state : IngestContractCheckState.values()) {
+            if(state.name().equals(name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

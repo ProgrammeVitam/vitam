@@ -110,6 +110,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
     private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The Ingest contract status must be ACTIVE or INACTIVE but not ";
+    private static final String INGEST_CONTRACT_CHECK_PARENT_LINK_STATUS_NOT_IN_ENUM =
+        "the ingest contract check parent link status in not in enum";
     private static final String INGEST_CONTRACT_NOT_FOUND = "Ingest contract not found";
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String EVERYFORMAT_LIST_EMPTY = "formatType field must not be empty when everyFormat is false";
@@ -864,9 +866,19 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             }
             boolean isAttachmentAuthorized = true;
             JsonNode checkParentLink = queryDsl.findValue(IngestContractModel.TAG_CHECK_PARENT_LINK);
-            IngestContractCheckState checkState = (checkParentLink == null) ?
-                ingestContractModel.getCheckParentLink() :
-                IngestContractCheckState.valueOf(checkParentLink.asText());
+            IngestContractCheckState checkState = ingestContractModel.getCheckParentLink();
+            ;
+
+            if (checkParentLink != null) {
+                if (IngestContractCheckState.contains(checkParentLink.asText())) {
+                    checkState = IngestContractCheckState.valueOf(checkParentLink.asText());
+                } else {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        INGEST_CONTRACT_CHECK_PARENT_LINK_STATUS_NOT_IN_ENUM + checkParentLink.asText(),
+                        StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+            }
+
             if (IngestContractCheckState.UNAUTHORIZED.equals(checkState)) {
                 isAttachmentAuthorized = false;
             }
@@ -889,7 +901,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         }
                     }
                 }
-            } else {
+            } else if (ingestContractModel.getCheckParentId() != null) {
                 checkParentIds.addAll(ingestContractModel.getCheckParentId());
             }
 
@@ -938,7 +950,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         StatusCode.KO).setMessage(UPDATE_WRONG_FILEFORMAT)));
             }
 
-            if (error.getErrors() != null && error.getErrors().size() > 0) {
+            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                 final String errorsDetails =
                     error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
                 manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT, error.getErrors().get(0).getMessage());

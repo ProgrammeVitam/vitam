@@ -830,7 +830,7 @@ public class IngestContractImplTest {
 
         RequestResponse<IngestContractModel> updateContractStatus =
             ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
-        assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         List<VitamError> errors = ((VitamError) updateContractStatus).getErrors();
         assertThat(VitamLogbookMessages.getFromFullCodeKey(errors.get(0).getMessage()).equals(
@@ -847,7 +847,7 @@ public class IngestContractImplTest {
 
         RequestResponse<IngestContractModel> updateCheckParentLinkStatus =
             ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate2);
-        assertTrue(updateCheckParentLinkStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertEquals(updateCheckParentLinkStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateCheckParentLinkStatus).isInstanceOf(VitamError.class);
     }
 
