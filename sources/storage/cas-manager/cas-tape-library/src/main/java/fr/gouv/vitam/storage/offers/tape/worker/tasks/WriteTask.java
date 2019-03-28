@@ -95,7 +95,6 @@ public class WriteTask implements Future<ReadWriteResult> {
     private final TapeCatalogService tapeCatalogService;
     private final WriteOrder writeOrder;
     private boolean retryEnabled = true;
-
     private int cartridgeRetry = CARTRIDGE_RETRY;
 
     public WriteTask(WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
@@ -135,84 +134,82 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         } catch (ReadWriteException e) {
             LOGGER.error(e);
-            // TODO: 11/03/19 complete
             switch (e.getReadWriteErrorCode()) {
-                case KO_ON_STATUS:
-                case KO_ON_LOAD_THEN_STATUS:
-                case KO_ON_UNLOAD_THEN_STATUS:
-                    // TODO: 20/03/19 worker down, security alert
-                    // FIXME: 19/03/19 timeout ?!! or unreachable drive? unknown error?
+                case KO_UNKNOWN_CURRENT_POSITION:
+                    // TODO: 28/03/19 perhaps just rewind and retry
+                    // TODO: rewind, goto position file count, retry write file
+                    // TODO: ugly fix
+                    workerCurrentTape.setTapeState(TapeState.CONFLICT);
+
+                    try {
+                        withRetryDoUpdateTapeCatalog(workerCurrentTape);
+                    } catch (ReadWriteException ex) {
+                        LOGGER.error(ex);
+                    }
+
                     readWriteResult.setStatus(StatusCode.FATAL);
-                    readWriteResult.setOrderState(QueueState.ERROR);
-                    break;
-                case KO_ON_WRITE_THEN_STATUS:
-                    // TODO: 22/03/19 perhaps incident close tape and mark state as conflict
-                    readWriteResult.setStatus(StatusCode.FATAL);
-                    readWriteResult.setOrderState(QueueState.ERROR);
+                    readWriteResult.setOrderState(QueueState.READY);
                     break;
                 case KO_ON_WRITE_TO_TAPE:
                     // FIXME: 19/03/19 error while write file in the tape. perhaps timeout ?!!
                     // After retry write -> status -> rewind -> goToPosition -> write
                     // Mark tape state conflict and retry with new tape
                     if (--cartridgeRetry >= 0) {
+                        workerCurrentTape.setTapeState(TapeState.CONFLICT);
                         return get();
                     } else {
                         readWriteResult.setStatus(StatusCode.FATAL);
                         readWriteResult.setOrderState(QueueState.READY);
                     }
                     break;
-                case KO_ON_LOAD_TAPE:
-                    // FIXME: 19/03/19 tape is online ? timeout ? drive is busy?
-                    break;
-                case KO_ON_UNLOAD_TAPE:
-                    // FIXME: 19/03/19 tape is open (drive empty) ? timeout ? drive is busy?
-                    break;
-                case KO_ON_REWIND_TAPE:
-                    // FIXME: 19/03/19 cannot rewind the tape
-                    break;
-                case KO_ON_REWIND_FSF_BSF_TAPE:
-                    // FIXME: 19/03/19 cannot forward in the tape
-                    break;
-                case NULL_CURRENT_TAPE:
-                    // TODO: 19/03/19 should not get this error, only if somme methods called directly
-                    break;
                 case KO_ON_END_OF_TAPE:
                     workerCurrentTape.setTapeState(TapeState.FULL);
                     // Re-call get, to unload current tape, load new tape then do write
+                    // TODO: 28/03/19 best is to get read orders on this tape before unload
+                    // TODO: read may needs rewind that can take a lot of time. unload load tape maybe better and faster than taking read orders
                     return get();
                 case FILE_NOT_FOUND:
                     // Mark write order as error state
                     readWriteResult.setStatus(StatusCode.WARNING);
                     readWriteResult.setOrderState(QueueState.ERROR);
                     break;
-                case NO_EMPTY_SLOT_FOUND:
-                    // TODO: 19/03/19 FATAL for the current drive cannot unload tape
-                    break;
-                case TAPE_LOCATION_CONFLICT:
-                    // TODO: 19/03/19 FATAL conflict, resolve problem then re-init the catalog
-                    // TODO: 19/03/19 perhaps try to re-init the catalog ?!!
-                    break;
-                case TAPE_NOT_FOUND_IN_CATALOG:
-                    // TODO: 19/03/19 log security error and send information to load in mailbox concerning tape
-                    break;
 
-                case KO_ON_READ_FROM_TAPE:
-                    break;
                 case KO_ON_GOTO_FILE_COUNT:
+                case KO_ON_REWIND_FSF_BSF_TAPE:
+                    readWriteResult.setStatus(StatusCode.WARNING);
+                    readWriteResult.setOrderState(QueueState.READY);
                     break;
 
+                case TAPE_LOCATION_CONFLICT:
+                case TAPE_LOCATION_UNKNOWN:
+                    // TODO: should a re-init of tape catalog
+                case TAPE_NOT_FOUND_IN_CATALOG:
+                    // demands to load a new tape from external
+                case NO_EMPTY_SLOT_FOUND:
+                    // Someone have manually modified library
+                case NULL_CURRENT_TAPE:
+                case KO_ON_READ_FROM_TAPE:
+                case KO_ON_REWIND_TAPE:
+                    // drive is open (drive empty) , tape is corrupted ? timeout ? drive is busy?
+                case KO_ON_LOAD_TAPE:
+                    // drive is online (already have a tape loaded)? timeout ? drive is busy?
+                case KO_ON_UNLOAD_TAPE:
+                    // drive is open (drive empty) ? timeout ? drive is busy?
+                case KO_ON_READ_LABEL:
                 case KO_DB_PERSIST:
                 case KO_LABEL_DISCORDING:
                 case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
                 case KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT:
+                case KO_ON_STATUS:
+                case KO_ON_LOAD_THEN_STATUS:
+                case KO_ON_UNLOAD_THEN_STATUS:
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.READY);
                     break;
                 case INTERNAL_ERROR_SERVER:
+                default:
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.ERROR);
-                default:
-                    // TODO: 11/03/19 FATAL stop current Drive worker
             }
         }
 
@@ -282,7 +279,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         withRetryDoUpdateTapeCatalog(workerCurrentTape);
 
-        doRewindTape();
+        doRewindTape(ReadWriteErrorCode.KO_ON_REWIND_TAPE);
 
         doCheckTapeLabel();
 
@@ -331,7 +328,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         " Action : Read from tape, Order: " + JsonHandler.unprettyPrint(writeOrder) +
                         ", Entity: " + JsonHandler.unprettyPrint(readStatus.getEntity()),
-                        ReadWriteErrorCode.KO_LABEL_NOT_FOUND, readStatus);
+                        ReadWriteErrorCode.KO_ON_READ_LABEL, readStatus);
                 }
 
                 final TapeCatalogLabel tapeLabel = JsonHandler.getFromFile(labelFile, TapeCatalogLabel.class);
@@ -375,7 +372,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             Integer positionSeek = workerCurrentTape.getFileCount() - workerCurrentTape.getCurrentPosition();
 
-            goToPosition(positionSeek, ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
+            withRetryGoToPosition(positionSeek, ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
         }
 
         if (null == workerCurrentTape.getLabel()) {
@@ -413,13 +410,11 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         String bucket = writeOrder.getBucket();
 
-        // TODO: 20/03/19 prefer tape that already contains data
+        // Find tape catalog with state open (have data)
         Bson query = and(
             eq(TapeCatalog.LIBRARY, tapeRobotPool.getLibraryIdentifier()),
-            or(
-                eq(TapeCatalog.BUCKET, bucket),
-                exists(TapeCatalog.BUCKET, false)
-            )
+            eq(TapeCatalog.TAPE_STATE, TapeState.OPEN.name()),
+            eq(TapeCatalog.BUCKET, bucket)
         );
 
         try {
@@ -427,10 +422,25 @@ public class WriteTask implements Future<ReadWriteResult> {
             if (found.isPresent()) {
                 return found.get();
             } else {
-                throw new ReadWriteException(MSG_PREFIX +
-                    " Action : Load Tape From Catalog, Order: " + JsonHandler.unprettyPrint(writeOrder) +
-                    ", Error: no markReady tape found in the catalog with expected bucket and/or remainingSize",
-                    ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
+                // Find tape catalog with state empty (new tape)
+                query = and(
+                    eq(TapeCatalog.LIBRARY, tapeRobotPool.getLibraryIdentifier()),
+                    eq(TapeCatalog.TAPE_STATE, TapeState.EMPTY.name()),
+                    or(
+                        eq(TapeCatalog.BUCKET, bucket),
+                        exists(TapeCatalog.BUCKET, false)
+                    )
+                );
+
+                found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
+                if (found.isPresent()) {
+                    return found.get();
+                } else {
+                    throw new ReadWriteException(MSG_PREFIX +
+                        " Action : Load Tape From Catalog, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                        ", Error: no markReady tape found in the catalog with expected bucket and/or remainingSize",
+                        ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
+                }
             }
         } catch (QueueException e) {
             throw new ReadWriteException(MSG_PREFIX, e);
@@ -541,7 +551,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                     JsonHandler.unprettyPrint(response.getEntity()));
 
                 // Do status and check if end of tape
-                TapeDriveSpec status = doDriveStatus(ReadWriteErrorCode.KO_ON_WRITE_THEN_STATUS);
+                TapeDriveSpec status = doDriveStatus(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
 
                 if (status.isEndOfTape()) {
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
@@ -596,10 +606,10 @@ public class WriteTask implements Future<ReadWriteResult> {
             nbRetry--;
 
             // Rewind
-            doRewindTape();
+            doRewindTape(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
 
             // FSF
-            goToPosition(workerCurrentTape.getFileCount(), ReadWriteErrorCode.KO_ON_REWIND_FSF_BSF_TAPE);
+            withRetryGoToPosition(workerCurrentTape.getFileCount(), ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
 
 
             try {
@@ -635,8 +645,6 @@ public class WriteTask implements Future<ReadWriteResult> {
     private void goToPosition(Integer position, ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException {
         TapeResponse fsfResponse = tapeDriveService.getDriveCommandService()
             .goToPosition(position);
-        workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount());
-
 
         if (!fsfResponse.isOK()) {
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
@@ -646,6 +654,18 @@ public class WriteTask implements Future<ReadWriteResult> {
                 readWriteErrorCode,
                 fsfResponse);
         }
+        // Update current position only if fsf command success
+        workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount());
+    }
+
+    private void withRetryGoToPosition(Integer position, ReadWriteErrorCode readWriteErrorCode)
+        throws ReadWriteException {
+        Retry.Delegate delegate = () -> {
+            goToPosition(position, readWriteErrorCode);
+            return true;
+        };
+
+        withRetry(delegate);
     }
 
     /**
@@ -653,19 +673,21 @@ public class WriteTask implements Future<ReadWriteResult> {
      *
      * @throws ReadWriteException
      */
-    private void doRewindTape() throws ReadWriteException {
+    private void doRewindTape(ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException {
         // Rewind
         TapeResponse rewindResponse =
             tapeDriveService.getDriveCommandService().rewind();
-        workerCurrentTape.setCurrentPosition(0);
 
         if (!rewindResponse.isOK()) {
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                 " Action : Rewind Tape, Order: " + JsonHandler.unprettyPrint(writeOrder) +
                 ", Entity: " +
-                JsonHandler.unprettyPrint(rewindResponse.getEntity()), ReadWriteErrorCode.KO_ON_REWIND_TAPE,
+                JsonHandler.unprettyPrint(rewindResponse.getEntity()), readWriteErrorCode,
                 rewindResponse);
         }
+        // if rewind success then set current position to 0
+        workerCurrentTape.setCurrentPosition(0);
+
     }
 
     /**
@@ -805,28 +827,26 @@ public class WriteTask implements Future<ReadWriteResult> {
         ParametersChecker.checkParameter(MSG_PREFIX + ", Error: tape to unload is null.", workerCurrentTape);
 
         Integer driveIndex = tapeDriveService.getTapeDriveConf().getIndex();
-        Integer slotIndex;
+        Integer slotIndex = null;
 
         if (null != workerCurrentTape.getPreviousLocation()) {
             switch (workerCurrentTape.getPreviousLocation().getLocationType()) {
                 case SLOT:
+                case IMPORTEXPORT:
                     slotIndex = workerCurrentTape.getPreviousLocation().getIndex();
                     break;
                 case DRIVE:
+                case OUTSIDE:
                     throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         ", Error: previous location should no be in drive",
                         ReadWriteErrorCode.TAPE_LOCATION_CONFLICT);
-                case OUTSIDE:
-                case IMPORTEXPORT:
-                    slotIndex = findEmptySlot();
-                    break;
                 default:
                     throw new IllegalArgumentException(
                         MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: location type not implemented");
             }
 
         } else {
-            slotIndex = findEmptySlot();
+            // TODO: 28/03/19   slotIndex = findEmptySlot();
         }
 
         if (null == slotIndex) {
@@ -870,10 +890,6 @@ public class WriteTask implements Future<ReadWriteResult> {
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode(), e);
         }
 
-    }
-
-    private Integer findEmptySlot() {
-        return null;
     }
 
     @Override

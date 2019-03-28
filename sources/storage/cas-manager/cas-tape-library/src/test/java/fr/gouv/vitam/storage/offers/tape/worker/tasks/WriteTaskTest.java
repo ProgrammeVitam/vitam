@@ -532,7 +532,7 @@ public class WriteTaskTest {
     /**
      * Check label of tape catalog and loaded tape
      * Tape catalog declare a not empty label
-     * when try to read label of loaded tape then error KO_LABEL_NOT_FOUND
+     * when try to read label of loaded tape then error KO_ON_READ_LABEL
      */
     @Test
     public void test_current_tape_null_then_load_tape_check_label_read_label_error()
@@ -998,7 +998,7 @@ public class WriteTaskTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
 
         assertThat(result.getCurrentTape()).isNotNull();
     }

@@ -49,18 +49,18 @@ public enum ReadWriteErrorCode {
     KO_ON_END_OF_TAPE,
 
     /**
-     * Ko on move to end of data (eod)
+     * Ko on move to end of data according to file count of tape catalog
      */
     KO_ON_GOTO_FILE_COUNT,
 
     KO_ON_STATUS,
     KO_ON_LOAD_THEN_STATUS,
     KO_ON_UNLOAD_THEN_STATUS,
-    KO_ON_WRITE_THEN_STATUS,
+    KO_UNKNOWN_CURRENT_POSITION,
     KO_ON_READ_FROM_TAPE,
     KO_LABEL_DISCORDING_NOT_EMPTY_TAPE,
     KO_LABEL_DISCORDING,
-    KO_LABEL_NOT_FOUND,
+    KO_ON_READ_LABEL,
     TAPE_LOCATION_UNKNOWN,
     KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT
 
