@@ -32,6 +32,7 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
@@ -45,8 +46,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.internal.verification.Times;
+import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.mockito.verification.VerificationMode;
 
 public class WriteTaskTest {
 
@@ -1001,6 +1004,94 @@ public class WriteTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
 
         assertThat(result.getCurrentTape()).isNotNull();
+        assertThat(result.getCode()).isEqualTo(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
+    }
+
+
+    @Test
+    public void test_write_to_tape_retry_rewind_ko()
+        throws Exception {
+        // When
+        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
+
+        // given
+        WriteOrder writeOrder =
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+
+        WriteTask writeTask =
+            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
+                tapeCatalogService);
+
+        when(tapeDriveCommandService.status())
+            .thenAnswer(o -> new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
+
+        when(tapeDriveCommandService.rewind())
+            .thenAnswer(o -> new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO));
+
+
+        // First write response ko (end of tape) the second write should be a new tape
+        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
+
+        ReadWriteResult result = writeTask.get();
+
+        // Then
+        verify(tapeDriveCommandService, VerificationModeFactory.atLeastOnce()).status();
+        verify(tapeDriveCommandService, VerificationModeFactory.atLeast(1)).rewind();
+        verify(tapeReadWriteService, VerificationModeFactory.atLeast(1)).writeToTape(eq(writeOrder.getFilePath()));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
+
+        assertThat(result.getCurrentTape()).isNotNull();
+        assertThat(result.getCode()).isEqualTo(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
+    }
+
+    @Test
+    public void test_write_to_tape_retry_go_to_position_ko()
+        throws Exception {
+        // When
+        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
+        String file = PropertiesUtils.getResourceFile(TEST_TAR).getAbsolutePath();
+
+        // given
+        WriteOrder writeOrder =
+            new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+
+        WriteTask writeTask =
+            new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
+                tapeCatalogService);
+
+        when(tapeDriveCommandService.status())
+            .thenAnswer(o -> new TapeDriveState(StatusCode.OK));
+
+        when(tapeDriveCommandService.rewind())
+            .thenAnswer(o -> new TapeDriveState(StatusCode.OK));
+
+
+        when(tapeDriveCommandService.goToPosition(anyInt()))
+            .thenAnswer(o -> new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO));
+
+
+        // First write response ko (end of tape) the second write should be a new tape
+        when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
+            .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
+
+        ReadWriteResult result = writeTask.get();
+
+        // Then
+        verify(tapeDriveCommandService, VerificationModeFactory.atLeastOnce()).status();
+        verify(tapeDriveCommandService, VerificationModeFactory.atLeast(1)).rewind();
+        verify(tapeReadWriteService, VerificationModeFactory.atLeast(1)).writeToTape(eq(writeOrder.getFilePath()));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
+
+        assertThat(result.getCurrentTape()).isNotNull();
+        assertThat(result.getCode()).isEqualTo(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
     }
 
     private TapeCatalog getTapeCatalog(boolean withLabel, boolean isWorm, TapeState tapeState) {

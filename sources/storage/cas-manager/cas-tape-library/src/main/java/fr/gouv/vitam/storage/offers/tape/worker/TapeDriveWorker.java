@@ -30,9 +30,7 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
-import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -76,7 +74,7 @@ public class TapeDriveWorker implements Runnable {
     ) {
         this.tapeCatalogService = tapeCatalogService;
         ParametersChecker
-            .checkParameter("All params is required required", tapeRobotPool, tapeDriveService, receiver,
+            .checkParameter("All params is required required", tapeRobotPool, tapeDriveService, tapeCatalogService,
                 receiver);
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
@@ -175,10 +173,11 @@ public class TapeDriveWorker implements Runnable {
                         .getInstance().log("STP_Offer_Tape", ((QueueMessageEntity) readWriteOrder).getId(),
                         readWriteOrder.isWriteOrder() ? "WRITE_TO_TAPE" : "READ_FROM_TAPE",
                         loopStopWatch.getTime(TimeUnit.MILLISECONDS));
+                } else {
+                    Thread.sleep(10);
                 }
 
             }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
@@ -204,6 +203,10 @@ public class TapeDriveWorker implements Runnable {
         } catch (InterruptedException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
+    }
+
+    public boolean isRunning() {
+        return shutdownSignal.getCount() != 0;
     }
 
     public int getIndex() {

@@ -134,6 +134,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         } catch (ReadWriteException e) {
             LOGGER.error(e);
+            readWriteResult.setCode(e.getReadWriteErrorCode());
             switch (e.getReadWriteErrorCode()) {
                 case KO_UNKNOWN_CURRENT_POSITION:
                     // TODO: 28/03/19 perhaps just rewind and retry

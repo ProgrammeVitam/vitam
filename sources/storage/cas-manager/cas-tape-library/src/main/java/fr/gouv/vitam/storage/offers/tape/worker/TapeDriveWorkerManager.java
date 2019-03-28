@@ -71,7 +71,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         Map<Integer, TapeCatalog> driveTape) {
 
         ParametersChecker
-            .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue);
+            .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue, driveTape);
         this.readWriteQueue = readWriteQueue;
         this.workers = new ArrayList<>();
 

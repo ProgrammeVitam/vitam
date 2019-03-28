@@ -91,7 +91,7 @@ public class TapeCatalogRepositoryTest {
         TapeCatalog tape = tapeCatalogRepository.findTapeById(id);
         assertThat(tape).isNotNull();
         assertThat(tape.getCode()).isEqualTo("VIT0001");
-        assertThat(tape.getLabel()).isEqualTo("VIT-TAPE-1");
+        assertThat(tape.getLabel().getCode()).isEqualTo("VIT-TAPE-1");
         assertThat(tape.getCapacity()).isEqualTo(10000);
         assertThat(tape.getVersion()).isEqualTo(0);
     }

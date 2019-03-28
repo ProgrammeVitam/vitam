@@ -30,12 +30,14 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 
 public class ReadWriteResult {
     private StatusCode status;
     private QueueState orderState;
     private TapeCatalog currentTape;
     private TapeResponse tapeResponse;
+    private ReadWriteErrorCode code;
 
     public ReadWriteResult() {
     }
@@ -83,5 +85,13 @@ public class ReadWriteResult {
 
     public void setTapeResponse(TapeResponse tapeResponse) {
         this.tapeResponse = tapeResponse;
+    }
+
+    public ReadWriteErrorCode getCode() {
+        return code;
+    }
+
+    public void setCode(ReadWriteErrorCode code) {
+        this.code = code;
     }
 }
