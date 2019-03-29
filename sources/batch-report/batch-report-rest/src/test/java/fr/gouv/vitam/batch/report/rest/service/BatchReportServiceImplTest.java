@@ -1,4 +1,4 @@
-package fr.gouv.vitam.batch.report.rest.service; /*******************************************************************************
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -24,11 +24,50 @@ package fr.gouv.vitam.batch.report.rest.service; /******************************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
+package fr.gouv.vitam.batch.report.rest.service; 
+
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_ID;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.OUTCOME;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.bson.Document;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
+import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
+import fr.gouv.vitam.batch.report.model.AuditStatsModel;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
-import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.batch.report.model.Report;
@@ -36,7 +75,11 @@ import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
-import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
@@ -50,38 +93,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.bson.Document;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
-import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.*;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 
 public class BatchReportServiceImplTest {
 
@@ -97,6 +108,9 @@ public class BatchReportServiceImplTest {
     @Mock
     private PreservationReportRepository preservationReportRepository;
 
+    @Mock
+    private AuditReportRepository auditReportRepository;
+    
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -129,7 +143,7 @@ public class BatchReportServiceImplTest {
 
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
             eliminationActionObjectGroupRepository, backupService, workspaceClientFactory,
-            preservationReportRepository);
+            preservationReportRepository, auditReportRepository);
     }
 
 
@@ -172,6 +186,19 @@ public class BatchReportServiceImplTest {
     }
 
     @Test
+    public void should_append_audit_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/auditObjectGroupReport.json");
+        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
+
+        // When
+        ThrowingCallable append = () -> batchReportServiceImpl.appendAuditReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
+
+        // Then
+        assertThatCode(append).doesNotThrowAnyException();
+    }
+
+    @Test
     public void should_store_preservation_report() throws Exception {
         // Given
         String processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
@@ -208,6 +235,48 @@ public class BatchReportServiceImplTest {
             + "\n" + JsonHandler.unprettyPrint(reportSummary)
             + "\n" + JsonHandler.unprettyPrint(context)
             + "\n" + JsonHandler.unprettyPrint(preservationData);
+
+        assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
+    }
+    
+
+    @Test
+    public void should_store_audit_report() throws Exception {
+        // Given
+        String processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
+        String filename = String.format("report.jsonl", processId);
+        Path report = initialisePathWithFileName(filename);
+
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
+
+        AuditStatsModel auditStatus = new AuditStatsModel(1, 2, new HashSet<String>(), new AuditFullStatusCount(), new HashMap<>());
+        Document auditData = getAuditDocument(processId);
+        FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(auditData));
+
+        initialiseMockWhenPutObjectInWorkspace(report);
+        when(auditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID, "WARNING", "KO"))
+            .thenReturn(fakeMongoCursor);
+        when(auditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
+
+        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        ReportResults reportResults = new ReportResults(1, 0, 0, 1);
+        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.AUDIT, reportResults, JsonHandler.createObjectNode());
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report reportInfo = new Report(operationSummary, reportSummary, context);
+
+        // When
+        batchReportServiceImpl.storeReport(reportInfo);
+
+        // Then
+        reportSummary.setExtendedInfo(JsonHandler.toJsonNode(auditStatus));
+        String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
+            + "\n" + JsonHandler.unprettyPrint(reportSummary)
+            + "\n" + JsonHandler.unprettyPrint(context)
+            + "\n" + JsonHandler.unprettyPrint(auditData);
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
@@ -335,6 +404,12 @@ public class BatchReportServiceImplTest {
         document.put(INPUT_OBJECT_ID, "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq");
         document.put(OUTPUT_OBJECT_ID, "");
         return document;
+    }
+
+    private Document getAuditDocument(String processId) throws InvalidParseOperationException, FileNotFoundException {
+        String reportDoc = JsonHandler
+                .unprettyPrint(JsonHandler.getFromInputStream(getClass().getResourceAsStream("/auditObjectGroupDocument.json")));
+        return Document.parse(reportDoc);
     }
 
     private void initialiseMockWhenPutObjectInWorkspace(Path report) throws ContentAddressableStorageServerException {

@@ -1,0 +1,52 @@
+{
+    "_id" : "aeaaaaaaaablldrgaautsaljwq2sj4iaaaaq",
+    "_metadata" : {
+        "outcome" : "outcome",
+        "detailType" : "objectGroup",
+        "id" : "aeaaaaaaaagw45nxaannialhchkfv4yaqqqq",
+        "objectGroupId" : "objectGroupId",
+        "parentUnitIds" : [ 
+            "unitId"
+        ],
+        "originatingAgency" : "originatingAgency",
+        "opi" : "opi",
+        "objectVersions" : [ 
+            {
+                "id" : "objectId1",
+                "opi" : "objectOpi1",
+                "qualifier" : "objectQualifier1",
+                "version" : "objectVersion1",
+                "offerIds" : [ 
+                    {
+                        "id" : "offerId1",
+                        "status" : "OK"
+                    }, 
+                    {
+                        "id" : "offerId2",
+                        "status" : "KO"
+                    }
+                ]
+            }, 
+            {
+                "id" : "objectId2",
+                "opi" : "objectOpi2",
+                "qualifier" : "objectQualifier2",
+                "version" : "objectVersion2",
+                "offerIds" : [ 
+                    {
+                        "id" : "offerId1",
+                        "status" : "OK"
+                    }, 
+                    {
+                        "id" : "offerId2",
+                        "status" : "KO"
+                    }
+                ]
+            }
+        ],
+        "status" : "KO"
+    },
+    "_tenant" : 0,
+    "processId" : "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq",
+    "creationDateTime" : "2019-03-25T09:36:15.624"
+}

@@ -72,7 +72,7 @@ import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.I
 public class PreservationReportRepository {
     private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationReportRepository.class);
 
-    private static final String PRESERVATION_REPORT = "PreservationReport";
+    public static final String PRESERVATION_REPORT = "PreservationReport";
     private final MongoCollection<Document> collection;
 
     @VisibleForTesting
