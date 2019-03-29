@@ -164,6 +164,12 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
 
     }
 
+    @Override
+    public void asyncGetObject(String containerName, String objectName)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supporter");
+    }
+
     /**
      * Provides ContainerApi <br>
      * with default region id

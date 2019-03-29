@@ -343,6 +343,12 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     }
 
     @Override
+    public void asyncGetObject(String containerName, String objectName)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supporter");
+    }
+
+    @Override
     public void deleteObject(String containerName, String objectName)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         LOGGER.debug(String.format("Delete object %s from container %s", objectName, containerName));

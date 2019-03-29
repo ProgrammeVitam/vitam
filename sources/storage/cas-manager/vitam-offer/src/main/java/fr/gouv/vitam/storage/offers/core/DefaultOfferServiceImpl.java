@@ -152,6 +152,18 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
+    public void asyncGetObject(String containerName, String objectId)
+            throws ContentAddressableStorageException {
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            defaultStorage.asyncGetObject(containerName, objectId);
+        } finally {
+            PerformanceLogger.getInstance().log("OfferType_" + configuration.getProvider(), containerName, "ASYNC_GET_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+
+        }
+    }
+
+    @Override
     public String createObject(String containerName, String objectId, InputStream objectPart,
                                DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
 

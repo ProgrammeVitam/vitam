@@ -297,6 +297,12 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
+    public void asyncGetObject(String containerName, String objectName)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supporter");
+    }
+
+    @Override
     public void deleteObject(String containerName, String objectName) throws
             ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),

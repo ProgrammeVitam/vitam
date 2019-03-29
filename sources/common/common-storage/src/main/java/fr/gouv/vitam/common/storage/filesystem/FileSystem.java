@@ -73,6 +73,12 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     }
 
     @Override
+    public void asyncGetObject(String containerName, String objectName)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supporter");
+    }
+
+    @Override
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException {
         ParametersChecker.checkParameter("Container name may not be null", containerName);

@@ -323,6 +323,44 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     }
 
     /**
+     * Get the object data or digest from its id.
+     * <p>
+     * HEADER X-Tenant-Id (mandatory) : tenant's identifier HEADER "X-type" (optional) : data (dfault) or digest
+     * </p>
+     *
+     * @param type Object type
+     * @param objectId object id :.+ in order to get all path if some '/' are provided
+     * @param headers http header
+     * @return response
+     * @throws IOException when there is an error of get object
+     */
+    @GET
+    @Path("/async/objects/{type}/{id_object}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response asyncGetObject(@PathParam("type") DataCategory type, @NotNull @PathParam("id_object") String objectId,
+                              @Context HttpHeaders headers) {
+        final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
+        try {
+            SanityChecker.checkParameter(objectId);
+            if (Strings.isNullOrEmpty(xTenantId)) {
+                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+                return Response.status(Status.PRECONDITION_FAILED).build();
+            }
+            final String containerName = buildContainerName(type, xTenantId);
+            defaultOfferService.asyncGetObject(containerName, objectId);
+
+            return Response.status(Status.ACCEPTED).build();
+        } catch (final ContentAddressableStorageNotFoundException e) {
+            LOGGER.warn(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+        } catch (final ContentAddressableStorageException | InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
+    }
+
+    /**
      * Creates or updates an object.
      *
      * @param type Object's type

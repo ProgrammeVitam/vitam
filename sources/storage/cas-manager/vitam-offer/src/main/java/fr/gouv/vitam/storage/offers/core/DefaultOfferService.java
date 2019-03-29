@@ -78,6 +78,17 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
+     * Asynchronous Get object on offer as an inputStream
+     *
+     * @param containerName the container containing the object
+     * @param objectId      the object id
+     * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
+     * @throws ContentAddressableStorageException         thrown when a server error occurs
+     */
+    void asyncGetObject(String containerName, String objectId)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+    /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
      * send in the great order.
      *
