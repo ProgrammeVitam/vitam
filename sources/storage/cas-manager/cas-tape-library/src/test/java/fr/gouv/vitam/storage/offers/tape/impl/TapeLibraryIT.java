@@ -92,7 +92,9 @@ public class TapeLibraryIT {
             PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
                 TapeLibraryConfiguration.class);
 
-        configuration.setInputFileStorageFolder(PropertiesUtils.getResourceFile("tar/").getAbsolutePath());
+        String inputFileStorageFolder = PropertiesUtils.getResourceFile("tar/").getAbsolutePath();
+        configuration.setInputFileStorageFolder(inputFileStorageFolder);
+        configuration.setInputTarStorageFolder(inputFileStorageFolder);
         configuration.setOutputTarStorageFolder(tempFolderRule.newFolder().getAbsolutePath());
         tapeLibraryFactory = TapeLibraryFactory.getInstance();
         mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);

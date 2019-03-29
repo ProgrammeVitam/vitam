@@ -1,6 +1,6 @@
-inputFileStorageFolder: ""
-inputTarStorageFolder: ""
-outputTarStorageFolder: ""
+inputFileStorageFolder: "/vitam/data/offer/inputFiles"
+inputTarStorageFolder: "/vitam/data/offer/inputTars"
+outputTarStorageFolder: "/vitam/data/offer/outputTars"
 maxTarEntrySize: 100000
 maxTarFileSize: 1000000
 topology:
@@ -16,34 +16,34 @@ tapeLibraries:
   TAPE_LIB_1:
     robots:
       -
-        device: /dev/tape/by-id/scsi-1QUANTUM_B4D282EF285E4365BBA90000
+        device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
         mtxPath: "/usr/sbin/mtx"
         timeoutInMilliseconds: 3600000
     drives:
       -
         index: 1
-        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800001-nst
+        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
         mtPath: "/bin/mt"
         ddPath: "/bin/dd"
         tarPath: "/bin/tar"
         timeoutInMilliseconds: 3600000
       -
         index: 0
-        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800002-nst
+        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
         mtPath: "/bin/mt"
         ddPath: "/bin/dd"
         tarPath: "/bin/tar"
         timeoutInMilliseconds: 3600000
       -
         index: 2
-        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800003-nst
+        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
         mtPath: "/bin/mt"
         ddPath: "/bin/dd"
         tarPath: "/bin/tar"
         timeoutInMilliseconds: 3600000
       -
         index: 3
-        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_B4D2800004-nst
+        device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
         mtPath: "/bin/mt"
         ddPath: "/bin/dd"
         tarPath: "/bin/tar"

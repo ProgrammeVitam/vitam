@@ -288,6 +288,10 @@ public class WriteTask implements Future<ReadWriteResult> {
         return true;
     }
 
+    /**
+     * Check if label of tape catalog match label of loaded tape
+     * @throws ReadWriteException
+     */
     private void doCheckTapeLabel() throws ReadWriteException {
 
         // If no label then cartridge is unknown

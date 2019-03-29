@@ -34,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
@@ -90,7 +91,7 @@ public class TapeLibraryFactory {
 
             for (TapeDriveConf tapeDriveConf : tapeLibraryConf.getDrives()) {
                 final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf,
-                        configuration.getInputTarStorageFolder(), configuration.getOutputTarStorageFolder());
+                    configuration.getInputTarStorageFolder(), configuration.getOutputTarStorageFolder());
                 driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);
             }
 
@@ -109,6 +110,12 @@ public class TapeLibraryFactory {
                 if (robot != null) {
                     try {
                         TapeLibrarySpec libraryState = robot.getLoadUnloadService().status();
+
+                        if (!libraryState.isOK()) {
+                            throw new RuntimeException("Robot status command return ko :" +
+                                JsonHandler.unprettyPrint(libraryState.getEntity()));
+                        }
+
                         driveTape = tapeCatalogService.init(tapeLibraryIdentifier, libraryState);
                     } finally {
                         libraryPool.pushRobotService(robot);
