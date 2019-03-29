@@ -152,6 +152,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1440,7 +1441,7 @@ public class ProcessingIT extends VitamRuleRunner {
         FileUtils.forceMkdir(new File(tmp));
 
         // Enable attachment
-        updateIngestContractLinkParentId("ArchivalAgreement0", "", IngestContractCheckState.AUTHORIZED.name());
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", IngestContractCheckState.AUTHORIZED.name(), null);
 
         // Create SIP with attachment to unit
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
@@ -1504,7 +1505,7 @@ public class ProcessingIT extends VitamRuleRunner {
         FileUtils.forceMkdir(new File(tmp));
 
         // Enable attachment
-        updateIngestContractLinkParentId("ArchivalAgreement0", "", IngestContractCheckState.AUTHORIZED.name());
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", IngestContractCheckState.AUTHORIZED.name(), null);
 
         // Ingest
         // Create SIP with unitRoot
@@ -1522,7 +1523,9 @@ public class ProcessingIT extends VitamRuleRunner {
 
 
         // Now update the ingest contract, set the check to ACTIVE and the link parent id takes unitChild value
-        updateIngestContractLinkParentId("ArchivalAgreement0", unitChild, "AUTHORIZED");
+        List<String> checkParentId = new ArrayList<>();
+        checkParentId.add(unitChild);
+        updateIngestContractLinkParentId("ArchivalAgreement0", unitChild, "AUTHORIZED", checkParentId);
 
         // Create SIP with unitChild
         String zipName1 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
@@ -1551,20 +1554,20 @@ public class ProcessingIT extends VitamRuleRunner {
         operationId = processWorkflow.getOperationId();
         operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
-        assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.NOT_FOUND_ATTACHMENT.KO"));
+        assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
         // Test Null Parent Link
-        updateIngestContractLinkParentId("ArchivalAgreement0", "", "ACTIVE");
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", "AUTHORIZED", null);
         // Ingest should be OK
         processWorkflow = ingest(zipPath2, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         operationId = processWorkflow.getOperationId();
         operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
-        assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.NULL_LINK_PARENT_ID_ATTACHMENT.KO"));
+        assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
         // Now put check as inactive for the ingest contract
-        updateIngestContractLinkParentId("ArchivalAgreement0", "", "INACTIVE");
+        updateIngestContractLinkParentId("ArchivalAgreement0", "", "AUTHORIZED", new ArrayList<>());
         // Ingest should be OK
         ingest(zipPath2, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
 
@@ -1613,7 +1616,7 @@ public class ProcessingIT extends VitamRuleRunner {
         return processWorkflow;
     }
 
-    private void updateIngestContractLinkParentId(String contractId, String linkParentId, String checkParentLink)
+    private void updateIngestContractLinkParentId(String contractId, String linkParentId, String checkParentLink, List<String> checkParentId)
             throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
@@ -1621,9 +1624,14 @@ public class ProcessingIT extends VitamRuleRunner {
             final SetAction setLinkParentId = UpdateActionHelper.set(IngestContractModel.LINK_PARENT_ID, linkParentId);
             final SetAction setCheckParentLink =
                     UpdateActionHelper.set(IngestContractModel.TAG_CHECK_PARENT_LINK, checkParentLink);
+
             final Update updateLinkParent = new Update();
             updateLinkParent.setQuery(QueryHelper.eq("Identifier", contractId));
             updateLinkParent.addActions(setLinkParentId, setCheckParentLink);
+            if(checkParentId != null) {
+                final SetAction setCheckParentId = UpdateActionHelper.set(IngestContractModel.TAG_CHECK_PARENT_ID, checkParentId);
+                updateLinkParent.addActions(setCheckParentId);
+            }
             updateParserActive.parse(updateLinkParent.getFinalUpdate());
             JsonNode queryDsl = updateParserActive.getRequest().getFinalUpdate();
             RequestResponse<IngestContractModel> requestResponse = client.updateIngestContract(contractId, queryDsl);
