@@ -207,14 +207,12 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             for (final IngestContractModel acm : contractModelList) {
 
                 final String linkParentId = acm.getLinkParentId();
-                if (linkParentId != null) {
-                    if (!manager.checkIfUnitExist(linkParentId)) {
-                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            GenericRejectionCause
-                                .rejectAuNotFoundInDatabase(linkParentId)
-                                .getReason(), StatusCode.KO));
-                        continue;
-                    }
+                if (linkParentId != null && !manager.checkIfUnitExist(linkParentId)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        GenericRejectionCause
+                            .rejectAuNotFoundInDatabase(linkParentId)
+                            .getReason(), StatusCode.KO));
+                    continue;
                 }
 
                 final Set<String> checkParentId = acm.getCheckParentId();
@@ -867,7 +865,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             boolean isAttachmentAuthorized = true;
             JsonNode checkParentLink = queryDsl.findValue(IngestContractModel.TAG_CHECK_PARENT_LINK);
             IngestContractCheckState checkState = ingestContractModel.getCheckParentLink();
-            ;
 
             if (checkParentLink != null) {
                 if (IngestContractCheckState.contains(checkParentLink.asText())) {
