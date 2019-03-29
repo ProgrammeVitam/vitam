@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class InputFileToTarBuilder {
@@ -56,7 +55,7 @@ public class InputFileToTarBuilder {
                         tarReferentialRepository,
                         writeOrderCreator,
                         bucketTopologyHelper.listContainerNames(fileBucket),
-                        bucketTopologyHelper.getBucket(fileBucket),
+                        bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
                         fileBucket
                     )));
     }
@@ -76,7 +75,7 @@ public class InputFileToTarBuilder {
     public void addToQueue(InputFileToProcessMessage inputFileToProcessMessage) {
 
         String containerName = inputFileToProcessMessage.getContainerName();
-        String fileBucket = bucketTopologyHelper.getFileBucket(containerName);
+        String fileBucket = bucketTopologyHelper.getFileBucketFromContainerName(containerName);
 
         FileBucketTarCreator fileBucketTarCreator = fileBucketTarCreatorMap.get(fileBucket);
         fileBucketTarCreator.addToQueue(inputFileToProcessMessage);

@@ -1,5 +1,6 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Rule;
 import org.junit.Test;
@@ -121,10 +122,6 @@ public class BasicFileStorageTest {
         // Then
         assertThat(IteratorUtils.toList(storageIds.iterator()))
             .containsExactlyInAnyOrder(storageId1, storageId2, storageId3);
-
-        basicFileStorage.deleteFile(CONTAINER, storageId1);
-        basicFileStorage.deleteFile(CONTAINER, storageId2);
-        basicFileStorage.deleteFile(CONTAINER, storageId3);
     }
 
     @Test
@@ -133,17 +130,15 @@ public class BasicFileStorageTest {
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
         byte[] data = "data".getBytes();
+
+        // When
         String storageId1 = basicFileStorage.writeFile(CONTAINER, OBJ_1, new ByteArrayInputStream(data), data.length);
         String storageId2 = basicFileStorage.writeFile(CONTAINER, OBJ_1, new ByteArrayInputStream(data), data.length);
         String storageId3 = basicFileStorage.writeFile(CONTAINER, OBJ_2, new ByteArrayInputStream(data), data.length);
 
-        // When / Then
-        assertThat(BasicFileStorage.storageIdToObjectName(storageId1)).isEqualTo(OBJ_1);
-        assertThat(BasicFileStorage.storageIdToObjectName(storageId2)).isEqualTo(OBJ_1);
-        assertThat(BasicFileStorage.storageIdToObjectName(storageId3)).isEqualTo(OBJ_2);
-
-        basicFileStorage.deleteFile(CONTAINER, storageId1);
-        basicFileStorage.deleteFile(CONTAINER, storageId2);
-        basicFileStorage.deleteFile(CONTAINER, storageId3);
+        // Then
+        assertThat(LocalFileUtils.storageIdToObjectName(storageId1)).isEqualTo(OBJ_1);
+        assertThat(LocalFileUtils.storageIdToObjectName(storageId2)).isEqualTo(OBJ_1);
+        assertThat(LocalFileUtils.storageIdToObjectName(storageId3)).isEqualTo(OBJ_2);
     }
 }

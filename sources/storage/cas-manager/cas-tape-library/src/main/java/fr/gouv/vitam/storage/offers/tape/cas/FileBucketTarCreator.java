@@ -47,6 +47,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessingException;
 import fr.gouv.vitam.storage.offers.tape.inmemoryqueue.QueueProcessor;
+import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 
@@ -72,8 +73,6 @@ import static java.util.stream.Collectors.toMap;
 public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessage> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileBucketTarCreator.class);
-    private static final String TAR_EXTENSION = ".tar";
-    public static final String TMP_EXTENSION = ".TMP";
 
     private final TapeLibraryConfiguration tapeLibraryConfiguration;
     private final BasicFileStorage basicFileStorage;
@@ -145,7 +144,8 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
                     createTarFile();
                 }
 
-                String entryName = message.getStorageId() + "-" + entryIndex;
+                String entryName = LocalFileUtils.createTarEntryName(
+                    message.getContainerName(), message.getStorageId(), entryIndex);
                 BoundedInputStream entryInputStream = new BoundedInputStream(digestInputStream, entrySize);
 
                 TarEntryDescription tarEntryDescription =
@@ -199,8 +199,7 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
     private void createTarFile() throws QueueProcessingException {
 
         LocalDateTime now = LocalDateUtil.now();
-        String tarFileId = fileBucketId + "-" + LocalDateUtil.getDateTimeFormatterForFileNames().format(now) + "-"
-            + UUID.randomUUID().toString() + TAR_EXTENSION;
+        String tarFileId = LocalFileUtils.createTarId(fileBucketId, now);
 
         try {
             TapeLibraryTarReferentialEntity tarReferentialEntity = new TapeLibraryTarReferentialEntity(
@@ -212,7 +211,7 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
         }
 
         this.currentTarFilePath = fileBucketStoragePath.resolve(tarFileId);
-        this.currentTempTarFilePath = fileBucketStoragePath.resolve(tarFileId + TMP_EXTENSION);
+        this.currentTempTarFilePath = fileBucketStoragePath.resolve(tarFileId + LocalFileUtils.TMP_EXTENSION);
         this.currentTarAppender = new TarAppender(
             currentTempTarFilePath, tarFileId, tapeLibraryConfiguration.getMaxTarFileSize());
     }
@@ -260,8 +259,10 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
     public void initializeOnBootstrap() {
 
         try {
+            // Ensure directory exists
             Files.createDirectories(fileBucketStoragePath);
 
+            // List existing files
             for (String containerName : containerNames) {
                 try (Stream<String> storageIdsStream = this.basicFileStorage
                     .listStorageIdsByContainerName(containerName)) {
@@ -287,22 +288,25 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
     }
 
     private void processStorageIds(String containerName, List<String> storageIds) throws ObjectReferentialException {
+
+        // Map storage ids to object names
         Map<String, String> storageIdToObjectIdMap = storageIds.stream()
             .collect(toMap(
                 storageId -> storageId,
-                BasicFileStorage::storageIdToObjectName
+                LocalFileUtils::storageIdToObjectName
             ));
-
         HashSet<String> objectNames = new HashSet<>(storageIdToObjectIdMap.values());
 
-        List<TapeLibraryObjectReferentialEntity> tapeLibraryObjectReferentialEntities =
+        // Find objects in object referential (bulk)
+        List<TapeLibraryObjectReferentialEntity> objectReferentialEntities =
             this.objectReferentialRepository.bulkFind(containerName,
                 objectNames);
 
         Map<String, TapeLibraryObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
-            tapeLibraryObjectReferentialEntities.stream()
+            objectReferentialEntities.stream()
                 .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
 
+        // Process storage ids
         for (String storageId : storageIds) {
             String objectName = storageIdToObjectIdMap.get(storageId);
 

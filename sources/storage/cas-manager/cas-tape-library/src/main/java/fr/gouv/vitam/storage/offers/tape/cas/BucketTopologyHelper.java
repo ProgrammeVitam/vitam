@@ -184,13 +184,13 @@ public class BucketTopologyHelper {
         return buckets;
     }
 
-    public String getFileBucket(String containerName) {
+    public String getFileBucketFromContainerName(String containerName) {
         int tenant = parseTenantFromContainerName(containerName);
         DataCategory dataCategory = parseDataCategoryFromContainerName(containerName);
         return this.containerToFileBucketMap.get(ImmutablePair.of(tenant, dataCategory));
     }
 
-    public String getBucket(String fileBucket) {
+    public String getBucketFromFileBucket(String fileBucket) {
         return this.fileBucketToBucketMap.get(fileBucket);
     }
 

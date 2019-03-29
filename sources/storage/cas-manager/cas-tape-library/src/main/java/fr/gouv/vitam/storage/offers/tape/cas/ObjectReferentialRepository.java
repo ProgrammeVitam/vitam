@@ -45,9 +45,9 @@ import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import org.bson.Document;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ObjectReferentialRepository {
@@ -99,7 +99,7 @@ public class ObjectReferentialRepository {
         }
     }
 
-    public List<TapeLibraryObjectReferentialEntity> bulkFind(String containerName, Collection<String> objectNames)
+    public List<TapeLibraryObjectReferentialEntity> bulkFind(String containerName, Set<String> objectNames)
         throws ObjectReferentialException {
 
         try (MongoCursor<Document> iterator = collection.find(

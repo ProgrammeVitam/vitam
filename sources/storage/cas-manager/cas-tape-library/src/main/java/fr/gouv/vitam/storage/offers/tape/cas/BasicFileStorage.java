@@ -26,10 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -45,9 +45,6 @@ import java.util.stream.Stream;
 
 public class BasicFileStorage {
 
-    private static final String SEPARATOR = "-";
-    private static final int GUID_LENGTH = 36;
-
     private final Path basePath;
     private final Set<String> containerCache = ConcurrentHashMap.newKeySet();
 
@@ -59,7 +56,7 @@ public class BasicFileStorage {
         throws IOException {
         ensureContainerExists(containerName);
 
-        String storageId = createStorageId(objectName);
+        String storageId = LocalFileUtils.createStorageId(objectName);
         Path filePath = getFilePath(containerName, storageId);
 
         try (ExtendedFileOutputStream outputStream = new ExtendedFileOutputStream(filePath, true)) {
@@ -95,17 +92,6 @@ public class BasicFileStorage {
                 }
             }
         }
-    }
-
-    private String createStorageId(String objectName) {
-        return objectName + SEPARATOR + GUIDFactory.newGUID().toString();
-    }
-
-    public static String storageIdToObjectName(String storageId) {
-        if (storageId.length() <= SEPARATOR.length() + GUID_LENGTH) {
-            throw new IllegalArgumentException("Invalid storage id " + storageId);
-        }
-        return storageId.substring(0, storageId.length() - SEPARATOR.length() - GUID_LENGTH);
     }
 
     public Stream<String> listStorageIdsByContainerName(String containerName) throws IOException {
