@@ -68,7 +68,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
         TapeLibraryPool tapeLibraryPool,
-        Map<Integer, TapeCatalog> driveTape) {
+        Map<Integer, TapeCatalog> driveTape, String inputTarPath) {
 
         ParametersChecker
             .checkParameter("All params is required required", tapeLibraryPool, readWriteQueue, driveTape);
@@ -78,7 +78,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
             final TapeDriveWorker tapeDriveWorker =
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
-                    this, driveTape.get(driveEntry.getKey()));
+                    this, driveTape.get(driveEntry.getKey()), inputTarPath);
             workers.add(tapeDriveWorker);
 
             final Thread thread =

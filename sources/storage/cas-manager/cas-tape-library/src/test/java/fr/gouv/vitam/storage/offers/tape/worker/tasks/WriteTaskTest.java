@@ -108,37 +108,43 @@ public class WriteTaskTest {
 
         // Test constructors
         try {
-            new WriteTask(null, null, null, null, null);
+            new WriteTask(null, null, null, null, null, null);
             fail("should throw exception");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(mock(WriteOrder.class), null, null, null, null);
+            new WriteTask(mock(WriteOrder.class), null, null, null, null, null);
             fail("should throw exception");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(null, null, tapeRobotPool, null, null);
+            new WriteTask(null, null, tapeRobotPool, null, null, null);
             fail("should throw exception");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(null, null, null, tapeDriveService, null);
+            new WriteTask(null, null, null, tapeDriveService, null, null);
             fail("should throw exception");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(null, null, null, null, tapeCatalogService);
+            new WriteTask(null, null, null, null, tapeCatalogService, null);
             fail("should throw exception");
         } catch (IllegalArgumentException e) {
         }
 
         try {
-            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, tapeDriveService, tapeCatalogService, null);
+        } catch (IllegalArgumentException e) {
+            fail("should not throw exception");
+        }
+
+        try {
+            new WriteTask(mock(WriteOrder.class), null, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
         } catch (IllegalArgumentException e) {
             fail("should not throw exception");
         }
@@ -162,7 +168,7 @@ public class WriteTaskTest {
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         ReadWriteResult result = writeTask.get();
 
@@ -201,7 +207,7 @@ public class WriteTaskTest {
             .thenReturn(new TapeResponse(StatusCode.OK));
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         ReadWriteResult result = writeTask.get();
 
@@ -249,7 +255,7 @@ public class WriteTaskTest {
 
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         ReadWriteResult result = writeTask.get();
 
@@ -313,7 +319,7 @@ public class WriteTaskTest {
 
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         ReadWriteResult result = writeTask.get();
 
@@ -354,7 +360,7 @@ public class WriteTaskTest {
             new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
@@ -431,7 +437,7 @@ public class WriteTaskTest {
             new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
@@ -489,7 +495,7 @@ public class WriteTaskTest {
             new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
@@ -549,7 +555,7 @@ public class WriteTaskTest {
             new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         TapeCatalog tapeCatalog = getTapeCatalog(true, false, TapeState.OPEN);
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
@@ -605,7 +611,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
@@ -687,7 +693,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
         when(tapeCatalogService.receive(any(), eq(QueueMessageType.TapeCatalog))).thenReturn(
@@ -767,7 +773,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
@@ -853,7 +859,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
 
         TapeCatalog tapeCatalog = getTapeCatalog(false, false, TapeState.EMPTY);
@@ -928,7 +934,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.CONFLICT), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
         when(tapeCatalogService.update(any(), anyMap()))
             .thenThrow(new TapeCatalogException(""))
@@ -958,7 +964,7 @@ public class WriteTaskTest {
             new WriteOrder().setBucket(FAKE_BUCKET).setFilePath("/tmp/" + GUIDFactory.newGUID().getId()).setSize(10l);
 
         WriteTask writeTask =
-            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService);
+            new WriteTask(writeOrder, null, tapeRobotPool, tapeDriveService, tapeCatalogService, "/tmp");
 
         ReadWriteResult result = writeTask.get();
 
@@ -982,7 +988,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
         when(tapeDriveCommandService.status())
             .thenReturn(new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.KO))
@@ -1021,7 +1027,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
         when(tapeDriveCommandService.status())
             .thenAnswer(o -> new TapeDriveState(JsonHandler.createObjectNode(), StatusCode.OK));
@@ -1062,7 +1068,7 @@ public class WriteTaskTest {
 
         WriteTask writeTask =
             new WriteTask(writeOrder, getTapeCatalog(true, false, TapeState.OPEN), tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, "/tmp");
 
         when(tapeDriveCommandService.status())
             .thenAnswer(o -> new TapeDriveState(StatusCode.OK));

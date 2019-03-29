@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
@@ -80,7 +81,7 @@ public class CorruptedTarFileRapairer {
                     try {
 
                         // Write entry to temporary file (to ensure the entry is available & not corrupted)
-                        tempEntryFile = Files.createTempFile(inputTarEntry.getName(), LocalFileUtils.TMP_EXTENSION);
+                        tempEntryFile = Files.createTempFile(GUIDFactory.newGUID().toString(), LocalFileUtils.TMP_EXTENSION);
 
                         try {
                             FileUtils.copyInputStreamToFile(taggedEntryInputStream, tempEntryFile.toFile());

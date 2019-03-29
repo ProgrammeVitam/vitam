@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
@@ -199,11 +200,11 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
     private void createTarFile() throws QueueProcessingException {
 
         LocalDateTime now = LocalDateUtil.now();
-        String tarFileId = LocalFileUtils.createTarId(fileBucketId, now);
+        String tarFileId = LocalFileUtils.createTarId(now);
 
         try {
             TapeLibraryTarReferentialEntity tarReferentialEntity = new TapeLibraryTarReferentialEntity(
-                tarFileId, new TapeLibraryReadyOnDiskTarStorageLocation(), null, null, now.toString());
+                tarFileId, new TapeLibraryBuildingOnDiskTarStorageLocation(), null, null, now.toString());
             tarReferentialRepository.insert(tarReferentialEntity);
         } catch (TarReferentialException ex) {
             throw new QueueProcessingException(QueueProcessingException.RetryPolicy.RETRY,
@@ -226,7 +227,7 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
         // Schedule tar for copy on tape
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
-            this.currentTarFilePath.toString(),
+            LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
             this.currentTarAppender.getBytesWritten(),
             this.currentTarAppender.getDigestValue()
         );

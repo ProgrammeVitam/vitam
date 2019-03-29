@@ -44,10 +44,11 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
     private final Future<ReadWriteResult> readWriteTask;
 
     public ReadWriteTask(ReadWriteOrder order, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
-        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
+        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService, String inputTarPath) {
         if (order.isWriteOrder()) {
             readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService,
-                tapeCatalogService);
+                tapeCatalogService, inputTarPath
+            );
         } else {
             readWriteTask =
                 new ReadTask((ReadOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService, tapeCatalogService);

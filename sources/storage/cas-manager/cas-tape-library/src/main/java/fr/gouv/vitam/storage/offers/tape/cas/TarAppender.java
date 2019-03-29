@@ -154,8 +154,8 @@ public class TarAppender implements AutoCloseable {
         IOUtils.closeQuietly(extendedFileOutputStream);
     }
 
-    public Path getFilePath() {
-        return filePath;
+    public String getTarId() {
+        return tarId;
     }
 
     public int getEntryCount() {

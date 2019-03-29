@@ -167,7 +167,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         }
 
         if (!Objects.equals(existingTape.getCurrentLocation(), tape.getCurrentLocation())) {
-            updates.put(TapeCatalog.CURRENT_LOCATION, tape.getAlternativeCode());
+            updates.put(TapeCatalog.CURRENT_LOCATION, tape.getCurrentLocation());
         }
 
         existingTape.setCurrentLocation(tape.getCurrentLocation());

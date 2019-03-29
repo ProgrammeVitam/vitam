@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.utils;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 
-import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -40,12 +39,13 @@ public final class LocalFileUtils {
     private static final String CONTAINER_SEPARATOR = "/";
     private static final String SEPARATOR = "-";
     private static final Pattern TAR_ID_FILENAME_PATTERN =
-        Pattern.compile("^(?<FileBucketId>.*)-(?<CreationDate>\\d{17})-(?<GUID>\\w{36})\\.tar$");
+        Pattern.compile("^(?<CreationDate>\\d{17})-(?<GUID>[a-z0-9\\-]{36})\\.tar$");
 
     private static final int GUID_LENGTH = 36;
     public static final String TAR_EXTENSION = ".tar";
     public static final String TMP_EXTENSION = ".tmp";
     public static final String REPAIR_EXTENSION = ".repair";
+    public static final String INPUT_TAR_TMP_FOLDER = "tmp";
 
     private LocalFileUtils() {
         throw new IllegalStateException("No constructor for helper class");
@@ -97,9 +97,13 @@ public final class LocalFileUtils {
         return Integer.parseInt(tarEntryName.substring(entryIndexSeparatorIndex));
     }
 
-    public static String createTarId(String fileBucketId, LocalDateTime now) {
-        return fileBucketId + SEPARATOR + LocalDateUtil.getDateTimeFormatterForFileNames().format(now) + SEPARATOR
+    public static String createTarId(LocalDateTime now) {
+        return LocalDateUtil.getDateTimeFormatterForFileNames().format(now) + SEPARATOR
             + UUID.randomUUID().toString() + TAR_EXTENSION;
+    }
+
+    public static String tarFileNameRelativeToInputTarStorageFolder(String fileBucket, String tarId) {
+        return fileBucket + "/" + tarId;
     }
 
     public static String getCreationDateFromTarId(String tarId) {
@@ -118,7 +122,7 @@ public final class LocalFileUtils {
             tarFileName = tarFileName.substring(0, tarFileName.length() - REPAIR_EXTENSION.length());
         }
 
-        if(!tarFileName.endsWith(TAR_EXTENSION)) {
+        if (!tarFileName.endsWith(TAR_EXTENSION)) {
             throw new IllegalArgumentException("Invalid tar file name " + tarFileName);
         }
         return tarFileName;

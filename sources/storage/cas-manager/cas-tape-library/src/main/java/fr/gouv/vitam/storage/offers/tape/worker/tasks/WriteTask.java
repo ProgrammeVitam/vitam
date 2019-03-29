@@ -32,6 +32,9 @@ import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.or;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -72,6 +75,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.bson.conversions.Bson;
 
 public class WriteTask implements Future<ReadWriteResult> {
@@ -79,13 +83,12 @@ public class WriteTask implements Future<ReadWriteResult> {
     public static final String TAPE_MSG = " [Tape] : ";
     public static final String TAPE_LABEL = "tape-Label-";
 
-    // WorkingDir is empty because of : writeOrder should have an absolute file path
-    public static final String WORKING_DIR = "";
     public static final long SLEEP_TIME = 20l;
     public static final int CARTRIDGE_RETRY = 1;
     public static final int MAX_ATTEMPTS = 3;
 
     public final String MSG_PREFIX;
+    private final String inputTarPath;
     protected boolean cancelled = false;
     protected boolean done = false;
 
@@ -97,8 +100,10 @@ public class WriteTask implements Future<ReadWriteResult> {
     private boolean retryEnabled = true;
     private int cartridgeRetry = CARTRIDGE_RETRY;
 
-    public WriteTask(WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
-        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
+    public WriteTask(
+        WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
+        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService, String inputTarPath) {
+        this.inputTarPath = inputTarPath;
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeRobotPool param is required.", tapeRobotPool);
         ParametersChecker.checkParameter("TapeDriveService param is required.", tapeDriveService);
@@ -252,7 +257,7 @@ public class WriteTask implements Future<ReadWriteResult> {
      * @throws ReadWriteException
      */
     private File getWriteOrderFile() throws ReadWriteException {
-        File file = new File(WORKING_DIR, writeOrder.getFilePath());
+        File file = new File(inputTarPath, writeOrder.getFilePath());
 
         if (!file.exists()) {
             throw new ReadWriteException(
@@ -290,6 +295,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     /**
      * Check if label of tape catalog match label of loaded tape
+     *
      * @throws ReadWriteException
      */
     private void doCheckTapeLabel() throws ReadWriteException {
@@ -400,9 +406,9 @@ public class WriteTask implements Future<ReadWriteResult> {
             return false;
         }
 
-        return Objects.equals(workerCurrentTape.getBucket(), writeOrder.getBucket()) &&
-            (TapeState.OPEN.equals(workerCurrentTape.getTapeState()) ||
-                TapeState.EMPTY.equals(workerCurrentTape.getTapeState()));
+        return TapeState.EMPTY.equals(workerCurrentTape.getTapeState()) ||
+            (Objects.equals(workerCurrentTape.getBucket(), writeOrder.getBucket()) &&
+                TapeState.OPEN.equals(workerCurrentTape.getTapeState()));
     }
 
     /**
@@ -505,20 +511,27 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         File labelFile = null;
         try {
-            labelFile = File.createTempFile(TAPE_LABEL, GUIDFactory.newGUID().getId());
+
+            Path tmpPath = Paths.get(inputTarPath, LocalFileUtils.INPUT_TAR_TMP_FOLDER);
+            Files.createDirectories(tmpPath);
+
+            String fileName = TAPE_LABEL + GUIDFactory.newGUID().getId();
+            labelFile = tmpPath.resolve(fileName).toFile();
+
             JsonHandler.writeAsFile(objLabel, labelFile);
 
             long fileSize = labelFile.length();
 
+            String relativeFilePath = LocalFileUtils.INPUT_TAR_TMP_FOLDER + "/" + fileName;
             TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .writeToTape(labelFile.getAbsolutePath());
+                .writeToTape(relativeFilePath);
 
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                     " Action : Write, Order: " + JsonHandler.unprettyPrint(writeOrder) + ", Entity: " +
                     JsonHandler.unprettyPrint(response.getEntity()));
 
-                retryWriteToTape(labelFile, 2, response);
+                retryWriteToTape(relativeFilePath, 2, response);
             }
 
             workerCurrentTape.setFileCount(1);
@@ -548,7 +561,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         try {
             // TODO: 20/03/19 make tape write lock to true
             TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .writeToTape(file.getAbsolutePath());
+                .writeToTape(writeOrder.getFilePath());
 
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
@@ -566,7 +579,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                 }
 
                 if (!workerCurrentTape.isWorm() || retryEnabled) {
-                    retryWriteToTape(file, 2, response);
+                    retryWriteToTape(writeOrder.getFilePath(), 2, response);
                 } else {
                     workerCurrentTape.setTapeState(TapeState.CONFLICT);
                     withRetryTapeBackToCatalog();
@@ -597,13 +610,13 @@ public class WriteTask implements Future<ReadWriteResult> {
     /**
      * Retry write to tape
      *
-     * @param file
+     * @param filePath
      * @param nbRetry
      * @param response
      * @return TapeResponse
      * @throws ReadWriteException
      */
-    private void retryWriteToTape(File file, int nbRetry, TapeResponse response)
+    private void retryWriteToTape(String filePath, int nbRetry, TapeResponse response)
         throws ReadWriteException {
 
         while (nbRetry != 0 && !response.isOK()) {
@@ -624,7 +637,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             }
 
             response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .writeToTape(file.getAbsolutePath());
+                .writeToTape(filePath);
 
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +

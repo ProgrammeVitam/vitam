@@ -65,10 +65,11 @@ public class TapeDriveWorkerManagerTest {
 
     @Test
     public void test_constructor() {
-        new TapeDriveWorkerManager(mock(QueueRepository.class), mock(TapeLibraryPool.class), mock(Map.class));
+        new TapeDriveWorkerManager(mock(QueueRepository.class), mock(TapeLibraryPool.class), mock(Map.class),
+            "/tmp");
 
         try {
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(TapeLibraryPool.class), null);
+            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(TapeLibraryPool.class), null, "/tmp");
             fail("should fail driveTape map is required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -76,7 +77,7 @@ public class TapeDriveWorkerManagerTest {
 
 
         try {
-            new TapeDriveWorkerManager(mock(QueueRepository.class), null, mock(Map.class));
+            new TapeDriveWorkerManager(mock(QueueRepository.class), null, mock(Map.class), "/tmp");
             fail("should fail tape library pool is required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -85,7 +86,7 @@ public class TapeDriveWorkerManagerTest {
 
 
         try {
-            new TapeDriveWorkerManager(null, mock(TapeLibraryPool.class), mock(Map.class));
+            new TapeDriveWorkerManager(null, mock(TapeLibraryPool.class), mock(Map.class), "/tmp");
             fail("should fail read write queue is required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);

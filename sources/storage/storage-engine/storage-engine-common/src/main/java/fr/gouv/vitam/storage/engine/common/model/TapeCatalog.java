@@ -77,7 +77,7 @@ public class TapeCatalog extends QueueMessageEntity {
     private Long writtenBytes = 0l;
 
     @JsonProperty(TAPE_STATE)
-    private TapeState tapeState;
+    private TapeState tapeState = TapeState.EMPTY;
 
     @JsonProperty(CAPACITY)
     private Long capacity;

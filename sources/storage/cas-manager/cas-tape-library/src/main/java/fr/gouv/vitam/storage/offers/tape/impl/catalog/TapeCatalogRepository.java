@@ -116,7 +116,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
             Document update = new Document();
             fields.forEach((key, value) -> update.append(key, value));
 
-            Document data = new Document($_SET, update)
+            Document data = new Document($_SET, toBson(update))
                 .append($_INC, new Document(TapeCatalog.VERSION, 1));
 
             UpdateResult result = collection.updateOne(eq(TapeCatalog.ID, tapeId), data);
@@ -193,4 +193,12 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
         }
     }
 
+    private Document toBson(Object object) {
+        return Document.parse(JsonHandler.unprettyPrint(object));
+    }
+
+    private <T> T fromBson(Document document, Class<T> clazz)
+        throws InvalidParseOperationException {
+        return JsonHandler.getFromString(JSON.serialize(document), clazz);
+    }
 }

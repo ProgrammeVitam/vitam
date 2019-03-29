@@ -51,6 +51,9 @@ public class TapeLibraryTarReferentialEntity {
     @JsonProperty(LAST_UPDATE_DATE)
     private String lastUpdateDate;
 
+    public TapeLibraryTarReferentialEntity() {
+        // Empty constructor for deserialization
+    }
 
     public TapeLibraryTarReferentialEntity(String tarId,
         TapeLibraryTarStorageLocation location, Long size, String digestValue, String lastUpdateDate) {

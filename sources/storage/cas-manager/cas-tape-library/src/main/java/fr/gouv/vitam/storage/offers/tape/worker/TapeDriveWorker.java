@@ -64,15 +64,17 @@ public class TapeDriveWorker implements Runnable {
     private final AtomicBoolean stop = new AtomicBoolean(false);
     private ReadWriteResult readWriteResult;
     private final CountDownLatch shutdownSignal;
+    private String inputTarPath;
 
     public TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
         TapeDriveOrderConsumer receiver,
-        TapeCatalog currentTape
-    ) {
+        TapeCatalog currentTape,
+        String inputTarPath) {
         this.tapeCatalogService = tapeCatalogService;
+        this.inputTarPath = inputTarPath;
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService, tapeCatalogService,
                 receiver);
@@ -140,7 +142,7 @@ public class TapeDriveWorker implements Runnable {
 
                     ReadWriteTask readWriteTask =
                         new ReadWriteTask(readWriteOrder, currentTape, tapeRobotPool, tapeDriveService,
-                            tapeCatalogService);
+                            tapeCatalogService, inputTarPath);
                     readWriteResult = readWriteTask.get();
 
 

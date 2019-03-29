@@ -55,7 +55,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 
 public class TapeLibraryFactory {
@@ -128,7 +127,8 @@ public class TapeLibraryFactory {
             }
 
             tapeDriveWorkerManagers
-                .put(tapeLibraryIdentifier, new TapeDriveWorkerManager(queueRepository, libraryPool, driveTape));
+                .put(tapeLibraryIdentifier, new TapeDriveWorkerManager(queueRepository, libraryPool, driveTape,
+                    configuration.getInputTarStorageFolder()));
         }
 
     }

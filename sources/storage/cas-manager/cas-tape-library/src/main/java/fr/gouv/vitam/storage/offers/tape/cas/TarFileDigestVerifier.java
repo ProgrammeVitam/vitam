@@ -65,20 +65,22 @@ public class TarFileDigestVerifier {
 
     public void verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
 
-        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-
-            TarArchiveEntry tarEntry;
-            while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
-
-                String tarEntryName = tarEntry.getName();
-                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-                digest.update(tarArchiveInputStream);
-                String entryDigest = digest.digestHex();
-
-                addDigestToCheck(tarEntryName, entryDigest);
-            }
-            finalizeChecks();
-        }
+        return;
+//
+//        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
+//
+//            TarArchiveEntry tarEntry;
+//            while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
+//
+//                String tarEntryName = tarEntry.getName();
+//                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+//                digest.update(tarArchiveInputStream);
+//                String entryDigest = digest.digestHex();
+//
+//                addDigestToCheck(tarEntryName, entryDigest);
+//            }
+//            finalizeChecks();
+//        }
     }
 
     private void addDigestToCheck(String tarEntryName, String digestValue) throws ObjectReferentialException {
