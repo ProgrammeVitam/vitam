@@ -11,7 +11,7 @@ import {IngestContract} from "./ingest-contract";
 import {ErrorService} from "../../../common/error.service";
 
 const ReferentialsServiceStub = {
-  getIngestContractById: (id) => Observable.of({'$results': [{}]})
+  getIngestContractById: (id) => Observable.of({'$results': [{CheckParentLink: "AUTHORIZED"}]})
 };
 
 describe('IngestContractComponent', () => {
@@ -48,12 +48,14 @@ describe('IngestContractComponent', () => {
     component.contract.Name = 'InitialName';
     component.contract.Description = 'Initial Description';
     component.contract.Status = 'Inactif';
+    component.contract.CheckParentLink = 'AUTHORIZED';
     component.isActif = false;
 
     component.modifiedContract = new IngestContract();
     component.modifiedContract.Name = 'UpdatedName';
     component.modifiedContract.Description = 'Initial Description';
     component.modifiedContract.Status = 'Actif';
+    component.modifiedContract.CheckParentLink = 'UNAUTHORIZED';
     component.isActif = true;
     component.update = true;
 
