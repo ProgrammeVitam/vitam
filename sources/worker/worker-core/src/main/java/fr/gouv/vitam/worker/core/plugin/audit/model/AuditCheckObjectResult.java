@@ -24,35 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.worker.core.plugin.audit.model;
+
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * List of status used in report.
- *
+ * AuditCheckObjectResult
  */
-public enum ReportStatus {
-    OK, WARNING, KO;
+public class AuditCheckObjectResult {
+    /**
+     * Id of object
+     */
+    private String idObject;
+    /**
+     * Statuses by offer
+     */
+    private final Map<String, StatusCode> offerStatuses = new HashMap<String, StatusCode>();
 
-    public static ReportStatus parseFromStatusCode(StatusCode statusCode) {
-        ReportStatus reportStatus = null;
-        if (statusCode != null) {
-            switch (statusCode) {
-            case OK:
-                reportStatus = ReportStatus.OK;
-                break;
-            case WARNING:
-                reportStatus = ReportStatus.WARNING;
-                break;
-            case KO:
-                reportStatus = ReportStatus.KO;
-                break;
-            default:
-                throw new IllegalArgumentException("StatusCode invalid from ReportStatus");
-            }
+    public String getIdObject() {
+        return idObject;
+    }
+
+    public void setIdObject(String idObject) {
+        this.idObject = idObject;
+    }
+
+    public Map<String, StatusCode> getOfferStatuses() {
+        return offerStatuses;
+    }
+
+    /**
+     * Compute global status from max status
+     * 
+     * @return globale status
+     */
+    public StatusCode getGlobalStatus() {
+        if (!offerStatuses.values().isEmpty()) {
+            return offerStatuses.values().stream().max(Comparator.comparing(StatusCode::getStatusLevel)).orElse(null);
         }
-        return reportStatus;
+        return null;
     }
 
 }

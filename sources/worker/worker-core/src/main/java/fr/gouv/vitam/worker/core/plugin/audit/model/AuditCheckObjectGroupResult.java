@@ -24,52 +24,58 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.preservation;
-
-import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.collections4.iterators.PeekingIterator;
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
+package fr.gouv.vitam.worker.core.plugin.audit.model;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
+
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * GroupByObjectIterator class
+ * AuditCheckObjectGroupResult.
  */
-public class GroupByObjectIterator implements Iterator<Pair<String, List<String>>> {
+public class AuditCheckObjectGroupResult {
+    /**
+     * Id of object group
+     */
+    private String idObjectGroup;
+    /**
+     * List of object statuses
+     */
+    private List<AuditCheckObjectResult> objectStatuses = new ArrayList<AuditCheckObjectResult>();
+    /**
+     * Object group status
+     */
+    private StatusCode status;
 
-
-    private PeekingIterator<Pair<String, String>> iterator;
-
-    GroupByObjectIterator(Iterator<Pair<String, String>> iterator) {
-        this.iterator = (PeekingIterator<Pair<String, String>>) IteratorUtils.peekingIterator(iterator);
+    public String getIdObjectGroup() {
+        return idObjectGroup;
     }
 
-    @Override public boolean hasNext() {
-        return iterator.hasNext();
+    public void setIdObjectGroup(String idObjectGroup) {
+        this.idObjectGroup = idObjectGroup;
     }
 
-    @Override
-    public Pair<String, List<String>> next() {
+    public List<AuditCheckObjectResult> getObjectStatuses() {
+        return objectStatuses;
+    }
 
-        if (!iterator.hasNext()) {
-            throw new NoSuchElementException();
+    public StatusCode getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusCode status) {
+        this.status = status;
+    }
+
+    public StatusCode getObjectsGlobalStatus() {
+        if (objectStatuses != null) {
+            return objectStatuses.stream().map(object -> object.getGlobalStatus())
+                    .filter(objectStatus -> objectStatus != null).max(Comparator.comparing(StatusCode::getStatusLevel))
+                    .orElse(null);
         }
-
-        Pair<String, String> pair = iterator.next();
-
-        List<String> unitIds = new ArrayList<>();
-        unitIds.add(pair.getValue());
-
-        while (iterator.hasNext() && iterator.peek().getKey().equals(pair.getKey())) {
-
-            unitIds.add(iterator.next().getValue());
-        }
-
-        return new ImmutablePair<>(pair.getKey(), unitIds);
+        return null;
     }
+
 }
-

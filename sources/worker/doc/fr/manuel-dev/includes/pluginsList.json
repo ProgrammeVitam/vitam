@@ -55,16 +55,16 @@
 		"propertiesFile": "running_ingests_update_plugin.properties"
 	},
 	"AUDIT_CHECK_OBJECT": {
-		"className": "fr.gouv.vitam.worker.core.plugin.AuditCheckObjectPlugin",
+		"className": "fr.gouv.vitam.worker.core.plugin.audit.AuditCheckObjectPlugin",
 		"propertiesFile": "audit_check_object_plugin.properties"
 	},
-	"AUDIT_FILE_INTEGRITY": {
-		"className": "fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin",
-		"propertiesFile": "audit_integrity_object_plugin.properties"
+	"LIST_OBJECTGROUP_ID": {
+		"className": "fr.gouv.vitam.worker.core.plugin.audit.AuditPreparePlugin",
+		"propertiesFile": "audit_prepare_plugin.properties"
 	},
-	"AUDIT_FILE_EXISTING": {
-		"className": "fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin",
-		"propertiesFile": "audit_existence_object_plugin.properties"
+	"REPORT_AUDIT": {
+		"className": "fr.gouv.vitam.worker.core.plugin.audit.AuditFinalizePlugin",
+		"propertiesFile": "audit_finalize_plugin.properties"
 	},
 	"CREATE_MANIFEST": {
 		"className": "fr.gouv.vitam.worker.core.plugin.dip.CreateManifest",

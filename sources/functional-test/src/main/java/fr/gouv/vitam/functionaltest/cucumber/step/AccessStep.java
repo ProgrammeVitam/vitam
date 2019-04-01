@@ -1165,11 +1165,11 @@ public class AccessStep {
         String QUERY = null;
         auditStatus = null;
         if (action.equals("l'existence")) {
-            QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"originatingAgency\",objectId:\"" +
+            QUERY = "{auditActions:\"AUDIT_FILE_EXISTING\",auditType:\"originatingagency\",objectId:\"" +
                 originatingAgnecy +
                 "\"}";
         } else if (action.equals("l'intégrité")) {
-            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"originatingAgency\",objectId:\"" +
+            QUERY = "{auditActions:\"AUDIT_FILE_INTEGRITY\",auditType:\"originatingagency\",objectId:\"" +
                 originatingAgnecy +
                 "\"}";
         }

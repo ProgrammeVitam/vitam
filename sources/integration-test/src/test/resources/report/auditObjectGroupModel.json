@@ -1,0 +1,54 @@
+{
+	"processId": "123456789",
+	"reportType": "AUDIT",
+	"entries": [
+		{
+			"outcome": "outcome",
+			"detailType": "objectGroup",
+			"id": "auditObjectGroupDetailId",
+			"objectGroupId": "objectGroupId",
+			"originatingAgency": "originatingAgency",
+			"opi": "opi",
+			"parentUnitIds": [
+				"unitId"
+			],
+			"objectVersions": [
+				{
+					"id": "objectId1",
+					"opi": "objectOpi1",
+					"qualifier": "objectQualifier1",
+					"version": "objectVersion1",
+					"offerIds": [
+						{
+							"id": "offerId1",
+							"status": "OK"
+						},
+						{
+							"id": "offerId2",
+							"status": "KO"
+						}
+					],
+					"status": "KO"
+				},
+				{
+					"id": "objectId2",
+					"opi": "objectOpi2",
+					"qualifier": "objectQualifier2",
+					"version": "objectVersion2",
+					"offerIds": [
+						{
+							"id": "offerId1",
+							"status": "OK"
+						},
+						{
+							"id": "offerId2",
+							"status": "KO"
+						}
+					],
+					"status": "KO"
+				}
+			],
+			"status": "KO"
+		}
+	]
+}

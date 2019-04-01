@@ -24,35 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.worker.core.utils;
 
-import fr.gouv.vitam.common.model.StatusCode;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.collections4.iterators.PeekingIterator;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
- * List of status used in report.
- *
+ * GroupByObjectIterator class
  */
-public enum ReportStatus {
-    OK, WARNING, KO;
+public class GroupByObjectIterator implements Iterator<Pair<String, List<String>>> {
 
-    public static ReportStatus parseFromStatusCode(StatusCode statusCode) {
-        ReportStatus reportStatus = null;
-        if (statusCode != null) {
-            switch (statusCode) {
-            case OK:
-                reportStatus = ReportStatus.OK;
-                break;
-            case WARNING:
-                reportStatus = ReportStatus.WARNING;
-                break;
-            case KO:
-                reportStatus = ReportStatus.KO;
-                break;
-            default:
-                throw new IllegalArgumentException("StatusCode invalid from ReportStatus");
-            }
-        }
-        return reportStatus;
+
+    private PeekingIterator<Pair<String, String>> iterator;
+
+    public GroupByObjectIterator(Iterator<Pair<String, String>> iterator) {
+        this.iterator = (PeekingIterator<Pair<String, String>>) IteratorUtils.peekingIterator(iterator);
     }
 
+    @Override public boolean hasNext() {
+        return iterator.hasNext();
+    }
+
+    @Override
+    public Pair<String, List<String>> next() {
+
+        if (!iterator.hasNext()) {
+            throw new NoSuchElementException();
+        }
+
+        Pair<String, String> pair = iterator.next();
+
+        List<String> unitIds = new ArrayList<>();
+        unitIds.add(pair.getValue());
+
+        while (iterator.hasNext() && iterator.peek().getKey().equals(pair.getKey())) {
+
+            unitIds.add(iterator.next().getValue());
+        }
+
+        return new ImmutablePair<>(pair.getKey(), unitIds);
+    }
 }
+

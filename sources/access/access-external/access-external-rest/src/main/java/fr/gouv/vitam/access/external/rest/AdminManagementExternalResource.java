@@ -86,6 +86,8 @@ import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
+import fr.gouv.vitam.common.dsl.schema.ValidationException;
+import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
@@ -100,6 +102,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuditOptions;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -1910,13 +1913,18 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = "audits:create", description = "Lancer un audit de l'existance des objets")
-    public Response launchAudit(JsonNode options) {
+    public Response launchAudit(AuditOptions options) {
+        checkParameter("audit options", options);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            SanityChecker.checkJsonAll(options);
+            if (options.getQuery() != null) {
+                SanityChecker.checkJsonAll(options.getQuery());
+                BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
+                validator.validate(options.getQuery());
+            }
             RequestResponse<JsonNode> result = client.launchAuditWorkflow(options);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
-        } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
+        } catch (AdminManagementClientServerException | InvalidParseOperationException | ValidationException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
@@ -1924,6 +1932,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setState(CODE_VITAM)
                 .setMessage(status.getReasonPhrase())
                 .setDescription(e.getMessage())).build();
+        } catch (IOException e) {
+            LOGGER.error("Technical exception",e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
         }
     }
 

@@ -6,6 +6,7 @@ uses:
   StandardTypes: StandardTypes.raml
   StandardTraits: StandardTraits.raml
   AccessTypes: AccessTypes.raml
+  AdminTypes: AdminTypes.raml
   DslTypes: DslTypes.raml
 
 traits:
@@ -112,7 +113,8 @@ traits:
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.StandardHeader202 ]
     body:
       application/json:
-        description: Contient la requête spécifique au format JSON.
+        description: Contient les options de l'audit au format JSON.
+        schema: AdminTypes.AuditOptions
         example: !include examples/auditLaunchQuery.json
     responses:
       202:

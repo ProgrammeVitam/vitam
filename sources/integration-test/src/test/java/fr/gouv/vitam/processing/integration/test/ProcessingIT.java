@@ -36,7 +36,6 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoIterable;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -60,7 +59,6 @@ import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -72,10 +70,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
-import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
-import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -93,9 +89,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
-import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
@@ -107,7 +100,6 @@ import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
-import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.data.core.ProcessDataAccessImpl;
@@ -118,8 +110,6 @@ import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.worker.core.plugin.CheckExistenceObjectPlugin;
-import fr.gouv.vitam.worker.core.plugin.CheckIntegrityObjectPlugin;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -190,7 +180,6 @@ public class ProcessingIT extends VitamRuleRunner {
                     ));
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
-    private static final String OG_ATTACHEMENT_ID = "aebaaaaaaacu6xzeabinwak6t5ecmmaaaaaq";
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
     private static final String SIP_FILE_WRONG_DATE = "integration-processing/SIP_INGEST_WRONG_DATE.zip";
@@ -618,104 +607,6 @@ public class ProcessingIT extends VitamRuleRunner {
             Document storageVersion = (Document) version.get("_storage");
             assertThat(storageVersion.get("_nbc")).isNotNull();
             assertThat(storageVersion.get("_nbc")).isEqualTo(1);
-        }
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testAudit() throws Exception {
-        prepareVitamSession();
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-             LogbookLifeCyclesClient logbookLFCClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
-             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
-
-
-            metaDataClient.insertObjectGroup(
-                    new InsertMultiQuery()
-                            .addData((ObjectNode) JsonHandler
-                                    .getFromFile(PropertiesUtils.getResourceFile("integration-processing/og_metadata.json")))
-                            .getFinalInsert());
-
-            GUID logLfcId = GUIDFactory.newOperationLogbookGUID(tenantId);
-            logbookLFCClient.create(
-                    LogbookParametersFactory.newLogbookLifeCycleObjectGroupParameters(
-                            logLfcId,
-                            "INGEST",
-                            logLfcId,
-                            LogbookTypeProcess.INGEST,
-                            StatusCode.OK,
-                            "Process_SIP_unitary.OK",
-                            OG_ATTACHEMENT_ID,
-                            GUIDReader.getGUID(OG_ATTACHEMENT_ID)));
-            logbookLFCClient.commitObjectGroup(logLfcId.getId(), OG_ATTACHEMENT_ID);
-            GUID opIngestId = GUIDFactory.newOperationLogbookGUID(tenantId);
-
-            LogbookOperationParameters newLogbookOperationParameters =
-                    LogbookParametersFactory.newLogbookOperationParameters(
-                            opIngestId,
-                            "PROCESS_SIP_UNITARY",
-                            opIngestId,
-                            LogbookTypeProcess.INGEST,
-                            StatusCode.STARTED,
-                            "PROCESS_SIP_UNITARY.STARTED",
-                            opIngestId);
-
-            newLogbookOperationParameters.putParameterValue(
-                    LogbookParameterName.agIdExt, "{\"originatingAgency\":\"Vitam\"}");
-            logbookClient.create(newLogbookOperationParameters);
-            newLogbookOperationParameters.putParameterValue(
-                    LogbookParameterName.outcomeDetail, "PROCESS_SIP_UNITARY.OK");
-
-            logbookClient.update(newLogbookOperationParameters);
-
-            AccessionRegisterDetailModel register = new AccessionRegisterDetailModel();
-            GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);
-            register.setId(guid.toString());
-            register.setOpc("OP_GROUP");
-            register.setOpi("OP_GROUP");
-            register.setTenant(tenantId);
-            register.setOriginatingAgency("Vitam");
-            register.setTotalObjects(new RegisterValueDetailModel().setIngested(1));
-            register.setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(1));
-            register.setTotalUnits(new RegisterValueDetailModel().setIngested(1));
-            register.setObjectSize(new RegisterValueDetailModel().setIngested(1));
-            register.setEndDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
-            register.setStartDate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
-            register.setLastUpdate(LocalDateUtil.getFormattedDateForMongo("01/01/2017"));
-            functionalClient.createorUpdateAccessionRegister(register);
-
-            // Test Audit
-            final GUID opId = GUIDFactory.newRequestIdGUID(tenantId);
-            final String auditId = opId.toString();
-
-            final GUID operationAuditGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
-            VitamThreadUtils.getVitamSession().setRequestId(operationAuditGuid);
-            createLogbookOperation(operationAuditGuid, opId, "PROCESS_AUDIT", LogbookTypeProcess.AUDIT);
-            final ProcessingEntry entry = new ProcessingEntry(auditId, Contexts.AUDIT_WORKFLOW.name());
-            entry.getExtraParams().put("objectId", "0");
-            entry.getExtraParams().put("auditType", "tenant");
-            entry.getExtraParams().put("auditActions",
-                    CheckExistenceObjectPlugin.getId() + "," + CheckIntegrityObjectPlugin.getId());
-            processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-            processingClient.initVitamProcess(entry);
-
-            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), auditId);
-
-            wait(auditId);
-
-            ProcessWorkflow processAuditWorkflow = processMonitoring.findOneProcessWorkflow(auditId, tenantId);
-            assertNotNull(processAuditWorkflow);
-            assertEquals(ProcessState.COMPLETED, processAuditWorkflow.getState());
-            assertEquals(StatusCode.OK, processAuditWorkflow.getStatus());
-
-            fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                    new fr.gouv.vitam.common.database.builder.request.single.Select();
-            selectQuery.setQuery(QueryHelper.eq("evTypeProc", "AUDIT"));
-            JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
-            JsonNode logbookNode = logbookResult.get("$results").get(0);
-            assertEquals(logbookNode.get(LogbookMongoDbName.eventDetailData.getDbname()).asText(),
-                    "{\n  \"Vitam\" : {\n    \"OK\" : 1,\n    \"KO\" : 0,\n    \"WARNING\" : 0\n  }\n}");
         }
     }
 

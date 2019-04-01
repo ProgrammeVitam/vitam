@@ -1,4 +1,19 @@
 {
-  auditType:"tenant",
-  objectId:"0"
+  "auditActions": "AUDIT_FILE_EXISTING",
+  "auditType": "dsl",
+  "query": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+        "#operations": [
+            "aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq",
+            "aecaaaaabohmh3nzab37maljtitg4viaaaaq",
+            "aedqaaaaaohmh3nzab37maljtithxsyaaaaq"
+          ]
+        }
+      }
+    ],
+    "$threshold": 1000
+  }
 }

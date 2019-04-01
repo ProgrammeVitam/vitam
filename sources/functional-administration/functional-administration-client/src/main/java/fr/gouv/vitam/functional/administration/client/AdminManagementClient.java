@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.model.AuditOptions;
 import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -491,7 +492,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<JsonNode> launchAuditWorkflow(JsonNode options)
+    RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options)
         throws AdminManagementClientServerException;
 
     /**

@@ -1,0 +1,190 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [{
+    "_id": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+    "evId": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+    "evParentId": null,
+    "evType": "PROCESS_AUDIT",
+    "evDateTime": "2019-04-02T08:29:27.567",
+    "evDetData": null,
+    "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+    "evTypeProc": "AUDIT",
+    "outcome": "STARTED",
+    "outDetail": "PROCESS_AUDIT.STARTED",
+    "outMessg": "Début de l'audit",
+    "agId": "{\"Name\":\"vitam-env-ga-vm-1\",\"Role\":\"functional-administration\",\"ServerId\":1050903911,\"SiteId\":1,\"GlobalPlatformId\":245597543}",
+    "agIdApp": "CT-000001",
+    "agIdPers": null,
+    "evIdAppSession": "MyApplicationId-ChangeIt",
+    "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+    "agIdExt": null,
+    "rightsStatementIdentifier": "{\"AccessContract\":\"ContratTNR\"}",
+    "obId": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+    "obIdReq": null,
+    "obIdIn": null,
+    "events": [
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvn3ciaaaba",
+            "evParentId": null,
+            "evType": "STP_PREPARE_AUDIT.STARTED",
+            "evDateTime": "2019-04-02T08:29:27.818",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_PREPARE_AUDIT.STARTED.OK",
+            "outMessg": "Début du processus de préparation de l'audit",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "obId": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvn3ciaaaaq",
+            "evParentId": null,
+            "evType": "STP_PREPARE_AUDIT",
+            "evDateTime": "2019-04-02T08:29:28.140",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_PREPARE_AUDIT.OK",
+            "outMessg": "Succès du processus de préparation de l'audit",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "obId": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvn5taaaaaq",
+            "evParentId": "aedqaaaaachlmb32aaybkalj3uvn3ciaaaaq",
+            "evType": "CHECK_DISTRIBUTION_THRESHOLD",
+            "evDateTime": "2019-04-02T08:29:28.140",
+            "evDetData": "{}",
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "CHECK_DISTRIBUTION_THRESHOLD.OK",
+            "outMessg": "Succès de la vérification des seuils de limitation de traitement des unités archivistiques Detail=  OK:1",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvn5taaaaba",
+            "evParentId": "aedqaaaaachlmb32aaybkalj3uvn3ciaaaaq",
+            "evType": "LIST_OBJECTGROUP_ID",
+            "evDateTime": "2019-04-02T08:29:28.140",
+            "evDetData": "{}",
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "LIST_OBJECTGROUP_ID.OK",
+            "outMessg": "Succès de la création de la liste des groupes d'objets à auditer Detail=  OK:1",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvn63iaaaba",
+            "evParentId": null,
+            "evType": "STP_AUDIT.STARTED",
+            "evDateTime": "2019-04-02T08:29:28.301",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_AUDIT.STARTED.OK",
+            "outMessg": "Début du processus d'exécution de l'audit",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "obId": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvn63iaaaaq",
+            "evParentId": null,
+            "evType": "STP_AUDIT",
+            "evDateTime": "2019-04-02T08:29:29.567",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "KO",
+            "outDetail": "STP_AUDIT.KO",
+            "outMessg": "Échec du processus d'exécution de l'audit",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "obId": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvoixyaaaaq",
+            "evParentId": "aedqaaaaachlmb32aaybkalj3uvn63iaaaaq",
+            "evType": "AUDIT_CHECK_OBJECT",
+            "evDateTime": "2019-04-02T08:29:29.567",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "KO",
+            "outDetail": "AUDIT_CHECK_OBJECT.AUDIT_FILE_INTEGRITY.KO",
+            "outMessg": "Échec de l'audit de l'existence et de l'intégrité des objets Detail=  OK:91 KO:1",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvoixyaaaba",
+            "evParentId": "aedqaaaaachlmb32aaybkalj3uvoixyaaaaq",
+            "evType": "AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT",
+            "evDateTime": "2019-04-02T08:29:29.567",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "KO",
+            "outDetail": "AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT.KO",
+            "outMessg": "Échec de l'audit de l'existence et de l'intégrité des objets Detail=  OK:91 KO:1",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlmb32aaybkalj3uvoksqaaaaq",
+            "evParentId": null,
+            "evType": "STP_FINALISE_AUDIT.STARTED",
+            "evDateTime": "2019-04-02T08:29:29.802",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_FINALISE_AUDIT.STARTED.OK",
+            "outMessg": "Début du processus de finalisation de l'audit",
+            "agId": "{\"Name\":\"vitam-env-ga-vm-2\",\"Role\":\"processing\",\"ServerId\":1052116858,\"SiteId\":1,\"GlobalPlatformId\":246810490}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq",
+            "obId": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+        }
+    ],
+    "_tenant": 0,
+    "_v": 7,
+    "_lastPersistedDate": "2019-04-02T08:29:30.077"
+}],
+  "$context": {
+    "$query": {
+      "$and": [
+        {
+          "$eq": {
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+          }
+        }
+      ]
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

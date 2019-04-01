@@ -24,35 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.batch.report.model;
-
-import fr.gouv.vitam.common.model.StatusCode;
-
 /**
- * List of status used in report.
- *
+ * Provides classes for the Audit Workflow. 
  */
-public enum ReportStatus {
-    OK, WARNING, KO;
-
-    public static ReportStatus parseFromStatusCode(StatusCode statusCode) {
-        ReportStatus reportStatus = null;
-        if (statusCode != null) {
-            switch (statusCode) {
-            case OK:
-                reportStatus = ReportStatus.OK;
-                break;
-            case WARNING:
-                reportStatus = ReportStatus.WARNING;
-                break;
-            case KO:
-                reportStatus = ReportStatus.KO;
-                break;
-            default:
-                throw new IllegalArgumentException("StatusCode invalid from ReportStatus");
-            }
-        }
-        return reportStatus;
-    }
-
-}
+package fr.gouv.vitam.worker.core.plugin.audit;

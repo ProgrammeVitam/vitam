@@ -1,0 +1,37 @@
+{
+	"id": "aebaaaaaaahgotryaauzialjp5zkhgyaaaaq",
+	"params": {
+		"id": "aebaaaaaaahgotryaauzialjp5zkhgyaaaaq",
+		"opi": "aeeaaaaaachfa7z2aamwwaljp5zj3kqaaaaq",
+		"sp": "RATP",
+		"unitUps": [
+			"aeaqaaaaaahgotryaauzialjp5zkhryaaaaq"
+		],
+		"objects": [
+			{
+				"id": "aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq",
+				"opi": "aeeaaaaaachfa7z2aamwwaljp5zj3kqaaaaq",
+				"qualifier": "BinaryMaster",
+				"version": "BinaryMaster_1",
+				"MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+				"Algorithm": "SHA-512",
+				"storage": {
+					"strategyId": "default",
+					"#nbc": "2",
+					"offerIds": [
+						"offer-fs-1.service.int.consul",
+						"offer-fs-2.service.int.consul"
+					]
+				}
+			}
+		],
+		"storage": {
+			"strategyId": "default",
+			"#nbc": "2",
+			"offerIds": [
+				"offer-fs-1.service.int.consul",
+				"offer-fs-2.service.int.consul"
+			]
+		}
+	}
+}

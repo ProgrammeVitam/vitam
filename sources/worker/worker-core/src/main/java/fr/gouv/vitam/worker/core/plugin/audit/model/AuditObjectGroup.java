@@ -24,35 +24,89 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.worker.core.plugin.audit.model;
 
-import fr.gouv.vitam.common.model.StatusCode;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import fr.gouv.vitam.common.model.objectgroup.StorageRacineModel;
 
 /**
- * List of status used in report.
- *
+ * AuditObjectGroup
  */
-public enum ReportStatus {
-    OK, WARNING, KO;
+public class AuditObjectGroup {
+    @JsonProperty("id")
+    private String id;
+    @JsonProperty("opi")
+    private String opi;
+    @JsonProperty("sp")
+    private String sp;
+    @JsonProperty("unitUps")
+    private List<String> unitUps;
+    @JsonProperty("objects")
+    private List<AuditObject> objects;
+    @JsonProperty("storage")
+    private StorageRacineModel storage;
 
-    public static ReportStatus parseFromStatusCode(StatusCode statusCode) {
-        ReportStatus reportStatus = null;
-        if (statusCode != null) {
-            switch (statusCode) {
-            case OK:
-                reportStatus = ReportStatus.OK;
-                break;
-            case WARNING:
-                reportStatus = ReportStatus.WARNING;
-                break;
-            case KO:
-                reportStatus = ReportStatus.KO;
-                break;
-            default:
-                throw new IllegalArgumentException("StatusCode invalid from ReportStatus");
-            }
-        }
-        return reportStatus;
+    public AuditObjectGroup() {
     }
 
+    public AuditObjectGroup(String id, String opi, String sp, List<String> unitUps, List<AuditObject> objects,
+            StorageRacineModel storage) {
+        this.id = id;
+        this.opi = opi;
+        this.sp = sp;
+        this.unitUps = unitUps;
+        this.objects = objects;
+        this.storage = storage;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getOpi() {
+        return opi;
+    }
+
+    public void setOpi(String opi) {
+        this.opi = opi;
+    }
+
+    public String getSp() {
+        return sp;
+    }
+
+    public void setSp(String sp) {
+        this.sp = sp;
+    }
+
+    public List<String> getUnitUps() {
+        return unitUps;
+    }
+
+    public void setUnitUps(List<String> unitUps) {
+        this.unitUps = unitUps;
+    }
+
+    public List<AuditObject> getObjects() {
+        return objects;
+    }
+
+    public void setObjects(List<AuditObject> objects) {
+        this.objects = objects;
+    }
+
+    public StorageRacineModel getStorage() {
+        return storage;
+    }
+
+    public void setStorage(StorageRacineModel storage) {
+        this.storage = storage;
+    }
 }

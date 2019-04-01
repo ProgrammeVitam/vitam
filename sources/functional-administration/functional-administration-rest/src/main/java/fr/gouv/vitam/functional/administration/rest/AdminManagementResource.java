@@ -74,11 +74,15 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestSingle;
+import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.ServiceName;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
@@ -91,6 +95,7 @@ import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.AuditOptions;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -152,6 +157,7 @@ import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClient;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 
 /**
@@ -171,8 +177,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
     private final static String OPERATIONS_PATH = "logbookoperations";
 
-    private static final String OPTIONS_IS_MANDATORY_PATAMETER =
-        "The json option is mandatory";
+    private static final String OPTIONS_IS_MANDATORY_PARAMETER =
+            "The json option is mandatory";
 
     private final static String ORIGINATING_AGENCY = "OriginatingAgency";
 
@@ -191,7 +197,7 @@ public class AdminManagementResource extends ApplicationStatusResource {
     /**
      * Audit actions constant
      */
-    public static final String ACTION_LIST = "auditActions";
+    public static final String AUDIT_ACTIONS = "auditActions";
     private final MongoDbAccessAdminImpl mongoAccess;
     private final ElasticsearchAccessFunctionalAdmin elasticsearchAccess;
     private VitamCounterService vitamCounterService;
@@ -786,67 +792,57 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response launchAudit(JsonNode options) {
-        ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PATAMETER, options);
-        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
-            .getClient()) {
+    public Response launchAudit(AuditOptions options) {
+        ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PARAMETER, options);
+        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
+                WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
             final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-            final ProcessingEntry entry =
-                new ProcessingEntry(VitamThreadUtils.getVitamSession().getRequestId(), Contexts.AUDIT_WORKFLOW.name());
-            if (options.get(AUDIT_TYPE) == null || options.get(OBJECT_ID) == null) {
-                final Status status = Status.PRECONDITION_FAILED;
-                return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription("Missing mandatory parameter.")).build();
-            }
-            final String auditType = options.get(AUDIT_TYPE).textValue();
-            if (auditType.toLowerCase().equals("tenant")) {
-                if (!options.get(OBJECT_ID).textValue().equals(String.valueOf(tenantId))) {
-                    final Status status = Status.PRECONDITION_FAILED;
-                    return Response.status(status)
-                        .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                            .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                            .setState("code_vitam")
-                            .setMessage(status.getReasonPhrase())
-                            .setDescription("Invalid tenant parameter."))
-                        .build();
-                }
-            } else if (auditType.toLowerCase().equals(ORIGINATING_AGENCY.toLowerCase())) {
-                RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
-                Select selectRequest = new Select();
-                selectRequest.setQuery(QueryHelper.eq(ORIGINATING_AGENCY,
-                    options.get(OBJECT_ID).textValue()));
-                fileFundRegisters = findFundRegisters(selectRequest.getFinalSelect());
-                if (fileFundRegisters.getResults().size() == 0) {
-                    final Status status = Status.PRECONDITION_FAILED;
-                    return Response.status(status)
-                        .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                            .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                            .setState("code_vitam")
-                            .setMessage(status.getReasonPhrase())
-                            .setDescription("Invalid originating agency parameter."))
-                        .build();
-                }
-            } else {
-                final Status status = Status.PRECONDITION_FAILED;
-                return Response.status(status).entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(ServiceName.EXTERNAL_ACCESS.getName())
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription("Invalid audit type parameter.")).build();
-            }
-            createAuditLogbookOperation();
-            entry.getExtraParams().put(OBJECT_ID, options.get(OBJECT_ID).textValue());
-            entry.getExtraParams().put(AUDIT_TYPE, options.get(AUDIT_TYPE).textValue());
-            entry.getExtraParams().put(ACTION_LIST, options.get(ACTION_LIST).textValue());
-            processingClient.initVitamProcess(entry);
-            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
-                VitamThreadUtils.getVitamSession().getRequestId());
+            final String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
-            return Response.status(Status.ACCEPTED).entity(new RequestResponseOK()
-                .setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+            if(contract == null) {
+                throw new AccessUnauthorizedException("Contract Not Found");
+            }
+            
+            validateAuditOptions(options, tenantId);
+
+            final ProcessingEntry entry = new ProcessingEntry(operationId, Contexts.AUDIT_WORKFLOW.name());
+
+            entry.getExtraParams().put(AUDIT_TYPE, options.getAuditType());
+            entry.getExtraParams().put(OBJECT_ID, options.getObjectId());
+            entry.getExtraParams().put(AUDIT_ACTIONS, options.getAuditActions());
+
+            workspaceClient.createContainer(operationId);
+
+            createAuditLogbookOperation(operationId, contract);
+
+            SelectMultiQuery selectQuery = new SelectMultiQuery();
+            if ("tenant".equals(options.getAuditType())) {
+                selectQuery.setQuery(
+                        QueryHelper.eq(BuilderToken.PROJECTIONARGS.TENANT.exactToken(), options.getObjectId()));
+            } else if ("originatingagency".equals(options.getAuditType())) {
+                selectQuery.setQuery(QueryHelper.in(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken(),
+                        options.getObjectId()));
+            } else if ("dsl".equals(options.getAuditType())) {
+                final SelectParserMultiple parser = new SelectParserMultiple();
+                parser.parse(options.getQuery().deepCopy());
+                selectQuery = parser.getRequest();
+            }
+
+            JsonNode restrictedQuery = AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForObjectGroupForSelect(selectQuery.getFinalSelect(), contract);
+            //for CheckThresholdHandler
+            workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(restrictedQuery));
+
+            processingClient.initVitamProcess(entry);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationId);
+
+            return Response.status(Status.ACCEPTED)
+                    .entity(new RequestResponseOK().setHttpCode(Status.ACCEPTED.getStatusCode())).build();
+        } catch (BadRequestException exp) {
+            LOGGER.error(exp);
+            final Status status = Status.PRECONDITION_FAILED;
+            return Response.status(status).entity(getErrorEntity(status, exp.getMessage())).build();
         } catch (Exception exp) {
             LOGGER.error(exp);
             final Status status = INTERNAL_SERVER_ERROR;
@@ -974,7 +970,49 @@ public class AdminManagementResource extends ApplicationStatusResource {
         }
     }
 
-
+    private void validateAuditOptions(AuditOptions options, final int tenantId) throws InvalidCreateOperationException,
+            InvalidParseOperationException, AccessUnauthorizedException, ReferentialException, BadRequestException {
+        String errorMessage = null;
+        if (options.getAuditType() == null) {
+            errorMessage = "The field auditType is mandatory";
+        } else if (options.getAuditActions() == null) {
+            errorMessage = "The field auditActions is mandatory";
+        } else {
+            switch (options.getAuditType()) {
+            case "tenant":
+                if (StringUtils.isBlank(options.getObjectId())) {
+                    errorMessage = "The field objectId is mandatory with auditType " + options.getAuditType();
+                } else if (!options.getObjectId().equals(String.valueOf(tenantId))) {
+                    errorMessage = "Invalid tenant parameter";
+                }
+                break;
+            case "originatingagency":
+                if (StringUtils.isBlank(options.getObjectId())) {
+                    errorMessage = "The field objectId is mandatory with auditType " + options.getAuditType();
+                } else {
+                    RequestResponseOK<AccessionRegisterSummary> fileFundRegisters;
+                    Select selectRequest = new Select();
+                    selectRequest.setQuery(QueryHelper.eq(ORIGINATING_AGENCY, options.getObjectId()));
+                    fileFundRegisters = findFundRegisters(selectRequest.getFinalSelect());
+                    if (fileFundRegisters.getResults().size() == 0) {
+                        errorMessage = "Invalid originating agency parameter";
+                    }
+                }
+                break;
+            case "dsl":
+                if (options.getQuery() == null) {
+                    errorMessage = "The field query is mandatory with auditType " + options.getAuditType();
+                }
+                break;
+            default:
+                errorMessage = "Invalid audit type parameter";
+                break;
+            }
+        }
+        if (errorMessage != null) {
+            throw new BadRequestException(errorMessage);
+        }
+    }
 
     private AccessContractModel getContractDetails(String contractId)
         throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException {
@@ -1005,27 +1043,23 @@ public class AdminManagementResource extends ApplicationStatusResource {
     }
 
 
-    private void createAuditLogbookOperation()
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        InvalidGuidOperationException, InvalidCreateOperationException, ReferentialException,
-        InvalidParseOperationException {
-        final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        final GUID objectId = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
+    private void createAuditLogbookOperation(String operationId, AccessContractModel contract)
+            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
+            InvalidGuidOperationException, InvalidCreateOperationException, ReferentialException,
+            InvalidParseOperationException {
+        final GUID objectId = GUIDReader.getGUID(operationId);
 
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                objectId, Contexts.AUDIT_WORKFLOW.getEventType(), objectId,
-                LogbookTypeProcess.AUDIT, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(Contexts.AUDIT_WORKFLOW.getEventType(), StatusCode.STARTED),
-                objectId);
+                    objectId, Contexts.AUDIT_WORKFLOW.getEventType(), objectId, LogbookTypeProcess.AUDIT,
+                    StatusCode.STARTED,
+                    VitamLogbookMessages.getCodeOp(Contexts.AUDIT_WORKFLOW.getEventType(), StatusCode.STARTED),
+                    objectId);
 
-            // Add access contract rights
-            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
             ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
-            rightsStatementIdentifier
-                .put(ACCESS_CONTRACT, contract.getIdentifier());
+            rightsStatementIdentifier.put(ACCESS_CONTRACT, contract.getIdentifier());
             initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                rightsStatementIdentifier.toString());
+                    rightsStatementIdentifier.toString());
 
             logbookClient.create(initParameters);
         }
