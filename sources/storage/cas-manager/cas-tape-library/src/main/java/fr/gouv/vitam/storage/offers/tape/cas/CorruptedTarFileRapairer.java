@@ -34,6 +34,7 @@ import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.io.input.TaggedInputStream;
 
 import java.io.IOException;
@@ -52,7 +53,8 @@ public class CorruptedTarFileRapairer {
         throws IOException {
 
         try (InputStream inputStream = Files.newInputStream(corruptedInputTarFile, StandardOpenOption.READ);
-            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
+            CloseShieldInputStream closeShieldInputStream = new CloseShieldInputStream(inputStream);
+            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(closeShieldInputStream);
             TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream)) {
 
             List<TarEntryDescription> tarEntryDescriptions = new ArrayList<>();

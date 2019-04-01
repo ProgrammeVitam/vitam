@@ -26,13 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.process;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import joptsimple.internal.Strings;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class ProcessExecutor {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessExecutor.class);
+
     private final static ProcessExecutor instance = new ProcessExecutor();
     public static final String SUDO = "sudo";
 
@@ -60,19 +69,37 @@ public class ProcessExecutor {
             command.addAll(args);
         }
 
+        String operationId = GUIDFactory.newGUID().toString();
+        LOGGER.info("[" + operationId + "] < Running '" + Strings.join(command, "' '") + "' with timeout " +
+            timeoutInMilliseconds);
+        Stopwatch started = Stopwatch.createStarted();
+
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         Process process = null;
+        Output result;
         try {
             process = processBuilder.start();
             boolean processExit = process.waitFor(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
             if (processExit) {
-                return new Output(process, process.exitValue(), processBuilder);
+                result = new Output(process, process.exitValue(), processBuilder);
             } else {
-                return new Output(process, Output.EXIT_CODE_WAIT_FOR_TIMEOUT, processBuilder);
+                result = new Output(process, Output.EXIT_CODE_WAIT_FOR_TIMEOUT, processBuilder);
             }
         } catch (Exception e) {
-            return new Output(e, process, processBuilder);
+            result = new Output(e, process, processBuilder);
         }
+
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("[" + operationId + "] Response details : " + JsonHandler.unprettyPrint(result));
+        }
+
+        if (0 == result.getExitCode()) {
+            LOGGER.info("[" + operationId + "] > Success (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");
+        } else {
+            LOGGER.error("[" + operationId + "] > KO " + JsonHandler.unprettyPrint(result)
+                + " (" + started.elapsed(TimeUnit.MILLISECONDS) + " ms)");
+        }
+        return result;
     }
 
     /**

@@ -374,7 +374,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             throw new ReadWriteException(
                 MSG_PREFIX + ", Error: can't write, current tape is null.", ReadWriteErrorCode.NULL_CURRENT_TAPE);
         }
-        if (workerCurrentTape.getFileCount() != workerCurrentTape.getCurrentPosition()) {
+        if (!workerCurrentTape.getFileCount().equals(workerCurrentTape.getCurrentPosition())) {
             if (workerCurrentTape.getFileCount() < workerCurrentTape.getCurrentPosition()) {
                 throw new ReadWriteException(
                     MSG_PREFIX + ", Error: current position must be <= to fileCount.",

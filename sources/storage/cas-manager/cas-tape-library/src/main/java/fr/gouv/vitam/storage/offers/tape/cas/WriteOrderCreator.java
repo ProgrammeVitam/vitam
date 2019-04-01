@@ -139,15 +139,13 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
                         if (fileGroup.tmpFileName != null) {
 
                             if (fileGroup.readyTarFileName != null) {
-                                LOGGER.warn("Deleting incomplete " + LocalFileUtils.TAR_EXTENSION + " file " +
-                                    fileGroup.readyTarFileName);
+                                LOGGER.warn("Deleting incomplete file " + fileGroup.readyTarFileName);
                                 Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
                                 fileGroup.readyTarFileName = null;
                             }
 
                             if (fileGroup.repairFileName != null) {
-                                LOGGER.warn("Deleting incomplete " + LocalFileUtils.REPAIR_EXTENSION + " file " +
-                                    fileGroup.repairFileName);
+                                LOGGER.warn("Deleting incomplete file " + fileGroup.repairFileName);
                                 Files.delete(fileBucketTarStoragePath.resolve(fileGroup.repairFileName));
                                 fileGroup.repairFileName = null;
                             }
@@ -157,10 +155,7 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
                         } else if (fileGroup.repairFileName != null) {
 
                             if (fileGroup.readyTarFileName != null) {
-
-                                LOGGER.warn("Delete incomplete file " + fileGroup.readyTarFileName +
-                                    " from file " + fileGroup.repairFileName);
-
+                                LOGGER.warn("Delete incomplete file " + fileGroup.readyTarFileName);
                                 Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
                             }
 
@@ -208,14 +203,13 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
                             instanceof TapeLibraryReadyOnDiskTarStorageLocation) {
 
                             LOGGER.warn("Rescheduling tar file {} for copy on tape.", tarFile);
-                            this.addToQueue(
-                                new WriteOrder(
-                                    bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-                                    LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                                    tarReferentialEntity.get().getSize(),
-                                    tarReferentialEntity.get().getDigestValue()
-                                )
+                            WriteOrder message = new WriteOrder(
+                                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
+                                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
+                                tarReferentialEntity.get().getSize(),
+                                tarReferentialEntity.get().getDigestValue()
                             );
+                            this.addToQueue(message);
 
                         } else if (tarReferentialEntity.get().getLocation()
                             instanceof TapeLibraryBuildingOnDiskTarStorageLocation) {
@@ -231,14 +225,15 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
                             );
 
                             // Add to queue
-                            this.addToQueue(
-                                new WriteOrder(
-                                    bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-                                    LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                                    digestWithSize.size,
-                                    digestWithSize.digestValue
-                                )
+                            WriteOrder message = new WriteOrder(
+                                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
+                                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
+                                digestWithSize.size,
+                                digestWithSize.digestValue
                             );
+                            this.markAsReady(message);
+                            this.addToQueue(message);
+
                         } else {
                             throw new IllegalStateException(
                                 "Invalid tar location " + tarReferentialEntity.get().getLocation().getClass()
@@ -318,23 +313,15 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         Files.delete(corruptedTarFilePath);
         Files.move(repairedFilePath, finalFilePath, StandardCopyOption.ATOMIC_MOVE);
 
-
-        // Mark file as ready
-        tarReferentialRepository.updateLocationToReadyOnDisk(
-            tarId,
+        // Add to queue
+        WriteOrder message = new WriteOrder(
+            fileBucket,
+            LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
             digestWithSize.size,
             digestWithSize.digestValue
         );
-
-        // Add to queue
-        this.addToQueue(
-            new WriteOrder(
-                fileBucket,
-                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                digestWithSize.size,
-                digestWithSize.digestValue
-            )
-        );
+        markAsReady(message);
+        this.addToQueue(message);
     }
 
     @Override
@@ -342,16 +329,14 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         try {
 
             sendMessageToQueue(message);
-        } catch (QueueProcessingException ex) {
-            throw ex;
         } catch (Exception ex) {
             throw new QueueProcessingException(QueueProcessingException.RetryPolicy.RETRY,
-                "Could not post message queue.", ex);
+                "Could not process message " + JsonHandler.unprettyPrint(message), ex);
         }
     }
 
     private void sendMessageToQueue(WriteOrder message)
-        throws QueueProcessingException, QueueException {
+        throws TarReferentialException, QueueException {
 
         markAsReady(message);
 
@@ -359,18 +344,12 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         readWriteQueue.add(message);
     }
 
-    private void markAsReady(WriteOrder message) throws QueueProcessingException {
+    private void markAsReady(WriteOrder message) throws TarReferentialException {
         // Mark tar archive as "ready"
-        try {
-            this.tarReferentialRepository.updateLocationToReadyOnDisk(
-                message.getId(),
-                message.getSize(),
-                message.getDigest()
-            );
-        } catch (TarReferentialException e) {
-            throw new QueueProcessingException(
-                QueueProcessingException.RetryPolicy.RETRY,
-                "Could not mark tar file are ready", e);
-        }
+        this.tarReferentialRepository.updateLocationToReadyOnDisk(
+            message.getId(),
+            message.getSize(),
+            message.getDigest()
+        );
     }
 }

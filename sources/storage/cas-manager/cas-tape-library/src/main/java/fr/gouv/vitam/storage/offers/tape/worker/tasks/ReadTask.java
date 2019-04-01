@@ -308,11 +308,15 @@ public class ReadTask implements Future<ReadWriteResult> {
             if (response.isOK()) {
                 // rewind
                 response = moveToPosition(true, 0);
+            } else {
+                // FIXME?
             }
 
             if (response.isOK()) {
                 // update catalog
                 updateTapeLocation(new TapeLocation(driveIndex, TapeLocationType.DRIVE));
+            } else {
+                // FIXME?
             }
 
         } catch (InterruptedException e) {
@@ -363,6 +367,8 @@ public class ReadTask implements Future<ReadWriteResult> {
 
                 // release the tape
                 tapeCatalogService.markReady(workerCurrentTape.getId());
+            } else {
+                // FIXME?
             }
         } catch (InterruptedException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode(), e);
