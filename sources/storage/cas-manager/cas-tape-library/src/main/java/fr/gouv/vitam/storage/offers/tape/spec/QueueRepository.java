@@ -71,6 +71,10 @@ public interface QueueRepository {
      */
     long markReady(String queueMessageId) throws QueueException;
 
+
+    long initializeOnBootstrap();
+
+
     <T> Optional<T> receive(QueueMessageType messageType) throws QueueException;
 
     <T> Optional<T> receive(QueueMessageType messageType, boolean usePriority) throws QueueException;

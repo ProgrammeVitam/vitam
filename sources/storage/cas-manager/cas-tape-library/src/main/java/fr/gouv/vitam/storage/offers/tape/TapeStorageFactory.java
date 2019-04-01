@@ -62,6 +62,9 @@ public class TapeStorageFactory {
 
         QueueRepository readWriteQueue = tapeLibraryFactory.getReadWriteQueue();
 
+        // Change all running orders to ready state
+        readWriteQueue.initializeOnBootstrap();
+
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(configuration, objectReferentialRepository,
             tarReferentialRepository, bucketTopologyHelper, readWriteQueue);
         writeOrderCreator.initializeOnBootstrap();

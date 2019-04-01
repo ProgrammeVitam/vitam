@@ -73,11 +73,12 @@ public class TapeDriveWorker implements Runnable {
         TapeDriveOrderConsumer receiver,
         TapeCatalog currentTape,
         String inputTarPath) {
-        this.tapeCatalogService = tapeCatalogService;
-        this.inputTarPath = inputTarPath;
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService, tapeCatalogService,
                 receiver);
+
+        this.tapeCatalogService = tapeCatalogService;
+        this.inputTarPath = inputTarPath;
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.receiver = receiver;

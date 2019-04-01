@@ -34,7 +34,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
@@ -56,6 +55,7 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
+import org.apache.commons.lang3.NotImplementedException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -208,6 +208,11 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     @Override
     public long markReady(String queueId) throws QueueException {
         return repository.markReady(queueId);
+    }
+
+    @Override
+    public long initializeOnBootstrap() {
+        throw new NotImplementedException("Not implemented for this service");
     }
 
     @Override

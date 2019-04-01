@@ -41,6 +41,7 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
@@ -108,6 +109,16 @@ public class QueueRepositoryImpl implements QueueRepository {
                 Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())).getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);
+        }
+    }
+
+    @Override
+    public long initializeOnBootstrap() {
+        try {
+            return collection.updateMany(eq(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
+                Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())).getModifiedCount();
+        } catch (Exception e) {
+            throw new VitamRuntimeException(e);
         }
     }
 

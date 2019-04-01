@@ -97,6 +97,7 @@ public class TapeDriveWorkerTest {
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
+
     }
 
     @Test
