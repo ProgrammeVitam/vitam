@@ -26,6 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -36,6 +43,7 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
@@ -51,13 +59,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 public class TapeLibraryFactory {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibraryFactory.class);
@@ -72,6 +73,10 @@ public class TapeLibraryFactory {
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
         final TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
+        final TarReferentialRepository tarReferentialRepository =
+            new TarReferentialRepository(mongoDbAccess.getMongoDatabase()
+                .getCollection(OfferCollections.OFFER_TAR_REFERENTIAL.getName()));
+
         final QueueRepository queueRepository = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
             OfferCollections.OFFER_QUEUE.getName()));
 
@@ -132,7 +137,7 @@ public class TapeLibraryFactory {
 
             // Start all workers
             tapeDriveWorkerManagers
-                .put(tapeLibraryIdentifier, new TapeDriveWorkerManager(queueRepository, libraryPool, driveTape,
+                .put(tapeLibraryIdentifier, new TapeDriveWorkerManager(queueRepository, tarReferentialRepository, libraryPool, driveTape,
                     configuration.getInputTarStorageFolder()));
         }
 

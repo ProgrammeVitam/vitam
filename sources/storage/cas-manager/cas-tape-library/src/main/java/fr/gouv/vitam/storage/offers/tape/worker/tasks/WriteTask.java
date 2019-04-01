@@ -26,10 +26,42 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.exists;
-import static com.mongodb.client.model.Filters.or;
+import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.QueueState;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.engine.common.model.TapeState;
+import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
+import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.retry.Retry;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
+import org.apache.commons.io.FileUtils;
+import org.bson.conversions.Bson;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -45,38 +77,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
-import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
-import fr.gouv.vitam.storage.engine.common.model.QueueState;
-import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.engine.common.model.TapeCatalogLabel;
-import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
-import fr.gouv.vitam.storage.engine.common.model.TapeState;
-import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
-import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
-import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
-import fr.gouv.vitam.storage.offers.tape.retry.Retry;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
-import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
-import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
-import org.bson.conversions.Bson;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Filters.or;
 
 public class WriteTask implements Future<ReadWriteResult> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WriteTask.class);
@@ -93,6 +97,7 @@ public class WriteTask implements Future<ReadWriteResult> {
     protected boolean done = false;
 
     private TapeCatalog workerCurrentTape;
+    private final TarReferentialRepository tarReferentialRepository;
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
     private final TapeCatalogService tapeCatalogService;
@@ -102,7 +107,9 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     public WriteTask(
         WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
-        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService, String inputTarPath) {
+        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService,
+        TarReferentialRepository tarReferentialRepository, String inputTarPath) {
+        this.tarReferentialRepository = tarReferentialRepository;
         this.inputTarPath = inputTarPath;
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeRobotPool param is required.", tapeRobotPool);
@@ -133,6 +140,8 @@ public class WriteTask implements Future<ReadWriteResult> {
             } else {
                 loadTapeAndWrite(file);
             }
+
+            withRetryDoUpdateTarReferential(file);
 
             readWriteResult.setStatus(StatusCode.OK);
             readWriteResult.setOrderState(QueueState.COMPLETED);
@@ -221,6 +230,33 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         readWriteResult.setCurrentTape(workerCurrentTape);
         return readWriteResult;
+    }
+
+    private void withRetryDoUpdateTarReferential(File file) throws ReadWriteException {
+
+        Retry.Delegate delegate = () -> {
+            updateTarReferential(file);
+            return true;
+        };
+
+        withRetry(delegate);
+    }
+
+
+    private void updateTarReferential(File file) throws ReadWriteException {
+        try {
+            TapeLibraryOnTapeTarStorageLocation onTapeTarStorageLocation =
+                new TapeLibraryOnTapeTarStorageLocation(workerCurrentTape.getCode(), workerCurrentTape.getFileCount());
+
+            tarReferentialRepository.updateLocationToOnTape(writeOrder.getTarId(), onTapeTarStorageLocation);
+
+            FileUtils.deleteQuietly(file);
+
+        } catch (TarReferentialException e) {
+            throw new ReadWriteException(
+                MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update tar referential", e,
+                ReadWriteErrorCode.KO_DB_PERSIST);
+        }
     }
 
     private void unloadThenLoadTapeAndWrite(File file) throws ReadWriteException {
@@ -810,7 +846,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
                     TapeDriveSpec status = doDriveStatus(ReadWriteErrorCode.KO_ON_LOAD_THEN_STATUS);
 
-                    if (status.isEmptyDrive()) {
+                    if (!status.driveHasTape()) {
 
                         // Retry once
                         response = loadUnloadService.loadTape(slotIndex, driveIndex);
@@ -827,7 +863,6 @@ public class WriteTask implements Future<ReadWriteResult> {
                 workerCurrentTape.setCurrentLocation(
                     new TapeLocation(tapeDriveService.getTapeDriveConf().getIndex(), TapeLocationType.DRIVE));
 
-                // FIXME: 20/03/19 read label and check that there is no tape conflict . flag configurable
             } finally {
                 tapeRobotPool.pushRobotService(tapeRobotService);
             }

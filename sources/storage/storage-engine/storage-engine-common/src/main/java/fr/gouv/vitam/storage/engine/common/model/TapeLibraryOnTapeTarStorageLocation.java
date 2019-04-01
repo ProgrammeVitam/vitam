@@ -37,13 +37,13 @@ public class TapeLibraryOnTapeTarStorageLocation extends TapeLibraryTarStorageLo
     private String tapeCode;
 
     @JsonProperty(FILE_POSITION)
-    private String filePosition;
+    private Integer filePosition;
 
     public TapeLibraryOnTapeTarStorageLocation() {
         // Empty constructor for deserialization
     }
 
-    public TapeLibraryOnTapeTarStorageLocation(String tapeCode, String filePosition) {
+    public TapeLibraryOnTapeTarStorageLocation(String tapeCode, Integer filePosition) {
         this.tapeCode = tapeCode;
         this.filePosition = filePosition;
     }
@@ -57,11 +57,11 @@ public class TapeLibraryOnTapeTarStorageLocation extends TapeLibraryTarStorageLo
         return this;
     }
 
-    public String getFilePosition() {
+    public Integer getFilePosition() {
         return filePosition;
     }
 
-    public TapeLibraryOnTapeTarStorageLocation setFilePosition(String filePosition) {
+    public TapeLibraryOnTapeTarStorageLocation setFilePosition(Integer filePosition) {
         this.filePosition = filePosition;
         return this;
     }

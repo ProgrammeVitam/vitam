@@ -35,6 +35,7 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
+import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
@@ -44,10 +45,10 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
     private final Future<ReadWriteResult> readWriteTask;
 
     public ReadWriteTask(ReadWriteOrder order, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
-        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService, String inputTarPath) {
+        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService, TarReferentialRepository tarReferentialRepository, String inputTarPath) {
         if (order.isWriteOrder()) {
             readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeRobotPool, tapeDriveService,
-                tapeCatalogService, inputTarPath
+                tapeCatalogService, tarReferentialRepository, inputTarPath
             );
         } else {
             readWriteTask =

@@ -207,7 +207,8 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
                                 bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
                                 LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
                                 tarReferentialEntity.get().getSize(),
-                                tarReferentialEntity.get().getDigestValue()
+                                tarReferentialEntity.get().getDigestValue(),
+                                tarId
                             );
                             this.addToQueue(message);
 
@@ -229,7 +230,8 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
                                 bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
                                 LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
                                 digestWithSize.size,
-                                digestWithSize.digestValue
+                                digestWithSize.digestValue,
+                                tarId
                             );
                             this.markAsReady(message);
                             this.addToQueue(message);
@@ -318,7 +320,8 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
             fileBucket,
             LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
             digestWithSize.size,
-            digestWithSize.digestValue
+            digestWithSize.digestValue,
+            tarId
         );
         markAsReady(message);
         this.addToQueue(message);

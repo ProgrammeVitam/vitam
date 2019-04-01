@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialEntity;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
@@ -66,7 +65,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
@@ -229,8 +227,8 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
             this.bucketId,
             LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
             this.currentTarAppender.getBytesWritten(),
-            this.currentTarAppender.getDigestValue()
-        );
+            this.currentTarAppender.getDigestValue(),
+            this.currentTarAppender.getTarId());
         this.writeOrderCreator.addToQueue(writeOrder);
 
         this.currentTarAppender = null;

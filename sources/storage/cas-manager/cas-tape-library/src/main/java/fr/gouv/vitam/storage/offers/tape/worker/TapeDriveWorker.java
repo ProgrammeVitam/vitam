@@ -42,6 +42,7 @@ import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.retry.Retry;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -61,6 +62,7 @@ public class TapeDriveWorker implements Runnable {
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
     private final TapeCatalogService tapeCatalogService;
+    private final TarReferentialRepository tarReferentialRepository;
     private final AtomicBoolean stop = new AtomicBoolean(false);
     private ReadWriteResult readWriteResult;
     private final CountDownLatch shutdownSignal;
@@ -71,12 +73,15 @@ public class TapeDriveWorker implements Runnable {
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
         TapeDriveOrderConsumer receiver,
+        TarReferentialRepository tarReferentialRepository,
         TapeCatalog currentTape,
         String inputTarPath) {
         ParametersChecker
-            .checkParameter("All params is required required", tapeRobotPool, tapeDriveService, tapeCatalogService,
+            .checkParameter("All params is required required", tapeRobotPool, tapeDriveService,
+                tarReferentialRepository, tapeCatalogService,
                 receiver);
 
+        this.tarReferentialRepository = tarReferentialRepository;
         this.tapeCatalogService = tapeCatalogService;
         this.inputTarPath = inputTarPath;
         this.tapeRobotPool = tapeRobotPool;
@@ -143,7 +148,7 @@ public class TapeDriveWorker implements Runnable {
 
                     ReadWriteTask readWriteTask =
                         new ReadWriteTask(readWriteOrder, currentTape, tapeRobotPool, tapeDriveService,
-                            tapeCatalogService, inputTarPath);
+                            tapeCatalogService, tarReferentialRepository, inputTarPath);
                     readWriteResult = readWriteTask.get();
 
 
