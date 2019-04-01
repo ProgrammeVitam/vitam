@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl;
 
+import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
@@ -33,7 +34,7 @@ import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConf;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -41,15 +42,19 @@ import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
+import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadTask;
@@ -58,11 +63,11 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
@@ -80,14 +85,15 @@ public class TapeLibraryIT {
 
 
     @ClassRule
-    public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), OfferCollections.OFFER_TAPE_CATALOG.getName());
+    public static MongoRule mongoRule =
+        new MongoRule(getMongoClientOptions(), OfferCollections.OFFER_TAPE_CATALOG.getName());
 
 
     private static TapeLibraryFactory tapeLibraryFactory;
     private static TapeLibraryConfiguration configuration;
 
     @BeforeClass
-    public static void beforeClass() throws IOException {
+    public static void beforeClass() throws Exception {
         configuration =
             PropertiesUtils.readYaml(PropertiesUtils.findFile(OFFER_TAPE_TEST_CONF),
                 TapeLibraryConfiguration.class);
@@ -99,6 +105,99 @@ public class TapeLibraryIT {
         tapeLibraryFactory = TapeLibraryFactory.getInstance();
         mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeLibraryFactory.initialize(configuration, mongoDbAccess);
+
+        eraseAllTapes();
+    }
+
+    private static void eraseAllTapes() throws Exception {
+
+        TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
+        TapeRobotService tapeRobotService = null;
+        try {
+            tapeRobotService = tapeLibraryPool.checkoutRobotService();
+            TapeLoadUnloadService loadUnloadService = tapeRobotService.getLoadUnloadService();
+
+            TapeLibrarySpec status = loadUnloadService.status();
+            assertThat(status.isOK()).isTrue();
+
+            // Erase & unload tapes online in drives
+            for (TapeDrive tapeDrive : status.getDrives()) {
+
+                if (tapeDrive.getTape() != null) {
+                    TapeDriveService tapeDriveService = null;
+                    try {
+                        tapeDriveService = tapeLibraryPool.checkoutDriveService(tapeDrive.getIndex());
+
+                        TapeDriveCommandService driveCommandService = tapeDriveService.getDriveCommandService();
+                        TapeDriveConf tapeDriveConf = tapeDriveService.getTapeDriveConf();
+
+                        eraseTape(driveCommandService, tapeDriveConf);
+
+                        TapeResponse tapeResponse =
+                            loadUnloadService.unloadTape(tapeDrive.getTape().getSlotIndex(), tapeDrive.getIndex());
+                        assertThat(tapeResponse.isOK()).isTrue();
+
+                    } finally {
+                        if (tapeDriveService != null) {
+                            tapeLibraryPool.pushDriveService(tapeDriveService);
+                        }
+                    }
+                }
+            }
+
+            // Erase other tapes
+            TapeDrive firstTapeDrive = status.getDrives().get(0);
+
+            TapeDriveService tapeDriveService = null;
+            try {
+                tapeDriveService = tapeLibraryPool.checkoutDriveService(firstTapeDrive.getIndex());
+
+                TapeDriveCommandService driveCommandService = tapeDriveService.getDriveCommandService();
+                TapeDriveConf tapeDriveConf = tapeDriveService.getTapeDriveConf();
+
+                for (TapeSlot slot : status.getSlots()) {
+                    if (slot.getTape() != null) {
+
+                        TapeResponse loadResponse =
+                            loadUnloadService.loadTape(slot.getIndex(), firstTapeDrive.getIndex());
+                        assertThat(loadResponse.isOK()).isTrue();
+
+                        eraseTape(driveCommandService, tapeDriveConf);
+
+                        TapeResponse tapeResponse =
+                            loadUnloadService.unloadTape(slot.getIndex(), firstTapeDrive.getIndex());
+                        assertThat(tapeResponse.isOK()).isTrue();
+                    }
+                }
+
+            } finally {
+                if (tapeDriveService != null) {
+                    tapeLibraryPool.pushDriveService(tapeDriveService);
+                }
+            }
+
+        } finally {
+            if (tapeRobotService != null) {
+                tapeLibraryPool.pushRobotService(tapeRobotService);
+            }
+        }
+    }
+
+    private static void eraseTape(TapeDriveCommandService driveCommandService, TapeDriveConf tapeDriveConf) {
+
+        TapeResponse rewind = driveCommandService.rewind();
+        assertThat(rewind.isOK()).isTrue();
+
+        List<String> args = Lists.newArrayList("-f", tapeDriveConf.getDevice(), "erase");
+        Output output =
+            driveCommandService.getExecutor().execute(tapeDriveConf.getMtPath(),
+                tapeDriveConf.getTimeoutInMilliseconds(), args);
+        assertThat(output.getExitCode()).isEqualTo(0);
+    }
+
+    @Test
+    public void testInit() {
+
     }
 
     @AfterClass
@@ -377,7 +476,7 @@ public class TapeLibraryIT {
         TapeLibraryPool tapeLibraryPool = tapeLibraryFactory.getFirstTapeLibraryPool();
 
         TapeRobotService tapeRobotService =
-                tapeLibraryPool.checkoutRobotService(10, TimeUnit.MILLISECONDS);
+            tapeLibraryPool.checkoutRobotService(10, TimeUnit.MILLISECONDS);
         assertThat(tapeRobotService).isNotNull();
 
         TapeDriveService tapeDriveService = tapeLibraryPool.checkoutDriveService(DRIVE_INDEX);
@@ -391,14 +490,14 @@ public class TapeLibraryIT {
 
             // 1 Load Tape
             TapeResponse response = tapeRobotService.getLoadUnloadService()
-                    .loadTape(SLOT_INDEX, DRIVE_INDEX);
+                .loadTape(SLOT_INDEX, DRIVE_INDEX);
 
             assertThat(response).isNotNull();
             Assertions.assertThat(response.getEntity()).isNotNull();
             assertThat(response.getStatus()).isEqualTo(StatusCode.OK);
 
             TapeReadWriteService ddReadWriteService =
-                    tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD);
+                tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD);
 
             TapeDriveCommandService driveCommandService = tapeDriveService.getDriveCommandService();
 
@@ -427,13 +526,13 @@ public class TapeLibraryIT {
             TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
             String tapeCode = state.getSlots().get(SLOT_INDEX - 1).getTape().getVolumeTag();
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
-                    Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
+                Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 
             ReadTask readTask1 = new ReadTask(new ReadOrder(tapeCode, 0, "testtar.tar"), workerCurrentTape,
-                    tapeLibraryPool, tapeDriveService, tapeCatalogService);
+                tapeLibraryPool, tapeDriveService, tapeCatalogService);
 
             ReadTask readTask2 = new ReadTask(new ReadOrder(tapeCode, 1, "testtar_2.tar"), workerCurrentTape,
-                    tapeLibraryPool, tapeDriveService, tapeCatalogService);
+                tapeLibraryPool, tapeDriveService, tapeCatalogService);
 
             ReadWriteResult result1 = readTask1.get();
             assertThat(result1).isNotNull();
