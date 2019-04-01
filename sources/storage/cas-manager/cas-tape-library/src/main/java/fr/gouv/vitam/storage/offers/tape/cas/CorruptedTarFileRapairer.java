@@ -33,6 +33,7 @@ import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
 import org.apache.commons.io.input.TaggedInputStream;
@@ -53,8 +54,7 @@ public class CorruptedTarFileRapairer {
         throws IOException {
 
         try (InputStream inputStream = Files.newInputStream(corruptedInputTarFile, StandardOpenOption.READ);
-            CloseShieldInputStream closeShieldInputStream = new CloseShieldInputStream(inputStream);
-            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(closeShieldInputStream);
+            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
             TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream)) {
 
             List<TarEntryDescription> tarEntryDescriptions = new ArrayList<>();
@@ -63,7 +63,9 @@ public class CorruptedTarFileRapairer {
 
                 while (true) {
 
-                    long inputTarEntryPos = tarArchiveInputStream.getBytesRead();
+                    long currentPos = tarArchiveInputStream.getBytesRead();
+                    // Last entry position is padded to tar record size
+                    long inputTarEntryPos = (currentPos + TarConstants.DEFAULT_RCDSIZE - 1) / TarConstants.DEFAULT_RCDSIZE * TarConstants.DEFAULT_RCDSIZE;
 
                     TarArchiveEntry inputTarEntry;
                     try {
@@ -86,7 +88,8 @@ public class CorruptedTarFileRapairer {
                         tempEntryFile = Files.createTempFile(GUIDFactory.newGUID().toString(), LocalFileUtils.TMP_EXTENSION);
 
                         try {
-                            FileUtils.copyInputStreamToFile(taggedEntryInputStream, tempEntryFile.toFile());
+                            InputStream entryInputStream = new CloseShieldInputStream(taggedEntryInputStream);
+                            FileUtils.copyInputStreamToFile(entryInputStream, tempEntryFile.toFile());
                         } catch (IOException ex) {
                             if (taggedEntryInputStream.isCauseOf(ex)) {
                                 LOGGER.warn("Entry corrupted at " + inputTarEntryPos + " for file "

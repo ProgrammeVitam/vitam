@@ -45,6 +45,10 @@ public class TarEntryDescription {
     @JsonProperty("digest")
     private String digestValue;
 
+    public TarEntryDescription() {
+        // Empty constructor for deserialization
+    }
+
     public TarEntryDescription(String tarFileId, String entryName, long startPos, long size, String digestValue) {
         this.tarFileId = tarFileId;
         this.entryName = entryName;

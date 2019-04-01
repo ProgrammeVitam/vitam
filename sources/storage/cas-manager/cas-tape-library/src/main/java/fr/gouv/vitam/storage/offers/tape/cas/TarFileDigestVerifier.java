@@ -38,6 +38,7 @@ import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.io.input.CloseShieldInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,22 +66,21 @@ public class TarFileDigestVerifier {
 
     public void verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
 
-        return;
-//
-//        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-//
-//            TarArchiveEntry tarEntry;
-//            while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
-//
-//                String tarEntryName = tarEntry.getName();
-//                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-//                digest.update(tarArchiveInputStream);
-//                String entryDigest = digest.digestHex();
-//
-//                addDigestToCheck(tarEntryName, entryDigest);
-//            }
-//            finalizeChecks();
-//        }
+        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
+
+            TarArchiveEntry tarEntry;
+            while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
+
+                String tarEntryName = tarEntry.getName();
+                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+                InputStream entryInputStream = new CloseShieldInputStream(tarArchiveInputStream);
+                digest.update(entryInputStream);
+                String entryDigest = digest.digestHex();
+
+                addDigestToCheck(tarEntryName, entryDigest);
+            }
+            finalizeChecks();
+        }
     }
 
     private void addDigestToCheck(String tarEntryName, String digestValue) throws ObjectReferentialException {

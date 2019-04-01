@@ -94,7 +94,7 @@ public final class LocalFileUtils {
         if (entryIndexSeparatorIndex <= 0) {
             throw new IllegalArgumentException("Invalid tar entry name '" + tarEntryName + "'");
         }
-        return Integer.parseInt(tarEntryName.substring(entryIndexSeparatorIndex));
+        return Integer.parseInt(tarEntryName.substring(entryIndexSeparatorIndex + 1));
     }
 
     public static String createTarId(LocalDateTime now) {

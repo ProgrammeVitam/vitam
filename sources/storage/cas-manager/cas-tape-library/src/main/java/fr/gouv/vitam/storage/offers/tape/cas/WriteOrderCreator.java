@@ -113,7 +113,9 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
                             .map(filePath -> filePath.getFileName().toString())
                             .forEach(tarFileName -> {
 
-                                FileGroup fileGroup = tarFileNames.computeIfAbsent(tarFileName, f -> new FileGroup());
+                                // Group files by tar id
+                                String tarId = LocalFileUtils.tarFileNamePathToTarId(tarFileName);
+                                FileGroup fileGroup = tarFileNames.computeIfAbsent(tarId, f -> new FileGroup());
 
                                 if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
                                     fileGroup.tmpFileName = tarFileName;
@@ -255,7 +257,7 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
 
             }
         } catch (Exception e) {
-            throw new VitamRuntimeException("Could reschedule tar files to copy on tape", e);
+            throw new VitamRuntimeException("Could not reschedule tar files to copy on tape", e);
         }
     }
 

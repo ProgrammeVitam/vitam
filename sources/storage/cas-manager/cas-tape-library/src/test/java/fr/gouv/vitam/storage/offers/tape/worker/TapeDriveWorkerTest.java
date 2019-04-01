@@ -67,32 +67,32 @@ public class TapeDriveWorkerTest {
 
     @Test
     public void test_constructor() {
-        new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null,
+        new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, null,
             "/tmp");
 
         try {
-            new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, "/tmp");
+            new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, null, "/tmp");
             Assertions.fail("Should fail tapeRobotPool required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer, null, "/tmp");
+            new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer, null, null, "/tmp");
             Assertions.fail("Should fail tapeDriveService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer, null, "/tmp");
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer, null, null, "/tmp");
             Assertions.fail("Should fail tapeCatalogService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, null, "/tmp");
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, null, null, "/tmp");
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
