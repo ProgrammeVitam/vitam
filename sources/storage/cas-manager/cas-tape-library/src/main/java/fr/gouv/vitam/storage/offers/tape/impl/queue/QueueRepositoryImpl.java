@@ -29,25 +29,35 @@ package fr.gouv.vitam.storage.offers.tape.impl.queue;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.InsertOneOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
+import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -55,6 +65,7 @@ import org.bson.conversions.Bson;
  *
  */
 public class QueueRepositoryImpl implements QueueRepository {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueueRepositoryImpl.class);
 
     protected final MongoCollection<Document> collection;
 
@@ -68,6 +79,43 @@ public class QueueRepositoryImpl implements QueueRepository {
         try {
             Document doc = Document.parse(JsonHandler.unprettyPrint(queue));
             collection.insertOne(doc);
+        } catch (Exception e) {
+            throw new QueueException(e);
+        }
+    }
+
+    @Override
+    public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException {
+        try {
+
+            List<Bson> filters = new ArrayList<>();
+            for (QueryCriteria criterion : criteria) {
+                switch (criterion.getOperator()) {
+                    case EQ:
+                        filters.add(Filters.eq(criterion.getField(), criterion.getValue()));
+                        break;
+                    case GT:
+                        filters.add(Filters.gt(criterion.getField(), criterion.getValue()));
+                        break;
+                    case GTE:
+                        filters.add(Filters.gte(criterion.getField(), criterion.getValue()));
+                        break;
+                    case LT:
+                        filters.add(Filters.lt(criterion.getField(), criterion.getValue()));
+                        break;
+                    case LTE:
+                        filters.add(Filters.lte(criterion.getField(), criterion.getValue()));
+                        break;
+                }
+            }
+
+            if(collection.find(Filters.and(filters)).iterator().hasNext()) {
+                LOGGER.warn("Message already in queue " + JsonHandler.unprettyPrint(queueMessageEntity));
+            } else {
+                Document doc = Document.parse(JsonHandler.unprettyPrint(queueMessageEntity));
+                collection.insertOne(doc);
+            }
+
         } catch (Exception e) {
             throw new QueueException(e);
         }

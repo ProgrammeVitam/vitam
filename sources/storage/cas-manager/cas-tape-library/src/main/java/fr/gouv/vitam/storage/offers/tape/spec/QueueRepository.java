@@ -26,12 +26,14 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import java.util.Optional;
-
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import org.bson.conversions.Bson;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  *
@@ -39,6 +41,8 @@ import org.bson.conversions.Bson;
 public interface QueueRepository {
 
     void add(QueueMessageEntity queueMessageEntity) throws QueueException;
+
+    void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException;
 
     long remove(String queueMessageId) throws QueueException;
 
@@ -86,8 +90,8 @@ public interface QueueRepository {
     <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException;
 
     /**
-     * @param inQuery     filter
-     * @param inUpdate    atomic update
+     * @param inQuery filter
+     * @param inUpdate atomic update
      * @param messageType
      * @param usePriority if true sort by priority and take first
      * @param <T>

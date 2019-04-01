@@ -170,7 +170,7 @@ public class TapeDriveWorker implements Runnable {
 
                         case COMPLETED:
                             // Remove order from queue
-                            retry.execute(() -> receiver.getQueue().remove(orderId));
+                            retry.execute(() -> receiver.getQueue().complete(orderId));
                             break;
 
                         default:
@@ -182,7 +182,7 @@ public class TapeDriveWorker implements Runnable {
                         readWriteOrder.isWriteOrder() ? "WRITE_TO_TAPE" : "READ_FROM_TAPE",
                         loopStopWatch.getTime(TimeUnit.MILLISECONDS));
                 } else {
-                    Thread.sleep(10);
+                    Thread.sleep(10_000);
                 }
 
             }

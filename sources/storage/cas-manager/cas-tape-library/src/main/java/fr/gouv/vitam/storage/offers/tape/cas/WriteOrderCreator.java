@@ -27,6 +27,8 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -56,6 +58,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -317,7 +320,7 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
 
         // Add to queue
         WriteOrder message = new WriteOrder(
-            fileBucket,
+            bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
             LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
             digestWithSize.size,
             digestWithSize.digestValue,
@@ -344,7 +347,10 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         markAsReady(message);
 
         // Schedule tar archive for copy on tape
-        readWriteQueue.add(message);
+        readWriteQueue.addIfAbsent(
+            Collections.singletonList(
+                new QueryCriteria(WriteOrder.FILE_PATH, message.getFilePath(), QueryCriteriaOperator.EQ)),
+            message);
     }
 
     private void markAsReady(WriteOrder message) throws TarReferentialException {

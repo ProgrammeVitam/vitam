@@ -103,6 +103,8 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
         return this;
     }
 
+    // FIXME? use messageType field
+    // @JsonIgnore
     @Override
     public boolean isWriteOrder() {
         return true;

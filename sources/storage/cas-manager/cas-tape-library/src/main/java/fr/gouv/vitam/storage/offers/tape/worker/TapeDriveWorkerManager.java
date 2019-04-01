@@ -94,6 +94,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     }
 
     public void enqueue(QueueMessageEntity entity) throws QueueException {
+        // FIXME : Unused
         this.readWriteQueue.add(entity);
     }
 
@@ -148,6 +149,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         Bson query;
         Bson orderFilter;
         Optional<? extends ReadWriteOrder> order;
+
+        // FIXME / TODO : What if all drives are loaded with the same bucket type. Other buckets will be waiting...
 
         // If write priority, take write orders. If not order found try with read orders
         // If read priority, take read orders, If no order found try in default case to take an opposite of origin priority an retry

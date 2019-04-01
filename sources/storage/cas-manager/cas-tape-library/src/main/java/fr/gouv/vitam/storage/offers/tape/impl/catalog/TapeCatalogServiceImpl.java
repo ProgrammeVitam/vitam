@@ -26,14 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
@@ -58,6 +50,14 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import org.apache.commons.lang3.NotImplementedException;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class TapeCatalogServiceImpl implements TapeCatalogService {
 
@@ -191,6 +191,12 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
     }
 
     @Override
+    public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException {
+        // FIXME / TODO
+        throw new NotImplementedException("Not implemented for this service");
+    }
+
+    @Override
     public long remove(String queueId) throws QueueException {
         return repository.remove(queueId);
     }
@@ -231,7 +237,8 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     }
 
-    @Override public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
+    @Override
+    public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
         return repository.receive(inQuery, messageType, usePriority);
     }
