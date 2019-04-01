@@ -170,7 +170,7 @@ public class TapeDriveWorker implements Runnable {
 
                         case COMPLETED:
                             // Remove order from queue
-                            retry.execute(() -> receiver.getQueue().complete(orderId));
+                            retry.execute(() -> receiver.getQueue().remove(orderId));
                             break;
 
                         default:
