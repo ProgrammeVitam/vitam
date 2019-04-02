@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.storage.tapelibrary.ReadWritePriority;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
+import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -38,6 +39,10 @@ public class TapeDriveWorkerTest {
 
     @Mock
     private TapeDriveService tapeDriveService;
+
+
+    @Mock
+    private TarReferentialRepository tarReferentialRepository;
 
     @Mock
     private TapeCatalogService tapeCatalogService;
@@ -67,32 +72,39 @@ public class TapeDriveWorkerTest {
 
     @Test
     public void test_constructor() {
-        new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, null,
+        new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, tarReferentialRepository, null,
             "/tmp");
 
         try {
-            new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, null, "/tmp");
+            new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, tarReferentialRepository, null, "/tmp");
             Assertions.fail("Should fail tapeRobotPool required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer, null, null, "/tmp");
+            new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer, tarReferentialRepository, null, "/tmp");
             Assertions.fail("Should fail tapeDriveService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer, null, null, "/tmp");
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer, tarReferentialRepository, null, "/tmp");
             Assertions.fail("Should fail tapeCatalogService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, null, null, "/tmp");
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, tarReferentialRepository, null, "/tmp");
+            Assertions.fail("Should fail tapeDriveOrderConsumer required");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, null, "/tmp");
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);

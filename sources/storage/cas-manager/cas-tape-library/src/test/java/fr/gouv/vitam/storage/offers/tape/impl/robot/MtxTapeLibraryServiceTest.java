@@ -26,17 +26,234 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.robot;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import static org.junit.Assert.*;
+import java.util.List;
+
+import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.process.Output;
+import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.internal.verification.VerificationModeFactory;
 
 public class MtxTapeLibraryServiceTest {
 
-    @Test
-    public void status() {
+    public static final String COMMAND_MTX = "/bin/mtx";
+    public static final String ROBOT_DEVICE = "/dev/sg0";
+    private TapeRobotConf tapeRobotConf = mock(TapeRobotConf.class);
+    private ProcessExecutor processExecutor = mock(ProcessExecutor.class);
+
+    @Before
+    public void setUp() throws Exception {
+        reset(tapeRobotConf);
+        reset(processExecutor);
     }
 
     @Test
-    public void unloadTape() {
+    public void test_constructor() {
+        new MtxTapeLibraryService(tapeRobotConf, processExecutor);
+        try {
+            new MtxTapeLibraryService(null, processExecutor);
+            fail("Should fail");
+        } catch (Exception e) {
+        }
+        try {
+            new MtxTapeLibraryService(tapeRobotConf, null);
+            fail("Should fail");
+        } catch (Exception e) {
+        }
+    }
+
+
+    @Test
+    public void test_status_OK() {
+        when(tapeRobotConf.getMtxPath()).thenReturn(COMMAND_MTX);
+        when(tapeRobotConf.getDevice()).thenReturn(ROBOT_DEVICE);
+        when(tapeRobotConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+
+
+        Output output = mock(Output.class);
+        when(output.getExitCode()).thenReturn(0);
+        when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+
+
+        MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
+        TapeLibrarySpec status = mtxTapeLibraryService.status();
+
+        assertThat(status.isOK()).isTrue();
+
+        ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
+
+        verify(processExecutor, VerificationModeFactory.times(1))
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
+
+        assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
+        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(args.getValue()).contains("-f", ROBOT_DEVICE, "status");
+    }
+
+    @Test
+    public void test_status_KO() {
+        when(tapeRobotConf.getMtxPath()).thenReturn(COMMAND_MTX);
+        when(tapeRobotConf.getDevice()).thenReturn(ROBOT_DEVICE);
+        when(tapeRobotConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+
+
+        Output output = mock(Output.class);
+        when(output.getExitCode()).thenReturn(1);
+        when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+
+
+        MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
+        TapeLibrarySpec status = mtxTapeLibraryService.status();
+
+        assertThat(status.isOK()).isFalse();
+        assertThat(status.getEntity(Output.class).getStderr()).contains("Fake Just To Avoid Null");
+
+        ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
+
+        verify(processExecutor, VerificationModeFactory.times(1))
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
+
+        assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
+        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(args.getValue()).contains("-f", ROBOT_DEVICE, "status");
+    }
+
+    @Test
+    public void test_load_tape_OK() {
+        when(tapeRobotConf.getMtxPath()).thenReturn(COMMAND_MTX);
+        when(tapeRobotConf.getDevice()).thenReturn(ROBOT_DEVICE);
+        when(tapeRobotConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+
+
+        Output output = mock(Output.class);
+        when(output.getExitCode()).thenReturn(0);
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+
+        MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
+        TapeResponse response = mtxTapeLibraryService.loadTape(0, 1);
+
+        assertThat(response.isOK()).isTrue();
+
+        ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
+
+        verify(processExecutor, VerificationModeFactory.times(1))
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
+
+        assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
+        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(args.getValue()).contains("-f", ROBOT_DEVICE, "load", "0", "1");
+    }
+
+
+    @Test
+    public void test_load_tape_KO() {
+        when(tapeRobotConf.getMtxPath()).thenReturn(COMMAND_MTX);
+        when(tapeRobotConf.getDevice()).thenReturn(ROBOT_DEVICE);
+        when(tapeRobotConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+
+
+        Output output = mock(Output.class);
+        when(output.getExitCode()).thenReturn(1);
+        when(output.getStderr()).thenReturn("Error on load command");
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+
+        MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
+        TapeResponse response = mtxTapeLibraryService.loadTape(0, 1);
+
+        assertThat(response.isOK()).isFalse();
+        assertThat(response.getEntity(Output.class).getStderr()).contains("Error on load command");
+
+        ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
+
+        verify(processExecutor, VerificationModeFactory.times(1))
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
+
+        assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
+        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(args.getValue()).contains("-f", ROBOT_DEVICE, "load", "0", "1");
+    }
+
+
+
+    @Test
+    public void test_unload_tape_OK() {
+        when(tapeRobotConf.getMtxPath()).thenReturn(COMMAND_MTX);
+        when(tapeRobotConf.getDevice()).thenReturn(ROBOT_DEVICE);
+        when(tapeRobotConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+
+
+        Output output = mock(Output.class);
+        when(output.getExitCode()).thenReturn(0);
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+
+        MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
+        TapeResponse response = mtxTapeLibraryService.unloadTape(0, 1);
+
+        assertThat(response.isOK()).isTrue();
+
+        ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
+
+        verify(processExecutor, VerificationModeFactory.times(1))
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
+
+        assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
+        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(args.getValue()).contains("-f", ROBOT_DEVICE, "unload", "0", "1");
+    }
+
+    @Test
+    public void test_unload_tape_KO() {
+        when(tapeRobotConf.getMtxPath()).thenReturn(COMMAND_MTX);
+        when(tapeRobotConf.getDevice()).thenReturn(ROBOT_DEVICE);
+        when(tapeRobotConf.getTimeoutInMilliseconds()).thenReturn(1_000l);
+
+
+        Output output = mock(Output.class);
+        when(output.getExitCode()).thenReturn(1);
+        when(output.getStderr()).thenReturn("Error on unload command");
+        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+
+        MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
+        TapeResponse response = mtxTapeLibraryService.unloadTape(0, 1);
+
+        assertThat(response.isOK()).isFalse();
+        assertThat(response.getEntity(Output.class).getStderr()).contains("Error on unload command");
+
+        ArgumentCaptor<String> commandPath = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Long> timeout = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
+
+        verify(processExecutor, VerificationModeFactory.times(1))
+            .execute(commandPath.capture(), timeout.capture(), args.capture());
+
+        assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
+        assertThat(timeout.getValue()).isEqualTo(1_000l);
+        assertThat(args.getValue()).contains("-f", ROBOT_DEVICE, "unload", "0", "1");
     }
 }

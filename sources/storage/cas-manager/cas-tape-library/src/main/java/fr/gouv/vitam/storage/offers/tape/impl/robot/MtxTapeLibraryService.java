@@ -27,15 +27,13 @@
 package fr.gouv.vitam.storage.offers.tape.impl.robot;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibraryState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
@@ -50,79 +48,69 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     public static final String UNLOAD = "unload";
     public static final String LOAD = "load";
     public static final String STATUS = "status";
-    private final Lock lock = new ReentrantLock();
 
-    private final TapeRebotConf tapeRebotConf;
+    private final TapeRobotConf tapeRobotConf;
     private final ProcessExecutor processExecutor;
 
-    public MtxTapeLibraryService(TapeRebotConf tapeRebotConf, ProcessExecutor processExecutor) {
-        ParametersChecker.checkParameter("All params are required", tapeRebotConf, processExecutor);
-        this.tapeRebotConf = tapeRebotConf;
+    public MtxTapeLibraryService(TapeRobotConf tapeRobotConf, ProcessExecutor processExecutor) {
+        ParametersChecker.checkParameter("All params are required", tapeRobotConf, processExecutor);
+        this.tapeRobotConf = tapeRobotConf;
         this.processExecutor = processExecutor;
     }
 
     @Override
-    public TapeLibrarySpec status() {
-        List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), STATUS);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(),
-            tapeRebotConf.getTimeoutInMilliseconds(),
+    public synchronized TapeLibrarySpec status() {
+        List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), STATUS);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
+            tapeRobotConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeRebotConf.getMtxPath(), tapeRebotConf.getTimeoutInMilliseconds(), args);
+            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
         return parseTapeLibraryState(output);
     }
 
     @Override
-    public TapeResponse loadTape(String tapeIndex, String driveIndex) {
+    public synchronized TapeResponse loadTape(String tapeIndex, String driveIndex) {
         ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
 
-        List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), LOAD, tapeIndex, driveIndex);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(),
-            tapeRebotConf.getTimeoutInMilliseconds(),
+        List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), LOAD, tapeIndex, driveIndex);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
+            tapeRobotConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeRebotConf.getMtxPath(), tapeRebotConf.getTimeoutInMilliseconds(), args);
+            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
 
     @Override
-    public TapeResponse unloadTape(String tapeIndex, String driveIndex) {
+    public synchronized TapeResponse unloadTape(String tapeIndex, String driveIndex) {
         ParametersChecker.checkParameter("Arguments tapeIndex and deriveIndex are required", tapeIndex, driveIndex);
 
-        List<String> args = Lists.newArrayList(F, tapeRebotConf.getDevice(), UNLOAD, tapeIndex, driveIndex);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRebotConf.getMtxPath(),
-            tapeRebotConf.getTimeoutInMilliseconds(),
+        List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), UNLOAD, tapeIndex, driveIndex);
+        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
+            tapeRobotConf.getTimeoutInMilliseconds(),
             args);
 
         Output output =
-            getExecutor().execute(tapeRebotConf.getMtxPath(), tapeRebotConf.getTimeoutInMilliseconds(), args);
+            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
 
     @Override
-    public TapeResponse loadTape(Integer tapeIndex, Integer driveIndex) {
+    public synchronized TapeResponse loadTape(Integer tapeIndex, Integer driveIndex) {
         return loadTape(tapeIndex.toString(), driveIndex.toString());
     }
 
-    @Override public TapeResponse unloadTape(Integer tapeIndex, Integer driveIndex) {
+    @Override
+    public synchronized TapeResponse unloadTape(Integer tapeIndex, Integer driveIndex) {
         return unloadTape(tapeIndex.toString(), driveIndex.toString());
     }
 
     @Override
     public ProcessExecutor getExecutor() {
         return processExecutor;
-    }
-
-    @Override
-    public boolean begin() {
-        return lock.tryLock();
-    }
-
-    @Override
-    public void end() {
-        lock.unlock();
     }
 
     private TapeResponse parseCommonResponse(Output output) {

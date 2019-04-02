@@ -26,20 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.tapelibrary;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.gouv.vitam.common.ParametersChecker;
-
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Tape drive that read and write in the tape cartridge
  */
 public class TapeDriveConf {
-
-    @JsonIgnore
-    private final transient Lock lock = new ReentrantLock();
-
     private Integer index;
     private String device;
     private String mtPath = "mt";
@@ -105,9 +97,5 @@ public class TapeDriveConf {
 
     public void setTimeoutInMilliseconds(long timeoutInMilliseconds) {
         this.timeoutInMilliseconds = timeoutInMilliseconds;
-    }
-
-    public Lock getLock() {
-        return lock;
     }
 }

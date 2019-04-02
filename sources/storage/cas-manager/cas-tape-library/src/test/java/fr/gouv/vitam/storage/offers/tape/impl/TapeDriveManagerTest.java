@@ -28,7 +28,6 @@ public class TapeDriveManagerTest {
             new TapeDriveManager(
                 mock(TapeDriveConf.class),
                 mock(TapeReadWriteService.class),
-                mock(TapeReadWriteService.class),
                 mock(TapeDriveCommandService.class));
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
@@ -47,24 +46,14 @@ public class TapeDriveManagerTest {
         new TapeDriveManager(
             null,
             mock(TapeReadWriteService.class),
-            mock(TapeReadWriteService.class),
             mock(TapeDriveCommandService.class));
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testConstructorTwoNullTapeReadWriteServiceOneKO() {
-        new TapeDriveManager(
-            mock(TapeDriveConf.class),
-            null,
-            mock(TapeReadWriteService.class),
-            mock(TapeDriveCommandService.class));
-    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorTwoNullTapeReadWriteServiceTwoKO() {
         new TapeDriveManager(
             mock(TapeDriveConf.class),
-            mock(TapeReadWriteService.class),
             null,
             mock(TapeDriveCommandService.class));
     }
@@ -73,7 +62,6 @@ public class TapeDriveManagerTest {
     public void testConstructorTwoNullTapeDriveCommandServiceKO() {
         new TapeDriveManager(
             mock(TapeDriveConf.class),
-            mock(TapeReadWriteService.class),
             mock(TapeReadWriteService.class),
             null);
     }

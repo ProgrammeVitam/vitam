@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.offers.tape.impl.drive;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -54,20 +53,16 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     public static final String EOD = "eod";
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
-    /**
-     * Only the current thread can handle lock unlock
-     */
-    private final Lock driveLock;
 
     public MtTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor) {
         ParametersChecker.checkParameter("All params are required", tapeDriveConf, processExecutor);
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
-        this.driveLock = tapeDriveConf.getLock();
     }
 
     @Override
     public TapeDriveSpec status() {
+
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), STATUS);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
@@ -85,17 +80,20 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     @Override
     public TapeResponse goToPosition(Integer position, boolean isBackword) {
         ParametersChecker.checkParameter("Arguments position is required", position);
-        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), isBackword ? BSF : FSF, position.toString());
+
+        List<String> args =
+            Lists.newArrayList(F, tapeDriveConf.getDevice(), isBackword ? BSF : FSF, position.toString());
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-                tapeDriveConf.getTimeoutInMilliseconds(),
-                args);
+            tapeDriveConf.getTimeoutInMilliseconds(),
+            args);
         Output output =
-                getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+            getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
         return parseCommonResponse(output);
     }
 
     @Override
     public TapeResponse rewind() {
+
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), REWIND);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
@@ -107,6 +105,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
 
     @Override
     public TapeResponse goToEnd() {
+
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), EOD);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
@@ -120,16 +119,6 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     @Override
     public ProcessExecutor getExecutor() {
         return processExecutor;
-    }
-
-    @Override
-    public boolean begin() {
-        return driveLock.tryLock();
-    }
-
-    @Override
-    public void end() {
-        driveLock.unlock();
     }
 
 

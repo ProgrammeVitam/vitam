@@ -28,7 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeRebotConf;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
 import fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
@@ -36,25 +36,25 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 
 public class TapeRobotManager implements TapeRobotService {
     private final TapeLoadUnloadService tapeLoadUnloadService;
-    private final TapeRebotConf tapeRebotConf;
+    private final TapeRobotConf tapeRobotConf;
 
-    public TapeRobotManager(TapeRebotConf tapeRebotConf) {
-        this.tapeRebotConf = tapeRebotConf;
-        ParametersChecker.checkParameter("All params are required", tapeRebotConf);
-        this.tapeLoadUnloadService = new MtxTapeLibraryService(tapeRebotConf, ProcessExecutor.getInstance());
+    public TapeRobotManager(TapeRobotConf tapeRobotConf) {
+        this.tapeRobotConf = tapeRobotConf;
+        ParametersChecker.checkParameter("All params are required", tapeRobotConf);
+        this.tapeLoadUnloadService = new MtxTapeLibraryService(tapeRobotConf, ProcessExecutor.getInstance());
     }
 
 
     @VisibleForTesting
-    public TapeRobotManager(TapeRebotConf tapeRebotConf, TapeLoadUnloadService tapeLoadUnloadService) {
-        ParametersChecker.checkParameter("All params are required", tapeRebotConf, tapeLoadUnloadService);
-        this.tapeRebotConf = tapeRebotConf;
+    public TapeRobotManager(TapeRobotConf tapeRobotConf, TapeLoadUnloadService tapeLoadUnloadService) {
+        ParametersChecker.checkParameter("All params are required", tapeRobotConf, tapeLoadUnloadService);
+        this.tapeRobotConf = tapeRobotConf;
         this.tapeLoadUnloadService = tapeLoadUnloadService;
     }
 
     @Override
-    public TapeRebotConf getTapeRebotConf() {
-        return tapeRebotConf;
+    public TapeRobotConf getTapeRobotConf() {
+        return tapeRobotConf;
     }
 
     @Override

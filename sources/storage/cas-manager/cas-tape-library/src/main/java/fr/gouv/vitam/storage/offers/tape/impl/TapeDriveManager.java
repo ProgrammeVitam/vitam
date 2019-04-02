@@ -31,16 +31,17 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.impl.drive.MtTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.DdTapeLibraryService;
-import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TarTapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeReadWriteService;
 
+/**
+ * Manager used to get TapeDriveCommandService and TapeReadWriteService
+ */
 public class TapeDriveManager implements TapeDriveService {
 
     private final TapeDriveConf tapeDriveConf;
-    private final TapeReadWriteService tarReadWriteService;
     private final TapeReadWriteService ddReadWriteService;
     private final TapeDriveCommandService tapeDriveCommandService;
 
@@ -48,20 +49,19 @@ public class TapeDriveManager implements TapeDriveService {
         ParametersChecker.checkParameter("TapeDriveConf param is required", tapeDriveConf);
         this.tapeDriveConf = tapeDriveConf;
         ProcessExecutor processExecutor = ProcessExecutor.getInstance();
-        this.tarReadWriteService = new TarTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
-        this.ddReadWriteService = new DdTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
+        this.ddReadWriteService =
+            new DdTapeLibraryService(tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
         this.tapeDriveCommandService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
     }
 
     @VisibleForTesting
-    public TapeDriveManager(TapeDriveConf tapeDriveConf, TapeReadWriteService tarReadWriteService,
+    public TapeDriveManager(TapeDriveConf tapeDriveConf,
         TapeReadWriteService ddReadWriteService,
         TapeDriveCommandService tapeDriveCommandService) {
         ParametersChecker
-            .checkParameter("All params are required", tapeDriveConf, tarReadWriteService, ddReadWriteService,
+            .checkParameter("All params are required", tapeDriveConf, ddReadWriteService,
                 tapeDriveCommandService);
         this.tapeDriveConf = tapeDriveConf;
-        this.tarReadWriteService = tarReadWriteService;
         this.ddReadWriteService = ddReadWriteService;
         this.tapeDriveCommandService = tapeDriveCommandService;
     }
@@ -72,11 +72,10 @@ public class TapeDriveManager implements TapeDriveService {
         switch (readWriteCmd) {
             case DD:
                 return ddReadWriteService;
-            case TAR:
-                return tarReadWriteService;
+            default:
+                throw new IllegalArgumentException(readWriteCmd + " not implemented");
         }
 
-        throw new IllegalArgumentException(readWriteCmd + " not implemented");
     }
 
     @Override

@@ -109,17 +109,18 @@ public class WriteTask implements Future<ReadWriteResult> {
         WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService,
         TarReferentialRepository tarReferentialRepository, String inputTarPath) {
-        this.tarReferentialRepository = tarReferentialRepository;
-        this.inputTarPath = inputTarPath;
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeRobotPool param is required.", tapeRobotPool);
         ParametersChecker.checkParameter("TapeDriveService param is required.", tapeDriveService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
+        ParametersChecker.checkParameter("TarReferentialRepository param is required.", tarReferentialRepository);
         this.writeOrder = writeOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.tapeCatalogService = tapeCatalogService;
+        this.tarReferentialRepository = tarReferentialRepository;
+        this.inputTarPath = inputTarPath;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex());
     }

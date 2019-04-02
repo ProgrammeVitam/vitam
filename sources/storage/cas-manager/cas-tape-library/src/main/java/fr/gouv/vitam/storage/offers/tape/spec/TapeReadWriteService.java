@@ -29,10 +29,10 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 
-public interface TapeReadWriteService extends BeginEndService {
+public interface TapeReadWriteService {
 
     /**
-     * @param inputPath  mini-path to file from workingDir
+     * @param inputPath mini-path to file from workingDir
      * @return TapeResponse
      */
     TapeResponse writeToTape(String inputPath);
@@ -42,13 +42,6 @@ public interface TapeReadWriteService extends BeginEndService {
      * @return TapeResponse
      */
     TapeResponse readFromTape(String outputPath);
-
-    /**
-     * Just implemented for tar and list tar content
-     *
-     * @return TapeResponse
-     */
-    TapeResponse listFromTape();
 
     ProcessExecutor getExecutor();
 }

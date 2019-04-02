@@ -28,7 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 
-public interface TapeDriveCommandService extends TapeDriveSafeCommandService, BeginEndService {
+public interface TapeDriveCommandService extends TapeDriveSafeCommandService {
     /**
      * fsf
      *

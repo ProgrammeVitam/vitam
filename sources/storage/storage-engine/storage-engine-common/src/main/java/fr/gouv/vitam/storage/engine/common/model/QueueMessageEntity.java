@@ -7,11 +7,11 @@ import fr.gouv.vitam.common.LocalDateUtil;
 
 public class QueueMessageEntity {
     public static final String ID = "_id";
-    public static final String STATE = "state";
-    public static final String PRIORITY = "priority";
-    public static final String MESSAGE_TYPE = "messageType";
-    public static final String TAG_CREATION_DATE = "creationDate";
-    public static final String TAG_LAST_UPDATE = "lastUpdate";
+    public static final String STATE = "queue_state";
+    public static final String PRIORITY = "queue_priority";
+    public static final String MESSAGE_TYPE = "queue_message_type";
+    public static final String TAG_CREATION_DATE = "queue_creation_date";
+    public static final String TAG_LAST_UPDATE = "queue_last-update";
 
     @JsonProperty(ID)
     private String id;

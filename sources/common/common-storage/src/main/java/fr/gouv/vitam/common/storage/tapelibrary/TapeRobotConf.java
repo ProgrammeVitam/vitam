@@ -24,26 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.spec;
+package fr.gouv.vitam.common.storage.tapelibrary;
+
+
+import fr.gouv.vitam.common.ParametersChecker;
 
 /**
- * Service to manipulate resource availability
+ * A barcode reader to identify tape cartridges and an automated method for loading tapes
  */
-public interface BeginEndService {
-    /**
-     * if (begin()) {
-     *   try {
-     *     // do stuff
-     *   } finally {
-     *     end();
-     *   }
-     * }
-     * @return true if begin, false if resource is busy
-     */
-    boolean begin();
+public class TapeRobotConf {
+    private String device;
+    private String mtxPath = "mtx";
+    private long timeoutInMilliseconds = 60000;
 
-    /**
-     * release the resource
-     */
-    void end();
+    public String getDevice() {
+        return device;
+    }
+
+    public void setDevice(String device) {
+        ParametersChecker.checkParameter("device param is required", device);
+        this.device = device;
+    }
+
+    public String getMtxPath() {
+        return mtxPath;
+    }
+
+    public void setMtxPath(String mtxPath) {
+        this.mtxPath = mtxPath;
+    }
+
+    public long getTimeoutInMilliseconds() {
+        return timeoutInMilliseconds;
+    }
+
+    public void setTimeoutInMilliseconds(long timeoutInMilliseconds) {
+        this.timeoutInMilliseconds = timeoutInMilliseconds;
+    }
 }

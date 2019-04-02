@@ -28,7 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 
-public interface TapeLoadUnloadService extends TapeRobotSafeCommandService, BeginEndService {
+public interface TapeLoadUnloadService extends TapeRobotSafeCommandService {
 
     TapeResponse loadTape(String tapeIndex, String driveIndex);
 

@@ -26,8 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.readwrite;
 
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -46,16 +46,17 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     public static final String OF = "of=";
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
-    private final Lock canReadWrite;
     private final String inputDirectory;
     private final String outputDirectory;
 
     public DdTapeLibraryService(TapeDriveConf tapeDriveConf, ProcessExecutor processExecutor,
-                                String inputDirectory, String outputDirectory) {
-        ParametersChecker.checkParameter("All params are required", tapeDriveConf, processExecutor);
+        String inputDirectory, String outputDirectory) {
+        ParametersChecker
+            .checkParameter("All params are required", tapeDriveConf, processExecutor, inputDirectory, outputDirectory);
+
+
         this.tapeDriveConf = tapeDriveConf;
         this.processExecutor = processExecutor;
-        this.canReadWrite = tapeDriveConf.getLock();
         this.inputDirectory = inputDirectory;
         this.outputDirectory = outputDirectory;
     }
@@ -64,7 +65,10 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     public TapeResponse writeToTape(String inputPath) {
         ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
 
-        List<String> args = Lists.newArrayList(IF + inputDirectory  + "/" + inputPath, OF + tapeDriveConf.getDevice());
+        List<String> args =
+            Lists.newArrayList(IF + Paths.get(inputDirectory).resolve(inputPath).toAbsolutePath(),
+                OF + tapeDriveConf.getDevice());
+
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
@@ -78,7 +82,9 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     public TapeResponse readFromTape(String outputPath) {
         ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
 
-        List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(), OF + outputDirectory + "/" + outputPath);
+        List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(),
+            OF + Paths.get(outputDirectory).resolve(outputPath).toAbsolutePath());
+
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
@@ -86,13 +92,8 @@ public class DdTapeLibraryService implements TapeReadWriteService {
             getExecutor().execute(tapeDriveConf.getDdPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
-    }
 
-    @Override
-    public TapeResponse listFromTape() {
-        throw new IllegalStateException("Not implemented for dd command");
     }
-
 
     private TapeResponse parseCommonResponse(Output output) {
         TapeResponse response;
@@ -109,15 +110,5 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     @Override
     public ProcessExecutor getExecutor() {
         return processExecutor;
-    }
-
-    @Override
-    public boolean begin() {
-        return canReadWrite.tryLock();
-    }
-
-    @Override
-    public void end() {
-        canReadWrite.unlock();
     }
 }

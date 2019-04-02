@@ -29,14 +29,14 @@ package fr.gouv.vitam.common.storage.tapelibrary;
 import java.util.List;
 
 public class TapeLibraryConf {
-    private List<TapeRebotConf> robots;
+    private List<TapeRobotConf> robots;
     private List<TapeDriveConf> drives;
 
-    public List<TapeRebotConf> getRobots() {
+    public List<TapeRobotConf> getRobots() {
         return robots;
     }
 
-    public void setRobots(List<TapeRebotConf> robots) {
+    public void setRobots(List<TapeRobotConf> robots) {
         this.robots = robots;
     }
 
