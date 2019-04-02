@@ -65,9 +65,13 @@
                 "Args": {
                   "type": "text"
                 },
-                "DataToExtract": {
+                "FilteredExtractedObjectGroupData": {
+                  "type": "object"
+                },
+                "FilteredExtractedUnitData": {
                   "type": "object"
                 }
+
               }
             }
           }

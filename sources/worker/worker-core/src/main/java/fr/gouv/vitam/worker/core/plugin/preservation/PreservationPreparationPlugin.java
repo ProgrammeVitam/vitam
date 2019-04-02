@@ -347,7 +347,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
         preservationDistributionLine.setGriffinId(griffinModel.getExecutableName());
         preservationDistributionLine.setObjectId(version.getId());
         preservationDistributionLine.setDebug(griffinByFormatModel.isDebug());
-        preservationDistributionLine.setTimeout(griffinByFormatModel.getMaxSize());
+        preservationDistributionLine.setTimeout(griffinByFormatModel.getTimeOut());
         preservationDistributionLine.setTargetUse(targetQualifier);
         preservationDistributionLine.setSourceUse(sourceQualifier);
 

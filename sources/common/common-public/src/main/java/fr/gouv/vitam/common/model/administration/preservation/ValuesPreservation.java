@@ -38,8 +38,11 @@ public class ValuesPreservation {
     @JsonProperty("Args")
     private List<String> args;
 
-    @JsonProperty("FilteredExtractedData")
-    private List<String> filteredExtractedData;
+    @JsonProperty("FilteredExtractedObjectGroupData")
+    private List<String> filteredExtractedObjectGroupData;
+
+    @JsonProperty("FilteredExtractedUnitData")
+    private List<String> filteredExtractedUnitData;
 
     public ValuesPreservation() {
         // Empty for deserialization
@@ -64,12 +67,21 @@ public class ValuesPreservation {
         this.args = args;
     }
 
-    public List<String> getFilteredExtractedData() {
-        return filteredExtractedData;
+
+    public List<String> getFilteredExtractedObjectGroupData() {
+        return filteredExtractedObjectGroupData;
     }
 
-    public void setFilteredExtractedData(List<String> filteredExtractedData) {
-        this.filteredExtractedData = filteredExtractedData;
+    public void setFilteredExtractedObjectGroupData(List<String> filteredExtractedObjectGroupData) {
+        this.filteredExtractedObjectGroupData = filteredExtractedObjectGroupData;
+    }
+
+    public List<String> getFilteredExtractedUnitData() {
+        return filteredExtractedUnitData;
+    }
+
+    public void setFilteredExtractedUnitData(List<String> filteredExtractedUnitData) {
+        this.filteredExtractedUnitData = filteredExtractedUnitData;
     }
 
     @Override
@@ -77,7 +89,8 @@ public class ValuesPreservation {
         return "ValuesPreservation{" +
             "extension='" + extension + '\'' +
             ", args=" + args +
-            ", filteredExtractedData=" + filteredExtractedData +
+            ", FilteredExtractedDataObjectGroup=" + filteredExtractedObjectGroupData +
+            ", FilteredExtractedDataUnit=" + filteredExtractedUnitData +
             '}';
     }
 }

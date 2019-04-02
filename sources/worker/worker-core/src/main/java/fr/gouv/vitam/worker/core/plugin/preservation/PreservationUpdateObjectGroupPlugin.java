@@ -56,6 +56,7 @@ import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
+import fr.gouv.vitam.common.model.preservation.OtherMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
@@ -64,12 +65,10 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -84,6 +83,7 @@ import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.I
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash.digestPreservationGeneration;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
+import static java.util.stream.Collectors.toMap;
 
 public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     private static final String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
@@ -138,7 +138,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             generateOkActions.stream().map(OutputExtra::getBinaryGUID),
             extractedOkActions.stream().map(OutputExtra::getBinaryGUID)
         ).flatMap(Function.identity())
-         .distinct();
+            .distinct();
 
         try {
             RequestResponse<JsonNode> requestResponse = metaDataClient.getObjectGroupByIdRaw(batchResult.getGotId());
@@ -155,13 +155,15 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
                 .map(qualifier -> mapQualifierBinary(batchResult, qualifier, extractedOkActions, differences))
                 .collect(Collectors.toList());
 
-            List<DbQualifiersModel> finalQualifiersToUpdate = addGeneratedQualifiersIfUpdate(batchResult, generateOkActions, qualifiersWithIdentification);
+            List<DbQualifiersModel> finalQualifiersToUpdate =
+                addGeneratedQualifiersIfUpdate(batchResult, generateOkActions, qualifiersWithIdentification);
             List<Difference> differencesFiltered = differences.stream()
                 .filter(Difference::hasDifference)
                 .collect(Collectors.toList());
 
-            if (differencesFiltered.isEmpty() && generateOkActions.isEmpty())  {
-                return new ItemStatus(PLUGIN_NAME).disableLfc();
+            if (differencesFiltered.isEmpty() && generateOkActions.isEmpty() && extractedOkActions.isEmpty()) {
+                ItemStatus itemStatus = new ItemStatus(PLUGIN_NAME);
+                return itemStatus.disableLfc();
             }
 
             final Optional<Integer> totalBinarySize = finalQualifiersToUpdate.stream()
@@ -189,11 +191,13 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, OK, new Differences(differencesFiltered));
         } catch (Exception e) {
             logger.error(e);
-            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, FATAL, EventDetails.of(String.format("FATAL ERROR IN %s ACTION.", PLUGIN_NAME))).disableLfc();
+            return buildItemStatusSubItems(PLUGIN_NAME, subItemIds, FATAL,
+                EventDetails.of(String.format("FATAL ERROR IN %s ACTION.", PLUGIN_NAME))).disableLfc();
         }
     }
 
-    private List<DbQualifiersModel> addGeneratedQualifiersIfUpdate(WorkflowBatchResult batchResult, List<OutputExtra> generateOkActions, List<DbQualifiersModel> qualifiers) {
+    private List<DbQualifiersModel> addGeneratedQualifiersIfUpdate(WorkflowBatchResult batchResult, List<OutputExtra> generateOkActions,
+        List<DbQualifiersModel> qualifiers) {
         if (generateOkActions.isEmpty()) {
             return qualifiers;
         }
@@ -234,15 +238,17 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
                 .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getSourceUse()))
                 .map(q -> new DbQualifiersModel(q.getQualifier(), q.getNbc(), new ArrayList<>(q.getVersions())))
                 .findFirst()
-                .orElseThrow(() -> new VitamRuntimeException(String.format("No 'Qualifier' %s for 'ObjectGroup' %s.", batchResult.getSourceUse(), batchResult.getGotId())));
+                .orElseThrow(() -> new VitamRuntimeException(
+                    String.format("No 'Qualifier' %s for 'ObjectGroup' %s.", batchResult.getSourceUse(), batchResult.getGotId())));
         }
         return qualifiers.stream()
             .filter(qualifier -> qualifier.getQualifier().equals(batchResult.getTargetUse()))
-            .findFirst()                    
+            .findFirst()
             .orElse(new DbQualifiersModel(batchResult.getTargetUse(), 0, new ArrayList<>()));
     }
 
-    private DbQualifiersModel mapQualifierBinary(WorkflowBatchResult batchResult, DbQualifiersModel qualifier, List<OutputExtra> actions, List<Difference> differences) {
+    private DbQualifiersModel mapQualifierBinary(WorkflowBatchResult batchResult, DbQualifiersModel qualifier, List<OutputExtra> actions,
+        List<Difference> differences) {
         if (actions.isEmpty() || !qualifier.getQualifier().equals(batchResult.getSourceUse())) {
             return qualifier;
         }
@@ -259,8 +265,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
             .filter(o -> o.getOutput().getInputPreservation().getName().equals(version.getId()))
             .findFirst()
             .map(outputExtra -> IDENTIFY.equals(outputExtra.getOutput().getAction())
-                ? createNewVersionIdentified(outputExtra, version, differences)
-                : createNewVersionExtracted(outputExtra, version, differences))
+                ? createNewVersionIdentified(outputExtra, version, differences) : createNewVersionExtracted(outputExtra, version, differences))
             .orElse(version);
     }
 
@@ -282,44 +287,21 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         if (extractedMetadata == null) {
             throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
         }
-
         Difference<String> diffOtherMetadataToReplace = new Difference<>("OtherMetadataToReplace");
         Difference<List<String>> diffOtherMetadataToAdd = new Difference<>("OtherMetadataToAdd");
 
-        Map<String, Object> oldMetadata = version.getOtherMetadata();
-        Map<String, Object> otherMetadata = new HashMap<>(oldMetadata);
+        Map<String, List<Object>> oldMetadata = version.getOtherMetadata();
+        OtherMetadata otherMetadata = new OtherMetadata(oldMetadata);
 
-
-        extractedMetadata.getMetadataToReplace()
-            .forEach((key, value) -> {
-                String oldValue = (String) otherMetadata.put(key, value);
-                if (!value.equals(oldValue)) {
-                    diffOtherMetadataToReplace.add(key, oldValue, value);
-                }
-            });
-
-        for (Entry<String, List<String>> entry : extractedMetadata.getMetadataToAdd().entrySet()) {
-            String key = entry.getKey();
-            List<String> value = entry.getValue();
-
-            if (otherMetadata.containsKey(key)) {
-                List<String> metadataToAdd = (List<String>) otherMetadata.get(key);
-                diffOtherMetadataToAdd.add(key, metadataToAdd, new ArrayList<>(CollectionUtils.union(metadataToAdd, value)));
-                metadataToAdd.addAll(value);
+        OtherMetadata otherMetadataExtracted = extractedMetadata.getOtherMetadata();
+        otherMetadataExtracted.forEach((key, value) -> {
+            if (oldMetadata.containsKey(key)) {
+                otherMetadata.put(key, new ArrayList<>(CollectionUtils.union(value, oldMetadata.get(key))));
             } else {
-                diffOtherMetadataToAdd.add(key, Collections.emptyList(), value);
                 otherMetadata.put(key, value);
             }
-        }
-
-        if (diffOtherMetadataToAdd.hasDifference() || diffOtherMetadataToReplace.hasDifference()) {
-            differences.add(diffOtherMetadataToAdd);
-            differences.add(diffOtherMetadataToReplace);
-
-            return DbVersionsModel.newVersionsFrom(version, otherMetadata);
-        }
-
-        return version;
+        });
+        return DbVersionsModel.newVersionsFrom(version, otherMetadata);
     }
 
     private DbVersionsModel createVersion(OutputExtra outputExtra, WorkflowBatchResult workflowBatchResult, Integer newDataObjectVersion) {

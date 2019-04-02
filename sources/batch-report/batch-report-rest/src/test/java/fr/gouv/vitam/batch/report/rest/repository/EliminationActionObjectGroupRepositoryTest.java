@@ -69,7 +69,7 @@ public class EliminationActionObjectGroupRepositoryTest {
     private static final String ELIMINATION_ACTION_OBJECT_GROUP =
         "EliminationActionObjectGroup" + GUIDFactory.newGUID().getId();
     @Rule
-    public MongoRule mongoRule =
+    public MongoRule mongoRule = 
         new MongoRule(getMongoClientOptions(), ELIMINATION_ACTION_OBJECT_GROUP);
 
     private EliminationActionObjectGroupRepository repository;

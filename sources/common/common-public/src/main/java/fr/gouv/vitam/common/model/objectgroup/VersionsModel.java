@@ -42,7 +42,6 @@ import static java.util.Arrays.asList;
 /**
  * Object mapping VersionsResponse
  */
-//@JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VersionsModel {
 
