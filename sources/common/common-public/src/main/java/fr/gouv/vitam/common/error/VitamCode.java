@@ -66,7 +66,7 @@ public enum VitamCode {
     STORAGE_STRATEGY_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "02", Status.NOT_FOUND, "No suitable strategy" +
         " found to be able to store data"),
     STORAGE_OFFER_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "03", Status.NOT_FOUND, "No suitable offer found" +
-        " to be able to store data"),
+        " to be able to read or store data"),
     STORAGE_OBJECT_NOT_FOUND(ServiceName.STORAGE, DomainName.STORAGE, "04", Status.NOT_FOUND, "Object with id %s not " +
         "found in all strategy"),
     STORAGE_CANT_STORE_OBJECT(ServiceName.STORAGE, DomainName.STORAGE, "05", Status.INTERNAL_SERVER_ERROR, "Could not" +

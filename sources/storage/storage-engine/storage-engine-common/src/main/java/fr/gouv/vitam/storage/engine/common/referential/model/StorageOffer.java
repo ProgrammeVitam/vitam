@@ -37,6 +37,7 @@ import java.util.Map;
 public class StorageOffer {
     private String id;
     private String baseUrl;
+    private boolean asyncRead = false;
     private Map<String, String> parameters;
     private ActivationStatus status;
 
@@ -104,5 +105,17 @@ public class StorageOffer {
 
     public boolean isEnabled() {
         return  ActivationStatus.ACTIVE.equals(this.getStatus()) ;
+    }
+
+    public boolean isAsyncRead() {
+        return asyncRead;
+    }
+
+    public boolean notAsyncRead() {
+        return asyncRead == false;
+    }
+
+    public void setAsyncRead(boolean asyncRead) {
+        this.asyncRead = asyncRead;
     }
 }
