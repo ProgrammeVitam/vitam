@@ -26,46 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-public class InputFileToProcessMessage extends TarCreatorMessage {
+public class CheckTarBufferingTimeoutMessage extends TarCreatorMessage {
 
-    private final String containerName;
-    private final String objectName;
-    private final String storageId;
-    private final long size;
-    private final String digestValue;
-    private final String digestAlgorithm;
+    private final int tarBufferingTimeoutInMinutes;
 
-    public InputFileToProcessMessage(String containerName, String objectName, String storageId, long size,
-        String digestValue, String digestAlgorithm) {
-        this.containerName = containerName;
-        this.objectName = objectName;
-        this.storageId = storageId;
-        this.size = size;
-        this.digestValue = digestValue;
-        this.digestAlgorithm = digestAlgorithm;
+    public CheckTarBufferingTimeoutMessage(int tarBufferingTimeoutInMinutes) {
+        this.tarBufferingTimeoutInMinutes = tarBufferingTimeoutInMinutes;
     }
 
-    public String getContainerName() {
-        return containerName;
-    }
-
-    public String getObjectName() {
-        return objectName;
-    }
-
-    public String getStorageId() {
-        return storageId;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public String getDigestValue() {
-        return digestValue;
-    }
-
-    public String getDigestAlgorithm() {
-        return digestAlgorithm;
+    public int getTarBufferingTimeoutInMinutes() {
+        return tarBufferingTimeoutInMinutes;
     }
 }

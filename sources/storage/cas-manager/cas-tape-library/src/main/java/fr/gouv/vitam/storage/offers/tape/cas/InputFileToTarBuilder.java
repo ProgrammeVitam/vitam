@@ -29,6 +29,8 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class InputFileToTarBuilder {
@@ -69,6 +71,24 @@ public class InputFileToTarBuilder {
     public void startListeners() {
         for (FileBucketTarCreator fileBucketTarCreator : fileBucketTarCreatorMap.values()) {
             fileBucketTarCreator.startListener();
+        }
+
+        // Start here
+        Executors.newScheduledThreadPool(1)
+            .scheduleAtFixedRate(this::checkTarBufferingTimeout, 1, 1, TimeUnit.MINUTES);
+    }
+
+    private void checkTarBufferingTimeout() {
+        for (Map.Entry<String, FileBucketTarCreator> entry : fileBucketTarCreatorMap.entrySet()) {
+
+            String fileBucket = entry.getKey();
+            FileBucketTarCreator fileBucketTarCreator = entry.getValue();
+
+            String bucketId = this.bucketTopologyHelper.getBucketFromFileBucket(fileBucket);
+
+            // Notify queue with a CheckTarBufferingTimeoutMessage message on top of the queue (priority)
+            Integer tarBufferingTimeoutInMinutes = this.bucketTopologyHelper.getTarBufferingTimeoutInMinutes(bucketId);
+            fileBucketTarCreator.addFirst(new CheckTarBufferingTimeoutMessage(tarBufferingTimeoutInMinutes));
         }
     }
 

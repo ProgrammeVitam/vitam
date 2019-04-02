@@ -38,8 +38,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
@@ -65,11 +65,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
 
-public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessage> {
+public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileBucketTarCreator.class);
 
@@ -82,9 +83,15 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
     private final String bucketId;
     private final String fileBucketId;
     private final Path fileBucketStoragePath;
+
+    private final Object syncLock = new Object();
+    private final AtomicBoolean writeInProgress = new AtomicBoolean(false);
+    private final AtomicBoolean tarBufferingTimeoutExceeded = new AtomicBoolean(false);
+
     private TarAppender currentTarAppender = null;
     private Path currentTempTarFilePath = null;
     private Path currentTarFilePath = null;
+    private LocalDateTime oldestTarEntryDateTime = null;
 
     public FileBucketTarCreator(TapeLibraryConfiguration tapeLibraryConfiguration,
         BasicFileStorage basicFileStorage,
@@ -108,7 +115,19 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
     }
 
     @Override
-    protected void processMessage(InputFileToProcessMessage message)
+    protected void processMessage(TarCreatorMessage message)
+        throws QueueProcessingException {
+
+        if (message instanceof CheckTarBufferingTimeoutMessage) {
+            checkTarBufferingTimeout((CheckTarBufferingTimeoutMessage) message);
+        } else if (message instanceof InputFileToProcessMessage) {
+            writeFile((InputFileToProcessMessage) message);
+        } else {
+            throw new IllegalStateException("Unknown message time type " + message.getClass());
+        }
+    }
+
+    private void writeFile(InputFileToProcessMessage message)
         throws QueueProcessingException {
 
         if (LOGGER.isDebugEnabled()) {
@@ -153,6 +172,9 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
 
                 remainingSize -= entrySize;
                 entryIndex++;
+                if (this.oldestTarEntryDateTime == null) {
+                    this.oldestTarEntryDateTime = LocalDateUtil.now();
+                }
             }
             while (remainingSize > 0L);
             currentTarAppender.fsync();
@@ -225,13 +247,15 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
         // Schedule tar for copy on tape
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
-            LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
+            LocalFileUtils
+                .tarFileNameRelativeToInputTarStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
             this.currentTarAppender.getBytesWritten(),
             this.currentTarAppender.getDigestValue(),
             this.currentTarAppender.getTarId());
         this.writeOrderCreator.addToQueue(writeOrder);
 
         this.currentTarAppender = null;
+        this.oldestTarEntryDateTime = null;
     }
 
     private void indexInObjectReferential(InputFileToProcessMessage inputFileToProcessMessage,
@@ -337,6 +361,26 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
                     this.basicFileStorage.deleteFile(containerName, storageId);
                 }
             }
+        }
+    }
+
+    private void checkTarBufferingTimeout(CheckTarBufferingTimeoutMessage tarBufferingTimeoutInMinutes)
+        throws QueueProcessingException {
+
+        if (oldestTarEntryDateTime == null) {
+            return;
+        }
+
+        try {
+            LocalDateTime tarExpirationDateTime =
+                oldestTarEntryDateTime.plusMinutes(tarBufferingTimeoutInMinutes.getTarBufferingTimeoutInMinutes());
+
+            if (LocalDateTime.now().isAfter(tarExpirationDateTime)) {
+                finalizeTarFile();
+            }
+        } catch (IOException ex) {
+            throw new QueueProcessingException(QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
+                "An error occurred while archiving file to tar", ex);
         }
     }
 }

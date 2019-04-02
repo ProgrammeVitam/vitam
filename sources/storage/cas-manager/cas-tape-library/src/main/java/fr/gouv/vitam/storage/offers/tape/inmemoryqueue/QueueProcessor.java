@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
 public abstract class QueueProcessor<T> {
@@ -40,7 +39,7 @@ public abstract class QueueProcessor<T> {
     private static final int RETRY_DELAY_IN_MILLISECONDS = 60_000;
 
     private final String workerName;
-    private final BlockingQueue<T> queue = new LinkedBlockingDeque<>();
+    private final LinkedBlockingDeque<T> queue = new LinkedBlockingDeque<>();
 
     protected QueueProcessor(String workerName) {
         this.workerName = workerName;
@@ -52,6 +51,10 @@ public abstract class QueueProcessor<T> {
 
     public void addToQueue(T message) {
         queue.add(message);
+    }
+
+    public void addFirst(T message) {
+        queue.addFirst(message);
     }
 
     private void workerTask() {
