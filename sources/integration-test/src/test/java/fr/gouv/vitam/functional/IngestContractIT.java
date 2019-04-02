@@ -149,9 +149,8 @@ public class IngestContractIT extends VitamRuleRunner {
             final JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());
             // Then
             JsonNode events = result.get("$results").get(0).get("events");
-            if (events.isArray()) {
-                assertThat(events.size()).isEqualTo(2);
-            }
+            assertThat(events.isArray());
+            assertThat(events.size()).isEqualTo(2);
             assertThat(status.getStatusCode()).isEqualTo(201);
         }
     }
