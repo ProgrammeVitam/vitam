@@ -26,15 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-public class CheckTarBufferingTimeoutMessage extends TarCreatorMessage {
+public class TarBufferingTimedOutMessage extends TarCreatorMessage {
 
-    private final int tarBufferingTimeoutInMinutes;
+    private final String tarId;
 
-    public CheckTarBufferingTimeoutMessage(int tarBufferingTimeoutInMinutes) {
-        this.tarBufferingTimeoutInMinutes = tarBufferingTimeoutInMinutes;
+    public TarBufferingTimedOutMessage(String tarId) {
+        this.tarId = tarId;
     }
 
-    public int getTarBufferingTimeoutInMinutes() {
-        return tarBufferingTimeoutInMinutes;
+    public String getTarId() {
+        return tarId;
     }
 }

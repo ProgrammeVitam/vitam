@@ -32,7 +32,7 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
-import fr.gouv.vitam.storage.offers.tape.cas.InputFileToTarBuilder;
+import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
@@ -71,17 +71,18 @@ public class TapeStorageFactory {
 
         BasicFileStorage basicFileStorage =
             new BasicFileStorage(configuration.getInputFileStorageFolder());
-        InputFileToTarBuilder inputFileToTarBuilder =
-            new InputFileToTarBuilder(configuration, basicFileStorage, bucketTopologyHelper,
+        FileBucketTarCreatorManager fileBucketTarCreatorManager =
+            new FileBucketTarCreatorManager(configuration, basicFileStorage, bucketTopologyHelper,
                 objectReferentialRepository, tarReferentialRepository, writeOrderCreator);
-        inputFileToTarBuilder.initializeOnBootstrap();
+        fileBucketTarCreatorManager.initializeOnBootstrap();
 
         TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage = new
-            TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository, inputFileToTarBuilder);
+            TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
+            fileBucketTarCreatorManager);
 
         // Everything's alright. Start listeners
         writeOrderCreator.startListener();
-        inputFileToTarBuilder.startListeners();
+        fileBucketTarCreatorManager.startListeners();
 
         return tapeLibraryContentAddressableStorage;
     }

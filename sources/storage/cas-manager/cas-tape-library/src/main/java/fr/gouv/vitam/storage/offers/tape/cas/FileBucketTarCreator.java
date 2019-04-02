@@ -65,7 +65,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toMap;
@@ -83,22 +86,20 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     private final String bucketId;
     private final String fileBucketId;
     private final Path fileBucketStoragePath;
-
-    private final Object syncLock = new Object();
-    private final AtomicBoolean writeInProgress = new AtomicBoolean(false);
-    private final AtomicBoolean tarBufferingTimeoutExceeded = new AtomicBoolean(false);
+    private final int tarBufferingTimeoutInMinutes;
+    private final ScheduledExecutorService scheduledExecutorService;
 
     private TarAppender currentTarAppender = null;
     private Path currentTempTarFilePath = null;
     private Path currentTarFilePath = null;
-    private LocalDateTime oldestTarEntryDateTime = null;
+    private ScheduledFuture<?> tarBufferingTimoutChecker;
 
     public FileBucketTarCreator(TapeLibraryConfiguration tapeLibraryConfiguration,
         BasicFileStorage basicFileStorage,
         ObjectReferentialRepository objectReferentialRepository,
         TarReferentialRepository tarReferentialRepository,
         WriteOrderCreator writeOrderCreator, Set<String> containerNames, String bucketId,
-        String fileBucketId) {
+        String fileBucketId, int tarBufferingTimeoutInMinutes) {
         super("FileBucketTarCreator-" + fileBucketId);
 
         this.tapeLibraryConfiguration = tapeLibraryConfiguration;
@@ -110,18 +111,23 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
         this.bucketId = bucketId;
         this.fileBucketId = fileBucketId;
+        this.tarBufferingTimeoutInMinutes = tarBufferingTimeoutInMinutes;
         this.fileBucketStoragePath = Paths.get(tapeLibraryConfiguration.getInputTarStorageFolder())
             .resolve(fileBucketId);
+        this.scheduledExecutorService = Executors.newScheduledThreadPool(1);
+
     }
 
     @Override
     protected void processMessage(TarCreatorMessage message)
         throws QueueProcessingException {
 
-        if (message instanceof CheckTarBufferingTimeoutMessage) {
-            checkTarBufferingTimeout((CheckTarBufferingTimeoutMessage) message);
+        if (message instanceof TarBufferingTimedOutMessage) {
+            checkTarBufferingTimeout((TarBufferingTimedOutMessage) message);
+
         } else if (message instanceof InputFileToProcessMessage) {
             writeFile((InputFileToProcessMessage) message);
+
         } else {
             throw new IllegalStateException("Unknown message time type " + message.getClass());
         }
@@ -172,9 +178,6 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
                 remainingSize -= entrySize;
                 entryIndex++;
-                if (this.oldestTarEntryDateTime == null) {
-                    this.oldestTarEntryDateTime = LocalDateUtil.now();
-                }
             }
             while (remainingSize > 0L);
             currentTarAppender.fsync();
@@ -235,6 +238,8 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         this.currentTempTarFilePath = fileBucketStoragePath.resolve(tarFileId + LocalFileUtils.TMP_EXTENSION);
         this.currentTarAppender = new TarAppender(
             currentTempTarFilePath, tarFileId, tapeLibraryConfiguration.getMaxTarFileSize());
+        this.tarBufferingTimoutChecker = this.scheduledExecutorService.schedule(
+            () -> checkTarBufferingTimeout(tarFileId), tarBufferingTimeoutInMinutes, TimeUnit.MINUTES);
     }
 
     private void finalizeTarFile() throws IOException {
@@ -255,7 +260,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         this.writeOrderCreator.addToQueue(writeOrder);
 
         this.currentTarAppender = null;
-        this.oldestTarEntryDateTime = null;
+        this.tarBufferingTimoutChecker.cancel(false);
     }
 
     private void indexInObjectReferential(InputFileToProcessMessage inputFileToProcessMessage,
@@ -364,23 +369,24 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         }
     }
 
-    private void checkTarBufferingTimeout(CheckTarBufferingTimeoutMessage tarBufferingTimeoutInMinutes)
+    private void checkTarBufferingTimeout(TarBufferingTimedOutMessage tarBufferingTimedOutMessage)
         throws QueueProcessingException {
 
-        if (oldestTarEntryDateTime == null) {
+        // Double check tar Id in case of concurrent access
+        if (this.currentTarAppender == null ||
+            !this.currentTarAppender.getTarId().equals(tarBufferingTimedOutMessage.getTarId())) {
             return;
         }
 
         try {
-            LocalDateTime tarExpirationDateTime =
-                oldestTarEntryDateTime.plusMinutes(tarBufferingTimeoutInMinutes.getTarBufferingTimeoutInMinutes());
-
-            if (LocalDateTime.now().isAfter(tarExpirationDateTime)) {
-                finalizeTarFile();
-            }
+            finalizeTarFile();
         } catch (IOException ex) {
             throw new QueueProcessingException(QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
                 "An error occurred while archiving file to tar", ex);
         }
+    }
+
+    private void checkTarBufferingTimeout(String tarId) {
+        addFirst(new TarBufferingTimedOutMessage(tarId));
     }
 }

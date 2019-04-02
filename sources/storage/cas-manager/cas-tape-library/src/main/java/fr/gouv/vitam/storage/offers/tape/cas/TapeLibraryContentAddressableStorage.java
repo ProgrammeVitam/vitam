@@ -60,15 +60,15 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
     private final BasicFileStorage basicFileStorage;
     private final ObjectReferentialRepository objectReferentialRepository;
-    private final InputFileToTarBuilder inputFileToTarBuilder;
+    private final FileBucketTarCreatorManager fileBucketTarCreatorManager;
 
     public TapeLibraryContentAddressableStorage(
         BasicFileStorage basicFileStorage,
         ObjectReferentialRepository objectReferentialRepository,
-        InputFileToTarBuilder inputFileToTarBuilder) {
+        FileBucketTarCreatorManager fileBucketTarCreatorManager) {
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
-        this.inputFileToTarBuilder = inputFileToTarBuilder;
+        this.fileBucketTarCreatorManager = fileBucketTarCreatorManager;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
                 ex);
         } finally {
             // Notify tar file builder queue
-            inputFileToTarBuilder.addToQueue(
+            fileBucketTarCreatorManager.addToQueue(
                 new InputFileToProcessMessage(containerName, objectName, storageId, size, digestValue,
                     digestType.getName()));
         }
