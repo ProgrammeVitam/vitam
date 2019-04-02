@@ -4,23 +4,32 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.OfferSequence;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialEntity;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 
 public enum OfferCollections {
-    OFFER_LOG(OfferLog.class),
-    OFFER_SEQUENCE(OfferSequence.class),
-    OFFER_TAPE_CATALOG(TapeCatalog.class),
-    OFFER_QUEUE(QueueMessageEntity.class),
-    OFFER_OBJECT_REFERENTIAL(TapeLibraryObjectReferentialEntity.class),
-    OFFER_TAR_REFERENTIAL(TapeLibraryTarReferentialEntity.class);
+    /*
+     * Global collections
+     */
+    OFFER_LOG(OfferLog.class, OfferLog.class.getSimpleName()),
+    OFFER_SEQUENCE(OfferSequence.class, OfferSequence.class.getSimpleName()),
+
+    /*
+     * Tape storage collections
+     */
+    TAPE_CATALOG(TapeCatalog.class, "TapeCatalog"),
+    TAPE_QUEUE_MESSAGE(QueueMessageEntity.class, "TapeQueueMessage"),
+    TAPE_OBJECT_REFERENTIAL(TapeObjectReferentialEntity.class, "TapeObjectReferential"),
+    TAPE_TAR_REFERENTIAL(TapeTarReferentialEntity.class, "TapeTarReferential");
 
     private final Class<?> clazz;
     private String name;
+    private String baseName;
 
-    OfferCollections(Class<?> clazz) {
+    OfferCollections(Class<?> clazz, String baseName) {
         this.clazz = clazz;
-        this.name = clazz.getSimpleName();
+        this.baseName = baseName;
+        this.name = baseName;
     }
 
     public Class<?> getClazz() {
@@ -28,10 +37,10 @@ public enum OfferCollections {
     }
 
     public String getName() {
-        return name;
+        return this.name;
     }
 
     public void setPrefix(String prefix) { // NOSONAR
-        this.name = prefix + getClazz().getSimpleName();
+        this.name = prefix + this.baseName;
     }
 }

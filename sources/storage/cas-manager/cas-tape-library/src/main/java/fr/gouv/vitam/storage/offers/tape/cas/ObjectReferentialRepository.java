@@ -38,7 +38,7 @@ import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
@@ -58,29 +58,29 @@ public class ObjectReferentialRepository {
         this.collection = collection;
     }
 
-    public void insertOrUpdate(TapeLibraryObjectReferentialEntity tapeLibraryObjectReferentialEntity)
+    public void insertOrUpdate(TapeObjectReferentialEntity tapeObjectReferentialEntity)
         throws ObjectReferentialException {
         try {
             collection.findOneAndReplace(
-                Filters.eq(TapeLibraryObjectReferentialEntity.ID, toBson(tapeLibraryObjectReferentialEntity.getId())),
-                toBson(tapeLibraryObjectReferentialEntity),
+                Filters.eq(TapeObjectReferentialEntity.ID, toBson(tapeObjectReferentialEntity.getId())),
+                toBson(tapeObjectReferentialEntity),
                 new FindOneAndReplaceOptions().upsert(true)
             );
         } catch (MongoException ex) {
             throw new ObjectReferentialException(
                 "Could not insert or update tar referential for id " +
-                    tapeLibraryObjectReferentialEntity.getId().getContainerName() + "/" +
-                    tapeLibraryObjectReferentialEntity.getId().getObjectName(), ex);
+                    tapeObjectReferentialEntity.getId().getContainerName() + "/" +
+                    tapeObjectReferentialEntity.getId().getObjectName(), ex);
         }
     }
 
-    public Optional<TapeLibraryObjectReferentialEntity> find(String containerName, String objectName)
+    public Optional<TapeObjectReferentialEntity> find(String containerName, String objectName)
         throws ObjectReferentialException {
 
         Document document;
         try {
             document = collection.find(
-                Filters.eq(TapeLibraryObjectReferentialEntity.ID,
+                Filters.eq(TapeObjectReferentialEntity.ID,
                     toBson(new TapeLibraryObjectReferentialId(containerName, objectName))))
                 .first();
         } catch (MongoException ex) {
@@ -93,26 +93,26 @@ public class ObjectReferentialRepository {
         }
 
         try {
-            return Optional.of(fromBson(document, TapeLibraryObjectReferentialEntity.class));
+            return Optional.of(fromBson(document, TapeObjectReferentialEntity.class));
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException("Could not parse document from DB " + JSON.serialize(document), e);
         }
     }
 
-    public List<TapeLibraryObjectReferentialEntity> bulkFind(String containerName, Set<String> objectNames)
+    public List<TapeObjectReferentialEntity> bulkFind(String containerName, Set<String> objectNames)
         throws ObjectReferentialException {
 
         try (MongoCursor<Document> iterator = collection.find(
-            Filters.in(TapeLibraryObjectReferentialEntity.ID,
+            Filters.in(TapeObjectReferentialEntity.ID,
                 objectNames.stream()
                     .map(objectName -> toBson(new TapeLibraryObjectReferentialId(containerName, objectName)))
                     .collect(Collectors.toList()))).iterator()) {
 
-            List<TapeLibraryObjectReferentialEntity> result = new ArrayList<>();
+            List<TapeObjectReferentialEntity> result = new ArrayList<>();
             while (iterator.hasNext()) {
                 Document document = iterator.next();
                 try {
-                    result.add(fromBson(document, TapeLibraryObjectReferentialEntity.class));
+                    result.add(fromBson(document, TapeObjectReferentialEntity.class));
                 } catch (InvalidParseOperationException e) {
                     throw new IllegalStateException("Could not parse documents from DB " + JSON.serialize(document), e);
                 }
@@ -132,14 +132,14 @@ public class ObjectReferentialRepository {
         try {
             collection.updateOne(
                 Filters.and(
-                    Filters.eq(TapeLibraryObjectReferentialEntity.ID,
+                    Filters.eq(TapeObjectReferentialEntity.ID,
                         toBson(new TapeLibraryObjectReferentialId(containerName, objectName))),
-                    Filters.eq(TapeLibraryObjectReferentialEntity.STORAGE_ID, storageId)
+                    Filters.eq(TapeObjectReferentialEntity.STORAGE_ID, storageId)
                 ),
                 Updates.combine(
-                    Updates.set(TapeLibraryObjectReferentialEntity.LOCATION,
+                    Updates.set(TapeObjectReferentialEntity.LOCATION,
                         toBson(tapeLibraryTarStorageLocation)),
-                    Updates.set(TapeLibraryObjectReferentialEntity.LAST_UPDATE_DATE,
+                    Updates.set(TapeObjectReferentialEntity.LAST_UPDATE_DATE,
                         LocalDateUtil.now().toString())
                 ),
                 new UpdateOptions().upsert(false)
@@ -154,7 +154,7 @@ public class ObjectReferentialRepository {
         throws ObjectReferentialException {
         try {
             DeleteResult deleteResult = collection.deleteOne(
-                Filters.eq(TapeLibraryObjectReferentialEntity.ID,
+                Filters.eq(TapeObjectReferentialEntity.ID,
                     toBson(tapeLibraryObjectReferentialId)));
 
             return (deleteResult.getDeletedCount() > 0L);

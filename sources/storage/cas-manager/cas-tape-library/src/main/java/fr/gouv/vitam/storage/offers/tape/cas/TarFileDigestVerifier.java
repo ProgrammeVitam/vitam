@@ -30,7 +30,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
@@ -118,16 +118,16 @@ public class TarFileDigestVerifier {
             .map(entryToCheck -> entryToCheck.objectName)
             .collect(Collectors.toSet());
 
-        List<TapeLibraryObjectReferentialEntity> objectReferentialEntities =
+        List<TapeObjectReferentialEntity> objectReferentialEntities =
             objectReferentialRepository.bulkFind(containerName, objectNames);
 
 
-        Map<String, TapeLibraryObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
+        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
             objectReferentialEntities.stream()
                 .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
 
         for (EntryToCheck entryToCheck : entriesToCheck) {
-            TapeLibraryObjectReferentialEntity objectReferentialEntity =
+            TapeObjectReferentialEntity objectReferentialEntity =
                 objectReferentialEntityByObjectIdMap.get(entryToCheck.objectName);
 
             if (objectReferentialEntity == null ||

@@ -35,10 +35,11 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
@@ -58,7 +59,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -191,7 +192,7 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
 
                         Path tarFile = fileBucketTarStoragePath.resolve(tarId);
 
-                        Optional<TapeLibraryTarReferentialEntity> tarReferentialEntity =
+                        Optional<TapeTarReferentialEntity> tarReferentialEntity =
                             tarReferentialRepository.find(tarId);
                         if (!tarReferentialEntity.isPresent()) {
                             throw new IllegalStateException(
@@ -350,8 +351,10 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
 
         // Schedule tar archive for copy on tape
         readWriteQueue.addIfAbsent(
-            Collections.singletonList(
-                new QueryCriteria(WriteOrder.FILE_PATH, message.getFilePath(), QueryCriteriaOperator.EQ)),
+            Arrays.asList(
+                new QueryCriteria(WriteOrder.FILE_PATH, message.getFilePath(), QueryCriteriaOperator.EQ),
+                new QueryCriteria(WriteOrder.MESSAGE_TYPE, QueueMessageType.WriteOrder.name(),
+                    QueryCriteriaOperator.EQ)),
             message);
     }
 

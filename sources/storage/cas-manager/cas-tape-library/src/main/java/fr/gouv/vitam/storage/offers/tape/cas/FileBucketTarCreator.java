@@ -38,9 +38,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
@@ -201,7 +201,7 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
         String tarFileId = LocalFileUtils.createTarId(now);
 
         try {
-            TapeLibraryTarReferentialEntity tarReferentialEntity = new TapeLibraryTarReferentialEntity(
+            TapeTarReferentialEntity tarReferentialEntity = new TapeTarReferentialEntity(
                 tarFileId, new TapeLibraryBuildingOnDiskTarStorageLocation(), null, null, now.toString());
             tarReferentialRepository.insert(tarReferentialEntity);
         } catch (TarReferentialException ex) {
@@ -297,11 +297,11 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
         HashSet<String> objectNames = new HashSet<>(storageIdToObjectIdMap.values());
 
         // Find objects in object referential (bulk)
-        List<TapeLibraryObjectReferentialEntity> objectReferentialEntities =
+        List<TapeObjectReferentialEntity> objectReferentialEntities =
             this.objectReferentialRepository.bulkFind(containerName,
                 objectNames);
 
-        Map<String, TapeLibraryObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
+        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
             objectReferentialEntities.stream()
                 .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
 
@@ -315,7 +315,7 @@ public class FileBucketTarCreator extends QueueProcessor<InputFileToProcessMessa
                 this.basicFileStorage.deleteFile(containerName, storageId);
             } else {
 
-                TapeLibraryObjectReferentialEntity objectReferentialEntity =
+                TapeObjectReferentialEntity objectReferentialEntity =
                     objectReferentialEntityByObjectIdMap.get(objectName);
 
                 if (!storageId.equals(objectReferentialEntity.getStorageId())) {

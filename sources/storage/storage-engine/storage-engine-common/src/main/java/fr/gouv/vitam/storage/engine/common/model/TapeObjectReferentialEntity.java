@@ -29,7 +29,7 @@ package fr.gouv.vitam.storage.engine.common.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 
-public class TapeLibraryObjectReferentialEntity {
+public class TapeObjectReferentialEntity {
 
     public static final String ID = "_id";
     public static final String SIZE = "size";
@@ -64,11 +64,11 @@ public class TapeLibraryObjectReferentialEntity {
     @JsonProperty(LAST_UPDATE_DATE)
     private String lastUpdateDate;
 
-    public TapeLibraryObjectReferentialEntity() {
+    public TapeObjectReferentialEntity() {
         // Empty constructor for deserialization
     }
 
-    public TapeLibraryObjectReferentialEntity(TapeLibraryObjectReferentialId id, long size, String digestType,
+    public TapeObjectReferentialEntity(TapeLibraryObjectReferentialId id, long size, String digestType,
         String digest, String storageId, TapeLibraryObjectStorageLocation location, String lastObjectModifiedDate, String lastUpdateDate) {
         ParametersChecker.checkParameter("Id is required", id);
         this.id = id;
@@ -85,7 +85,7 @@ public class TapeLibraryObjectReferentialEntity {
         return id;
     }
 
-    public TapeLibraryObjectReferentialEntity setId(
+    public TapeObjectReferentialEntity setId(
         TapeLibraryObjectReferentialId id) {
         this.id = id;
         return this;
@@ -95,7 +95,7 @@ public class TapeLibraryObjectReferentialEntity {
         return size;
     }
 
-    public TapeLibraryObjectReferentialEntity setSize(long size) {
+    public TapeObjectReferentialEntity setSize(long size) {
         this.size = size;
         return this;
     }
@@ -104,7 +104,7 @@ public class TapeLibraryObjectReferentialEntity {
         return digestType;
     }
 
-    public TapeLibraryObjectReferentialEntity setDigestType(String digestType) {
+    public TapeObjectReferentialEntity setDigestType(String digestType) {
         this.digestType = digestType;
         return this;
     }
@@ -113,7 +113,7 @@ public class TapeLibraryObjectReferentialEntity {
         return digest;
     }
 
-    public TapeLibraryObjectReferentialEntity setDigest(String digest) {
+    public TapeObjectReferentialEntity setDigest(String digest) {
         this.digest = digest;
         return this;
     }
@@ -122,7 +122,7 @@ public class TapeLibraryObjectReferentialEntity {
         return storageId;
     }
 
-    public TapeLibraryObjectReferentialEntity setStorageId(String storageId) {
+    public TapeObjectReferentialEntity setStorageId(String storageId) {
         this.storageId = storageId;
         return this;
     }
@@ -131,7 +131,7 @@ public class TapeLibraryObjectReferentialEntity {
         return location;
     }
 
-    public TapeLibraryObjectReferentialEntity setLocation(
+    public TapeObjectReferentialEntity setLocation(
         TapeLibraryObjectStorageLocation location) {
         this.location = location;
         return this;
@@ -141,7 +141,7 @@ public class TapeLibraryObjectReferentialEntity {
         return lastObjectModifiedDate;
     }
 
-    public TapeLibraryObjectReferentialEntity setLastObjectModifiedDate(String lastObjectModifiedDate) {
+    public TapeObjectReferentialEntity setLastObjectModifiedDate(String lastObjectModifiedDate) {
         this.lastObjectModifiedDate = lastObjectModifiedDate;
         return this;
     }
@@ -150,7 +150,7 @@ public class TapeLibraryObjectReferentialEntity {
         return lastUpdateDate;
     }
 
-    public TapeLibraryObjectReferentialEntity setLastUpdateDate(String lastUpdateDate) {
+    public TapeObjectReferentialEntity setLastUpdateDate(String lastUpdateDate) {
         this.lastUpdateDate = lastUpdateDate;
         return this;
     }

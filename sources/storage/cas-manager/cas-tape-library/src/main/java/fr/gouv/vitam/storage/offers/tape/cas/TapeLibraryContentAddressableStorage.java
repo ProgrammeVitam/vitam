@@ -41,7 +41,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.utils.ContainerUtils;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
@@ -103,7 +103,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         // Commit to mongo
         try {
             String now = LocalDateUtil.now().toString();
-            objectReferentialRepository.insertOrUpdate(new TapeLibraryObjectReferentialEntity(
+            objectReferentialRepository.insertOrUpdate(new TapeObjectReferentialEntity(
                 new TapeLibraryObjectReferentialId(containerName, objectName),
                 size, digestType.getName(), digestValue,
                 storageId, new TapeLibraryInputFileObjectStorageLocation(),
@@ -155,7 +155,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
         LOGGER.debug(String.format("Check existence of object %s in container %s", objectName, containerName));
         try {
-            Optional<TapeLibraryObjectReferentialEntity> objectReferentialEntity =
+            Optional<TapeObjectReferentialEntity> objectReferentialEntity =
                 objectReferentialRepository.find(containerName, objectName);
             return objectReferentialEntity.isPresent();
         } catch (ObjectReferentialException ex) {
@@ -169,7 +169,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
         throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Get digest of object %s in container %s", objectName, containerName));
         try {
-            Optional<TapeLibraryObjectReferentialEntity> objectReferentialEntity =
+            Optional<TapeObjectReferentialEntity> objectReferentialEntity =
                 objectReferentialRepository.find(containerName, objectName);
 
             if (!objectReferentialEntity.isPresent()) {
@@ -211,7 +211,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
             containerName, objectName);
 
         try {
-            Optional<TapeLibraryObjectReferentialEntity> objectReferentialEntity =
+            Optional<TapeObjectReferentialEntity> objectReferentialEntity =
                 objectReferentialRepository.find(containerName, objectName);
 
             if (!objectReferentialEntity.isPresent()) {

@@ -52,10 +52,10 @@ public class TapeStorageFactory {
 
         ObjectReferentialRepository objectReferentialRepository =
             new ObjectReferentialRepository(mongoDbAccess.getMongoDatabase()
-                .getCollection(OfferCollections.OFFER_OBJECT_REFERENTIAL.getName()));
+                .getCollection(OfferCollections.TAPE_OBJECT_REFERENTIAL.getName()));
         TarReferentialRepository tarReferentialRepository =
             new TarReferentialRepository(mongoDbAccess.getMongoDatabase()
-                .getCollection(OfferCollections.OFFER_TAR_REFERENTIAL.getName()));
+                .getCollection(OfferCollections.TAPE_TAR_REFERENTIAL.getName()));
 
         TapeLibraryFactory tapeLibraryFactory = TapeLibraryFactory.getInstance();
         tapeLibraryFactory.initialize(configuration, mongoDbAccess);

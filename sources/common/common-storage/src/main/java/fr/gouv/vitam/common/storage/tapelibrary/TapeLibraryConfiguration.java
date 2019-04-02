@@ -26,14 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.tapelibrary;
 
-import java.util.List;
 import java.util.Map;
 
 public class TapeLibraryConfiguration {
 
-    /*
-     * Tape storage configuration
-     */
     /**
      * Folder for storing incoming files
      */
@@ -61,7 +57,6 @@ public class TapeLibraryConfiguration {
      */
     private TapeLibraryTopologyConfiguration topology;
 
-    private List<TapeBatch> tapeBatches;
     private Map<String, TapeLibraryConf> tapeLibraries;
 
     public TapeLibraryTopologyConfiguration getTopology() {
@@ -70,15 +65,6 @@ public class TapeLibraryConfiguration {
 
     public TapeLibraryConfiguration setTopology(TapeLibraryTopologyConfiguration topology) {
         this.topology = topology;
-        return this;
-    }
-
-    public List<TapeBatch> getTapeBatches() {
-        return tapeBatches;
-    }
-
-    public TapeLibraryConfiguration setTapeBatches(List<TapeBatch> tapeBatches) {
-        this.tapeBatches = tapeBatches;
         return this;
     }
 

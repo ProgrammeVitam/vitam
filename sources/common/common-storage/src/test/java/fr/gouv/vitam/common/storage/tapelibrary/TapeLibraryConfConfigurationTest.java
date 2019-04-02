@@ -22,13 +22,6 @@ public class TapeLibraryConfConfigurationTest {
                 TapeLibraryConfiguration.class);
         assertThat(configuration).isNotNull();
 
-        assertThat(configuration.getTapeBatches()).hasSize(2);
-        assertThat(configuration.getTapeBatches()).extracting("containers", "nbThreads")
-            .contains(
-                tuple(Lists.newArrayList("0_object", "1_object"), 3),
-                tuple(Lists.newArrayList("0_others", "1_others"), 1)
-            );
-
         assertThat(configuration.getTapeLibraries()).isNotEmpty();
         assertThat(configuration.getTapeLibraries().keySet()).hasSize(2);
         assertThat(configuration.getTapeLibraries().keySet()).contains("TAPE_LIB_1", "TAPE_LIB_2");

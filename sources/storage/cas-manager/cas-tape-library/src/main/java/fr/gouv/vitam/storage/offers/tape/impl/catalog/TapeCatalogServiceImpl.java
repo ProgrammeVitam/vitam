@@ -67,7 +67,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     public TapeCatalogServiceImpl(MongoDbAccess mongoDbAccess) {
         this.repository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(OfferCollections.OFFER_TAPE_CATALOG.getName()));
+            .getCollection(OfferCollections.TAPE_CATALOG.getName()));
     }
 
     @Override

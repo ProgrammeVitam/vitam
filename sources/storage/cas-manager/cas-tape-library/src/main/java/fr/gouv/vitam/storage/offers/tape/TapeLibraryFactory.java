@@ -75,10 +75,10 @@ public class TapeLibraryFactory {
         final TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
         final TarReferentialRepository tarReferentialRepository =
             new TarReferentialRepository(mongoDbAccess.getMongoDatabase()
-                .getCollection(OfferCollections.OFFER_TAR_REFERENTIAL.getName()));
+                .getCollection(OfferCollections.TAPE_TAR_REFERENTIAL.getName()));
 
         final QueueRepository queueRepository = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
-            OfferCollections.OFFER_QUEUE.getName()));
+            OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
 
         for (String tapeLibraryIdentifier : libraries.keySet()) {
             TapeLibraryConf tapeLibraryConf = libraries.get(tapeLibraryIdentifier);

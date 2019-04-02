@@ -51,7 +51,7 @@ import org.junit.Test;
 
 public class QueueRepositoryImplTest {
 
-    public static final String QUEUE = OfferCollections.OFFER_QUEUE.getName() + GUIDFactory.newGUID().getId();
+    public static final String QUEUE = OfferCollections.TAPE_QUEUE_MESSAGE.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), QUEUE);

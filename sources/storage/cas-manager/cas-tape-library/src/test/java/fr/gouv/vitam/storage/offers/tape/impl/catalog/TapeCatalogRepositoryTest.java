@@ -58,7 +58,7 @@ import org.junit.Test;
 public class TapeCatalogRepositoryTest {
 
     public static final String TAPE_CATALOG_COLLECTION =
-        OfferCollections.OFFER_TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
+        OfferCollections.TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule = new MongoRule(getMongoClientOptions(), TAPE_CATALOG_COLLECTION);

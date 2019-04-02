@@ -86,7 +86,7 @@ public class TapeLibraryIT {
 
     @ClassRule
     public static MongoRule mongoRule =
-        new MongoRule(getMongoClientOptions(), OfferCollections.OFFER_TAPE_CATALOG.getName());
+        new MongoRule(getMongoClientOptions(), OfferCollections.TAPE_CATALOG.getName());
 
 
     private static TapeLibraryFactory tapeLibraryFactory;
@@ -197,7 +197,7 @@ public class TapeLibraryIT {
 
     @Test
     public void testInit() {
-
+        // Just runs eraseAllTapes()
     }
 
     @AfterClass

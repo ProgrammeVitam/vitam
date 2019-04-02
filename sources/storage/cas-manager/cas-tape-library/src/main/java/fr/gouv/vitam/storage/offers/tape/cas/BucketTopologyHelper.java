@@ -29,9 +29,11 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import com.google.common.collect.ImmutableMap;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryBucketConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryTopologyConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.utils.ContainerUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -56,11 +58,20 @@ public class BucketTopologyHelper {
     public static final String DEFAULT = "default";
     private final Map<Pair<Integer, DataCategory>, String> containerToFileBucketMap;
     private final Map<String, String> fileBucketToBucketMap;
+    private final Map<String, Integer> tarBufferingTimeoutInMinutesByBucketId;
 
     public BucketTopologyHelper(TapeLibraryTopologyConfiguration configuration) {
 
         Map<String, List<String>> fileBuckets = validateFileBuckets(configuration);
-        Map<String, List<Integer>> buckets = validateBuckets(configuration);
+        validateBucketConfiguration(configuration);
+
+        Map<String, List<Integer>> buckets = configuration.getBuckets()
+            .entrySet()
+            .stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().getTenants()
+            ));
 
         // Load map
         Map<DataCategory, String> dataCategoryToFileBucketMap =
@@ -75,7 +86,6 @@ public class BucketTopologyHelper {
                             .orElse(DEFAULT)
                     )
                 );
-
 
         Map<Pair<Integer, DataCategory>, String> containerToFileBucketMap = new HashMap<>();
         Map<String, String> fileBucketToBucketMap = new HashMap<>();
@@ -95,6 +105,12 @@ public class BucketTopologyHelper {
         }
         this.containerToFileBucketMap = MapUtils.unmodifiableMap(containerToFileBucketMap);
         this.fileBucketToBucketMap = MapUtils.unmodifiableMap(fileBucketToBucketMap);
+
+        this.tarBufferingTimeoutInMinutesByBucketId = configuration.getBuckets().entrySet().stream()
+            .collect(Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> entry.getValue().getTarBufferingTimeoutInMinutes()
+            ));
     }
 
     private Map<String, List<String>> validateFileBuckets(TapeLibraryTopologyConfiguration configuration)
@@ -146,7 +162,7 @@ public class BucketTopologyHelper {
         return fileBuckets;
     }
 
-    private Map<String, List<Integer>> validateBuckets(TapeLibraryTopologyConfiguration configuration)
+    private void validateBucketConfiguration(TapeLibraryTopologyConfiguration configuration)
         throws VitamRuntimeException {
 
         /*
@@ -154,21 +170,35 @@ public class BucketTopologyHelper {
          *   - buckets must be distinct sets & non empty
          *   - all tenants should map to a bucket
          */
-        Map<String, List<Integer>> buckets = configuration.getBuckets();
+        Map<String, TapeLibraryBucketConfiguration> buckets = configuration.getBuckets();
         if (buckets == null) {
             throw new VitamRuntimeException("Invalid conf. Missing buckets configuration");
         }
 
-        if (buckets.values().contains(null)) {
-            throw new VitamRuntimeException("Null file bucket");
+        for (TapeLibraryBucketConfiguration bucketConfiguration : buckets.values()) {
+            if (bucketConfiguration == null) {
+                throw new VitamRuntimeException("Missing bucket configuration");
+            }
+
+            if (CollectionUtils.isEmpty(bucketConfiguration.getTenants())) {
+                throw new VitamRuntimeException("Missing bucket tenants");
+            }
+
+            if (bucketConfiguration.getTarBufferingTimeoutInMinutes() <= 0) {
+                throw new VitamRuntimeException("Tar buffering timeout must be positive");
+            }
         }
 
-        if (hasDuplicates(buckets.values().stream().flatMap(Collection::stream))) {
+        if (hasDuplicates(buckets.values().stream()
+            .map(TapeLibraryBucketConfiguration::getTenants)
+            .flatMap(Collection::stream))) {
             throw new VitamRuntimeException("Duplicates found in file bucket configuration");
         }
 
-        Set<Integer> fileBucketTenants =
-            buckets.values().stream().flatMap(Collection::stream).collect(Collectors.toSet());
+        Set<Integer> fileBucketTenants = buckets.values().stream()
+            .map(TapeLibraryBucketConfiguration::getTenants)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toSet());
         Set<Integer> vitamTenants = new HashSet<>(VitamConfiguration.getTenants());
 
         SetUtils.SetView<Integer> missingTenants = SetUtils.difference(vitamTenants, fileBucketTenants);
@@ -180,8 +210,6 @@ public class BucketTopologyHelper {
         if (!unknownTenants.isEmpty()) {
             throw new VitamRuntimeException("Unknown tenants " + unknownTenants);
         }
-
-        return buckets;
     }
 
     public String getFileBucketFromContainerName(String containerName) {
@@ -201,8 +229,13 @@ public class BucketTopologyHelper {
     public Set<String> listContainerNames(String fileBucketId) {
         return this.containerToFileBucketMap.entrySet().stream()
             .filter(entry -> entry.getValue().equals(fileBucketId))
-            .map(entry -> ContainerUtils.buildContainerName(entry.getKey().getRight(), entry.getKey().getLeft().toString()))
+            .map(entry -> ContainerUtils
+                .buildContainerName(entry.getKey().getRight(), entry.getKey().getLeft().toString()))
             .collect(Collectors.toSet());
+    }
+
+    public Integer getTarBufferingTimeoutInMinutes(String bucketId) {
+        return tarBufferingTimeoutInMinutesByBucketId.get(bucketId);
     }
 
     private static <T> boolean hasDuplicates(Stream<T> stream) {

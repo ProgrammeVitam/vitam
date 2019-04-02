@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
 import org.bson.Document;
 
@@ -51,25 +51,25 @@ public class TarReferentialRepository {
         this.collection = collection;
     }
 
-    public void insert(TapeLibraryTarReferentialEntity tapeLibraryTarReferentialEntity)
+    public void insert(TapeTarReferentialEntity tapeTarReferentialEntity)
         throws TarReferentialException {
 
         try {
-            collection.insertOne(toBson(tapeLibraryTarReferentialEntity));
+            collection.insertOne(toBson(tapeTarReferentialEntity));
         } catch (MongoException ex) {
             throw new TarReferentialException(
-                "Could not insert or update tar referential for id " + tapeLibraryTarReferentialEntity.getTarId(), ex);
+                "Could not insert or update tar referential for id " + tapeTarReferentialEntity.getTarId(), ex);
         }
     }
 
-    public Optional<TapeLibraryTarReferentialEntity> find(String tarId)
+    public Optional<TapeTarReferentialEntity> find(String tarId)
         throws TarReferentialException {
 
         Document document;
 
         try {
             document = collection.find(
-                Filters.eq(TapeLibraryTarReferentialEntity.ID, tarId))
+                Filters.eq(TapeTarReferentialEntity.ID, tarId))
                 .first();
         } catch (MongoException ex) {
             throw new TarReferentialException("Could not find storage location by id " + tarId, ex);
@@ -80,7 +80,7 @@ public class TarReferentialRepository {
         }
 
         try {
-            return Optional.of(fromBson(document, TapeLibraryTarReferentialEntity.class));
+            return Optional.of(fromBson(document, TapeTarReferentialEntity.class));
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException("Could not parse document from DB " + JSON.serialize(document), e);
         }
@@ -89,15 +89,15 @@ public class TarReferentialRepository {
     public void updateLocationToReadyOnDisk(String tarId, long size, String digest) throws TarReferentialException {
         try {
             collection.updateOne(
-                Filters.eq(TapeLibraryTarReferentialEntity.ID, tarId),
+                Filters.eq(TapeTarReferentialEntity.ID, tarId),
                 Updates.combine(
-                    Updates.set(TapeLibraryTarReferentialEntity.LOCATION,
+                    Updates.set(TapeTarReferentialEntity.LOCATION,
                         toBson(new TapeLibraryReadyOnDiskTarStorageLocation())),
-                    Updates.set(TapeLibraryTarReferentialEntity.SIZE,
+                    Updates.set(TapeTarReferentialEntity.SIZE,
                         size),
-                    Updates.set(TapeLibraryTarReferentialEntity.DIGEST,
+                    Updates.set(TapeTarReferentialEntity.DIGEST,
                         digest),
-                    Updates.set(TapeLibraryTarReferentialEntity.LAST_UPDATE_DATE,
+                    Updates.set(TapeTarReferentialEntity.LAST_UPDATE_DATE,
                         LocalDateUtil.now().toString())
                 ),
                 new UpdateOptions().upsert(false)
@@ -113,11 +113,11 @@ public class TarReferentialRepository {
 
         try {
             collection.updateOne(
-                Filters.eq(TapeLibraryTarReferentialEntity.ID, tarId),
+                Filters.eq(TapeTarReferentialEntity.ID, tarId),
                 Updates.combine(
-                    Updates.set(TapeLibraryTarReferentialEntity.LOCATION,
+                    Updates.set(TapeTarReferentialEntity.LOCATION,
                         toBson(onTapeTarStorageLocation)),
-                    Updates.set(TapeLibraryTarReferentialEntity.LAST_UPDATE_DATE,
+                    Updates.set(TapeTarReferentialEntity.LAST_UPDATE_DATE,
                         LocalDateUtil.now().toString())
                 ),
                 new UpdateOptions().upsert(false)

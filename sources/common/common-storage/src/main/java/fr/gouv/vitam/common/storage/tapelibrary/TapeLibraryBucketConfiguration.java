@@ -24,89 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.common.model;
+package fr.gouv.vitam.common.storage.tapelibrary;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class TapeLibraryTarReferentialEntity {
+import java.util.List;
 
-    public static final String ID = "_id";
-    public static final String LOCATION = "location";
-    public static final String LAST_UPDATE_DATE = "lastUpdateDate";
-    public static final String SIZE = "size";
-    public static final String DIGEST = "digest";
+public class TapeLibraryBucketConfiguration {
 
-    @JsonProperty(ID)
-    private String tarId;
+    @JsonProperty("tenants")
+    private List<Integer> tenants;
+    @JsonProperty("tarBufferingTimeoutInMinutes")
+    private int tarBufferingTimeoutInMinutes = 60;
 
-    @JsonProperty(LOCATION)
-    private TapeLibraryTarStorageLocation location;
-
-    @JsonProperty(SIZE)
-    private Long size;
-
-    @JsonProperty(DIGEST)
-    private String digestValue;
-
-    @JsonProperty(LAST_UPDATE_DATE)
-    private String lastUpdateDate;
-
-    public TapeLibraryTarReferentialEntity() {
+    private TapeLibraryBucketConfiguration() {
         // Empty constructor for deserialization
     }
 
-    public TapeLibraryTarReferentialEntity(String tarId,
-        TapeLibraryTarStorageLocation location, Long size, String digestValue, String lastUpdateDate) {
-        this.tarId = tarId;
-        this.location = location;
-        this.size = size;
-        this.digestValue = digestValue;
-        this.lastUpdateDate = lastUpdateDate;
+    public TapeLibraryBucketConfiguration(List<Integer> tenants, int tarBufferingTimeoutInMinutes) {
+        this.tenants = tenants;
+        this.tarBufferingTimeoutInMinutes = tarBufferingTimeoutInMinutes;
     }
 
-    public String getTarId() {
-        return tarId;
+    public List<Integer> getTenants() {
+        return tenants;
     }
 
-    public TapeLibraryTarReferentialEntity setTarId(String tarId) {
-        this.tarId = tarId;
+    public TapeLibraryBucketConfiguration setTenants(List<Integer> tenants) {
+        this.tenants = tenants;
         return this;
     }
 
-    public TapeLibraryTarStorageLocation getLocation() {
-        return location;
+    public int getTarBufferingTimeoutInMinutes() {
+        return tarBufferingTimeoutInMinutes;
     }
 
-    public TapeLibraryTarReferentialEntity setLocation(
-        TapeLibraryTarStorageLocation location) {
-        this.location = location;
-        return this;
-    }
-
-    public Long getSize() {
-        return size;
-    }
-
-    public TapeLibraryTarReferentialEntity setSize(Long size) {
-        this.size = size;
-        return this;
-    }
-
-    public String getDigestValue() {
-        return digestValue;
-    }
-
-    public TapeLibraryTarReferentialEntity setDigestValue(String digestValue) {
-        this.digestValue = digestValue;
-        return this;
-    }
-
-    public String getLastUpdateDate() {
-        return lastUpdateDate;
-    }
-
-    public TapeLibraryTarReferentialEntity setLastUpdateDate(String lastUpdateDate) {
-        this.lastUpdateDate = lastUpdateDate;
+    public TapeLibraryBucketConfiguration setTarBufferingTimeoutInMinutes(int tarBufferingTimeoutInMinutes) {
+        this.tarBufferingTimeoutInMinutes = tarBufferingTimeoutInMinutes;
         return this;
     }
 }
