@@ -62,9 +62,12 @@ import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
 public class TapeLibraryFactory {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeLibraryFactory.class);
+
     private static final TapeLibraryFactory instance = new TapeLibraryFactory();
     private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
+
     private final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers = new ConcurrentHashMap<>();
+    private TapeCatalogService tapeCatalogService;
 
     private TapeLibraryFactory() {
     }
@@ -72,7 +75,7 @@ public class TapeLibraryFactory {
     public void initialize(TapeLibraryConfiguration configuration, MongoDbAccess mongoDbAccess) {
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
-        final TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
+        this.tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
         final TarReferentialRepository tarReferentialRepository =
             new TarReferentialRepository(mongoDbAccess.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_TAR_REFERENTIAL.getName()));
@@ -180,5 +183,9 @@ public class TapeLibraryFactory {
         }
 
         return tapeDriveWorkerManagers.values().iterator().next().getQueue();
+    }
+
+    public TapeCatalogService getTapeCatalogService() {
+        return this.tapeCatalogService;
     }
 }

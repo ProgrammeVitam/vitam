@@ -32,7 +32,7 @@ public class TarAppenderTest {
         // Given
         TarAppender tarAppender = new TarAppender(temporaryFolder.getRoot().toPath(), TAR_FILE_ID, 1_000_000L);
         byte[] data1 = "data1".getBytes();
-        byte[] data2 = "data1".getBytes();
+        byte[] data2 = "data2".getBytes();
         byte[] data3 = "data3".getBytes();
 
         // When
@@ -86,5 +86,4 @@ public class TarAppenderTest {
             }
         }
     }
-
 }

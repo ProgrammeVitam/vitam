@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -34,8 +35,12 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
     public static final String TAPE_CODE = "tapeCode";
     public static final String FILE_POSITION = "filePosition";
     public static final String FILE_NAME = "fileName";
+    public static final String BUCKET = "bucket";
+
     @JsonProperty(TAPE_CODE)
     private String tapeCode;
+    @JsonProperty(BUCKET)
+    private String bucket;
     @JsonProperty(FILE_POSITION)
     private Integer filePosition;
     @JsonProperty(FILE_NAME)
@@ -45,12 +50,13 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.ReadOrder);
     }
 
-    public ReadOrder(String tapeCode, Integer filePosition, String fileName) {
+    public ReadOrder(String tapeCode, Integer filePosition, String fileName, String bucket) {
         this();
         ParametersChecker.checkParameter("All params are required", tapeCode, filePosition);
         this.tapeCode = tapeCode;
         this.filePosition = filePosition;
         this.fileName = fileName;
+        this.bucket = bucket;
     }
 
     public String getTapeCode() {
@@ -74,6 +80,7 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
     }
 
     @Override
+    @JsonIgnore
     public boolean isWriteOrder() {
         return false;
     }
@@ -84,6 +91,15 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
 
     public ReadOrder setFileName(String fileName) {
         this.fileName = fileName;
+        return this;
+    }
+
+    public String getBucket() {
+        return bucket;
+    }
+
+    public ReadOrder setBucket(String bucket) {
+        this.bucket = bucket;
         return this;
     }
 }

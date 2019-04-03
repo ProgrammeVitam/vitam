@@ -26,13 +26,12 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public interface ReadWriteOrder {
 
-    String WRITE_ORDER = "WriteOrder";
-
     String getId();
-    @JsonProperty(WRITE_ORDER)
+
+    @JsonIgnore
     boolean isWriteOrder();
 }

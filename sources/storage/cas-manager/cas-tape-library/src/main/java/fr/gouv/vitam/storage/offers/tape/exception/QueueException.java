@@ -28,6 +28,10 @@ package fr.gouv.vitam.storage.offers.tape.exception;
 
 public class QueueException extends Exception {
 
+    public QueueException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public QueueException(Throwable cause) {
         super(cause);
     }

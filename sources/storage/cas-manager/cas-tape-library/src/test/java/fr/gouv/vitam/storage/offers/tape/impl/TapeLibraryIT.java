@@ -528,10 +528,10 @@ public class TapeLibraryIT {
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
                 Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 
-            ReadTask readTask1 = new ReadTask(new ReadOrder(tapeCode, 0, "testtar.tar"), workerCurrentTape,
+            ReadTask readTask1 = new ReadTask(new ReadOrder(tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
                 tapeLibraryPool, tapeDriveService, tapeCatalogService);
 
-            ReadTask readTask2 = new ReadTask(new ReadOrder(tapeCode, 1, "testtar_2.tar"), workerCurrentTape,
+            ReadTask readTask2 = new ReadTask(new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket"), workerCurrentTape,
                 tapeLibraryPool, tapeDriveService, tapeCatalogService);
 
             ReadWriteResult result1 = readTask1.get();

@@ -75,7 +75,7 @@ public class TapeStorageFactory {
 
         TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage =
                 new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
-                        tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueue);
+                        tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueue, tapeLibraryFactory.getTapeCatalogService());
 
         // Everything's alright. Start listeners
         writeOrderCreator.startListener();

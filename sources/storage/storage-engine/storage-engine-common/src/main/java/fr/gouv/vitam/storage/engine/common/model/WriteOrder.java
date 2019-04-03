@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.common.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -103,8 +104,7 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
         return this;
     }
 
-    // FIXME? use messageType field
-    // @JsonIgnore
+    @JsonIgnore
     @Override
     public boolean isWriteOrder() {
         return true;

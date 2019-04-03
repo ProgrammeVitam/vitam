@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -35,6 +36,8 @@ import java.util.stream.Collectors;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -48,6 +51,7 @@ import fr.gouv.vitam.common.storage.cas.container.api.VitamPageSet;
 import fr.gouv.vitam.common.storage.cas.container.api.VitamStorageMetadata;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectStorageLocation;
@@ -60,11 +64,15 @@ import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.utils.ContainerUtils;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
+import fr.gouv.vitam.storage.offers.tape.pool.TapeLibraryPoolImpl;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.collections4.CollectionUtils;
 
 public class TapeLibraryContentAddressableStorage implements ContentAddressableStorage {
 
@@ -76,18 +84,20 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     private final FileBucketTarCreatorManager fileBucketTarCreatorManager;
     private final QueueRepository readWriteQueue;
     private final TarReferentialRepository tarReferentialRepository;
+    private final TapeCatalogService tapeCatalogService;
 
     public TapeLibraryContentAddressableStorage(
         BasicFileStorage basicFileStorage,
         ObjectReferentialRepository objectReferentialRepository,
         TarReferentialRepository tarReferentialRepository,
         FileBucketTarCreatorManager fileBucketTarCreatorManager,
-        QueueRepository readWriteQueue) {
+        QueueRepository readWriteQueue, TapeCatalogService tapeCatalogService) {
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
         this.tarReferentialRepository = tarReferentialRepository;
         this.fileBucketTarCreatorManager = fileBucketTarCreatorManager;
         this.readWriteQueue = readWriteQueue;
+        this.tapeCatalogService = tapeCatalogService;
     }
 
     @Override
@@ -199,18 +209,41 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
                 // create read orders
                 String tapeCode = ((TapeLibraryOnTapeTarStorageLocation)tarLocation).getTapeCode();
-                Integer filePosition = Integer.valueOf(((TapeLibraryOnTapeTarStorageLocation)tarLocation).getFilePosition());
+                Integer filePosition = ((TapeLibraryOnTapeTarStorageLocation)tarLocation).getFilePosition();
+                String bucketId = getBucketByTapeCode(tapeCode);
                 String fileName = tarId;
-                ReadOrder readOrder = new ReadOrder(tapeCode, filePosition, fileName);
+                ReadOrder readOrder = new ReadOrder(tapeCode, filePosition, fileName, bucketId);
 
                 // add read orders to worker queue
                 readWriteQueue.add(readOrder);
             }
 
-        } catch (ObjectReferentialException | QueueException | TarReferentialException e) {
+        } catch (ObjectReferentialException | QueueException | TarReferentialException | TapeCatalogException e) {
             throw new ContentAddressableStorageServerException(
                     "Error on reading object " + containerName + "/" + objectName);
         }
+    }
+
+    private String getBucketByTapeCode(String tapeCode) throws TapeCatalogException {
+
+        List<TapeCatalog> tapeCatalogs = tapeCatalogService.find(
+            Collections.singletonList(
+                new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))
+        );
+
+        if (CollectionUtils.isEmpty(tapeCatalogs)) {
+            throw new IllegalStateException("Unknown tape with code " + tapeCode);
+        }
+
+        if (tapeCatalogs.size() > 1) {
+            throw new IllegalStateException("Multiple tapes with same code " + tapeCode);
+        }
+
+        String bucket = tapeCatalogs.get(0).getBucket();
+        if (bucket == null) {
+            throw new IllegalStateException("Unknown bucket for tape with code " + tapeCode);
+        }
+        return bucket;
     }
 
     @Override
