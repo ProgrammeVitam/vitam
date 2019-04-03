@@ -190,7 +190,7 @@ public class TapeLibraryIT {
 
         List<String> args = Lists.newArrayList("-f", tapeDriveConf.getDevice(), "erase");
         Output output =
-            driveCommandService.getExecutor().execute(tapeDriveConf.getMtPath(),
+            driveCommandService.getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(),
                 tapeDriveConf.getTimeoutInMilliseconds(), args);
         assertThat(output.getExitCode()).isEqualTo(0);
     }

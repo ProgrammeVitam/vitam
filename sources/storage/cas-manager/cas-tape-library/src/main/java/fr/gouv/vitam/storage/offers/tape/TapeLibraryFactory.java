@@ -90,11 +90,14 @@ public class TapeLibraryFactory {
 
 
             for (TapeRobotConf tapeRobotConf : tapeLibraryConf.getRobots()) {
+                tapeRobotConf.setUseSudo(configuration.isUseSudo());
                 final TapeRobotService robotService = new TapeRobotManager(tapeRobotConf);
                 robotServices.add(robotService);
             }
 
             for (TapeDriveConf tapeDriveConf : tapeLibraryConf.getDrives()) {
+                tapeDriveConf.setUseSudo(configuration.isUseSudo());
+
                 final TapeDriveService tapeDriveService = new TapeDriveManager(tapeDriveConf,
                     configuration.getInputTarStorageFolder(), configuration.getOutputTarStorageFolder());
                 driveServices.put(tapeDriveConf.getIndex(), tapeDriveService);

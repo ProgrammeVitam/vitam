@@ -73,7 +73,9 @@ public class DdTapeLibraryService implements TapeReadWriteService {
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeDriveConf.getDdPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+            getExecutor()
+                .execute(tapeDriveConf.getDdPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
 
         return parseCommonResponse(output);
     }
@@ -89,7 +91,9 @@ public class DdTapeLibraryService implements TapeReadWriteService {
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeDriveConf.getDdPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+            getExecutor()
+                .execute(tapeDriveConf.getDdPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
 
         return parseCommonResponse(output);
 

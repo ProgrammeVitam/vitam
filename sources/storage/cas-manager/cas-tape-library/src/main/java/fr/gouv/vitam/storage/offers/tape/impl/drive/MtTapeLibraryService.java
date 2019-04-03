@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.drive;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -41,6 +39,8 @@ import fr.gouv.vitam.storage.offers.tape.parser.TapeDriveStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
+
+import java.util.List;
 
 public class MtTapeLibraryService implements TapeDriveCommandService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MtTapeLibraryService.class);
@@ -68,7 +68,9 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+            getExecutor()
+                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
         return parseTapeDriveState(output);
     }
 
@@ -87,7 +89,9 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+            getExecutor()
+                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
         return parseCommonResponse(output);
     }
 
@@ -99,7 +103,9 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+            getExecutor()
+                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
         return parseCommonResponse(output);
     }
 
@@ -111,7 +117,9 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
             tapeDriveConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
+            getExecutor()
+                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                    args);
         return parseCommonResponse(output);
     }
 

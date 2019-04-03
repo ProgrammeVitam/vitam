@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.storage.tapelibrary;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.gouv.vitam.common.ParametersChecker;
 
 /**
@@ -37,6 +38,10 @@ public class TapeDriveConf {
     private String mtPath = "mt";
     private String ddPath = "dd";
     private String tarPath = "tar";
+
+    @JsonIgnore
+    private boolean useSudo = true;
+
     private ReadWritePriority readWritePriority = ReadWritePriority.WRITE;
 
     private long timeoutInMilliseconds = 60000;
@@ -97,5 +102,13 @@ public class TapeDriveConf {
 
     public void setTimeoutInMilliseconds(long timeoutInMilliseconds) {
         this.timeoutInMilliseconds = timeoutInMilliseconds;
+    }
+
+    public boolean isUseSudo() {
+        return useSudo;
+    }
+
+    public void setUseSudo(boolean useSudo) {
+        this.useSudo = useSudo;
     }
 }

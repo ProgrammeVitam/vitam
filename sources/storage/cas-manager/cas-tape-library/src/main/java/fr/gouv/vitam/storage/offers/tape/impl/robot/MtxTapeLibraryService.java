@@ -65,7 +65,8 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
             tapeRobotConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
+            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(),
+                tapeRobotConf.getTimeoutInMilliseconds(), args);
         return parseTapeLibraryState(output);
     }
 
@@ -78,7 +79,8 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
             tapeRobotConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
+            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(),
+                tapeRobotConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }
@@ -93,7 +95,8 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
             args);
 
         Output output =
-            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
+            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(),
+                tapeRobotConf.getTimeoutInMilliseconds(), args);
 
         return parseCommonResponse(output);
     }

@@ -101,16 +101,4 @@ public class ProcessExecutor {
         }
         return result;
     }
-
-    /**
-     * Execute commands as sudo
-     *
-     * @param commandPath
-     * @param timeoutInMilliseconds
-     * @param args
-     * @return
-     */
-    public Output execute(String commandPath, long timeoutInMilliseconds, List<String> args) {
-        return execute(commandPath, true, timeoutInMilliseconds, args);
-    }
 }

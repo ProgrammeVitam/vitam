@@ -1,16 +1,5 @@
 package fr.gouv.vitam.storage.offers.tape.impl.drive;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
@@ -21,6 +10,18 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.internal.verification.VerificationModeFactory;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class MtTapeLibraryServiceTest {
 
@@ -63,7 +64,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -76,7 +77,7 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -93,7 +94,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
         when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -107,7 +108,7 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -125,7 +126,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -138,7 +139,7 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -155,7 +156,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
         when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -169,7 +170,7 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -187,7 +188,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -200,7 +201,7 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -217,7 +218,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
         when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -231,13 +232,12 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "eod");
     }
-
 
 
 
@@ -251,7 +251,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -264,7 +264,7 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -280,7 +280,7 @@ public class MtTapeLibraryServiceTest {
         args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(2))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -298,7 +298,7 @@ public class MtTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtTapeLibraryService mtTapeLibraryService = new MtTapeLibraryService(tapeDriveConf, processExecutor);
@@ -311,14 +311,12 @@ public class MtTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MT);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
         assertThat(args.getValue()).contains("-f", DEVICE_NST, "bsf", "5");
     }
-
-
 
 
 
