@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.tape;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
@@ -38,13 +39,20 @@ import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorag
 import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
+import org.apache.logging.log4j.util.Strings;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class TapeStorageFactory {
 
 
     public TapeLibraryContentAddressableStorage initialize(TapeLibraryConfiguration configuration,
-        MongoDbAccess mongoDbAccess) {
+        MongoDbAccess mongoDbAccess) throws IOException {
         ParametersChecker.checkParameter("All params are required", configuration, mongoDbAccess);
+        createWorkingDirectories(configuration);
         BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
 
         ObjectReferentialRepository objectReferentialRepository =
@@ -74,13 +82,35 @@ public class TapeStorageFactory {
         fileBucketTarCreatorManager.initializeOnBootstrap();
 
         TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage =
-                new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
-                        tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueue, tapeLibraryFactory.getTapeCatalogService());
+            new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
+                tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueue,
+                tapeLibraryFactory.getTapeCatalogService());
 
         // Everything's alright. Start listeners
         writeOrderCreator.startListener();
         fileBucketTarCreatorManager.startListeners();
 
         return tapeLibraryContentAddressableStorage;
+    }
+
+    private void createWorkingDirectories(TapeLibraryConfiguration configuration) throws IOException {
+
+        if (Strings.isBlank(configuration.getInputFileStorageFolder()) ||
+            Strings.isBlank(configuration.getInputTarStorageFolder()) ||
+            Strings.isBlank(configuration.getOutputTarStorageFolder())) {
+            throw new VitamRuntimeException("Tape storage configuration");
+        }
+        createDirectory(configuration.getInputFileStorageFolder());
+        createDirectory(configuration.getInputTarStorageFolder());
+        createDirectory(configuration.getOutputTarStorageFolder());
+    }
+
+    private void createDirectory(String pathStr) throws IOException {
+        Path path = Paths.get(pathStr);
+        //if directory exists?
+        if (!Files.exists(path)) {
+            Files.createDirectories(path);
+        }
+
     }
 }
