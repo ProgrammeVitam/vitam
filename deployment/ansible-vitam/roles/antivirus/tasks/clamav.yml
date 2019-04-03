@@ -58,6 +58,11 @@
 
 - block:
 
+  - name: Temporarily stop clamav-daemon service to safely create clamav-daemon.socket
+    systemd:
+      name: clamav-daemon
+      state: stopped
+
   - name: Make sure /var/run/clamav exists
     file:
       name: /var/run/clamav
@@ -74,12 +79,12 @@
       group: root
       mode: 0644
 
-  - name: Start clamav socket
+  - name: Enable clamav-daemon.socket at boot & service is started
     systemd:
       name: clamav-daemon.socket
       daemon_reload: yes
       enabled: yes
-      state: started
+      state: restarted
 
   - name: stop clamav-freshclam service to force update
     systemd:
