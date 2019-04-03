@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,7 +31,8 @@ public class TarAppenderTest {
     public void testAppender() throws IOException {
 
         // Given
-        TarAppender tarAppender = new TarAppender(temporaryFolder.getRoot().toPath(), TAR_FILE_ID, 1_000_000L);
+        Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
+        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
         byte[] data1 = "data1".getBytes();
         byte[] data2 = "data2".getBytes();
         byte[] data3 = "data3".getBytes();
@@ -55,7 +57,8 @@ public class TarAppenderTest {
     public void testMaxEntrySize() throws IOException {
 
         // Given
-        TarAppender tarAppender = new TarAppender(temporaryFolder.getRoot().toPath(), TAR_FILE_ID, 1_000_000L);
+        Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
+        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
 
         // When / Then
         assertThat(tarAppender.canAppend(600_000L)).isTrue();

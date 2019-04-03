@@ -26,22 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
+import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
+import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.io.input.CloseShieldInputStream;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -64,26 +58,7 @@ public class TarFileDigestVerifier {
         this.bulkSize = bulkSize;
     }
 
-    public void verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
-
-        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-
-            TarArchiveEntry tarEntry;
-            while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
-
-                String tarEntryName = tarEntry.getName();
-                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-                InputStream entryInputStream = new CloseShieldInputStream(tarArchiveInputStream);
-                digest.update(entryInputStream);
-                String entryDigest = digest.digestHex();
-
-                addDigestToCheck(tarEntryName, entryDigest);
-            }
-            finalizeChecks();
-        }
-    }
-
-    private void addDigestToCheck(String tarEntryName, String digestValue) throws ObjectReferentialException {
+    public void addDigestToCheck(String tarEntryName, String digestValue) throws ObjectReferentialException {
 
         String containerName = LocalFileUtils.getContainerNameFromTarEntryName(tarEntryName);
         String storageId = LocalFileUtils.getStorageIdFromTarEntryName(tarEntryName);
@@ -101,7 +76,7 @@ public class TarFileDigestVerifier {
         }
     }
 
-    private void finalizeChecks() throws ObjectReferentialException {
+    public void finalizeChecks() throws ObjectReferentialException {
         for (String containerName : this.entriesToCheckByContainerName.keySet()) {
             Collection<EntryToCheck> entriesToCheck = entriesToCheckByContainerName.get(containerName);
 
@@ -154,6 +129,11 @@ public class TarFileDigestVerifier {
                             entryToCheck.containerName, entryToCheck.storageId, entryToCheck.digestValue,
                             expectedEntryDigest));
                 }
+            } else if (objectReferentialEntity.getLocation() instanceof TapeLibraryInputFileObjectStorageLocation) {
+                // LOG & ignore
+                LOGGER.debug("Ignoring non indexed object entry " + entryToCheck.tarEntryName);
+            } else {
+                throw new IllegalStateException("Invalid location type " + objectReferentialEntity.getLocation());
             }
         }
 

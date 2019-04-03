@@ -280,9 +280,9 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
             CountingInputStream countingInputStream = new CountingInputStream(inputStream);
             InputStream digestInputStream = tarDigest.getDigestInputStream(countingInputStream)) {
 
-            TarFileDigestVerifier tarFileDigestVerifier = new TarFileDigestVerifier
-                (this.objectReferentialRepository, VitamConfiguration.getBatchSize());
-            tarFileDigestVerifier.verifyTarArchive(digestInputStream);
+            TarFileRapairer tarFileRapairer = new TarFileRapairer(
+                this.objectReferentialRepository);
+            tarFileRapairer.verifyTarArchive(digestInputStream);
 
             return new DigestWithSize(countingInputStream.getByteCount(), tarDigest.digestHex());
         }
@@ -298,7 +298,6 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
             this.size = size;
             this.digestValue = digestValue;
         }
-
     }
 
     private void repairTarArchive(Path corruptedTarFilePath, String fileBucket)
@@ -309,14 +308,19 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
             tarId + LocalFileUtils.REPAIR_EXTENSION);
         Path finalFilePath = corruptedTarFilePath.resolveSibling(tarId);
 
-        CorruptedTarFileRapairer corruptedTarFileRapairer = new CorruptedTarFileRapairer();
-        corruptedTarFileRapairer.recopy(corruptedTarFilePath, repairedFilePath, tarId);
+        Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
+        DigestWithSize digestWithSize;
+        try (InputStream inputStream = Files.newInputStream(corruptedTarFilePath, StandardOpenOption.READ);
+            CountingInputStream countingInputStream = new CountingInputStream(inputStream);
+            InputStream digestInputStream = tarDigest.getDigestInputStream(countingInputStream)) {
 
-        LOGGER.info("Successfully repaired file " + corruptedTarFilePath + " to " + repairedFilePath);
+            TarFileRapairer tarFileRapairer = new TarFileRapairer(this.objectReferentialRepository);
+            tarFileRapairer.repairAndVerifyTarArchive(digestInputStream, repairedFilePath, tarId);
 
-        DigestWithSize digestWithSize = verifyTarArchive(repairedFilePath);
+            digestWithSize = new DigestWithSize(countingInputStream.getByteCount(), tarDigest.digestHex());
+        }
 
-        LOGGER.info("Successfully validated repaired file " + repairedFilePath);
+        LOGGER.info("Successfully repaired & verified file " + corruptedTarFilePath + " to " + repairedFilePath);
 
         Files.delete(corruptedTarFilePath);
         Files.move(repairedFilePath, finalFilePath, StandardCopyOption.ATOMIC_MOVE);

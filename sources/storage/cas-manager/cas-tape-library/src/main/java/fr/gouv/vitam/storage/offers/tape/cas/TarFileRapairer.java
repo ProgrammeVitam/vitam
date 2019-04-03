@@ -26,10 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
+import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -43,36 +46,41 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.List;
 
-public class CorruptedTarFileRapairer {
+public class TarFileRapairer {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CorruptedTarFileRapairer.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TarFileRapairer.class);
 
-    public List<TarEntryDescription> recopy(Path corruptedInputTarFile, Path newOutputTarFile, String tarId)
-        throws IOException {
+    private final ObjectReferentialRepository objectReferentialRepository;
 
-        try (InputStream inputStream = Files.newInputStream(corruptedInputTarFile, StandardOpenOption.READ);
-            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
+    public TarFileRapairer(
+        ObjectReferentialRepository objectReferentialRepository) {
+        this.objectReferentialRepository = objectReferentialRepository;
+    }
+
+    public void repairAndVerifyTarArchive(InputStream inputStream, Path newOutputTarFile, String tarId)
+        throws IOException, ObjectReferentialException {
+
+        TarFileDigestVerifier tarFileDigestVerifier = createTarFileDigestVerifier();
+
+        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
             TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream)) {
-
-            List<TarEntryDescription> tarEntryDescriptions = new ArrayList<>();
 
             try (TarAppender tarAppender = new TarAppender(newOutputTarFile, tarId, Long.MAX_VALUE)) {
 
                 while (true) {
 
-                    long currentPos = tarArchiveInputStream.getBytesRead();
+                    long readBytes = tarArchiveInputStream.getBytesRead();
                     // Last entry position is padded to tar record size
-                    long inputTarEntryPos = (currentPos + TarConstants.DEFAULT_RCDSIZE - 1) / TarConstants.DEFAULT_RCDSIZE * TarConstants.DEFAULT_RCDSIZE;
+                    long inputTarEntryPos =
+                        (readBytes + TarConstants.DEFAULT_RCDSIZE - 1) / TarConstants.DEFAULT_RCDSIZE *
+                            TarConstants.DEFAULT_RCDSIZE;
 
                     TarArchiveEntry inputTarEntry;
                     try {
                         inputTarEntry = tarArchiveInputStream.getNextTarEntry();
                     } catch (IOException ex) {
-                        LOGGER.warn("Entry corrupted at " + inputTarEntryPos + " for file "
-                            + corruptedInputTarFile, ex);
+                        LOGGER.warn("Entry corrupted at " + inputTarEntryPos + " for file " + tarId, ex);
                         break;
                     }
 
@@ -85,22 +93,27 @@ public class CorruptedTarFileRapairer {
                     try {
 
                         // Write entry to temporary file (to ensure the entry is available & not corrupted)
-                        tempEntryFile = Files.createTempFile(GUIDFactory.newGUID().toString(), LocalFileUtils.TMP_EXTENSION);
+                        tempEntryFile =
+                            Files.createTempFile(GUIDFactory.newGUID().toString(), LocalFileUtils.TMP_EXTENSION);
 
                         try {
                             InputStream entryInputStream = new CloseShieldInputStream(taggedEntryInputStream);
                             FileUtils.copyInputStreamToFile(entryInputStream, tempEntryFile.toFile());
                         } catch (IOException ex) {
                             if (taggedEntryInputStream.isCauseOf(ex)) {
-                                LOGGER.warn("Entry corrupted at " + inputTarEntryPos + " for file "
-                                    + corruptedInputTarFile, ex);
+                                LOGGER.warn("Entry corrupted at " + inputTarEntryPos + " for file " + tarId, ex);
                                 break;
                             }
                         }
 
                         // Recopy to new tar
-                        try (InputStream entryInputStream = Files
+                        try (InputStream temptFileInputStream = Files
                             .newInputStream(tempEntryFile, StandardOpenOption.READ)) {
+
+                            Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+                            InputStream entryInputStream = digest.getDigestInputStream(
+                                new CloseShieldInputStream(temptFileInputStream));
+
                             TarEntryDescription tarEntryDescription =
                                 tarAppender.append(inputTarEntry.getName(), entryInputStream, inputTarEntry.getSize());
 
@@ -110,7 +123,8 @@ public class CorruptedTarFileRapairer {
                                         + ", actual=" + tarEntryDescription.getStartPos());
                             }
 
-                            tarEntryDescriptions.add(tarEntryDescription);
+                            String entryDigest = digest.digestHex();
+                            tarFileDigestVerifier.addDigestToCheck(tarEntryDescription.getEntryName(), entryDigest);
                         }
 
                     } finally {
@@ -120,8 +134,33 @@ public class CorruptedTarFileRapairer {
                     }
                 }
             }
-
-            return tarEntryDescriptions;
+            tarFileDigestVerifier.finalizeChecks();
         }
+    }
+
+    public void verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
+
+        TarFileDigestVerifier tarFileDigestVerifier = createTarFileDigestVerifier();
+
+        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
+
+            TarArchiveEntry tarEntry;
+            while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
+
+                String tarEntryName = tarEntry.getName();
+                Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+                InputStream entryInputStream = new CloseShieldInputStream(tarArchiveInputStream);
+                digest.update(entryInputStream);
+                String entryDigest = digest.digestHex();
+
+                tarFileDigestVerifier.addDigestToCheck(tarEntryName, entryDigest);
+            }
+            tarFileDigestVerifier.finalizeChecks();
+        }
+    }
+
+    TarFileDigestVerifier createTarFileDigestVerifier() {
+        return new TarFileDigestVerifier(objectReferentialRepository,
+            VitamConfiguration.getBatchSize());
     }
 }
