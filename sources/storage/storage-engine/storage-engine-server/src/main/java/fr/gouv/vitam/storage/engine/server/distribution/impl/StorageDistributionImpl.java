@@ -628,7 +628,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
         if (parameters == null) {
             parameters = getParameters(res != null ? res.getObjectGuid() : null, dataCategoty,
-                res != null ? res.getResponse() : null,
+                res != null ? (StoragePutResult) res.getResponse() : null,
                 null, offerId, res != null ? res.getStatus() : status, requester, attempt);
         } else {
             updateStorageLogbookParameters(parameters, offerId,

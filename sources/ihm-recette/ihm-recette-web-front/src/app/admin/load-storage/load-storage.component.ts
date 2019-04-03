@@ -35,6 +35,7 @@ export class LoadStorageComponent extends PageComponent {
 
   displayErrorInitImport = false;
   displayGetError = false;
+  displayAsyncGetMessage = false;
   displayDeleteError =false;
   displayMessageDelete = false ;
   displayErrorImport = false;
@@ -70,16 +71,20 @@ export class LoadStorageComponent extends PageComponent {
 
     this.savedData = new FileData(this.fileName, this.category,this.offerId);
 
-    this.loadStorageService.download(this.fileName, this.category).subscribe(
+    this.loadStorageService.download(this.fileName, this.category, this.offerId).subscribe(
       (response) => {
+        if(response.status === 202) {
+            // asynchronous download
+            this.displayAsyncGetMessage = true;
+        } else {
+            const a = document.createElement('a');
+            document.body.appendChild(a);
+            a.href = URL.createObjectURL(response.body);
 
-        const a = document.createElement('a');
-        document.body.appendChild(a);
-        a.href = URL.createObjectURL(response.body);
+            a.download = this.fileName;
 
-        a.download = this.fileName;
-
-        a.click();
+            a.click();
+        }
         this.dataState = 'OK';
       }, () => {
         delete this.savedData;

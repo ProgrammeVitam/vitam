@@ -42,6 +42,7 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
+import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
@@ -58,6 +59,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DeleteThread;
+import fr.gouv.vitam.storage.engine.server.distribution.impl.ExportThread;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.OffersToCopyIn;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.ThreadResponseData;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.TransferThread;
@@ -158,14 +160,8 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         DataCategory category, int tenantId)
         throws StorageException, FileNotFoundException {
         checkStoreDataParams(strategyId, objectId, category);
-        // Retrieve strategy data
-        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
-        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
-        if (hotStrategy == null) {
-            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
-        }
 
-        final List<OfferReference> offerReferences = choosePriorityOffers(hotStrategy);
+        final List<OfferReference> offerReferences = getOffersReferences(strategyId);
         if (offerReferences.isEmpty()) {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
         }
@@ -175,37 +171,69 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             .collect(Collectors.toList());
         OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
 
-        tryAndRetry(objectId, category, file, tenantId, offers, 1);
+        tryAndRetry(objectId, category, file, tenantId, offers, 1, StorageAction.PUT);
+    }
+
+    public void exportData(String strategyId, String objectId, DataCategory category, int tenantId)
+            throws StorageException, FileNotFoundException {
+        checkStoreDataParams(strategyId, objectId, category);
+
+        final List<OfferReference> offerReferences = getOffersReferences(strategyId);
+        if (offerReferences.isEmpty()) {
+            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OFFER_NOT_FOUND));
+        }
+
+        List<StorageOffer> storageOffers = offerReferences.stream()
+                .map(StoragePopulateImpl::apply)
+                .collect(Collectors.toList());
+        OffersToCopyIn offers = new OffersToCopyIn(storageOffers);
+
+        tryAndRetry(objectId, category, null, tenantId, offers, 1, StorageAction.GET);
     }
 
     private void tryAndRetry(String objectId, DataCategory category, File file,
-        Integer tenantId, OffersToCopyIn datas, int attempt)
+        Integer tenantId, OffersToCopyIn data, int attempt, StorageAction action)
         throws StorageTechnicalException, FileNotFoundException {
         Digest globalDigest = new Digest(digestType);
-        InputStream digestInputStream = globalDigest.getDigestInputStream(new FileInputStream(file));
+        InputStream digestInputStream = file != null ? globalDigest.getDigestInputStream(new FileInputStream(file)) : null;
         Digest digest = new Digest(digestType);
-        long finalTimeout = getTransferTimeout(file.getTotalSpace());
-        try (MultiplePipedInputStream streams = getMultipleInputStreamFromWorkspace(digestInputStream,
-            datas.getKoOffers().size(),
-            digest)) {
+        long finalTimeout = file != null ? getTransferTimeout(file.getTotalSpace()) : DEFAULT_MINIMUM_TIMEOUT;
+        MultiplePipedInputStream streams;
+        try {
+            streams = action == StorageAction.PUT ? getMultipleInputStreamFromWorkspace(digestInputStream,
+                    data.getKoOffers().size(),
+                    digest) : null;
             // init thread and make future map
             // Map here to keep offerId linked to Future
             Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
             int rank = 0;
             String offerId2 = null;
             try {
-                for (final String offerId : datas.getKoOffers()) {
+                for (final String offerId : data.getKoOffers()) {
                     offerId2 = offerId;
                     OfferReference offerReference = new OfferReference(offerId);
                     final Driver driver = retrieveDriverInternal(offerReference.getId());
-                    InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
-                    StoragePutRequest request =
-                        new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.getName(),
-                            inputStream);
-                    futureMap.put(offerReference.getId(),
-                        executor
-                            .submit(new TransferThread(driver, offerReference, request, globalDigest, file.length())));
-                    rank++;
+                    switch (action) {
+                        case PUT:
+                            InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
+                            StoragePutRequest request =
+                                    new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.getName(),
+                                            inputStream);
+                            futureMap.put(offerReference.getId(),
+                                    executor
+                                            .submit(new TransferThread(driver, offerReference, request, globalDigest, file.length())));
+                            rank++;
+                            break;
+                        case GET:
+                            futureMap.put(offerReference.getId(),
+                                    executor
+                                            .submit(new ExportThread(driver, offerReference,
+                                                    new StorageObjectRequest(tenantId, category.getFolder(), objectId))));
+                            break;
+                        default:
+                            throw new IllegalArgumentException("Action not implemented");
+                    }
+
                 }
             } catch (NumberFormatException e) {
                 LOGGER.error(WRONG_NUMBER_ON_WAIT_ON_OFFER_ID + offerId2, e);
@@ -218,7 +246,9 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
             for (Entry<String, Future<ThreadResponseData>> entry : futureMap.entrySet()) {
                 final Future<ThreadResponseData> future = entry.getValue();
                 // Check if any has one IO Exception
-                streams.throwLastException();
+                if (streams != null) {
+                    streams.throwLastException();
+                }
                 String offerId = entry.getKey();
                 try {
                     ThreadResponseData threadResponseData = future
@@ -227,7 +257,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                         LOGGER.error(ERROR_ON_OFFER_ID + offerId);
                         throw new StorageTechnicalException(NO_MESSAGE_RETURNED);
                     }
-                    datas.koListToOkList(offerId);
+                    data.koListToOkList(offerId);
                 } catch (TimeoutException e) {
                     LOGGER.info("Timeout on offer ID {} TimeOut: {}", offerId, finalTimeout, e);
                     future.cancel(true);
@@ -238,7 +268,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 } catch (ExecutionException e) {
                     LOGGER.error(StoragePopulateImpl.ERROR_ON_OFFER_ID + offerId, e);
                     if (e.getCause() instanceof StorageDriverConflictException) {
-                        datas.changeStatus(offerId, Status.CONFLICT);
+                        data.changeStatus(offerId, Status.CONFLICT);
                     }
                     if (e.getCause() instanceof StorageDriverException ||
                         e.getCause() instanceof StorageDriverPreconditionFailedException) {
@@ -256,20 +286,22 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 }
             }
             // Check if any has one IO Exception
-            streams.throwLastException();
+            if (streams != null) {
+                streams.throwLastException();
+            }
         } catch (IOException e1) {
             LOGGER.error(CANNOT_CREATE_MULTIPLE_INPUT_STREAM, e1);
             throw new StorageTechnicalException(CANNOT_CREATE_MULTIPLE_INPUT_STREAM, e1);
         }
         // ACK to prevent retry
-        if (attempt < NB_RETRY && !datas.getKoOffers().isEmpty()) {
+        if (attempt < NB_RETRY && !data.getKoOffers().isEmpty()) {
             attempt++;
-            tryAndRetry(objectId, category, file, tenantId, datas, attempt);
+            tryAndRetry(objectId, category, file, tenantId, data, attempt, action);
         }
 
         // TODO : error management (US #2009)
-        if (!datas.getKoOffers().isEmpty()) {
-            deleteObjects(datas.getOkOffers(), tenantId, category, objectId);
+        if (!data.getKoOffers().isEmpty()) {
+            deleteObjects(data.getOkOffers(), tenantId, category, objectId);
         }
     }
 
@@ -311,14 +343,8 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
     }
 
-    private List<OfferReference> choosePriorityOffers(HotStrategy hotStrategy) {
-        final List<OfferReference> offerReferences = new ArrayList<>();
-        if (hotStrategy != null && !hotStrategy.getOffers().isEmpty()) {
-            // TODO P1 : this code will be changed in the future to handle
-            // priority (not in current US scope) and copy
-            offerReferences.addAll(hotStrategy.getOffers());
-        }
-        return offerReferences;
+    public StorageOffer getOffer(String offerId) throws StorageException {
+        return STRATEGY_PROVIDER.getStorageOffer(offerId);
     }
 
     private void deleteObjects(List<String> offerIdList, Integer tenantId, DataCategory category, String objectId)
@@ -398,5 +424,26 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         }
 
         return new ArrayList<>();
+    }
+
+    enum StorageAction {
+        PUT,
+        GET
+    }
+
+    public List<OfferReference> getOffersReferences(String strategyId) throws StorageNotFoundException, StorageTechnicalException {
+        final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
+        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
+        if (hotStrategy == null) {
+            throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
+        }
+
+        final List<OfferReference> offerReferences = new ArrayList<>();
+        if (hotStrategy != null && !hotStrategy.getOffers().isEmpty()) {
+            // TODO P1 : this code will be changed in the future to handle
+            // priority (not in current US scope) and copy
+            offerReferences.addAll(hotStrategy.getOffers());
+        }
+        return offerReferences;
     }
 }

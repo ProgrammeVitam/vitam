@@ -156,21 +156,12 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
     @Override
     public ObjectContent getObject(String containerName, String objectName) {
         LOGGER.debug(String.format("Download object %s from container %s", objectName, containerName));
-        try {
-            // FIXME: 02/04/19 just for test => to remove
-            asyncGetObject(containerName, objectName);
-        } catch (ContentAddressableStorageServerException e) {
-            e.printStackTrace();
-        } catch (ContentAddressableStorageNotFoundException e) {
-            e.printStackTrace();
-        }
         throw new UnsupportedOperationException("To be implemented");
     }
 
     @Override
     public void asyncGetObject(String containerName, String objectName)
             throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        // TODO: 29/03/19 SM to implement
         try {
             Optional<TapeObjectReferentialEntity> object = objectReferentialRepository.find(containerName, objectName);
             if (!object.isPresent()) {

@@ -26,17 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
-import fr.gouv.vitam.common.logging.SysErrLogger;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.MetadataStorageHelper;
-import fr.gouv.vitam.common.thread.VitamThreadFactory;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -47,6 +36,18 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
+import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.MetadataStorageHelper;
+import fr.gouv.vitam.common.thread.VitamThreadFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
 /**
  * Handles metadata backup for populate service
@@ -150,5 +151,20 @@ public class MetadataStorageService {
                 }
             }
         }
+    }
+
+    public void exportData(Integer tenant, String objectId, DataCategory dataCategory) {
+
+        try {
+            storagePopulateService.exportData("default",
+                    objectId, dataCategory, tenant);
+
+        } catch (IOException | StorageException e) {
+            LOGGER.error("Could not export data from offer", e);
+        }
+    }
+
+    public StorageOffer getOffer(String offerId) throws StorageException {
+        return storagePopulateService.getOffer(offerId);
     }
 }

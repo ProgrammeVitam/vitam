@@ -86,6 +86,16 @@ public interface Connection extends AutoCloseable {
     StorageGetResult getObject(StorageObjectRequest request) throws StorageDriverException;
 
     /**
+     * Asynchronous retrieve an object from the storage offer based on criterias defined in request argument.
+     *
+     * @param request the request to send. It contains informations needed to retrieve a given object.
+     * @return a result that may contains metadatas as well as the binary file
+     * @throws StorageDriverException if any problem occurs during request
+     * @throws IllegalArgumentException if request is wrong
+     */
+    StorageGetResult getAsyncObject(StorageObjectRequest request) throws StorageDriverException;
+
+    /**
      * Put the object file into the storage offer based on criterias defined in request argument and underlaying
      * connection parameters.
      *

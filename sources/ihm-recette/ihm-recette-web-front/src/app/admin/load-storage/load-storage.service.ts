@@ -10,8 +10,8 @@ export class LoadStorageService {
 
   constructor(public resourcesService: ResourcesService) { }
 
-  download(fileName, category): Observable<any> {
-    return this.resourcesService.get(`${this.DOWNLOAD_API}/${category}/${fileName}`, null, 'blob');
+  download(fileName, category, offerId): Observable<any> {
+    return this.resourcesService.get(`${this.DOWNLOAD_API}/${offerId}/${category}/${fileName}`, null, 'blob');
   }
 
   uploadFile(newFile, fileName, size,category,offerId): Observable<any> {

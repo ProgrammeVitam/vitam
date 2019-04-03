@@ -50,6 +50,11 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import org.bson.conversions.Bson;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -69,6 +74,7 @@ public class ReadTask implements Future<ReadWriteResult> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadTask.class);
     public static final String TAPE_MSG = " [Tape] : ";
     private static final long SLEEP_TIME = 30000;
+    private static final String TEMP_EXT = ".TMP";
 
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
@@ -237,7 +243,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     private TapeResponse readFromTape() {
         TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .readFromTape(readOrder.getFileName());
+                .readFromTape(readOrder.getFileName() + TEMP_EXT);
 
         if (!response.isOK()) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
@@ -245,6 +251,22 @@ public class ReadTask implements Future<ReadWriteResult> {
                     JsonHandler.unprettyPrint(response.getEntity()));
             return response;
         }
+
+        Path sourcePath = Paths.get(tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD).
+                getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT).toAbsolutePath();
+        Path targetPath = Paths.get(tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
+                .getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
+
+        // Mark file as done (remove .tmp extension)
+        try {
+            Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                    e);
+            return new TapeResponse(StatusCode.FATAL);
+        }
+
 
         workerCurrentTape.setCurrentPosition(workerCurrentTape.getCurrentPosition() + 1);
 

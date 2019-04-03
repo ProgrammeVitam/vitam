@@ -78,6 +78,7 @@ public class ConnectionImpl extends AbstractConnection {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
     private static final String OBJECTS_PATH = "/objects";
+    private static final String ASYNC_OBJECTS_PATH = "/async/objects";
     private static final String LOGS_PATH = "/logs";
     private static final String METADATAS = "/metadatas";
 
@@ -174,6 +175,46 @@ public class ConnectionImpl extends AbstractConnection {
                 case NOT_FOUND:
                     throw new StorageDriverNotFoundException(getDriverName(),
                         "Object " + request.getGuid() + " not found");
+                case PRECONDITION_FAILED:
+                    LOGGER.error("Precondition failed");
+                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
+            }
+        } catch (final VitamClientInternalException e1) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
+            throw new StorageDriverException(getDriverName(), true, e1);
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
+
+    @Override
+    public StorageGetResult getAsyncObject(StorageObjectRequest request) throws StorageDriverException {
+        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
+        ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
+        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
+        ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.GET,
+                    ASYNC_OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                    getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                case ACCEPTED:
+                    return new StorageGetResult(request.getTenantId(), request.getType(),
+                            request.getGuid(), response);
+                case NOT_FOUND:
+                    throw new StorageDriverNotFoundException(getDriverName(),
+                            "Object " + request.getGuid() + " not found");
                 case PRECONDITION_FAILED:
                     LOGGER.error("Precondition failed");
                     throw new StorageDriverPreconditionFailedException(getDriverName(), "Precondition failed");

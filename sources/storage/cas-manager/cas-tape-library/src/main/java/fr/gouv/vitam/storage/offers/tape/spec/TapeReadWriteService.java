@@ -44,4 +44,6 @@ public interface TapeReadWriteService {
     TapeResponse readFromTape(String outputPath);
 
     ProcessExecutor getExecutor();
+
+    String getOutputDirectory();
 }

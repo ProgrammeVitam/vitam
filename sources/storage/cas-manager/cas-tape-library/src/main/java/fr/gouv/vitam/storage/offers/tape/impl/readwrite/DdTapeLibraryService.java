@@ -115,4 +115,9 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     public ProcessExecutor getExecutor() {
         return processExecutor;
     }
+
+    @Override
+    public String getOutputDirectory() {
+        return outputDirectory;
+    }
 }
