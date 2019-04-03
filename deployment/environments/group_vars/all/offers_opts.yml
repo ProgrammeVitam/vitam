@@ -3,7 +3,12 @@
 vitam_strategy:
   - name: offer-fs-1
     referent: true
-    asyncRead: false
+
+# Tape offer mustn't be referent (referent: false) and should be configured as asynchrone read (asyncRead: true)
+#  - name: offer-tape-1
+#    referent: false
+#    asyncRead: true
+
 # status : enable (value=ACTIVE, default value) or disable (value=INACTIVE) this offer
 #    status: ACTIVE
 #    vitam_site_name: prod-dc2
