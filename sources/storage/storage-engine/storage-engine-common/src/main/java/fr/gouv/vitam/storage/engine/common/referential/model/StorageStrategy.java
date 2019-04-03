@@ -72,4 +72,8 @@ public class StorageStrategy {
     public boolean isStorageOfferEnabled(String offerId) {
         return getHotStrategy().isStorageOfferEnabled(offerId);
     }
+
+    public boolean isStorageOfferReferent(String offerId) {
+        return getHotStrategy().isStorageOfferReferent(offerId);
+    }
 }

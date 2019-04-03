@@ -26,7 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape;
 
-import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
@@ -39,15 +39,12 @@ import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 public class TapeStorageFactory {
 
-    public static final String OFFER_TAPE_CONF = "offer-tape.conf";
 
-    public TapeLibraryContentAddressableStorage initialize(MongoDbAccess mongoDbAccess) {
-        TapeLibraryConfiguration configuration = loadConfiguration();
+    public TapeLibraryContentAddressableStorage initialize(TapeLibraryConfiguration configuration,
+        MongoDbAccess mongoDbAccess) {
+        ParametersChecker.checkParameter("All params are required", configuration, mongoDbAccess);
         BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
 
         ObjectReferentialRepository objectReferentialRepository =
@@ -85,13 +82,5 @@ public class TapeStorageFactory {
         fileBucketTarCreatorManager.startListeners();
 
         return tapeLibraryContentAddressableStorage;
-    }
-
-    private TapeLibraryConfiguration loadConfiguration() {
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(OFFER_TAPE_CONF)) {
-            return PropertiesUtils.readYaml(yamlIS, TapeLibraryConfiguration.class);
-        } catch (IOException ex) {
-            throw new RuntimeException("Could not load offer tape configuration file " + OFFER_TAPE_CONF, ex);
-        }
     }
 }

@@ -53,6 +53,17 @@ mongodb:
     offer:
       user: offer
       password: change_it_mLDYds957sNQ53mA
+  offer-tape-1:
+    passphrase: change_it_mB5rnk1M5TY61PqZ
+    admin:
+      user: vitamdb-admin
+      password: change_it_FLkM5emt63N73EcN
+    localadmin:
+      user: vitamdb-localadmin
+      password: change_it_QeH8q4e16ah4QKXS
+    offer:
+      user: offer
+      password: change_it_pQi1T1yT9LAF8au8
   offer-swift-1:
     passphrase: change_it_gYvt42M2pKL6Zx3T
     admin:
@@ -75,6 +86,17 @@ mongodb:
     offer:
       user: offer
       password: change_it_TuTB1i2k7iQW3zL2
+  offer-tape-1:
+    passphrase: change_it_uF1jghT9NqdTG625
+    admin:
+      user: vitamdb-admin
+      password: change_it_5b7cSWcab91NF4kv
+    localadmin:
+      user: vitamdb-localadmin
+      password: change_it_S9jE24rxHwUZP5a6
+    offer:
+      user: offer
+      password: change_it_TuTB1i2k7iQW3c2a
 
 vitam_users:
   - vitam_aadmin:

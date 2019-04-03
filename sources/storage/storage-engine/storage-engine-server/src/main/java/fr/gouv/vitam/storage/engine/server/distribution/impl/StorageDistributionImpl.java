@@ -1229,14 +1229,14 @@ public class StorageDistributionImpl implements StorageDistribution {
      * Verify if object exists
      *
      * @param strategyId id of the strategy
-     * @param objectId   id of the object
-     * @param category   category
-     * @param offerIds   list id of offers  @return
+     * @param objectId id of the object
+     * @param category category
+     * @param offerIds list id of offers  @return
      * @throws StorageException StorageException
      */
     @Override
     public Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
-            List<String> offerIds) throws StorageException {
+        List<String> offerIds) throws StorageException {
         // Check input params
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
@@ -1249,9 +1249,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
         // FIXME: 03/04/19 check asyncReadOffer
         List<String> offerReferencesIds = offerReferences.stream().map(OfferReference::getId)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         resultByOffer.putAll(offerIds.stream().filter(offer -> !offerReferencesIds.contains(offer))
-                .collect(Collectors.toMap(offerId -> offerId, offerId -> Boolean.FALSE)));
+            .collect(Collectors.toMap(offerId -> offerId, offerId -> Boolean.FALSE)));
 
         for (final String offerId : offerIds) {
             if (!resultByOffer.containsKey(offerId)) {
@@ -1259,7 +1259,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
                 try (Connection connection = driver.connect(offer.getId())) {
                     final StorageObjectRequest request = new StorageObjectRequest(tenantId, category.getFolder(),
-                            objectId);
+                        objectId);
                     if (!connection.objectExistsInOffer(request)) {
                         resultByOffer.put(offerId, Boolean.FALSE);
                     } else {

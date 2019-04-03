@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.storage;
 
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
+import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
 /**
  * Storage configuration Contains all configuration items for storage offers
@@ -111,6 +112,11 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     private int s3ClientExecutionTimeout;
 
     /**
+     * Tape library configuration
+     */
+    private TapeLibraryConfiguration tapeLibraryConfiguration;
+
+    /**
      * @return the swiftUrl
      */
     public String getSwiftUrl() {
@@ -119,7 +125,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param swiftUrl the swiftUrl to set
-     *
      * @return this
      */
     public StorageConfiguration setSwiftUrl(String swiftUrl) {
@@ -136,7 +141,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param provider the provider to set
-     *
      * @return this
      */
     public StorageConfiguration setProvider(String provider) {
@@ -153,7 +157,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param swiftKeystoneAuthUrl the swiftKeystoneAuthUrl to set
-     *
      * @return this
      */
     public StorageConfiguration setSwiftKeystoneAuthUrl(String swiftKeystoneAuthUrl) {
@@ -170,7 +173,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param swiftDomain the tenantName to set
-     *
      * @return this
      */
     public StorageConfiguration setSwiftDomain(String swiftDomain) {
@@ -187,7 +189,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param swiftUser the userName to set
-     *
      * @return this
      */
     public StorageConfiguration setSwiftUser(String swiftUser) {
@@ -204,7 +205,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param swiftPassword the swiftPassword to set
-     *
      * @return this
      */
     public StorageConfiguration setSwiftPassword(String swiftPassword) {
@@ -221,7 +221,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param storagePath the storagePath to set
-     *
      * @return this
      */
     public StorageConfiguration setStoragePath(String storagePath) {
@@ -238,7 +237,6 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     /**
      * @param contextPath the contextPath to set
-     *
      * @return this
      */
     public StorageConfiguration setContextPath(String contextPath) {
@@ -449,6 +447,15 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
 
     public StorageConfiguration setS3ClientExecutionTimeout(int s3ClientExecutionTimeout) {
         this.s3ClientExecutionTimeout = s3ClientExecutionTimeout;
+        return this;
+    }
+
+    public TapeLibraryConfiguration getTapeLibraryConfiguration() {
+        return tapeLibraryConfiguration;
+    }
+
+    public StorageConfiguration setTapeLibraryConfiguration(TapeLibraryConfiguration tapeLibraryConfiguration) {
+        this.tapeLibraryConfiguration = tapeLibraryConfiguration;
         return this;
     }
 }

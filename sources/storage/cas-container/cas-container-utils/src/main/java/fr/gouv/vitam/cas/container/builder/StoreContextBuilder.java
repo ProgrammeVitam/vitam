@@ -97,7 +97,7 @@ public class StoreContextBuilder {
         } else if (StorageProvider.AMAZON_S3_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
             return new AmazonS3V1(configuration);
         } else if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            return new TapeStorageFactory().initialize(mongoDBAccess);
+            return new TapeStorageFactory().initialize(configuration.getTapeLibraryConfiguration(), mongoDBAccess);
         } else {
             // by default file system
             return new FileSystem(configuration);

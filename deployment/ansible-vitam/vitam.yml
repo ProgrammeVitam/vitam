@@ -127,6 +127,7 @@
 - hosts: hosts-storage-offer-default
   any_errors_fatal: true
   roles:
+    - simulate_tape
     - vitam
   vars:
     vitam_struct: "{{ vitam.storageofferdefault }}"
