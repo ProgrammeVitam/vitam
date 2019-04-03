@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -46,22 +47,28 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.function.Supplier;
 
 public class TarFileRapairer {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TarFileRapairer.class);
 
-    private final ObjectReferentialRepository objectReferentialRepository;
+    private final Supplier<TarFileDigestVerifier> tarFileDigestVerifierSupplier;
 
-    public TarFileRapairer(
-        ObjectReferentialRepository objectReferentialRepository) {
-        this.objectReferentialRepository = objectReferentialRepository;
+    public TarFileRapairer(ObjectReferentialRepository objectReferentialRepository) {
+        this(() -> new TarFileDigestVerifier(objectReferentialRepository, VitamConfiguration.getBatchSize()));
+    }
+
+    @VisibleForTesting
+    TarFileRapairer(
+        Supplier<TarFileDigestVerifier> tarFileDigestVerifierSupplier) {
+        this.tarFileDigestVerifierSupplier = tarFileDigestVerifierSupplier;
     }
 
     public void repairAndVerifyTarArchive(InputStream inputStream, Path newOutputTarFile, String tarId)
         throws IOException, ObjectReferentialException {
 
-        TarFileDigestVerifier tarFileDigestVerifier = createTarFileDigestVerifier();
+        TarFileDigestVerifier tarFileDigestVerifier = tarFileDigestVerifierSupplier.get();
 
         try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
             TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream)) {
@@ -140,7 +147,7 @@ public class TarFileRapairer {
 
     public void verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
 
-        TarFileDigestVerifier tarFileDigestVerifier = createTarFileDigestVerifier();
+        TarFileDigestVerifier tarFileDigestVerifier = tarFileDigestVerifierSupplier.get();
 
         try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
 
@@ -157,10 +164,5 @@ public class TarFileRapairer {
             }
             tarFileDigestVerifier.finalizeChecks();
         }
-    }
-
-    TarFileDigestVerifier createTarFileDigestVerifier() {
-        return new TarFileDigestVerifier(objectReferentialRepository,
-            VitamConfiguration.getBatchSize());
     }
 }

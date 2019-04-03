@@ -53,14 +53,14 @@ public class TarAppender implements AutoCloseable {
     private ExtendedFileOutputStream extendedFileOutputStream;
     private TarArchiveOutputStream tarArchiveOutputStream;
     private Digest digest;
-    private boolean isEmpty = true;
     private int entryCount;
     private long bytesWritten = 0L;
 
-    public TarAppender(Path filePath, String tarId, long maxTarSize) {
+    public TarAppender(Path filePath, String tarId, long maxTarSize) throws IOException {
         this.filePath = filePath;
         this.tarId = tarId;
         this.maxTarSize = maxTarSize;
+        createTarArchive();
     }
 
     public boolean canAppend(long size) {
@@ -69,7 +69,7 @@ public class TarAppender implements AutoCloseable {
             throw new IllegalStateException("Invalid entry size. MAX=" + TarConstants.MAXSIZE);
         }
 
-        long currentPos = isEmpty ? 0L : tarArchiveOutputStream.getBytesWritten();
+        long currentPos = tarArchiveOutputStream.getBytesWritten();
         long contentWithPaddingSize = (size + TarConstants.DEFAULT_RCDSIZE - 1L) + TarConstants.DEFAULT_RCDSIZE;
 
         // Header (1 record) + content size (padded to record size) + footer (2 empty records)
@@ -85,11 +85,6 @@ public class TarAppender implements AutoCloseable {
         }
 
         try {
-
-            if (isEmpty) {
-                isEmpty = false;
-                createTarArchive();
-            }
 
             long startPos = tarArchiveOutputStream.getBytesWritten();
 

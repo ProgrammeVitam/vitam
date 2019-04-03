@@ -140,10 +140,6 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
             LOGGER.debug("Processing message " + JsonHandler.unprettyPrint(message));
         }
 
-        if (currentTarAppender == null) {
-            createTarFile();
-        }
-
         Optional<InputStream> inputStream = Optional.empty();
         try {
             inputStream = openInputFile(message);
@@ -151,6 +147,10 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
             if (!inputStream.isPresent()) {
                 // File deleted meanwhile. Skip quietly...
                 return;
+            }
+
+            if (currentTarAppender == null) {
+                createTarFile();
             }
 
             Digest digest = new Digest(DigestType.fromValue(message.getDigestAlgorithm()));
@@ -220,7 +220,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         }
     }
 
-    private void createTarFile() throws QueueProcessingException {
+    private void createTarFile() throws QueueProcessingException, IOException {
 
         LocalDateTime now = LocalDateUtil.now();
         String tarFileId = LocalFileUtils.createTarId(now);
