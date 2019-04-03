@@ -152,11 +152,20 @@ public class BucketTopologyHelper {
             throw new VitamRuntimeException("Expecting default file bucket with empty set");
         }
 
+        Set<String> folderNames =
+            Arrays.stream(DataCategory.values()).map(DataCategory::getFolder).collect(Collectors.toSet());
+
         for (Map.Entry<String, List<String>> entry : fileBuckets.entrySet()) {
 
             boolean isDefault = DEFAULT.equals(entry.getKey());
             if (!isDefault && entry.getValue().isEmpty()) {
                 throw new VitamRuntimeException("Expected non empty file bucket configuration " + entry.getKey());
+            }
+
+            for (String folderName : entry.getValue()) {
+                if (!folderNames.contains(folderName)) {
+                    throw new VitamRuntimeException("Invalid folder name in bucket configuration '" + folderName + "'");
+                }
             }
         }
         return fileBuckets;
