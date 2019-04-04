@@ -8,6 +8,7 @@
     default_release: "{{ ansible_distribution_release }}-backports"
   when: ansible_os_family == "Debian"
 
+- import_tasks: tape_offer.yml
 
 # state: latest to handle snapshot versions
 - name: Install {{ package_name }} package
