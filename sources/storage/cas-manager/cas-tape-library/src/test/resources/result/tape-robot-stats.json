@@ -23,268 +23,268 @@
   } ],
   "Slots" : [ {
     "Index" : 1,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 2,
     "Tape" : {
       "VolumeTag" : "VIT001L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 3,
     "Tape" : {
       "VolumeTag" : "VIT002L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 4,
     "Tape" : {
       "VolumeTag" : "VIT003L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 5,
     "Tape" : {
       "VolumeTag" : "VIT004L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 6,
     "Tape" : {
       "VolumeTag" : "VIT005L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 7,
     "Tape" : {
       "VolumeTag" : "VIT006L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 8,
     "Tape" : {
       "VolumeTag" : "VIT007L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 9,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 10,
     "Tape" : {
       "VolumeTag" : "VIT009L6                         "
     },
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 11,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 12,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 13,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 14,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 15,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 16,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 17,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 18,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 19,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 20,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 21,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 22,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 23,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 24,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 25,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 26,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 27,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 28,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 29,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 30,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 31,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 32,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 33,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 34,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 35,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 36,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 37,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 38,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 39,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 40,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 41,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 42,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 43,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 44,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 45,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 46,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 47,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 48,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 49,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 50,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 51,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 52,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 53,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 54,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 55,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 56,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 57,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 58,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 59,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 60,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 61,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 62,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 63,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 64,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 65,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 66,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 67,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 68,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 69,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 70,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 71,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 72,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 73,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 74,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 75,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 76,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 77,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 78,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 79,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 80,
-    "StorageElementType" : "READY"
+    "StorageElementType" : "SLOT"
   }, {
     "Index" : 81,
     "StorageElementType" : "IMPORTEXPORT"

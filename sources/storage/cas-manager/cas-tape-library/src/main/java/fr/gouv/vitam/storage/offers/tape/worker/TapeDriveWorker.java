@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
@@ -55,9 +56,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TapeDriveWorker implements Runnable {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorker.class);
-    public static final int SLEEP_TIME = 1000;
     public static final int MAX_ATTEMPTS = 3;
     public static final int RETRY_WAIT_SECONDS = 1000;
+    public static long SLEEP_TIME = 10_000;
 
     private final TapeDriveOrderConsumer receiver;
     private final TapeRobotPool tapeRobotPool;
@@ -71,6 +72,7 @@ public class TapeDriveWorker implements Runnable {
     private CountDownLatch pauseSignal;
     private String inputTarPath;
 
+    @VisibleForTesting
     public TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
@@ -78,7 +80,7 @@ public class TapeDriveWorker implements Runnable {
         TapeDriveOrderConsumer receiver,
         TarReferentialRepository tarReferentialRepository,
         TapeCatalog currentTape,
-        String inputTarPath) {
+        String inputTarPath, long sleepTime) {
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService,
                 tarReferentialRepository, tapeCatalogService,
@@ -92,11 +94,23 @@ public class TapeDriveWorker implements Runnable {
         this.receiver = receiver;
         this.shutdownSignal = new CountDownLatch(1);
         this.pauseSignal = new CountDownLatch(1);
+        SLEEP_TIME = sleepTime;
 
         if (null != currentTape) {
             readWriteResult = new ReadWriteResult();
             readWriteResult.setCurrentTape(currentTape);
         }
+    }
+
+    public TapeDriveWorker(
+        TapeRobotPool tapeRobotPool,
+        TapeDriveService tapeDriveService,
+        TapeCatalogService tapeCatalogService,
+        TapeDriveOrderConsumer receiver,
+        TarReferentialRepository tarReferentialRepository,
+        TapeCatalog currentTape,
+        String inputTarPath) {
+       this(tapeRobotPool,tapeDriveService, tapeCatalogService, receiver ,tarReferentialRepository, currentTape, inputTarPath, SLEEP_TIME);
     }
 
     @Override
@@ -201,7 +215,7 @@ public class TapeDriveWorker implements Runnable {
                     interceptPauseRequest();
 
                 } else {
-                    Thread.sleep(10_000);
+                    Thread.sleep(SLEEP_TIME);
                 }
 
             }
@@ -216,7 +230,7 @@ public class TapeDriveWorker implements Runnable {
     private void interceptPauseRequest() throws InterruptedException {
         if (this.pause.get()) {
             LOGGER.warn(String.format(
-                "[Library] : %s, [Drive] : %s, [Tape]: %s, paused",
+                "[Library] : %s, [Drive] : %s, paused",
                 tapeRobotPool.getLibraryIdentifier(),
                 tapeDriveService.getTapeDriveConf().getIndex()));
 
@@ -227,7 +241,7 @@ public class TapeDriveWorker implements Runnable {
     private void fatalPause() throws InterruptedException {
         this.pause.set(true);
         LOGGER.warn(String.format(
-            "[Library] : %s, [Drive] : %s, [Tape]: %s, paused",
+            "[Library] : %s, [Drive] : %s, paused",
             tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex()));
 
@@ -238,13 +252,13 @@ public class TapeDriveWorker implements Runnable {
     public void pause() {
         if (this.pause.compareAndSet(false, true)) {
             LOGGER.warn(String.format(
-                "[Library] : %s, [Drive] : %s, [Tape]: %s, pause worker",
+                "[Library] : %s, [Drive] : %s, pause worker",
                 tapeRobotPool.getLibraryIdentifier(),
                 tapeDriveService.getTapeDriveConf().getIndex()));
 
         } else {
             LOGGER.warn(String.format(
-                "[Library] : %s, [Drive] : %s, [Tape]: %s, already paused",
+                "[Library] : %s, [Drive] : %s, already paused",
                 tapeRobotPool.getLibraryIdentifier(),
                 tapeDriveService.getTapeDriveConf().getIndex()));
 
@@ -254,7 +268,7 @@ public class TapeDriveWorker implements Runnable {
     public void resume() {
         if (this.pause.compareAndSet(true, false)) {
             LOGGER.warn(String.format(
-                "[Library] : %s, [Drive] : %s, [Tape]: %s, starting ..",
+                "[Library] : %s, [Drive] : %s, starting ..",
                 tapeRobotPool.getLibraryIdentifier(),
                 tapeDriveService.getTapeDriveConf().getIndex()));
 
@@ -262,7 +276,7 @@ public class TapeDriveWorker implements Runnable {
             this.pauseSignal = new CountDownLatch(1);
 
             LOGGER.warn(String.format(
-                "[Library] : %s, [Drive] : %s, [Tape]: %s, started",
+                "[Library] : %s, [Drive] : %s, started",
                 tapeRobotPool.getLibraryIdentifier(),
                 tapeDriveService.getTapeDriveConf().getIndex()));
 
@@ -277,7 +291,7 @@ public class TapeDriveWorker implements Runnable {
 
     public void stop() {
         LOGGER.warn(String.format(
-            "[Library] : %s, [Drive] : %s, [Tape]: %s, stopping ....",
+            "[Library] : %s, [Drive] : %s, stopping ....",
             tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex()));
         this.stop.compareAndSet(false, true);
@@ -287,7 +301,7 @@ public class TapeDriveWorker implements Runnable {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
         LOGGER.warn(String.format(
-            "[Library] : %s, [Drive] : %s, [Tape]: %s, stopped ....",
+            "[Library] : %s, [Drive] : %s, stopped ....",
             tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex()));
     }
@@ -295,7 +309,7 @@ public class TapeDriveWorker implements Runnable {
 
     public void stop(long timeout, TimeUnit timeUnit) {
         LOGGER.warn(String.format(
-            "[Library] : %s, [Drive] : %s, [Tape]: %s, stopping ....",
+            "[Library] : %s, [Drive] : %s, stopping ....",
             tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex()));
 
@@ -305,13 +319,15 @@ public class TapeDriveWorker implements Runnable {
         } catch (InterruptedException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
+
         LOGGER.warn(String.format(
-            "[Library] : %s, [Drive] : %s, [Tape]: %s, stopped ....",
+            "[Library] : %s, [Drive] : %s, stopped ....",
             tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex()));
     }
 
     public boolean isRunning() {
+        System.err.println(shutdownSignal.getCount());
         return shutdownSignal.getCount() != 0;
     }
 

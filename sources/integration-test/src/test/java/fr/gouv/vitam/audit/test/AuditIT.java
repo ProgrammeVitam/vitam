@@ -51,6 +51,7 @@ import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -107,7 +108,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
-import fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.core.plugin.audit.AuditExistenceService;
 import fr.gouv.vitam.worker.core.plugin.audit.AuditIntegrityService;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;

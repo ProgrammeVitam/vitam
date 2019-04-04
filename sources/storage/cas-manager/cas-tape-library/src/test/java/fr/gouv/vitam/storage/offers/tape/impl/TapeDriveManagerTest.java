@@ -1,5 +1,6 @@
 package fr.gouv.vitam.storage.offers.tape.impl;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.mock;
 
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
@@ -18,7 +19,12 @@ public class TapeDriveManagerTest {
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)).isNotNull();
-        Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.TAR)).isNotNull();
+        try {
+            tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.TAR);
+            fail("hould fail");
+        } catch (IllegalArgumentException e) {
+            //NOSONAR
+        }
     }
 
 
@@ -32,8 +38,12 @@ public class TapeDriveManagerTest {
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)).isNotNull();
-        Assertions.assertThat(tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.TAR)).isNotNull();
-    }
+        try {
+            tapeDriveManager.getReadWriteService(TapeDriveService.ReadWriteCmd.TAR);
+            fail("hould fail");
+        } catch (IllegalArgumentException e) {
+            //NOSONAR
+        }    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorOneNullTapeDriveConfKO() {
