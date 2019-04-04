@@ -1,0 +1,13 @@
+---
+
+- name: Determine available groups
+  getent:
+    database: group
+  tags:
+    - update_package_vitam
+
+- name: add user vitam to tape group if this group exist
+  user: name="{{ vitam_defaults.users.vitam }}" groups="tape" append=yes
+  when: "tape" in ansible_facts.getent_group and  vitam_struct.vitam_component == "offer"
+  tags:
+    - update_package_vitam
