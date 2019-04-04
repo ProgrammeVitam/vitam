@@ -340,12 +340,12 @@ public class ReadTask implements Future<ReadWriteResult> {
         TapeResponse response;
 
         switch (workerCurrentTape.getPreviousLocation().getLocationType()) {
+            case IMPORTEXPORT:
             case SLOT:
                 slotIndex = workerCurrentTape.getPreviousLocation().getIndex();
                 break;
             case DRIVE:
             case OUTSIDE:
-            case IMPORTEXPORT:
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         ", Error: previous location should no be in " +
                         workerCurrentTape.getPreviousLocation().getLocationType().getType(),

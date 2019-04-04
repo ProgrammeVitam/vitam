@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
+import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
@@ -91,10 +92,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         throws TapeCatalogException {
         QueryCriteria criteria =
             new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
-        Map<String, TapeCatalog> existingTapes;
-
-
-        existingTapes = repository.findTapes(Arrays.asList(criteria)).stream()
+        Map<String, TapeCatalog> existingTapes = repository.findTapes(Arrays.asList(criteria)).stream()
             .collect(Collectors.toMap(TapeCatalog::getCode, tape -> tape));
 
         Map<Integer, TapeCatalog> driveTape = new HashMap<>();
@@ -104,13 +102,17 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 tape.setCode(drive.getTape().getVolumeTag());
                 tape.setAlternativeCode(drive.getTape().getAlternateVolumeTag());
                 tape.setLibrary(tapeLibraryIdentifier);
-                tape.setCurrentLocation(new TapeLocation(drive.getIndex(), TapeLocationType.DRIVE));
-                if (drive.getTape().getSlotIndex() != null) {
-                    tape.setPreviousLocation(new TapeLocation(drive.getTape().getSlotIndex(), TapeLocationType.SLOT));
-                }
 
                 TapeCatalog existingTape = existingTapes.get(tape.getCode());
-                createOrUpdateTape(tape, existingTape);
+
+                TapeLocationType slotLocation = drive.getTape().getSlotIndex() <= libraryState.getSlotsCount() ?
+                    TapeLocationType.SLOT :
+                    TapeLocationType.IMPORTEXPORT;
+
+                createOrUpdateTape(tape, existingTape,
+                    new TapeLocation(drive.getTape().getSlotIndex(),
+                        slotLocation),
+                    new TapeLocation(drive.getIndex(), TapeLocationType.DRIVE));
 
                 String tapeGuid = tape.getId();
                 if (null != existingTape) {
@@ -127,19 +129,33 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 tape.setCode(slot.getTape().getVolumeTag());
                 tape.setAlternativeCode(slot.getTape().getAlternateVolumeTag());
                 tape.setLibrary(tapeLibraryIdentifier);
-                tape.setCurrentLocation(new TapeLocation(slot.getIndex(), TapeLocationType.SLOT));
-                tape.setPreviousLocation(new TapeLocation(slot.getIndex(), TapeLocationType.SLOT));
 
-                createOrUpdateTape(tape, existingTapes.get(tape.getCode()));
+                TapeCatalog existingTape = existingTapes.get(tape.getCode());
+                TapeLocation tapeLocationInit =
+                    new TapeLocation(slot.getIndex(), slot.getStorageElementType().getTapeLocationType());
+
+                if (null != existingTape &&
+                    !Objects.equals(existingTape.getCurrentLocation().getLocationType(),
+                        tapeLocationInit.getLocationType())) {
+                    LOGGER.warn("Tape (" + existingTape.getCode() + ") location changed. Catalog location : " +
+                        JsonHandler.unprettyPrint(existingTape.getCurrentLocation()) +
+                        " Robot status command location: " + JsonHandler.unprettyPrint(tapeLocationInit) +
+                        ". This tape may have conflict!");
+                }
+                
+                createOrUpdateTape(tape, existingTapes.get(tape.getCode()),
+                    tapeLocationInit,
+                    tapeLocationInit);
             }
         }
 
         return driveTape;
     }
 
-    private void createOrUpdateTape(TapeCatalog tape, TapeCatalog existingTape) throws TapeCatalogException {
+    private void createOrUpdateTape(TapeCatalog tape, TapeCatalog existingTape, TapeLocation previousLocation,
+        TapeLocation currentLocation) throws TapeCatalogException {
         if (existingTape != null) {
-            Map<String, Object> updates = merge(tape, existingTape);
+            Map<String, Object> updates = merge(tape, existingTape, previousLocation, currentLocation);
 
             if (!updates.isEmpty()) {
                 boolean isUpdated = repository.updateTape(existingTape.getId(), updates);
@@ -151,11 +167,20 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
             }
 
         } else {
+            tape.setCurrentLocation(currentLocation);
+            tape.setPreviousLocation(previousLocation);
+
+            // Mark tape as running, because tape is already in drive
+            if (Objects.equals(currentLocation.getLocationType(), TapeLocationType.DRIVE)) {
+                tape.setState(QueueState.RUNNING);
+            }
+
             repository.createTape(tape);
         }
     }
 
-    private Map<String, Object> merge(TapeCatalog tape, TapeCatalog existingTape) {
+    private Map<String, Object> merge(TapeCatalog tape, TapeCatalog existingTape, TapeLocation previousLocation,
+        TapeLocation currentLocation) {
         Map<String, Object> updates;
         updates = new HashMap<>();
         if (!Objects.equals(existingTape.getAlternativeCode(), tape.getAlternativeCode())) {
@@ -166,11 +191,48 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
             updates.put(TapeCatalog.LIBRARY, tape.getLibrary());
         }
 
-        if (!Objects.equals(existingTape.getCurrentLocation(), tape.getCurrentLocation())) {
-            updates.put(TapeCatalog.CURRENT_LOCATION, tape.getCurrentLocation());
+
+        if (!Objects.equals(existingTape.getPreviousLocation(), previousLocation)) {
+            updates.put(TapeCatalog.PREVIOUS_LOCATION, previousLocation);
         }
 
-        existingTape.setCurrentLocation(tape.getCurrentLocation());
+        // Update current location and tape catalog queue state
+        if (!Objects.equals(existingTape.getCurrentLocation(), currentLocation)) {
+            TapeLocationType locationTypeInDB = existingTape.getCurrentLocation().getLocationType();
+            TapeLocationType locationTypeInit = currentLocation.getLocationType();
+            switch (locationTypeInit) {
+                case DRIVE:
+                    // Tape is in drive but catalog says that it is not (it is in slot).
+                    if (Objects.equals(locationTypeInDB, TapeLocationType.SLOT)) {
+                        updates.put(QueueMessageEntity.STATE, QueueState.RUNNING.getState());
+                    }
+
+                    updates.put(TapeCatalog.CURRENT_LOCATION, currentLocation);
+
+                    break;
+
+                case SLOT:
+                case IMPORTEXPORT:
+                    // Tape is in slot but catalog says that it is not (it is in drive).
+                    if (Objects.equals(locationTypeInDB, TapeLocationType.DRIVE)) {
+                        if (Objects.equals(existingTape.getState(), QueueState.RUNNING)) {
+                            updates.put(QueueMessageEntity.STATE, QueueState.READY.getState());
+                        }
+                    }
+
+                    updates.put(TapeCatalog.CURRENT_LOCATION, currentLocation);
+
+                    break;
+
+                case OUTSIDE:
+                default:
+                    throw new IllegalStateException(
+                        "Unknown or robot status command should not return, such tapeLocationType :" +
+                            locationTypeInit);
+            }
+
+            updates.put(TapeCatalog.CURRENT_LOCATION, currentLocation);
+        }
 
         return updates;
     }

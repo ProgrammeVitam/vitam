@@ -91,7 +91,7 @@ public class TapeLibraryStatusParser {
             tapeSlot.setStorageElementType(TapeSlotType.IMPORTEXPORT);
         } else {
             slotIndex = StringUtils.substringBetween(s, STORAGE_ELEMENT, SEPARATOR);
-            tapeSlot.setStorageElementType(TapeSlotType.READY);
+            tapeSlot.setStorageElementType(TapeSlotType.SLOT);
         }
 
         tapeSlot.setIndex(Integer.valueOf(slotIndex.trim()));

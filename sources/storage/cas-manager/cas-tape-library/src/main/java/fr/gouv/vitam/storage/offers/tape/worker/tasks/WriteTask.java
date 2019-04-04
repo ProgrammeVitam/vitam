@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -62,6 +63,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.bson.conversions.Bson;
+import org.slf4j.MDC;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -156,7 +158,8 @@ public class WriteTask implements Future<ReadWriteResult> {
                     // TODO: rewind, goto position file count, retry write file
                     // TODO: ugly fix
                     workerCurrentTape.setTapeState(TapeState.CONFLICT);
-
+                    LOGGER.warn(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                        " is marked as conflict (incident close tape)");
                     try {
                         withRetryDoUpdateTapeCatalog(workerCurrentTape);
                     } catch (ReadWriteException ex) {
@@ -172,6 +175,8 @@ public class WriteTask implements Future<ReadWriteResult> {
                     // Mark tape state conflict and retry with new tape
                     if (--cartridgeRetry >= 0) {
                         workerCurrentTape.setTapeState(TapeState.CONFLICT);
+                        LOGGER.warn(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                            " is marked as conflict (incident close tape)");
                         return get();
                     } else {
                         readWriteResult.setStatus(StatusCode.FATAL);

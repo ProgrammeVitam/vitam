@@ -32,7 +32,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Objects;
+
 /**
+ *
  */
 @JsonInclude(NON_NULL)
 public class TapeLocation {
@@ -77,5 +80,21 @@ public class TapeLocation {
 
     public void setLocationType(TapeLocationType locationType) {
         this.locationType = locationType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getIndex(), getLocationType());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof TapeLocation) {
+
+            TapeLocation tapeLocation = (TapeLocation) obj;
+            return Objects.equals(tapeLocation.getIndex(), getIndex()) &&
+                Objects.equals(tapeLocation.getLocationType(), getLocationType());
+        }
+        return false;
     }
 }

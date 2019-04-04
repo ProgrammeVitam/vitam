@@ -26,17 +26,19 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+
 public enum TapeSlotType {
-    READY(""),
-    IMPORTEXPORT("IMPORT/EXPORT");
+    SLOT(TapeLocationType.SLOT),
+    IMPORTEXPORT(TapeLocationType.IMPORTEXPORT);
 
-    private final String message;
+    private final TapeLocationType tapeLocationType;
 
-    TapeSlotType(String message) {
-        this.message = message;
+    TapeSlotType(TapeLocationType tapeLocationType) {
+        this.tapeLocationType = tapeLocationType;
     }
 
-    public String getMessage() {
-        return message;
+    public TapeLocationType getTapeLocationType() {
+        return tapeLocationType;
     }
 }

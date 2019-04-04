@@ -9,7 +9,7 @@
 		</encoder>
 	</appender>
 
-{% if vitam_struct.logback_rolling_policy|lower == "true" %}}
+{% if vitam_struct.logback_rolling_policy|lower == "true" %}
 	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -17,17 +17,17 @@
 			<maxHistory>{{ days_to_delete_logback_logfiles }}</maxHistory>
       		<totalSizeCap>{{ vitam_struct.logback_total_size_cap }}</totalSizeCap>
 		</rollingPolicy>
-{% else %}}
+{% else %}
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
 		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}.log</file>
 		<append>true</append>
-{% endif %}}
+{% endif %}
 		<encoder>
 			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n</pattern>
 		</encoder>
 	</appender>
 
-{% if vitam_struct.logback_rolling_policy|lower == "true" %}}
+{% if vitam_struct.logback_rolling_policy|lower == "true" %}
 	<appender name="SECURITY" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_security.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -35,19 +35,19 @@
 			<maxHistory>{{ days_to_delete_logback_logfiles }}</maxHistory>
       		<totalSizeCap>{{ vitam_struct.logback_total_size_cap }}</totalSizeCap>
 		</rollingPolicy>
-{% else %}}
+{% else %}
 	<appender name="SECURITY" class="ch.qos.logback.core.FileAppender">
 		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_security.log</file>
 		<append>true</append>
-{% endif %}}
+{% endif %}
 		<encoder>
 			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
 			</pattern>
 		</encoder>
 	</appender>
 
-    {% if vitam_struct.vitam_component == 'storage' %}
-	{% if vitam_struct.logback_rolling_policy|lower == "true" %}}
+{% if vitam_struct.vitam_component == 'storage' %}
+ {% if vitam_struct.logback_rolling_policy|lower == "true" %}
 	<appender name="OFFERSYNC" class="ch.qos.logback.core.rolling.RollingFileAppender">
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_sync.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
@@ -55,17 +55,38 @@
 			<maxHistory>{{ days_to_delete_logback_logfiles }}</maxHistory>
 			<totalSizeCap>{{ vitam_struct.logback_total_size_cap }}</totalSizeCap>
 		</rollingPolicy>
-	{% else %}}
+  {% else %}
 	<appender name="OFFERSYNC" class="ch.qos.logback.core.FileAppender">
 		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_sync.log</file>
 		<append>true</append>
-	{% endif %}}
+  {% endif %}
 		<encoder>
 			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
 			</pattern>
 		</encoder>
 	</appender>
-    {% endif %}
+{% endif %}
+
+{% if vitam_struct.vitam_component == 'offer' %}
+  {% if vitam_struct.logback_rolling_policy|lower == "true" %}
+	<appender name="OFFER_TAPE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_tape.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
+			<maxHistory>{{ days_to_delete_logback_logfiles }}</maxHistory>
+			<totalSizeCap>{{ vitam_struct.logback_total_size_cap }}</totalSizeCap>
+		</rollingPolicy>
+  {% else %}
+	<appender name="OFFER_TAPE" class="ch.qos.logback.core.FileAppender">
+		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_offer_tape.log</file>
+		<append>true</append>
+  {% endif %}
+		<encoder>
+			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+			</pattern>
+		</encoder>
+	</appender>
+{% endif %}
 
 	<appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
 		<syslogHost>localhost</syslogHost>
@@ -88,17 +109,26 @@
   <logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="DEBUG" additivity="false" >
      <appender-ref ref="SYSLOG" />
   </logger>
+
   <logger name="fr.gouv.vitam.common.alert.AlertServiceImpl" level="INFO">
 	  <appender-ref ref="SECURITY" />
   </logger>
-  {% if vitam_struct.vitam_component == 'storage' %}
+
+{% if vitam_struct.vitam_component == 'storage' %}
   <logger name="fr.gouv.vitam.storage.engine.server.offersynchronization" level="INFO">
        <appender-ref ref="OFFERSYNC" />
   </logger>
-  {% endif %}
+{% endif %}
 
-  {% if vitam_struct.vitam_component == 'metadata' %}
+{% if vitam_struct.vitam_component == 'offer' %}
+  <logger name="fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor" level="INFO">
+       <appender-ref ref="OFFER_TAPE" />
+  </logger>
+{% endif %}
+
+
+{% if vitam_struct.vitam_component == 'metadata' %}
   <logger name="fr.gouv.vitam.metadata.core.migration" level="INFO"/>
-  {% endif %}
+{% endif %}
 
 </configuration>
