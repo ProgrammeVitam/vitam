@@ -42,6 +42,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
+import fr.gouv.vitam.common.model.preservation.OtherMetadata;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
@@ -59,7 +60,6 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -298,7 +298,7 @@ public class PreservationUpdateObjectGroupPluginTest {
             .isEqualTo("Batman");
         assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/MimeType").textValue())
             .isEqualTo("text/winner");
-        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS").textValue())
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS/0").textValue())
             .isEqualTo("40.714, -74.006");
     }
 
@@ -361,7 +361,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         assertThat(itemStatuses)
             .extracting(ItemStatus::getGlobalStatus)
             .containsOnly(OK);
-        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS").textValue())
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS/0").textValue())
             .isEqualTo("40.714, -74.006");
     }
 
@@ -634,9 +634,9 @@ public class PreservationUpdateObjectGroupPluginTest {
         output.setInputPreservation(new InputPreservation("aeaaaaaaaahiu6xhaaksgalhnbwn3siaaaaq", "fmt/43"));
         output.setFormatIdentification(new DbFormatIdentificationModel("Batman", "text/winner", "x-fmt/42"));
         ExtractedMetadata extractedMetadata = new ExtractedMetadata();
-        HashMap<String, String> metadataToReplace = new HashMap<>();
-        metadataToReplace.put("GPS", "40.714, -74.006");
-        extractedMetadata.setMetadataToReplace(metadataToReplace);
+        OtherMetadata otherMetadata = new OtherMetadata();
+        otherMetadata.put("GPS", Collections.singletonList("40.714, -74.006"));
+        extractedMetadata.setOtherMetadata(otherMetadata);
         output.setExtractedMetadata(extractedMetadata);
         return output;
     }

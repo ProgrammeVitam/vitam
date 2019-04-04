@@ -29,8 +29,9 @@ package fr.gouv.vitam.common.model.objectgroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.preservation.OtherMetadata;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -80,7 +81,7 @@ public class DbVersionsModel {
     private String physicalId;
 
     @JsonProperty("OtherMetadata")
-    private Map<String, Object> otherMetadata = new HashMap<>();
+    private OtherMetadata otherMetadata = new OtherMetadata();
 
     @JsonProperty("_opi")
     private String opi;
@@ -103,7 +104,7 @@ public class DbVersionsModel {
         DbStorageModel storage,
         PhysicalDimensionsModel physicalDimensionsModel,
         String physicalId,
-        Map<String, Object> otherMetadata,
+        OtherMetadata otherMetadata,
         String opi) {
 
         this.id = id;
@@ -124,7 +125,7 @@ public class DbVersionsModel {
     }
 
     @JsonIgnore
-    public static DbVersionsModel newVersionsFrom(DbVersionsModel that, Map<String, Object> otherMetadata) {
+    public static DbVersionsModel newVersionsFrom(DbVersionsModel that, OtherMetadata otherMetadata) {
         return new DbVersionsModel(
             that.id,
             that.dataObjectVersion,
@@ -269,11 +270,11 @@ public class DbVersionsModel {
         this.physicalId = physicalId;
     }
 
-    public Map<String, Object> getOtherMetadata() {
+    public OtherMetadata getOtherMetadata() {
         return otherMetadata;
     }
 
-    public void setOtherMetadata(Map<String, Object> otherMetadata) {
+    public void setOtherMetadata(OtherMetadata otherMetadata) {
         this.otherMetadata = otherMetadata;
     }
 
