@@ -57,6 +57,7 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.model.AuditOptions;
 import fr.gouv.vitam.common.model.ProcessPause;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -385,7 +386,7 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void givenMockExistsWhenLaunchAUditThenReturnOK() throws Exception {
-        RequestResponse<JsonNode> resp = client.launchAuditWorkflow(JsonHandler.createObjectNode());
+        RequestResponse<JsonNode> resp = client.launchAuditWorkflow(new AuditOptions());
         assertTrue(resp.isOk());
     }
 

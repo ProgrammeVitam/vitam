@@ -59,11 +59,9 @@ import fr.gouv.vitam.worker.core.handler.CheckVersionActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleObjectGroupActionHandler;
 import fr.gouv.vitam.worker.core.handler.CommitLifeCycleUnitActionHandler;
 import fr.gouv.vitam.worker.core.handler.DummyHandler;
-import fr.gouv.vitam.worker.core.handler.GenerateAuditReportActionHandler;
 import fr.gouv.vitam.worker.core.handler.IngestAccessionRegisterActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListArchiveUnitsActionHandler;
 import fr.gouv.vitam.worker.core.handler.ListRunningIngestsActionHandler;
-import fr.gouv.vitam.worker.core.handler.PrepareAuditActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareStorageInfoActionHandler;
 import fr.gouv.vitam.worker.core.handler.PrepareTraceabilityCheckProcessActionHandler;
 import fr.gouv.vitam.worker.core.handler.RollBackActionHandler;
@@ -193,11 +191,6 @@ public class WorkerImpl implements Worker {
             new ListRunningIngestsActionHandler());
         actions.put(ListArchiveUnitsActionHandler.getId(),
             new ListArchiveUnitsActionHandler());
-        actions.put(PrepareAuditActionHandler.getId(),
-            new PrepareAuditActionHandler());
-
-        actions.put(GenerateAuditReportActionHandler.getId(),
-            new GenerateAuditReportActionHandler());
 
         actions.put(CheckConcurrentWorkflowLockHandler.getId(),
             new CheckConcurrentWorkflowLockHandler());

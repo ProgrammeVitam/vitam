@@ -1,5 +1,7 @@
 package fr.gouv.vitam.common;
 
+import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
+import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
@@ -69,7 +71,8 @@ public class VitamRuleRunner {
             PersonalRepository.PERSONAL_COLLECTION,
             IdentityRepository.CERTIFICATE_COLLECTION,
             EliminationActionObjectGroupRepository.ELIMINATION_ACTION_OBJECT_GROUP,
-            EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT);
+            EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT,
+            AuditReportRepository.AUDIT_OBJECT_GROUP);
 
 
     @ClassRule

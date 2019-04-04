@@ -3,7 +3,7 @@
   "name": "Default Audit Object Workflow",
   "identifier": "PROCESS_AUDIT",
   "typeProc": "AUDIT",
-  "comment": "Default Audit Object workflow V1",
+  "comment": "Audit Object workflow V2",
   "lifecycleLog": "DISABLED",
   "steps": [
     {
@@ -15,6 +15,22 @@
         "element": ""
       },
       "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
         {
           "action": {
             "actionKey": "LIST_OBJECTGROUP_ID",
@@ -30,19 +46,15 @@
       "distribution": {
         "kind": "LIST_IN_JSONL_FILE",
         "element": "AUDIT_OG",
-        "type" : "ObjectGroup"
+        "type" : "ObjectGroup",
+        "statusOnEmptyDistribution": "WARNING"
       },
       "actions": [
         {
           "action": {
             "actionKey": "AUDIT_CHECK_OBJECT",
             "behavior": "NOBLOCKING",
-            "out": [
-              {
-                "name": "shouldWriteLogbook",
-                "uri": "MEMORY:shouldWrite"
-              }
-            ]
+            "lifecycleLog": "DISABLED"
           }
         }
       ]

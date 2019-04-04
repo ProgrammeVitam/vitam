@@ -1,0 +1,442 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 5,
+    "offset": 0,
+    "limit": 5,
+    "size": 5
+  },
+  "$results": [
+    {
+      "FileInfo": {
+        "LastModified": "2017-04-04T08:07:06.487+02:00"
+      },
+      "#id": "aebaaaaaaahgotryaauzialjp5zkhgyaaaaq",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaahgotryaauzialjp5zkhgyaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "LastModified": "2017-04-04T08:07:06.487+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID13.txt",
+              "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq",
+              "#opi": "aeeaaaaaachfa7z2aamwwaljp5zj3kqaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaahgotryaauzialjp5zkhryaaaaq"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahgotryaauzialjp5zkhryaaaaq",
+        "aeaqaaaaaahgotryaauzialjp5zkhhyaaaba",
+        "aeaqaaaaaahgotryaauzialjp5zkhriaaaba",
+        "aeaqaaaaaahgotryaauzialjp5zkhsqaaaba",
+        "aeaqaaaaaahgotryaauzialjp5zkhjyaaabq",
+        "aeaqaaaaaahgotryaauzialjp5zkhsiaaaba",
+        "aeaqaaaaaahgotryaauzialjp5zkhqyaaaaq",
+        "aeaqaaaaaahgotryaauzialjp5zkhsaaaaba"
+      ],
+      "#operations": [
+        "aeeaaaaaachfa7z2aamwwaljp5zj3kqaaaaq"
+      ],
+      "#opi": "aeeaaaaaachfa7z2aamwwaljp5zj3kqaaaaq",
+      "#originating_agency": "RATP",
+      "#originating_agencies": [
+        "RATP"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 1
+    },
+    {
+      "FileInfo": {
+        "LastModified": "2017-04-04T08:07:06.487+02:00"
+      },
+      "#id": "aebaaaaaaahgotryaauzialjp52rwjaaaaaq",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaahgotryaauzialjp52rwjaaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "LastModified": "2017-04-04T08:07:06.487+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID55.txt",
+              "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaahgotryaauzialjp52rwiyaaabq",
+              "#opi": "aeeaaaaaachfa7z2aamwwaljp52rkkiaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaahgotryaauzialjp52rwyiaaaaq"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahgotryaauzialjp52rwyiaaaaq",
+        "aeaqaaaaaahgotryaauzialjp52rwyaaaabq",
+        "aeaqaaaaaahgotryaauzialjp52rwxqaaabq",
+        "aeaqaaaaaahgotryaauzialjp52rwxyaaaba"
+      ],
+      "#operations": [
+        "aeeaaaaaachfa7z2aamwwaljp52rkkiaaaaq"
+      ],
+      "#opi": "aeeaaaaaachfa7z2aamwwaljp52rkkiaaaaq",
+      "#originating_agency": "RATP",
+      "#originating_agencies": [
+        "RATP"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 1
+    },
+    {
+      "FileInfo": {},
+      "#id": "aebaaaaaaahgotryaauzialjp6aa32aaaaaq",
+      "#nbobjects": 2,
+      "#qualifiers": [
+        {
+          "qualifier": "PhysicalMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaahgotryaauzialjp6aa32aaaaaq",
+              "DataObjectVersion": "PhysicalMaster_1",
+              "PhysicalId": 12345,
+              "PhysicalDimensions": {
+                "Height": {
+                  "unit": "centimetre",
+                  "dValue": 21
+                },
+                "Length": {
+                  "unit": "centimetre",
+                  "dValue": 29.7
+                },
+                "Weight": {
+                  "unit": "kilogram",
+                  "dValue": 1
+                }
+              },
+              "#id": "aeaaaaaaaahgotryaauzialjp6aa32iaaaaq",
+              "#opi": "aeeaaaaaachfa7z2aamwwaljp6aaqgqaaaaq"
+            }
+          ]
+        },
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaahgotryaauzialjp6aa32aaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "CreatingApplicationName": "CreatingApplicationName0",
+                "CreatingApplicationVersion": "CreatingApplicationVersion0",
+                "DateCreatedByApplication": "2006-05-04T18:13:51.0",
+                "CreatingOs": "CreatingOs0",
+                "CreatingOsVersion": "CreatingOsVersion0",
+                "LastModified": "2017-04-04T08:07:06.487+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID13.txt",
+              "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq",
+              "#opi": "aeeaaaaaachfa7z2aamwwaljp6aaqgqaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaahgotryaauzialjp6aa4giaaaba",
+        "aeaqaaaaaahgotryaauzialjp6aa4haaaaba"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahgotryaauzialjp6aa34iaaaba",
+        "aeaqaaaaaahgotryaauzialjp6aa4giaaaba",
+        "aeaqaaaaaahgotryaauzialjp6aa4gyaaada",
+        "aeaqaaaaaahgotryaauzialjp6aa4gyaaabq",
+        "aeaqaaaaaahgotryaauzialjp6aa4haaaaba",
+        "aeaqaaaaaahgotryaauzialjp6aa4haaaacq"
+      ],
+      "#operations": [
+        "aeeaaaaaachfa7z2aamwwaljp6aaqgqaaaaq"
+      ],
+      "#opi": "aeeaaaaaachfa7z2aamwwaljp6aaqgqaaaaq",
+      "#originating_agency": "RATP",
+      "#originating_agencies": [
+        "RATP"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 2
+    },
+    {
+      "FileInfo": {
+        "LastModified": "2017-04-04T08:07:27.825+02:00"
+      },
+      "#id": "aebaaaaaaahgotryaauzialjp52rwiyaaaba",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaahgotryaauzialjp52rwiyaaaba",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "LastModified": "2017-04-04T08:07:27.825+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID35.txt",
+              "MessageDigest": "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaahgotryaauzialjp52rwiyaaaaq",
+              "#opi": "aeeaaaaaachfa7z2aamwwaljp52rkkiaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaahgotryaauzialjp52rwwyaaaba"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahgotryaauzialjp52rwxaaaacq",
+        "aeaqaaaaaahgotryaauzialjp52rwxaaaaba",
+        "aeaqaaaaaahgotryaauzialjp52rwxiaaaba",
+        "aeaqaaaaaahgotryaauzialjp52rwxiaaacq",
+        "aeaqaaaaaahgotryaauzialjp52rwryaaabq",
+        "aeaqaaaaaahgotryaauzialjp52rwwyaaaba",
+        "aeaqaaaaaahgotryaauzialjp52rwrqaaabq",
+        "aeaqaaaaaahgotryaauzialjp52rwriaaaaq",
+        "aeaqaaaaaahgotryaauzialjp52rwriaaaca",
+        "aeaqaaaaaahgotryaauzialjp52rwraaaabq"
+      ],
+      "#operations": [
+        "aeeaaaaaachfa7z2aamwwaljp52rkkiaaaaq"
+      ],
+      "#opi": "aeeaaaaaachfa7z2aamwwaljp52rkkiaaaaq",
+      "#originating_agency": "RATP",
+      "#originating_agencies": [
+        "RATP"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 1
+    },
+    {
+      "FileInfo": {},
+      "#id": "aebaaaaaaahoswhnaatlyaljp6ae3raaaaaq",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 2,
+          "versions": [
+            {
+              "DataObjectGroupId": "aebaaaaaaahoswhnaatlyaljp6ae3raaaaaq",
+              "DataObjectVersion": "BinaryMaster_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "LastModified": "2017-04-04T08:07:27.825+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID35.txt",
+              "MessageDigest": "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaahoswhnaatlyaljp6ae3qqaaaba",
+              "#opi": "aeeaaaaaachfa7z2aamwwaljp6aeraiaaaaq",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            },
+            {
+              "DataObjectGroupId": "aebaaaaaaahoswhnaatlyaljp6ae3raaaaaq",
+              "DataObjectVersion": "BinaryMaster_2",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "LastModified": "2017-04-14T08:07:27.825+02:00"
+              },
+              "Size": 6,
+              "Uri": "Content/ID35.txt",
+              "MessageDigest": "664ac614a819df2a97d2a5df57dcad91d6ec38b0fffc793e80c56b4553a14ac7a5f0bce3bb71af419b0bb8f151ad3d512867454eeb818e01818a31989c13319b",
+              "Algorithm": "SHA-512",
+              "#id": "aeaaaaaaaahoswhnaatlyaljp6ae3qqaaabb",
+              "#opi": "aeeaaaaaachfa7z2aamwwaljp6aeraiaaaab",
+              "#storage": {
+                "offerIds": [
+                  "offer-fs-1.service.int.consul",
+                  "offer-fs-2.service.int.consul"
+                ],
+                "strategyId": "default",
+                "#nbc": 2
+              }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": [
+        "aeaqaaaaaahoswhnaatlyaljp6ae3xaaaaba"
+      ],
+      "#allunitups": [
+        "aeaqaaaaaahoswhnaatlyaljp6ae3xaaaaba"
+      ],
+      "#operations": [
+        "aeeaaaaaachfa7z2aamwwaljp6aeraiaaaaq",
+        "aeeaaaaaachfa7z2aamwwaljp6aeraiaaaab"
+      ],
+      "#opi": "aeeaaaaaachfa7z2aamwwaljp6aeraiaaaaq",
+      "#originating_agency": "RATP",
+      "#originating_agencies": [
+        "RATP"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.int.consul",
+          "offer-fs-2.service.int.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 2
+      },
+      "#version": 1
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#id": [
+            "aebaaaaaaahgotryaauzialjp5zkhgyaaaaq",
+            "aebaaaaaaahoswhnaatlyaljp6ae3raaaaaq",
+            "aebaaaaaaahgotryaauzialjp52rwiyaaaba",
+            "aebaaaaaaahgotryaauzialjp52rwjaaaaaq",
+            "aebaaaaaaahgotryaauzialjp6aa32aaaaaq"
+          ]
+        }
+      }
+    ],
+    "$filter": {
+      "$limit": 5
+    },
+    "$projection": {}
+  }
+}

@@ -36,8 +36,16 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
@@ -47,6 +55,7 @@ import fr.gouv.vitam.batch.report.model.ReportExportRequest;
 import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
@@ -73,12 +82,6 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
 
 /**
  * ReportManagementIT
@@ -171,7 +174,19 @@ public class ReportManagementIT extends VitamRuleRunner {
         RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
         assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
     }
-
+    
+    @Test
+    @RunWithCustomExecutor
+    public void should_append_audit_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/report/auditObjectGroupModel.json");
+        ReportBody<AuditObjectGroupReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
+        // When
+        RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
+        // Then
+        assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -256,9 +271,41 @@ public class ReportManagementIT extends VitamRuleRunner {
         RequestResponse<JsonNode> storeResponse = batchReportClient.storeReport(report);
 
         // Then
-        // TODO ??
         assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
+    
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_store_audit_report() throws Exception {
+        // Given
+        InputStream stream = getClass().getResourceAsStream("/report/auditObjectGroupModel.json");
+        ReportBody<AuditObjectGroupReportEntry> reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
+        batchReportClient.appendReportEntries(reportBody);
+
+        Integer tenant = TENANT_0;
+        String evId = PROCESS_ID;
+        JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", JsonHandler.createObjectNode(), evDetData);
+
+        String date = LocalDateUtil.getString(LocalDateTime.now());
+        ReportType reportType = ReportType.AUDIT;
+        ReportResults vitamResults = new ReportResults();
+        JsonNode extendedInfo = JsonHandler.createObjectNode();
+        ReportSummary reportSummary = new ReportSummary(date, date, reportType, vitamResults, extendedInfo);
+
+        JsonNode context = JsonHandler.createObjectNode();
+
+        Report report = new Report(operationSummary, reportSummary, context);
+
+        // When
+        RequestResponse<JsonNode> storeResponse = batchReportClient.storeReport(report);
+
+        // Then
+        assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+    }
+
 
 
     private void checkGeneratedReportEqualsExpectedJsonl(String workspaceReportFile, String expectedJsonlResources)

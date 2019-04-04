@@ -1,0 +1,14 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$eq": {
+        "#originating_agency": "RATP"
+      }
+    }
+  ],
+  "$filter": {
+    "$limit": 5
+  },
+  "$projection": {}
+}

@@ -1,0 +1,43 @@
+{
+	"id": "aebaaaaaaahgotryaauzialjp6aa32aaaaaq",
+	"params": {
+		"id": "aebaaaaaaahgotryaauzialjp6aa32aaaaaq",
+		"opi": "aeeaaaaaachfa7z2aamwwaljp6aaqgqaaaaq",
+		"sp": "RATP",
+		"unitUps": [
+			"aeaqaaaaaahgotryaauzialjp6aa4giaaaba"
+		],
+		"objects": [
+			{
+				"id": "aeaaaaaaaahgotryaauzialjp6aa32iaaaaq",
+				"opi": "aeeaaaaaachfa7z2aamwwaljp6aaqgqaaaaq",
+				"qualifier": "PhysicalMaster",
+				"version": "PhysicalMaster_1"
+			},
+			{
+				"id": "aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq",
+				"opi": "aeeaaaaaachfa7z2aamwwaljp6aaqgqaaaaq",
+				"qualifier": "BinaryMaster",
+				"version": "BinaryMaster_1",
+				"MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
+				"Algorithm": "SHA-512",
+				"storage": {
+					"strategyId": "default",
+					"#nbc": "2",
+					"offerIds": [
+						"offer-fs-1.service.int.consul",
+						"offer-fs-2.service.int.consul"
+					]
+				}
+			}
+		],
+		"storage": {
+			"strategyId": "default",
+			"#nbc": "2",
+			"offerIds": [
+				"offer-fs-1.service.int.consul",
+				"offer-fs-2.service.int.consul"
+			]
+		}
+	}
+}

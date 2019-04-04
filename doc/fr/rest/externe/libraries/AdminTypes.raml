@@ -1,0 +1,57 @@
+#%RAML 1.0 Library
+
+usage: |
+  Use to define global types for Admin
+
+uses:
+    DslTypes: DslTypes.raml
+
+types:
+  AuditOptions:
+      displayName: Requête DSL multiple de traitement de masse pour élimination
+      description: Requête DSL multiple Vitam de traitement de masse pour élimination
+      type: object
+      properties:
+        auditType:
+          required: true
+          description: Type du 
+          type: string
+          enum:
+            - "originatingagency"
+            - "tenant"
+            - "dsl"
+        auditActions:
+          required: true
+          description: l'audit d'existence ou l'audit d'intégrité
+          type: string
+          enum:
+            - "AUDIT_FILE_EXISTING"
+            - "AUDIT_FILE_INTEGRITY"
+        objectId:
+          required: false
+          description: valeur de ce qui va être audité
+          type: string
+        query:
+          required: false
+          description: requête dsl multiple batch
+          type: DslTypes.DslBatchProcessionQuery
+      example:
+        {
+          "auditActions": "AUDIT_FILE_EXISTING",
+          "auditType": "dsl",
+          "query": {
+            "$roots": [],
+            "$query": [
+              {
+                "$in": {
+                "#operations": [
+                    "aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq",
+                    "aecaaaaabohmh3nzab37maljtitg4viaaaaq",
+                    "aedqaaaaaohmh3nzab37maljtithxsyaaaaq"
+                  ]
+                }
+              }
+            ],
+            "$threshold": 1000
+          }
+        }

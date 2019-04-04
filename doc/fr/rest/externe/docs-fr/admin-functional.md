@@ -87,3 +87,63 @@ Il est possible de gérer les processus en mode administrateur (CANCEL, PAUSE, N
 # Sécurisation des journaux - vérification
 
 **traceability/checks** est le point d'entrée pour la vérification de la sécurisation des journaux d'opérations dans Vitam.
+
+# Audit d'existence et d'intégrité
+
+Il est possible de vérifier l'existence ou l'intégrité des objets binaires et physiques des groupes d'objets pour :
+* un tenant
+* un service producteur
+* une requête DSL sur des unités archivistiques
+
+Il y a 4 paramètres dans le body :
+* **auditActions** (obligatoire): qui peut avoir comme valeur  *AUDIT_FILE_EXISTING*  ou *AUDIT_FILE_INTEGRITY* pour lancer respectivement l'audit d'existence ou l'audit d'intégrité.
+* **auditType** (obligatoire): avec  *originatingagency* ou *tenant* ou *dsl*
+* **objectId** (optionel): doit prendre la valeur de ce qui va être audité. Si auditType indique *tenant*, objectId doit prendre *la valeur du tenant* sur lequel on exécute la requête. Si auditType est *originatingagency*, alors objectId doit être *l'identifiant du service producteur* dont tous les objets vont être audité. Le paramètre n'est pas utilisé si auditType indique *dsl*
+* **query** (optionel): doit prendre une requête DSL au format multiple pour batch (doit contenir *$roots*, *$query* et *$threshold*)
+ 
+Trois exemples :
+ 
+* Audit d'existence sur le producteur dont l'identifiant est "FRAN_09905"
+
+```JSON
+{
+  "auditActions": "AUDIT_FILE_EXISTING",
+  "auditType": "originatingagency",
+  "objectId": "FRAN_09905"
+}
+```
+ 
+* Audit d'intégrité sur tout le tenant 9 avec cette requête lancée sur ce même tenant 9 :
+
+```JSON
+{
+  "auditActions":"AUDIT_FILE_INTEGRITY",
+  "auditType":"tenant",
+  "objectId": "9"
+}
+```
+
+* Audit d'existence pour des objets liés à des opérations d'ingests :
+
+```JSON
+{
+  "auditActions": "AUDIT_FILE_EXISTING",
+  "auditType": "dsl",
+  "query": {
+    "$roots": [],
+    "$query": [
+      {
+        "$in": {
+          "#operations": [
+            "aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq",
+            "aecaaaaabohmh3nzab37maljtitg4viaaaaq",
+            "aedqaaaaaohmh3nzab37maljtithxsyaaaaq"
+          ]
+        }
+      }
+    ],
+    "$threshold": 1000
+  }
+}
+```
+

@@ -24,35 +24,39 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.batch.report.model;
+package fr.gouv.vitam.worker.core.plugin.audit.exception;
 
+import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * List of status used in report.
- *
+ * AuditException
  */
-public enum ReportStatus {
-    OK, WARNING, KO;
+public class AuditException extends VitamException {
 
-    public static ReportStatus parseFromStatusCode(StatusCode statusCode) {
-        ReportStatus reportStatus = null;
-        if (statusCode != null) {
-            switch (statusCode) {
-            case OK:
-                reportStatus = ReportStatus.OK;
-                break;
-            case WARNING:
-                reportStatus = ReportStatus.WARNING;
-                break;
-            case KO:
-                reportStatus = ReportStatus.KO;
-                break;
-            default:
-                throw new IllegalArgumentException("StatusCode invalid from ReportStatus");
-            }
-        }
-        return reportStatus;
+    private final StatusCode statusCode;
+
+    /**
+     * @param statusCode associated status code
+     * @param message    associated message
+     * @param cause      associated cause
+     */
+    public AuditException(StatusCode statusCode, String message, Throwable cause) {
+        super(message, cause);
+        this.statusCode = statusCode;
+
+    }
+
+    /**
+     * @param statusCode associated status code
+     * @param message    associated message
+     */
+    public AuditException(StatusCode statusCode, String message) {
+        this(statusCode, message, null);
+    }
+
+    public StatusCode getStatusCode() {
+        return statusCode;
     }
 
 }

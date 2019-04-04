@@ -1,0 +1,58 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 23,
+    "offset": 0,
+    "limit": 5,
+    "size": 5
+  },
+  "$results": [
+    {
+      "#id": "aeaqaaaaaahgotryaauzialjp5zkhryaaaaq",
+      "#object": "aebaaaaaaahgotryaauzialjp5zkhgyaaaaq"
+    },
+    {
+      "#id": "aeaqaaaaaahoswhnaatlyaljp6ae3xaaaaba",
+      "#object": "aebaaaaaaahoswhnaatlyaljp6ae3raaaaaq"
+    },
+    {
+      "#id": "aeaqaaaaaahgotryaauzialjp52rwwyaaaba",
+      "#object": "aebaaaaaaahgotryaauzialjp52rwiyaaaba"
+    },
+    {
+      "#id": "aeaqaaaaaahgotryaauzialjp52rwyiaaaaq",
+      "#object": "aebaaaaaaahgotryaauzialjp52rwjaaaaaq"
+    },
+    {
+      "#id": "aeaqaaaaaahgotryaauzialjp6aa4giaaaba",
+      "#object": "aebaaaaaaahgotryaauzialjp6aa32aaaaaq"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$and": [
+          {
+            "$eq": {
+              "#originating_agency": "RATP"
+            }
+          },
+          {
+            "$exists": "#object"
+          }
+        ]
+      }
+    ],
+    "$filter": {
+      "$limit": 5
+    },
+    "$projection": {
+      "$fields": {
+        "#id": 1,
+        "#object": 1
+      }
+    }
+  }
+}
