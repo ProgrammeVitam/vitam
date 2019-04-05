@@ -57,6 +57,8 @@ public class AuditFinalizePluginTest {
     private static final String PROCESS_ID_OK = "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq";
     private static final String JOP_RESULTS_KO = "/AuditObjectWorkflow/operationForFinalizeKo.json";
     private static final String PROCESS_ID_KO = "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq";
+    private static final String JOP_RESULTS_WARNING = "/AuditObjectWorkflow/operationForFinalizeWarning.json";
+    private static final String PROCESS_ID_WARNING = "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq";
 
     private AuditFinalizePlugin auditFinalizePlugin;
 
@@ -106,9 +108,9 @@ public class AuditFinalizePluginTest {
                 .get("AccessContract").asText()).isEqualTo("ContratTNR");
         assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvDetData()).isEmpty();
         assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvId()).isEqualTo(PROCESS_ID_OK);
-        assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvType())
-                .isEqualTo("AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT");
-        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutcome())
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvType()).isEqualTo("PROCESS_AUDIT");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutcome()).isEqualTo("OK");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutDetail())
                 .isEqualTo("AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT.OK");
         assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutMsg())
                 .isEqualTo("Succès de l'audit de l'existence et de l'intégrité des objets Detail=  OK:25");
@@ -155,9 +157,9 @@ public class AuditFinalizePluginTest {
                 .get("AccessContract").asText()).isEqualTo("ContratTNR");
         assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvDetData()).isEmpty();
         assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvId()).isEqualTo(PROCESS_ID_KO);
-        assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvType())
-                .isEqualTo("AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT");
-        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutcome())
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvType()).isEqualTo("PROCESS_AUDIT");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutcome()).isEqualTo("KO");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutDetail())
                 .isEqualTo("AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT.KO");
         assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutMsg())
                 .isEqualTo("Échec de l'audit de l'existence et de l'intégrité des objets Detail=  OK:91 KO:1");
@@ -165,6 +167,55 @@ public class AuditFinalizePluginTest {
         assertThat(reportInfosCaptor.getValue().getReportSummary().getExtendedInfo()).isEmpty();
         assertThat(reportInfosCaptor.getValue().getReportSummary().getEvStartDateTime())
                 .isEqualTo("2019-04-02T08:29:27.567");
+        assertThat(reportInfosCaptor.getValue().getReportSummary().getReportType()).isEqualTo(ReportType.AUDIT);
+
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_warning_report_when_warning_logbook() throws Exception {
+
+        // Given
+        HandlerIO handler = mock(HandlerIO.class);
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(PROCESS_ID_WARNING);
+        WorkerParameters workerParameters = WorkerParametersFactory.newWorkerParameters()
+                .setWorkerGUID(GUIDFactory.newGUID())
+                .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+                .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
+                .setProcessId(VitamThreadUtils.getVitamSession().getRequestId()).setObjectId("0")
+                .setCurrentStep("StepName");
+        workerParameters.putParameterValue(WorkerParameterName.auditActions, "AUDIT_FILE_EXISTING");
+        workerParameters.putParameterValue(WorkerParameterName.auditType, "tenant");
+        Mockito.doNothing().when(auditReportService).storeReport(reportInfosCaptor.capture());
+        when(logbookClient.selectOperationById(any()))
+                .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_WARNING)));
+
+        // When
+        ItemStatus response = auditFinalizePlugin.execute(workerParameters, handler);
+
+        // Then
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+        assertThat(reportInfosCaptor.getValue().getContext()).isNotNull();
+        assertThat(reportInfosCaptor.getValue().getContext().get("auditType").asText()).isEqualTo("tenant");
+        assertThat(reportInfosCaptor.getValue().getContext().get("objectId").asText()).isEqualTo("0");
+        assertThat(reportInfosCaptor.getValue().getContext().get("auditActions").asText())
+                .isEqualTo("AUDIT_FILE_EXISTING");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary()).isNotNull();
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getRightsStatementIdentifier()
+                .get("AccessContract").asText()).isEqualTo("ContratTNR");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvDetData()).isEmpty();
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvId()).isEqualTo(PROCESS_ID_WARNING);
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getEvType()).isEqualTo("PROCESS_AUDIT");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutcome()).isEqualTo("WARNING");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutDetail())
+                .isEqualTo("OBJECTS_LIST_EMPTY.WARNING");
+        assertThat(reportInfosCaptor.getValue().getOperationSummary().getOutMsg()).isEqualTo(
+                "Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape");
+        assertThat(reportInfosCaptor.getValue().getReportSummary()).isNotNull();
+        assertThat(reportInfosCaptor.getValue().getReportSummary().getExtendedInfo()).isEmpty();
+        assertThat(reportInfosCaptor.getValue().getReportSummary().getEvStartDateTime())
+                .isEqualTo("2019-04-05T07:55:28.723");
         assertThat(reportInfosCaptor.getValue().getReportSummary().getReportType()).isEqualTo(ReportType.AUDIT);
 
     }

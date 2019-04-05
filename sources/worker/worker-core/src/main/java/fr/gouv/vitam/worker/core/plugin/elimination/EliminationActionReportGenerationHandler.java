@@ -120,6 +120,7 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         String evId = param.getContainerName();
         String evType = ""; // FIXME To be Fill in a post commit
         String outcome = ""; // FIXME To be Fill in a post commit
+        String outDetail = ""; // FIXME To be Fill in a post commit
         String outMsg = ""; // FIXME To be Fill in a post commit
         // VitamThreadUtils.getVitamSession().getContractId();
         // VitamThreadUtils.getVitamSession().getContextId();
@@ -127,7 +128,7 @@ public class EliminationActionReportGenerationHandler extends ActionHandler {
         // FIXME: What should we put in rightsStatementIdentifier for Elimination ?
         JsonNode rSI = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
         JsonNode evDetData = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, evType, outcome, outMsg, rSI, evDetData);
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
 
         String startDate = null; // FIXME To be Fill in a post commit
         String endDate = LocalDateUtil.getString(LocalDateTime.now());

@@ -136,18 +136,15 @@ public class AuditFinalizePlugin extends ActionHandler {
                 throw new AuditException(StatusCode.FATAL, "Could not generate report summary : not enougth events");
             }
             JsonNode lastEvent = events.get(events.size() - 2);
-            if (!"AUDIT_CHECK_OBJECT.AUDIT_CHECK_OBJECT".equals(lastEvent.get("evType").asText())) {
-                throw new AuditException(StatusCode.FATAL, "Could not generate report summary : audit event invalid");
-            }
-
             Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             String evId = processId;
-            String evType = lastEvent.get("evType").asText();
-            String outcome = lastEvent.get("outDetail").asText();
+            String evType = logbookOperation.get("evType").asText();
+            String outcome = lastEvent.get("outcome").asText();
+            String outDetail = lastEvent.get("outDetail").asText();
             String outMsg = lastEvent.get("outMessg").asText();
             JsonNode evDetData = JsonHandler.getFromString(lastEvent.get("evDetData").asText());
             JsonNode rSI = JsonHandler.getFromString(logbookOperation.get("rightsStatementIdentifier").asText());
-            OperationSummary operationSummary = new OperationSummary(tenantId, evId, evType, outcome, outMsg, rSI,
+            OperationSummary operationSummary = new OperationSummary(tenantId, evId, evType, outcome, outDetail, outMsg, rSI,
                     evDetData);
             return operationSummary;
         } catch (InvalidParseOperationException e) {

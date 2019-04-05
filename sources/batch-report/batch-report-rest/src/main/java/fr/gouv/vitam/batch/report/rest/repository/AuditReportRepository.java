@@ -29,12 +29,12 @@ package fr.gouv.vitam.batch.report.rest.repository;
 import static com.mongodb.client.model.Accumulators.sum;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Aggregates.unwind;
 import static com.mongodb.client.model.Aggregates.project;
+import static com.mongodb.client.model.Aggregates.unwind;
 import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.or;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -59,6 +59,7 @@ import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
 import fr.gouv.vitam.batch.report.model.AuditObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.AuditStatsModel;
 import fr.gouv.vitam.batch.report.model.AuditStatusCount;
+import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -96,6 +97,36 @@ public class AuditReportRepository extends ReportCommonRepository {
 
     public void deleteReportByIdAndTenant(String processId, int tenantId) {
         super.deleteReportByIdAndTenant(processId, tenantId, objectGroupReportCollection);
+    }
+
+    public ReportResults computeVitamResults(String processId, Integer tenantId) {
+        ReportResults reportResult = new ReportResults(0,0,0,0);
+
+        Bson eqProcessId = eq(AuditObjectGroupModel.PROCESS_ID, processId);
+        Bson eqTenant = eq(AuditObjectGroupModel.TENANT, tenantId);
+        Bson groupOnSp = group("$_metadata.status", sum("result", 1));
+        MongoCursor<Document> objectGroupsStatusCountResult = getListStats(Aggregates.match(and(eqProcessId, eqTenant)),
+                groupOnSp);
+        while (objectGroupsStatusCountResult.hasNext()) {
+            Document result = objectGroupsStatusCountResult.next();
+            String status = result.getString("_id");
+            Integer count = result.getInteger("result");
+            switch (status) {
+            case "OK":
+                reportResult.setNbOk(count);
+                break;
+            case "WARNING":
+                reportResult.setNbWarning(count);
+                break;
+            case "KO":
+                reportResult.setNbKo(count);
+                break;
+            default:
+                break;
+            }
+        }
+        reportResult.setTotal(reportResult.getNbKo() + reportResult.getNbOk() + reportResult.getNbWarning());
+        return reportResult;
     }
 
     /**
@@ -312,9 +343,10 @@ public class AuditReportRepository extends ReportCommonRepository {
     }
 
     private Bson reportProjection() {
-        return Projections.fields(new Document("_id", 0), new Document("id", "$_metadata.id"),
-                new Document("distribGroup", null), new Document("params.id", "$_metadata.id"),
-                new Document("params.status", "$_metadata.status"), new Document("params.opi", "$_metadata.opi"),
+        return Projections.fields(new Document("_id", 0), new Document("outcome", "$_metadata.outcome"),
+                new Document("detailType", "$_metadata.detailType"), new Document("detailId", "$_metadata.detailId"),
+                new Document("params.id", "$_metadata.id"), new Document("params.status", "$_metadata.status"),
+                new Document("params.opi", "$_metadata.opi"),
                 new Document("params.originatingAgency", "$_metadata.originatingAgency"),
                 new Document("params.parentUnitIds", "$_metadata.parentUnitIds"),
                 new Document("params.objectVersions", "$_metadata.objectVersions"));

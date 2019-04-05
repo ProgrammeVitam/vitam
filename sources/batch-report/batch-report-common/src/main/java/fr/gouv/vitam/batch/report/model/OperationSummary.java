@@ -43,6 +43,9 @@ public class OperationSummary {
     @JsonProperty("outcome")
     private String outcome;
 
+    @JsonProperty("outDetail")
+    private String outDetail;
+
     @JsonProperty("outMsg")
     private String outMsg;
 
@@ -56,11 +59,13 @@ public class OperationSummary {
         // Empty constructor for deserialization
     }
 
-    public OperationSummary(Integer tenant, String evId, String evType, String outcome, String outMsg, JsonNode rSI, JsonNode evDetData) {
+    public OperationSummary(Integer tenant, String evId, String evType, String outcome, String outDetail, String outMsg,
+            JsonNode rSI, JsonNode evDetData) {
         this.tenant = tenant;
         this.evId = evId;
         this.evType = evType;
         this.outcome = outcome;
+        this.outDetail = outDetail;
         this.outMsg = outMsg;
         this.rightsStatementIdentifier = rSI;
         this.evDetData = evDetData;
@@ -96,6 +101,14 @@ public class OperationSummary {
 
     public void setOutcome(String outcome) {
         this.outcome = outcome;
+    }
+
+    public String getOutDetail() {
+        return outDetail;
+    }
+
+    public void setOutDetail(String outDetail) {
+        this.outDetail = outDetail;
     }
 
     public String getOutMsg() {

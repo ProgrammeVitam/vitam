@@ -219,7 +219,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
 
         String date = LocalDateUtil.getString(LocalDateTime.now());
         ReportType reportType = ReportType.PRESERVATION;
@@ -255,7 +255,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
 
         String date = LocalDateUtil.getString(LocalDateTime.now());
         ReportType reportType = ReportType.ELIMINATION_ACTION;
@@ -287,7 +287,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         Integer tenant = TENANT_0;
         String evId = PROCESS_ID;
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", JsonHandler.createObjectNode(), evDetData);
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, "", "", "", "", JsonHandler.createObjectNode(), evDetData);
 
         String date = LocalDateUtil.getString(LocalDateTime.now());
         ReportType reportType = ReportType.AUDIT;

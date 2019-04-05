@@ -62,6 +62,7 @@ import fr.gouv.vitam.batch.report.model.EliminationActionUnitModel;
 import fr.gouv.vitam.batch.report.model.MergeSortedIterator;
 import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
 import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
@@ -187,10 +188,13 @@ public class BatchReportServiceImpl {
 
     private AuditObjectGroupModel checkValuesAndGetAuditObjectGroupModel(String processId, int tenantId,
             AuditObjectGroupReportEntry auditEntry) {
-        checkIfPresent("ObjectGroupId", auditEntry.getObjectGroupId());
+        checkIfPresent("DetailId", auditEntry.getDetailId());
+        checkIfPresent("Outcome", auditEntry.getOutcome());
+        checkIfPresent("DetailType", auditEntry.getDetailType());
         checkIfPresent("Opi", auditEntry.getOpi());
         checkIfPresent("OriginatingAgency", auditEntry.getOriginatingAgency());
         checkIfPresent("ParentUnitIds", auditEntry.getParentUnitIds());
+        checkIfPresent("Status", auditEntry.getStatus());
 
         return new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditEntry, tenantId);
@@ -232,6 +236,19 @@ public class BatchReportServiceImpl {
         return extendedInfo;
     }
 
+    private ReportResults getVitamResults(Report reportInfo) throws InvalidParseOperationException {
+        ReportResults vitamResults = new ReportResults();
+
+        switch(reportInfo.getReportSummary().getReportType()) {
+            case AUDIT:
+                vitamResults = auditReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant());
+                break;
+            default:
+                // Nothing to do, keep empty vitamResults
+        }
+        return vitamResults;
+    }
+
     public void storeReport(Report reportInfo)
         throws IllegalArgumentException, IOException, BackupServiceException, InvalidParseOperationException {
 
@@ -240,6 +257,8 @@ public class BatchReportServiceImpl {
 
         JsonNode extendedInfo = getExtendedInfo(reportInfo);
         reportInfo.getReportSummary().setExtendedInfo(extendedInfo);
+        ReportResults vitamResults = getVitamResults(reportInfo);
+        reportInfo.getReportSummary().setVitamResults(vitamResults);
 
         File tempReport = File.createTempFile(REPORT_JSONL, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
 

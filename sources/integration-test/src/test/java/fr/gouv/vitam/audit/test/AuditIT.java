@@ -260,6 +260,9 @@ public class AuditIT extends VitamRuleRunner {
                 }
             }
             assertThat(reportLines.size()).isEqualTo(3);
+            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(7);
+            assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
+            assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(7);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(8);
             assertThat(reportLines.get(1).get("extendedInfo").get("opis").isArray()).isTrue();
@@ -338,6 +341,9 @@ public class AuditIT extends VitamRuleRunner {
                 }
             }
             assertThat(reportLines.size()).isEqualTo(3);
+            assertThat(reportLines.get(1).get("vitamResults").get("OK").asInt()).isEqualTo(4);
+            assertThat(reportLines.get(1).get("vitamResults").get("WARNING").asInt()).isEqualTo(0);
+            assertThat(reportLines.get(1).get("vitamResults").get("KO").asInt()).isEqualTo(0);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjectGroups").asInt()).isEqualTo(4);
             assertThat(reportLines.get(1).get("extendedInfo").get("nbObjects").asInt()).isEqualTo(4);
             assertThat(reportLines.get(1).get("extendedInfo").get("globalResults").get("objectGroupsCount").get("OK").asInt()).isEqualTo(4);
