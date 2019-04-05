@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
-import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -63,7 +62,6 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.bson.conversions.Bson;
-import org.slf4j.MDC;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -153,6 +151,8 @@ public class WriteTask implements Future<ReadWriteResult> {
             LOGGER.error(e);
             readWriteResult.setCode(e.getReadWriteErrorCode());
             switch (e.getReadWriteErrorCode()) {
+                case KO_LABEL_DISCORDING:
+                case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
                 case KO_UNKNOWN_CURRENT_POSITION:
                     // TODO: 28/03/19 perhaps just rewind and retry
                     // TODO: rewind, goto position file count, retry write file
@@ -218,8 +218,6 @@ public class WriteTask implements Future<ReadWriteResult> {
                     // drive is open (drive empty) ? timeout ? drive is busy?
                 case KO_ON_READ_LABEL:
                 case KO_DB_PERSIST:
-                case KO_LABEL_DISCORDING:
-                case KO_LABEL_DISCORDING_NOT_EMPTY_TAPE:
                 case KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT:
                 case KO_ON_STATUS:
                 case KO_ON_LOAD_THEN_STATUS:
@@ -578,6 +576,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             workerCurrentTape.setFileCount(1);
             workerCurrentTape.setCurrentPosition(1);
+            workerCurrentTape.setBucket(writeOrder.getBucket());
             workerCurrentTape.setLabel(objLabel);
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + fileSize);
             workerCurrentTape.setTapeState(TapeState.OPEN);

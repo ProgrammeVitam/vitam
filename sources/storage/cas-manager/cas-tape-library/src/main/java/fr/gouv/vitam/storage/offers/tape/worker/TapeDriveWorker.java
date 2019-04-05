@@ -110,7 +110,8 @@ public class TapeDriveWorker implements Runnable {
         TarReferentialRepository tarReferentialRepository,
         TapeCatalog currentTape,
         String inputTarPath) {
-       this(tapeRobotPool,tapeDriveService, tapeCatalogService, receiver ,tarReferentialRepository, currentTape, inputTarPath, SLEEP_TIME);
+        this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, tarReferentialRepository, currentTape,
+            inputTarPath, SLEEP_TIME);
     }
 
     @Override
@@ -169,6 +170,7 @@ public class TapeDriveWorker implements Runnable {
                             tapeCatalogService, tarReferentialRepository, inputTarPath);
                     readWriteResult = readWriteTask.get();
 
+                    currentTape = readWriteResult.getCurrentTape();
 
                     QueueState orderState = readWriteResult.getOrderState();
                     final String orderId = readWriteOrder.getId();
@@ -215,6 +217,7 @@ public class TapeDriveWorker implements Runnable {
                     interceptPauseRequest();
 
                 } else {
+                    LOGGER.warn("No read/write to tape order found. waiting (" + SLEEP_TIME + ") Sec ...");
                     Thread.sleep(SLEEP_TIME);
                 }
 

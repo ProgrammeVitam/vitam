@@ -27,8 +27,13 @@
 package fr.gouv.vitam.storage.offers.tape.retry;
 
 import com.google.common.collect.Lists;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 public class Retry<T> {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Retry.class);
+
+
     public interface Delegate<T> {
         T call() throws Exception;
     }
@@ -49,6 +54,7 @@ public class Retry<T> {
             try {
                 return caller.call();
             } catch (Exception e) {
+                LOGGER.error(e);
                 if (retryExceptionType.length == 0 || Lists.newArrayList(retryExceptionType).contains(e.getClass())) {
 
                     if (--remainingAttempts == 0) {

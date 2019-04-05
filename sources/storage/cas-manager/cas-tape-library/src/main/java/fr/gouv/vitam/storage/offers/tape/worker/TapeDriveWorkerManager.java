@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker;
 
+import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -65,7 +66,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     private final QueueRepository readWriteQueue;
     private final List<TapeDriveWorker> workers;
 
-    private final Map<Integer, OptimisticDriveResourceStatus> optimisticDriveResourceStatusMap = new ConcurrentHashMap<>();
+    private final Map<Integer, OptimisticDriveResourceStatus> optimisticDriveResourceStatusMap =
+        new ConcurrentHashMap<>();
 
     public TapeDriveWorkerManager(
         QueueRepository readWriteQueue,
@@ -130,7 +132,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     public synchronized Optional<? extends ReadWriteOrder> produce(TapeDriveWorker driveWorker) throws QueueException {
 
         OptimisticDriveResourceStatus optimisticDriveResourceStatus =
-            optimisticDriveResourceStatusMap.computeIfAbsent(driveWorker.getIndex(), i -> new OptimisticDriveResourceStatus());
+            optimisticDriveResourceStatusMap
+                .computeIfAbsent(driveWorker.getIndex(), i -> new OptimisticDriveResourceStatus());
 
         optimisticDriveResourceStatus.lastBucket =
             driveWorker.getCurrentTape() != null ? driveWorker.getCurrentTape().getBucket() : null;
@@ -222,10 +225,11 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     }
 
     private Optional<? extends ReadWriteOrder> selectWriteOrderByBucket(String bucket) throws QueueException {
-        return readWriteQueue.receive(
-            eq(WriteOrder.BUCKET, bucket),
-            QueueMessageType.WriteOrder
-        );
+        if (Strings.isNullOrEmpty(bucket)) {
+            return readWriteQueue.receive(QueueMessageType.WriteOrder);
+        } else {
+            return readWriteQueue.receive(eq(WriteOrder.BUCKET, bucket), QueueMessageType.WriteOrder);
+        }
     }
 
     private Optional<? extends ReadWriteOrder> selectReadOrderByTapeCode(String tapeCode) throws QueueException {
