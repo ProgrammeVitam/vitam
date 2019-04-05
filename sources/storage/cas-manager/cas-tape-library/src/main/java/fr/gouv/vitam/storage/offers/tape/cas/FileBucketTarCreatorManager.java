@@ -26,16 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.fileBuckedInputFilePath;
 
 public class FileBucketTarCreatorManager {
 
     private final BucketTopologyHelper bucketTopologyHelper;
     private final Map<String, FileBucketTarCreator> fileBucketTarCreatorMap;
+    private final FileBucketTarCreatorBootstrapRecovery fileBucketTarCreatorBootstrapRecovery;
+    private final String inputTarStorageFolder;
 
     public FileBucketTarCreatorManager(
         TapeLibraryConfiguration tapeLibraryConfiguration,
@@ -50,22 +58,44 @@ public class FileBucketTarCreatorManager {
             bucketTopologyHelper.listFileBuckets().stream()
                 .collect(Collectors.toMap(fileBucket -> fileBucket,
                     fileBucket -> new FileBucketTarCreator(
-                        tapeLibraryConfiguration,
                         basicFileStorage,
                         objectReferentialRepository,
                         tarReferentialRepository,
                         writeOrderCreator,
-                        bucketTopologyHelper.listContainerNames(fileBucket),
                         bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
                         fileBucket,
                         this.bucketTopologyHelper.getTarBufferingTimeoutInMinutes(
-                            this.bucketTopologyHelper.getBucketFromFileBucket(fileBucket)),
-                        TimeUnit.MINUTES)));
+                            this.bucketTopologyHelper.getBucketFromFileBucket(fileBucket)), TimeUnit.MINUTES,
+                        tapeLibraryConfiguration.getInputTarStorageFolder(),
+                        tapeLibraryConfiguration.getMaxTarEntrySize(),
+                        tapeLibraryConfiguration.getMaxTarFileSize())));
+        inputTarStorageFolder = tapeLibraryConfiguration.getInputTarStorageFolder();
+        fileBucketTarCreatorBootstrapRecovery =
+            new FileBucketTarCreatorBootstrapRecovery(basicFileStorage, objectReferentialRepository
+            );
     }
 
     public void initializeOnBootstrap() {
-        for (FileBucketTarCreator fileBucketTarCreator : fileBucketTarCreatorMap.values()) {
-            fileBucketTarCreator.initializeOnBootstrap();
+
+        for (Map.Entry<String, FileBucketTarCreator> entry : fileBucketTarCreatorMap.entrySet()) {
+
+            String fileBucketId = entry.getKey();
+            FileBucketTarCreator fileBucketTarCreator = entry.getValue();
+
+            ensureWorkingDirectoryExists(fileBucketId);
+
+            fileBucketTarCreatorBootstrapRecovery.initializeOnBootstrap(
+                fileBucketId, fileBucketTarCreator, this.bucketTopologyHelper);
+        }
+    }
+
+    private void ensureWorkingDirectoryExists(String fileBucketId) {
+        Path fileBucketStoragePath = fileBuckedInputFilePath(this.inputTarStorageFolder, fileBucketId);
+        try {
+            Files.createDirectories(fileBucketStoragePath);
+        } catch (IOException e) {
+            throw new VitamRuntimeException(
+                "Could not initialize file bucket tar creator service " + fileBucketStoragePath, e);
         }
     }
 

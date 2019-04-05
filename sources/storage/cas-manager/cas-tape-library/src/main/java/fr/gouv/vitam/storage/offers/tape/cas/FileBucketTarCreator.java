@@ -27,19 +27,13 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeLibraryInputFileObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
-import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
@@ -56,33 +50,26 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
-import static java.util.stream.Collectors.toMap;
+import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.fileBuckedInputFilePath;
 
 public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileBucketTarCreator.class);
 
-    private final TapeLibraryConfiguration tapeLibraryConfiguration;
     private final BasicFileStorage basicFileStorage;
     private final ObjectReferentialRepository objectReferentialRepository;
     private final TarReferentialRepository tarReferentialRepository;
     private final WriteOrderCreator writeOrderCreator;
-    private final Set<String> containerNames;
     private final String bucketId;
     private final String fileBucketId;
     private final Path fileBucketStoragePath;
@@ -94,28 +81,31 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     private Path currentTempTarFilePath = null;
     private Path currentTarFilePath = null;
     private ScheduledFuture<?> tarBufferingTimoutChecker;
+    private final long maxTarEntrySize;
+    private final long maxTarFileSize;
 
-    public FileBucketTarCreator(TapeLibraryConfiguration tapeLibraryConfiguration,
+    public FileBucketTarCreator(
         BasicFileStorage basicFileStorage,
         ObjectReferentialRepository objectReferentialRepository,
         TarReferentialRepository tarReferentialRepository,
-        WriteOrderCreator writeOrderCreator, Set<String> containerNames, String bucketId,
-        String fileBucketId, int tarBufferingTimeout, TimeUnit tarBufferingTimeUnit) {
+        WriteOrderCreator writeOrderCreator,
+        String bucketId, String fileBucketId, int tarBufferingTimeout, TimeUnit tarBufferingTimeUnit,
+        String inputTarStorageFolder, long maxTarEntrySize, long maxTarFileSize) {
         super("FileBucketTarCreator-" + fileBucketId);
 
-        this.tapeLibraryConfiguration = tapeLibraryConfiguration;
+        this.maxTarEntrySize = maxTarEntrySize;
+
         this.basicFileStorage = basicFileStorage;
         this.objectReferentialRepository = objectReferentialRepository;
         this.tarReferentialRepository = tarReferentialRepository;
         this.writeOrderCreator = writeOrderCreator;
-        this.containerNames = containerNames;
 
         this.bucketId = bucketId;
         this.fileBucketId = fileBucketId;
         this.tarBufferingTimeout = tarBufferingTimeout;
         this.tarBufferingTimeUnit = tarBufferingTimeUnit;
-        this.fileBucketStoragePath = Paths.get(tapeLibraryConfiguration.getInputTarStorageFolder())
-            .resolve(fileBucketId);
+        this.maxTarFileSize = maxTarFileSize;
+        this.fileBucketStoragePath = fileBuckedInputFilePath(inputTarStorageFolder, fileBucketId);
         this.scheduledExecutorService = Executors.newScheduledThreadPool(1);
     }
 
@@ -162,7 +152,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
             int entryIndex = 0;
             do {
 
-                long entrySize = Math.min(remainingSize, this.tapeLibraryConfiguration.getMaxTarEntrySize());
+                long entrySize = Math.min(remainingSize, maxTarEntrySize);
 
                 if (!currentTarAppender.canAppend(entrySize)) {
 
@@ -243,7 +233,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         }
 
         this.currentTarAppender = new TarAppender(
-            currentTempTarFilePath, tarFileId, tapeLibraryConfiguration.getMaxTarFileSize());
+            currentTempTarFilePath, tarFileId, this.maxTarFileSize);
         this.tarBufferingTimoutChecker = this.scheduledExecutorService.schedule(
             () -> checkTarBufferingTimeout(tarFileId), tarBufferingTimeout, tarBufferingTimeUnit);
     }
@@ -286,96 +276,6 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
                     inputFileToProcessMessage.getObjectName() + " (" +
                     inputFileToProcessMessage.getStorageId() + ") to tar files " +
                     JsonHandler.unprettyPrint(tarEntryDescriptions), ex);
-        }
-    }
-
-    @Override
-    public void initializeOnBootstrap() {
-
-        try {
-            // Ensure directory exists
-            Files.createDirectories(fileBucketStoragePath);
-
-            // List existing files
-            for (String containerName : containerNames) {
-                try (Stream<String> storageIdsStream = this.basicFileStorage
-                    .listStorageIdsByContainerName(containerName)) {
-                    BulkIterator<String> bulkIterator = new BulkIterator<>(
-                        storageIdsStream.iterator(), VitamConfiguration.getBatchSize());
-
-                    while (bulkIterator.hasNext()) {
-
-                        List<String> storageIds = bulkIterator.next();
-                        try {
-                            processStorageIds(containerName, storageIds);
-                        } catch (ObjectReferentialException e) {
-                            throw new VitamRuntimeException("Could not initialize service to container " + containerName
-                                + " files " + storageIds, e);
-                        }
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw new VitamRuntimeException(
-                "Could not initialize file bucket tar creator service " + fileBucketStoragePath, e);
-        }
-    }
-
-    private void processStorageIds(String containerName, List<String> storageIds) throws ObjectReferentialException {
-
-        if (storageIds.isEmpty()) {
-            return;
-        }
-
-        // Map storage ids to object names
-        Map<String, String> storageIdToObjectIdMap = storageIds.stream()
-            .collect(toMap(
-                storageId -> storageId,
-                LocalFileUtils::storageIdToObjectName
-            ));
-        HashSet<String> objectNames = new HashSet<>(storageIdToObjectIdMap.values());
-
-        // Find objects in object referential (bulk)
-        List<TapeObjectReferentialEntity> objectReferentialEntities =
-            this.objectReferentialRepository.bulkFind(containerName,
-                objectNames);
-
-        Map<String, TapeObjectReferentialEntity> objectReferentialEntityByObjectIdMap =
-            objectReferentialEntities.stream()
-                .collect(toMap(entity -> entity.getId().getObjectName(), entity -> entity));
-
-        // Process storage ids
-        for (String storageId : storageIds) {
-            String objectName = storageIdToObjectIdMap.get(storageId);
-
-            if (!objectReferentialEntityByObjectIdMap.containsKey(objectName)) {
-                // Not found in DB -> Log & delete file
-                LOGGER.warn("Incomplete file " + storageId + ". Will be deleted");
-                this.basicFileStorage.deleteFile(containerName, storageId);
-            } else {
-
-                TapeObjectReferentialEntity objectReferentialEntity =
-                    objectReferentialEntityByObjectIdMap.get(objectName);
-
-                if (!storageId.equals(objectReferentialEntity.getStorageId())) {
-                    // Not found in DB -> Log & delete file
-                    LOGGER.warn("Incomplete or obsolete file " + storageId + ". Will be deleted");
-                    this.basicFileStorage.deleteFile(containerName, storageId);
-                } else if (objectReferentialEntity.getLocation()
-                    instanceof TapeLibraryInputFileObjectStorageLocation) {
-                    // Found & in file  =>  Add to queue
-                    LOGGER.warn("Input file to be scheduled for archival "
-                        + containerName + "/" + storageId);
-                    this.addToQueue(new InputFileToProcessMessage(containerName, objectName, storageId,
-                        objectReferentialEntity.getSize(), objectReferentialEntity.getDigest(),
-                        objectReferentialEntity.getDigestType()));
-                } else {
-                    // Input file already archived to TAR => Delete it
-                    LOGGER.debug("Input file already archived "
-                        + containerName + "/" + storageId);
-                    this.basicFileStorage.deleteFile(containerName, storageId);
-                }
-            }
         }
     }
 

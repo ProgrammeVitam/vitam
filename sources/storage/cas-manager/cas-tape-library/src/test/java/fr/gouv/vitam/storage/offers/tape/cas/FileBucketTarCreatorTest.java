@@ -1,13 +1,8 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryBucketConfiguration;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryTopologyConfiguration;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
@@ -40,17 +35,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.storage.offers.tape.cas.TarTestHelper.checkEntryAtPos;
 import static fr.gouv.vitam.storage.offers.tape.cas.TarTestHelper.readEntryAtPos;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -121,10 +113,8 @@ public class FileBucketTarCreatorTest {
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        TapeLibraryConfiguration tapeLibraryConfiguration =
-            createConfiguration(500_000L, 1_000_000L, tarBufferingTimeoutInSeconds);
-        runProcessMessageTest(tapeLibraryConfiguration, objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds);
+        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
     }
 
     @Test
@@ -140,14 +130,13 @@ public class FileBucketTarCreatorTest {
             new ObjectToWrite("file1", "0_unit", new NullInputStream(10), 10,
                 singletonList(new SegmentInfo(10L, 0)), 0)
         );
+
         int expectedSealedTarCount = 0;
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        TapeLibraryConfiguration tapeLibraryConfiguration =
-            createConfiguration(500_000L, 1_000_000L, tarBufferingTimeoutInSeconds);
-        runProcessMessageTest(tapeLibraryConfiguration, objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds);
+        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
     }
 
     @Test
@@ -169,10 +158,8 @@ public class FileBucketTarCreatorTest {
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        TapeLibraryConfiguration tapeLibraryConfiguration =
-            createConfiguration(100_000L, 1_000_000L, tarBufferingTimeoutInSeconds);
-        runProcessMessageTest(tapeLibraryConfiguration, objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds);
+        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds, 100_000L, 1_000_000L);
     }
 
     @Test
@@ -194,10 +181,8 @@ public class FileBucketTarCreatorTest {
         int expectedTmpTarCount = 1;
         int tarBufferingTimeoutInSeconds = 1000;
 
-        TapeLibraryConfiguration tapeLibraryConfiguration =
-            createConfiguration(100_000L, 200_000L, tarBufferingTimeoutInSeconds);
-        runProcessMessageTest(tapeLibraryConfiguration, objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds);
+        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds, 100_000L, 200_000L);
 
     }
 
@@ -214,27 +199,51 @@ public class FileBucketTarCreatorTest {
         int expectedTmpTarCount = 0;
         int tarBufferingTimeoutInSeconds = 5;
 
-        TapeLibraryConfiguration tapeLibraryConfiguration =
-            createConfiguration(500_000L, 1_000_000L, tarBufferingTimeoutInSeconds);
-        runProcessMessageTest(tapeLibraryConfiguration, objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
-            tarBufferingTimeoutInSeconds);
+        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
+    }
+
+    @Test
+    public void initializeOnBootstrapThenProcessMessages() throws Exception {
+
+        List<ObjectToWrite> objectsToWrite = asList(
+            new ObjectToWrite("file1", "0_unit", new ByteArrayInputStream("test data 1".getBytes()), 11,
+                singletonList(new SegmentInfo(11L, 0)), 0),
+            new ObjectToWrite("file2", "0_unit", new NullInputStream(250_000), 250_000,
+                singletonList(new SegmentInfo(250_000L, 0)), 0),
+            new ObjectToWrite("file3", "0_objectGroup", new ByteArrayInputStream("test data 3".getBytes()), 11,
+                singletonList(new SegmentInfo(11L, 0)), 0),
+            new ObjectToWrite("file4", "0_unit", new NullInputStream(0), 0,
+                singletonList(new SegmentInfo(0L, 0)), 0),
+            new ObjectToWrite("file5", "0_objectGroup", new ByteArrayInputStream("test data 5".getBytes()), 11,
+                singletonList(new SegmentInfo(11L, 0)), 0)
+        );
+        int expectedSealedTarCount = 0;
+        int expectedTmpTarCount = 1;
+        int tarBufferingTimeoutInSeconds = 1000;
+
+        runProcessMessageTest(objectsToWrite, expectedSealedTarCount, expectedTmpTarCount,
+            tarBufferingTimeoutInSeconds, 500_000L, 1_000_000L);
     }
 
 
-    private void runProcessMessageTest(TapeLibraryConfiguration tapeLibraryConfiguration,
-        List<ObjectToWrite> objectsToWrite, int expectedSealedTarCount, int expectedTmpTarCount,
-        int tarBufferingTimeoutInSeconds)
+    private void runProcessMessageTest(List<ObjectToWrite> objectsToWrite, int expectedSealedTarCount,
+        int expectedTmpTarCount,
+        int tarBufferingTimeoutInSeconds, long maxTarEntrySize, long maxTarFileSize)
         throws IOException, QueueProcessingException, InterruptedException, TarReferentialException,
         ObjectReferentialException {
-        Set<String> containerNames = ImmutableSet.of("0_unit", "0_objectGroup");
         String bucketId = "test";
         String fileBucketId = "test-metadata";
 
+        Path fileBucketStoragePath =
+            LocalFileUtils.fileBuckedInputFilePath(inputTarStoragePath.toString(), fileBucketId);
+        Files.createDirectories(fileBucketStoragePath);
+
         FileBucketTarCreator fileBucketTarCreator = new FileBucketTarCreator(
-            tapeLibraryConfiguration, basicFileStorage, objectReferentialRepository, tarReferentialRepository,
-            writeOrderCreator, containerNames, bucketId, fileBucketId, tarBufferingTimeoutInSeconds,
-            TimeUnit.SECONDS);
-        fileBucketTarCreator.initializeOnBootstrap();
+            basicFileStorage, objectReferentialRepository, tarReferentialRepository,
+            writeOrderCreator, bucketId, fileBucketId, tarBufferingTimeoutInSeconds,
+            TimeUnit.SECONDS, inputTarStoragePath.toString(),
+            maxTarEntrySize, maxTarFileSize);
 
         CountDownLatch countDownLatch = new CountDownLatch(objectsToWrite.size());
         doAnswer((args) -> {
@@ -320,13 +329,16 @@ public class FileBucketTarCreatorTest {
             assertThat(objectStorageLocation.getTarEntries()).hasSize(objectsToWrite.get(i).expectedSegments.size());
 
             List<TarEntryDescription> objectTarEntries = new ArrayList<>();
-            for (int j = 0; j < objectToWrite.expectedSegments.size(); j++) {
+            for (int entryIndex = 0; entryIndex < objectToWrite.expectedSegments.size(); entryIndex++) {
 
-                TarEntryDescription tarEntry = objectStorageLocation.getTarEntries().get(j);
-                verifyTarEntryDescription(tarEntry, objectToWrite.containerName,
-                    storageIds.get(i),
-                    tarReferentialEntities.get(objectToWrite.expectedSegments.get(j).tarIndex).getTarId(),
-                    objectToWrite.expectedSegments.get(j).size, j);
+                TarEntryDescription tarEntry = objectStorageLocation.getTarEntries().get(entryIndex);
+
+                assertThat(tarEntry.getSize()).isEqualTo(objectToWrite.expectedSegments.get(entryIndex).size);
+                assertThat(tarEntry.getTarFileId()).isEqualTo(
+                    tarReferentialEntities.get(objectToWrite.expectedSegments.get(entryIndex).tarIndex).getTarId());
+                assertThat(tarEntry.getEntryName())
+                    .isEqualTo(objectToWrite.containerName + "/" + storageIds.get(i) + "-" + entryIndex);
+
                 objectTarEntries.add(tarEntry);
             }
             tarEntries.add(objectTarEntries);
@@ -379,42 +391,13 @@ public class FileBucketTarCreatorTest {
         verifyNoMoreInteractions(writeOrderCreator);
     }
 
-    private TapeLibraryConfiguration createConfiguration(long maxTarEntrySize, long maxTarFileSize,
-        int tarBufferingTimeoutInSeconds) {
-        return new TapeLibraryConfiguration()
-            .setInputFileStorageFolder(inputFilesStoragePath.toString())
-            .setInputTarStorageFolder(inputTarStoragePath.toString())
-            .setMaxTarEntrySize(maxTarEntrySize)
-            .setMaxTarFileSize(maxTarFileSize)
-            .setTopology(new TapeLibraryTopologyConfiguration()
-                .setFileBuckets(ImmutableMap.of(
-                    "metadata", asList("units", "objectGroup"),
-                    "objects", singletonList("object"),
-                    "default", emptyList()
-                ))
-                .setBuckets(ImmutableMap.of(
-                    "test", new TapeLibraryBucketConfiguration(singletonList(0), 60 * tarBufferingTimeoutInSeconds),
-                    "admin", new TapeLibraryBucketConfiguration(singletonList(1), 60 * tarBufferingTimeoutInSeconds),
-                    "prod", new TapeLibraryBucketConfiguration(asList(2, 3), 60 * tarBufferingTimeoutInSeconds)
-                    )
-                )
-            );
-    }
-
-    private void verifyTarEntryDescription(TarEntryDescription tarEntryDescription, String containerName,
-        String storageId, String tarId, long size, int entryIndex) {
-        assertThat(tarEntryDescription.getSize()).isEqualTo(size);
-        assertThat(tarEntryDescription.getTarFileId()).isEqualTo(tarId);
-        assertThat(tarEntryDescription.getEntryName()).isEqualTo(containerName + "/" + storageId + "-" + entryIndex);
-    }
-
     private static class ObjectToWrite {
-        String objectName;
-        String containerName;
-        InputStream inputStream;
-        long size;
-        List<SegmentInfo> expectedSegments;
-        int sleepDelayInSeconds;
+        final String objectName;
+        final String containerName;
+        final InputStream inputStream;
+        final long size;
+        final List<SegmentInfo> expectedSegments;
+        final int sleepDelayInSeconds;
 
         ObjectToWrite(String objectName, String containerName, InputStream inputStream, long size,
             List<SegmentInfo> expectedSegmentSizes, int sleepDelayInSeconds) {
@@ -427,7 +410,6 @@ public class FileBucketTarCreatorTest {
         }
     }
 
-
     private static class SegmentInfo {
         long size;
         int tarIndex;
@@ -436,10 +418,5 @@ public class FileBucketTarCreatorTest {
             this.size = size;
             this.tarIndex = tarIndex;
         }
-    }
-
-    @Test
-    public void initializeOnBootstrap() {
-        fail("Not implemented");
     }
 }

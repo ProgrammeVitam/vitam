@@ -29,6 +29,8 @@ package fr.gouv.vitam.storage.offers.tape.utils;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -126,5 +128,9 @@ public final class LocalFileUtils {
             throw new IllegalArgumentException("Invalid tar file name " + tarFileName);
         }
         return tarFileName;
+    }
+
+    public static Path fileBuckedInputFilePath(String inputTarStorageFolder, String fileBucketId) {
+        return Paths.get(inputTarStorageFolder).resolve(fileBucketId);
     }
 }

@@ -123,7 +123,5 @@ public abstract class QueueProcessor<T> {
         } while (true);
     }
 
-    public abstract void initializeOnBootstrap();
-
     protected abstract void processMessage(T message) throws QueueProcessingException, InterruptedException;
 }

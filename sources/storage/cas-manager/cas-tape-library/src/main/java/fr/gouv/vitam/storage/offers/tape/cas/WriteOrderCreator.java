@@ -97,7 +97,6 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         private String repairFileName;
     }
 
-    @Override
     public void initializeOnBootstrap() {
 
         try {

@@ -70,7 +70,7 @@ public class BasicFileStorage {
             deleteFile(containerName, storageId);
             throw ex;
         } finally {
-            StreamUtils.closeSilently(inputStream);
+            IOUtils.closeQuietly(inputStream);
         }
     }
 
