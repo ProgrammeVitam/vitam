@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ICU_VERSION="6.6.2"
+ICU_VERSION="6.7.0"
 WORKING_FOLDER=$(dirname $0)
 
 if [ ! -d ${WORKING_FOLDER}/target ]; then
