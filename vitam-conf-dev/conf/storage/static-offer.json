@@ -2,7 +2,7 @@
 {
 	"id" : "offer-fs-1.service.consul",
         "baseUrl" : "http://offer-fs-1.service.consul:9900",
-	"asyncRead": true,
+	"asyncRead": false,
         "parameters" : {}
 }
 ]
