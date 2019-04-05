@@ -114,7 +114,8 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
         return tarId;
     }
 
-    public void setTarId(String tarId) {
+    public WriteOrder setTarId(String tarId) {
         this.tarId = tarId;
+        return this;
     }
 }

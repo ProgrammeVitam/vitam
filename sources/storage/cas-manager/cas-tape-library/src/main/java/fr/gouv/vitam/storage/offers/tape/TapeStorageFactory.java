@@ -38,6 +38,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
+import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreatorBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import org.apache.logging.log4j.util.Strings;
 
@@ -70,9 +71,14 @@ public class TapeStorageFactory {
         // Change all running orders to ready state
         readWriteQueue.initializeOnBootstrap();
 
-        WriteOrderCreator writeOrderCreator = new WriteOrderCreator(configuration, objectReferentialRepository,
-            tarReferentialRepository, bucketTopologyHelper, readWriteQueue);
-        writeOrderCreator.initializeOnBootstrap();
+        WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
+            tarReferentialRepository, readWriteQueue);
+
+        WriteOrderCreatorBootstrapRecovery
+            writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(configuration, objectReferentialRepository,
+            tarReferentialRepository, bucketTopologyHelper, writeOrderCreator);
+
+        writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
 
         BasicFileStorage basicFileStorage =
             new BasicFileStorage(configuration.getInputFileStorageFolder());

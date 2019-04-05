@@ -61,7 +61,7 @@ import static com.mongodb.client.model.Filters.nin;
 
 public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDriveOrderProducer {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorkerManager.class);
-    public static final String TAPE_DRIVE_WORKER = "TapeDriveWorker_";
+    private static final String TAPE_DRIVE_WORKER = "TapeDriveWorker_";
     private final QueueRepository readWriteQueue;
     private final List<TapeDriveWorker> workers;
 
