@@ -86,7 +86,8 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     private final String bucketId;
     private final String fileBucketId;
     private final Path fileBucketStoragePath;
-    private final int tarBufferingTimeoutInMinutes;
+    private final int tarBufferingTimeout;
+    private final TimeUnit tarBufferingTimeUnit;
     private final ScheduledExecutorService scheduledExecutorService;
 
     private TarAppender currentTarAppender = null;
@@ -99,7 +100,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         ObjectReferentialRepository objectReferentialRepository,
         TarReferentialRepository tarReferentialRepository,
         WriteOrderCreator writeOrderCreator, Set<String> containerNames, String bucketId,
-        String fileBucketId, int tarBufferingTimeoutInMinutes) {
+        String fileBucketId, int tarBufferingTimeout, TimeUnit tarBufferingTimeUnit) {
         super("FileBucketTarCreator-" + fileBucketId);
 
         this.tapeLibraryConfiguration = tapeLibraryConfiguration;
@@ -111,11 +112,11 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
         this.bucketId = bucketId;
         this.fileBucketId = fileBucketId;
-        this.tarBufferingTimeoutInMinutes = tarBufferingTimeoutInMinutes;
+        this.tarBufferingTimeout = tarBufferingTimeout;
+        this.tarBufferingTimeUnit = tarBufferingTimeUnit;
         this.fileBucketStoragePath = Paths.get(tapeLibraryConfiguration.getInputTarStorageFolder())
             .resolve(fileBucketId);
         this.scheduledExecutorService = Executors.newScheduledThreadPool(1);
-
     }
 
     @Override
@@ -164,6 +165,8 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
                 long entrySize = Math.min(remainingSize, this.tapeLibraryConfiguration.getMaxTarEntrySize());
 
                 if (!currentTarAppender.canAppend(entrySize)) {
+
+                    LOGGER.info("Finalizing full tar file {}", this.currentTempTarFilePath);
                     finalizeTarFile();
                     createTarFile();
                 }
@@ -225,6 +228,11 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         LocalDateTime now = LocalDateUtil.now();
         String tarFileId = LocalFileUtils.createTarId(now);
 
+        this.currentTarFilePath = fileBucketStoragePath.resolve(tarFileId);
+        this.currentTempTarFilePath = fileBucketStoragePath.resolve(tarFileId + LocalFileUtils.TMP_EXTENSION);
+
+        LOGGER.info("Creating file {}", this.currentTempTarFilePath);
+
         try {
             TapeTarReferentialEntity tarReferentialEntity = new TapeTarReferentialEntity(
                 tarFileId, new TapeLibraryBuildingOnDiskTarStorageLocation(), null, null, now.toString());
@@ -234,12 +242,10 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
                 "Could not create a new tar file", ex);
         }
 
-        this.currentTarFilePath = fileBucketStoragePath.resolve(tarFileId);
-        this.currentTempTarFilePath = fileBucketStoragePath.resolve(tarFileId + LocalFileUtils.TMP_EXTENSION);
         this.currentTarAppender = new TarAppender(
             currentTempTarFilePath, tarFileId, tapeLibraryConfiguration.getMaxTarFileSize());
         this.tarBufferingTimoutChecker = this.scheduledExecutorService.schedule(
-            () -> checkTarBufferingTimeout(tarFileId), tarBufferingTimeoutInMinutes, TimeUnit.MINUTES);
+            () -> checkTarBufferingTimeout(tarFileId), tarBufferingTimeout, tarBufferingTimeUnit);
     }
 
     private void finalizeTarFile() throws IOException {
@@ -317,6 +323,10 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
     private void processStorageIds(String containerName, List<String> storageIds) throws ObjectReferentialException {
 
+        if (storageIds.isEmpty()) {
+            return;
+        }
+
         // Map storage ids to object names
         Map<String, String> storageIdToObjectIdMap = storageIds.stream()
             .collect(toMap(
@@ -379,6 +389,10 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         }
 
         try {
+
+            LOGGER.info("Finalizing tar file {} after timeout {} {}",
+                this.currentTempTarFilePath, this.tarBufferingTimeout, this.tarBufferingTimeUnit);
+
             finalizeTarFile();
         } catch (IOException ex) {
             throw new QueueProcessingException(QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,

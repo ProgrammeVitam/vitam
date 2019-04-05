@@ -142,6 +142,7 @@ public class TarAppender implements AutoCloseable {
         } finally {
             IOUtils.closeQuietly(extendedFileOutputStream);
         }
+        this.bytesWritten = tarArchiveOutputStream.getBytesWritten();
     }
 
     public void closeQuitely() {

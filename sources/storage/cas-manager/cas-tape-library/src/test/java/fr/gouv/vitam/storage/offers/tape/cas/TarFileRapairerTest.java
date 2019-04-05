@@ -6,7 +6,6 @@ import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import org.apache.commons.collections4.OrderedMap;
 import org.apache.commons.collections4.map.ListOrderedMap;
-import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarConstants;
@@ -19,19 +18,16 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
-import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
+import static fr.gouv.vitam.storage.offers.tape.cas.TarTestHelper.checkEntryAtPos;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
@@ -97,7 +93,7 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -119,9 +115,9 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
-        entries.put("entry2", "test data 2" .getBytes());
-        entries.put("entry3", "another test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
+        entries.put("entry2", "test data 2".getBytes());
+        entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -143,7 +139,7 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -167,7 +163,7 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -192,7 +188,7 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -217,7 +213,7 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -242,9 +238,9 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
-        entries.put("entry2", "test data 2" .getBytes());
-        entries.put("entry3", "another test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
+        entries.put("entry2", "test data 2".getBytes());
+        entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -268,9 +264,9 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
-        entries.put("entry2", "test data 2" .getBytes());
-        entries.put("entry3", "another test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
+        entries.put("entry2", "test data 2".getBytes());
+        entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -302,9 +298,9 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
-        entries.put("entry2", "test data 2" .getBytes());
-        entries.put("entry3", "another test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
+        entries.put("entry2", "test data 2".getBytes());
+        entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -336,9 +332,9 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         OrderedMap<String, byte[]> entries = new ListOrderedMap<>();
-        entries.put("entry1", "test data" .getBytes());
-        entries.put("entry2", "test data 2" .getBytes());
-        entries.put("entry3", "another test data" .getBytes());
+        entries.put("entry1", "test data".getBytes());
+        entries.put("entry2", "test data 2".getBytes());
+        entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
@@ -383,7 +379,7 @@ public class TarFileRapairerTest {
         verifyTarContent(repairedTarFilePath, entries);
 
         for (String entryName : entryDescriptions.keySet()) {
-            checkEntryAtPos(repairedTarFilePath.toFile(), entryDescriptions.get(entryName), entries.get(entryName));
+            checkEntryAtPos(repairedTarFilePath.toFile(), entryDescriptions.get(entryName));
         }
 
         for (String entryName : entryDescriptions.keySet()) {
@@ -421,26 +417,6 @@ public class TarFileRapairerTest {
             }
 
             assertThat(tarArchiveInputStream.getNextTarEntry()).isNull();
-        }
-    }
-
-    private void checkEntryAtPos(File tarFile, TarEntryDescription entryDescription, byte[] expectedData)
-        throws IOException {
-
-        try (SeekableByteChannel seekableByteChannel = Files
-            .newByteChannel(tarFile.toPath(), StandardOpenOption.READ)) {
-
-            seekableByteChannel.position(entryDescription.getStartPos());
-
-            try (InputStream inputStream = Channels.newInputStream(seekableByteChannel);
-                TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-
-                ArchiveEntry tarEntry = tarArchiveInputStream.getNextEntry();
-                assertThat(tarEntry.getName()).isEqualTo(entryDescription.getEntryName());
-                assertThat(tarEntry.getSize()).isEqualTo(expectedData.length);
-
-                assertThat(tarArchiveInputStream).hasSameContentAs(new ByteArrayInputStream(expectedData));
-            }
         }
     }
 

@@ -1,8 +1,8 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.Rule;
 import org.junit.Test;
@@ -11,13 +11,9 @@ import org.junit.rules.TemporaryFolder;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.SeekableByteChannel;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
+import static fr.gouv.vitam.storage.offers.tape.cas.TarTestHelper.checkEntryAtPos;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TarAppenderTest {
@@ -45,11 +41,18 @@ public class TarAppenderTest {
         tarAppender.close();
 
         // Then
+        String digest1 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data1).digestHex();
+        String digest2 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data2).digestHex();
+        String digest3 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data3).digestHex();
+        assertThat(entry1.getDigestValue()).isEqualTo(digest1);
+        assertThat(entry2.getDigestValue()).isEqualTo(digest2);
+        assertThat(entry3.getDigestValue()).isEqualTo(digest3);
+
         File tarFile = new File(temporaryFolder.getRoot(), TAR_FILE_ID);
         assertThat(tarFile).exists();
-        checkEntryAtPos(tarFile, entry1, data1);
-        checkEntryAtPos(tarFile, entry2, data2);
-        checkEntryAtPos(tarFile, entry3, data3);
+        checkEntryAtPos(tarFile, entry1);
+        checkEntryAtPos(tarFile, entry2);
+        checkEntryAtPos(tarFile, entry3);
         assertThat(tarAppender.getEntryCount()).isEqualTo(3);
     }
 
@@ -68,25 +71,5 @@ public class TarAppenderTest {
         tarAppender.append("entry2", new NullInputStream(390_000L), 390_000L);
 
         assertThat(tarAppender.canAppend(10_000L)).isFalse();
-    }
-
-    private void checkEntryAtPos(File tarFile, TarEntryDescription entryDescription, byte[] expectedData)
-        throws IOException {
-
-        try (SeekableByteChannel seekableByteChannel = Files
-            .newByteChannel(tarFile.toPath(), StandardOpenOption.READ)) {
-
-            seekableByteChannel.position(entryDescription.getStartPos());
-
-            try (InputStream inputStream = Channels.newInputStream(seekableByteChannel);
-                TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
-
-                ArchiveEntry tarEntry = tarArchiveInputStream.getNextEntry();
-                assertThat(tarEntry.getName()).isEqualTo(entryDescription.getEntryName());
-                assertThat(tarEntry.getSize()).isEqualTo(expectedData.length);
-
-                assertThat(tarArchiveInputStream).hasSameContentAs(new ByteArrayInputStream(expectedData));
-            }
-        }
     }
 }

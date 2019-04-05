@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class FileBucketTarCreatorManager {
@@ -58,7 +59,8 @@ public class FileBucketTarCreatorManager {
                         bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
                         fileBucket,
                         this.bucketTopologyHelper.getTarBufferingTimeoutInMinutes(
-                            this.bucketTopologyHelper.getBucketFromFileBucket(fileBucket)))));
+                            this.bucketTopologyHelper.getBucketFromFileBucket(fileBucket)),
+                        TimeUnit.MINUTES)));
     }
 
     public void initializeOnBootstrap() {
