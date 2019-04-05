@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>access-internal</artifactId>
-		<version>1.4.15-SNAPSHOT</version>
+		<version>1.4.16-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>access-internal-rest</artifactId>
