@@ -541,6 +541,7 @@ public class WriteTask implements Future<ReadWriteResult> {
      * @throws ReadWriteException if not success ReadWriteException will be thrown
      */
     private void tryWriteLabelToTape() throws ReadWriteException {
+        workerCurrentTape.setBucket(writeOrder.getBucket());
 
         TapeCatalogLabel objLabel = new TapeCatalogLabel();
         objLabel.setId(workerCurrentTape.getId());
@@ -576,7 +577,6 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             workerCurrentTape.setFileCount(1);
             workerCurrentTape.setCurrentPosition(1);
-            workerCurrentTape.setBucket(writeOrder.getBucket());
             workerCurrentTape.setLabel(objLabel);
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + fileSize);
             workerCurrentTape.setTapeState(TapeState.OPEN);

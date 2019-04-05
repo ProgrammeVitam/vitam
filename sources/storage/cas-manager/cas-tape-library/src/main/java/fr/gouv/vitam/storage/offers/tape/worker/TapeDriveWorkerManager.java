@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker;
 
-import com.google.common.base.Strings;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -218,6 +217,10 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
 
         if (!order.isPresent()) {
+            order = selectWriteOrder();
+        }
+
+        if (!order.isPresent()) {
             order = selectWriteOrderExcludingActiveBuckets();
         }
 
@@ -225,11 +228,11 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     }
 
     private Optional<? extends ReadWriteOrder> selectWriteOrderByBucket(String bucket) throws QueueException {
-        if (Strings.isNullOrEmpty(bucket)) {
-            return readWriteQueue.receive(QueueMessageType.WriteOrder);
-        } else {
-            return readWriteQueue.receive(eq(WriteOrder.BUCKET, bucket), QueueMessageType.WriteOrder);
-        }
+        return readWriteQueue.receive(eq(WriteOrder.BUCKET, bucket), QueueMessageType.WriteOrder);
+    }
+
+    private Optional<? extends ReadWriteOrder> selectWriteOrder() throws QueueException {
+        return readWriteQueue.receive(QueueMessageType.WriteOrder);
     }
 
     private Optional<? extends ReadWriteOrder> selectReadOrderByTapeCode(String tapeCode) throws QueueException {
@@ -242,11 +245,11 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     private Optional<? extends ReadWriteOrder> selectWriteOrderExcludingActiveBuckets() throws QueueException {
 
         // TODO: 28/03/19 parallelism (parallel drive by bucket)
-
         Set<String> activeBuckets =
             Stream.concat(
                 this.optimisticDriveResourceStatusMap.values().stream()
                     .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
+
                 this.optimisticDriveResourceStatusMap.values().stream()
                     .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
             )

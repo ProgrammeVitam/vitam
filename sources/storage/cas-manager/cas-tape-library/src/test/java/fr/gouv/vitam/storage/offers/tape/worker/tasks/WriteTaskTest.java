@@ -479,7 +479,7 @@ public class WriteTaskTest {
 
         assertThat(result.getCurrentTape().getFileCount()).isEqualTo(0);
         assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
-        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.EMPTY);
+        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.CONFLICT);
 
         TapeCatalogLabel label = result.getCurrentTape().getLabel();
 
@@ -544,7 +544,7 @@ public class WriteTaskTest {
 
         assertThat(result.getCurrentTape().getFileCount()).isEqualTo(0);
         assertThat(result.getCurrentTape().getType()).isEqualTo(tapeDriveState.getCartridge());
-        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.OPEN);
+        assertThat(result.getCurrentTape().getTapeState()).isEqualTo(TapeState.CONFLICT);
     }
 
     /**
