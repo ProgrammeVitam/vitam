@@ -3,7 +3,7 @@
   <parent>
     <groupId>fr.gouv.vitam</groupId>
     <artifactId>processing</artifactId>
-    <version>1.4.15-SNAPSHOT</version>
+    <version>1.4.15</version>
   </parent>
   <artifactId>processing-engine-client</artifactId>
   <name>Processing Engine Client</name>

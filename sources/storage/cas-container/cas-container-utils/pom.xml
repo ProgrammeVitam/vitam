@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>cas-container</artifactId>
-		<version>1.4.15-SNAPSHOT</version>
+		<version>1.4.15</version>
 	</parent>
 
 	<artifactId>cas-container-utils</artifactId>
