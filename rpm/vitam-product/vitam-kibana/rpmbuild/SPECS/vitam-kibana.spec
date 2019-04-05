@@ -1,4 +1,4 @@
-%define version 6.6.2
+%define version 6.7.0
 
 Name:          vitam-kibana
 Version:       %{version}

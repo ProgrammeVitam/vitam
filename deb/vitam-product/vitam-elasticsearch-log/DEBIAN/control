@@ -1,9 +1,9 @@
 Package: vitam-elasticsearch-log
-Version: 6.6.2
+Version: 6.7.0
 Section: database
 Priority: optional
 Architecture: all
-Depends: bash, vitam-user-vitamdb, elasticsearch ( =6.6.2), openjdk-8-jre, systemd
+Depends: bash, vitam-user-vitamdb, elasticsearch ( =6.7.0), openjdk-8-jre, systemd
 Conflicts: elasticsearch ( <<5)
 Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 Description: Elasticsearch is a distributed RESTful search engine built for the cloud. This package contains the service script and basic configuration for the log cluster for VITAM.
