@@ -66,10 +66,10 @@
                   "type": "text"
                 },
                 "FilteredExtractedObjectGroupData": {
-                  "type": "object"
+                  "type": "text"
                 },
                 "FilteredExtractedUnitData": {
-                  "type": "object"
+                  "type": "text"
                 }
 
               }
