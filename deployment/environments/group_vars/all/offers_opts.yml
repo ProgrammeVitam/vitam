@@ -49,6 +49,23 @@ vitam_offers:
 
     #Time (in seconds) to renew a token before expiration occurs
     swiftSoftRenewTokenDelayBeforeExpireTime: 300
+  # example_offer-s3-1:
+  #   # provider : can only be amazon-s3-v1 for Amazon SDK S3 V1
+  #   provider: 'amazon-s3-v1'
+  #   # s3Endpoint :  : URL of connection to S3
+  #   s3Endpoint: http://172.17.0.2:6007
+  #   # s3RegionName (optional):  Region name (default value us-east-1)
+  #   s3RegionName: us-west-1
+  #   # s3SignerType (optional):  Signing algorithm.
+  #   #     - signature V4 : 'AWSS3V4SignerType' (default value)
+  #   #     - signature V2 : 'S3SignerType'
+  #   s3SignerType: AWSS3V4SignerType
+  #   # s3PathStyleAccessEnabled (optional):  'true' to access bucket in "path-style", else "virtual-hosted-style" (false by default in java client, true by default in ansible scripts)
+  #   s3PathStyleAccessEnabled: true
+  #   # s3MaxConnections (optional): Max total connection (concurrent connections) (50 by default in java client, 1000 by default in ansible scripts)
+  #   s3MaxConnections: 1000
+  #   # s3ConnectionTimeout (optional): Max time (in milliseconds) for waiting to establish connection (10000 by default in java client, 200000 by default in ansible scripts)
+  #   s3ConnectionTimeout: 200000
   # example_swift_v1:
   #    provider: openstack-swift
   #    swiftKeystoneAuthUrl: https://keystone/auth/1.0

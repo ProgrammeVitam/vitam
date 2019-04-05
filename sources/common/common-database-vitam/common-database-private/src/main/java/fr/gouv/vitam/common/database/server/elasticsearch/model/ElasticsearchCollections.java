@@ -62,6 +62,11 @@ public enum ElasticsearchCollections {
     /**
      * Accession Register detail Collection
      */
+    ACCESSION_REGISTER_SYMBOLIC("/accessionregistersymbolic-es-mapping.json", "accessionregistersymbolic"),
+    
+    /**
+     * Accession Register detail Collection
+     */
     ACCESSION_REGISTER_DETAIL("/accessionregisterdetail-es-mapping.json", "accessionregisterdetail"),
 
     /**
