@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,17 +56,18 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        tarAppender.fsync();
-        // No close
-        // tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            tarAppender.flush();
+            // No close
+            // tarAppender.close();
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        assertThat(tarFilePath.toFile().length()).isEqualTo(0);
-        verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            // Then
+            assertThat(tarFilePath.toFile().length()).isEqualTo(0);
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+        }
     }
 
     @Test
@@ -75,15 +77,17 @@ public class TarFileRapairerTest {
         TarFileRapairer tarFileRapairer = new TarFileRapairer(() -> tarFileDigestVerifier);
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            tarAppender.close();
 
-        // Then
-        assertThat(tarFilePath.toFile().length()).isEqualTo(FOOTER_PADDING_SIZE);
-        verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+
+            // Then
+            assertThat(tarFilePath.toFile().length()).isEqualTo(FOOTER_PADDING_SIZE);
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+        }
     }
 
     @Test
@@ -96,16 +100,17 @@ public class TarFileRapairerTest {
         entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.close();
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            // Then
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+        }
     }
 
     @Test
@@ -120,16 +125,17 @@ public class TarFileRapairerTest {
         entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.close();
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            // Then
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+        }
     }
 
     @Test
@@ -142,18 +148,19 @@ public class TarFileRapairerTest {
         entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.fsync();
-        // No close
-        // tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.flush();
+            // No close
+            // tarAppender.close();
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            // Then
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+        }
     }
 
     @Test
@@ -166,19 +173,19 @@ public class TarFileRapairerTest {
         entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
             appendEntries(entries, tarAppender);
-        tarAppender.close();
+            tarAppender.close();
 
-        // Truncate entry header
-        truncateFile(tarFilePath, 100);
+            // Truncate entry header
+            truncateFile(tarFilePath, 100);
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            // Then
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+        }
     }
 
     @Test
@@ -191,19 +198,20 @@ public class TarFileRapairerTest {
         entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.close();
 
-        // Truncate entry content
-        truncateFile(tarFilePath, TarConstants.DEFAULT_RCDSIZE + 5);
+            // Truncate entry content
+            truncateFile(tarFilePath, TarConstants.DEFAULT_RCDSIZE + 5);
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            // Then
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+        }
     }
 
     @Test
@@ -216,19 +224,20 @@ public class TarFileRapairerTest {
         entries.put("entry1", "test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.close();
 
-        // Truncate entry content
-        truncateFile(tarFilePath, tarFilePath.toFile().length() - FOOTER_PADDING_SIZE - 10);
+            // Truncate entry content
+            truncateFile(tarFilePath, tarFilePath.toFile().length() - FOOTER_PADDING_SIZE - 10);
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            // Then
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+        }
     }
 
     @Test
@@ -243,18 +252,19 @@ public class TarFileRapairerTest {
         entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.fsync();
-        // No close
-        // tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.flush();
+            // No close
+            // tarAppender.close();
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            // Then
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+        }
     }
 
     @Test
@@ -269,26 +279,27 @@ public class TarFileRapairerTest {
         entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.close();
 
-        // Truncate last entry header
-        truncateFile(tarFilePath, entryDescriptions.get("entry3").getStartPos() + 10);
+            // Truncate last entry header
+            truncateFile(tarFilePath, entryDescriptions.get("entry3").getStartPos() + 10);
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
-        expectedEntries.putAll(entries);
-        expectedEntries.remove(entries.lastKey());
-        Map<String, TarEntryDescription> expectedEntryDescriptions = new ListOrderedMap<>();
-        expectedEntryDescriptions.putAll(entryDescriptions);
-        expectedEntryDescriptions.remove(entries.lastKey());
+            // Then
+            ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
+            expectedEntries.putAll(entries);
+            expectedEntries.remove(entries.lastKey());
+            Map<String, TarEntryDescription> expectedEntryDescriptions = new ListOrderedMap<>();
+            expectedEntryDescriptions.putAll(entryDescriptions);
+            expectedEntryDescriptions.remove(entries.lastKey());
 
-        verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions);
+            verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions);
+        }
     }
 
     @Test
@@ -303,26 +314,27 @@ public class TarFileRapairerTest {
         entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.close();
 
-        // Truncate last entry content
-        truncateFile(tarFilePath, entryDescriptions.get("entry3").getStartPos() + TarConstants.DEFAULT_RCDSIZE + 5);
+            // Truncate last entry content
+            truncateFile(tarFilePath, entryDescriptions.get("entry3").getStartPos() + TarConstants.DEFAULT_RCDSIZE + 5);
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
-        expectedEntries.putAll(entries);
-        expectedEntries.remove(entries.lastKey());
-        Map<String, TarEntryDescription> expectedEntryDescriptions = new ListOrderedMap<>();
-        expectedEntryDescriptions.putAll(entryDescriptions);
-        expectedEntryDescriptions.remove(entries.lastKey());
+            // Then
+            ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
+            expectedEntries.putAll(entries);
+            expectedEntries.remove(entries.lastKey());
+            Map<String, TarEntryDescription> expectedEntryDescriptions = new ListOrderedMap<>();
+            expectedEntryDescriptions.putAll(entryDescriptions);
+            expectedEntryDescriptions.remove(entries.lastKey());
 
-        verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions);
+            verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions);
+        }
     }
 
     @Test
@@ -337,19 +349,20 @@ public class TarFileRapairerTest {
         entries.put("entry3", "another test data".getBytes());
 
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        Map<String, TarEntryDescription> entryDescriptions =
-            appendEntries(entries, tarAppender);
-        tarAppender.close();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
+            Map<String, TarEntryDescription> entryDescriptions =
+                appendEntries(entries, tarAppender);
+            tarAppender.close();
 
-        // Truncate last entry content padding
-        truncateFile(tarFilePath, tarFilePath.toFile().length() - FOOTER_PADDING_SIZE - 10);
+            // Truncate last entry content padding
+            truncateFile(tarFilePath, tarFilePath.toFile().length() - FOOTER_PADDING_SIZE - 10);
 
-        // When
-        Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            // When
+            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
 
-        // Then
-        verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            // Then
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+        }
     }
 
     private Map<String, TarEntryDescription> appendEntries(OrderedMap<String, byte[]> entries, TarAppender tarAppender)
@@ -366,8 +379,9 @@ public class TarFileRapairerTest {
     private Path repairAndVerify(Path tarFilePath, TarFileRapairer tarFileRapairer)
         throws IOException, ObjectReferentialException {
         Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
-        try (InputStream is = Files.newInputStream(tarFilePath)) {
-            tarFileRapairer.repairAndVerifyTarArchive(is, repairedTarFilePath, TAR_FILE_ID);
+        try (InputStream inputStream = Files.newInputStream(tarFilePath);
+            OutputStream outputStream = Files.newOutputStream(repairedTarFilePath)) {
+            tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, TAR_FILE_ID);
         }
         return repairedTarFilePath;
     }
@@ -379,7 +393,7 @@ public class TarFileRapairerTest {
         verifyTarContent(repairedTarFilePath, entries);
 
         for (String entryName : entryDescriptions.keySet()) {
-            checkEntryAtPos(repairedTarFilePath.toFile(), entryDescriptions.get(entryName));
+            checkEntryAtPos(repairedTarFilePath, entryDescriptions.get(entryName));
         }
 
         for (String entryName : entryDescriptions.keySet()) {

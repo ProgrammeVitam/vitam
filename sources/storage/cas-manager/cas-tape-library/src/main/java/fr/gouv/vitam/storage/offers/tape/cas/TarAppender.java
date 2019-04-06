@@ -46,21 +46,27 @@ public class TarAppender implements AutoCloseable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TarAppender.class);
 
-    private final Path filePath;
     private final String tarId;
     private final long maxTarSize;
 
-    private ExtendedFileOutputStream extendedFileOutputStream;
-    private TarArchiveOutputStream tarArchiveOutputStream;
-    private Digest digest;
+    private final OutputStream outputStream;
+    private final TarArchiveOutputStream tarArchiveOutputStream;
+    private final Digest digest;
     private int entryCount;
     private long bytesWritten = 0L;
 
-    public TarAppender(Path filePath, String tarId, long maxTarSize) throws IOException {
-        this.filePath = filePath;
+    public TarAppender(Path outputTarFilePath, String tarId, long maxTarSize) throws IOException {
+        this(new ExtendedFileOutputStream(outputTarFilePath, true), tarId, maxTarSize);
+    }
+
+    public TarAppender(OutputStream outputStream, String tarId, long maxTarSize) {
+        this.outputStream = outputStream;
         this.tarId = tarId;
         this.maxTarSize = maxTarSize;
-        createTarArchive();
+        digest = new Digest(VitamConfiguration.getDefaultDigestType());
+        OutputStream digestOutputStream = digest.getDigestOutputStream(outputStream);
+        tarArchiveOutputStream = new TarArchiveOutputStream(digestOutputStream);
+        tarArchiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
     }
 
     public boolean canAppend(long size) {
@@ -109,45 +115,25 @@ public class TarAppender implements AutoCloseable {
             return new TarEntryDescription(this.tarId, entryName, startPos, size, entryDigestValue);
 
         } catch (IOException ex) {
-            try {
-                if (extendedFileOutputStream != null) {
-                    extendedFileOutputStream.close();
-                }
-            } catch (IOException ex2) {
-                LOGGER.warn("Could not close stream for tar " + this.tarId, ex2);
-            }
-            extendedFileOutputStream = null;
-
+            IOUtils.closeQuietly(outputStream);
             throw ex;
         }
     }
 
-    private void createTarArchive() throws IOException {
-        extendedFileOutputStream = new ExtendedFileOutputStream(filePath, true);
-        digest = new Digest(VitamConfiguration.getDefaultDigestType());
-        OutputStream digestOutputStream = digest.getDigestOutputStream(extendedFileOutputStream);
-        tarArchiveOutputStream = new TarArchiveOutputStream(digestOutputStream);
-        tarArchiveOutputStream.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
-    }
-
-    public void fsync() throws IOException {
+    public void flush() throws IOException {
         tarArchiveOutputStream.flush();
-        extendedFileOutputStream.fsync();
+        outputStream.flush();
     }
 
     public void close() throws IOException {
         try {
             tarArchiveOutputStream.flush();
+            outputStream.flush();
             tarArchiveOutputStream.close();
         } finally {
-            IOUtils.closeQuietly(extendedFileOutputStream);
+            IOUtils.closeQuietly(outputStream);
         }
         this.bytesWritten = tarArchiveOutputStream.getBytesWritten();
-    }
-
-    public void closeQuitely() {
-        IOUtils.closeQuietly(tarArchiveOutputStream);
-        IOUtils.closeQuietly(extendedFileOutputStream);
     }
 
     public String getTarId() {

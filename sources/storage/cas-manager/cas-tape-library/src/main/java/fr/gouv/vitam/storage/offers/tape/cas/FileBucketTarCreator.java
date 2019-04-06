@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryTarObjectStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
@@ -78,6 +79,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
     private final ScheduledExecutorService scheduledExecutorService;
 
     private TarAppender currentTarAppender = null;
+    private ExtendedFileOutputStream currentTarOutputStream = null;
     private Path currentTempTarFilePath = null;
     private Path currentTarFilePath = null;
     private ScheduledFuture<?> tarBufferingTimoutChecker;
@@ -173,7 +175,8 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
                 entryIndex++;
             }
             while (remainingSize > 0L);
-            currentTarAppender.fsync();
+            this.currentTarAppender.flush();
+            this.currentTarOutputStream.fsync();
 
             if (!digest.digestHex().equals(message.getDigestValue())) {
                 throw new QueueProcessingException(
@@ -190,8 +193,8 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
 
         } catch (IOException | RuntimeException ex) {
 
-            if (currentTarAppender != null) {
-                this.currentTarAppender.closeQuitely();
+            if (this.currentTarOutputStream != null) {
+                IOUtils.closeQuietly(this.currentTarOutputStream);
             }
 
             throw new QueueProcessingException(QueueProcessingException.RetryPolicy.FATAL_SHUTDOWN,
@@ -232,8 +235,9 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
                 "Could not create a new tar file", ex);
         }
 
+        this.currentTarOutputStream = new ExtendedFileOutputStream(currentTempTarFilePath, true);
         this.currentTarAppender = new TarAppender(
-            currentTempTarFilePath, tarFileId, this.maxTarFileSize);
+            currentTarOutputStream, tarFileId, this.maxTarFileSize);
         this.tarBufferingTimoutChecker = this.scheduledExecutorService.schedule(
             () -> checkTarBufferingTimeout(tarFileId), tarBufferingTimeout, tarBufferingTimeUnit);
     }
@@ -256,6 +260,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         this.writeOrderCreator.addToQueue(writeOrder);
 
         this.currentTarAppender = null;
+        this.currentTarOutputStream = null;
         this.tarBufferingTimoutChecker.cancel(false);
     }
 

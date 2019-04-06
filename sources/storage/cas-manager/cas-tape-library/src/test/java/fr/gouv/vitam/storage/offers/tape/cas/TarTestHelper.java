@@ -43,27 +43,28 @@ import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public final class TarTestHelper {
 
-    public static void checkEntryAtPos(File tarFile, TarEntryDescription entryDescription)
+    public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
         throws IOException {
 
         Digest digest = new Digest(DigestType.SHA512);
         OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
-        readEntryAtPos(tarFile, entryDescription, digestOutputStream);
+        readEntryAtPos(tarFilePath, entryDescription, digestOutputStream);
         String tarEntryDigest = digest.digestHex();
         assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
     }
 
-    public static void readEntryAtPos(File tarFile, TarEntryDescription entryDescription, OutputStream outputStream)
+    public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
         throws IOException {
 
         try (SeekableByteChannel seekableByteChannel = Files
-            .newByteChannel(tarFile.toPath(), StandardOpenOption.READ)) {
+            .newByteChannel(tarFilePath, StandardOpenOption.READ)) {
 
             seekableByteChannel.position(entryDescription.getStartPos());
 

@@ -356,10 +356,10 @@ public class FileBucketTarCreatorTest {
                 Path tarFilePath = tarIdToTarFile.get(fileTarEntry.getTarFileId());
 
                 // Verify segment digest
-                checkEntryAtPos(tarFilePath.toFile(), fileTarEntry);
+                checkEntryAtPos(tarFilePath, fileTarEntry);
 
                 // Verify combined segments digest
-                readEntryAtPos(tarFilePath.toFile(), fileTarEntry, digestOutputStream);
+                readEntryAtPos(tarFilePath, fileTarEntry, digestOutputStream);
             }
             assertThat(digest.digestHex()).isEqualTo(objectDigests.get(i));
         }

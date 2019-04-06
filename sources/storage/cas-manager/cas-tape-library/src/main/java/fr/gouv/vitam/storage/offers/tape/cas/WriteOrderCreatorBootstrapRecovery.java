@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
+import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
@@ -41,15 +42,15 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.CountingInputStream;
+import org.apache.commons.io.output.CountingOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,7 +116,7 @@ public class WriteOrderCreatorBootstrapRecovery {
             if (tarFileName.endsWith(LocalFileUtils.TAR_EXTENSION)) {
                 processReadyTar(fileBucket, fileBucketTarStoragePath, tarFileName);
             } else if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
-                repairTarArchive(fileBucketTarStoragePath.resolve(tarFileName), fileBucket);
+                repairTarArchive(fileBucketTarStoragePath, tarFileName, fileBucket);
             } else {
                 throw new IllegalStateException("Invalid file extension " + tarFileName);
             }
@@ -137,8 +138,6 @@ public class WriteOrderCreatorBootstrapRecovery {
 
                     if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
                         fileGroup.tmpFileName = tarFileName;
-                    } else if (tarFileName.endsWith(LocalFileUtils.REPAIR_EXTENSION)) {
-                        fileGroup.repairFileName = tarFileName;
                     } else {
                         fileGroup.readyTarFileName = tarFileName;
                     }
@@ -152,10 +151,7 @@ public class WriteOrderCreatorBootstrapRecovery {
 
         /* Delete incomplete files
          * > X.tar.tmp + X.tar          : Delete incomplete .tar
-         * > X.tar.tmp + X.tar.repair   : Delete incomplete .tar.repair file
          * > X.tar.tmp                  : NOP
-         * > X.tar.repair + X.tar       : Delete incomplete .tar
-         * > X.tar.repair               : Rename to .tar
          * > X.tar                      : NOP
          */
 
@@ -170,32 +166,8 @@ public class WriteOrderCreatorBootstrapRecovery {
                     fileGroup.readyTarFileName = null;
                 }
 
-                if (fileGroup.repairFileName != null) {
-                    LOGGER.warn("Deleting incomplete file " + fileGroup.repairFileName);
-                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.repairFileName));
-                    fileGroup.repairFileName = null;
-                }
-
                 tarFileNames.add(fileGroup.tmpFileName);
 
-            } else if (fileGroup.repairFileName != null) {
-
-                if (fileGroup.readyTarFileName != null) {
-                    LOGGER.warn("Delete incomplete file " + fileGroup.readyTarFileName);
-                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
-                }
-
-                String readyTarFileName = LocalFileUtils.tarFileNamePathToTarId(fileGroup.repairFileName);
-                LOGGER.info("Move repaired file " + fileGroup.repairFileName +
-                    " to file " + readyTarFileName);
-
-                Files.move(
-                    fileBucketTarStoragePath.resolve(fileGroup.repairFileName),
-                    fileBucketTarStoragePath.resolve(readyTarFileName),
-                    StandardCopyOption.ATOMIC_MOVE
-                );
-
-                tarFileNames.add(readyTarFileName);
             } else {
 
                 LOGGER.info("Found ready file " + fileGroup.readyTarFileName);
@@ -293,30 +265,29 @@ public class WriteOrderCreatorBootstrapRecovery {
         }
     }
 
-    private void repairTarArchive(Path corruptedTarFilePath, String fileBucket)
+    private void repairTarArchive(Path fileBucketTarStoragePath, String tmpTarFileName, String fileBucket)
         throws IOException, ObjectReferentialException {
 
-        String tarId = FilenameUtils.removeExtension(corruptedTarFilePath.getFileName().toString());
-        Path repairedFilePath = corruptedTarFilePath.resolveSibling(
-            tarId + LocalFileUtils.REPAIR_EXTENSION);
-        Path finalFilePath = corruptedTarFilePath.resolveSibling(tarId);
+        String tarId = LocalFileUtils.tarFileNamePathToTarId(tmpTarFileName);
+
+        Path tmpTarFilePath = fileBucketTarStoragePath.resolve(tmpTarFileName);
+        Path finalFilePath = fileBucketTarStoragePath.resolve(tarId);
 
         Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
         DigestWithSize digestWithSize;
-        try (InputStream inputStream = Files.newInputStream(corruptedTarFilePath, StandardOpenOption.READ);
-            CountingInputStream countingInputStream = new CountingInputStream(inputStream);
-            InputStream digestInputStream = tarDigest.getDigestInputStream(countingInputStream)) {
+        try (InputStream inputStream = Files.newInputStream(tmpTarFilePath, StandardOpenOption.READ);
+            OutputStream outputStream = new ExtendedFileOutputStream(finalFilePath, true);
+            CountingOutputStream countingOutputStream = new CountingOutputStream(outputStream);
+            OutputStream digestOutputStream = tarDigest.getDigestOutputStream(countingOutputStream)) {
 
             TarFileRapairer tarFileRapairer = new TarFileRapairer(this.objectReferentialRepository);
-            tarFileRapairer.repairAndVerifyTarArchive(digestInputStream, repairedFilePath, tarId);
+            tarFileRapairer.repairAndVerifyTarArchive(inputStream, digestOutputStream, tarId);
 
-            digestWithSize = new DigestWithSize(countingInputStream.getByteCount(), tarDigest.digestHex());
+            digestWithSize = new DigestWithSize(countingOutputStream.getByteCount(), tarDigest.digestHex());
         }
 
-        LOGGER.info("Successfully repaired & verified file " + corruptedTarFilePath + " to " + repairedFilePath);
-
-        Files.delete(corruptedTarFilePath);
-        Files.move(repairedFilePath, finalFilePath, StandardCopyOption.ATOMIC_MOVE);
+        Files.delete(tmpTarFilePath);
+        LOGGER.info("Successfully repaired & verified file " + tmpTarFilePath + " to " + finalFilePath);
 
         // Add to queue
         WriteOrder message = new WriteOrder(
@@ -332,7 +303,6 @@ public class WriteOrderCreatorBootstrapRecovery {
     private static class FileGroup {
         private String readyTarFileName;
         private String tmpFileName;
-        private String repairFileName;
     }
 
 

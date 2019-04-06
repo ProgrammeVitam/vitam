@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -28,32 +27,32 @@ public class TarAppenderTest {
 
         // Given
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
-        byte[] data1 = "data1".getBytes();
-        byte[] data2 = "data2".getBytes();
-        byte[] data3 = "data3".getBytes();
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
 
-        // When
-        TarEntryDescription entry1 = tarAppender.append("entry1", new ByteArrayInputStream(data1), data1.length);
-        TarEntryDescription entry2 = tarAppender.append("entry2", new ByteArrayInputStream(data2), data2.length);
-        TarEntryDescription entry3 = tarAppender.append("entry3", new ByteArrayInputStream(data3), data3.length);
-        tarAppender.fsync();
-        tarAppender.close();
+            byte[] data1 = "data1".getBytes();
+            byte[] data2 = "data2".getBytes();
+            byte[] data3 = "data3".getBytes();
 
-        // Then
-        String digest1 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data1).digestHex();
-        String digest2 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data2).digestHex();
-        String digest3 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data3).digestHex();
-        assertThat(entry1.getDigestValue()).isEqualTo(digest1);
-        assertThat(entry2.getDigestValue()).isEqualTo(digest2);
-        assertThat(entry3.getDigestValue()).isEqualTo(digest3);
+            // When
+            TarEntryDescription entry1 = tarAppender.append("entry1", new ByteArrayInputStream(data1), data1.length);
+            TarEntryDescription entry2 = tarAppender.append("entry2", new ByteArrayInputStream(data2), data2.length);
+            TarEntryDescription entry3 = tarAppender.append("entry3", new ByteArrayInputStream(data3), data3.length);
+            tarAppender.flush();
 
-        File tarFile = new File(temporaryFolder.getRoot(), TAR_FILE_ID);
-        assertThat(tarFile).exists();
-        checkEntryAtPos(tarFile, entry1);
-        checkEntryAtPos(tarFile, entry2);
-        checkEntryAtPos(tarFile, entry3);
-        assertThat(tarAppender.getEntryCount()).isEqualTo(3);
+            // Then
+            String digest1 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data1).digestHex();
+            String digest2 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data2).digestHex();
+            String digest3 = new Digest(VitamConfiguration.getDefaultDigestType()).update(data3).digestHex();
+            assertThat(entry1.getDigestValue()).isEqualTo(digest1);
+            assertThat(entry2.getDigestValue()).isEqualTo(digest2);
+            assertThat(entry3.getDigestValue()).isEqualTo(digest3);
+
+            checkEntryAtPos(tarFilePath, entry1);
+            checkEntryAtPos(tarFilePath, entry2);
+            checkEntryAtPos(tarFilePath, entry3);
+            assertThat(tarAppender.getEntryCount()).isEqualTo(3);
+
+        }
     }
 
     @Test
@@ -61,15 +60,16 @@ public class TarAppenderTest {
 
         // Given
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
-        TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L);
+        try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
 
-        // When / Then
-        assertThat(tarAppender.canAppend(600_000L)).isTrue();
-        tarAppender.append("entry1", new NullInputStream(600_000L), 600_000L);
+            // When / Then
+            assertThat(tarAppender.canAppend(600_000L)).isTrue();
+            tarAppender.append("entry1", new NullInputStream(600_000L), 600_000L);
 
-        assertThat(tarAppender.canAppend(390_000L)).isTrue();
-        tarAppender.append("entry2", new NullInputStream(390_000L), 390_000L);
+            assertThat(tarAppender.canAppend(390_000L)).isTrue();
+            tarAppender.append("entry2", new NullInputStream(390_000L), 390_000L);
 
-        assertThat(tarAppender.canAppend(10_000L)).isFalse();
+            assertThat(tarAppender.canAppend(10_000L)).isFalse();
+        }
     }
 }

@@ -46,7 +46,6 @@ public final class LocalFileUtils {
     private static final int GUID_LENGTH = 36;
     public static final String TAR_EXTENSION = ".tar";
     public static final String TMP_EXTENSION = ".tmp";
-    public static final String REPAIR_EXTENSION = ".repair";
     public static final String INPUT_TAR_TMP_FOLDER = "tmp";
 
     private LocalFileUtils() {
@@ -120,8 +119,6 @@ public final class LocalFileUtils {
 
         if (tarFileName.endsWith(TMP_EXTENSION)) {
             tarFileName = tarFileName.substring(0, tarFileName.length() - TMP_EXTENSION.length());
-        } else if (tarFileName.endsWith(REPAIR_EXTENSION)) {
-            tarFileName = tarFileName.substring(0, tarFileName.length() - REPAIR_EXTENSION.length());
         }
 
         if (!tarFileName.endsWith(TAR_EXTENSION)) {

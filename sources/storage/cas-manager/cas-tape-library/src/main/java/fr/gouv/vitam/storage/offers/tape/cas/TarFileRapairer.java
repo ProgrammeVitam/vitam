@@ -44,6 +44,7 @@ import org.apache.commons.io.input.TaggedInputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -65,7 +66,7 @@ public class TarFileRapairer {
         this.tarFileDigestVerifierSupplier = tarFileDigestVerifierSupplier;
     }
 
-    public void repairAndVerifyTarArchive(InputStream inputStream, Path newOutputTarFile, String tarId)
+    public void repairAndVerifyTarArchive(InputStream inputStream, OutputStream outputStream, String tarId)
         throws IOException, ObjectReferentialException {
 
         TarFileDigestVerifier tarFileDigestVerifier = tarFileDigestVerifierSupplier.get();
@@ -73,7 +74,7 @@ public class TarFileRapairer {
         try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
             TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream)) {
 
-            try (TarAppender tarAppender = new TarAppender(newOutputTarFile, tarId, Long.MAX_VALUE)) {
+            try (TarAppender tarAppender = new TarAppender(outputStream, tarId, Long.MAX_VALUE)) {
 
                 while (true) {
 
