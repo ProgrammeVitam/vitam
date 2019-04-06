@@ -40,7 +40,6 @@ import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
-import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.CountingInputStream;
@@ -84,12 +83,6 @@ public class WriteOrderCreatorBootstrapRecovery {
         this.writeOrderCreator = writeOrderCreator;
     }
 
-    private static class FileGroup {
-        private String readyTarFileName;
-        private String tmpFileName;
-        private String repairFileName;
-    }
-
     public void initializeOnBootstrap() {
 
         try {
@@ -98,153 +91,7 @@ public class WriteOrderCreatorBootstrapRecovery {
 
                 Path fileBucketTarStoragePath = Paths.get(configuration.getInputTarStorageFolder()).resolve(fileBucket);
                 if (fileBucketTarStoragePath.toFile().exists()) {
-
-                    // List tar file paths
-                    Map<String, FileGroup> tarFileNames = new HashMap<>();
-                    try (Stream<Path> tarFileStream = Files.list(fileBucketTarStoragePath)) {
-                        tarFileStream
-                            .map(filePath -> filePath.getFileName().toString())
-                            .forEach(tarFileName -> {
-
-                                // Group files by tar id
-                                String tarId = LocalFileUtils.tarFileNamePathToTarId(tarFileName);
-                                FileGroup fileGroup = tarFileNames.computeIfAbsent(tarId, f -> new FileGroup());
-
-                                if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
-                                    fileGroup.tmpFileName = tarFileName;
-                                } else if (tarFileName.endsWith(LocalFileUtils.REPAIR_EXTENSION)) {
-                                    fileGroup.repairFileName = tarFileName;
-                                } else {
-                                    fileGroup.readyTarFileName = tarFileName;
-                                }
-                            });
-                    }
-
-                    /* Delete incomplete files
-                     * > X.tar.tmp + X.tar    : Delete .tar (failed non atomic rename from .tar.tmp -> .tar)
-                     * > X.tar.tmp + X.repair : Delete .repair
-                     * > X.tar.tmp            : Repair file (generate .tar.repair, delete .tmp, rename .tar.repair -> .tar)
-                     * > X.tar.repair + X.tar : Delete .tar (failed non atomic rename from .tar.repair -> .tar)
-                     * > X.tar.repair         : Rename to .tar
-                     * > X.tar                : OK
-                     */
-
-                    List<String> tmpTarFileNames = new ArrayList<>();
-                    List<String> readyTarFileNames = new ArrayList<>();
-
-                    for (FileGroup fileGroup : tarFileNames.values()) {
-
-                        if (fileGroup.tmpFileName != null) {
-
-                            if (fileGroup.readyTarFileName != null) {
-                                LOGGER.warn("Deleting incomplete file " + fileGroup.readyTarFileName);
-                                Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
-                                fileGroup.readyTarFileName = null;
-                            }
-
-                            if (fileGroup.repairFileName != null) {
-                                LOGGER.warn("Deleting incomplete file " + fileGroup.repairFileName);
-                                Files.delete(fileBucketTarStoragePath.resolve(fileGroup.repairFileName));
-                                fileGroup.repairFileName = null;
-                            }
-
-                            tmpTarFileNames.add(fileGroup.tmpFileName);
-
-                        } else if (fileGroup.repairFileName != null) {
-
-                            if (fileGroup.readyTarFileName != null) {
-                                LOGGER.warn("Delete incomplete file " + fileGroup.readyTarFileName);
-                                Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
-                            }
-
-                            String readyTarFileName = LocalFileUtils.tarFileNamePathToTarId(fileGroup.repairFileName);
-                            LOGGER.info("Move repaired file " + fileGroup.repairFileName +
-                                " to file " + readyTarFileName);
-
-                            Files.move(
-                                fileBucketTarStoragePath.resolve(fileGroup.repairFileName),
-                                fileBucketTarStoragePath.resolve(readyTarFileName),
-                                StandardCopyOption.ATOMIC_MOVE
-                            );
-
-                            readyTarFileNames.add(readyTarFileName);
-                        } else {
-
-                            LOGGER.info("Found ready file " + fileGroup.readyTarFileName);
-                            readyTarFileNames.add(fileGroup.readyTarFileName);
-                        }
-                    }
-
-                    // Sort files by creation date
-                    readyTarFileNames.sort(this::tarFileCreationDateComparator);
-                    tmpTarFileNames.sort(this::tarFileCreationDateComparator);
-
-                    // Process ready tar files
-                    for (String tarId : readyTarFileNames) {
-
-                        Path tarFile = fileBucketTarStoragePath.resolve(tarId);
-
-                        Optional<TapeTarReferentialEntity> tarReferentialEntity =
-                            tarReferentialRepository.find(tarId);
-                        if (!tarReferentialEntity.isPresent()) {
-                            throw new IllegalStateException(
-                                "Unknown tar file in tar referential '" + tarFile.toString() + "'");
-                        }
-
-                        if (tarReferentialEntity.get()
-                            .getLocation() instanceof TapeLibraryOnTapeTarStorageLocation) {
-
-                            LOGGER.warn("Tar file {} already written on tape. Deleting it", tarFile);
-                            Files.delete(tarFile);
-
-                        } else if (tarReferentialEntity.get().getLocation()
-                            instanceof TapeLibraryReadyOnDiskTarStorageLocation) {
-
-                            LOGGER.warn("Rescheduling tar file {} for copy on tape.", tarFile);
-                            WriteOrder message = new WriteOrder(
-                                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-                                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                                tarReferentialEntity.get().getSize(),
-                                tarReferentialEntity.get().getDigestValue(),
-                                tarId
-                            );
-                            writeOrderCreator.addToQueue(message);
-
-                        } else if (tarReferentialEntity.get().getLocation()
-                            instanceof TapeLibraryBuildingOnDiskTarStorageLocation) {
-
-                            LOGGER.warn("Check tar file & compute size & digest.", tarFile);
-                            DigestWithSize digestWithSize = verifyTarArchive(tarFile);
-
-                            // Mark file as ready
-                            tarReferentialRepository.updateLocationToReadyOnDisk(
-                                tarId,
-                                digestWithSize.size,
-                                digestWithSize.digestValue
-                            );
-
-                            // Add to queue
-                            WriteOrder message = new WriteOrder(
-                                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-                                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                                digestWithSize.size,
-                                digestWithSize.digestValue,
-                                tarId
-                            );
-                            writeOrderCreator.addToQueue(message);
-
-                        } else {
-                            throw new IllegalStateException(
-                                "Invalid tar location " + tarReferentialEntity.get().getLocation().getClass()
-                                    + " (" + JsonHandler.unprettyPrint(tarReferentialEntity) + ")");
-                        }
-
-                    }
-
-                    // Repair tmp tar files
-                    for (String tmpTarFileName : tmpTarFileNames) {
-                        repairTarArchive(fileBucketTarStoragePath.resolve(tmpTarFileName), fileBucket);
-                    }
+                    recoverFileBucketTars(fileBucket, fileBucketTarStoragePath);
                 }
 
             }
@@ -253,15 +100,182 @@ public class WriteOrderCreatorBootstrapRecovery {
         }
     }
 
-    private int tarFileCreationDateComparator(String filename1, String filename2) {
+    private void recoverFileBucketTars(String fileBucket, Path fileBucketTarStoragePath)
+        throws IOException, TarReferentialException, ObjectReferentialException {
 
-        String creationDate1 = getCreationDateFromTarId(filename1);
-        String creationDate2 = getCreationDateFromTarId(filename1);
+        Map<String, FileGroup> tarFileGroups = getFileListGroupedByTarId(fileBucketTarStoragePath);
 
-        int compare = creationDate1.compareTo(creationDate2);
-        if (compare != 0)
-            return compare;
-        return filename1.compareTo(filename2);
+        List<String> tarFileNames = cleanupIncompleteFiles(fileBucketTarStoragePath, tarFileGroups);
+
+        // Sort files by creation date
+        sortFilesByCreationDate(tarFileNames);
+
+        // Process tar archives
+        for (String tarFileName : tarFileNames) {
+            if (tarFileName.endsWith(LocalFileUtils.TAR_EXTENSION)) {
+                processReadyTar(fileBucket, fileBucketTarStoragePath, tarFileName);
+            } else if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
+                repairTarArchive(fileBucketTarStoragePath.resolve(tarFileName), fileBucket);
+            } else {
+                throw new IllegalStateException("Invalid file extension " + tarFileName);
+            }
+        }
+    }
+
+    private Map<String, FileGroup> getFileListGroupedByTarId(Path fileBucketTarStoragePath) throws IOException {
+
+        // List tar file paths
+        Map<String, FileGroup> tarFileNames = new HashMap<>();
+        try (Stream<Path> tarFileStream = Files.list(fileBucketTarStoragePath)) {
+            tarFileStream
+                .map(filePath -> filePath.getFileName().toString())
+                .forEach(tarFileName -> {
+
+                    // Group files by tar id
+                    String tarId = LocalFileUtils.tarFileNamePathToTarId(tarFileName);
+                    FileGroup fileGroup = tarFileNames.computeIfAbsent(tarId, f -> new FileGroup());
+
+                    if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
+                        fileGroup.tmpFileName = tarFileName;
+                    } else if (tarFileName.endsWith(LocalFileUtils.REPAIR_EXTENSION)) {
+                        fileGroup.repairFileName = tarFileName;
+                    } else {
+                        fileGroup.readyTarFileName = tarFileName;
+                    }
+                });
+        }
+        return tarFileNames;
+    }
+
+    private List<String> cleanupIncompleteFiles(Path fileBucketTarStoragePath,
+        Map<String, FileGroup> tarFileGroups) throws IOException {
+
+        /* Delete incomplete files
+         * > X.tar.tmp + X.tar          : Delete incomplete .tar
+         * > X.tar.tmp + X.tar.repair   : Delete incomplete .tar.repair file
+         * > X.tar.tmp                  : NOP
+         * > X.tar.repair + X.tar       : Delete incomplete .tar
+         * > X.tar.repair               : Rename to .tar
+         * > X.tar                      : NOP
+         */
+
+        List<String> tarFileNames = new ArrayList<>();
+        for (FileGroup fileGroup : tarFileGroups.values()) {
+
+            if (fileGroup.tmpFileName != null) {
+
+                if (fileGroup.readyTarFileName != null) {
+                    LOGGER.warn("Deleting incomplete file " + fileGroup.readyTarFileName);
+                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
+                    fileGroup.readyTarFileName = null;
+                }
+
+                if (fileGroup.repairFileName != null) {
+                    LOGGER.warn("Deleting incomplete file " + fileGroup.repairFileName);
+                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.repairFileName));
+                    fileGroup.repairFileName = null;
+                }
+
+                tarFileNames.add(fileGroup.tmpFileName);
+
+            } else if (fileGroup.repairFileName != null) {
+
+                if (fileGroup.readyTarFileName != null) {
+                    LOGGER.warn("Delete incomplete file " + fileGroup.readyTarFileName);
+                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
+                }
+
+                String readyTarFileName = LocalFileUtils.tarFileNamePathToTarId(fileGroup.repairFileName);
+                LOGGER.info("Move repaired file " + fileGroup.repairFileName +
+                    " to file " + readyTarFileName);
+
+                Files.move(
+                    fileBucketTarStoragePath.resolve(fileGroup.repairFileName),
+                    fileBucketTarStoragePath.resolve(readyTarFileName),
+                    StandardCopyOption.ATOMIC_MOVE
+                );
+
+                tarFileNames.add(readyTarFileName);
+            } else {
+
+                LOGGER.info("Found ready file " + fileGroup.readyTarFileName);
+                tarFileNames.add(fileGroup.readyTarFileName);
+            }
+        }
+        return tarFileNames;
+    }
+
+    private void sortFilesByCreationDate(List<String> tarFileNames) {
+        tarFileNames.sort((filename1, filename2) -> {
+
+            String creationDate1 = getCreationDateFromTarId(filename1);
+            String creationDate2 = getCreationDateFromTarId(filename2);
+
+            int compare = creationDate1.compareTo(creationDate2);
+            if (compare != 0)
+                return compare;
+            return filename1.compareTo(filename2);
+        });
+    }
+
+    private void processReadyTar(String fileBucket, Path fileBucketTarStoragePath, String tarId)
+        throws TarReferentialException, IOException, ObjectReferentialException {
+        Path tarFile = fileBucketTarStoragePath.resolve(tarId);
+
+        Optional<TapeTarReferentialEntity> tarReferentialEntity =
+            tarReferentialRepository.find(tarId);
+        if (!tarReferentialEntity.isPresent()) {
+            throw new IllegalStateException(
+                "Unknown tar file in tar referential '" + tarFile.toString() + "'");
+        }
+
+        if (tarReferentialEntity.get()
+            .getLocation() instanceof TapeLibraryOnTapeTarStorageLocation) {
+
+            LOGGER.warn("Tar file {} already written on tape. Deleting it", tarFile);
+            Files.delete(tarFile);
+
+        } else if (tarReferentialEntity.get().getLocation()
+            instanceof TapeLibraryReadyOnDiskTarStorageLocation) {
+
+            LOGGER.warn("Rescheduling tar file {} for copy on tape.", tarFile);
+            WriteOrder message = new WriteOrder(
+                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
+                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
+                tarReferentialEntity.get().getSize(),
+                tarReferentialEntity.get().getDigestValue(),
+                tarId
+            );
+            writeOrderCreator.addToQueue(message);
+
+        } else if (tarReferentialEntity.get().getLocation()
+            instanceof TapeLibraryBuildingOnDiskTarStorageLocation) {
+
+            LOGGER.warn("Check tar file & compute size & digest.", tarFile);
+            DigestWithSize digestWithSize = verifyTarArchive(tarFile);
+
+            // Mark file as ready
+            tarReferentialRepository.updateLocationToReadyOnDisk(
+                tarId,
+                digestWithSize.size,
+                digestWithSize.digestValue
+            );
+
+            // Add to queue
+            WriteOrder message = new WriteOrder(
+                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
+                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
+                digestWithSize.size,
+                digestWithSize.digestValue,
+                tarId
+            );
+            writeOrderCreator.addToQueue(message);
+
+        } else {
+            throw new IllegalStateException(
+                "Invalid tar location " + tarReferentialEntity.get().getLocation().getClass()
+                    + " (" + JsonHandler.unprettyPrint(tarReferentialEntity) + ")");
+        }
     }
 
     private DigestWithSize verifyTarArchive(Path tarFile) throws IOException, ObjectReferentialException {
@@ -279,20 +293,8 @@ public class WriteOrderCreatorBootstrapRecovery {
         }
     }
 
-
-    private static class DigestWithSize {
-
-        final long size;
-        final String digestValue;
-
-        DigestWithSize(long size, String digestValue) {
-            this.size = size;
-            this.digestValue = digestValue;
-        }
-    }
-
     private void repairTarArchive(Path corruptedTarFilePath, String fileBucket)
-        throws IOException, ObjectReferentialException, TarReferentialException {
+        throws IOException, ObjectReferentialException {
 
         String tarId = FilenameUtils.removeExtension(corruptedTarFilePath.getFileName().toString());
         Path repairedFilePath = corruptedTarFilePath.resolveSibling(
@@ -325,5 +327,23 @@ public class WriteOrderCreatorBootstrapRecovery {
             tarId
         );
         writeOrderCreator.addToQueue(message);
+    }
+
+    private static class FileGroup {
+        private String readyTarFileName;
+        private String tmpFileName;
+        private String repairFileName;
+    }
+
+
+    private static class DigestWithSize {
+
+        final long size;
+        final String digestValue;
+
+        DigestWithSize(long size, String digestValue) {
+            this.size = size;
+            this.digestValue = digestValue;
+        }
     }
 }
