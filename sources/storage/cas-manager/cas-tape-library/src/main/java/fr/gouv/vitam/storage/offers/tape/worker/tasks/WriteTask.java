@@ -90,6 +90,7 @@ public class WriteTask implements Future<ReadWriteResult> {
     public static final long SLEEP_TIME = 20l;
     public static final int CARTRIDGE_RETRY = 1;
     public static final int MAX_ATTEMPTS = 3;
+    public static final int ATTEMPTS_SLEEP_IN_SECONDS = 10;
 
     public final String MSG_PREFIX;
     private final String inputTarPath;
@@ -189,18 +190,9 @@ public class WriteTask implements Future<ReadWriteResult> {
                     // TODO: 28/03/19 best is to get read orders on this tape before unload
                     // TODO: read may needs rewind that can take a lot of time. unload load tape maybe better and faster than taking read orders
                     return get();
-                case FILE_NOT_FOUND:
-                    // Mark write order as error state
-                    readWriteResult.setStatus(StatusCode.WARNING);
-                    readWriteResult.setOrderState(QueueState.ERROR);
-                    break;
-
                 case KO_ON_GOTO_FILE_COUNT:
                 case KO_ON_REWIND_FSF_BSF_TAPE:
-                    readWriteResult.setStatus(StatusCode.WARNING);
-                    readWriteResult.setOrderState(QueueState.READY);
-                    break;
-
+                    // Error maybe IO exception or tape corrupted or timeout
                 case TAPE_LOCATION_CONFLICT:
                 case TAPE_LOCATION_UNKNOWN:
                     // TODO: should a re-init of tape catalog
@@ -225,6 +217,10 @@ public class WriteTask implements Future<ReadWriteResult> {
                     readWriteResult.setStatus(StatusCode.FATAL);
                     readWriteResult.setOrderState(QueueState.READY);
                     break;
+
+                case FILE_NOT_FOUND:
+                    // File delete or not generated
+                    // Mark write order as error state
                 case INTERNAL_ERROR_SERVER:
                 default:
                     readWriteResult.setStatus(StatusCode.FATAL);
@@ -250,7 +246,8 @@ public class WriteTask implements Future<ReadWriteResult> {
     private void updateTarReferential(File file) throws ReadWriteException {
         try {
             TapeLibraryOnTapeTarStorageLocation onTapeTarStorageLocation =
-                new TapeLibraryOnTapeTarStorageLocation(workerCurrentTape.getCode(), workerCurrentTape.getFileCount());
+                new TapeLibraryOnTapeTarStorageLocation(workerCurrentTape.getCode(),
+                    workerCurrentTape.getFileCount() - 1);
 
             tarReferentialRepository.updateLocationToOnTape(writeOrder.getTarId(), onTapeTarStorageLocation);
 
@@ -391,6 +388,8 @@ public class WriteTask implements Future<ReadWriteResult> {
                         ", Entity: " + JsonHandler.unprettyPrint(readStatus.getEntity()),
                         ReadWriteErrorCode.KO_LABEL_DISCORDING, readStatus);
                 }
+
+                workerCurrentTape.setCurrentPosition(1);
             } catch (Exception e) {
                 if (e instanceof ReadWriteException) {
                     throw (ReadWriteException) e;
@@ -423,7 +422,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             Integer positionSeek = workerCurrentTape.getFileCount() - workerCurrentTape.getCurrentPosition();
 
-            withRetryGoToPosition(positionSeek, ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
+            goToPosition(positionSeek, ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
         }
 
         if (null == workerCurrentTape.getLabel()) {
@@ -668,7 +667,7 @@ public class WriteTask implements Future<ReadWriteResult> {
             doRewindTape(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
 
             // FSF
-            withRetryGoToPosition(workerCurrentTape.getFileCount(), ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
+            goToPosition(workerCurrentTape.getFileCount(), ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
 
 
             try {
@@ -715,16 +714,6 @@ public class WriteTask implements Future<ReadWriteResult> {
         }
         // Update current position only if fsf command success
         workerCurrentTape.setCurrentPosition(workerCurrentTape.getFileCount());
-    }
-
-    private void withRetryGoToPosition(Integer position, ReadWriteErrorCode readWriteErrorCode)
-        throws ReadWriteException {
-        Retry.Delegate delegate = () -> {
-            goToPosition(position, readWriteErrorCode);
-            return true;
-        };
-
-        withRetry(delegate);
     }
 
     /**
@@ -807,7 +796,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
     private void withRetry(Retry.Delegate<?> delegate) throws ReadWriteException {
         try {
-            new Retry(MAX_ATTEMPTS, SLEEP_TIME).execute(delegate);
+            new Retry(MAX_ATTEMPTS, ATTEMPTS_SLEEP_IN_SECONDS).execute(delegate);
         } catch (Exception e) {
             if (e instanceof ReadWriteException) {
                 throw (ReadWriteException) e;

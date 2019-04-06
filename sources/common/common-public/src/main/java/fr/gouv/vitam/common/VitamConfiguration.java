@@ -228,6 +228,11 @@ public class VitamConfiguration {
     private static int intervalDelayCheckIdle = 300000;
 
     /**
+     * Specify the delay interval to log and shoud un logs that worker are in progress (default 10 minutes)
+     */
+    private static int intervalDelayLogInProgressWorker = 600000;
+
+    /**
      * Specify the delay of unused connection returned in the pool before being really closed (Apache Only) (5 minutes)
      */
     private static int maxDelayUnusedConnection = 300000;
@@ -559,6 +564,22 @@ public class VitamConfiguration {
     }
 
     /**
+     * Getter
+     * @return intervalDelayLogInProgressWorker
+     */
+    public static int getIntervalDelayLogInProgressWorker() {
+        return intervalDelayLogInProgressWorker;
+    }
+
+    /**
+     * Setter
+     * @param intervalDelayLogInProgressWorker
+     */
+    public static void setIntervalDelayLogInProgressWorker(int intervalDelayLogInProgressWorker) {
+        VitamConfiguration.intervalDelayLogInProgressWorker = intervalDelayLogInProgressWorker;
+    }
+
+    /**
      * @param vitamConfiguration
      */
     void setInternalConfiguration(VitamConfiguration vitamConfiguration) {
@@ -752,6 +773,9 @@ public class VitamConfiguration {
         }
         if (null != parameters.getIntervalDelayCheckIdle()) {
             setIntervalDelayCheckIdle(parameters.getIntervalDelayCheckIdle());
+        }
+        if (null != parameters.getIntervalDelayLogInProgressWorker()) {
+            setIntervalDelayLogInProgressWorker(parameters.getIntervalDelayLogInProgressWorker());
         }
         if (null != parameters.getMaxDelayUnusedConnection()) {
             setMaxDelayUnusedConnection(parameters.getMaxDelayUnusedConnection());
@@ -1920,7 +1944,6 @@ public class VitamConfiguration {
     }
 
     /**
-     * 
      * @param eliminationActionThreshold
      */
     public static void setEliminationActionThreshold(long eliminationActionThreshold) {
@@ -1929,7 +1952,6 @@ public class VitamConfiguration {
 
 
     /**
-     * 
      * @return operationMaxSizeForExternal
      */
     public static long getOperationMaxSizeForExternal() {
@@ -1937,7 +1959,6 @@ public class VitamConfiguration {
     }
 
     /**
-     * 
      * @param operationMaxSizeForExternal
      */
     public static void setOperationMaxSizeForExternal(long operationMaxSizeForExternal) {

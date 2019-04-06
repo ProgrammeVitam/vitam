@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.tape.worker;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -59,6 +60,7 @@ public class TapeDriveWorker implements Runnable {
     public static final int MAX_ATTEMPTS = 3;
     public static final int RETRY_WAIT_SECONDS = 1000;
     public static long SLEEP_TIME = 10_000;
+    public static long intervalDelayLogInProgressWorker = VitamConfiguration.getIntervalDelayLogInProgressWorker();
 
     private final TapeDriveOrderConsumer receiver;
     private final TapeRobotPool tapeRobotPool;
@@ -119,6 +121,7 @@ public class TapeDriveWorker implements Runnable {
         try {
             StopWatch exceptionStopWatch = null;
             final StopWatch loopStopWatch = StopWatch.createStarted();
+            final StopWatch inProgressWorkerStopWatch = StopWatch.createStarted();
             while (!stop.get()) {
                 LOGGER.debug("Start take readWriteOrder from queue ");
 
@@ -217,7 +220,14 @@ public class TapeDriveWorker implements Runnable {
                     interceptPauseRequest();
 
                 } else {
-                    LOGGER.warn("No read/write to tape order found. waiting (" + SLEEP_TIME + ") Sec ...");
+                    // Log every
+                    if (inProgressWorkerStopWatch.getTime(TimeUnit.MILLISECONDS) >=
+                        intervalDelayLogInProgressWorker) {
+                        inProgressWorkerStopWatch.reset();
+                        inProgressWorkerStopWatch.start();
+
+                        LOGGER.warn("No read/write to tape order found. waiting (" + SLEEP_TIME + ") Sec ...");
+                    }
                     Thread.sleep(SLEEP_TIME);
                 }
 

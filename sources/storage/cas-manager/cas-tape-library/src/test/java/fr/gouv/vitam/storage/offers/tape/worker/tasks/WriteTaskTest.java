@@ -980,7 +980,7 @@ public class WriteTaskTest {
         ReadWriteResult result = writeTask.get();
 
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(StatusCode.WARNING);
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(result.getOrderState()).isEqualTo(QueueState.ERROR);
         assertThat(result.getCurrentTape()).isNull();
 

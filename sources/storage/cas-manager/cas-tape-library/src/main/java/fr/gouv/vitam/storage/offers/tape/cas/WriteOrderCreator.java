@@ -364,7 +364,7 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
     private void markAsReady(WriteOrder message) throws TarReferentialException {
         // Mark tar archive as "ready"
         this.tarReferentialRepository.updateLocationToReadyOnDisk(
-            message.getId(),
+            message.getTarId(),
             message.getSize(),
             message.getDigest()
         );

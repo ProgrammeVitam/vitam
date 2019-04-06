@@ -121,7 +121,7 @@
 {% endif %}
 
 {% if vitam_struct.vitam_component == 'offer' %}
-  <logger name="fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor" level="INFO">
+  <logger name="fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor" level="INFO" additivity="false" >
        <appender-ref ref="OFFER_TAPE" />
   </logger>
 {% endif %}
