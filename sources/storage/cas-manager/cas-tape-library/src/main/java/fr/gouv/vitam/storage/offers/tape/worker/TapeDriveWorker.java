@@ -62,6 +62,8 @@ public class TapeDriveWorker implements Runnable {
     public static long SLEEP_TIME = 10_000;
     public static long intervalDelayLogInProgressWorker = VitamConfiguration.getIntervalDelayLogInProgressWorker();
 
+    public final String MSG_PREFIX;
+
     private final TapeDriveOrderConsumer receiver;
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
@@ -102,6 +104,10 @@ public class TapeDriveWorker implements Runnable {
             readWriteResult = new ReadWriteResult();
             readWriteResult.setCurrentTape(currentTape);
         }
+
+        this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
+            tapeDriveService.getTapeDriveConf().getIndex());
+
     }
 
     public TapeDriveWorker(
@@ -123,7 +129,7 @@ public class TapeDriveWorker implements Runnable {
             final StopWatch loopStopWatch = StopWatch.createStarted();
             final StopWatch inProgressWorkerStopWatch = StopWatch.createStarted();
             while (!stop.get()) {
-                LOGGER.debug("Start take readWriteOrder from queue ");
+                LOGGER.debug(MSG_PREFIX + "Start take readWriteOrder from queue ");
 
                 ReadWriteOrder readWriteOrder = null;
                 loopStopWatch.reset();
@@ -134,7 +140,7 @@ public class TapeDriveWorker implements Runnable {
 
                     if (order.isPresent()) {
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Process write order :" + JsonHandler.unprettyPrint(order.get()));
+                            LOGGER.debug(MSG_PREFIX + "Process write order :" + JsonHandler.unprettyPrint(order.get()));
                         }
                         readWriteOrder = order.get();
                     }
@@ -146,7 +152,7 @@ public class TapeDriveWorker implements Runnable {
 
                     } else {
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Sleep " + SLEEP_TIME + " ms because of exception : ", e);
+                            LOGGER.debug(MSG_PREFIX + "Sleep " + SLEEP_TIME + " ms because of exception : ", e);
                         }
                         Thread.sleep(SLEEP_TIME);
 
@@ -197,7 +203,8 @@ public class TapeDriveWorker implements Runnable {
                             break;
 
                         default:
-                            throw new IllegalStateException("Order should have state Completed, Ready or Error");
+                            throw new IllegalStateException(
+                                MSG_PREFIX + "Order should have state Completed, Ready or Error");
                     }
 
                     PerformanceLogger
@@ -226,7 +233,8 @@ public class TapeDriveWorker implements Runnable {
                         inProgressWorkerStopWatch.reset();
                         inProgressWorkerStopWatch.start();
 
-                        LOGGER.warn("No read/write to tape order found. waiting (" + SLEEP_TIME + ") Sec ...");
+                        LOGGER.warn(
+                            MSG_PREFIX + "No read/write to tape order found. waiting (" + SLEEP_TIME + ") Sec ...");
                     }
                     Thread.sleep(SLEEP_TIME);
                 }
