@@ -223,21 +223,21 @@ public class WriteOrderCreatorBootstrapRecovery {
             instanceof TapeLibraryBuildingOnDiskTarStorageLocation) {
 
             LOGGER.warn("Check tar file & compute size & digest.", tarFile);
-            DigestWithSize digestWithSize = verifyTarArchive(tarFile);
+            TarFileRapairer.DigestWithSize digestWithSize = verifyTarArchive(tarFile);
 
             // Mark file as ready
             tarReferentialRepository.updateLocationToReadyOnDisk(
                 tarId,
-                digestWithSize.size,
-                digestWithSize.digestValue
+                digestWithSize.getSize(),
+                digestWithSize.getDigestValue()
             );
 
             // Add to queue
             WriteOrder message = new WriteOrder(
                 bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
                 LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                digestWithSize.size,
-                digestWithSize.digestValue,
+                digestWithSize.getSize(),
+                digestWithSize.getDigestValue(),
                 tarId
             );
             writeOrderCreator.addToQueue(message);
@@ -249,18 +249,13 @@ public class WriteOrderCreatorBootstrapRecovery {
         }
     }
 
-    private DigestWithSize verifyTarArchive(Path tarFile) throws IOException, ObjectReferentialException {
+    private TarFileRapairer.DigestWithSize verifyTarArchive(Path tarFile) throws IOException, ObjectReferentialException {
 
-        Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
-        try (InputStream inputStream = Files.newInputStream(tarFile, StandardOpenOption.READ);
-            CountingInputStream countingInputStream = new CountingInputStream(inputStream);
-            InputStream digestInputStream = tarDigest.getDigestInputStream(countingInputStream)) {
+        try (InputStream inputStream = Files.newInputStream(tarFile, StandardOpenOption.READ)) {
 
             TarFileRapairer tarFileRapairer = new TarFileRapairer(
                 this.objectReferentialRepository);
-            tarFileRapairer.verifyTarArchive(digestInputStream);
-
-            return new DigestWithSize(countingInputStream.getByteCount(), tarDigest.digestHex());
+            return tarFileRapairer.verifyTarArchive(inputStream);
         }
     }
 
@@ -272,17 +267,12 @@ public class WriteOrderCreatorBootstrapRecovery {
         Path tmpTarFilePath = fileBucketTarStoragePath.resolve(tmpTarFileName);
         Path finalFilePath = fileBucketTarStoragePath.resolve(tarId);
 
-        Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
-        DigestWithSize digestWithSize;
+        TarFileRapairer.DigestWithSize digestWithSize;
         try (InputStream inputStream = Files.newInputStream(tmpTarFilePath, StandardOpenOption.READ);
-            OutputStream outputStream = new ExtendedFileOutputStream(finalFilePath, true);
-            CountingOutputStream countingOutputStream = new CountingOutputStream(outputStream);
-            OutputStream digestOutputStream = tarDigest.getDigestOutputStream(countingOutputStream)) {
+            OutputStream outputStream = new ExtendedFileOutputStream(finalFilePath, true)) {
 
             TarFileRapairer tarFileRapairer = new TarFileRapairer(this.objectReferentialRepository);
-            tarFileRapairer.repairAndVerifyTarArchive(inputStream, digestOutputStream, tarId);
-
-            digestWithSize = new DigestWithSize(countingOutputStream.getByteCount(), tarDigest.digestHex());
+            digestWithSize = tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, tarId);
         }
 
         Files.delete(tmpTarFilePath);
@@ -292,8 +282,8 @@ public class WriteOrderCreatorBootstrapRecovery {
         WriteOrder message = new WriteOrder(
             bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
             LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-            digestWithSize.size,
-            digestWithSize.digestValue,
+            digestWithSize.getSize(),
+            digestWithSize.getDigestValue(),
             tarId
         );
         writeOrderCreator.addToQueue(message);
@@ -302,17 +292,5 @@ public class WriteOrderCreatorBootstrapRecovery {
     private static class FileGroup {
         private String readyTarFileName;
         private String tmpFileName;
-    }
-
-
-    private static class DigestWithSize {
-
-        final long size;
-        final String digestValue;
-
-        DigestWithSize(long size, String digestValue) {
-            this.size = size;
-            this.digestValue = digestValue;
-        }
     }
 }

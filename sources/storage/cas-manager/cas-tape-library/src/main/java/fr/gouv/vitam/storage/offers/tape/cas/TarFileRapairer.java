@@ -40,7 +40,9 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarConstants;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.CloseShieldInputStream;
+import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.io.input.TaggedInputStream;
+import org.apache.commons.io.output.CountingOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,15 +68,18 @@ public class TarFileRapairer {
         this.tarFileDigestVerifierSupplier = tarFileDigestVerifierSupplier;
     }
 
-    public void repairAndVerifyTarArchive(InputStream inputStream, OutputStream outputStream, String tarId)
+    public DigestWithSize repairAndVerifyTarArchive(InputStream inputStream, OutputStream outputStream, String tarId)
         throws IOException, ObjectReferentialException {
-
         TarFileDigestVerifier tarFileDigestVerifier = tarFileDigestVerifierSupplier.get();
 
-        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
-            TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream)) {
 
-            try (TarAppender tarAppender = new TarAppender(outputStream, tarId, Long.MAX_VALUE)) {
+        Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
+        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream);
+            TaggedInputStream taggedEntryInputStream = new TaggedInputStream(tarArchiveInputStream);
+            CountingOutputStream countingOutputStream = new CountingOutputStream(outputStream);
+            OutputStream digestOutputStream = tarDigest.getDigestOutputStream(countingOutputStream)) {
+
+            try (TarAppender tarAppender = new TarAppender(digestOutputStream, tarId, Long.MAX_VALUE)) {
 
                 while (true) {
 
@@ -143,14 +148,22 @@ public class TarFileRapairer {
                 }
             }
             tarFileDigestVerifier.finalizeChecks();
+
+            return new DigestWithSize(
+                countingOutputStream.getByteCount(),
+                tarDigest.digestHex());
         }
     }
 
-    public void verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
+    public DigestWithSize verifyTarArchive(InputStream inputStream) throws IOException, ObjectReferentialException {
 
         TarFileDigestVerifier tarFileDigestVerifier = tarFileDigestVerifierSupplier.get();
 
-        try (TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(inputStream)) {
+        Digest tarDigest = new Digest(VitamConfiguration.getDefaultDigestType());
+        try (
+            CountingInputStream countingInputStream = new CountingInputStream(inputStream);
+            InputStream digestInputStream = tarDigest.getDigestInputStream(countingInputStream);
+            TarArchiveInputStream tarArchiveInputStream = new TarArchiveInputStream(digestInputStream)) {
 
             TarArchiveEntry tarEntry;
             while (null != (tarEntry = tarArchiveInputStream.getNextTarEntry())) {
@@ -159,11 +172,34 @@ public class TarFileRapairer {
                 Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
                 InputStream entryInputStream = new CloseShieldInputStream(tarArchiveInputStream);
                 digest.update(entryInputStream);
-                String entryDigest = digest.digestHex();
+                String entryDigestValue = digest.digestHex();
 
-                tarFileDigestVerifier.addDigestToCheck(tarEntryName, entryDigest);
+                tarFileDigestVerifier.addDigestToCheck(tarEntryName, entryDigestValue);
             }
             tarFileDigestVerifier.finalizeChecks();
+
+            return new DigestWithSize(
+                countingInputStream.getByteCount(),
+                tarDigest.digestHex());
+        }
+    }
+
+    public static class DigestWithSize {
+
+        private final long size;
+        private final String digestValue;
+
+        private DigestWithSize(long size, String digestValue) {
+            this.size = size;
+            this.digestValue = digestValue;
+        }
+
+        public long getSize() {
+            return size;
+        }
+
+        public String getDigestValue() {
+            return digestValue;
         }
     }
 }

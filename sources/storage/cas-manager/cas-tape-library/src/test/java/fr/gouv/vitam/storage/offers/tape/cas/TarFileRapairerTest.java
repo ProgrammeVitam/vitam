@@ -62,11 +62,13 @@ public class TarFileRapairerTest {
             // tarAppender.close();
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
             assertThat(tarFilePath.toFile().length()).isEqualTo(0);
-            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap(), digestWithSize);
         }
     }
 
@@ -82,11 +84,13 @@ public class TarFileRapairerTest {
             tarAppender.close();
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
             assertThat(tarFilePath.toFile().length()).isEqualTo(FOOTER_PADDING_SIZE);
-            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap(), digestWithSize);
         }
     }
 
@@ -106,10 +110,12 @@ public class TarFileRapairerTest {
             tarAppender.close();
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
         }
     }
 
@@ -131,10 +137,12 @@ public class TarFileRapairerTest {
             tarAppender.close();
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
         }
     }
 
@@ -156,10 +164,12 @@ public class TarFileRapairerTest {
             // tarAppender.close();
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
         }
     }
 
@@ -181,10 +191,12 @@ public class TarFileRapairerTest {
             truncateFile(tarFilePath, 100);
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap(), digestWithSize);
         }
     }
 
@@ -207,10 +219,12 @@ public class TarFileRapairerTest {
             truncateFile(tarFilePath, TarConstants.DEFAULT_RCDSIZE + 5);
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap());
+            verifyTarContent(repairedTarFilePath, emptyMap(), emptyMap(), digestWithSize);
         }
     }
 
@@ -233,10 +247,12 @@ public class TarFileRapairerTest {
             truncateFile(tarFilePath, tarFilePath.toFile().length() - FOOTER_PADDING_SIZE - 10);
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
         }
     }
 
@@ -260,10 +276,12 @@ public class TarFileRapairerTest {
             // tarAppender.close();
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
         }
     }
 
@@ -288,7 +306,9 @@ public class TarFileRapairerTest {
             truncateFile(tarFilePath, entryDescriptions.get("entry3").getStartPos() + 10);
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
             ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
@@ -298,7 +318,7 @@ public class TarFileRapairerTest {
             expectedEntryDescriptions.putAll(entryDescriptions);
             expectedEntryDescriptions.remove(entries.lastKey());
 
-            verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions);
+            verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions, digestWithSize);
         }
     }
 
@@ -323,7 +343,9 @@ public class TarFileRapairerTest {
             truncateFile(tarFilePath, entryDescriptions.get("entry3").getStartPos() + TarConstants.DEFAULT_RCDSIZE + 5);
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
             ListOrderedMap<String, byte[]> expectedEntries = new ListOrderedMap<>();
@@ -333,7 +355,7 @@ public class TarFileRapairerTest {
             expectedEntryDescriptions.putAll(entryDescriptions);
             expectedEntryDescriptions.remove(entries.lastKey());
 
-            verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions);
+            verifyTarContent(repairedTarFilePath, expectedEntries, expectedEntryDescriptions, digestWithSize);
         }
     }
 
@@ -358,10 +380,12 @@ public class TarFileRapairerTest {
             truncateFile(tarFilePath, tarFilePath.toFile().length() - FOOTER_PADDING_SIZE - 10);
 
             // When
-            Path repairedTarFilePath = repairAndVerify(tarFilePath, tarFileRapairer);
+            Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+            TarFileRapairer.DigestWithSize digestWithSize =
+                repairAndVerify(tarFilePath, tarFileRapairer, repairedTarFilePath);
 
             // Then
-            verifyTarContent(repairedTarFilePath, entries, entryDescriptions);
+            verifyTarContent(repairedTarFilePath, entries, entryDescriptions, digestWithSize);
         }
     }
 
@@ -376,19 +400,26 @@ public class TarFileRapairerTest {
         return entryDescriptions;
     }
 
-    private Path repairAndVerify(Path tarFilePath, TarFileRapairer tarFileRapairer)
+    private TarFileRapairer.DigestWithSize repairAndVerify(Path tarFilePath, TarFileRapairer tarFileRapairer,
+        Path repairedTarFilePath)
         throws IOException, ObjectReferentialException {
-        Path repairedTarFilePath = temporaryFolder.getRoot().toPath().resolve(TARGET_TAR_FILE_ID);
+        TarFileRapairer.DigestWithSize digestWithSize;
         try (InputStream inputStream = Files.newInputStream(tarFilePath);
             OutputStream outputStream = Files.newOutputStream(repairedTarFilePath)) {
-            tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, TAR_FILE_ID);
+            digestWithSize = tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, TAR_FILE_ID);
+            outputStream.flush();
         }
-        return repairedTarFilePath;
+        return digestWithSize;
     }
 
 
     private void verifyTarContent(Path repairedTarFilePath, Map<String, byte[]> entries,
-        Map<String, TarEntryDescription> entryDescriptions) throws IOException, ObjectReferentialException {
+        Map<String, TarEntryDescription> entryDescriptions,
+        TarFileRapairer.DigestWithSize digestWithSize) throws IOException, ObjectReferentialException {
+
+        assertThat(digestWithSize.getSize()).isEqualTo(repairedTarFilePath.toFile().length());
+        assertThat(digestWithSize.getDigestValue())
+            .isEqualTo(new Digest(DigestType.SHA512).update(repairedTarFilePath.toFile()).digestHex());
 
         verifyTarContent(repairedTarFilePath, entries);
 
