@@ -1,0 +1,14 @@
+---
+
+- name: Install docker
+  import_role:
+    name: docker
+
+- name: Deploy elasticsearch-head container
+  docker_container:
+    name: "elasticsearch-head"
+    image: "{{ elasticsearch_head_image }}:{{ elasticsearch_head_version }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{elasticsearch_head_external_port}}:{{elasticsearch_head_port}}"

@@ -12,13 +12,27 @@
     with_items:
     - docker
 
-  - name: add GPG docker repo key
-    apt_key:
-      url: "https://download.docker.com/linux/debian/gpg"
+# Need to wait for this bug to be resolved:
+# https://github.com/ansible/ansible/pull/42443
+  # - name: add GPG docker repo key
+  #   apt_key:
+  #     url: "https://download.docker.com/linux/debian/gpg"
+  #     state: present
+  #     validate_certs: no
+  #   environment:
+  #     https_proxy: "{{ http_proxy_environnement }}"
+  #     http_proxy:  "{{ http_proxy_environnement }}"
+
+  - name: Make sure curl is installed
+    package:
+      name: curl
       state: present
-      validate_certs: no
+
+  - name: add GPG docker repo key
+    shell: "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -"
     environment:
       https_proxy: "{{ http_proxy_environnement }}"
+      http_proxy:  "{{ http_proxy_environnement }}"
 
   - name: install apt-transport-https as Docker repository is https
     package:
@@ -117,32 +131,3 @@
     state: restarted
     daemon_reload: yes
     enabled: yes
-
-- name: Deploy mongo-express container
-  docker_container:
-    name: "mongo-express"
-    image: "mongo-express:{{mongo_express_version}}"
-    state: started
-    restart_policy: always
-    ports:
-      - "{{mongo_express_external_port}}:{{mongo_express_port}}"
-    # extra_hosts:
-    #     host1:  "{{ip_service}}"
-    env:
-      ME_CONFIG_MONGODB_SERVER: "{{ hostvars[groups['hosts-mongos-data']|last]['ip_service'] }}"
-      ME_CONFIG_MONGODB_PORT: "{{ mongodb.mongos_port }}"
-      ME_CONFIG_SITE_BASEURL: "/{{ mongo_express.baseuri }}/"
-      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
-      ME_CONFIG_MONGODB_ADMINUSERNAME: "{{ mongodb['mongo-data']['admin']['user'] }}"
-      ME_CONFIG_MONGODB_ADMINPASSWORD: "{{ mongodb['mongo-data']['admin']['password'] }}"
-
-- name: Deploy elasticsearch-head container
-  docker_container:
-    name: "elasticsearch-head"
-    image: "mobz/elasticsearch-head:{{elasticsearch_head_version}}"
-    state: started
-    restart_policy: always
-    ports:
-      - "{{elasticsearch_head_external_port}}:{{elasticsearch_head_port}}"
-    # extra_hosts:
-    #     host1:  "{{ip_service}}"
