@@ -147,8 +147,10 @@
 
     {% if groups['hosts-dev-tools']|length > 0 %}
     # Mongo express
-    ProxyPass /{{ mongo_express.baseuri }} http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:8081/{{ mongo_express.baseuri }} {{reverse_connection_short_params}}
-    ProxyPassReverse  /{{ mongo_express.baseuri }} http://{{hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:8081/{{ mongo_express.baseuri }}
+    {% for host in mongo_express_hosts %}
+    ProxyPass /{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }} http://{{ hostvars[host]['ip_service'] }}:8081/{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }} {{reverse_connection_short_params}}
+    ProxyPassReverse  /{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }} http://{{ hostvars[host]['ip_service'] }}:8081/{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }}
+    {% endfor %}
     # Elasticsearch-head
     ProxyPass /head http://{{hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/ {{reverse_connection_short_params}}
     ProxyPassReverse  /head http://{{ hostvars[groups['hosts-dev-tools'][0]]['ip_service'] }}:9100/

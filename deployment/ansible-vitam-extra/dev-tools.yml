@@ -7,4 +7,16 @@
 
 - hosts: hosts-dev-tools
   roles:
-    - {role: dev-tools, when: "inventory_hostname != 'localhost'"}
+    - {role: elasticsearch-head, when: "inventory_hostname != 'localhost'"}
+
+- hosts: hosts-mongos-data
+  roles:
+    - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
+  vars:
+    group_name: "hosts-mongos-data"
+
+- hosts: hosts-mongos-offer
+  roles:
+    - {role: mongo-express, when: "inventory_hostname != 'localhost'"}
+  vars:
+    group_name: "hosts-mongos-offer"
