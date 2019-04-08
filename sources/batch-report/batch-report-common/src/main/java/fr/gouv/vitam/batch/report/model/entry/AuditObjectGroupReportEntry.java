@@ -38,8 +38,6 @@ import fr.gouv.vitam.batch.report.model.ReportStatus;
  */
 public class AuditObjectGroupReportEntry extends ReportEntry {
 
-    @JsonProperty("objectGroupId")
-    private String objectGroupId;
     @JsonProperty("parentUnitIds")
     private List<String> parentUnitIds;
     @JsonProperty("originatingAgency")
@@ -58,21 +56,12 @@ public class AuditObjectGroupReportEntry extends ReportEntry {
     public AuditObjectGroupReportEntry(String objectGroupId, List<String> parentUnitIds, String originatingAgency,
             String opi, List<AuditObjectVersion> objectVersions, ReportStatus status, String outcome) {
         super(outcome, "objectGroup", objectGroupId);
-        this.objectGroupId = objectGroupId;
         this.parentUnitIds = parentUnitIds;
         this.originatingAgency = originatingAgency;
         this.opi = opi;
         this.status = status;
         this.objectVersions = objectVersions;
 
-    }
-
-    public String getObjectGroupId() {
-        return objectGroupId;
-    }
-
-    public void setObjectGroupId(String objectGroupId) {
-        this.objectGroupId = objectGroupId;
     }
 
     public List<String> getParentUnitIds() {

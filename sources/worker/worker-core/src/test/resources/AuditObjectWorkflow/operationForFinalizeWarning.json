@@ -1,0 +1,176 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [{
+    "_id": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+    "evId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+    "evParentId": null,
+    "evType": "PROCESS_AUDIT",
+    "evDateTime": "2019-04-05T07:55:28.723",
+    "evDetData": null,
+    "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+    "evTypeProc": "AUDIT",
+    "outcome": "STARTED",
+    "outDetail": "PROCESS_AUDIT.STARTED",
+    "outMessg": "Début de l'audit",
+    "agId": "{\"Name\":\"vitam-env-int-metadata-01.vitam-env\",\"Role\":\"functional-administration\",\"ServerId\":1042412568,\"SiteId\":1,\"GlobalPlatformId\":237106200}",
+    "agIdApp": "CT-000001",
+    "agIdPers": null,
+    "evIdAppSession": "MyApplicationId-ChangeIt",
+    "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+    "agIdExt": null,
+    "rightsStatementIdentifier": "{\"AccessContract\":\"ContratTNR\"}",
+    "obId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+    "obIdReq": null,
+    "obIdIn": null,
+    "events": [
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nliqaaaba",
+            "evParentId": null,
+            "evType": "STP_PREPARE_AUDIT.STARTED",
+            "evDateTime": "2019-04-05T07:55:29.058",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_PREPARE_AUDIT.STARTED.OK",
+            "outMessg": "Début du processus de préparation de l'audit",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "obId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nliqaaaaq",
+            "evParentId": null,
+            "evType": "STP_PREPARE_AUDIT",
+            "evDateTime": "2019-04-05T07:55:29.467",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_PREPARE_AUDIT.OK",
+            "outMessg": "Succès du processus de préparation de l'audit",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "obId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nopaaaaaq",
+            "evParentId": "aedqaaaaachlrapwabfv6alj5r7nliqaaaaq",
+            "evType": "CHECK_DISTRIBUTION_THRESHOLD",
+            "evDateTime": "2019-04-05T07:55:29.468",
+            "evDetData": "{}",
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "CHECK_DISTRIBUTION_THRESHOLD.OK",
+            "outMessg": "Succès de la vérification des seuils de limitation de traitement des unités archivistiques Detail=  OK:1",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nopaaaaba",
+            "evParentId": "aedqaaaaachlrapwabfv6alj5r7nliqaaaaq",
+            "evType": "LIST_OBJECTGROUP_ID",
+            "evDateTime": "2019-04-05T07:55:29.468",
+            "evDetData": "{}",
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "LIST_OBJECTGROUP_ID.OK",
+            "outMessg": "Succès de la création de la liste des groupes d'objets à auditer Detail=  OK:1",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nslqaaaba",
+            "evParentId": null,
+            "evType": "STP_AUDIT.STARTED",
+            "evDateTime": "2019-04-05T07:55:29.966",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_AUDIT.STARTED.OK",
+            "outMessg": "Début du processus d'exécution de l'audit",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "obId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nslqaaaaq",
+            "evParentId": null,
+            "evType": "STP_AUDIT",
+            "evDateTime": "2019-04-05T07:55:30.153",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "WARNING",
+            "outDetail": "STP_AUDIT.WARNING",
+            "outMessg": "Avertissement lors du processus d'exécution de l'audit",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "obId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nt2iaaaaq",
+            "evParentId": "aedqaaaaachlrapwabfv6alj5r7nslqaaaaq",
+            "evType": "OBJECTS_LIST_EMPTY",
+            "evDateTime": "2019-04-05T07:55:30.153",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "WARNING",
+            "outDetail": "OBJECTS_LIST_EMPTY.WARNING",
+            "outMessg": "Avertissement lors de l'établissement de la liste des objets : il n'y a pas d'objet pour cette étape",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "obId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        },
+        {
+            "evId": "aedqaaaaachlrapwabfv6alj5r7nvtqaaaba",
+            "evParentId": null,
+            "evType": "STP_FINALISE_AUDIT.STARTED",
+            "evDateTime": "2019-04-05T07:55:30.382",
+            "evDetData": null,
+            "evIdProc": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "evTypeProc": "AUDIT",
+            "outcome": "OK",
+            "outDetail": "STP_FINALISE_AUDIT.STARTED.OK",
+            "outMessg": "Début du processus de finalisation de l'audit",
+            "agId": "{\"Name\":\"vitam-env-int-processing-01.vitam-env\",\"Role\":\"processing\",\"ServerId\":1052279286,\"SiteId\":1,\"GlobalPlatformId\":246972918}",
+            "agIdPers": null,
+            "evIdReq": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq",
+            "obId": "aeeaaaaaachgzebuab35oalj5r7ng7aaaaaq"
+        }
+    ],
+    "_tenant": 0,
+    "_v": 7,
+    "_lastPersistedDate": "2019-04-05T07:55:30.860"
+}],
+  "$context": {
+    "$query": {
+      "$and": [
+        {
+          "$eq": {
+            "evIdProc": "aeeaaaaaachlmb32abcaealj3uvnzgaaaaaq"
+          }
+        }
+      ]
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

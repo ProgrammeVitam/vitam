@@ -219,7 +219,7 @@ public class BatchReportServiceImplTest {
             .thenReturn(fakeMongoCursor);
         when(preservationReportRepository.stats(processId, TENANT_ID)).thenReturn(preservationStatus);
 
-        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
         ReportResults reportResults = new ReportResults(1, 0, 0, 1);
         ReportSummary reportSummary = new ReportSummary(null, null, ReportType.PRESERVATION, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
@@ -261,7 +261,7 @@ public class BatchReportServiceImplTest {
             .thenReturn(fakeMongoCursor);
         when(auditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
 
-        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
         ReportResults reportResults = new ReportResults(1, 0, 0, 1);
         ReportSummary reportSummary = new ReportSummary(null, null, ReportType.AUDIT, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
@@ -313,7 +313,7 @@ public class BatchReportServiceImplTest {
 
 
 
-        OperationSummary operationSummary = new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        OperationSummary operationSummary = new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
         ReportResults reportResults = new ReportResults(1, 0, 0, 1);
         ReportSummary reportSummary = new ReportSummary(null, null, ReportType.ELIMINATION_ACTION, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();

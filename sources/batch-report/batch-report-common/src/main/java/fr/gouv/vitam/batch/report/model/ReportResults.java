@@ -51,4 +51,38 @@ public class ReportResults {
         this.nbWarning = nbWarning;
         this.total = total;
     }
+
+    public Integer getNbOk() {
+        return nbOk;
+    }
+
+    public void setNbOk(Integer nbOk) {
+        this.nbOk = nbOk;
+    }
+
+    public Integer getNbKo() {
+        return nbKo;
+    }
+
+    public void setNbKo(Integer nbKo) {
+        this.nbKo = nbKo;
+    }
+
+    public Integer getNbWarning() {
+        return nbWarning;
+    }
+
+    public void setNbWarning(Integer nbWarning) {
+        this.nbWarning = nbWarning;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
+    }
+    
+    
 }

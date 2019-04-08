@@ -77,6 +77,7 @@ public class PreservationFinalizationPlugin extends ActionHandler {
         String evId = param.getRequestId();
         String evType = ""; // FIXME To be Fill in a post commit
         String outcome = ""; // FIXME To be Fill in a post commit
+        String outDetail = ""; // FIXME To be Fill in a post commit
         String outMsg = ""; // FIXME To be Fill in a post commit
         // VitamThreadUtils.getVitamSession().getContractId();
         // VitamThreadUtils.getVitamSession().getContextId();
@@ -84,7 +85,7 @@ public class PreservationFinalizationPlugin extends ActionHandler {
         // FIXME: What should we put in rightsStatementIdentifier for Preservation ?
         JsonNode rSI = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
         JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, evType, outcome, outMsg, rSI, evDetData);
+        OperationSummary operationSummary = new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
 
         String startDate = null; // FIXME To be Fill in a post commit
         String endDate = LocalDateUtil.getString(LocalDateTime.now());

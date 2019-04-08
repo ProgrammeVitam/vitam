@@ -110,7 +110,7 @@ public class AuditReportServiceTest {
     @Test
     public void should_store_does_not_throw_any_exception() {
 
-        OperationSummary operationSummary = new OperationSummary(tenantId, processId, "", "", "",
+        OperationSummary operationSummary = new OperationSummary(tenantId, processId, "", "", "", "",
                 JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
         ReportSummary reportSummary = new ReportSummary(null, null, ReportType.AUDIT, new ReportResults(),
                 JsonHandler.createObjectNode());

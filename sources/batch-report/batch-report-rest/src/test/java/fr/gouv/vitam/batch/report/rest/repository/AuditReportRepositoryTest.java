@@ -50,6 +50,7 @@ import fr.gouv.vitam.batch.report.model.AuditObjectGroupModel;
 import fr.gouv.vitam.batch.report.model.AuditStatsModel;
 import fr.gouv.vitam.batch.report.model.ReportStatus;
 import fr.gouv.vitam.batch.report.model.ReportItemStatus;
+import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.AuditObjectVersion;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -71,9 +72,9 @@ public class AuditReportRepositoryTest {
     private AuditReportRepository repository;
 
     private MongoCollection<Document> auditReportCollection;
-    private AuditObjectGroupModel auditReportEntry1;
-    private AuditObjectGroupModel auditReportEntry2;
-    private AuditObjectGroupModel auditReportEntry3;
+    private AuditObjectGroupModel auditReportEntryKO;
+    private AuditObjectGroupModel auditReportEntryOK;
+    private AuditObjectGroupModel auditReportEntryWARNING;
     private String processId;
 
     @Before
@@ -90,7 +91,7 @@ public class AuditReportRepositoryTest {
                 .add(generateVersion("objectId2", "objectOpi2", "objectQualifier2", "objectVersion2", ReportStatus.OK, ReportStatus.KO, ReportStatus.KO));
         AuditObjectGroupReportEntry auditObjectGroupEntry1 = new AuditObjectGroupReportEntry("objectGroupId1",
                 Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions1, ReportStatus.KO, "outcome");
-        auditReportEntry1 = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
+        auditReportEntryKO = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry1, TENANT_ID);
 
         List<AuditObjectVersion> objectVersions2 = new ArrayList<AuditObjectVersion>();
@@ -100,7 +101,7 @@ public class AuditReportRepositoryTest {
                 .add(generateVersion("objectId4", "objectOpi2", "objectQualifier2", "objectVersion2", ReportStatus.OK, ReportStatus.OK, ReportStatus.OK));
         AuditObjectGroupReportEntry auditObjectGroupEntry2 = new AuditObjectGroupReportEntry("objectGroupId2",
                 Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions2, ReportStatus.OK, "outcome");
-        auditReportEntry2 = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
+        auditReportEntryOK = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry2, TENANT_ID);
 
         List<AuditObjectVersion> objectVersions3 = new ArrayList<AuditObjectVersion>();
@@ -111,7 +112,7 @@ public class AuditReportRepositoryTest {
         AuditObjectGroupReportEntry auditObjectGroupEntry3 = new AuditObjectGroupReportEntry("objectGroupId3",
                 Collections.singletonList("unitId"), "originatingAgency2", "opi", objectVersions3, ReportStatus.WARNING,
                 "outcome");
-        auditReportEntry3 = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
+        auditReportEntryWARNING = new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
                 LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditObjectGroupEntry3, TENANT_ID);
 
     }
@@ -119,7 +120,7 @@ public class AuditReportRepositoryTest {
     @Test
     public void should_append_report() throws InvalidParseOperationException {
         // Given
-        populateDatabase(auditReportEntry1);
+        populateDatabase(auditReportEntryKO);
 
         // When
         Document report = auditReportCollection
@@ -130,14 +131,14 @@ public class AuditReportRepositoryTest {
         Object metadata = report.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         assertThat(report.get(AuditObjectGroupModel.PROCESS_ID)).isEqualTo(processId);
-        assertThat(metadataNode.get("id").asText()).isEqualTo(auditReportEntry1.getMetadata().getObjectGroupId());
-        assertThat(metadataNode.get("status").asText()).isEqualTo(auditReportEntry1.getMetadata().getStatus().name());
+        assertThat(metadataNode.get("id").asText()).isEqualTo(auditReportEntryKO.getMetadata().getDetailId());
+        assertThat(metadataNode.get("status").asText()).isEqualTo(auditReportEntryKO.getMetadata().getStatus().name());
     }
 
     @Test
     public void should_find_collection_by_processid_tenant() {
         // Given
-        populateDatabase(auditReportEntry1);
+        populateDatabase(auditReportEntryKO);
         // When
         MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
 
@@ -153,7 +154,7 @@ public class AuditReportRepositoryTest {
     @Test
     public void should_find_collection_by_processid_tenant_status() {
         // Given
-        populateDatabase(auditReportEntry1, auditReportEntry2, auditReportEntry3);
+        populateDatabase(auditReportEntryKO, auditReportEntryOK, auditReportEntryWARNING);
         // When
         MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenantAndStatus(processId, TENANT_ID,
                 "WARNING", "KO");
@@ -166,11 +167,25 @@ public class AuditReportRepositoryTest {
         }
         assertThat(documents.size()).isEqualTo(2);
     }
+    
+    @Test
+    public void should_generate_vitamResults() throws InvalidParseOperationException {
+        // Given
+        populateDatabase(auditReportEntryKO, auditReportEntryOK, auditReportEntryWARNING);
+
+        // When
+        ReportResults reportResult = repository.computeVitamResults(processId, TENANT_ID);
+
+        // Then
+        assertThat(reportResult.getNbOk()).isEqualTo(1);
+        assertThat(reportResult.getNbWarning()).isEqualTo(1);
+        assertThat(reportResult.getNbKo()).isEqualTo(1);
+    }
 
     @Test
     public void should_generate_statistic() {
         // Given
-        populateDatabase(auditReportEntry1);
+        populateDatabase(auditReportEntryKO);
 
         // When
         AuditStatsModel stats = repository.stats(processId, TENANT_ID);
@@ -196,7 +211,7 @@ public class AuditReportRepositoryTest {
     @Test
     public void should_generate_statistic_for_three_objects() {
         // Given
-        populateDatabase(auditReportEntry1, auditReportEntry2, auditReportEntry3);
+        populateDatabase(auditReportEntryKO, auditReportEntryOK, auditReportEntryWARNING);
 
         // When
         AuditStatsModel stats = repository.stats(processId, TENANT_ID);
@@ -240,7 +255,7 @@ public class AuditReportRepositoryTest {
     @Test
     public void should_delete_report_by_id_and_tenant() {
         // Given
-        populateDatabase(auditReportEntry1, auditReportEntry2, auditReportEntry3);
+        populateDatabase(auditReportEntryKO, auditReportEntryOK, auditReportEntryWARNING);
         // When
         repository.deleteReportByIdAndTenant(processId, TENANT_ID);
         // Then

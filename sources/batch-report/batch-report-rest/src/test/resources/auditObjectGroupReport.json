@@ -3,10 +3,9 @@
 	"reportType": "AUDIT",
 	"entries": [
 		{
-			"outcome": "outcome",
+			"outcome": "KO",
 			"detailType": "objectGroup",
-			"id": "aeaaaaaaaagw45nxaannialhchkfv4yaqqqq",
-			"objectGroupId": "objectGroupId",
+			"id": "objectGroupId",
 			"originatingAgency": "originatingAgency",
 			"opi": "opi",
 			"parentUnitIds": [
