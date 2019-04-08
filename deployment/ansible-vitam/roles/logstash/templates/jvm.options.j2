@@ -3,8 +3,8 @@
 # Xms represents the initial size of total heap space
 # Xmx represents the maximum size of total heap space
 
--Xms{{ (ansible_memory_mb.real.total / 8) | int }}m
--Xmx{{ (ansible_memory_mb.real.total / 4) | int }}m
+-Xms{{ logstash.jvm_xms | default( (ansible_memory_mb.real.total / 8) | int ) }}m
+-Xmx{{ logstash.jvm_xmx | default( (ansible_memory_mb.real.total / 4) | int ) }}m
 
 ################################################################
 ## Expert settings

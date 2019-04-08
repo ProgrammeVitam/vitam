@@ -53,6 +53,9 @@ logstash:
     user: logstash
     port: 10514
     rest_port: 20514
+    # logstash xms & xmx in Megabytes
+    # jvm_xms: 2048
+    # jvm_xmx: 2048
 
 # Curator units: days
 curator:
