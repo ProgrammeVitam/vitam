@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
@@ -65,19 +64,19 @@ public class WriteOrderCreatorBootstrapRecovery {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WriteOrderCreatorBootstrapRecovery.class);
 
-    private final TapeLibraryConfiguration configuration;
+    private final String inputTarStorageFolder;
     private final ObjectReferentialRepository objectReferentialRepository;
     private final TarReferentialRepository tarReferentialRepository;
     private final BucketTopologyHelper bucketTopologyHelper;
     private final WriteOrderCreator writeOrderCreator;
 
-    public WriteOrderCreatorBootstrapRecovery(TapeLibraryConfiguration configuration,
-        ObjectReferentialRepository objectReferentialRepository,
+    public WriteOrderCreatorBootstrapRecovery(
+        String inputTarStorageFolder, ObjectReferentialRepository objectReferentialRepository,
         TarReferentialRepository tarReferentialRepository,
         BucketTopologyHelper bucketTopologyHelper,
         WriteOrderCreator writeOrderCreator) {
+        this.inputTarStorageFolder = inputTarStorageFolder;
 
-        this.configuration = configuration;
         this.objectReferentialRepository = objectReferentialRepository;
         this.tarReferentialRepository = tarReferentialRepository;
         this.bucketTopologyHelper = bucketTopologyHelper;
@@ -90,7 +89,7 @@ public class WriteOrderCreatorBootstrapRecovery {
 
             for (String fileBucket : bucketTopologyHelper.listFileBuckets()) {
 
-                Path fileBucketTarStoragePath = Paths.get(configuration.getInputTarStorageFolder()).resolve(fileBucket);
+                Path fileBucketTarStoragePath = Paths.get(inputTarStorageFolder).resolve(fileBucket);
                 if (fileBucketTarStoragePath.toFile().exists()) {
                     recoverFileBucketTars(fileBucket, fileBucketTarStoragePath);
                 }

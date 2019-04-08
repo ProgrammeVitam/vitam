@@ -75,7 +75,8 @@ public class TapeStorageFactory {
             tarReferentialRepository, readWriteQueue);
 
         WriteOrderCreatorBootstrapRecovery
-            writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(configuration, objectReferentialRepository,
+            writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
+            configuration.getInputTarStorageFolder(), objectReferentialRepository,
             tarReferentialRepository, bucketTopologyHelper, writeOrderCreator);
 
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
