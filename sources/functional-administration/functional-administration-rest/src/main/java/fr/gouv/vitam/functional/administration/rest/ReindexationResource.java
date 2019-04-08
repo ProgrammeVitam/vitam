@@ -117,7 +117,6 @@ public class ReindexationResource {
 
     /**
      * Default Constructor
-     * 
      */
     public ReindexationResource() {
         logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
@@ -253,12 +252,10 @@ public class ReindexationResource {
                         JsonHandler.getFromJsonNode(metadataClient.switchIndexes(switchIndex), IndexationResult.class));
                     atLeastOneOK.set(true);
                 } else {
-                    FunctionalAdminCollections collectionToSwitch;
                     try {
-                        collectionToSwitch = FunctionalAdminCollections.getFromValue(switchIndex.getAlias());
                         IndexationHelper.switchIndex(switchIndex.getIndexName().split("_")[0],
                             switchIndex.getIndexName().toLowerCase(),
-                            collectionToSwitch.getEsClient());
+                            FunctionalAdminCollections.ACCESS_CONTRACT.getEsClient());//We need an Es client, we take this one
                         atLeastOneOK.set(true);
                     } catch (IllegalArgumentException e) {
                         String message = String.format("Try to switch indexes on unknown collection %s", switchIndex
