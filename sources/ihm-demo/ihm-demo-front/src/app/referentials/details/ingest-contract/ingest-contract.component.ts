@@ -68,7 +68,7 @@ export class IngestContractComponent extends PageComponent {
   }
 
   displayCheckParentLink(test: string): string {
-    return this.selectionOptions.find((item) => item.value == test).label;
+    return this.selectionOptions.find((item) => item.value === test).label;
   }
 
   changeStatus() {
@@ -154,7 +154,7 @@ export class IngestContractComponent extends PageComponent {
     if (this.contract.DataObjectVersion === undefined) {
       this.contract.DataObjectVersion = [];
     }
-    if (this.contract.CheckParentId === undefined) {
+    if (this.contract.CheckParentId) {
       this.contract.CheckParentId = [];
     }
     this.modifiedContract = ObjectsService.clone(this.contract);

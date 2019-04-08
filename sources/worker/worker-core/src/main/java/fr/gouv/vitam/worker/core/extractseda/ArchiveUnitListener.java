@@ -268,10 +268,12 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             String elementGUID = GUIDFactory.newUnitGUID(ParameterHelper.getTenantParameter()).toString();
 
-            if (archiveUnitType.getManagement() != null &&
-                archiveUnitType.getManagement().getUpdateOperation() != null &&
-                (archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null ||
-                    archiveUnitType.getManagement().getUpdateOperation().getArchiveUnitIdentifierKey() != null)) {
+            boolean isValidAttachment = archiveUnitType.getManagement() != null
+                && archiveUnitType.getManagement().getUpdateOperation() != null
+                && (archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null
+                    || archiveUnitType.getManagement().getUpdateOperation().getArchiveUnitIdentifierKey() != null);
+
+            if (isValidAttachment) {
                 elementGUID = attachArchiveUnitToExisting(archiveUnitType, sedaAchiveUnitId);
             }
 

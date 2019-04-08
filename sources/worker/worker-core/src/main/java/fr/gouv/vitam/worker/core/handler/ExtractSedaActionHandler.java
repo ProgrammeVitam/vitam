@@ -949,9 +949,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
 
-            if (ingestContract != null
+            boolean attachmentsNotAuthorizedByIngestContract = ingestContract != null
                 && IngestContractCheckState.REQUIRED.equals(ingestContract.getCheckParentLink())
-                && existingUnitGuids.isEmpty()) {
+                && existingUnitGuids.isEmpty();
+            if (attachmentsNotAuthorizedByIngestContract) {
                 throw new ProcessingAttachmentRequiredException(
                     "ingest contract requires at least one existing archive unit to attach, but not found in manifest");
             }
