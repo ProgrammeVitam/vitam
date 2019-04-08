@@ -1,0 +1,6 @@
+.. _1.4.14_to_1.4.15: 
+
+Montée de version 1.4.14 vers 1.4.15
+####################################
+
+La montée de version 1.4.14 (« R7.14 ») vers 1.4.15 (« R7.15 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 

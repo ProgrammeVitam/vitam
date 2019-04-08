@@ -1,14 +1,119 @@
+.. _1.4.9_to_1.10.3: 
+
 Montée de version 1.4.9 vers 1.10.3
-###################################
+####################################
 
-.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R7 » (1.4.12).
+.. caution:: Il est recommandé de réaliser la migration en respectant les chemins de montées de version jusqu'à la dernière version « R7 » disponible, à savoir la version « R7.9 » (1.4.9) lors de la publication du présent document.
 
-Montée de version 1.4.9 vers 1.4.12
-===================================
+La montée de version 1.4.9 (« R7.9 ») vers 1.10.3 (« R8.3 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
 
-Se référer au chapitre :ref:`1.4.9_to_1.4.12`.
+Prérequis à l'installation
+==========================
 
-Montée de version 1.4.12 vers 1.10.3
-====================================
+Arrêt des timers systemd
+------------------------
 
-Se référer au chapitre :ref:`1.4.12_to_1.10.3`.
+Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass``
+
+A l'issue de ce `playbook`, les `timers` systemD ont été arrêtés, afin de ne pas perturber la migration.
+
+Il est également recommandé de ne lancer la procédure de migration qu'une fois s'être assuré qu'aucun `workflow` n'est actuellement en cours de traitement.
+
+Upgrade Mongodb 3.4 vers 4.0
+----------------------------
+
+La montée de version « R7 » vers « R8 » comprend une montée de version de MongoDB de la version 3.4 à la version 4.0. 
+
+Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+* Stopper Vitam (playbook ``ansible-vitam-exploitation/stop_vitam.yml``)
+* Démarrer les différents cluster mongodb (playbook ``ansible-vitam-exploitation/start_mongodb.yml``)
+* Upgrader mongodb en 3.6 (playbook ``ansible-vitam-exploitation/migration_mongodb_36.yml``)
+* Upgrader mongodb en 4.0 (playbook ``ansible-vitam-exploitation/migration_mongodb_40.yml``)
+* Démarrer Vitam (playbook ``ansible-vitam-exploitation/start_vitam.yml``)
+
+Reprise des données de certificats
+----------------------------------
+
+La version « R8 » apporte une nouvelle fonctionnalité permettant la révocation des certificats SIA et Personae afin d'empecher des accès non autorisés aux API Vitam (vérification dans la couche https des CRL). Cette fonctionnalité impose d'effectuer une reprise des données des certificats (base MongoDB identity, collections Certificate et PersonalCertificate). 
+
+Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook ansible-vitam-exploitation/migration_r7_certificates.yml --ask-vault-pass``
+
+Etapes post-installation 
+========================
+
+Dans le cadre d'une montée de version « R7 » vers « R8 », il est nécessaire d'appliquer un `playbook` de migration de données à l'issue de réinstallation de la solution logicielle :term:`VITAM`. 
+
+.. caution:: Dans le cadre d'une installation multi-sites, il faut d'abord lancer la migration des données sur le site secondaire afin de purger les registres des fonds, ensuite lancer la migration sur le site primaire puis enfin lancer la reconstruction des registres des fonds sur le site secondaire.
+
+Procédure de migration des données
+----------------------------------
+
+Lancer les commandes ci-après dans l'ordre suivant :
+
+  1. D'abord sur le site secondaire pour purger les registres des fonds
+  2. Ensuite sur le site primaire pour la migration des registres des fonds.
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r8.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r8.yml --ask-vault-pass``
+
+.. warning:: Selon la volumétrie des données précédement chargées, le `playbook` peut durer jusqu'à plusieurs heures.
+
+.. note:: Durant le temps des migrations, il est fortement recommandé de ne pas procéder à des injections de données. Le `playbook` se charge d'arrêter les composants "ingest-external" et "access-external", de réaliser les opérations de migration des données, puis de redémarrer les composants "ingest-external" et "access-external".
+
+Les changements apportés par la migration « R7 » vers « R8 » sont :
+
+    - Les registres des fonds (Accession Registers)
+        - Diff AccessionRegisterDetail:
+            - Suppression du champs ``Identifier``, remplacé par ``Opc`` (Opération courante)
+            - Suppression du champs ``OperationGroup``, remplacé par ``Opi`` (Opération d'ingest)
+            - Suppression du champs ``Symbolic``
+            - Suppression des champs ``attached``, ``detached``, ``symbolicRemained`` des sous objets ("TotalUnits", "TotalObjectGroups", "TotalObjects", "ObjectSize")
+            - Ajout d'un sous objet ``Events``
+
+
+        - Diff AccessionRegisterSummary:
+            - Suppression des champs ``attached``, ``detached``, ``symbolicRemained`` des sous objets ("TotalUnits", "TotalObjectGroups", "TotalObjects", "ObjectSize")
+
+    - Le journal des opérations
+        - On n'aura que les données du registre des fonds selon le nouveau modèle dans le ``evDetData`` du journal de l'opération d'`ingest`.
+
+.. note:: Se reporter à la documentation du nouveau modèle de données de la R8.
+
+.. warning:: En cas de souci, contacter l'équipe support.
+
+Après la migration des données
+------------------------------
+
+A l'issue de la bonne exécution du `playbook`, il faut lancer la commande suivante pour réactiver les `timers` systemD sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --vault-password-file vault_pass.txt``
+
+ou, si vault_pass.txt n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --ask-vault-pass``
+
+Une fois le site secondaire `up`
+--------------------------------
+
+Sur le site secondaire, vérifier que le processus de reconstruction des registres des fonds  s'est bien démarré, sur les machines hébergeant le composant "functional-administration".
+
+La commande à passer en tant que root est la suivante :
+
+``systemctl status vitam-functional-administration-accession-register-reconstruction.service``
+
+Vérification de la bonne migration des données
+----------------------------------------------
+
+A l'issue de la migration, il est fortement conseillé de lancer un "Audit de cohérence" sur les différents tenants.
