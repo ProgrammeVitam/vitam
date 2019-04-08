@@ -1,11 +1,11 @@
-.. _1.4.12_to_2.1.1: 
+.. _1.4.15_to_2.1.4: 
 
-Montée de version 1.4.12 vers 2.1.1
+Montée de version 1.4.15 vers 2.1.4
 ####################################
 
-La montée de version 1.4.12 (« R7.12 ») vers 2.1.1 (« R9.1 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
+.. caution:: Il est recommandé de réaliser la migration en respectant les chemins de montées de version jusqu'à la dernière version « R7 » disponible, à savoir la version « R7.15 » (1.4.15) lors de la publication du présent document.
 
-.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R7 » (1.4.12).
+La montée de version 1.4.15 (« R7.15 ») vers 2.1.4 (« R9.4 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
 
 Prérequis à l'installation
 ==========================
@@ -104,6 +104,17 @@ Les changements apportés par la migration « R7 » vers « R9 » sont :
 .. note:: Se reporter à la documentation du nouveau modèle de données de la R9.
 
 .. warning:: En cas de souci, contacter l'équipe support.
+
+Procédure de réindexation des ObjectGroup 
+------------------------------------------
+
+Lancer le *playbok* :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r9.yml --ask-vault-pass``
+
+Les changement apportés touchent le mapping Elasticsearch sur l'attribut ``qualifier.version`` de la collection ``ObjectGroup`` (passé en nested)
+
+.. note:: Ce *playbook* ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de verifier que la procedure de migration est OK. A l'issue de cette vérification, la suppression des index devenus inutiles doit etre realisée manuellement.
 
 Après la migration des données
 ------------------------------
