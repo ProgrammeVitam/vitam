@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -41,8 +39,6 @@ import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
-import org.apache.commons.io.input.CountingInputStream;
-import org.apache.commons.io.output.CountingOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,22 +61,21 @@ public class WriteOrderCreatorBootstrapRecovery {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WriteOrderCreatorBootstrapRecovery.class);
 
     private final String inputTarStorageFolder;
-    private final ObjectReferentialRepository objectReferentialRepository;
     private final TarReferentialRepository tarReferentialRepository;
     private final BucketTopologyHelper bucketTopologyHelper;
     private final WriteOrderCreator writeOrderCreator;
+    private final TarFileRapairer tarFileRapairer;
 
     public WriteOrderCreatorBootstrapRecovery(
-        String inputTarStorageFolder, ObjectReferentialRepository objectReferentialRepository,
+        String inputTarStorageFolder,
         TarReferentialRepository tarReferentialRepository,
         BucketTopologyHelper bucketTopologyHelper,
-        WriteOrderCreator writeOrderCreator) {
+        WriteOrderCreator writeOrderCreator, TarFileRapairer tarFileRapairer) {
         this.inputTarStorageFolder = inputTarStorageFolder;
-
-        this.objectReferentialRepository = objectReferentialRepository;
         this.tarReferentialRepository = tarReferentialRepository;
         this.bucketTopologyHelper = bucketTopologyHelper;
         this.writeOrderCreator = writeOrderCreator;
+        this.tarFileRapairer = tarFileRapairer;
     }
 
     public void initializeOnBootstrap() {
@@ -252,12 +247,10 @@ public class WriteOrderCreatorBootstrapRecovery {
         }
     }
 
-    private TarFileRapairer.DigestWithSize verifyTarArchive(Path tarFile) throws IOException, ObjectReferentialException {
+    private TarFileRapairer.DigestWithSize verifyTarArchive(Path tarFile)
+        throws IOException, ObjectReferentialException {
 
         try (InputStream inputStream = Files.newInputStream(tarFile, StandardOpenOption.READ)) {
-
-            TarFileRapairer tarFileRapairer = new TarFileRapairer(
-                this.objectReferentialRepository);
             return tarFileRapairer.verifyTarArchive(inputStream);
         }
     }
@@ -274,7 +267,6 @@ public class WriteOrderCreatorBootstrapRecovery {
         try (InputStream inputStream = Files.newInputStream(tmpTarFilePath, StandardOpenOption.READ);
             OutputStream outputStream = new ExtendedFileOutputStream(finalFilePath, true)) {
 
-            TarFileRapairer tarFileRapairer = new TarFileRapairer(this.objectReferentialRepository);
             digestWithSize = tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, tarId);
         }
 

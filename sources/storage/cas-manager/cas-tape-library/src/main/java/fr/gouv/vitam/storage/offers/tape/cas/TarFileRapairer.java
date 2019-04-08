@@ -189,7 +189,7 @@ public class TarFileRapairer {
         private final long size;
         private final String digestValue;
 
-        private DigestWithSize(long size, String digestValue) {
+        DigestWithSize(long size, String digestValue) {
             this.size = size;
             this.digestValue = digestValue;
         }

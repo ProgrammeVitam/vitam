@@ -36,6 +36,7 @@ import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
 import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
+import fr.gouv.vitam.storage.offers.tape.cas.TarFileRapairer;
 import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
 import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreatorBootstrapRecovery;
@@ -74,10 +75,11 @@ public class TapeStorageFactory {
         WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
             tarReferentialRepository, readWriteQueue);
 
+        TarFileRapairer tarFileRapairer = new TarFileRapairer(objectReferentialRepository);
         WriteOrderCreatorBootstrapRecovery
             writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
-            configuration.getInputTarStorageFolder(), objectReferentialRepository,
-            tarReferentialRepository, bucketTopologyHelper, writeOrderCreator);
+            configuration.getInputTarStorageFolder(), tarReferentialRepository,
+            bucketTopologyHelper, writeOrderCreator, tarFileRapairer);
 
         writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
 
