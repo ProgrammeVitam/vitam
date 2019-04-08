@@ -124,7 +124,11 @@
 {% if groups['hosts-dev-tools']|length >0 %}
 					<p class="row" style="vertical-align: middle">
 						<div class="col-md-3">MongoDB</div>
-						<div class="col-md-2"><a href="/{{ mongo_express.baseuri }}" class="btn btn-primary btn-xs" target="_blank">Mongo express</a></div>
+						<div class="col-md-9">
+						{% for host in mongo_express_hosts %}
+						<a href="/{{ mongo_express.baseuri }}-{{ hostvars[host]['mongo_cluster_name'] }}" class="btn btn-primary btn-xs" target="_blank">Mongo express {{ hostvars[host]['mongo_cluster_name'] }}</a>
+					    {% endfor %}
+						</div>
 					</p>
 {% endif %}
 

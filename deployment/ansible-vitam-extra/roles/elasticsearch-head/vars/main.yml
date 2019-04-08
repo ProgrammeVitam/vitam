@@ -1,0 +1,6 @@
+---
+
+elasticsearch_head_version: "5-alpine"
+elasticsearch_head_port: 9100
+elasticsearch_head_external_port: 9100
+elasticsearch_head_image: "mobz/elasticsearch-head"

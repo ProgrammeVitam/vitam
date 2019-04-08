@@ -1,5 +1,7 @@
 ---
 
+- import_tasks: mongo_compute.yml
+
 - name: Set apache service name for CentOS
   set_fact:
     apache_service: "httpd"

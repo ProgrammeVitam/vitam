@@ -1,0 +1,17 @@
+---
+
+- name: Get mongo_cluster_list
+  set_fact:
+    mongo_cluster_list: "{{ mongo_cluster_list + [hostvars[item]['mongo_cluster_name']] }}"
+  when: hostvars[item]['mongo_cluster_name'] not in mongo_cluster_list
+  with_items:
+    - "{{ groups['hosts-mongos-data'] + groups['hosts-mongos-offer'] }}"
+
+- name: Compute the mongos server list
+  set_fact:
+    mongo_cluster_list_to_process: "{{ mongo_cluster_list_to_process + [hostvars[item]['mongo_cluster_name']] }}"
+    mongo_express_hosts: "{{ mongo_express_hosts + [item] }}"
+  when:
+    - "hostvars[item]['mongo_cluster_name'] not in mongo_cluster_list_to_process"
+  with_items:
+    - "{{ groups['hosts-mongos-data'] + groups['hosts-mongos-offer'] }}"
