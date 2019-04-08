@@ -1,5 +1,5 @@
-R6
-##
+R6 (V1, deprecated)
+###################
 
 .. toctree::
    :glob:
