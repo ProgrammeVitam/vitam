@@ -1,0 +1,29 @@
+Montée de version 1.4.5 vers 2.1.4
+###################################
+
+.. caution:: Il est recommandé de réaliser la migration en respectant les chemins de montées de version jusqu'à la dernière version « R7 » disponible, à savoir la version « R7.15 » (1.4.15) lors de la publication du présent document.
+
+Montée de version 1.4.5 vers 1.4.9
+==================================
+
+Se référer au chapitre :ref:`1.4.5_to_1.4.9`.
+
+Montée de version 1.4.9 vers 1.4.12
+===================================
+
+Se référer au chapitre :ref:`1.4.9_to_1.4.12`.
+
+Montée de version 1.4.12 vers 1.4.14
+====================================
+
+Se référer au chapitre :ref:`1.4.12_to_1.4.14`.
+
+Montée de version 1.4.14 vers 1.4.15
+====================================
+
+Se référer au chapitre :ref:`1.4.14_to_1.4.15`.
+
+Montée de version 1.4.15 vers 2.1.4
+===================================
+
+Se référer au chapitre :ref:`1.4.15_to_2.1.4`.

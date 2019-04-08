@@ -1,0 +1,8 @@
+.. _1.4.12_to_1.4.14: 
+
+Montée de version 1.4.12 vers 1.4.14
+####################################
+
+La montée de version 1.4.12 (« R7.12 ») vers 1.4.14 (« R7.14 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
+
+.. caution:: Suite à l'annonce par Debian du retrait des jessie-backports de leurs dépôts, en cas de déploiement de VITAM sur Debian 8, il sera nécessaire d'intégrer le package openjdk-8-jre-headless dans un dépôt accessible par les machines de l'inventaire de déploiement. Ce problème fera l'objet d'une évolution dans une prochaine version corrective R7 (cf. release note) afin que le package openjdk-8-jre-headless soit livré par VITAM dans le dépôt vitam-external. 

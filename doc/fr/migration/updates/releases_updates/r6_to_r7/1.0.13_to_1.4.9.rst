@@ -1,11 +1,11 @@
-.. _1.0.13_to_1.4.12: 
+.. _1.0.13_to_1.4.9: 
 
-Montée de version 1.0.13 vers 1.4.12
+Montée de version 1.0.13 vers 1.4.9
 ####################################
 
-La montée de version 1.0.13 (« R6.13 ») vers 1.4.12 (« R7.12 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
+.. caution:: Il est recommandé de réaliser la migration en respectant les chemins de montées de version jusqu'à la dernière version « R6 » disponible, à savoir la version « R6.13 » (1.0.13) lors de la publication du présent document.
 
-.. caution:: La migration doit être réalisée en partant de la version la plus récente de la version « R6 » (1.0.13).
+La montée de version 1.0.13 (« R6.13 ») vers 1.4.9 (« R7.9 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
 
 Prérequis à l'installation
 ==========================
