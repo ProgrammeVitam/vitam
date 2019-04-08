@@ -109,7 +109,12 @@ public enum ElasticsearchCollections {
     /**
      * Ontology collection
      */
-    ONTOLOGY("/ontology-es-mapping.json", "ontology");
+    ONTOLOGY("/ontology-es-mapping.json", "ontology"),
+
+    /**
+     * preservationscenario collection
+     */
+    PRESERVATION_SCENARIO("/preservationscenario-es-mapping.json", "preservationscenario");
 
     ElasticsearchCollections(String mapping, String indexName) {
         this.mapping = mapping;
