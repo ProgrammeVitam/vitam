@@ -41,6 +41,7 @@ public class ExtendedFileOutputStream extends ProxyOutputStream {
     private final FileChannel fileChannel;
     private final boolean fsyncOnClose;
     private boolean writeMetadata = true;
+    private boolean closed = false;
 
     public ExtendedFileOutputStream(Path filepath, boolean fsyncOnClose) throws IOException {
         super(null);
@@ -61,6 +62,12 @@ public class ExtendedFileOutputStream extends ProxyOutputStream {
 
     @Override
     public void close() throws IOException {
+
+        if (this.closed) {
+            return;
+        }
+        this.closed = true;
+
         if (fsyncOnClose) {
 
             try {

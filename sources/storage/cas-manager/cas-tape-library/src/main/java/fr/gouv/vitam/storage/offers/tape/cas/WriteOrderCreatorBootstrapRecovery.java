@@ -179,8 +179,11 @@ public class WriteOrderCreatorBootstrapRecovery {
     private void sortFilesByCreationDate(List<String> tarFileNames) {
         tarFileNames.sort((filename1, filename2) -> {
 
-            String creationDate1 = getCreationDateFromTarId(filename1);
-            String creationDate2 = getCreationDateFromTarId(filename2);
+            String tarId1 = LocalFileUtils.tarFileNamePathToTarId(filename1);
+            String tarId2 = LocalFileUtils.tarFileNamePathToTarId(filename1);
+
+            String creationDate1 = getCreationDateFromTarId(tarId1);
+            String creationDate2 = getCreationDateFromTarId(tarId2);
 
             int compare = creationDate1.compareTo(creationDate2);
             if (compare != 0)
