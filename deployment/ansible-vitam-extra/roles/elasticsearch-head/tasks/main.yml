@@ -1,0 +1,20 @@
+---
+
+- name: Install docker
+  import_role:
+    name: docker
+
+- name: ensure old elasticsearch-head image is absent
+  docker_container:
+    name: "elasticsearch-head"
+    image: "{{ elasticsearch_head_old_image }}:{{ elasticsearch_head_old_version }}"
+    state: absent
+
+- name: Deploy elasticsearch-head container
+  docker_container:
+    name: "elasticsearch-head"
+    image: "{{ elasticsearch_head_image }}:{{ elasticsearch_head_version }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "{{elasticsearch_head_external_port}}:{{elasticsearch_head_port}}"
