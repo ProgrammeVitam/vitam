@@ -1,14 +1,5 @@
 ---
 
-local_username: "root"
-
-# mongo-express vars
-mongo_express_image: "mongo-express"
-mongo_express_external_port: 8081
-mongo_express_port: 8081
-mongo_express_version: "0.49.0"
-
-# elasticsearch-head vars
 elasticsearch_head_old_image: "mobz/elasticsearch-head"
 elasticsearch_head_old_version: "5-alpine"
 elasticsearch_head_image: "tobias74/elasticsearch-head"
