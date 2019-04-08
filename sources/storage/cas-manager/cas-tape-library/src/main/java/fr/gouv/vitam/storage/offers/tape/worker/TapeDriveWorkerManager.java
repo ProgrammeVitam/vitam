@@ -193,9 +193,16 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
 
         if (!order.isPresent()) {
+            order = selectOrder(QueueMessageType.WriteOrder);
+        }
+
+        if (!order.isPresent()) {
             order = selectReadOrderExcludingTapeCodes();
         }
 
+        if (!order.isPresent()) {
+            order = selectOrder(QueueMessageType.ReadOrder);
+        }
         return order;
     }
 
@@ -217,11 +224,16 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
 
         if (!order.isPresent()) {
-            order = selectWriteOrder();
+            order = selectOrder(QueueMessageType.ReadOrder);
         }
 
         if (!order.isPresent()) {
             order = selectWriteOrderExcludingActiveBuckets();
+        }
+
+
+        if (!order.isPresent()) {
+            order = selectOrder(QueueMessageType.WriteOrder);
         }
 
         return order;
@@ -231,8 +243,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         return readWriteQueue.receive(eq(WriteOrder.BUCKET, bucket), QueueMessageType.WriteOrder);
     }
 
-    private Optional<? extends ReadWriteOrder> selectWriteOrder() throws QueueException {
-        return readWriteQueue.receive(QueueMessageType.WriteOrder);
+    private Optional<? extends ReadWriteOrder> selectOrder(QueueMessageType queueMessageType) throws QueueException {
+        return readWriteQueue.receive(queueMessageType);
     }
 
     private Optional<? extends ReadWriteOrder> selectReadOrderByTapeCode(String tapeCode) throws QueueException {
