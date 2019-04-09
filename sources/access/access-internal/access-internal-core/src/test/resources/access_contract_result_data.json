@@ -1,0 +1,28 @@
+{
+  "$hits": {
+    "total": 1,
+    "size": 1,
+    "limit": 1,
+    "time_out": false
+  },
+  "$results": [
+    {
+      "_id": "aeaqaaaaaaaaaaabaasdaakxocodoizaaaaq",
+      "evType": "Process_SIP_unitary",
+      "evTypeProc": "INGEST",
+      "evDateTime": "2016-09-28T11:44:28.548",
+      "MyInt": 20,
+      "MyBoolean": false,
+      "MyFloat": 2.0,
+      "ArrayVar": [
+        "val1",
+        "val2"
+      ],
+      "events": [
+        "val1",
+        "val2"
+      ],
+      "#tenant": 0
+    }
+  ]
+}

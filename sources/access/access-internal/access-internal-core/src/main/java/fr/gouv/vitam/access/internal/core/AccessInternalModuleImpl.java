@@ -385,7 +385,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     @Override
     public Response getOneObjectFromObjectGroup(String idObjectGroup, String qualifier, int version, String idUnit)
-        throws StorageNotFoundException, AccessInternalExecutionException,MetaDataNotFoundException,
+        throws StorageNotFoundException, AccessInternalExecutionException, MetaDataNotFoundException,
         InvalidParseOperationException {
         ParametersChecker.checkParameter("ObjectGroup id should be filled", idObjectGroup);
         ParametersChecker.checkParameter("You must specify a valid object qualifier", qualifier);
@@ -833,6 +833,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new UpdatePermissionException(VitamCode.UPDATE_UNIT_PERMISSION.name());
         }
 
+
+        if (accessContract.getWritingRestrictedDesc() == null) {
+            throw new UpdatePermissionException(VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());
+        }
         // Check if update query contains management fields and if the accessContract allow those modifications
         if (managementUpdate && BooleanUtils.isTrue(accessContract.getWritingRestrictedDesc())) {
             throw new UpdatePermissionException(VitamCode.UPDATE_UNIT_DESC_PERMISSION.name());

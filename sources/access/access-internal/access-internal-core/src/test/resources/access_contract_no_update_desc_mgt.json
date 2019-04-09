@@ -10,7 +10,6 @@
   "DataObjectVersion": [ "PhysicalMaster", "BinaryMaster", "Dissemination", "Thumbnail", "TextContent" ],
   "OriginatingAgencies": [ "RATP" ],
   "WritingPermission": true,
-  "WritingRestrictedDesc": false,
   "EveryOriginatingAgency": true,
   "EveryDataObjectVersion": false,
   "_tenant": 7,

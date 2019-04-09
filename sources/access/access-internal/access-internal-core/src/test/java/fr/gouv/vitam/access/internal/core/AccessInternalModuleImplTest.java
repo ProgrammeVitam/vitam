@@ -161,6 +161,7 @@ public class AccessInternalModuleImplTest {
     private static JsonNode sampleObjectGroup;
 
     private static final String ACCESS_CONTRACT_NO_PERMISSION = "access_contract_no_update_allowed.json";
+    private static final String ACCESS_CONTRACT_NO_WRITING_RESTRICTED_DESC = "access_contract_no_update_desc_mgt.json";
     private static final String ACCESS_CONTRACT_DESC_ONLY = "access_contract_update_desc_only.json";
     private static final String ACCESS_CONTRACT_ALL_PERMISSION = "access_contract_update_all_allowed.json";
 
@@ -201,6 +202,10 @@ public class AccessInternalModuleImplTest {
     private static final String QUERY_DESCRIPTION =
         "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
             "{\"$set\":{\"Description\":\"Test\"}}]}";
+
+    private static final String QUERY_UPDATE_DESC =
+        "{\"$roots\":[],\"$query\":[],\"$filter\":{}," + "\"$action\":[" +
+            "{\"$set\":{\"Description\":\"this is my Test Description\"}}]}";
 
     private static final String QUERY_STRING = "{\"$roots\":[\"managementRulesUpdate\"],\"$query\":[],\"$filter\":{}," +
         "\"$action\":[" + "{\"$set\":{\"Title\":\"Eglise de Pantin Modfii\u00E9\"}}," +
@@ -1093,11 +1098,16 @@ public class AccessInternalModuleImplTest {
 
         RequestParserMultiple results;
 
-        when(adminManagementClient.getRuleByID(eq("STO-00001"))).thenReturn(new AdminManagementClientMock().getRuleByID("STO-00001"));
-        when(adminManagementClient.getRuleByID(eq("STO-00002"))).thenReturn(new AdminManagementClientMock().getRuleByID("STO-00002"));
-        when(adminManagementClient.getRuleByID(eq("CLASS-00002"))).thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00002"));
-        when(adminManagementClient.getRuleByID(eq("CLASS-00003"))).thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00003"));
-        when(adminManagementClient.getRuleByID(eq("REU-00001"))).thenReturn(new AdminManagementClientMock().getRuleByID("REU-00001"));
+        when(adminManagementClient.getRuleByID(eq("STO-00001")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("STO-00001"));
+        when(adminManagementClient.getRuleByID(eq("STO-00002")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("STO-00002"));
+        when(adminManagementClient.getRuleByID(eq("CLASS-00002")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00002"));
+        when(adminManagementClient.getRuleByID(eq("CLASS-00003")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("CLASS-00003"));
+        when(adminManagementClient.getRuleByID(eq("REU-00001")))
+            .thenReturn(new AdminManagementClientMock().getRuleByID("REU-00001"));
         results = executeCheck(QUERY_STRING);
         assertEquals(5, results.getRequest().getActions().size());
 
@@ -1415,5 +1425,53 @@ public class AccessInternalModuleImplTest {
         Assertions.assertThatCode(
             () -> accessModuleImpl.checkClassificationLevel(fromStringToJson(updateClassificationLevel)))
             .doesNotThrowAnyException();
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void given_throw_permission_error_When_updateUnitById_thenKO()
+        throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        JsonNode accessContractFile =
+            JsonHandler.getFromFile(PropertiesUtils.findFile(ACCESS_CONTRACT_NO_WRITING_RESTRICTED_DESC));
+        AccessContractModel accessContractModel = JsonHandler.getFromStringAsTypeRefence(accessContractFile.toString(),
+            new TypeReference<AccessContractModel>() {
+            });
+        accessContractModel.setIdentifier("FakeIdentifier");
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
+
+        final ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLFCUnitParametersArgsCaptor =
+            ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
+
+        Mockito.doNothing().when(logbookOperationClient).update(any());
+        Mockito.doNothing().when(logbookLifeCycleClient).update(logbookLFCUnitParametersArgsCaptor.capture(),
+            any());
+
+        final String id = "aeaqaaaaaaaaaaabaasdaakxocodoizaaaaq";
+        JsonNode jsonResult = JsonHandler.getFromFile(PropertiesUtils.findFile("access_contract_result.json"));
+        RequestResponse<JsonNode> requestResponseUnit = new RequestResponseOK<JsonNode>()
+            .addResult(jsonResult)
+            .setHttpCode(Status.OK.getStatusCode());
+
+        // Mock select unit response
+        when(metaDataClient.getUnitByIdRaw(any())).thenReturn(requestResponseUnit);
+        when(metaDataClient.selectUnitbyId(any(), any())).thenReturn(jsonResult);
+        // mock get lifecyle
+        when(logbookLifeCycleClient.selectUnitLifeCycleById(any(), any(), any()))
+            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.findFile("access_contract_result_data.json")));
+        // Mock update unit response
+        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(JsonHandler.getFromString("{\"$hits" +
+            "\":{\"total\":1,\"size\":1,\"limit\":1,\"time_out\":false},\"$context\":{}," +
+            "\"$results\":[{\"#id\":\"aeaqaaaaaaaaaaabaasdaakxocodoizaaaaq\",\"#diff\":\"-    \\\"Title\\\" : " +
+            "\\\"MyTitle\\\",\\n+    \\\"Title\\\" : \\\"Modified title\\\",\\n-    \\\"MyBoolean\\\" : false,\\n+   " +
+            " \\\"MyBoolean\\\" : true,\"}]}"));
+
+        try {
+            accessModuleImpl.updateUnitbyId(JsonHandler.getFromString(QUERY_UPDATE_DESC), id, REQUEST_ID);
+            fail("Should throw exception");
+        } catch (UpdatePermissionException e) {
+            assertEquals("UPDATE_UNIT_DESC_PERMISSION", e.getMessage());
+        }
     }
 }
