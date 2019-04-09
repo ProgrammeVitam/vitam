@@ -1,8 +1,8 @@
 Package: vitam-elasticsearch-data
-Version: 6.7.0
+Version: 6.7.1
 Section: database
 Priority: optional
 Architecture: all
-Depends: bash, vitam-user-vitamdb, elasticsearch ( =6.7.0), openjdk-8-jre, systemd, vitam-elasticsearch-analysis-icu ( =6.7.0)
+Depends: bash, vitam-user-vitamdb, elasticsearch ( =6.7.1), openjdk-8-jre, systemd, vitam-elasticsearch-analysis-icu ( =6.7.1)
 Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
 Description: Elasticsearch is a distributed RESTful search engine built for the cloud. This package contains the service script and basic configuration for the archive data cluster for VITAM.
