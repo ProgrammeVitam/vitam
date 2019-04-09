@@ -48,6 +48,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import org.bson.conversions.Bson;
 
 import java.io.IOException;
@@ -87,7 +88,7 @@ public class ReadTask implements Future<ReadWriteResult> {
     protected AtomicBoolean done = new AtomicBoolean(false);
 
     public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
-                    TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
+        TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService) {
         ParametersChecker.checkParameter("WriteOrder param is required.", readOrder);
         ParametersChecker.checkParameter("TapeRobotPool param is required.", tapeRobotPool);
         ParametersChecker.checkParameter("TapeDriveService param is required.", tapeDriveService);
@@ -98,7 +99,7 @@ public class ReadTask implements Future<ReadWriteResult> {
         this.tapeDriveService = tapeDriveService;
         this.tapeCatalogService = tapeCatalogService;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
-                tapeDriveService.getTapeDriveConf().getIndex());
+            tapeDriveService.getTapeDriveConf().getIndex());
     }
 
     @Override
@@ -109,7 +110,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                 TapeResponse tapeResponse = unloadTape();
                 if (!tapeResponse.isOK()) {
                     return new ReadWriteResult(tapeResponse.getStatus(), tapeResponse.getStatus() == StatusCode.FATAL ?
-                            QueueState.ERROR : QueueState.READY, workerCurrentTape);
+                        QueueState.ERROR : QueueState.READY, workerCurrentTape);
                 }
                 workerCurrentTape = null;
             }
@@ -121,7 +122,8 @@ public class ReadTask implements Future<ReadWriteResult> {
                 // Do status to get tape TYPE and some other information (update catalog)
                 CatalogResponse catalogResponse = getTapeFromCatalog();
                 if (!catalogResponse.isOK()) {
-                    return new ReadWriteResult(catalogResponse.getStatus(), catalogResponse.getStatus() == StatusCode.FATAL ?
+                    return new ReadWriteResult(catalogResponse.getStatus(),
+                        catalogResponse.getStatus() == StatusCode.FATAL ?
                             QueueState.ERROR : QueueState.READY, workerCurrentTape);
                 }
 
@@ -130,7 +132,7 @@ public class ReadTask implements Future<ReadWriteResult> {
                 if (!tapeResponse.isOK()) {
                     workerCurrentTape = null;
                     return new ReadWriteResult(tapeResponse.getStatus(), tapeResponse.getStatus() == StatusCode.FATAL ?
-                            QueueState.ERROR : QueueState.READY, workerCurrentTape);
+                        QueueState.ERROR : QueueState.READY, workerCurrentTape);
                 }
             }
 
@@ -142,10 +144,10 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     @Override
     public ReadWriteResult get(long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
+        throws InterruptedException, ExecutionException, TimeoutException {
         // FIXME : What about background task still running after timeout
         return CompletableFuture
-                .supplyAsync(() -> get(), VitamThreadPoolExecutor.getDefaultExecutor()).get(timeout, unit);
+            .supplyAsync(() -> get(), VitamThreadPoolExecutor.getDefaultExecutor()).get(timeout, unit);
     }
 
     @Override
@@ -167,7 +169,7 @@ public class ReadTask implements Future<ReadWriteResult> {
         // move drive to the given position
         int offset = readOrder.getFilePosition();
         boolean toRewind = true;
-        if(workerCurrentTape.getCurrentPosition() != null) {
+        if (workerCurrentTape.getCurrentPosition() != null) {
             toRewind = false;
             offset = readOrder.getFilePosition() - workerCurrentTape.getCurrentPosition();
         }
@@ -204,7 +206,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
         if (!response.isOK()) {
             return new ReadWriteResult(response.getStatus(), response.getStatus() == StatusCode.FATAL ?
-                    QueueState.ERROR : QueueState.READY, workerCurrentTape);
+                QueueState.ERROR : QueueState.READY, workerCurrentTape);
         }
 
         return new ReadWriteResult(StatusCode.OK, QueueState.COMPLETED, workerCurrentTape, response);
@@ -217,8 +219,8 @@ public class ReadTask implements Future<ReadWriteResult> {
             response = tapeDriveService.getDriveCommandService().rewind();
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                        " Action : Rewind Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
-                        JsonHandler.unprettyPrint(response.getEntity()));
+                    " Action : Rewind Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                    JsonHandler.unprettyPrint(response.getEntity()));
 
                 return response;
             }
@@ -229,8 +231,8 @@ public class ReadTask implements Future<ReadWriteResult> {
             response = tapeDriveService.getDriveCommandService().goToPosition(Math.abs(offset) - 1, offset < 0);
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                        " Action : Go to position Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
-                        JsonHandler.unprettyPrint(response.getEntity()));
+                    " Action : Go to position Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                    JsonHandler.unprettyPrint(response.getEntity()));
 
                 return response;
             }
@@ -243,27 +245,27 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     private TapeResponse readFromTape() {
         TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .readFromTape(readOrder.getFileName() + TEMP_EXT);
+            .readFromTape(readOrder.getFileName() + TEMP_EXT);
 
         if (!response.isOK()) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
-                    JsonHandler.unprettyPrint(response.getEntity()));
+                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                JsonHandler.unprettyPrint(response.getEntity()));
             return response;
         }
 
         Path sourcePath = Paths.get(tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD).
-                getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT).toAbsolutePath();
+            getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT).toAbsolutePath();
         Path targetPath = Paths.get(tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
+            .getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
 
         // Mark file as done (remove .tmp extension)
         try {
             Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
         } catch (IOException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
-                    e);
+                " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                e);
             return new TapeResponse(StatusCode.FATAL);
         }
 
@@ -284,7 +286,8 @@ public class ReadTask implements Future<ReadWriteResult> {
         try {
             Optional<TapeCatalog> found = tapeCatalogService.receive(query, QueueMessageType.TapeCatalog);
             if (!found.isPresent()) {
-                List<TapeCatalog> tapes = tapeCatalogService.find(Arrays.asList(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
+                List<TapeCatalog> tapes = tapeCatalogService.find(Arrays
+                    .asList(new QueryCriteria(TapeCatalog.CODE, readOrder.getTapeCode(), QueryCriteriaOperator.EQ)));
                 if (tapes.size() == 0) {
                     return new CatalogResponse(StatusCode.FATAL);
                 } else {
@@ -292,10 +295,10 @@ public class ReadTask implements Future<ReadWriteResult> {
                 }
             }
             if (found.get().getCurrentLocation().getLocationType().equals(TapeLocationType.OUTSIDE)) {
-               LOGGER.error(MSG_PREFIX +
+                LOGGER.error(MSG_PREFIX +
                         " Action : LoadTapeFromCatalog, Order: " + JsonHandler.unprettyPrint(readOrder) +
                         ", Error: no tape found in the catalog with expected library and/or bucket",
-                        ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
+                    ReadWriteErrorCode.TAPE_NOT_FOUND_IN_CATALOG);
                 return new CatalogResponse(StatusCode.FATAL);
             }
 
@@ -317,15 +320,21 @@ public class ReadTask implements Future<ReadWriteResult> {
         if (null == workerCurrentTape.getCurrentLocation()) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                     ", Error: tape current location is null. please update catalog",
-                    ReadWriteErrorCode.TAPE_LOCATION_CONFLICT);
+                ReadWriteErrorCode.TAPE_LOCATION_CONFLICT);
             return new TapeResponse(ReadWriteErrorCode.TAPE_LOCATION_CONFLICT, StatusCode.FATAL);
         }
 
         slotIndex = workerCurrentTape.getCurrentLocation().getIndex();
 
         try {
-            response = tapeRobotPool.checkoutRobotService().getLoadUnloadService()
-                            .loadTape(slotIndex, driveIndex);
+
+            final TapeRobotService tapeRobotService = tapeRobotPool.checkoutRobotService();
+            try {
+                response = tapeRobotService.getLoadUnloadService()
+                    .loadTape(slotIndex, driveIndex);
+            } finally {
+                tapeRobotPool.pushRobotService(tapeRobotService);
+            }
 
             if (response.isOK()) {
                 // rewind
@@ -371,17 +380,23 @@ public class ReadTask implements Future<ReadWriteResult> {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                         ", Error: previous location should no be in " +
                         workerCurrentTape.getPreviousLocation().getLocationType().getType(),
-                        ReadWriteErrorCode.TAPE_LOCATION_CONFLICT);
+                    ReadWriteErrorCode.TAPE_LOCATION_CONFLICT);
                 return new TapeResponse(ReadWriteErrorCode.TAPE_LOCATION_CONFLICT, StatusCode.FATAL);
             default:
                 LOGGER.error(
-                        MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: location type not implemented");
+                    MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: location type not implemented");
                 return new TapeResponse(ReadWriteErrorCode.TAPE_LOCATION_UNKNOWN, StatusCode.FATAL);
         }
 
         try {
-            response = tapeRobotPool.checkoutRobotService().getLoadUnloadService()
+
+            final TapeRobotService tapeRobotService = tapeRobotPool.checkoutRobotService();
+            try {
+                response = tapeRobotService.getLoadUnloadService()
                     .unloadTape(slotIndex, driveIndex);
+            } finally {
+                tapeRobotPool.pushRobotService(tapeRobotService);
+            }
 
             if (response.isOK()) {
                 // update catalog

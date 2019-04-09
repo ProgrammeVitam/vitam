@@ -14,6 +14,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,7 +48,7 @@ public class TapeDriveWorkerTest {
     @Mock
     private TapeCatalogService tapeCatalogService;
 
-    @Mock
+    @Spy
     private TapeDriveOrderConsumer tapeDriveOrderConsumer;
 
     @Mock
@@ -161,14 +163,14 @@ public class TapeDriveWorkerTest {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
                 tarReferentialRepository, null, null, 1000);
         when(tapeDriveConf.getIndex()).thenReturn(1);
-        when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
+        when(tapeDriveOrderConsumer.consume(eq(tapeDriveWorker))).thenAnswer(o -> {
             Thread.sleep(5);
             return Optional.empty();
         });
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
         Assertions.assertThat(tapeDriveWorker.getIndex()).isEqualTo(1);
-        verify(tapeDriveConf, VerificationModeFactory.times(1)).getIndex();
+        verify(tapeDriveConf, VerificationModeFactory.times(2)).getIndex();
 
 
         tapeDriveWorker.stop();
