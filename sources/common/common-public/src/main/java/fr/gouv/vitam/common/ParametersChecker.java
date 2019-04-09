@@ -28,7 +28,10 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 
-    /**
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
+/**
      * Checker for Parameters <br>
      * <br>
      * Can be used for String (testing also emptiness) and for general Object.<br>
@@ -163,4 +166,21 @@ import com.google.common.base.Strings;
             throw new IllegalArgumentException("Parameter " + name + " is less than " + minValue);
         }
     }
+
+        /**
+         * Check if a string date parameter is parsable as LocalDate
+         *
+         * @param errorMessage the error message
+         * @param date the value of date to be checked
+         */
+        public static final void checkDateParam(String errorMessage, String date) {
+            if (date == null) {
+                throw new IllegalArgumentException(errorMessage);
+            }
+            try {
+                LocalDate.parse(date);
+            } catch (DateTimeParseException e) {
+                throw new IllegalArgumentException(errorMessage);
+            }
+        }
 }

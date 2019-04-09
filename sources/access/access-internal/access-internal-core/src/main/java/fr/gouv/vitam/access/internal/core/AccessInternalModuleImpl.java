@@ -1537,8 +1537,8 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         String startDateString = updatingRule.get("StartDate") != null ? updatingRule.get("StartDate").asText() : null;
         String ruleId = updatingRule.get("Rule").asText();
         String currentRuleType = ruleInReferential.get(RULE_TYPE).asText();
-
         if (ParametersChecker.isNotEmpty(startDateString) && ParametersChecker.isNotEmpty(ruleId, currentRuleType)) {
+            ParametersChecker.checkDateParam("wrong date format", startDateString);
             LocalDate startDate = LocalDate.parse(startDateString, timeFormatter);
             if (startDate.getYear() >= 9000) {
                 throw new AccessInternalRuleExecutionException("Wrong Start Date");
