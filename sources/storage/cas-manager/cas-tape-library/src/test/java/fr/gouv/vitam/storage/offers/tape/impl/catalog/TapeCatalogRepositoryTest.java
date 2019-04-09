@@ -47,6 +47,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -70,6 +71,11 @@ public class TapeCatalogRepositoryTest {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
             .getCollection(TAPE_CATALOG_COLLECTION));
+    }
+
+    @After
+    public void after() {
+        mongoRule.handleAfter();
     }
 
     @AfterClass

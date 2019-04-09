@@ -31,6 +31,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
+import com.mongodb.client.result.UpdateResult;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -88,7 +89,7 @@ public class TarReferentialRepository {
 
     public void updateLocationToReadyOnDisk(String tarId, long size, String digest) throws TarReferentialException {
         try {
-            collection.updateOne(
+            UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeTarReferentialEntity.ID, tarId),
                 Updates.combine(
                     Updates.set(TapeTarReferentialEntity.LOCATION,
@@ -102,6 +103,10 @@ public class TarReferentialRepository {
                 ),
                 new UpdateOptions().upsert(false)
             );
+
+            if (updateResult.getMatchedCount() != 1) {
+                throw new TarReferentialException("Could not update storage location for " + tarId + ". No such tar");
+            }
         } catch (MongoException ex) {
             throw new TarReferentialException("Could not update storage location for " + tarId, ex);
         }
@@ -112,7 +117,7 @@ public class TarReferentialRepository {
         throws TarReferentialException {
 
         try {
-            collection.updateOne(
+            UpdateResult updateResult = collection.updateOne(
                 Filters.eq(TapeTarReferentialEntity.ID, tarId),
                 Updates.combine(
                     Updates.set(TapeTarReferentialEntity.LOCATION,
@@ -122,6 +127,10 @@ public class TarReferentialRepository {
                 ),
                 new UpdateOptions().upsert(false)
             );
+
+            if (updateResult.getMatchedCount() != 1) {
+                throw new TarReferentialException("Could not update storage location for " + tarId + ". No such tar");
+            }
         } catch (MongoException ex) {
             throw new TarReferentialException("Could not update storage location for " + tarId, ex);
         }
