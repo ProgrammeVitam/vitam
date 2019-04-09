@@ -70,7 +70,7 @@
 
         <div class="ui-g-4">
           <div class="ui-g-nopad ui-g-4">
-            <label class="label fieldLabel">Noeud de rattachement</label>
+            <label class="label fieldLabel">Déclaration d’un nœud de rattachement</label>
           </div>
           <div class="ui-g-nopad ui-g-8" *ngIf="!update">
             <span class="overflow-break-words">{{modifiedContract.LinkParentId}}</span>
@@ -83,14 +83,26 @@
 
         <div class="ui-g-4">
           <div class="ui-g-nopad ui-g-4">
-            <label class="label fieldLabel">Contrôle sur noeud de rattachement</label>
+            <label class="label fieldLabel">Présence d’au moins un rattachement dans le manifeste</label>
           </div>
           <div class="ui-g-nopad ui-g-8" *ngIf="!update">
-            <span class="overflow-break-words">{{isCheckParent ? 'Actif' : 'Inactif'}}</span>
+            <span class="overflow-break-words">{{displayCheckParentLink(modifiedContract.CheckParentLink)}}</span>
           </div>
           <div class="ui-g-nopad ui-g-8" *ngIf="update">
-            <p-toggleButton onLabel="Actif" offLabel="Inactif" [(ngModel)]="isCheckParent"
-                            (onChange)="changeCheckControl()"></p-toggleButton>
+            <p-listbox [options]="selectionOptions" [(ngModel)]="modifiedContract.CheckParentLink"
+                       (onChange)="valueChange('CheckParentLink')" checkbox="checkbox"></p-listbox>
+          </div>
+        </div>
+
+        <div class="ui-g-4">
+          <div class="ui-g-nopad ui-g-4">
+            <label class="label fieldLabel">Déclaration d’un ou plusieurs cônes de positionnement des rattachements</label>
+          </div>
+          <div class="ui-g-nopad ui-g-8" *ngIf="!update">
+            <span class="overflow-break-words">{{modifiedContract.CheckParentId}}</span>
+          </div>
+          <div class="ui-g-nopad ui-g-10" *ngIf="update">
+            <p-chips [(ngModel)]="modifiedContract.CheckParentId" (onAdd)="valueChange('CheckParentId')" (onRemove)="valueChange('CheckParentId')"></p-chips>
           </div>
         </div>
       </div>

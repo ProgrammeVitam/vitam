@@ -52,6 +52,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.ContextStatus;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileStatus;
@@ -637,7 +638,7 @@ public class MongoDbAccessAdminImplTest {
         contract
             .setName(name)
             .setDescription(description).setStatus(ActivationStatus.ACTIVE)
-            .setCheckParentLink(ActivationStatus.INACTIVE)
+            .setCheckParentLink(IngestContractCheckState.AUTHORIZED)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
             .setActivationdate(lastupdate)

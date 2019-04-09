@@ -32,8 +32,9 @@
     "CheckParentLink": {
       "type": "string",
       "enum": [
-        "ACTIVE",
-        "INACTIVE"
+        "AUTHORIZED",
+        "REQUIRED",
+        "UNAUTHORIZED"
       ]
     },
     "CreationDate": {
@@ -106,6 +107,12 @@
     },
     "LinkParentId": {
       "type": "string"
+    },
+    "CheckParentId": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
     "ArchiveProfiles": {
       "type": "array",

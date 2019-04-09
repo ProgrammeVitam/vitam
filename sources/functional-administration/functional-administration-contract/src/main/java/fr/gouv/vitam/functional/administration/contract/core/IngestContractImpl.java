@@ -28,7 +28,6 @@ package fr.gouv.vitam.functional.administration.contract.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -58,9 +57,9 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.AbstractContractModel;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
+import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
@@ -86,14 +85,13 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import org.bson.conversions.Bson;
-import org.jclouds.json.Json;
 
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -104,7 +102,6 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.in;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.UNITTYPE;
 
 /**
  * IngestContract implementation class
@@ -113,6 +110,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
     private static final String THE_INGEST_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT =
         "The Ingest contract status must be ACTIVE or INACTIVE but not ";
+    private static final String INGEST_CONTRACT_CHECK_PARENT_LINK_STATUS_NOT_IN_ENUM =
+        "the ingest contract check parent link status in not in enum";
     private static final String INGEST_CONTRACT_NOT_FOUND = "Ingest contract not found";
     private static final String CONTRACT_IS_MANDATORY_PATAMETER = "The collection of ingest contracts is mandatory";
     private static final String EVERYFORMAT_LIST_EMPTY = "formatType field must not be empty when everyFormat is false";
@@ -207,6 +206,34 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             for (final IngestContractModel acm : contractModelList) {
 
+                final String linkParentId = acm.getLinkParentId();
+                if (linkParentId != null && !manager.checkIfUnitExist(linkParentId)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        GenericRejectionCause
+                            .rejectAuNotFoundInDatabase(linkParentId)
+                            .getReason(), StatusCode.KO));
+                    continue;
+                }
+
+                final Set<String> checkParentId = acm.getCheckParentId();
+                if (checkParentId != null) {
+                    if (!checkParentId.isEmpty()
+                        && IngestContractCheckState.UNAUTHORIZED.equals(acm.getCheckParentLink())) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            GenericRejectionCause
+                                .rejectInconsistentContract(acm.getName(),
+                                    "attachments not authorized but checkParentId field is not empty")
+                                .getReason(), StatusCode.KO));
+                        continue;
+                    }
+                    if (!manager.checkIfAllUnitExist(checkParentId)) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            GenericRejectionCause
+                                .rejectAuNotFoundInDatabase(String.join(" ", checkParentId))
+                                .getReason(), StatusCode.KO));
+                        continue;
+                    }
+                }
 
                 // if a contract have and id
                 if (null != acm.getId()) {
@@ -216,22 +243,10 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     continue;
                 }
 
-                final String linkParentId = acm.getLinkParentId();
-                if (linkParentId != null) {
-                    if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
-                        error
-                            .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                GenericRejectionCause
-                                    .rejectWrongLinkParentId(linkParentId)
-                                    .getReason(), StatusCode.KO));
-                        continue;
-                    }
-                }
-
                 //when everyformattype is false, formattype must not be empty
                 if (!acm.isEveryFormatType() && (acm.getFormatType() == null || acm.getFormatType().isEmpty())) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            EVERYFORMAT_LIST_EMPTY, StatusCode.KO).setMessage(FORMAT_MUST_NOT_BE_EMPTY));
+                        EVERYFORMAT_LIST_EMPTY, StatusCode.KO).setMessage(FORMAT_MUST_NOT_BE_EMPTY));
                     continue;
                 }
 
@@ -267,7 +282,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 // log book + application log
                 // stop
                 final String errorsDetails =
-                    error.getErrors().stream().map(c -> c.getDescription()).distinct().collect(Collectors.joining(","));
+                    error.getErrors().stream().map(VitamError::getDescription).distinct()
+                        .collect(Collectors.joining(","));
 
                 manager
                     .logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT, error.getErrors().get(0).getMessage());
@@ -292,7 +308,6 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
             // at this point no exception occurred and no validation error detected
             // persist in collection
-            // contractsToPersist.values().stream().map();
             // TODO: 3/28/17 create insertDocuments method that accepts VitamDocument instead of ArrayNode, so we can
             // use IngestContract at this point
             mongoAccess.insertDocuments(contractsToPersist, FunctionalAdminCollections.INGEST_CONTRACT).close();
@@ -617,7 +632,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     contract.setStatus(ActivationStatus.INACTIVE);
                 }
                 if (contract.getCheckParentLink() == null) {
-                    contract.setCheckParentLink(ActivationStatus.INACTIVE);
+                    contract.setCheckParentLink(IngestContractCheckState.AUTHORIZED);
                 }
 
                 try {
@@ -753,26 +768,21 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             };
         }
 
-        /**
-         * Check if the linkParentId is a valid existing FILING or HOLDING Unit identifier
-         *
-         * @param linkParentId GUID as String
-         * @return boolean true if valid identifier passed
-         * @throws InvalidCreateOperationException invalidCreateOperationException
-         * @throws MetaDataExecutionException      metaDataExecutionException
-         * @throws MetaDataDocumentSizeException   metaDataDocumentSizeException
-         * @throws MetaDataClientServerException   metaDataClientServerException
-         * @throws InvalidParseOperationException  invalidParseOperationException
-         */
-        private boolean checkIfAUInFilingOrHoldingSchema(String linkParentId)
-            throws InvalidCreateOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
-            MetaDataClientServerException, InvalidParseOperationException {
+        private boolean checkIfUnitExist(String unitId)
+            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+            InvalidParseOperationException {
             final Select select = new Select();
-            String[] schemaArray = new String[] {UnitType.FILING_UNIT.name(), UnitType.HOLDING_UNIT.name()};
-            select.setQuery(QueryHelper.in(UNITTYPE.exactToken(), schemaArray).setDepthLimit(0));
-            final JsonNode queryDsl = select.getFinalSelect();
+            JsonNode jsonNode = metaDataClient.selectUnitbyId(select.getFinalSelect(), unitId);
+            return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
+                && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
+        }
 
-            JsonNode jsonNode = metaDataClient.selectUnitbyId(queryDsl, linkParentId);
+        private boolean checkIfAllUnitExist(Set<String> unitIds)
+            throws MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException,
+            InvalidParseOperationException, InvalidCreateOperationException {
+            final Select select = new Select();
+            select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), unitIds.toArray(new String[0])));
+            JsonNode jsonNode = metaDataClient.selectUnits(select.getFinalSelect());
             return (jsonNode != null && jsonNode.get(RESULT_HITS) != null
                 && jsonNode.get(RESULT_HITS).get(HITS_SIZE).asInt() > 0);
         }
@@ -833,7 +843,8 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                 }
 
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
             }
         }
 
@@ -844,16 +855,61 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             if (linkParentNode != null) {
                 final String linkParentId = linkParentNode.asText();
                 if (!linkParentId.equals("")) {
-                    if (!manager.checkIfAUInFilingOrHoldingSchema(linkParentId)) {
-                        error
-                            .addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                GenericRejectionCause.rejectWrongLinkParentId(linkParentId).getReason(), StatusCode.KO)
-                                .setMessage(UPDATE_KO));
+                    if (!manager.checkIfUnitExist(linkParentId)) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            GenericRejectionCause.rejectAuNotFoundInDatabase(linkParentId).getReason(), StatusCode.KO)
+                            .setMessage(UPDATE_KO));
                     }
                 }
             }
+            boolean isAttachmentAuthorized = true;
+            JsonNode checkParentLink = queryDsl.findValue(IngestContractModel.TAG_CHECK_PARENT_LINK);
+            IngestContractCheckState checkState = ingestContractModel.getCheckParentLink();
+
+            if (checkParentLink != null) {
+                if (IngestContractCheckState.contains(checkParentLink.asText())) {
+                    checkState = IngestContractCheckState.valueOf(checkParentLink.asText());
+                } else {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        INGEST_CONTRACT_CHECK_PARENT_LINK_STATUS_NOT_IN_ENUM + checkParentLink.asText(),
+                        StatusCode.KO).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                }
+            }
+
+            if (IngestContractCheckState.UNAUTHORIZED.equals(checkState)) {
+                isAttachmentAuthorized = false;
+            }
+
+            JsonNode checkParentIdsNode = queryDsl.findValue(IngestContractModel.TAG_CHECK_PARENT_ID);
+            Set<String> checkParentIds = new HashSet<>();
+            if (checkParentIdsNode != null) {
+                if (checkParentIdsNode.isArray()) {
+
+                    for (JsonNode checkParentId : checkParentIdsNode) {
+                        checkParentIds.add(checkParentId.asText());
+                    }
+
+                    if (!checkParentIds.isEmpty()) {
+                        if (!manager.checkIfAllUnitExist(checkParentIds)) {
+                            error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                GenericRejectionCause.rejectAuNotFoundInDatabase(String.join(" ", checkParentIds))
+                                    .getReason(), StatusCode.KO)
+                                .setMessage(UPDATE_KO));
+                        }
+                    }
+                }
+            } else if (ingestContractModel.getCheckParentId() != null) {
+                checkParentIds.addAll(ingestContractModel.getCheckParentId());
+            }
 
 
+            if (!isAttachmentAuthorized && !checkParentIds.isEmpty()) {
+                error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                    GenericRejectionCause
+                        .rejectInconsistentContract(ingestContractModel.getName(),
+                            "attachments not authorized but checkParentId field is not empty")
+                        .getReason(), StatusCode.KO));
+            }
 
             final JsonNode archiveProfilesNode = queryDsl.findValue(IngestContractModel.ARCHIVE_PROFILES);
             if (archiveProfilesNode != null) {
@@ -891,7 +947,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         StatusCode.KO).setMessage(UPDATE_WRONG_FILEFORMAT)));
             }
 
-            if (error.getErrors() != null && error.getErrors().size() > 0) {
+            if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                 final String errorsDetails =
                     error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
                 manager.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT, error.getErrors().get(0).getMessage());
@@ -938,7 +994,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
     }
 
     private Set<String> getFromJsonNodeOrFromIngestContractModel(IngestContractModel ingestContractModel,
-        JsonNode fileFormatTypeNode)throws InvalidParseOperationException {
+        JsonNode fileFormatTypeNode) throws InvalidParseOperationException {
 
         if (fileFormatTypeNode != null && fileFormatTypeNode.isArray()) {
             return JsonHandler.getFromString(fileFormatTypeNode.toString(), Set.class, String.class);

@@ -104,9 +104,9 @@ public class IngestContractImplTest {
 
     private static final Integer TENANT_ID = 1;
     private static final Integer EXTERNAL_TENANT = 2;
-    static final String DATABASE_HOST = "localhost";
-    static final String DATABASE_NAME = "vitam-test";
-    static final String FORMAT_FILE = "file-format-light.json";
+    private static final String DATABASE_HOST = "localhost";
+    private static final String DATABASE_NAME = "vitam-test";
+    private static final String FORMAT_FILE = "file-format-light.json";
 
     public static final String PREFIX = GUIDFactory.newGUID().getId();
 
@@ -728,10 +728,10 @@ public class IngestContractImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenIngestContractsTestLinkParentIdKO() throws Exception {
+    public void givenIngestContractsTestLinkParentIdKo() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(metaDataClientMock.selectUnitbyId(any(), any()))
-            .thenReturn(new RequestResponseOK<>().toJsonNode());
+        when(metaDataClientMock.selectUnitbyId(any(), any())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
@@ -742,9 +742,27 @@ public class IngestContractImplTest {
         assertThat(response).isInstanceOf(VitamError.class);
 
         final VitamError vitamError = (VitamError) response;
-        assertThat(vitamError.toString()).contains("is not in filing nor holding schema");
+        assertThat(vitamError.toString()).contains("At least one AU id holding_guid not found");
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void givenIngestContractsTestCheckParentIdKo() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(metaDataClientMock.selectUnitbyId(any(), any())).thenReturn(new RequestResponseOK<>().toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(new RequestResponseOK<>().toJsonNode());
+
+        final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
+        final List<IngestContractModel> IngestContractModelList =
+            JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+            });
+        final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
+
+        assertThat(response).isInstanceOf(VitamError.class);
+
+        final VitamError vitamError = (VitamError) response;
+        assertThat(vitamError.toString()).contains("At least one AU id unitId2 unitId not found");
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -753,6 +771,7 @@ public class IngestContractImplTest {
         RequestResponseOK ok = new RequestResponseOK<>();
         ok.setHits(1, 0, 1, 1);// simulate returning result when query for filing or holding unit
         when(metaDataClientMock.selectUnitbyId(any(), any())).thenReturn(ok.toJsonNode());
+        when(metaDataClientMock.selectUnits(any())).thenReturn(ok.toJsonNode());
 
         final File fileContracts = PropertiesUtils.getResourceFile("referential_contracts_link_parentId.json");
         final List<IngestContractModel> IngestContractModelList =
@@ -761,11 +780,11 @@ public class IngestContractImplTest {
         final RequestResponse response = ingestContractService.createContracts(IngestContractModelList);
 
         final RequestResponseOK<IngestContractModel> responseCast = (RequestResponseOK<IngestContractModel>) response;
-        assertThat(responseCast.getResults()).hasSize(2);
+        assertThat(responseCast.getResults()).hasSize(5);
 
         final RequestResponseOK<IngestContractModel> IngestContractModelListSearch =
             ingestContractService.findContracts(JsonHandler.createObjectNode());
-        assertThat(IngestContractModelListSearch.getResults()).hasSize(2);
+        assertThat(IngestContractModelListSearch.getResults()).hasSize(5);
     }
 
     @Test
@@ -811,7 +830,7 @@ public class IngestContractImplTest {
 
         RequestResponse<IngestContractModel> updateContractStatus =
             ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate);
-        assertTrue(updateContractStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertEquals(updateContractStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateContractStatus).isInstanceOf(VitamError.class);
         List<VitamError> errors = ((VitamError) updateContractStatus).getErrors();
         assertThat(VitamLogbookMessages.getFromFullCodeKey(errors.get(0).getMessage()).equals(
@@ -828,7 +847,7 @@ public class IngestContractImplTest {
 
         RequestResponse<IngestContractModel> updateCheckParentLinkStatus =
             ingestContractService.updateContract(ingestModelList.get(0).getIdentifier(), queryDslForUpdate2);
-        assertTrue(updateCheckParentLinkStatus.getStatus() == Response.Status.BAD_REQUEST.getStatusCode());
+        assertEquals(updateCheckParentLinkStatus.getStatus(), Response.Status.BAD_REQUEST.getStatusCode());
         assertThat(updateCheckParentLinkStatus).isInstanceOf(VitamError.class);
     }
 
