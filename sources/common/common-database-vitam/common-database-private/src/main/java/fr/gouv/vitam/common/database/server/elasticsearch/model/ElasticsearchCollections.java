@@ -99,7 +99,13 @@ public enum ElasticsearchCollections {
     /**
      * Archive unit profile collection
      */
-    ARCHIVE_UNIT_PROFILE("/archiveunitprofile-es-mapping.json", "archiveunitprofile");
+    ARCHIVE_UNIT_PROFILE("/archiveunitprofile-es-mapping.json", "archiveunitprofile"),
+
+    /**
+     * Ontology collection
+     */
+    ONTOLOGY("/ontology-es-mapping.json", "ontology");
+
 
     ElasticsearchCollections(String mapping, String indexName) {
         this.mapping = mapping;
