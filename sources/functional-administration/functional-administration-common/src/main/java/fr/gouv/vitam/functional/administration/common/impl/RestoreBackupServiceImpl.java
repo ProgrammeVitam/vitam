@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterBackupModel;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
@@ -128,19 +129,19 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
         Optional<String> lastBackupVersion = getLatestSavedFileName(strategy, DataCategory.BACKUP, collection);
 
         if (lastBackupVersion.isPresent()) {
+            Response response = null;
             try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                Response response =
+                response =
                     storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP, AccessLogUtils.getNoLogAccessLog());
-                if (null != response && response.getStatus() == Response.Status.OK.getStatusCode()) {
                     final InputStream inputStream =
-                        storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP, AccessLogUtils.getNoLogAccessLog())
-                            .readEntity(InputStream.class);
+                        response.readEntity(InputStream.class);
 
                     // get backup collections to reconstruct.
                     return Optional.of(JsonHandler.getFromInputStream(inputStream, CollectionBackupModel.class));
-                }
             } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
                 LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
+            } finally {
+                StreamUtils.consumeAnyEntityAndClose(response);
             }
         }
         return Optional.empty();
@@ -197,6 +198,7 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
                 .info(String.format(
                         "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
                         filename, collection.name(), strategy));
+        Response response = null;
         InputStream inputStream = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             DataCategory type;
@@ -210,27 +212,26 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
                 default:
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
-            Response response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
-            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                inputStream = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
-                Document doc =
-                        JsonHandler.getFromInputStream(inputStream, Document.class);
-                if (doc != null) {
-                    AccessionRegisterBackupModel accessionRegisterBackupModel = new AccessionRegisterBackupModel();
-                    if(type.equals(DataCategory.ACCESSION_REGISTER_DETAIL)) {
-                        accessionRegisterBackupModel.setAccessionRegisterDetail(doc);
-                    } else {
-                        accessionRegisterBackupModel.setAccessionRegisterSympbolic(doc);
-                    }
-
-                    accessionRegisterBackupModel.setOffset(offset);
-                    return accessionRegisterBackupModel;
+            response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
+            inputStream = response.readEntity(InputStream.class);
+            Document doc =
+                    JsonHandler.getFromInputStream(inputStream, Document.class);
+            if (doc != null) {
+                AccessionRegisterBackupModel accessionRegisterBackupModel = new AccessionRegisterBackupModel();
+                if(type.equals(DataCategory.ACCESSION_REGISTER_DETAIL)) {
+                    accessionRegisterBackupModel.setAccessionRegisterDetail(doc);
+                } else {
+                    accessionRegisterBackupModel.setAccessionRegisterSympbolic(doc);
                 }
+
+                accessionRegisterBackupModel.setOffset(offset);
+                return accessionRegisterBackupModel;
             }
         } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             IOUtils.closeQuietly(inputStream);
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
 
         return null;

@@ -26,21 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -49,8 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -59,6 +48,11 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+
+import javax.ws.rs.core.Response;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service used to recover a Backup copy of logbook operation Vitam collection.<br/>
@@ -82,7 +76,7 @@ public class RestoreBackupService {
 
     /**
      * Constructor for tests
-     * 
+     *
      * @param storageClientFactory storage client factory
      */
     @VisibleForTesting
@@ -92,7 +86,7 @@ public class RestoreBackupService {
 
     /**
      * Retrieve list of offer log defining objects to reconstruct from offer log
-     * 
+     *
      * @param strategy storage strategy
      * @param offset offset
      * @param limit limit
@@ -127,7 +121,7 @@ public class RestoreBackupService {
 
     /**
      * Load data from storage
-     * 
+     *
      * @param strategy storage strategy
      * @param filename name of file to load
      * @param offset offset
@@ -142,32 +136,24 @@ public class RestoreBackupService {
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
                 filename, DataCategory.BACKUP_OPERATION.name(), strategy));
         InputStream inputStream = null;
+        Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             DataCategory type = DataCategory.BACKUP_OPERATION;
-            Response response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
-            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                inputStream = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
-                LogbookOperation logbookOperationDocument =
-                    new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
-                LogbookBackupModel logbookBackupModel = new LogbookBackupModel();
-                logbookBackupModel.setLogbookOperation(logbookOperationDocument);
-                logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
-                logbookBackupModel.setOffset(offset);
-                return logbookBackupModel;
-            }
+            response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
+            inputStream = response.readEntity(InputStream.class);
+            LogbookOperation logbookOperationDocument =
+                new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
+            LogbookBackupModel logbookBackupModel = new LogbookBackupModel();
+            logbookBackupModel.setLogbookOperation(logbookOperationDocument);
+            logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
+            logbookBackupModel.setOffset(offset);
+            return logbookBackupModel;
         } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (final IOException ioe) {
-                LOGGER.error(ioe);
-            }
+            StreamUtils.closeSilently(inputStream);
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
-
-        return null;
     }
 
 }

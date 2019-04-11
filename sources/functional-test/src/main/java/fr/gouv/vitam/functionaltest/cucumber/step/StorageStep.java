@@ -177,15 +177,19 @@ public class StorageStep {
     private void the_sip_is_stored_in_offer(String strategy) {
         //ugly
         runInVitamThread(() -> {
+
+            Response response = null;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-                Response response =
+                response =
                     world.storageClient.getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
                 responseStatus = response.getStatusInfo();
-                world.storageClient.consumeAnyEntityAndClose(response);
+
             } catch (Exception | AssertionError e) {
 
                 throw new RuntimeException(e);
+            } finally {
+                world.storageClient.consumeAnyEntityAndClose(response);
             }
         });
     }

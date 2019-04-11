@@ -262,8 +262,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
             .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
     }
@@ -301,8 +300,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
@@ -343,8 +341,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
 
@@ -382,8 +379,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
 
