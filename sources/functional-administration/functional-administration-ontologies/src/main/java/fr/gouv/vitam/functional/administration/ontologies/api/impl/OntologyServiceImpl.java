@@ -429,7 +429,7 @@ public class OntologyServiceImpl implements OntologyService {
             InputStream errorStream = generateErrorReport(exception, StatusCode.KO, eip);
             manager.logValidationError(CTR_SCHEMA, null, err);
             backupReport(errorStream, eip);
-            manager.logFatalError(ONTOLOGY_IMPORT_EVENT, null, null);
+            manager.logKoError(ONTOLOGY_IMPORT_EVENT, null, null);
             return getVitamError(VitamCode.ONTOLOGY_VALIDATION_ERROR.getItem(), err,
                 StatusCode.KO).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
