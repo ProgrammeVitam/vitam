@@ -188,8 +188,7 @@ public class AuditIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Response.Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(workflow);

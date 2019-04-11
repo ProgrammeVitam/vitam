@@ -189,25 +189,6 @@ public class RestoreBackupServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_get_null_when_loading_and_storage_not_ok()
-        throws StorageServerClientException, StorageNotFoundException {
-        // given
-        Mockito
-            .when(storageClientFactory.getClient().getContainerAsync(STRATEGY_ID, "100.json",
-                DataCategory.BACKUP_OPERATION, AccessLogUtils.getNoLogAccessLog()))
-            .thenReturn(
-                new FakeInboundResponse(Status.INTERNAL_SERVER_ERROR, null, MediaType.APPLICATION_OCTET_STREAM_TYPE,
-                    null));
-        RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
-        // when
-        LogbookBackupModel model =
-            restoreBackupService.loadData(STRATEGY_ID, "100.json", 100L);
-        // then
-        assertThat(model).isNull();
-    }
-
-    @RunWithCustomExecutor
-    @Test
     public void should_throw_VitamRuntimeException_when_loading_and_storage_throws_StorageServerClientException()
         throws StorageServerClientException, StorageNotFoundException {
         // given

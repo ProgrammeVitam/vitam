@@ -67,6 +67,7 @@ import java.io.InputStreamReader;
 import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
+import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
 /**
  * EvidenceAuditPrepare class
@@ -129,7 +130,6 @@ public class EvidenceAuditPrepare extends ActionHandler {
                 saveItemToWorkSpace(item, handlerIO);
             }
             reader.close();
-            client.consumeAnyEntityAndClose(response);
         } catch (StorageServerClientException | StorageNotFoundException | IOException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
@@ -138,6 +138,7 @@ public class EvidenceAuditPrepare extends ActionHandler {
             return itemStatus.increment(StatusCode.KO);
         } finally {
             StreamUtils.closeSilently(inputStream);
+            consumeAnyEntityAndClose(response);
         }
         itemStatus.increment(StatusCode.OK);
         return new ItemStatus(EVIDENCE_AUDIT_LIST_OBJECT).setItemsStatus(EVIDENCE_AUDIT_LIST_OBJECT, itemStatus);

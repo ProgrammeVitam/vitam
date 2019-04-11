@@ -110,8 +110,7 @@ public class IngestInternalClientMockTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        final Response response = client.uploadInitialLogbook(operationList);
-        assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         WorkFlow workflow = WorkFlow.of(CONTEXTID, CONTEXTID, "INGEST");
 
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, ProcessAction.RESUME.name());
