@@ -6,11 +6,36 @@
     state: present
   when: ansible_os_family == "RedHat"
 
-- name: check jessie-backports repo are present
-  apt_repository:
-    repo: "{{ item }}"
-    state: present
-  with_items:
-    - "deb http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
-    - "deb-src http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
+- block:
+
+    # read from https://www.lucas-nussbaum.net/blog/?p=947&cpage=1
+    - name: Disable repo validy check
+      copy:
+        content: "Acquire::Check-Valid-Until no;"
+        dest: /etc/apt/apt.conf.d/99no-check-valid-until
+
+    - name: check jessie-backports repo are present
+      apt_repository:
+        repo: "{{ item }}"
+        state: present
+      with_items:
+        - "deb http://archive.debian.org/debian/ jessie-backports main contrib non-free"
+        - "deb-src http://archive.debian.org/debian/ jessie-backports main contrib non-free"
+      when: ansible_os_family == "Debian"
+
+    - name: remove jessie-updates
+      apt_repository:
+        repo: "{{ item }}"
+        state: absent
+        update_cache: yes
+      with_items:
+        - "deb http://ftp.debian.org/debian jessie-updates main"
+        - "deb-src http://ftp.debian.org/debian jessie-updates main"
+        - "deb http://deb.debian.org/debian/ jessie-updates main"
+        - "deb-src http://deb.debian.org/debian/ jessie-updates main"
+        - "deb http://ftp.debian.org/debian/ jessie-backports main contrib non-free"
+        - "deb-src http://ftp.debian.org/debian/ jessie-backports main contrib non-free"
+        - "deb http://security.debian.org/debian-security jessie/updates main"
+        - "deb-src http://security.debian.org/debian-security jessie/updates main"
+
   when: ansible_os_family == "Debian"
