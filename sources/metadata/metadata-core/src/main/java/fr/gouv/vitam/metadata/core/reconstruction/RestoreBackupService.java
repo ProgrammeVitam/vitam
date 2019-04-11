@@ -30,8 +30,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
@@ -40,6 +38,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -132,7 +131,7 @@ public class RestoreBackupService {
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
                 filename, collection.name(), strategy));
         InputStream inputStream = null;
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
+        try {
             DataCategory type;
             switch (collection) {
                 case UNIT:
@@ -144,17 +143,14 @@ public class RestoreBackupService {
                 default:
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
-            Response response = storageClient.getContainerAsync(strategy, filename, type);
-            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                inputStream = storageClient.getContainerAsync(strategy, filename, type).readEntity(InputStream.class);
-                MetadataBackupModel metadataBackupModel =
-                    JsonHandler.getFromInputStream(inputStream, MetadataBackupModel.class);
-                if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
-                    metadataBackupModel.setOffset(offset);
-                    return metadataBackupModel;
-                }
+            inputStream = loadData(strategy, type, filename);
+            MetadataBackupModel metadataBackupModel =
+                JsonHandler.getFromInputStream(inputStream, MetadataBackupModel.class);
+            if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
+                metadataBackupModel.setOffset(offset);
+                return metadataBackupModel;
             }
-        } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             IOUtils.closeQuietly(inputStream);
@@ -172,12 +168,8 @@ public class RestoreBackupService {
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
-            Response response = storageClient.getContainerAsync(strategy, filename, category);
-            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return storageClient.getContainerAsync(strategy, filename, category).readEntity(InputStream.class);
-            } else {
-                return null;
-            }
+            return new VitamAsyncInputStream(storageClient.getContainerAsync(strategy, filename, category));
+
         } catch (StorageServerClientException | StorageNotFoundException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }

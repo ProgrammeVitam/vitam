@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +49,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -81,7 +81,7 @@ public class RestoreBackupService {
 
     /**
      * Constructor for tests
-     * 
+     *
      * @param storageClientFactory storage client factory
      */
     @VisibleForTesting
@@ -91,7 +91,7 @@ public class RestoreBackupService {
 
     /**
      * Retrieve list of offer log defining objects to reconstruct from offer log
-     * 
+     *
      * @param strategy storage strategy
      * @param offset offset
      * @param limit limit
@@ -126,7 +126,7 @@ public class RestoreBackupService {
 
     /**
      * Load data from storage
-     * 
+     *
      * @param strategy storage strategy
      * @param filename name of file to load
      * @param offset offset
@@ -141,33 +141,25 @@ public class RestoreBackupService {
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
                 filename, DataCategory.BACKUP_OPERATION.name(), strategy));
         InputStream inputStream = null;
+        Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             DataCategory type = DataCategory.BACKUP_OPERATION;
-            Response response = storageClient.getContainerAsync(strategy, filename, type);
-            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                inputStream = storageClient.getContainerAsync(strategy, filename, type).readEntity(InputStream.class);
-                LogbookOperation logbookOperationDocument =
-                    new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
-                LogbookBackupModel logbookBackupModel = new LogbookBackupModel();
-                logbookBackupModel.setLogbookOperation(logbookOperationDocument);
-                logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
-                logbookBackupModel.setOffset(offset);
-                populateAccessionRegisterDetails(logbookBackupModel, logbookOperationDocument);
-                return logbookBackupModel;
-            }
+            response = storageClient.getContainerAsync(strategy, filename, type);
+            inputStream = response.readEntity(InputStream.class);
+            LogbookOperation logbookOperationDocument =
+                new LogbookOperation(JsonHandler.getFromInputStream(inputStream, JsonNode.class));
+            LogbookBackupModel logbookBackupModel = new LogbookBackupModel();
+            logbookBackupModel.setLogbookOperation(logbookOperationDocument);
+            logbookBackupModel.setLogbookId(logbookOperationDocument.getId());
+            logbookBackupModel.setOffset(offset);
+            populateAccessionRegisterDetails(logbookBackupModel, logbookOperationDocument);
+            return logbookBackupModel;
         } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (final IOException ioe) {
-                LOGGER.error(ioe);
-            }
+            StreamUtils.closeSilently(inputStream);
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
-
-        return null;
     }
 
     private void populateAccessionRegisterDetails(LogbookBackupModel logbookBackupModel,

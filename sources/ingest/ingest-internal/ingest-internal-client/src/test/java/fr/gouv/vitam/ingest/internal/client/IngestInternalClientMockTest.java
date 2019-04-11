@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.client;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -37,8 +36,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.stream.XMLStreamException;
 
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -108,8 +105,7 @@ public class IngestInternalClientMockTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        final Response response = client.uploadInitialLogbook(operationList);
-        assertEquals(response.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
 
     }

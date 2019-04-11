@@ -706,8 +706,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -927,8 +926,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1074,8 +1072,7 @@ public class IngestInternalIT {
             // call ingest using updated contract
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1150,9 +1147,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("HOLDING_SCHEME_RESUME");
@@ -1228,8 +1223,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1348,8 +1342,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1405,8 +1398,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1461,8 +1453,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1526,8 +1517,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1590,8 +1580,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1656,8 +1645,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1704,9 +1692,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1768,13 +1754,11 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
 
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
         wait(operationGuid.toString());
@@ -1834,12 +1818,11 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
 
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, CONTEXT_ID);
 
         wait(operationGuid.toString());
@@ -1897,9 +1880,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -1964,9 +1945,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -2031,9 +2010,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -2098,8 +2075,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -2153,8 +2129,7 @@ public class IngestInternalIT {
             params2.add(initParameters2);
 
             final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
-            final Response response3 = client2.uploadInitialLogbook(params2);
-            assertEquals(response3.getStatus(), Status.CREATED.getStatusCode());
+            client2.uploadInitialLogbook(params2);
 
             // init workflow before execution
             client2.initWorkFlow("HOLDING_SCHEME_RESUME");
@@ -2376,8 +2351,7 @@ public class IngestInternalIT {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client2.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client2.uploadInitialLogbook(params);
 
             // init workflow before execution
             client2.initWorkFlow("DEFAULT_WORKFLOW_RESUME");
@@ -2461,8 +2435,7 @@ public class IngestInternalIT {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkFlow("DEFAULT_WORKFLOW_RESUME");

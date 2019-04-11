@@ -52,6 +52,7 @@ import java.io.File;
 import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
+import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 
 /**
  * EvidenceAuditPrepare class

@@ -700,19 +700,4 @@ public class WorkspaceClient extends DefaultClient {
             .toJsonNode().get("$results").get(0).asText();
         return offerDigest.equals(digest);
     }
-
-    /**
-     * Get Object Metadata
-     * 
-     * @param containerName the name of the container
-     * @param objectId the object id
-     * @return a response containing the MetadatasObject
-     * @throws ContentAddressableStorageException
-     * @throws IOException
-     */
-    public RequestResponse<MetadatasObject> getObjectMetadatas(String containerName, String objectId)
-        throws ContentAddressableStorageException, IOException {
-        // FIXME implémente dans workspace
-        return new RequestResponseOK().addResult(new MetadatasStorageObject());
-    }
 }

@@ -105,7 +105,7 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
     }
 
     @Override
-    public Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
+    public void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
         throws VitamException {
         ParametersChecker.checkParameter("check Upload Parameter", logbookParametersList);
 
@@ -117,7 +117,6 @@ class IngestInternalClientRest extends DefaultClient implements IngestInternalCl
             if (response.getStatus() != Status.CREATED.getStatusCode()) {
                 throw new VitamClientException(Status.fromStatusCode(response.getStatus()).getReasonPhrase());
             }
-            return Response.fromResponse(response).build();
         } finally {
             consumeAnyEntityAndClose(response);
         }

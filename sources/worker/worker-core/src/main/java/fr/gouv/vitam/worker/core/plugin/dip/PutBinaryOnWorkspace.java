@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -122,13 +123,17 @@ public class PutBinaryOnWorkspace extends ActionHandler {
 
     private void transferFile(WorkerParameters param, HandlerIO handler, Map<String, Object> guidToPath)
         throws ProcessingException, StorageNotFoundException, StorageServerClientException {
+
+        Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
-            Response response = storageClient
+            response = storageClient
                 .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), DataCategory.OBJECT);
 
             handler.transferInputStreamToWorkspace((String) guidToPath.get(param.getObjectName()),
                 (InputStream) response.getEntity(), null, false);
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 
