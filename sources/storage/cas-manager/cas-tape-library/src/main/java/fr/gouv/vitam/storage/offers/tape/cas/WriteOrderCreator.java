@@ -65,7 +65,7 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         }
     }
 
-    private void sendMessageToQueue(WriteOrder message)
+    public void sendMessageToQueue(WriteOrder message)
         throws TarReferentialException, QueueException {
 
         LOGGER.info("Write order generated for tar Id {} [bucket={}]", message.getTarId(), message.getBucket());

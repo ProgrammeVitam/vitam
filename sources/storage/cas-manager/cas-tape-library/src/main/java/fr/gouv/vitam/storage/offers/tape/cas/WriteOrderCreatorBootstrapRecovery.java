@@ -37,6 +37,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorag
 import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
+import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 
@@ -96,7 +97,7 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void recoverFileBucketTars(String fileBucket, Path fileBucketTarStoragePath)
-        throws IOException, TarReferentialException, ObjectReferentialException {
+        throws IOException, TarReferentialException, ObjectReferentialException, QueueException {
 
         Map<String, FileGroup> tarFileGroups = getFileListGroupedByTarId(fileBucketTarStoragePath);
 
@@ -188,7 +189,8 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void processReadyTar(String fileBucket, Path fileBucketTarStoragePath, String tarId)
-        throws TarReferentialException, IOException, ObjectReferentialException {
+        throws TarReferentialException, IOException, ObjectReferentialException, QueueException {
+
         Path tarFile = fileBucketTarStoragePath.resolve(tarId);
 
         Optional<TapeTarReferentialEntity> tarReferentialEntity =
@@ -215,20 +217,14 @@ public class WriteOrderCreatorBootstrapRecovery {
                 tarReferentialEntity.get().getDigestValue(),
                 tarId
             );
-            writeOrderCreator.addToQueue(message);
+
+            writeOrderCreator.sendMessageToQueue(message);
 
         } else if (tarReferentialEntity.get().getLocation()
             instanceof TapeLibraryBuildingOnDiskTarStorageLocation) {
 
             LOGGER.warn("Check tar file & compute size & digest.", tarFile);
             TarFileRapairer.DigestWithSize digestWithSize = verifyTarArchive(tarFile);
-
-            // Mark file as ready
-            tarReferentialRepository.updateLocationToReadyOnDisk(
-                tarId,
-                digestWithSize.getSize(),
-                digestWithSize.getDigestValue()
-            );
 
             // Add to queue
             WriteOrder message = new WriteOrder(
@@ -238,7 +234,7 @@ public class WriteOrderCreatorBootstrapRecovery {
                 digestWithSize.getDigestValue(),
                 tarId
             );
-            writeOrderCreator.addToQueue(message);
+            writeOrderCreator.sendMessageToQueue(message);
 
         } else {
             throw new IllegalStateException(
@@ -256,12 +252,14 @@ public class WriteOrderCreatorBootstrapRecovery {
     }
 
     private void repairTarArchive(Path fileBucketTarStoragePath, String tmpTarFileName, String fileBucket)
-        throws IOException, ObjectReferentialException {
+        throws IOException, ObjectReferentialException, QueueException, TarReferentialException {
 
         String tarId = LocalFileUtils.tarFileNamePathToTarId(tmpTarFileName);
 
         Path tmpTarFilePath = fileBucketTarStoragePath.resolve(tmpTarFileName);
         Path finalFilePath = fileBucketTarStoragePath.resolve(tarId);
+
+        LOGGER.info("Repairing & verifying file " + tmpTarFilePath);
 
         TarFileRapairer.DigestWithSize digestWithSize;
         try (InputStream inputStream = Files.newInputStream(tmpTarFilePath, StandardOpenOption.READ);
@@ -281,7 +279,7 @@ public class WriteOrderCreatorBootstrapRecovery {
             digestWithSize.getDigestValue(),
             tarId
         );
-        writeOrderCreator.addToQueue(message);
+        writeOrderCreator.sendMessageToQueue(message);
     }
 
     private static class FileGroup {

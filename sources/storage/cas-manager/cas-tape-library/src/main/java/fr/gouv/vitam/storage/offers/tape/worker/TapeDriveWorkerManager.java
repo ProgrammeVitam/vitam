@@ -85,13 +85,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
                 new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeLibraryPool.getTapeCatalogService(),
                     this, tarReferentialRepository, driveTape.get(driveEntry.getKey()), inputTarPath);
             workers.add(tapeDriveWorker);
-
-            final Thread thread =
-                VitamThreadFactory.getInstance().newThread(tapeDriveWorker);
-            thread.setName(TAPE_DRIVE_WORKER + driveEntry.getKey());
-            thread.start();
-            LOGGER.debug("Start worker :" + thread.getName());
-
         }
     }
 

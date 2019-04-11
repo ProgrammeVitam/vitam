@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.storage.s3.AmazonS3V1;
 import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
-import fr.gouv.vitam.storage.offers.tape.TapeStorageFactory;
+import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
 
 import java.io.IOException;
 import java.security.KeyManagementException;
@@ -97,7 +97,9 @@ public class StoreContextBuilder {
         } else if (StorageProvider.AMAZON_S3_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
             return new AmazonS3V1(configuration);
         } else if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
-            return new TapeStorageFactory().initialize(configuration.getTapeLibraryConfiguration(), mongoDBAccess);
+            TapeLibraryFactory tapeLibraryFactory = TapeLibraryFactory.getInstance();
+            tapeLibraryFactory.initialize(configuration.getTapeLibraryConfiguration(), mongoDBAccess);
+            return tapeLibraryFactory.getTapeLibraryContentAddressableStorage();
         } else {
             // by default file system
             return new FileSystem(configuration);

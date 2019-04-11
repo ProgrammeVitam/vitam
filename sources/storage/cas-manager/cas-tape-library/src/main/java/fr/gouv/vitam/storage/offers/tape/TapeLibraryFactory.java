@@ -26,14 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -43,7 +38,15 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
+import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
+import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
+import fr.gouv.vitam.storage.offers.tape.cas.ObjectReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.TapeLibraryContentAddressableStorage;
+import fr.gouv.vitam.storage.offers.tape.cas.TarFileRapairer;
 import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreator;
+import fr.gouv.vitam.storage.offers.tape.cas.WriteOrderCreatorBootstrapRecovery;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
@@ -58,6 +61,18 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
 import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
+import org.apache.logging.log4j.util.Strings;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 public class TapeLibraryFactory {
 
@@ -67,30 +82,67 @@ public class TapeLibraryFactory {
     private static final ConcurrentMap<String, TapeLibraryPool> tapeLibraryPool = new ConcurrentHashMap<>();
 
     private final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers = new ConcurrentHashMap<>();
-    private TapeCatalogService tapeCatalogService;
+    private TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage;
 
     private TapeLibraryFactory() {
     }
 
-    public void initialize(TapeLibraryConfiguration configuration, MongoDbAccess mongoDbAccess) {
+    public void initialize(TapeLibraryConfiguration configuration, MongoDbAccess mongoDbAccess) throws IOException {
+
+        ParametersChecker.checkParameter("All params are required", configuration, mongoDbAccess);
+        createWorkingDirectories(configuration);
+
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
-        this.tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
-        final TarReferentialRepository tarReferentialRepository =
+        TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
+
+        BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
+
+        ObjectReferentialRepository objectReferentialRepository =
+            new ObjectReferentialRepository(mongoDbAccess.getMongoDatabase()
+                .getCollection(OfferCollections.TAPE_OBJECT_REFERENTIAL.getName()));
+        TarReferentialRepository tarReferentialRepository =
             new TarReferentialRepository(mongoDbAccess.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_TAR_REFERENTIAL.getName()));
-
-        final QueueRepository queueRepository = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
+        QueueRepository readWriteQueue = new QueueRepositoryImpl(mongoDbAccess.getMongoDatabase().getCollection(
             OfferCollections.TAPE_QUEUE_MESSAGE.getName()));
 
+        WriteOrderCreator writeOrderCreator = new WriteOrderCreator(
+            tarReferentialRepository, readWriteQueue);
+
+        TarFileRapairer tarFileRapairer = new TarFileRapairer(objectReferentialRepository);
+        WriteOrderCreatorBootstrapRecovery
+            writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
+            configuration.getInputTarStorageFolder(), tarReferentialRepository,
+            bucketTopologyHelper, writeOrderCreator, tarFileRapairer);
+
+        BasicFileStorage basicFileStorage =
+            new BasicFileStorage(configuration.getInputFileStorageFolder());
+        FileBucketTarCreatorManager fileBucketTarCreatorManager =
+            new FileBucketTarCreatorManager(configuration, basicFileStorage, bucketTopologyHelper,
+                objectReferentialRepository, tarReferentialRepository, writeOrderCreator);
+
+        tapeLibraryContentAddressableStorage =
+            new TapeLibraryContentAddressableStorage(basicFileStorage, objectReferentialRepository,
+                tarReferentialRepository, fileBucketTarCreatorManager, readWriteQueue,
+                tapeCatalogService);
+
+        // Change all running orders to ready state
+        readWriteQueue.initializeOnBootstrap();
+
+        // Create tar creation orders from inputFiles folder
+        writeOrderCreatorBootstrapRecovery.initializeOnBootstrap();
+
+        // Create tar storage orders from inputTars folder
+        fileBucketTarCreatorManager.initializeOnBootstrap();
+
+        // Initialize & start workers
         for (String tapeLibraryIdentifier : libraries.keySet()) {
             TapeLibraryConf tapeLibraryConf = libraries.get(tapeLibraryIdentifier);
 
             BlockingQueue<TapeRobotService> robotServices =
                 new ArrayBlockingQueue<>(tapeLibraryConf.getRobots().size(), true);
             ConcurrentHashMap<Integer, TapeDriveService> driveServices = new ConcurrentHashMap<>();
-
-
 
             for (TapeRobotConf tapeRobotConf : tapeLibraryConf.getRobots()) {
                 tapeRobotConf.setUseSudo(configuration.isUseSudo());
@@ -143,22 +195,18 @@ public class TapeLibraryFactory {
 
             // Start all workers
             tapeDriveWorkerManagers
-                .put(tapeLibraryIdentifier, new TapeDriveWorkerManager(queueRepository, tarReferentialRepository, libraryPool, driveTape,
-                    configuration.getInputTarStorageFolder()));
+                .put(tapeLibraryIdentifier,
+                    new TapeDriveWorkerManager(readWriteQueue, tarReferentialRepository, libraryPool, driveTape,
+                        configuration.getInputTarStorageFolder()));
         }
 
+        // Everything's alright. Start tar creation listeners
+        writeOrderCreator.startListener();
+        fileBucketTarCreatorManager.startListeners();
     }
 
-    private void forceRewindOnBootstrap(ConcurrentHashMap<Integer, TapeDriveService> driveServices,
-        Map<Integer, TapeCatalog> driveTape) {
-        driveTape.keySet().forEach(driveIndex -> {
-            TapeResponse rewindResponse =
-                driveServices.get(driveIndex).getDriveCommandService().rewind();
-
-            if (!rewindResponse.isOK()) {
-                throw new RuntimeException("Cannot rewind tape " + JsonHandler.unprettyPrint(rewindResponse));
-            }
-        });
+    public TapeLibraryContentAddressableStorage getTapeLibraryContentAddressableStorage() {
+        return tapeLibraryContentAddressableStorage;
     }
 
     public static TapeLibraryFactory getInstance() {
@@ -173,19 +221,35 @@ public class TapeLibraryFactory {
         return tapeLibraryPool.values().iterator().next();
     }
 
-    public ConcurrentMap<String, TapeDriveWorkerManager> getTapeDriveWorkerManagers() {
-        return tapeDriveWorkerManagers;
-    }
+    private void createWorkingDirectories(TapeLibraryConfiguration configuration) throws IOException {
 
-    public QueueRepository getReadWriteQueue() {
-        if (tapeDriveWorkerManagers.isEmpty()) {
-            throw new IllegalStateException("No QueueRepository initialized");
+        if (Strings.isBlank(configuration.getInputFileStorageFolder()) ||
+            Strings.isBlank(configuration.getInputTarStorageFolder()) ||
+            Strings.isBlank(configuration.getOutputTarStorageFolder())) {
+            throw new VitamRuntimeException("Tape storage configuration");
         }
-
-        return tapeDriveWorkerManagers.values().iterator().next().getQueue();
+        createDirectory(configuration.getInputFileStorageFolder());
+        createDirectory(configuration.getInputTarStorageFolder());
+        createDirectory(configuration.getOutputTarStorageFolder());
     }
 
-    public TapeCatalogService getTapeCatalogService() {
-        return this.tapeCatalogService;
+    private void createDirectory(String pathStr) throws IOException {
+        Path path = Paths.get(pathStr);
+        //if directory exists?
+        if (!Files.exists(path)) {
+            Files.createDirectories(path);
+        }
+    }
+
+    private void forceRewindOnBootstrap(ConcurrentHashMap<Integer, TapeDriveService> driveServices,
+        Map<Integer, TapeCatalog> driveTape) {
+        driveTape.keySet().forEach(driveIndex -> {
+            TapeResponse rewindResponse =
+                driveServices.get(driveIndex).getDriveCommandService().rewind();
+
+            if (!rewindResponse.isOK()) {
+                throw new RuntimeException("Cannot rewind tape " + JsonHandler.unprettyPrint(rewindResponse));
+            }
+        });
     }
 }
