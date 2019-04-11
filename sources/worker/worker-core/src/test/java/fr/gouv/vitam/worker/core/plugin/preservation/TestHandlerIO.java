@@ -46,7 +46,9 @@ import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.Mockito.mock;
 
@@ -54,6 +56,9 @@ public class TestHandlerIO implements HandlerIO {
 
     private List<Object> inputs = new ArrayList<>();
     private String currentObjectId;
+    private File newLocalFile;
+    private InputStream inputStreamFromWorkspace;
+    private Map<String, File > transferedFileToWorkspaceMap = new HashMap<>();
 
     @Override
     public void addInIOParameters(List<IOParameter> list) {
@@ -124,7 +129,7 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public File getNewLocalFile(String name) {
-        throw new RuntimeException("Not implemented");
+        return newLocalFile;
     }
 
     @Override
@@ -140,7 +145,7 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
         throws ProcessingException {
-        throw new RuntimeException("Not implemented");
+        this.transferedFileToWorkspaceMap.put(workspacePath, sourceFile);
     }
 
     @Override
@@ -151,13 +156,13 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public File getFileFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        throw new RuntimeException("Not implemented");
+        return this.transferedFileToWorkspaceMap.get(objectName);
     }
 
     @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        throw new RuntimeException("Not implemented");
+        return this.inputStreamFromWorkspace;
     }
 
     @Override
@@ -217,7 +222,7 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public boolean removeFolder(String folderName) throws ContentAddressableStorageException {
-        throw new RuntimeException("Not implemented");
+        return true;
     }
 
     @Override
@@ -234,8 +239,20 @@ public class TestHandlerIO implements HandlerIO {
         inputs.add(input);
     }
 
+    public void setNewLocalFile(File newLocalFile) {
+        this.newLocalFile = newLocalFile;
+    }
+
     @Override
     public WorkspaceClientFactory getWorkspaceClientFactory() {
         return mock(WorkspaceClientFactory.class);
+    }
+
+    public void setInputStreamFromWorkspace(InputStream inputStreamFromWorkspace) {
+        this.inputStreamFromWorkspace = inputStreamFromWorkspace;
+    }
+
+    public File getTransferedFileToWorkspace(String name) {
+        return transferedFileToWorkspaceMap.get(name);
     }
 }

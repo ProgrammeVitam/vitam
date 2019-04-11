@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -25,17 +25,6 @@
  * accept its terms.
  */
 package fr.gouv.vitam.worker.core.handler;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.security.Security;
-import java.security.cert.CertificateException;
-import java.util.Collection;
-import java.util.Iterator;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.SedaConstants;
@@ -71,10 +60,17 @@ import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Store;
+import org.bouncycastle.util.encoders.Base64;
 
-/**
- *
- */
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.security.cert.CertificateException;
+import java.util.Collection;
+import java.util.Iterator;
+
 public class VerifyTimeStampActionHandler extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyTimeStampActionHandler.class);
@@ -90,13 +86,9 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     private static final String HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP = "COMPARE_TOKEN_TIMESTAMP";
     private static final String HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP = "VALIDATE_TOKEN_TIMESTAMP";
 
-    /**
-     * @return HANDLER_ID
-     */
     public static final String getId() {
         return HANDLER_ID;
     }
-
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
@@ -150,7 +142,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private void compareTimeStamps(String timeStampToken) throws ProcessingException, UnsupportedEncodingException {
+    private void compareTimeStamps(String timeStampToken) throws ProcessingException {
         String traceabilityTimeStamp = traceabilityEvent.get("TimeStampToken").asText();
         if (!timeStampToken.equals(traceabilityTimeStamp)) {
             throw new ProcessingException("TimeStamp tokens are different");
@@ -158,12 +150,9 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     }
 
     private void validateTimestamp(String encodedTimeStampToken) throws ProcessingException {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-        VerifyTimeStampActionConfiguration configuration = null;
         try {
-
             ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(
-                org.bouncycastle.util.encoders.Base64.decode(encodedTimeStampToken.getBytes())));
+                Base64.decode(encodedTimeStampToken.getBytes())));
             ASN1Primitive obj = bIn.readObject();
             TimeStampResponse tsResp = new TimeStampResponse(obj.toASN1Primitive().getEncoded());
             TimeStampToken tsToken = tsResp.getTimeStampToken();
@@ -230,5 +219,4 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO Auto-generated method stub
     }
-
 }

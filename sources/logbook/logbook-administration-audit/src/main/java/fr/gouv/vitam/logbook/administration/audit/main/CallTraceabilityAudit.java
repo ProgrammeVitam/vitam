@@ -53,7 +53,7 @@ public class CallTraceabilityAudit {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CallTraceabilityAudit.class);
     private static final String VITAM_CONF_FILE_NAME = "vitam.conf";
     private static final String VITAM_SECURISATION_NAME = "traceabilityAudit.conf";
-    private static final String OP_TYPE = "STP_OP_SECURISATION";
+    public static final String OP_TYPE = "STP_OP_SECURISATION";
 
     /**
      * @param args ignored

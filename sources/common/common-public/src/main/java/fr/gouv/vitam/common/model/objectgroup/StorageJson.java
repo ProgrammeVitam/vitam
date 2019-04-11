@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * Object mapping Storage Response
@@ -43,6 +43,13 @@ public class StorageJson {
 
     @JsonProperty("offerIds")
     private List<String> offerIds;
+
+    public StorageJson() {
+    }
+
+    public StorageJson(List<String> offerIds) {
+        this.offerIds = offerIds;
+    }
 
     public String getStrategyId() {
         return strategyId;

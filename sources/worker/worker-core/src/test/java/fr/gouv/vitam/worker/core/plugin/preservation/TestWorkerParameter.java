@@ -40,12 +40,13 @@ import java.util.Map;
 import java.util.Set;
 
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.containerName;
+import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.objectMetadata;
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.requestId;
 
 public class TestWorkerParameter implements WorkerParameters {
-    public final Map<String, String> params;
+    public final Map<String, Object> params;
 
-    public TestWorkerParameter(Map<String, String> params) {
+    public TestWorkerParameter(Map<String, Object> params) {
         this.params = params;
     }
 
@@ -86,7 +87,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public String getContainerName() {
-        return this.params.get(containerName.name());
+        return (String) this.params.get(containerName.name());
     }
 
     @Override
@@ -106,7 +107,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public String getObjectName() {
-        return params.get("objectName");
+        return (String) params.get("objectName");
     }
 
     @Override
@@ -117,7 +118,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public JsonNode getObjectMetadata() {
-        throw new IllegalStateException("Not implemented");
+        return (JsonNode) params.get(objectMetadata.name());
     }
 
     @Override
@@ -127,7 +128,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public List<String> getObjectNameList() {
-        String objectList = params.get(WorkerParameterName.objectNameList.name());
+        String objectList = (String) params.get(WorkerParameterName.objectNameList.name());
         try {
             return JsonHandler.getFromString(objectList, List.class, String.class);
         } catch (InvalidParseOperationException e) {
@@ -147,7 +148,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public List<JsonNode> getObjectMetadataList() {
-        String objectList = params.get(WorkerParameterName.objectMetadataList.name());
+        String objectList = (String) params.get(WorkerParameterName.objectMetadataList.name());
         if (objectList == null) {
             return null;
         }
@@ -245,7 +246,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public String getRequestId() {
-        return this.params.get(requestId.name());
+        return (String) this.params.get(requestId.name());
     }
 
     @Override
@@ -264,7 +265,7 @@ public class TestWorkerParameter implements WorkerParameters {
     }
 
     public static final class TestWorkerParameterBuilder {
-        public Map<String, String> params = new HashMap<>();
+        public Map<String, Object> params = new HashMap<>();
 
         private TestWorkerParameterBuilder() {
         }
@@ -273,7 +274,7 @@ public class TestWorkerParameter implements WorkerParameters {
             return new TestWorkerParameterBuilder();
         }
 
-        public TestWorkerParameterBuilder withParams(Map<String, String> params) {
+        public TestWorkerParameterBuilder withParams(Map<String, Object> params) {
             this.params = params;
             return this;
         }
@@ -285,6 +286,16 @@ public class TestWorkerParameter implements WorkerParameters {
 
         public TestWorkerParameterBuilder withContainerName(String containerName) {
             this.params.put(WorkerParameterName.containerName.name(), containerName);
+            return this;
+        }
+
+        public TestWorkerParameterBuilder withObjectName(String objectName) {
+            this.params.put(WorkerParameterName.objectName.name(), objectName);
+            return this;
+        }
+
+        public TestWorkerParameterBuilder withObjectMetadata(JsonNode objectMetadata) {
+            this.params.put(WorkerParameterName.objectMetadata.name(), objectMetadata);
             return this;
         }
 

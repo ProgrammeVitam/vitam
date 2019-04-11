@@ -26,22 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import static fr.gouv.vitam.common.model.StatusCode.KO;
-import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.OUTPUT_FILES;
-import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
-
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -59,14 +43,30 @@ import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.O
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
+import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.OUTPUT_FILES;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
+
 public class PreservationStorageBinaryPlugin extends ActionHandler {
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationStorageBinaryPlugin.class);
-    static final String ITEM_ID = "OBJECT_STORAGE_TASK";
+    public static final String ITEM_ID = "OBJECT_STORAGE_TASK";
+    public  static final String MESSAGE_DIGEST = "MessageDigest";
 
     private static final String FILE_NAME = "FileName";
     private static final String OFFERS = "Offers";
     private static final String ALGORITHM = "Algorithm";
-    private static final String DIGEST = "MessageDigest";
 
     private final BackupService backupService;
 
@@ -172,7 +172,7 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
 
         objectNode.put(FILE_NAME, storedInfo.getId());
         objectNode.put(ALGORITHM, storedInfo.getDigestType());
-        objectNode.put(DIGEST, storedInfo.getDigest());
+        objectNode.put(MESSAGE_DIGEST, storedInfo.getDigest());
         objectNode.put(OFFERS, storedInfo.getOfferIds() != null ? String.join(",", storedInfo.getOfferIds()) : "");
 
         return JsonHandler.unprettyPrint(objectNode);

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,9 +23,11 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.worker.core.distribution;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -34,22 +36,24 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-/**
- *
- * @deprecated Use JsonLineGenericIterator instead.
- */
-@Deprecated
-public class JsonLineIterator implements CloseableIterator<JsonLineModel> {
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Spliterator.ORDERED;
 
+public class JsonLineGenericIterator<T> implements CloseableIterator<T> {
     private final BufferedReader bufferedReader;
     private final Iterator<String> lineIterator;
+    private final TypeReference<T> typeReference;
 
-    public JsonLineIterator(InputStream inputStream) {
-        bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+    public JsonLineGenericIterator(InputStream inputStream, TypeReference<T> typeReference) {
+        bufferedReader = new BufferedReader(new InputStreamReader(inputStream, UTF_8));
         lineIterator = bufferedReader.lines().iterator();
+        this.typeReference = typeReference;
     }
 
     @Override
@@ -58,10 +62,10 @@ public class JsonLineIterator implements CloseableIterator<JsonLineModel> {
     }
 
     @Override
-    public JsonLineModel next() {
+    public T next() {
         try {
-            return JsonHandler.getFromString(lineIterator.next(), JsonLineModel.class);
-        } catch (InvalidParseOperationException e) {
+            return JsonHandler.getFromStringAsTypeRefence(lineIterator.next(), typeReference);
+        } catch (InvalidParseOperationException | InvalidFormatException e) {
             throw new RuntimeException("Could not parse json line entry", e);
         }
     }
@@ -73,5 +77,13 @@ public class JsonLineIterator implements CloseableIterator<JsonLineModel> {
         } catch (IOException e) {
             throw new RuntimeException("Could not close reader", e);
         }
+    }
+
+    public Spliterator<T> spliterator() {
+        return Spliterators.spliterator(this, 0L, ORDERED);
+    }
+
+    public Stream<T> stream() {
+        return StreamSupport.stream(spliterator(), false);
     }
 }

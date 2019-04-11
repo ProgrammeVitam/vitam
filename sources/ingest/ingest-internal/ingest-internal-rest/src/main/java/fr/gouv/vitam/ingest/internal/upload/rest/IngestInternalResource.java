@@ -26,27 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Optional;
-import java.util.Queue;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -111,6 +90,26 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Optional;
+import java.util.Queue;
 
 /**
  * IngestInternalResource
@@ -574,7 +573,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
             DataCategory documentType = DataCategory.getByCollectionName(type);
 
             switch(documentType) {
-                case MANIFEST: case REPORT:
+                case MANIFEST:
+                case REPORT:
                     objectId += XML;
                     break;
                 case DISTRIBUTIONREPORTS:

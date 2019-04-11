@@ -221,8 +221,14 @@ export class LogbookOperationComponent extends PageComponent {
 
     switch (item.evTypeProc.toUpperCase()) {
       case 'AUDIT':
+        if(item.evType === "EXPORT_PROBATIVE_VALUE") {
+          logbookService.downloadReport(item.evIdProc);
+          break;
+        }
+        break;
       case 'DATA_MIGRATION':
-      case 'ELIMINATION': case 'PRESERVATION':
+      case 'ELIMINATION':
+      case 'PRESERVATION':
         logbookService.downloadBatchReport(item.evIdProc);
         break;
       case 'MASS_UPDATE':

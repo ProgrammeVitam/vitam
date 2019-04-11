@@ -166,6 +166,15 @@ public final class JsonHandler {
         }
     }
 
+    public static byte[] fromPojoToBytes(Object value) throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("value", value);
+            return OBJECT_MAPPER.writeValueAsBytes(value);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
     /**
      * @param value in format String to transform
      * @return the jsonNode (ObjectNode or ArrayNode)
@@ -310,7 +319,7 @@ public final class JsonHandler {
      * @return the object of type clasz
      * @throws InvalidParseOperationException if parse JsonNode object exception occurred
      */
-    public static final <T> T getFromStringAsTypeRefence(final String value, final TypeReference<T> clasz)
+    public static <T> T getFromStringAsTypeRefence(final String value, final TypeReference<T> clasz)
         throws InvalidParseOperationException, InvalidFormatException {
         try {
             ParametersChecker.checkParameter("value or class", value, clasz);
@@ -460,6 +469,15 @@ public final class JsonHandler {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clasz);
             return OBJECT_MAPPER_LOWER_CAMEL_CASE.treeToValue(jsonNode, clasz);
         } catch (final JsonProcessingException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    public static <T> T getFromJsonNode(JsonNode jsonNode, TypeReference<T> clazz) throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
+            return OBJECT_MAPPER.readValue(OBJECT_MAPPER.treeAsTokens(jsonNode), clazz);
+        } catch (IOException e) {
             throw new InvalidParseOperationException(e);
         }
     }

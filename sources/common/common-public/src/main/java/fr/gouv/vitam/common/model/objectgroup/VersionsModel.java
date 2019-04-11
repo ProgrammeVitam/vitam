@@ -26,15 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.objectgroup;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static java.lang.Integer.parseInt;
 import static java.util.Arrays.asList;
@@ -239,5 +239,28 @@ public class VersionsModel {
     public int getDataVersion(){
         List<String> split = asList(dataObjectVersion.split("_"));
         return parseInt(split.get(1));
+    }
+
+    @Override
+    public String toString() {
+        return "VersionsModel{" +
+            "rank=" + rank +
+            ", id='" + id + '\'' +
+            ", dataObjectVersion='" + dataObjectVersion + '\'' +
+            ", dataObjectGroupId='" + dataObjectGroupId + '\'' +
+            ", formatIdentification=" + formatIdentification +
+            ", fileInfoModel=" + fileInfoModel +
+            ", metadata=" + metadata +
+            ", size=" + size +
+            ", uri='" + uri + '\'' +
+            ", messageDigest='" + messageDigest + '\'' +
+            ", algorithm='" + algorithm + '\'' +
+            ", storage=" + storage +
+            ", physicalDimensionsModel=" + physicalDimensionsModel +
+            ", physicalId='" + physicalId + '\'' +
+            ", otherMetadata=" + otherMetadata +
+            ", opi='" + opi + '\'' +
+            ", any=" + any +
+            '}';
     }
 }

@@ -51,6 +51,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -65,6 +66,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,6 +119,11 @@ public class VerifyTimeStampActionHandlerTest {
     @Before
     public void setUp() throws Exception {
 
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            BouncyCastleProvider provider = new BouncyCastleProvider();
+            Security.addProvider(provider);
+        }
+
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
@@ -133,6 +140,7 @@ public class VerifyTimeStampActionHandlerTest {
         handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
             Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
+
     }
 
     @After

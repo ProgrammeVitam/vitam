@@ -53,6 +53,10 @@ public enum DataCategory {
      */
     REPORT("reports", "report", false, false),
     /**
+     * Report of probative
+     */
+    PROBATIVE_REPORT("probativereports", "report", false, false),
+    /**
      * Manitesf.xml from a SIP
      */
     MANIFEST("manifests", "manifest", false, false),
