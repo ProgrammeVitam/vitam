@@ -30,7 +30,7 @@
     },
     "Management": {
       "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management",
-      "additionalProperties": false,
+      "additionalProperties": true,
       "properties": {
         "AccessRule": {
           "type": "object",
@@ -199,7 +199,13 @@
               ]
             }
           },
-          "anyOf": [ {"required":["FinalAction"]}]
+          "anyOf": [
+            {
+              "required": [
+                "FinalAction"
+              ]
+            }
+          ]
         },
         "ArchiveUnit": {
           "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/ArchiveUnit",
@@ -315,7 +321,14 @@
               ]
             }
           },
-          "anyOf": [ {"required":["ClassificationLevel", "ClassificationOwner"]}]
+          "anyOf": [
+            {
+              "required": [
+                "ClassificationLevel",
+                "ClassificationOwner"
+              ]
+            }
+          ]
         },
         "DisseminationRule": {
           "type": "object",
@@ -571,7 +584,13 @@
               ]
             }
           },
-          "anyOf": [ {"required":["FinalAction"]}]
+          "anyOf": [
+            {
+              "required": [
+                "FinalAction"
+              ]
+            }
+          ]
         },
         "UpdateOperation": {
           "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/UpdateOperation",
@@ -842,21 +861,38 @@
     },
     "AuthorizedAgent": {
       "description": "All of AuthorizedAgentGroup",
-      "type": "array",
       "items": {
         "type": "object",
         "properties": {
           "FirstName": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "BirthName": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "FullName": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "GivenName": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "Gender": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "BirthDate": {
             "description": "pattern: Date",
@@ -942,7 +978,10 @@
             "items": {
               "type": "string"
             },
-            "type": "array"
+            "type": [
+              "array",
+              "string"
+            ]
           },
           "Corpname": {
             "type": "string"
@@ -959,6 +998,11 @@
               {
                 "required": [
                   "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "FullName"
                 ]
               },
               {
@@ -1006,10 +1050,7 @@
       }
     },
     "Writer": {
-      "type": [
-        "array",
-        "object"
-      ],
+      "description": "All of WriterGroup",
       "items": {
         "type": "object",
         "properties": {
@@ -1025,149 +1066,7 @@
               "null"
             ]
           },
-          "GivenName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "Gender": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "BirthDate": {
-            "description": "pattern: Date",
-            "anyOf": [
-              {
-                "type": "string",
-                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}[Z]?$"
-              },
-              {
-                "type": "string",
-                "format": "date-time"
-              }
-            ]
-          },
-          "BirthPlace": {
-            "description": "LocationGroup",
-            "type": "object",
-            "properties": {
-              "Geogname": {
-                "type": "string"
-              },
-              "Address": {
-                "type": "string"
-              },
-              "PostalCode": {
-                "type": "string"
-              },
-              "City": {
-                "type": "string"
-              },
-              "Region": {
-                "type": "string"
-              },
-              "Country": {
-                "type": "string"
-              }
-            }
-          },
-          "DeathDate": {
-            "description": "pattern: Date",
-            "anyOf": [
-              {
-                "type": "string",
-                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}[Z]?$"
-              },
-              {
-                "type": "string",
-                "format": "date-time"
-              }
-            ]
-          },
-          "DeathPlace": {
-            "description": "LocationGroup",
-            "type": "object",
-            "properties": {
-              "Geogname": {
-                "type": "string"
-              },
-              "Address": {
-                "type": "string"
-              },
-              "PostalCode": {
-                "type": "string"
-              },
-              "City": {
-                "type": "string"
-              },
-              "Region": {
-                "type": "string"
-              },
-              "Country": {
-                "type": "string"
-              }
-            }
-          },
-          "Nationality": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "Identifier": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
-          },
-          "Function": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "Activity": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "Position": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "Role": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "Mandate": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      }
-    },
-    "Addressee": {
-      "description": "All of AddresseeGroup (AudienceGroup)",
-      "items": {
-        "type": "object",
-        "properties": {
-          "FirstName": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "BirthName": {
+          "FullName": {
             "type": [
               "string",
               "null"
@@ -1289,6 +1188,201 @@
               {
                 "required": [
                   "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "FullName"
+                ]
+              },
+              {
+                "required": [
+                  "GivenName"
+                ]
+              },
+              {
+                "required": [
+                  "Gender"
+                ]
+              },
+              {
+                "required": [
+                  "BirthDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathPlace"
+                ]
+              },
+              {
+                "required": [
+                  "Nationality"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "Corpname"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Addressee": {
+      "description": "All of AddresseeGroup",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "FullName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "GivenName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Gender": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "BirthPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "DeathDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "DeathPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "Nationality": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "string"
+            ]
+          },
+          "Corpname": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "FirstName"
+                ]
+              },
+              {
+                "required": [
+                  "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "FullName"
                 ]
               },
               {
@@ -1336,7 +1430,7 @@
       }
     },
     "Recipient": {
-      "description": "All of RecipientGroup (AudienceGroup)",
+      "description": "All of RecipientGroup",
       "items": {
         "type": "object",
         "properties": {
@@ -1347,6 +1441,12 @@
             ]
           },
           "BirthName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "FullName": {
             "type": [
               "string",
               "null"
@@ -1468,6 +1568,391 @@
               {
                 "required": [
                   "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "FullName"
+                ]
+              },
+              {
+                "required": [
+                  "GivenName"
+                ]
+              },
+              {
+                "required": [
+                  "Gender"
+                ]
+              },
+              {
+                "required": [
+                  "BirthDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathPlace"
+                ]
+              },
+              {
+                "required": [
+                  "Nationality"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "Corpname"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Transmitter": {
+      "description": "All of TransmitterGroup",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "FullName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "GivenName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Gender": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "BirthPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "DeathDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "DeathPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "Nationality": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "string"
+            ]
+          },
+          "Corpname": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "FirstName"
+                ]
+              },
+              {
+                "required": [
+                  "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "FullName"
+                ]
+              },
+              {
+                "required": [
+                  "GivenName"
+                ]
+              },
+              {
+                "required": [
+                  "Gender"
+                ]
+              },
+              {
+                "required": [
+                  "BirthDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathPlace"
+                ]
+              },
+              {
+                "required": [
+                  "Nationality"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "Corpname"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Sender": {
+      "description": "All of SenderGroup",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "FullName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "GivenName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Gender": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "BirthPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "DeathDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "DeathPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "Nationality": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "string"
+            ]
+          },
+          "Corpname": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "FirstName"
+                ]
+              },
+              {
+                "required": [
+                  "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "FullName"
                 ]
               },
               {
@@ -1881,7 +2366,7 @@
                 "BirthName": {
                   "type": "string"
                 },
-                "FullName" : {
+                "FullName": {
                   "type": "string"
                 },
                 "GivenName": {
@@ -2090,7 +2575,7 @@
               "BirthName": {
                 "type": "string"
               },
-              "FullName" : {
+              "FullName": {
                 "type": "string"
               },
               "GivenName": {
@@ -2314,36 +2799,35 @@
           }
         }
       }
-    }
-  },
-  "Gps": {
-    "type": "object",
-    "properties": {
-      "GpsVersionID": {
-        "type": "string"
-      },
-      "GpsAltitude": {
-        "type": "integer"
-      },
-      "GpsAltitudeRef": {
-        "type": "string"
-      },
-      "GpsLatitude": {
-        "type": "string"
-      },
-      "GpsLatitudeRef": {
-        "type": "string"
-      },
-      "GpsLongitude": {
-        "type": "string"
-      },
-      "GpsLongitudeRef": {
-        "type": "string"
-      },
-      "GpsDateStamp": {
-        "type": "string"
+    },
+    "Gps": {
+      "type": "object",
+      "properties": {
+        "GpsVersionID": {
+          "type": "string"
+        },
+        "GpsAltitude": {
+          "type": "integer"
+        },
+        "GpsAltitudeRef": {
+          "type": "string"
+        },
+        "GpsLatitude": {
+          "type": "string"
+        },
+        "GpsLatitudeRef": {
+          "type": "string"
+        },
+        "GpsLongitude": {
+          "type": "string"
+        },
+        "GpsLongitudeRef": {
+          "type": "string"
+        },
+        "GpsDateStamp": {
+          "type": "string"
+        }
       }
     }
   }
 }
-
