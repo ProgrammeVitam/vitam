@@ -11,7 +11,7 @@ import {
   ProgressBarModule, PaginatorModule, PanelModule, ListboxModule, GrowlModule, RadioButtonModule, TabViewModule,
   InputTextModule, DataTableModule, SharedModule, DialogModule, FieldsetModule, ToggleButtonModule,
   ConfirmDialogModule, ConfirmationService, OverlayPanelModule, InputSwitchModule, ChipsModule, MultiSelectModule,
-  CheckboxModule, DataGridModule, SliderModule, TriStateCheckboxModule
+  CheckboxModule, DataGridModule, SliderModule, TriStateCheckboxModule, SpinnerModule
 } from 'primeng/primeng';
 import {AppComponent} from './app.component';
 import {MenuComponent} from './common/menu/menu.component';
@@ -365,7 +365,8 @@ const appRoutes: Routes = [
     NgArrayPipesModule,
     TranslateModule.forRoot({
       loader: {provide: TranslateLoader, useClass: CustomLoader}
-    })
+    }),
+    SpinnerModule
   ],
   providers: [
     {

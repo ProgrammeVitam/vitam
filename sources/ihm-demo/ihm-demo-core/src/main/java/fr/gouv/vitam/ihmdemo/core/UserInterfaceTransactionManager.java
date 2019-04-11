@@ -79,7 +79,6 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -551,18 +550,14 @@ public class UserInterfaceTransactionManager {
     /**
      * Launch an probative value export for the request
      *
-     * @param query search criteria as DSL query to select AU
+     * @param request probative value request
      * @param context VitamContext
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
      */
-    public RequestResponse exportProbativeValue(JsonNode query, VitamContext context)
-        throws VitamClientException {
-
+    public RequestResponse exportProbativeValue(ProbativeValueRequest request, VitamContext context) throws VitamClientException {
         try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
-            ProbativeValueRequest probativeValueRequest =
-                new ProbativeValueRequest(query, Collections.singletonList("BinaryMaster"));
-            return client.exportProbativeValue(context, probativeValueRequest);
+            return client.exportProbativeValue(context, request);
         }
     }
 

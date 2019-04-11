@@ -26,9 +26,9 @@
  */
 package fr.gouv.vitam.common.model;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 /**
  * Lifecycle Tracability secure File Object that wrap data for each line in the secured file
@@ -303,7 +303,6 @@ public class LifeCycleTraceabilitySecureFileObject {
     public List<ObjectGroupDocumentHash> getObjectGroupDocumentHashList() {
         return objectGroupDocumentHashList;
     }
-
 
     /**
      * getter for up

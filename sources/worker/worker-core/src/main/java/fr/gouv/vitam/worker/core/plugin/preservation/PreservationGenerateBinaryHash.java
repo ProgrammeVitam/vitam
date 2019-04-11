@@ -59,8 +59,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubIte
 
 public class PreservationGenerateBinaryHash extends ActionHandler {
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationGenerateBinaryHash.class);
-    static DigestType digestPreservationGeneration = SHA512;
-    private static final String ITEM_ID = "PRESERVATION_BINARY_HASH";
+
+    public static final DigestType digestPreservationGeneration = SHA512;
+    public static final String ITEM_ID = "PRESERVATION_BINARY_HASH";
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws ProcessingException {

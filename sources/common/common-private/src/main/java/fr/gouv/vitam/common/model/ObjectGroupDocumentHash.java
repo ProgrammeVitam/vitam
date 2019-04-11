@@ -85,4 +85,13 @@ public  class ObjectGroupDocumentHash {
         TraceabilityHashDetails traceabilityHashDetails) {
         this.traceabilityHashDetails = traceabilityHashDetails;
     }
+
+    @Override
+    public String toString() {
+        return "ObjectGroupDocumentHash{" +
+            "id='" + id + '\'' +
+            ", hObject='" + hObject + '\'' +
+            ", traceabilityHashDetails=" + traceabilityHashDetails +
+            '}';
+    }
 }

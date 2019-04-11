@@ -26,12 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
@@ -51,14 +45,20 @@ import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * StoreObjectGroupAction Plugin.<br>
  */
 public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreObjectGroupActionPlugin.class);
 
-    private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
+    public static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
+
     private static final String SIP = "SIP/";
     private static final int OG_OUT_RANK = 0;
     private HandlerIO handlerIO;
