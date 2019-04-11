@@ -33,7 +33,9 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-@Path("/v1/api/populate")
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+
+@Path("/v1/api")
 public class PopulateResource {
 
     private PopulateService populateService;
@@ -42,6 +44,7 @@ public class PopulateResource {
         this.populateService = populateService;
     }
 
+    @Path("/populate")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     public void populateVitam(PopulateModel populateModel) {
@@ -49,9 +52,18 @@ public class PopulateResource {
         populateService.populateVitam(populateModel);
     }
 
+    @Path("/objects/export")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void exportData(Integer tenant, String objectId, DataCategory dataCategory) {
+
+        populateService.exportDataFromOffer(tenant, objectId, dataCategory);
+    }
+
     /**
      * @return 202 if test are in progress, 200 if the previous test are done
      */
+    @Path("/populate")
     @HEAD
     public Response status() {
         if (populateService.inProgress()) {

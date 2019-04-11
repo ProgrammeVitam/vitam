@@ -103,13 +103,6 @@ public class BusinessApplication extends Application {
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
 
-            final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
-            final WebApplicationResource resource =
-                new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
-                    PaginationHelper.getInstance(), DslQueryHelper.getInstance());
-            singletons.add(deleteResource);
-            singletons.add(resource);
-
             Path sipDirectory = Paths.get(configuration.getSipDirectory());
             Path reportDirectory = Paths.get(configuration.getPerformanceReportDirectory());
 
@@ -163,6 +156,13 @@ public class BusinessApplication extends Application {
             PopulateResource populateResource = new PopulateResource(populateService);
 
             singletons.add(populateResource);
+
+            final WebApplicationResourceDelete deleteResource = new WebApplicationResourceDelete(configuration);
+            final WebApplicationResource resource =
+                    new WebApplicationResource(configuration, UserInterfaceTransactionManager.getInstance(),
+                            PaginationHelper.getInstance(), DslQueryHelper.getInstance(), populateService);
+            singletons.add(deleteResource);
+            singletons.add(resource);
 
         } catch (IOException | VitamException e) {
             throw new RuntimeException(e);

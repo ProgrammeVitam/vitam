@@ -70,6 +70,12 @@
     <button type="button" pButton icon="fa-check" (click)="displayGetError=false" label="OK"></button>
   </p-footer>
 </p-dialog>
+<p-dialog header="Demande d'export acceptée" [(visible)]="displayAsyncGetMessage" modal="modal" [responsive]="true">
+  <p>Le fichier demandé se trouvent sur offre à lecture asynchrone. L'export du fichier est en cours</p>
+  <p-footer>
+    <button type="button" pButton icon="fa-check" (click)="displayAsyncGetMessage=false" label="OK"></button>
+  </p-footer>
+</p-dialog>
 <p-dialog header="Erreur de supression " [(visible)]="displayDeleteError" modal="modal" [responsive]="true">
   <p>Erreur lors de la supression  du fichier, veuillez vérifier les informations saisies</p>
   <p-footer>

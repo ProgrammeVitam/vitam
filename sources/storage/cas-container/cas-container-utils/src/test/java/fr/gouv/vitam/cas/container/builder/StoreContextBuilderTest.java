@@ -77,7 +77,7 @@ public class StoreContextBuilderTest {
     @Test
     public void should_write_in_swiftContainer() throws Exception {
         // Given
-        ContentAddressableStorage contentAddressableStorage = StoreContextBuilder.newStoreContext(configuration);
+        ContentAddressableStorage contentAddressableStorage = StoreContextBuilder.newStoreContext(configuration, null);
 
         if (!contentAddressableStorage.isExistingContainer("testContainer")) {
             contentAddressableStorage.createContainer("testContainer");

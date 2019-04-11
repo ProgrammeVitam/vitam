@@ -226,6 +226,11 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
+        public StorageGetResult getAsyncObject(StorageObjectRequest request) throws StorageDriverException {
+            return null;
+        }
+
+        @Override
         public StoragePutResult putObject(StoragePutRequest objectRequest) throws StorageDriverException {
             if ("digest_bad_test".equals(objectRequest.getGuid())) {
                 return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),

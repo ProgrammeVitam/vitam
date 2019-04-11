@@ -44,6 +44,9 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -172,6 +175,14 @@ public class PopulateService {
                         populateModel.getNumberOfUnit() * populateModel.getObjectSize());
                 }
             });
+    }
+
+    public void exportDataFromOffer(Integer tenant, String objectId, DataCategory dataCategory) {
+        metadataStorageService.exportData(tenant, objectId, dataCategory);
+    }
+
+    public StorageOffer getOffer(String offerId) throws StorageException {
+        return metadataStorageService.getOffer(offerId);
     }
 
     private boolean bulkPersist(PopulateModel populateModel, List<UnitGotModel> unitGotList) {

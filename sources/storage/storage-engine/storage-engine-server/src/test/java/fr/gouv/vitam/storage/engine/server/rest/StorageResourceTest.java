@@ -1383,7 +1383,7 @@ public class StorageResourceTest {
                 throw new StorageNotFoundException("Not Found");
             }
             StorageMetadataResult res = new StorageMetadataResult(objectId, "object", "abcdef", 6096,
-                "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+                "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
             try {
                 return JsonHandler.toJsonNode(res);
             } catch (InvalidParseOperationException e) {

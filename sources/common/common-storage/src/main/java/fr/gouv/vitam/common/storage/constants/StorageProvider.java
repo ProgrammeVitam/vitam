@@ -58,7 +58,11 @@ public enum StorageProvider {
     /**
      * File system storage offer with a hashed directory structure
      */
-    HASHFILESYSTEM("filesystem-hash");
+    HASHFILESYSTEM("filesystem-hash"),
+    /**
+     * Tape library offer
+     */
+    TAPE_LIBRARY("tape-library");
 
     private String value;
 

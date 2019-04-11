@@ -247,13 +247,12 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512, null);
         storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"), DigestType.SHA512, null);
         //get metadata of file
-        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID, true);
+        MetadatasObject result = storage.getObjectMetadata(containerName, OBJECT_ID, true);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals(
                 "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
                 result.getDigest());
-        assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
         assertEquals(6906, result.getFileSize());
         assertNotNull(result.getLastAccessDate());
         assertNotNull(result.getLastModifiedDate());
@@ -261,12 +260,12 @@ public abstract class ContentAddressableStorageTestAbstract {
 
     @Test(expected = IllegalArgumentException.class)
     public void getObjectMetadataOnObjectIdNullShouldRaiseAnException() throws Exception {
-        storage.getObjectMetadatas("containerName", null, true);
+        storage.getObjectMetadata("containerName", null, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void getObjectMetadataOnContainerNullShouldRaiseAnException() throws Exception {
-        storage.getObjectMetadatas(null, "objectId", true);
+        storage.getObjectMetadata(null, "objectId", true);
     }
 
     @Test

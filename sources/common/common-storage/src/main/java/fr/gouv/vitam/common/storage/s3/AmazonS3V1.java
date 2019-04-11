@@ -343,6 +343,12 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     }
 
     @Override
+    public void asyncGetObject(String containerName, String objectName)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supporter");
+    }
+
+    @Override
     public void deleteObject(String containerName, String objectName)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         LOGGER.debug(String.format("Delete object %s from container %s", objectName, containerName));
@@ -449,7 +455,7 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
+    public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
             throws ContentAddressableStorageException, IOException {
         LOGGER.debug(String.format("Get metadatas of object %s in container %s", objectId, containerName));
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
@@ -459,8 +465,6 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             MetadatasStorageObject result = new MetadatasStorageObject();
             GetObjectMetadataRequest getObjectMetadataRequest = new GetObjectMetadataRequest(bucketName, objectId);
             ObjectMetadata objectMetadata = client.getObjectMetadata(getObjectMetadataRequest);
-            // ugly
-            result.setFileOwner("Vitam_" + containerName.split("_")[0]);
             // ugly
             result.setType(containerName.split("_")[1]);
             result.setObjectName(objectId);

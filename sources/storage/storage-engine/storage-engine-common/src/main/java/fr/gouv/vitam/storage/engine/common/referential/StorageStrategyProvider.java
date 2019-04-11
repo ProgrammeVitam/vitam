@@ -27,7 +27,9 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
@@ -46,4 +48,6 @@ public interface StorageStrategyProvider {
      *             if any unwanted technical issue happens
      */
     StorageStrategy getStorageStrategy(String idStrategy) throws StorageTechnicalException;
+
+    StorageOffer getStorageOffer(String idOffer) throws StorageException;
 }

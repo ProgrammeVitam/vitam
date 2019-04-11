@@ -34,6 +34,11 @@
 			<artifactId>common-storage</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>cas-tape-library</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 		<!-- test -->
 		<dependency>
 			<groupId>junit</groupId>
@@ -156,7 +161,7 @@
 					<archive>
 						<manifest>
 							<addClasspath>true</addClasspath>
-							<mainClass>fr.gouv.vitam.storage.offers.common.rest.DefaultOfferMain</mainClass>
+							<mainClass>fr.gouv.vitam.storage.offers.rest.DefaultOfferMain</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

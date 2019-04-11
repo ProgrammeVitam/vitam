@@ -26,13 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.cas.container.builder;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-
 import fr.gouv.vitam.cas.container.swift.OpenstackSwift;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorage;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
@@ -42,6 +37,13 @@ import fr.gouv.vitam.common.storage.s3.AmazonS3V1;
 import fr.gouv.vitam.common.storage.swift.Swift;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV2;
 import fr.gouv.vitam.common.storage.swift.SwiftKeystoneFactoryV3;
+import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
+
+import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 /**
  * Creates {@link ContentAddressableStorage} configured in a configuration file
@@ -76,7 +78,8 @@ public class StoreContextBuilder {
      * @return ContentAddressableStorage : by default fileSystem or
      * openstack-swift if it is configured
      */
-    public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration)
+    public static ContentAddressableStorage newStoreContext(StorageConfiguration configuration,
+        MongoDbAccess mongoDBAccess)
         throws CertificateException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
 
         if (StorageProvider.SWIFT_AUTH_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
@@ -93,6 +96,10 @@ public class StoreContextBuilder {
             return new Swift(swiftKeystoneFactoryV3, configuration);
         } else if (StorageProvider.AMAZON_S3_V1.getValue().equalsIgnoreCase(configuration.getProvider())) {
             return new AmazonS3V1(configuration);
+        } else if (StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
+            TapeLibraryFactory tapeLibraryFactory = TapeLibraryFactory.getInstance();
+            tapeLibraryFactory.initialize(configuration.getTapeLibraryConfiguration(), mongoDBAccess);
+            return tapeLibraryFactory.getTapeLibraryContentAddressableStorage();
         } else {
             // by default file system
             return new FileSystem(configuration);

@@ -74,7 +74,7 @@ public class ServerApplicationWithoutMongo extends Application {
             singletons.addAll(commonBusinessApplication.getResources());
             
             final WebApplicationResource resource = new WebApplicationResource(configuration, userInterfaceTransactionManager,
-                PaginationHelper.getInstance(), DslQueryHelper.getInstance());
+                PaginationHelper.getInstance(), DslQueryHelper.getInstance(), null);
             singletons.add(resource);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -59,7 +59,7 @@ public class AuditIntegrityServiceTest {
         ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
         StorageMetadataResult metaData = new StorageMetadataResult("aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq", "object",
                 "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
-                6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+                6096, "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
         offerIdToMetadata.set("offer-fs-1.service.int.consul", JsonHandler.toJsonNode(metaData));
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
@@ -86,7 +86,7 @@ public class AuditIntegrityServiceTest {
     public void shouldStatusKOWhenBinaryObjectWrongDigest() throws Exception {
         ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
         StorageMetadataResult metaData = new StorageMetadataResult("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq", "object",
-                "fakeDigestMessage", 6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+                "fakeDigestMessage", 6096, "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
         offerIdToMetadata.set("offer-fs-1.service.int.consul", JsonHandler.toJsonNode(metaData));
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
@@ -116,7 +116,7 @@ public class AuditIntegrityServiceTest {
         ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
         StorageMetadataResult metaData = new StorageMetadataResult("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq", "object",
                 "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
-                6096, "Vitam_0", "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+                6096, "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
         offerIdToMetadata.set("offer-fs-2.service.int.consul", JsonHandler.toJsonNode(metaData));
         reset(storageClient);
         when(storageClient.getInformation(eq("default"), eq(DataCategory.OBJECT),

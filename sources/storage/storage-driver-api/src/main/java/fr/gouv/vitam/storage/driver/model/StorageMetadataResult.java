@@ -37,7 +37,6 @@ public class StorageMetadataResult extends MetadatasObject {
         this.setType(object.getType());
         this.setDigest(object.getDigest());
         this.setFileSize(object.getFileSize());
-        this.setFileOwner(object.getFileOwner());
         this.setLastAccessDate(object.getLastAccessDate());
         this.setLastModifiedDate(object.getLastModifiedDate());
     }
@@ -49,14 +48,13 @@ public class StorageMetadataResult extends MetadatasObject {
      * @param type
      * @param digest
      * @param file_size
-     * @param file_owner
      * @param last_access_date
      * @param last_modified_date
      */
     public StorageMetadataResult(@JsonProperty("objectName") String object_name, @JsonProperty("type") String type,
             @JsonProperty("digest") String digest, @JsonProperty("file_size") long file_size,
-            @JsonProperty("file_owner") String file_owner, @JsonProperty("last_access_date") String last_access_date,
+            @JsonProperty("last_access_date") String last_access_date,
             @JsonProperty("last_modified_date") String last_modified_date) {
-        super(object_name, type, digest, file_size, file_owner, last_access_date, last_modified_date);
+        super(object_name, type, digest, file_size, last_access_date, last_modified_date);
     }
 }

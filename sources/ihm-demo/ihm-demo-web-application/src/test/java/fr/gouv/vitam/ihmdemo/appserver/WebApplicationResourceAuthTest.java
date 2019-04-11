@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.ihmdemo.common.api.IhmDataRest;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import io.restassured.RestAssured;
@@ -109,7 +110,7 @@ public class WebApplicationResourceAuthTest {
             .contentType(ContentType.JSON)
             .body(CREDENTIALS)
             .post("/login");
-        JsonNode body= JsonHandler.getFromString(response.body().asString());
+        JsonNode body = JsonHandler.getFromString(response.body().asString());
         sessionId = response.getCookie("JSESSIONID");
         tokenCSRF = body.get("tokenCSRF").asText();
 
@@ -117,7 +118,11 @@ public class WebApplicationResourceAuthTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        application.stop();
+        try {
+            application.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
         junitHelper.releasePort(port);
     }
 

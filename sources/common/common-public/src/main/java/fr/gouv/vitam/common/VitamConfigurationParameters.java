@@ -222,6 +222,12 @@ public class VitamConfigurationParameters {
      * Specify the delay where connections returned to pool will be checked (Apache Only)
      */
     private Integer intervalDelayCheckIdle;
+
+    /**
+     * Specify the delay interval to log and shoud un logs that worker are in progress
+     */
+    private Integer intervalDelayLogInProgressWorker;
+
     /**
      * Specify the delay of unused connection returned in the pool before being really closed (Apache Only)
      */
@@ -1326,4 +1332,19 @@ public class VitamConfigurationParameters {
     }
 
 
+    /**
+     * Getter
+     * @return intervalDelayLogInProgressWorker
+     */
+    public Integer getIntervalDelayLogInProgressWorker() {
+        return intervalDelayLogInProgressWorker;
+    }
+
+    /**
+     * Setter
+     * @param intervalDelayLogInProgressWorker
+     */
+    public void setIntervalDelayLogInProgressWorker(Integer intervalDelayLogInProgressWorker) {
+        this.intervalDelayLogInProgressWorker = intervalDelayLogInProgressWorker;
+    }
 }

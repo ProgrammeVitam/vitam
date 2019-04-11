@@ -120,7 +120,7 @@ public class HashFileSystemTest extends ContentAddressableStorageTestAbstract {
         assertNull(currentDigest); 
 
         // check if digest has been updated when call getMetadatas
-        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID, true);
+        MetadatasObject result = storage.getObjectMetadata(containerName, OBJECT_ID, true);
         assertNotNull(result);
         assertEquals(OBJECT_ID, result.getObjectName());
         assertEquals(TYPE, result.getType());

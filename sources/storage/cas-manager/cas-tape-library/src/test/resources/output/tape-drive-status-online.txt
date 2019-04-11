@@ -1,0 +1,6 @@
+SCSI 2 tape drive:
+File number=-1, block number=-1, partition=0.
+Tape block size 0 bytes. Density code 0x5a (LTO-6).
+Soft error count since last status=0
+General status bits on (1010000):
+ EOT ONLINE IM_REP_EN

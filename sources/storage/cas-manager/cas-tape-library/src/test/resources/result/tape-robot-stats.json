@@ -1,0 +1,303 @@
+{
+  "Status": "OK",
+  "Device" : "/dev/tape/by-id/scsi-1QUANTUM_B4D282EF285E4365BBA90000",
+  "DriveCount" : 4,
+  "SlotsCount" : 84,
+  "MailBoxCount" : 4,
+  "Drives" : [ {
+    "Index" : 0,
+    "Tape" : {
+      "VolumeTag" : "VIT008L6                         ",
+      "SlotIndex" : 9
+    }
+  }, {
+    "Index" : 1,
+    "Tape" : {
+      "VolumeTag" : "VIT000L6                         ",
+      "SlotIndex" : 1
+    }
+  }, {
+    "Index" : 2
+  }, {
+    "Index" : 3
+  } ],
+  "Slots" : [ {
+    "Index" : 1,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 2,
+    "Tape" : {
+      "VolumeTag" : "VIT001L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 3,
+    "Tape" : {
+      "VolumeTag" : "VIT002L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 4,
+    "Tape" : {
+      "VolumeTag" : "VIT003L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 5,
+    "Tape" : {
+      "VolumeTag" : "VIT004L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 6,
+    "Tape" : {
+      "VolumeTag" : "VIT005L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 7,
+    "Tape" : {
+      "VolumeTag" : "VIT006L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 8,
+    "Tape" : {
+      "VolumeTag" : "VIT007L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 9,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 10,
+    "Tape" : {
+      "VolumeTag" : "VIT009L6                         "
+    },
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 11,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 12,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 13,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 14,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 15,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 16,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 17,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 18,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 19,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 20,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 21,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 22,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 23,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 24,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 25,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 26,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 27,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 28,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 29,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 30,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 31,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 32,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 33,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 34,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 35,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 36,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 37,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 38,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 39,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 40,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 41,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 42,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 43,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 44,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 45,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 46,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 47,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 48,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 49,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 50,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 51,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 52,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 53,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 54,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 55,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 56,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 57,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 58,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 59,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 60,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 61,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 62,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 63,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 64,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 65,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 66,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 67,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 68,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 69,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 70,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 71,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 72,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 73,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 74,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 75,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 76,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 77,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 78,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 79,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 80,
+    "StorageElementType" : "SLOT"
+  }, {
+    "Index" : 81,
+    "StorageElementType" : "IMPORTEXPORT"
+  }, {
+    "Index" : 82,
+    "StorageElementType" : "IMPORTEXPORT"
+  }, {
+    "Index" : 83,
+    "StorageElementType" : "IMPORTEXPORT"
+  }, {
+    "Index" : 84,
+    "StorageElementType" : "IMPORTEXPORT"
+  } ],
+  "Ok": true,
+  "Warn": false
+}

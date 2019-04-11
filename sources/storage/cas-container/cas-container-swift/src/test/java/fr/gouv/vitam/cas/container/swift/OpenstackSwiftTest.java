@@ -84,7 +84,7 @@ public class OpenstackSwiftTest {
         storage.putObject(containerName, OBJECT_ID, getInputStream("file1.pdf"), DigestType.SHA512, null);
 
         // get metadata of file
-        MetadatasObject result = storage.getObjectMetadatas(containerName, OBJECT_ID, false);
+        MetadatasObject result = storage.getObjectMetadata(containerName, OBJECT_ID, false);
         assertNotNull(result);
 
         assertEquals(OBJECT_ID, result.getObjectName());
@@ -93,17 +93,15 @@ public class OpenstackSwiftTest {
                 "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418",
                 result.getDigest());
         assertEquals(6906, result.getFileSize());
-        assertNotNull(result.getFileOwner());
         assertNotNull(result.getLastModifiedDate());
 
         storage.putObject(containerName, OBJECT_ID2, getInputStream("file2.pdf"), DigestType.SHA512, null);
         // get metadata of directory
-        result = storage.getObjectMetadatas(containerName, null, false);
+        result = storage.getObjectMetadata(containerName, null, false);
         assertEquals("object_1", result.getObjectName());
         assertEquals(TYPE, result.getType());
         assertEquals(null, result.getDigest());
         assertEquals(13843, result.getFileSize());
-        assertEquals("Vitam_" + TENANT_ID, result.getFileOwner());
     }
 
 }

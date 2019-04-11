@@ -29,10 +29,8 @@ package fr.gouv.vitam.storage.engine.common.referential.model;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -98,14 +96,23 @@ public class HotStrategy {
 
     /**
      * check whether storage offer is enabled (not present means disabled because {@link #postInit} method can filter it)
+     *
      * @param offerId storageOfferId to check
      * @return
      */
     public boolean isStorageOfferEnabled(String offerId) {
         Optional<OfferReference>
             offerReference = getOffers().stream()
-                            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
+            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
 
         return offerReference.isPresent() && offerReference.get().isEnabled();
+    }
+
+    public boolean isStorageOfferReferent(String offerId) {
+        Optional<OfferReference>
+            offerReference = getOffers().stream()
+            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
+
+        return offerReference.isPresent() && offerReference.get().isReferent();
     }
 }

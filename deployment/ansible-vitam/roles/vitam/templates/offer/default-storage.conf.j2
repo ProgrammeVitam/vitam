@@ -37,3 +37,62 @@ s3ClientExecutionTimeout: {{ vitam_offers[offer_conf]["s3ClientExecutionTimeout"
 s3TrustStore: {{vitam_folder_conf}}/truststore_{{ vitam_struct.vitam_component }}.jks
 s3TrustStorePassword: {{ password_truststore }}
 {% endif %}
+
+{% if vitam_offers[offer_conf]["provider"] in ["tape-library"] %}
+tapeLibraryConfiguration:
+  inputFileStorageFolder: "{{ vitam_folder_data }}/offer/inputFiles"
+  inputTarStorageFolder: "{{ vitam_folder_data }}/offer/inputTars"
+  outputTarStorageFolder: "{{ vitam_folder_data }}/offer/outputTars"
+  maxTarEntrySize: 100000
+  maxTarFileSize: 1000000
+  useSudo: false
+
+  topology:
+    buckets:
+      test:
+        tenants: [0]
+        tarBufferingTimeoutInMinutes: 60
+      admin:
+        tenants: [1]
+        tarBufferingTimeoutInMinutes: 60
+      prod:
+        tenants: [2,3,4,5,6,7,8,9]
+        tarBufferingTimeoutInMinutes: 60
+
+  tapeLibraries:
+    TAPE_LIB_1:
+      robots:
+        -
+          device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
+          mtxPath: "/usr/sbin/mtx"
+          timeoutInMilliseconds: 3600000
+      drives:
+        -
+          index: 0
+          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
+          mtPath: "/bin/mt"
+          ddPath: "/bin/dd"
+          tarPath: "/bin/tar"
+          timeoutInMilliseconds: 3600000
+        -
+          index: 1
+          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
+          mtPath: "/bin/mt"
+          ddPath: "/bin/dd"
+          tarPath: "/bin/tar"
+          timeoutInMilliseconds: 3600000
+        -
+          index: 2
+          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
+          mtPath: "/bin/mt"
+          ddPath: "/bin/dd"
+          tarPath: "/bin/tar"
+          timeoutInMilliseconds: 3600000
+        -
+          index: 3
+          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
+          mtPath: "/bin/mt"
+          ddPath: "/bin/dd"
+          tarPath: "/bin/tar"
+          timeoutInMilliseconds: 3600000
+{% endif %}

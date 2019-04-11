@@ -26,6 +26,36 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
+import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -77,6 +107,7 @@ import fr.gouv.vitam.ihmdemo.common.pagination.PaginationHelper;
 import fr.gouv.vitam.ihmdemo.core.DslQueryHelper;
 import fr.gouv.vitam.ihmdemo.core.JsonTransformer;
 import fr.gouv.vitam.ihmdemo.core.UserInterfaceTransactionManager;
+import fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -84,43 +115,16 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 
 /**
  * Web Application Resource class
@@ -169,6 +173,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private final UserInterfaceTransactionManager userInterfaceTransactionManager;
     private final PaginationHelper paginationHelper;
     private final DslQueryHelper dslQueryHelper;
+    private final PopulateService populateService;
     private ExecutorService threadPoolExecutor = Executors.newCachedThreadPool(VitamThreadFactory.getInstance());
     private List<String> secureMode;
 
@@ -177,12 +182,16 @@ public class WebApplicationResource extends ApplicationStatusResource {
      *
      * @param webApplicationConfigonfig configuration
      */
-    public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig, UserInterfaceTransactionManager userInterfaceTransactionManager, PaginationHelper paginationHelper, DslQueryHelper dslQueryHelper) {
+    public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig,
+                                  UserInterfaceTransactionManager userInterfaceTransactionManager,
+                                  PaginationHelper paginationHelper, DslQueryHelper dslQueryHelper,
+                                  PopulateService populateService) {
         super(new BasicVitamStatusServiceImpl());
         this.secureMode = webApplicationConfigonfig.getSecureMode();
         this.userInterfaceTransactionManager = userInterfaceTransactionManager;
         this.paginationHelper = paginationHelper;
         this.dslQueryHelper = dslQueryHelper;
+        this.populateService = populateService;
         LOGGER.debug("init Admin Management Resource server");
 
         WorkspaceClientFactory.changeMode(webApplicationConfigonfig.getWorkspaceUrl());
@@ -297,15 +306,27 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Retrieve an Object data as an input stream. Download by access.
      */
     @GET
-    @Path("/download/{dataType}/{uid}")
+    @Path("/download/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObjectAsInputStreamAsync(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @PathParam("uid") String uid,
-        @PathParam("dataType") String dataType) {
+        @PathParam("dataType") String dataType, @PathParam("offerId") String offerId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
-        return asyncDowloadObject(DataCategory.valueOf(dataType), uid);
+        Response response = null;
+        try {
+            StorageOffer offer = populateService.getOffer(offerId);
+            if (offer.isAsyncRead()) {
+                populateService.exportDataFromOffer(Integer.parseInt(xTenantId), uid, DataCategory.valueOf(dataType));
+                response = Response.status(Status.ACCEPTED).build();
+            } else {
+                response = asyncDowloadObject(DataCategory.valueOf(dataType), uid);
+            }
+        } catch (StorageException e) {
+            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
 
+        return response;
     }
 
     private InputStream getErrorStream(Status badRequest, String message, VitamError vitamError) {

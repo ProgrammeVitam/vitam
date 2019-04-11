@@ -41,8 +41,6 @@ public abstract class MetadatasObject {
     private String digest;
     @JsonProperty("fileSize")
     private long fileSize;
-    @JsonProperty("fileOwner")
-    private String fileOwner;
     @JsonProperty("lastAccessDate")
     private String lastAccessDate;
     @JsonProperty("lastModifiedDate")
@@ -56,7 +54,6 @@ public abstract class MetadatasObject {
         this.type = null;
         this.digest = null;
         this.fileSize = 0;
-        this.fileOwner = null;
         this.lastAccessDate = null;
         this.lastModifiedDate = null;
     }
@@ -68,17 +65,15 @@ public abstract class MetadatasObject {
      * @param type the type of metadata object
      * @param digest of metadata object
      * @param fileSize of metadata object
-     * @param fileOwner of metadata object
      * @param lastAccessDate of metadata object
      * @param lastModifiedDate of metadata object
      */
-    public MetadatasObject(String objectName, String type, String digest, long fileSize, String fileOwner,
+    public MetadatasObject(String objectName, String type, String digest, long fileSize,
         String lastAccessDate, String lastModifiedDate) {
         this.objectName = objectName;
         this.type = type;
         this.digest = digest;
         this.fileSize = fileSize;
-        this.fileOwner = fileOwner;
         this.lastAccessDate = lastAccessDate;
         this.lastModifiedDate = lastModifiedDate;
     }
@@ -145,22 +140,6 @@ public abstract class MetadatasObject {
      */
     public MetadatasObject setFileSize(long fileSize) {
         this.fileSize = fileSize;
-        return this;
-    }
-
-    /**
-     * @return file owner
-     */
-    public String getFileOwner() {
-        return fileOwner;
-    }
-
-    /**
-     * @param fileOwner of metadata object to set
-     * @return MetadatasObjectResult
-     */
-    public MetadatasObject setFileOwner(String fileOwner) {
-        this.fileOwner = fileOwner;
         return this;
     }
 

@@ -27,44 +27,12 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import static fr.gouv.vitam.common.SedaConstants.STRATEGY_ID;
-import static java.util.Collections.singletonList;
-
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -137,6 +105,36 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
+import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.SedaConstants.STRATEGY_ID;
+import static java.util.Collections.singletonList;
+
 
 /**
  * StorageDistribution service Implementation process continue if needed)
@@ -232,8 +230,10 @@ public class StorageDistributionImpl implements StorageDistribution {
     }
 
     @VisibleForTesting
-    StorageDistributionImpl(WorkspaceClientFactory workspaceClientFactory, DigestType digestType, StorageLog storageLogService,
-        ExecutorService batchExecutorService, int batchDigestComputationTimeout, BulkStorageDistribution bulkStorageDistribution) {
+    StorageDistributionImpl(WorkspaceClientFactory workspaceClientFactory, DigestType digestType,
+        StorageLog storageLogService,
+        ExecutorService batchExecutorService, int batchDigestComputationTimeout,
+        BulkStorageDistribution bulkStorageDistribution) {
         urlWorkspace = null;
         this.transfertTimeoutHelper = new TransfertTimeoutHelper(100L);
         this.workspaceClientFactory = workspaceClientFactory;
@@ -488,9 +488,11 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
 
         Map<String, String> objectDigests =
-            bulkStorageDistribution.bulkCreateFromWorkspaceWithRetries(tenantId, offerIds, storageDrivers, storageOffers,
-                bulkObjectStoreRequest.getType(), bulkObjectStoreRequest.getWorkspaceContainerGUID(),
-                bulkObjectStoreRequest.getWorkspaceObjectURIs(), bulkObjectStoreRequest.getObjectNames(), requester);
+            bulkStorageDistribution
+                .bulkCreateFromWorkspaceWithRetries(tenantId, offerIds, storageDrivers, storageOffers,
+                    bulkObjectStoreRequest.getType(), bulkObjectStoreRequest.getWorkspaceContainerGUID(),
+                    bulkObjectStoreRequest.getWorkspaceObjectURIs(), bulkObjectStoreRequest.getObjectNames(),
+                    requester);
 
         return new BulkObjectStoreResponse(offerIds, digestType.getName(), objectDigests);
     }
@@ -515,7 +517,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         try (
             InputStream digestInputStream = globalDigest.getDigestInputStream(streamAndInfo.getStream());
             MultiplePipedInputStream streams = new MultiplePipedInputStream(digestInputStream,
-            offersParams.getKoOffers().size())) {
+                offersParams.getKoOffers().size())) {
             // init thread and make future map
             // Map here to keep offerId linked to Future
             Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
@@ -626,7 +628,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
         if (parameters == null) {
             parameters = getParameters(res != null ? res.getObjectGuid() : null, dataCategoty,
-                res != null ? res.getResponse() : null,
+                res != null ? (StoragePutResult) res.getResponse() : null,
                 null, offerId, res != null ? res.getStatus() : status, requester, attempt);
         } else {
             updateStorageLogbookParameters(parameters, offerId,
@@ -778,8 +780,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         boolean error = objectStored == Status.INTERNAL_SERVER_ERROR;
         final StorageLogbookOutcome outcome = error ? StorageLogbookOutcome.KO : StorageLogbookOutcome.OK;
 
-        return StorageLogbookParameters.createLogParameters(objectIdentifier, dataCategoty, messageDig, digestType.getName(), size,
-            getAttemptLog(offerId, attempt, error), requester, outcome);
+        return StorageLogbookParameters
+            .createLogParameters(objectIdentifier, dataCategoty, messageDig, digestType.getName(), size,
+                getAttemptLog(offerId, attempt, error), requester, outcome);
     }
 
     private String getAttemptLog(String offerId, int attempt, boolean error) {
@@ -931,12 +934,34 @@ public class StorageDistributionImpl implements StorageDistribution {
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
         final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
         if (hotStrategy != null) {
-            final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+            final List<OfferReference> offerReferenceList = getOfferListFromHotStrategy(hotStrategy);
 
-            // TODO: make priority -> Use the first one here but don't take into
-            // account errors !
-            final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReferences.get(0).getId());
-            final Driver driver = retrieveDriverInternal(offerReferences.get(0).getId());
+            // Get referent offer
+            Optional<OfferReference> offerReference = offerReferenceList
+                .stream()
+                .filter(OfferReference::isReferent)
+                .findFirst();
+
+            if (!offerReference.isPresent()) {
+                // Try to take a not referent offer
+                offerReference = offerReferenceList
+                    .stream()
+                    .findFirst();
+            }
+
+            if (!offerReference.isPresent()) {
+                LOGGER.error("No offer found");
+                throw new StorageTechnicalException("No offer found");
+            }
+
+            final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.get().getId());
+
+            if (offer.isAsyncRead()) {
+                throw new StorageTechnicalException("AsyncRead offer (" + offerReference.get().getId() +
+                    ") found. AsyncOffer not allowed for direct read");
+            }
+
+            final Driver driver = retrieveDriverInternal(offerReference.get().getId());
             try (Connection connection = driver.connect(offer.getId())) {
                 StorageListRequest request = new StorageListRequest(tenantId, category.getFolder(), cursorId, true);
                 return connection.listObjects(request);
@@ -1073,12 +1098,20 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             List<StorageOffer> collect = offerReferences.stream()
                 .map(StorageDistributionImpl::apply)
+                // FIXME: Remove filter(StorageOffer::notAsyncRead) when adding cold strategy
+                .filter(StorageOffer::notAsyncRead)
                 .collect(Collectors.toList());
 
             storageOffers.addAll(collect);
         } else {
             // get the storage offer from the given identifier
             final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
+
+            if (offer.isAsyncRead()) {
+                throw new StorageTechnicalException(
+                    "AsyncRead offer (" + offerId + ") found. AsyncOffer not allowed for direct read");
+            }
+
             storageOffers = singletonList(offer);
         }
 
@@ -1192,9 +1225,18 @@ public class StorageDistributionImpl implements StorageDistribution {
         return offerIdToMetadata;
     }
 
+    /**
+     * Verify if object exists
+     *
+     * @param strategyId id of the strategy
+     * @param objectId id of the object
+     * @param category category
+     * @param offerIds list id of offers  @return
+     * @throws StorageException StorageException
+     */
     @Override
     public Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
-            List<String> offerIds) throws StorageException {
+        List<String> offerIds) throws StorageException {
         // Check input params
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
@@ -1205,11 +1247,11 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         HotStrategy hotStrategy = checkStrategy(strategyId);
         final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
-
+        // FIXME: 03/04/19 check asyncReadOffer
         List<String> offerReferencesIds = offerReferences.stream().map(OfferReference::getId)
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         resultByOffer.putAll(offerIds.stream().filter(offer -> !offerReferencesIds.contains(offer))
-                .collect(Collectors.toMap(offerId -> offerId, offerId -> Boolean.FALSE)));
+            .collect(Collectors.toMap(offerId -> offerId, offerId -> Boolean.FALSE)));
 
         for (final String offerId : offerIds) {
             if (!resultByOffer.containsKey(offerId)) {
@@ -1217,7 +1259,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerId);
                 try (Connection connection = driver.connect(offer.getId())) {
                     final StorageObjectRequest request = new StorageObjectRequest(tenantId, category.getFolder(),
-                            objectId);
+                        objectId);
                     if (!connection.objectExistsInOffer(request)) {
                         resultByOffer.put(offerId, Boolean.FALSE);
                     } else {
@@ -1231,7 +1273,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                     resultByOffer.put(offerId, Boolean.FALSE);
                 }
             }
-            
+
         }
         return resultByOffer;
     }

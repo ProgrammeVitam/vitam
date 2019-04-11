@@ -27,16 +27,16 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import fr.gouv.vitam.storage.driver.model.StoragePutResult;
-
 import javax.ws.rs.core.Response;
+
+import fr.gouv.vitam.storage.driver.model.StorageObjectResult;
 
 /**
  * Response of thread storage
  */
 public class ThreadResponseData {
 
-    private final StoragePutResult response;
+    private final StorageObjectResult response;
     private final Response.Status status;
     private final String objectGuid;
 
@@ -50,7 +50,7 @@ public class ThreadResponseData {
      * @param objectGuid
      *            the object guid
      */
-    public ThreadResponseData(StoragePutResult putObjectResult, Response.Status status, String objectGuid) {
+    public ThreadResponseData(StorageObjectResult putObjectResult, Response.Status status, String objectGuid) {
         this.response = putObjectResult;
         this.status = status;
         this.objectGuid = objectGuid;
@@ -59,7 +59,7 @@ public class ThreadResponseData {
     /**
      * @return the transfer response
      */
-    public StoragePutResult getResponse() {
+    public StorageObjectResult getResponse() {
         return response;
     }
 

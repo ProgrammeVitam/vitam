@@ -188,6 +188,12 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
     }
 
     @Override
+    public void asyncGetObject(String containerName, String objectName)
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
+        throw new UnsupportedOperationException("Operation not supporter");
+    }
+
+    @Override
     public void deleteObject(String containerName, String objectName)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
         ParametersChecker
@@ -337,7 +343,7 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
 
     // FIXME : <Copié/collé du FS v1
     @Override
-    public MetadatasObject getObjectMetadatas(String containerName, String objectId, boolean noCache)
+    public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
             throws ContentAddressableStorageException, IOException {
         ParametersChecker
                 .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
@@ -353,7 +359,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         result.setFileSize(size);
         // TODO see how to retrieve metadatas
         result.setType(containerName.split("_")[1]);
-        result.setFileOwner("Vitam_" + containerName.split("_")[0]);
         result.setLastAccessDate(basicAttribs.lastAccessTime().toString());
         result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
         return result;

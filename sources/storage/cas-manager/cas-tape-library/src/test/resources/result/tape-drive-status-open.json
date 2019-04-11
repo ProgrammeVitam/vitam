@@ -1,0 +1,26 @@
+{
+  "Status": "OK",
+  "Description": "SCSI 2 tape drive:",
+  "FileNumber": -1,
+  "BlockNumber": -1,
+  "Partition": 0,
+  "TapeBlockSize": 0,
+  "DensityCode": "0x0",
+  "Cartridge": "default",
+  "ErrorCountSinceLastStatus": 0,
+  "StatusBits": "50000",
+  "DriveStatuses": [
+    "DR_OPEN",
+    "IM_REP_EN"
+  ],
+  "Ok": true,
+  "Warn": false,
+  "EndOfTape": false,
+  "BeginOfTape": false,
+  "EndOfData": false,
+  "EndOfFile": false,
+  "SetMark": false,
+  "WormTape": false,
+  "EmptyDrive": true,
+  "CacheEnabled": true
+}

@@ -243,11 +243,10 @@ public class AmazonS3V1ITTest {
         }
 
         // get an existing file's metadata
-        MetadatasObject metadatasObject = amazonS3V1.getObjectMetadatas(containerName, objectName, false);
+        MetadatasObject metadatasObject = amazonS3V1.getObjectMetadata(containerName, objectName, false);
         assertThat(metadatasObject.getFileSize()).isEqualTo(6_906L);
         assertThat(metadatasObject.getDigest()).isEqualTo(
                 "9ba9ef903b46798c83d46bcbd42805eb69ad1b6a8b72e929f87d72f5263a05ade47d8e2f860aece8b9e3acb948364fedf75a3367515cd912965ed22a246ea418");
-        assertThat(metadatasObject.getFileOwner()).isEqualTo("Vitam_0");
         assertThat(metadatasObject.getObjectName()).isEqualTo(objectName);
         assertThat(metadatasObject.getType()).isEqualTo("Unit");
 

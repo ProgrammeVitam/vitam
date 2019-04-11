@@ -1,0 +1,15 @@
+---
+
+- name: Determine available groups
+  getent:
+    database: group
+    split: ':'
+    fail_key: False
+
+- name: add user vitam to tape group if component is offer
+  user:
+    name: "{{ vitam_defaults.users.vitam }}"
+    groups: "tape" 
+    append: yes
+  when: ("tape" in getent_group) and (vitam_struct.vitam_component == "offer")
+# TODO OMA: maybe even more restrictive on conf_offer ?

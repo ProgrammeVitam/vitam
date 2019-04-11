@@ -27,6 +27,10 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -37,10 +41,6 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * File system implementation of the storage strategy and storage offer provider
@@ -92,12 +92,13 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider, Stora
     /**
      * {@inheritDoc}
      */
-    @Override public StorageOffer getStorageOfferForHA(String idOffer, boolean includeDisabled)
+    @Override
+    public StorageOffer getStorageOfferForHA(String idOffer, boolean includeDisabled)
         throws StorageException {
         return getFilteredStorageOffer(idOffer, includeDisabled);//get all (active and inactive)
     }
 
-    private StorageOffer getFilteredStorageOffer(String idOffer, boolean  includeAllOfferState) throws StorageException {
+    private StorageOffer getFilteredStorageOffer(String idOffer, boolean includeAllOfferState) throws StorageException {
         if (storageOffers == null) {
             try {
                 loadReferential(ReferentialType.OFFER);
@@ -106,8 +107,9 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider, Stora
             }
         }
         StorageOffer offer = storageOffers.get(idOffer);
-        if (offer == null || (!includeAllOfferState && !offer.isEnabled()) ) {
-            throw new StorageNotFoundException(String.format("Storage offer with id %s is not found, disabled or not defined in strategy", idOffer));
+        if (offer == null || (!includeAllOfferState && !offer.isEnabled())) {
+            throw new StorageNotFoundException(
+                String.format("Storage offer with id %s is not found, disabled or not defined in strategy", idOffer));
         }
 
         return offer;
@@ -135,18 +137,34 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider, Stora
         switch (type) {
             case STRATEGY:
                 storageStrategy = JsonHandler.getFromFileLowerCamelCase(PropertiesUtils.findFile(STRATEGY_FILENAME),
-                        StorageStrategy.class);
+                    StorageStrategy.class);
                 break;
             case OFFER:
-                if(storageStrategy ==  null) {
+                if (storageStrategy == null) {
                     throw new InvalidParseOperationException("storageStrategy is null when loading storage offer");
                 }
                 StorageOffer[] storageOffersArray = JsonHandler
-                        .getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME), StorageOffer[].class);
+                    .getFromFileLowerCamelCase(PropertiesUtils.findFile(OFFER_FILENAME), StorageOffer[].class);
                 storageOffers = new HashMap<>();
+                boolean foundReferentOffer = false;
                 for (StorageOffer offer : storageOffersArray) {
+                    boolean isReferent = storageStrategy.isStorageOfferReferent(offer.getId());
+                    if (offer.isAsyncRead() && isReferent) {
+                        throw new IllegalArgumentException("Offer (" + offer.getId() +
+                            ") is referent and asyncRead. Referent offer mustn't be asyncRead");
+                    }
+
+                    if (isReferent) {
+                        foundReferentOffer = true;
+                    }
+
                     offer.setEnabled(storageStrategy.isStorageOfferEnabled(offer.getId()));
                     storageOffers.put(offer.getId(), offer);
+                }
+
+                if (!foundReferentOffer) {
+                    throw new IllegalArgumentException(
+                        "No referent offer found! At least, one referent offer is required");
                 }
                 break;
             default:
@@ -157,8 +175,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider, Stora
     /**
      * For Junit only
      *
-     * @param strategy
-     *            the new strategy
+     * @param strategy the new strategy
      */
     void setStorageStrategy(StorageStrategy strategy) {
         storageStrategy = strategy;
@@ -167,8 +184,7 @@ class FSProvider implements StorageStrategyProvider, StorageOfferProvider, Stora
     /**
      * For Junit only
      *
-     * @param offer
-     *            the new offer
+     * @param offer the new offer
      */
     void setStorageOffer(StorageOffer offer) {
         if (offer == null) {

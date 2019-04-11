@@ -3,6 +3,12 @@
 vitam_strategy:
   - name: offer-fs-1
     referent: true
+
+# Tape offer mustn't be referent (referent: false) and should be configured as asynchrone read (asyncRead: true)
+#  - name: offer-tape-1
+#    referent: false
+#    asyncRead: true
+
 # status : enable (value=ACTIVE, default value) or disable (value=INACTIVE) this offer
 #    status: ACTIVE
 #    vitam_site_name: prod-dc2
@@ -20,6 +26,8 @@ vitam_offers:
   offer-fs-1:
     # param can be filesystem-hash (recomended) or filesystem (not recomended)
     provider: filesystem-hash
+  offer-tape-1:
+    provider: tape-library
   offer-swift-1:
     # provider : openstack-swift for v1 or openstack-swift-v3 for v3
     provider: openstack-swift-v3
