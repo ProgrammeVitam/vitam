@@ -144,7 +144,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         verify(tarFileRapairer, times(2)).repairAndVerifyTarArchive(any(), any(), any());
         verify(bucketTopologyHelper, times(2)).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
-        verify(writeOrderCreator, times(2)).addToQueue(writeOrderArgCaptor.capture());
+        verify(writeOrderCreator, times(2)).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
             WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
@@ -240,7 +240,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         verify(bucketTopologyHelper).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
-        verify(writeOrderCreator).addToQueue(writeOrderArgCaptor.capture());
+        verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
             WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
@@ -249,7 +249,6 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
                     tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_1, tarId))
             );
         assertThat(tarFile).exists();
-        verify(tarReferentialRepository).updateLocationToReadyOnDisk(tarId, 10L, "digest1");
 
         verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
@@ -289,7 +288,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
 
         verify(bucketTopologyHelper).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
-        verify(writeOrderCreator).addToQueue(writeOrderArgCaptor.capture());
+        verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
             WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
@@ -410,7 +409,7 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         // Only 4 messages published (tar1 is already on tape)
         verify(bucketTopologyHelper, times(4)).getBucketFromFileBucket(any());
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
-        verify(writeOrderCreator, times(4)).addToQueue(writeOrderArgCaptor.capture());
+        verify(writeOrderCreator, times(4)).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
             WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
@@ -434,8 +433,6 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         Path tarFile5 = fileBucketFolder2.resolve(tarId5);
         assertThat(tarFile5).exists();
         assertThat(tmpTarFile5).doesNotExist();
-
-        verify(tarReferentialRepository).updateLocationToReadyOnDisk(tarId2, 11L, "digest2");
 
         verifyNoMoreInteractions(bucketTopologyHelper, tarReferentialRepository, writeOrderCreator, tarFileRapairer);
     }
