@@ -288,7 +288,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         if (extractedMetadata == null) {
             throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
         }
-        Difference<List<Object>> diffOtherMetadataToAdd = new Difference<>("OtherMetadata");
+        Difference<List<Object>> diffOtherMetadataToAdd = new Difference<>(OtherMetadata.class.getSimpleName());
 
         Map<String, List<Object>> oldMetadata = version.getOtherMetadata();
         OtherMetadata otherMetadata = new OtherMetadata(oldMetadata);
