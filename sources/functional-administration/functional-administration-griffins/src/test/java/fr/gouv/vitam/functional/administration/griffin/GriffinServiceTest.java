@@ -69,7 +69,6 @@ public class GriffinServiceTest {
     @Mock private MongoDbAccessReferential mongoDbAccess;
 
     private GriffinService griffinService;
-    private PreservationScenarioService preservationScenarioService;
 
     @Mock private FunctionalBackupService functionalBackupService;
 
@@ -79,8 +78,6 @@ public class GriffinServiceTest {
 
     @Before
     public void setUp() {
-        preservationScenarioService =
-            new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
@@ -277,7 +274,6 @@ public class GriffinServiceTest {
 
         List<FileFormatModel> listFormat = getFileFormatModels("fileformatModel.json");
 
-        //When
         when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(allGriffinInDatabase);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(griffinOperation);
