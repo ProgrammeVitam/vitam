@@ -330,7 +330,6 @@ public class GriffinService {
         List<String> usedGriffinsIds = allScenariosInDatabase
             .stream()
             .flatMap(preservationScenarioModel -> preservationScenarioModel.getGriffinByFormat().stream())
-
             .map(GriffinByFormat::getGriffinIdentifier)
             .collect(Collectors.toList());
 
