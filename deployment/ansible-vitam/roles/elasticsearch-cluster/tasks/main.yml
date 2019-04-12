@@ -62,7 +62,17 @@
     name: "{{ java_package }}"
     state: latest
     default_release: "{{ ansible_distribution_release }}-backports"
-  when: ansible_os_family == "Debian"
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == false
+
+- name: "install openjdk only when Debian (prerequisite for elasticsearch package)"
+  apt:
+    name: "{{ java_package }}"
+    state: latest
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == true
 
 - name: install openjdk when CentOS (prerequisite for elasticsearch package)
   package:
