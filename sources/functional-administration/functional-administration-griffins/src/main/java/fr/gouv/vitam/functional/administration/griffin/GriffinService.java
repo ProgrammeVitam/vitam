@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
@@ -303,7 +304,8 @@ public class GriffinService {
         }
     }
 
-    private void validate(List<GriffinModel> listToImport) throws ReferentialException {
+    private void validate(List<GriffinModel> listToImport)
+        throws ReferentialException, BadRequestException, InvalidParseOperationException {
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
         List<String> identifiers = new ArrayList<>();
@@ -318,6 +320,21 @@ public class GriffinService {
             }
 
             identifiers.add(model.getIdentifier());
+        }
+
+        final ObjectNode finalSelect = new Select().getFinalSelect();
+        DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, PRESERVATION_SCENARIO);
+        final List<PreservationScenarioModel> allScenariosInDatabase = result.getDocuments(PreservationScenario.class, PreservationScenarioModel.class);
+        List<String> usedGriffinsIds = allScenariosInDatabase
+            .stream()
+            .flatMap(preservationScenarioModel -> preservationScenarioModel.getGriffinByFormat().stream())
+            .collect(Collectors.toList())
+            .stream()
+            .map(GriffinByFormat::getGriffinIdentifier)
+            .collect(Collectors.toList());
+
+        if(!identifiers.containsAll(usedGriffinsIds)) {
+            throw new ReferentialException("can not remove used griffin");
         }
     }
 
