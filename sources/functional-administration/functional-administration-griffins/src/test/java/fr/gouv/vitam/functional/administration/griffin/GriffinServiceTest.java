@@ -87,6 +87,8 @@ public class GriffinServiceTest {
 
     @Before
     public void setUp() {
+        preservationScenarioService =
+            new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
@@ -97,7 +99,7 @@ public class GriffinServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldFailedValidateGriffinWhenNameIsNull() throws Exception {
+    public void shouldFailedValidateGriffinWhenNameIsNull() {
         //Given
         GriffinModel griffinModel = new GriffinModel(null, "id", "exName", "version");
 
@@ -109,7 +111,7 @@ public class GriffinServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldFailedValidateGriffinWhenNameIsNullOrEmpty() throws Exception {
+    public void shouldFailedValidateGriffinWhenNameIsNullOrEmpty() {
         //Given
         GriffinModel griffinModel = new GriffinModel(null, "id", "exName", "version");
 
@@ -128,7 +130,7 @@ public class GriffinServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldFailedWhenImportTwoDuplicatedGriffinIdentifiers() throws Exception {
+    public void shouldFailedWhenImportTwoDuplicatedGriffinIdentifiers() {
         //Given
         GriffinModel griffinModel1 = new GriffinModel("name", "id", "exName", "version");
         GriffinModel griffinModel2 = new GriffinModel("name", "id", "exName", "version");
@@ -142,7 +144,7 @@ public class GriffinServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldFailedValidateGriffinWhenIdentifierIsNullOrEmpty() throws Exception {
+    public void shouldFailedValidateGriffinWhenIdentifierIsNullOrEmpty() {
         //Given
         GriffinModel griffinModel = new GriffinModel("name", null, "exName", "version");
 
@@ -190,7 +192,7 @@ public class GriffinServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldFailedValidateGriffinWhenExecutableNameIsNullOrEmpty() throws Exception {
+    public void shouldFailedValidateGriffinWhenExecutableNameIsNullOrEmpty() {
         //Given
         GriffinModel griffinModel = new GriffinModel("name", "id", null, "version");
 
@@ -209,7 +211,7 @@ public class GriffinServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void shouldFailedValidateGriffinWhenExecutableVersionIsNullOrEmpty() throws Exception {
+    public void shouldFailedValidateGriffinWhenExecutableVersionIsNullOrEmpty() {
         //Given
         GriffinModel griffinModel = new GriffinModel("name", "id", "exName", null);
 
@@ -286,6 +288,7 @@ public class GriffinServiceTest {
 
         List<FileFormatModel> listFormat = getFileFormatModels("fileformatModel.json");
 
+        //When
         when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(allGriffinInDatabase);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(griffinOperation);
@@ -370,6 +373,7 @@ public class GriffinServiceTest {
     private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
         return getFromFileAsTypeRefence(getResourceFile(s), scenarioTypeRef);
+
     }
 
     private List<GriffinModel> getGriffinsModels(String s)

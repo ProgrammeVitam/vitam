@@ -306,6 +306,7 @@ public class GriffinService {
 
     private void validate(List<GriffinModel> listToImport)
         throws ReferentialException, BadRequestException, InvalidParseOperationException {
+
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
         List<String> identifiers = new ArrayList<>();
