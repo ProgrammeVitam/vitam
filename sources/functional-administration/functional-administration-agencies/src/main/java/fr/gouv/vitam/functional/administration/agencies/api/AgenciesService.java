@@ -33,6 +33,7 @@ import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER
 import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
 
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,20 +48,13 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-
-import org.apache.commons.compress.utils.IOUtils;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -122,6 +116,11 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * AgenciesService class allowing multiple operation on AgenciesService collection
@@ -527,9 +526,11 @@ public class AgenciesService implements VitamAutoCloseable {
         for (AgenciesModel agencyToImport : agenciesToImport) {
             for (AgenciesModel agencyInDb : agenciesInDb) {
 
-                if (agencyInDb.getIdentifier().equals(agencyToImport.getIdentifier()) &&
-                    (!agencyInDb.getName().equals(agencyToImport.getName()) ||
-                        !agencyInDb.getDescription().equals(agencyToImport.getDescription()))) {
+                boolean descriptionChanged = !Objects.equals(agencyInDb.getDescription(), agencyToImport.getDescription());
+                boolean nameChanged = !Objects.equals(agencyInDb.getName(), agencyToImport.getName());
+
+                if (agencyInDb.getIdentifier().equals(agencyToImport.getIdentifier())
+                        && (nameChanged || descriptionChanged)) {
 
                     agenciesToUpdate.add(agencyToImport);
                 }
@@ -548,10 +549,10 @@ public class AgenciesService implements VitamAutoCloseable {
     private void checkParametersNotEmpty(String identifier, String name, String description,
         List<ErrorReportAgencies> errors, int line) {
         List<String> missingParam = new ArrayList<>();
-        if (identifier.isEmpty()) {
+        if (StringUtils.isEmpty(identifier)) {
             missingParam.add(AgenciesModel.TAG_IDENTIFIER);
         }
-        if (name == null || name.isEmpty()) {
+        if (StringUtils.isEmpty(name)) {
             missingParam.add(AgenciesModel.TAG_NAME);
         }
         if (missingParam.size() > 0) {
