@@ -263,30 +263,32 @@ public class StorageDistributionImpl implements StorageDistribution {
                 VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, context.getObjectId()));
         }
         Response resp = null;
-        // load the object/file from the given offer
-        resp = getContainerByCategory(STRATEGY_ID, context.getObjectId(), context.getCategory(),
-            sourceOffer);
+        try {
+            // load the object/file from the given offer
+            resp = getContainerByCategory(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+                sourceOffer);
 
-        if (resp == null) {
-            throw new StorageTechnicalException(
-                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+            if (resp == null) {
+                throw new StorageTechnicalException(
+                    VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
+            }
+
+            boolean existsDestinationOffer = containerInformation.get(destinationOffer) != null;
+
+            existsDestinationOffer =
+                existsDestinationOffer && (containerInformation.get(destinationOffer).get(DIGEST) != null);
+
+            if (existsDestinationOffer) {
+                deleteObjectInOffers(STRATEGY_ID, context, singletonList(destinationOffer));
+            }
+            if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
+
+                return storeDataInOffers(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+                    context.getRequester(), singletonList(destinationOffer), resp);
+            }
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(resp);
         }
-
-        boolean existsDestinationOffer = containerInformation.get(destinationOffer) != null;
-
-        existsDestinationOffer =
-            existsDestinationOffer && (containerInformation.get(destinationOffer).get(DIGEST) != null);
-
-        if (existsDestinationOffer) {
-            deleteObjectInOffers(STRATEGY_ID, context, singletonList(destinationOffer));
-        }
-        if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
-
-            return storeDataInOffers(STRATEGY_ID, context.getObjectId(), context.getCategory(),
-                context.getRequester(), singletonList(destinationOffer), resp);
-        }
-
-        DefaultClient.staticConsumeAnyEntityAndClose(resp);
 
         throw new StorageTechnicalException(
             VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
@@ -305,9 +307,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             attempt++;
 
-            StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description);
-
-            parameters = sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt, needToRetry);
+            try(StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description)) {
+                parameters = sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt, needToRetry);
+            }
         }
         return parameters;
     }
@@ -321,8 +323,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         Long size = Long.valueOf(response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
 
-        StreamAndInfo streamAndInfo = new StreamAndInfo(new VitamAsyncInputStream(response), size);
-        return this.storeDataInOffers(strategyId, streamAndInfo, objectId, category, requester, offerIds);
+        try (StreamAndInfo streamAndInfo = new StreamAndInfo(new VitamAsyncInputStream(response), size)) {
+            return this.storeDataInOffers(strategyId, streamAndInfo, objectId, category, requester, offerIds);
+        }
     }
 
     @Override
