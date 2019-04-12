@@ -26,27 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import javax.ws.rs.core.Response;
+import fr.gouv.vitam.common.stream.StreamUtils;
+
 import java.io.InputStream;
 
 /**
  * StreamAndInfo class
  */
-public class StreamAndInfo{
+public class StreamAndInfo implements AutoCloseable {
+
     private InputStream stream;
     private Long size;
-    private Response response;
 
-     public StreamAndInfo(InputStream stream, Long size, Response response) {
+    public StreamAndInfo(InputStream stream, Long size) {
         this.stream = stream;
         this.size = size;
-        this.response = response;
     }
 
     /**
      * getter for stream
      **/
-    public Object getStream() {
+    public InputStream getStream() {
         return stream;
     }
 
@@ -57,11 +57,8 @@ public class StreamAndInfo{
         return size;
     }
 
-    /**
-     * getter for response
-     **/
-    public Response getResponse() {
-        return response;
+    @Override
+    public void close() {
+        StreamUtils.closeSilently(this.stream);
     }
-
 }

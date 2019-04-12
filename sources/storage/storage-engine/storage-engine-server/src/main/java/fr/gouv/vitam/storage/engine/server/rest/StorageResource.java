@@ -258,11 +258,11 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
-        StreamAndInfo streamAndInfo = new StreamAndInfo(inputStream, size, null);
+
 
         String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
         List<String> offerIds = Arrays.asList(listOffer.split(","));
-        try {
+        try (StreamAndInfo streamAndInfo = new StreamAndInfo(inputStream, size)) {
             StoredInfoResult storedInfoResult = distribution
                 .storeDataInOffers(STRATEGY_ID, streamAndInfo, operationId, category, remoteAddress, offerIds);
             return Response.ok().entity(storedInfoResult).build();

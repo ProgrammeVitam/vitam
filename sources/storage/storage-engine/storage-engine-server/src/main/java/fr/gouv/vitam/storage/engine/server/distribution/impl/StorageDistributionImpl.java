@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -256,30 +257,32 @@ public class StorageDistributionImpl implements StorageDistribution {
                     VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, context.getObjectId()));
         }
         Response resp = null;
-        // load the object/file from the given offer
-        resp = getContainerByCategory(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+        try {
+            // load the object/file from the given offer
+            resp = getContainerByCategory(STRATEGY_ID, context.getObjectId(), context.getCategory(),
                 sourceOffer);
 
-        if (resp == null) {
-            throw new StorageTechnicalException(
+            if (resp == null) {
+                throw new StorageTechnicalException(
                     VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-        }
+            }
 
-        boolean existsDestinationOffer = containerInformation.get(destinationOffer) != null;
+            boolean existsDestinationOffer = containerInformation.get(destinationOffer) != null;
 
-        existsDestinationOffer =
+            existsDestinationOffer =
                 existsDestinationOffer && (containerInformation.get(destinationOffer).get(DIGEST) != null);
 
-        if (existsDestinationOffer) {
-            deleteObjectInOffers(STRATEGY_ID, context, singletonList(destinationOffer));
-        }
-        if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
+            if (existsDestinationOffer) {
+                deleteObjectInOffers(STRATEGY_ID, context, singletonList(destinationOffer));
+            }
+            if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
 
-            return storeDataInOffers(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+                return storeDataInOffers(STRATEGY_ID, context.getObjectId(), context.getCategory(),
                     context.getRequester(), singletonList(destinationOffer), resp);
+            }
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(resp);
         }
-
-        DefaultClient.staticConsumeAnyEntityAndClose(resp);
 
         throw new StorageTechnicalException(
                 VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
@@ -298,9 +301,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
             attempt++;
 
-            StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description);
-
-            parameters = sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt, needToRetry);
+            try(StreamAndInfo streamAndInfo = getInputStreamFromWorkspace(description)) {
+                parameters = sendDataToOffers(streamAndInfo, dataContext, offersParams, attempt, needToRetry);
+            }
         }
         return parameters;
     }
@@ -314,8 +317,9 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         Long size = Long.valueOf(response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
 
-        StreamAndInfo streamAndInfo = new StreamAndInfo((InputStream) response.getEntity(), size, response);
-        return this.storeDataInOffers(strategyId, streamAndInfo, objectId, category, requester, offerIds);
+        try (StreamAndInfo streamAndInfo = new StreamAndInfo(new VitamAsyncInputStream(response), size)) {
+            return this.storeDataInOffers(strategyId, streamAndInfo, objectId, category, requester, offerIds);
+        }
     }
 
     @Override
@@ -473,8 +477,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             throws StorageTechnicalException {
         StorageLogbookParameters parameters;
         Digest globalDigest = new Digest(digestType);
-        InputStream digestInputStream = globalDigest.getDigestInputStream((InputStream) streamAndInfo.getStream());
-        Response response = streamAndInfo.getResponse();
+        InputStream digestInputStream = globalDigest.getDigestInputStream(streamAndInfo.getStream());
         Digest digest = new Digest(digestType);
 
         try (MultiplePipedInputStream streams = getMultipleInputStreamFromWorkspace(digestInputStream,
@@ -504,7 +507,6 @@ public class StorageDistributionImpl implements StorageDistribution {
                         parameters =
                                 setLogbookStorageParameters(parameters, offerId, null, dataContext.getRequester(), attempt,
                                         Status.INTERNAL_SERVER_ERROR, dataContext.getCategory().getFolder());
-                        DefaultClient.staticConsumeAnyEntityAndClose(response);
                         throw new StorageTechnicalException(NO_MESSAGE_RETURNED);
                     }
                     parameters =
@@ -555,11 +557,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         } catch (IOException e) {
             LOGGER.error(CANNOT_CREATE_MULTIPLE_INPUT_STREAM, e);
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
             throw new StorageTechnicalException(CANNOT_CREATE_MULTIPLE_INPUT_STREAM, e);
-        } finally {
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
-
         }
         // TODO : error management (US #2009)
         if (!offersParams.getKoOffers().isEmpty()) {
@@ -821,7 +819,7 @@ public class StorageDistributionImpl implements StorageDistribution {
                 length = DEFAULT_SIZE_WHEN_UNKNOWN;
             }
 
-            return new StreamAndInfo((InputStream) entity, Long.valueOf(length), response);
+            return new StreamAndInfo(new VitamAsyncInputStream(response), Long.valueOf(length));
         } catch (final ContentAddressableStorageNotFoundException e) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_OBJECT_NOT_FOUND, containerGUID), e);
             throw new StorageNotFoundException(e);
