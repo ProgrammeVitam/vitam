@@ -1,6 +1,7 @@
 package fr.gouv.vitam.common.json;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +13,9 @@ import java.util.stream.Collectors;
 public class Difference<T> {
     private final static String empty = "EMPTY";
 
+    @JsonProperty("Name")
     public final String name;
+    @JsonProperty("Changes")
     public final List<DiffNode<T>> changes;
 
     public Difference(String name, List<DiffNode<T>> changes) {
@@ -31,10 +34,6 @@ public class Difference<T> {
 
     public String getName() {
         return name;
-    }
-
-    public List<DiffNode<T>> getDiffs() {
-        return changes;
     }
 
     public boolean hasNoDifference() {
