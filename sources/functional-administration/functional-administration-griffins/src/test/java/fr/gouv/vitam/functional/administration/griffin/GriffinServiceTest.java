@@ -69,6 +69,14 @@ public class GriffinServiceTest {
     @Mock private MongoDbAccessReferential mongoDbAccess;
 
     private GriffinService griffinService;
+    private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef =
+        new TypeReference<List<PreservationScenarioModel>>() {
+        };
+    private static final TypeReference<List<GriffinModel>> griffinTypeRef = new TypeReference<List<GriffinModel>>() {
+    };
+    private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef =
+        new TypeReference<List<FileFormatModel>>() {
+        };
 
     @Mock private FunctionalBackupService functionalBackupService;
 
@@ -175,7 +183,8 @@ public class GriffinServiceTest {
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(listGriffins))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("GRIFFIN1 Invalid CreationDate : 10 décembre 16");
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("GRIFFIN1 Invalid CreationDate : 10 décembre 16");
     }
 
     @Test
@@ -259,7 +268,8 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void givenRemovingUsedGriffinShouldFailedImport() throws Exception {
         List<GriffinModel> allGriffinInDatabase = getGriffinsModels("griffins_referentiel.json");
-        List<PreservationScenarioModel> allPreservationScenarioInDatabase = getPreservationScenarioModels("preservation_scenario.json");
+        List<PreservationScenarioModel> allPreservationScenarioInDatabase =
+            getPreservationScenarioModels("preservation_scenario.json");
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
@@ -354,19 +364,16 @@ public class GriffinServiceTest {
 
     private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<PreservationScenarioModel>>() {
-        });
+        return getFromFileAsTypeRefence(getResourceFile(s), scenarioTypeRef);
     }
 
     private List<GriffinModel> getGriffinsModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<GriffinModel>>() {
-        });
+        return getFromFileAsTypeRefence(getResourceFile(s), griffinTypeRef);
     }
 
     private List<FileFormatModel> getFileFormatModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
-        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<FileFormatModel>>() {
-        });
+        return getFromFileAsTypeRefence(getResourceFile(s), fileFormatTypeRef);
     }
 }
