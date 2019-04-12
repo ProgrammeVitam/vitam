@@ -1,0 +1,11 @@
+---
+
+# Epel is needed only for clamav
+- name: Install epel-release repository
+  package:
+    name: epel-release
+    state: present
+  when:
+    - disable_internet_repositories_install == false
+    - vitam.ingestexternal.antivirus == 'clamav'
+    - inventory_hostname in groups['hosts-ingest-external']
