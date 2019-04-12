@@ -69,6 +69,7 @@ public class GriffinServiceTest {
     @Mock private MongoDbAccessReferential mongoDbAccess;
 
     private GriffinService griffinService;
+<<<<<<< 364ee6a18af2e792f42df88f22b845e53c19240c
     private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef =
         new TypeReference<List<PreservationScenarioModel>>() {
         };
@@ -77,6 +78,9 @@ public class GriffinServiceTest {
     private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef =
         new TypeReference<List<FileFormatModel>>() {
         };
+=======
+    private PreservationScenarioService preservationScenarioService;
+>>>>>>> adding unit test to fix for bug 5572
 
     @Mock private FunctionalBackupService functionalBackupService;
 
@@ -86,6 +90,8 @@ public class GriffinServiceTest {
 
     @Before
     public void setUp() {
+        preservationScenarioService =
+            new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
@@ -268,8 +274,12 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void givenRemovingUsedGriffinShouldFailedImport() throws Exception {
         List<GriffinModel> allGriffinInDatabase = getGriffinsModels("griffins_referentiel.json");
+<<<<<<< 364ee6a18af2e792f42df88f22b845e53c19240c
         List<PreservationScenarioModel> allPreservationScenarioInDatabase =
             getPreservationScenarioModels("preservation_scenario.json");
+=======
+        List<PreservationScenarioModel> allPreservationScenarioInDatabase = new ArrayList<>();
+>>>>>>> adding unit test to fix for bug 5572
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
@@ -284,6 +294,10 @@ public class GriffinServiceTest {
 
         List<FileFormatModel> listFormat = getFileFormatModels("fileformatModel.json");
 
+<<<<<<< 364ee6a18af2e792f42df88f22b845e53c19240c
+=======
+        //When
+>>>>>>> adding unit test to fix for bug 5572
         when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(allGriffinInDatabase);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(griffinOperation);
@@ -294,6 +308,12 @@ public class GriffinServiceTest {
         when(dbRequestResult.getDocuments(FileFormat.class, FileFormatModel.class)).thenReturn(listFormat);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
 
+<<<<<<< 364ee6a18af2e792f42df88f22b845e53c19240c
+=======
+        List<PreservationScenarioModel> listPreservationScenarioToImport = getPreservationScenarioModels("preservation_scenario.json");
+        preservationScenarioService.importScenarios(listPreservationScenarioToImport);
+
+>>>>>>> adding unit test to fix for bug 5572
         List<GriffinModel> listGriffinsToImport = getGriffinsModels("griffins/KO_griffin_maj_remove_used_griffin.json");
         assertThatThrownBy(() -> griffinService.importGriffin(listGriffinsToImport))
             .isInstanceOf(ReferentialException.class).hasMessageContaining("can not remove used griffin");
@@ -364,16 +384,31 @@ public class GriffinServiceTest {
 
     private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
+<<<<<<< 364ee6a18af2e792f42df88f22b845e53c19240c
         return getFromFileAsTypeRefence(getResourceFile(s), scenarioTypeRef);
+=======
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<PreservationScenarioModel>>() {
+        });
+>>>>>>> adding unit test to fix for bug 5572
     }
 
     private List<GriffinModel> getGriffinsModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
+<<<<<<< 364ee6a18af2e792f42df88f22b845e53c19240c
         return getFromFileAsTypeRefence(getResourceFile(s), griffinTypeRef);
+=======
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<GriffinModel>>() {
+        });
+>>>>>>> adding unit test to fix for bug 5572
     }
 
     private List<FileFormatModel> getFileFormatModels(String s)
         throws InvalidParseOperationException, FileNotFoundException {
+<<<<<<< 364ee6a18af2e792f42df88f22b845e53c19240c
         return getFromFileAsTypeRefence(getResourceFile(s), fileFormatTypeRef);
+=======
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<FileFormatModel>>() {
+        });
+>>>>>>> adding unit test to fix for bug 5572
     }
 }
