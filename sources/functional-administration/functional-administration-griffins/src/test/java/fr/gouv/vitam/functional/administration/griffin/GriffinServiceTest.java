@@ -172,6 +172,9 @@ public class GriffinServiceTest {
         when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(allGriffinInDatabase);
 
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
+            .thenReturn(new ArrayList<>());
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(listGriffins))
@@ -314,6 +317,9 @@ public class GriffinServiceTest {
             "griffin_logbook_operation.json");
         JsonNode griffinOperation = JsonHandler.getFromFile(griffinFile);
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(griffinOperation);
+        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
+            .thenReturn(new ArrayList<>());
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
 
         RequestResponse<GriffinModel> requestResponse = griffinService.importGriffin(listToImport);
         ArgumentCaptor<LogbookOperationParameters> event1Captor = forClass(LogbookOperationParameters.class);
