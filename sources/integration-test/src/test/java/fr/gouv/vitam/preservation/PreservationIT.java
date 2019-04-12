@@ -563,6 +563,7 @@ public class PreservationIT extends VitamRuleRunner {
 
             GriffinReport griffinReport = getGriffinReport(storageClient, guid.toString());
 
+            jsonNode.get(2).get("evDetData").asText().contains("[1 identifiers removed.,  identifier(s) [GRI-000001] updated but they're already used in preservation scenarios.]");
             // Then
             assertThat(jsonNode.iterator())
                 .extracting(j -> j.get("outcome").asText())

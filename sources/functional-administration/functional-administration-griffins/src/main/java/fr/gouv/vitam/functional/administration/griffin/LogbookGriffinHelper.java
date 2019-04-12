@@ -52,10 +52,10 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.n
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.MASTERDATA;
 
 /**
- * LogbookHelper class
+ * LogbookGriffinHelper class
  */
-class LogbookHelper {
-    LogbookHelper() {
+class LogbookGriffinHelper {
+    LogbookGriffinHelper() {
         throw new IllegalStateException("Utility class");
     }
 
