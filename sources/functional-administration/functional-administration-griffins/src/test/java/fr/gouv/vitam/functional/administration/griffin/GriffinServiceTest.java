@@ -87,8 +87,6 @@ public class GriffinServiceTest {
 
     @Before
     public void setUp() {
-        preservationScenarioService =
-            new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
