@@ -1,0 +1,22 @@
+---
+
+# Backports are need for openjdk8 & clamav
+- name: "check {{ ansible_distribution_release }}-backports repo are present"
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items:
+    - "deb http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
+    - "deb-src http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
+  when: disable_internet_repositories_install == false
+
+- name: run apt-update
+  apt:
+    update_cache: yes
+  tags:
+    - update_package_vitam
+
+- name: Make sure acl package is installed (for setfacl usage with become_user)
+  package:
+    name: acl
+    state: present
