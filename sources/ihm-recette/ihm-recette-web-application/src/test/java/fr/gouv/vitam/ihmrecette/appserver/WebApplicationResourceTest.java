@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
@@ -48,6 +49,7 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response.Status;
+
 import java.io.File;
 
 import static fr.gouv.vitam.ihmrecette.appserver.WebApplicationResource.DEFAULT_CONTRACT_NAME;
@@ -112,7 +114,11 @@ public class WebApplicationResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        application.stop();
+        try {
+            application.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
+        }
         junitHelper.releasePort(port);
     }
 

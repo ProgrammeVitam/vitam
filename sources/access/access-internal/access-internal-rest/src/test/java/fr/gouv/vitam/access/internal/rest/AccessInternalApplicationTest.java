@@ -27,6 +27,8 @@
 package fr.gouv.vitam.access.internal.rest;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,9 +52,14 @@ public class AccessInternalApplicationTest {
 
     @After
     public void tearDown() throws Exception {
-        if (application != null && application.getVitamServer() != null) {
-            application.getVitamServer().stop();
+        try {
+            if (application != null) {
+                application.stop();
+            }
+        } catch (final VitamApplicationServerException e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
+
         junitHelper.releasePort(portAvailable);
         VitamClientFactory.resetConnections();
     }

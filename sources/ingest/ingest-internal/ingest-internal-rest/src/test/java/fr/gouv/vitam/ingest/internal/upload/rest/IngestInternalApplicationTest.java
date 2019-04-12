@@ -27,6 +27,7 @@
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -46,8 +47,12 @@ public class IngestInternalApplicationTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (application != null) {
-            application.stop();
+        try {
+            if (application != null) {
+                application.stop();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
@@ -77,6 +82,6 @@ public class IngestInternalApplicationTest {
         application.stop();
         Assert.assertFalse(application.getVitamStarter().isStarted());
     }
-    
-    
+
+
 }

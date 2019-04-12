@@ -26,45 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.rest;
 
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -76,6 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -111,6 +74,41 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
+import javax.servlet.ServletConfig;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -188,9 +186,14 @@ public class StorageResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        vitamStarter.stop();
-        junitHelper.releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+        try {
+            vitamStarter.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
+        } finally {
+            junitHelper.releasePort(serverPort);
+            VitamClientFactory.resetConnections();
+        }
     }
 
     @Test
@@ -281,7 +284,7 @@ public class StorageResourceTest {
         .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1)
         .then().statusCode(Status.NOT_FOUND.getStatusCode())
         .and().header(OFFER_ID, "true").and().header(OFFER_ID_KO, "false");
-        
+
         given().contentType(ContentType.JSON)
             .headers(
                 VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
@@ -1044,13 +1047,13 @@ public class StorageResourceTest {
 
         // Missing uri
         checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer,  null, dataCategory, objectNames),
+            new BulkObjectStoreRequest(workspaceContainer, null, dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
             dataCategory.getCollectionName());
 
         checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer,  Arrays.asList("uri1", null), dataCategory, objectNames),
+            new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", null), dataCategory, objectNames),
             getHttpServletRequest(requester),
             getHttpHeaders(tenantId, strategyId),
             dataCategory.getCollectionName());
@@ -1190,11 +1193,11 @@ public class StorageResourceTest {
 
     private HttpHeaders getHttpHeaders(Integer tenantId, String strategyId) {
         HttpHeaders headers = mock(HttpHeaders.class);
-        if(strategyId != null) {
+        if (strategyId != null) {
             doReturn(Collections.singletonList(strategyId)).when(headers)
                 .getRequestHeader(VitamHttpHeader.STRATEGY_ID.getName());
         }
-        if(tenantId != null) {
+        if (tenantId != null) {
             doReturn(Collections.singletonList(Integer.toString(tenantId))).when(headers)
                 .getRequestHeader(VitamHttpHeader.TENANT_ID.getName());
         }
@@ -1339,7 +1342,7 @@ public class StorageResourceTest {
         @Override
         public StoredInfoResult storeDataInOffers(String strategyId, StreamAndInfo streamAndInfo, String objectId,
             DataCategory category, String requester, List<String> offerIds) throws StorageException {
-            throw  new UnsupportedOperationException("Not implemented");
+            throw new UnsupportedOperationException("Not implemented");
         }
 
         /**

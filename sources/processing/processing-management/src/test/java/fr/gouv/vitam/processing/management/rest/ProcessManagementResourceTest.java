@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.StateNotAllowedException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.ProcessPause;
@@ -140,6 +141,7 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
                 application.stop();
             }
         } catch (final Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         junitHelper.releasePort(port);
         VitamClientFactory.resetConnections();

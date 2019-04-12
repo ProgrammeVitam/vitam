@@ -1,5 +1,6 @@
 package fr.gouv.vitam.access.external.rest;
 
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 
@@ -30,11 +31,16 @@ public class AccessExternalApplicationTest {
 
     @After
     public void tearDown() throws Exception {
-        if (application != null && application.getVitamServer() != null &&
-            application.getVitamServer() != null) {
+       try {
+           if (application != null && application.getVitamServer() != null &&
+               application.getVitamServer() != null) {
 
-            application.stop();
-        }
+               application.stop();
+           }
+       } catch (Exception e) {
+           SysErrLogger.FAKE_LOGGER.syserr("", e);
+       }
+
         junitHelper.releasePort(portAvailable);
         VitamClientFactory.resetConnections();
     }
