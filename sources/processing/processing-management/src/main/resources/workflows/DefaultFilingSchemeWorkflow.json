@@ -141,8 +141,8 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "LIST_ORDERING_IN_FILE",
-        "element": "UnitsLevel/ingestLevelStack.json",
-        "type": "Units"
+        "type": "Units",
+        "element": "UnitsLevel/ingestLevelStack.json"
       },
       "actions": [
         {
@@ -153,6 +153,24 @@
               {
                 "name": "ontology.file",
                 "uri": "WORKSPACE:Ontology/ontology.json"
+              }
+            ],
+            "out": [
+              {
+                "name": "unit",
+                "uri": "MEMORY:unitId"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_ARCHIVE_UNIT_PROFILE",
+            "behavior": "NOBLOCKING",
+            "in": [
+              {
+                "name": "mapsGuid.file",
+                "uri": "WORKSPACE:Maps/GUID_TO_ARCHIVE_ID_MAP.json"
               }
             ],
             "out": [
@@ -290,7 +308,7 @@
                 "optional": true
               },
               {
-                "name": "mapsDOIdtoDODetail.file",
+                "name": "mapsDOtoVersionBDO.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json",
                 "optional": true
               },

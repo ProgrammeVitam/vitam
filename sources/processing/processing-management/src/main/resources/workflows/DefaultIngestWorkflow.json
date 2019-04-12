@@ -98,7 +98,7 @@
                 "uri": "MEMORY:MapsMemory/OG_TO_ARCHIVE_ID_MAP.json"
               },
               {
-                "name": "mapsDOIdtoDODetail.file",
+                "name": "mapsDOtoVersionBDO.file",
                 "uri": "WORKSPACE:Maps/DATA_OBJECT_ID_TO_DATA_OBJECT_DETAIL_MAP.json"
               },
               {
