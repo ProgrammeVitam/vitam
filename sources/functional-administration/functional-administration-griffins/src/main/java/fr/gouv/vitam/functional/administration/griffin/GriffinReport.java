@@ -32,7 +32,6 @@ import fr.gouv.vitam.functional.administration.format.model.FunctionalOperationM
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -58,19 +57,27 @@ public class GriffinReport {
     private String newGriffinsCreationDate;
 
     @JsonProperty("RemovedIdentifiers")
-    private Set<String> removedIdentifiers = new HashSet<>();
+    private Set<String> removedIdentifiers;
 
     @JsonProperty("AddedIdentifiers")
-    private Set<String> addedIdentifiers = new HashSet<>();
+    private Set<String> addedIdentifiers;
 
     @JsonProperty("UpdatedIdentifiers")
-    private Map<String, List<String>> updatedIdentifiers = new HashMap<>();
+    private Map<String, List<String>> updatedIdentifiers;
 
     @JsonProperty("Warnings")
     private List<String> warnings = new ArrayList<>();
 
     public GriffinReport() {
         // empty constructor
+    }
+
+    public GriffinReport(List<String> warnings) {
+        this.warnings = warnings;
+    }
+
+    public static GriffinReport onlyWarning(GriffinReport griffinReport) {
+        return new GriffinReport(griffinReport.getWarnings());
     }
 
     public FunctionalOperationModel getOperation() {
@@ -96,12 +103,20 @@ public class GriffinReport {
         return removedIdentifiers;
     }
 
+    void setRemovedIdentifiers(Set<String> removedIdentifiers) {
+        this.removedIdentifiers = removedIdentifiers;
+    }
+
     public void addRemovedIdentifiers(String identifier) {
         this.removedIdentifiers.add(identifier);
     }
 
     public Set<String> getAddedIdentifiers() {
         return addedIdentifiers;
+    }
+
+    void setAddedIdentifiers(Set<String> addedIdentifiers) {
+        this.addedIdentifiers = addedIdentifiers;
     }
 
     public void addAddedIdentifier(String identifier) {
@@ -112,13 +127,23 @@ public class GriffinReport {
         return updatedIdentifiers;
     }
 
-    void addUpdatedIdentifiers(
-        String identifier, List<String> diffs) {
+    public void setUpdatedIdentifiers(Map<String, List<String>> updatedIdentifiers) {
+        this.updatedIdentifiers = updatedIdentifiers;
+    }
+
+    void addUpdatedIdentifiers(String identifier, List<String> diffs) {
+        if (this.updatedIdentifiers == null) {
+            this.updatedIdentifiers = new HashMap<>();
+        }
         this.updatedIdentifiers.put(identifier, diffs);
     }
 
     List<String> getWarnings() {
         return warnings;
+    }
+
+    public void setWarnings(List<String> warnings) {
+        this.warnings = warnings;
     }
 
     void addWarning(String message) {
@@ -155,21 +180,5 @@ public class GriffinReport {
 
     public void setNewGriffinsCreationDate(String newGriffinsCreationDate) {
         this.newGriffinsCreationDate = newGriffinsCreationDate;
-    }
-
-    void setRemovedIdentifiers(Set<String> removedIdentifiers) {
-        this.removedIdentifiers = removedIdentifiers;
-    }
-
-    void setAddedIdentifiers(Set<String> addedIdentifiers) {
-        this.addedIdentifiers = addedIdentifiers;
-    }
-
-    public void setUpdatedIdentifiers(Map<String, List<String>> updatedIdentifiers) {
-        this.updatedIdentifiers = updatedIdentifiers;
-    }
-
-    public void setWarnings(List<String> warnings) {
-        this.warnings = warnings;
     }
 }

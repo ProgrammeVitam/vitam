@@ -94,10 +94,10 @@ import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.functional.administration.common.Griffin.IDENTIFIER;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
-import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbook;
-import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventKo;
-import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventSuccess;
-import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventWarning;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbook;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbookEventKo;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbookEventSuccess;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbookEventWarning;
 import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
 import static java.util.stream.Collectors.toSet;
 
@@ -175,7 +175,7 @@ public class GriffinService {
             saveReport(guid, griffinReport);
 
             if(!griffinReport.getWarnings().isEmpty()){
-                createLogbookEventWarning(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT, griffinReport);
+                createLogbookEventWarning(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT, GriffinReport.onlyWarning(griffinReport));
                 return new RequestResponseOK<GriffinModel>().addAllResults(listToImport)
                     .setHttpCode(Response.Status.CREATED.getStatusCode());
             }

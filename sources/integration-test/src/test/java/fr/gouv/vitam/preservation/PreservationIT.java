@@ -26,44 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.preservation;
 
-import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
-import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
-import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
-import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
-import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.anyOf;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
-
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -149,6 +111,42 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
+import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
+import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
+import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+
 /**
  * Ingest Internal integration test
  */
@@ -158,8 +156,6 @@ public class PreservationIT extends VitamRuleRunner {
     private static final String contractId = "contract";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
-
     private static final HashSet<Class> servers = Sets.newHashSet(
         AccessInternalMain.class,
         AdminManagementMain.class,
@@ -173,16 +169,14 @@ public class PreservationIT extends VitamRuleRunner {
         DefaultOfferMain.class,
         BatchReportMain.class
     );
-
     private static final String mongoName = mongoRule.getMongoDatabase().getName();
     private static final String esName = elasticsearchRule.getClusterName();
     private static final String GRIFFIN_LIBREOFFICE = "griffin-libreoffice";
-
-    @Rule
-    public TemporaryFolder tmpGriffinFolder = new TemporaryFolder();
-
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(PreservationIT.class, mongoName, esName, servers);
+    @Rule
+    public TemporaryFolder tmpGriffinFolder = new TemporaryFolder();
+    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -568,7 +562,10 @@ public class PreservationIT extends VitamRuleRunner {
             // Then
             assertThat(jsonNode.iterator())
                 .extracting(j -> j.get("outcome").asText())
-                .containsExactly(StatusCode.OK.name(),StatusCode.OK.name(),StatusCode.WARNING.name());
+                .containsExactly(StatusCode.OK.name(), StatusCode.OK.name(), StatusCode.WARNING.name());
+            assertEquals(jsonNode.get(2).get("evDetData"), JsonHandler.toJsonNode(
+                "{\"Warnings\":[\"1 identifiers removed.\",\" identifier(s) [GRI-000001] updated but they're already used in preservation scenarios.\"]}")
+            );
 
             assertThat(griffinReport.getStatusCode()).isEqualTo(StatusCode.WARNING);
 
@@ -611,13 +608,17 @@ public class PreservationIT extends VitamRuleRunner {
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             JsonNode objectGroup =
-                JsonHandler.toJsonNode(MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId())).sort(
-                    Sorts.ascending(ObjectGroup.NBCHILD)));
-            Assertions.assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo("Dissemination");
+                JsonHandler.toJsonNode(
+                    MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId()))
+                        .sort(
+                            Sorts.ascending(ObjectGroup.NBCHILD)));
+            Assertions.assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText())
+                .isEqualTo("Dissemination");
         }
     }
 
-    private void validateAccessionRegisterDetails(List<String> excludeFields) throws FileNotFoundException, InvalidParseOperationException {
+    private void validateAccessionRegisterDetails(List<String> excludeFields)
+        throws FileNotFoundException, InvalidParseOperationException {
         long countDetails;
         // Get accession register details after start preservation
         countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
@@ -656,7 +657,8 @@ public class PreservationIT extends VitamRuleRunner {
             });
         }
 
-        JsonAssert.assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
+        JsonAssert
+            .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
     }
 
     @After
