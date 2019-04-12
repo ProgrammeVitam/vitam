@@ -1,6 +1,9 @@
 ---
 ### global ###
 
+# Disable epel or Debian backports repositories install
+disable_internet_repositories_install: false
+
 # TODO MAYBE : permettre la surcharge avec une syntax du genre vitamopts.folder_root | default(vitam_default.folder_root) dans les templates ?
 droid_filename: "DROID_SignatureFile_V94.xml"
 droid_container_filename: "container-signature-20180917.xml"
