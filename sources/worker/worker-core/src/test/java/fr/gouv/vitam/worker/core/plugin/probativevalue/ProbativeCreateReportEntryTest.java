@@ -30,15 +30,20 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbStorageModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
+import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -63,8 +68,17 @@ import org.mockito.junit.MockitoRule;
 import java.io.File;
 import java.util.Collections;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.gte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.lte;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin.MESSAGE_DIGEST;
@@ -236,21 +250,112 @@ public class ProbativeCreateReportEntryTest {
             .extracting(ProbativeReportEntry::getObjectId).isEqualTo(versionId);
     }
 
-    private JsonNode createUnitLFCFrom(String versionId, String lastPersistedDate) {
-        LogbookEvent o = new LogbookEvent();
-        o.setObId(versionId);
-        o.setOutDetail(STORING_OBJECT_TASK_ID + EvidenceStatus.OK.name());
-        LogbookLifecycle fromValue = new LogbookLifecycle();
-        fromValue.setEvents(Collections.singletonList(o));
-        fromValue.setLastPersistedDate(lastPersistedDate);
-        return objectMapper.valueToTree(fromValue);
+    @Test
+    public void should_return_item_status_KO_on_checks() throws Exception {
+        // Given
+        ObjectNode metadata = objectMapper.createObjectNode();
+        metadata.set("unitIds", objectMapper.createArrayNode().add("unitId"));
+        metadata.put("usageVersion", "BinaryMaster_25");
+
+        String objectGroupId = "objectGroupId";
+        String versionId = "VERSION_ID";
+        WorkerParameters param = workerParameterBuilder()
+            .withObjectName(objectGroupId)
+            .withObjectMetadata(metadata)
+            .build();
+
+        File reportFile = tempFolder.newFile();
+        TestHandlerIO handler = new TestHandlerIO();
+        handler.setNewLocalFile(reportFile);
+
+        String storageId = "storage_id_1";
+        String usageVersion = "BinaryMaster_25";
+        String opi = "OPI";
+        String logbookLFCDate = "lastPersistedDate";
+        String logbookOperationLastpersiteddate = "LOGBOOK_OPERATION_lastpersiteddate";
+
+        LogbookOperation logBookOperationWith = createLogBookOperationWith("dateOp1", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1", "fileName");
+        LogbookOperation logBookOperationWith1 = createLogBookOperationWith("dateOp2", LOGBOOK_TRACEABILITY.getEventType(), "op2", "fileName");
+
+
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, usageVersion, opi));
+        given(storageClient.getInformation("default", OBJECT, versionId, Collections.singletonList(storageId), true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(createObjectGroupLifecycleFrom(versionId, "awesomedigest", logbookLFCDate)));
+        given(logbookOperationsClient.selectOperationById(opi)).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith(logbookOperationLastpersiteddate, "INGEST_OPERATION", "opIngest"))));
+
+        given(logbookOperationsClient.selectOperation(createSelectTraceabilityWith(OBJECTGROUP_LFC_TRACEABILITY.getEventType(), logbookLFCDate))).willReturn(objectMapper.valueToTree(createOperation(logBookOperationWith)));
+        given(logbookOperationsClient.selectOperation(createSelectTraceabilityWith(LOGBOOK_TRACEABILITY.getEventType(), logbookOperationLastpersiteddate))).willReturn(objectMapper.valueToTree(createOperation(logBookOperationWith1)));
+
+        given(logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith))).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith("", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1Closest", "fileName"))));
+        given(logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith1))).willReturn(objectMapper.valueToTree(createOperation(createLogBookOperationWith("", LOGBOOK_TRACEABILITY.getEventType(), "op2Closest", "fileName"))));
+
+        // When
+        ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
     }
 
-    private JsonNode createObjectGroupLifecycleFrom(String versionId, String messageDigest) throws JsonProcessingException {
+    private JsonNode createSelectClosestTraceabilityWith(LogbookOperation operation) throws Exception {
+        Select select = new Select();
+        BooleanQuery query = and().add(
+            eq(LogbookMongoDbName.eventType.getDbname(), operation.getEvType()),
+            in("events.outDetail", operation.getEvType() + ".OK", operation.getEvType() + ".WARNING"),
+            exists("events.evDetData.FileName"),
+            ne("#id", operation.getId()),
+            lte("events.evDetData.EndDate", operation.getEvDateTime())
+        );
+
+        select.setQuery(query);
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter("evDateTime");
+        return select.getFinalSelect();
+    }
+
+    private RequestResponseOK<JsonNode> createOperation(LogbookOperation logBookOperationWith) {
+        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
+        responseOK.addResult(objectMapper.valueToTree(logBookOperationWith));
+        return responseOK;
+    }
+
+    private LogbookOperation createLogBookOperationWith(String date, String evType, String id) throws JsonProcessingException {
+        return createLogBookOperationWith(date, evType, id, "not important");
+    }
+
+    private LogbookOperation createLogBookOperationWith(String date, String evType, String id, String fileName) throws JsonProcessingException {
+        LogbookOperation operation = new LogbookOperation();
+        operation.setEvType(evType);
+        operation.setLastPersistedDate(date);
+        operation.setId(id);
+        operation.setEvDateTime("Date operation");
+        TraceabilityEvent value = new TraceabilityEvent(null, null,null,null,null,null,null,null,1, fileName,1,null,false,null,null);
+        operation.setEvDetData(objectMapper.writeValueAsString(value));
+        return operation;
+    }
+
+    private JsonNode createSelectTraceabilityWith(String eventType, String lastPersistedDate) throws Exception {
+        Select select = new Select();
+        BooleanQuery query = and().add(
+            eq(LogbookMongoDbName.eventType.getDbname(), eventType),
+            in("events.outDetail", eventType + ".OK", eventType + ".WARNING"),
+            exists("events.evDetData.FileName"),
+            lte("events.evDetData.StartDate", lastPersistedDate),
+            gte("events.evDetData.EndDate", lastPersistedDate)
+        );
+
+        select.setQuery(query);
+        select.setLimitFilter(0, 1);
+        select.addOrderByDescFilter("events.evDateTime");
+
+        return select.getFinalSelect();
+    }
+
+    private JsonNode createObjectGroupLifecycleFrom(String versionId, String messageDigest, String lastPersistedDate) throws JsonProcessingException {
         LogbookEvent o = new LogbookEvent();
         o.setObId(versionId);
         o.setOutDetail(STORING_OBJECT_TASK_ID + EvidenceStatus.OK.name());
         o.setEvDetData(objectMapper.writeValueAsString(objectMapper.createObjectNode().put(MESSAGE_DIGEST, messageDigest)));
+        o.setLastPersistedDate(lastPersistedDate);
         LogbookLifecycle fromValue = new LogbookLifecycle();
         fromValue.setEvents(Collections.singletonList(o));
         return objectMapper.valueToTree(fromValue);
@@ -267,6 +372,7 @@ public class ProbativeCreateReportEntryTest {
         versionsModel.setDataObjectVersion(usageVersion);
         versionsModel.setId(versionId);
         versionsModel.setOpi(opi);
+        versionsModel.setMessageDigest("DIGEST");
         DbStorageModel storage = new DbStorageModel();
         storage.setOfferIds(Collections.singletonList(storageId));
         versionsModel.setStorage(storage);

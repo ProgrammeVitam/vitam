@@ -28,15 +28,18 @@ package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.common.BackupService;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
+import fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReport.ReportVersion2;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
 import org.junit.Rule;
 import org.junit.Test;
@@ -136,6 +139,7 @@ public class ProbativeCreateReportTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+        assertThat(itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())).isEqualTo(JsonHandler.unprettyPrint(new ReportVersion2()));
     }
 
     @Test
