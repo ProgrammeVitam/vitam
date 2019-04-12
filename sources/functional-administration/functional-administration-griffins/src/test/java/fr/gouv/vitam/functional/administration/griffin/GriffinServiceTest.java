@@ -271,7 +271,6 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void givenRemovingUsedGriffinShouldFailedImport() throws Exception {
         List<GriffinModel> allGriffinInDatabase = getGriffinsModels("griffins_referentiel.json");
-
         List<PreservationScenarioModel> allPreservationScenarioInDatabase =
             getPreservationScenarioModels("preservation_scenario.json");
 
@@ -298,9 +297,6 @@ public class GriffinServiceTest {
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
         when(dbRequestResult.getDocuments(FileFormat.class, FileFormatModel.class)).thenReturn(listFormat);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
-
-        List<PreservationScenarioModel> listPreservationScenarioToImport = getPreservationScenarioModels("preservation_scenario.json");
-        preservationScenarioService.importScenarios(listPreservationScenarioToImport);
 
         List<GriffinModel> listGriffinsToImport = getGriffinsModels("griffins/KO_griffin_maj_remove_used_griffin.json");
         assertThatThrownBy(() -> griffinService.importGriffin(listGriffinsToImport))
