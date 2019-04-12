@@ -77,6 +77,7 @@ public class GriffinServiceTest {
     private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef =
         new TypeReference<List<FileFormatModel>>() {
         };
+    private PreservationScenarioService preservationScenarioService;
 
     @Mock private FunctionalBackupService functionalBackupService;
 
@@ -86,6 +87,8 @@ public class GriffinServiceTest {
 
     @Before
     public void setUp() {
+        preservationScenarioService =
+            new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
