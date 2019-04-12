@@ -106,7 +106,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
 
         } catch (final StepAlreadyExecutedException e) {
             LOGGER.warn(e);
-            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+            // FIXME (US 5769) : StepAlreadyExecutedException not thrown
+            itemStatus.increment(StatusCode.OK);
         } catch (final ProcessingInternalServerException exc) {
             LOGGER.error(exc);
             itemStatus.increment(StatusCode.FATAL);
