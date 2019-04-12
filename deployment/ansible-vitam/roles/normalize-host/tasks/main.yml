@@ -36,34 +36,10 @@
     - script
     - tmp
 
-- include_tasks: epel.yml
-  when:
-    - vitam.ingestexternal.antivirus == 'clamav'
-    - inventory_hostname in groups['hosts-ingest-external']
+- include_tasks: centos.yml
+    - ansible_os_family == "RedHat"
 
 # No openjdk8 without jessie-backports with debian
-- include_tasks: epel.yml
+- include_tasks: debian.yml
   when:
     - ansible_os_family == "Debian"
-
-- block:
-  - name: "check {{ ansible_distribution_release }}-backports repo are present"
-    apt_repository:
-      repo: "{{ item }}"
-      state: present
-    with_items:
-      - "deb http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
-      - "deb-src http://ftp.debian.org/debian {{ ansible_distribution_release }}-backports main"
-
-  - name: run apt-update
-    apt:
-      update_cache: yes
-    tags:
-      - update_package_vitam
-
-  - name: Make sure acl package is installed (for setfacl usage with become_user)
-    package:
-      name: acl
-      state: present
-
-  when: ansible_distribution == "Debian"
