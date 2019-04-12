@@ -33,6 +33,7 @@ public class OperationTraceabilityFiles {
     public static final String TRACEABILITY_MERKLE_TREE = "merkleTree.json";
     public static final String TRACEABILITY_TOKEN = "token.tsp";
     public static final String TRACEABILITY_COMPUTING_INFORMATION = "computing_information.txt";
+    public static final String TRACEABILITY_ADDITIONAL_INFORMATION = "additional_information.txt";
 
     public static final String TRACEABILITY_FILES_COMPLETE = "zip_complete.ready";
     public static final String TRACEABILITY_GENERAL_CHECKS_COMPLETE = "general_checks.ready";
@@ -42,12 +43,14 @@ public class OperationTraceabilityFiles {
     private final File merkleTree;
     private final File token;
     private final File computingInformation;
+    private final File additionalInformation;
 
-    public OperationTraceabilityFiles(File data, File merkleTree, File token, File computingInformation) {
+    public OperationTraceabilityFiles(File data, File merkleTree, File token, File computingInformation, File additionalInformation) {
         this.data = data;
         this.merkleTree = merkleTree;
         this.token = token;
         this.computingInformation = computingInformation;
+        this.additionalInformation = additionalInformation;
     }
 
     public File getData() {
@@ -66,12 +69,17 @@ public class OperationTraceabilityFiles {
         return computingInformation;
     }
 
+    public File getAdditionalInformation() {
+        return additionalInformation;
+    }
+
 
     public static final class OperationTraceabilityFilesBuilder {
         private File data;
         private File merkleTree;
         private File token;
         private File computingInformation;
+        private File additionalInformation;
 
         private OperationTraceabilityFilesBuilder() {
         }
@@ -94,13 +102,16 @@ public class OperationTraceabilityFiles {
                 case TRACEABILITY_COMPUTING_INFORMATION:
                     this.computingInformation = file;
                     return this;
+                 case TRACEABILITY_ADDITIONAL_INFORMATION:
+                    this.additionalInformation = file;
+                    return this;
                 default:
                     throw new IllegalArgumentException(String.format("%s is illegal.", name));
             }
         }
 
         public OperationTraceabilityFiles build() {
-            return new OperationTraceabilityFiles(data, merkleTree, token, computingInformation);
+            return new OperationTraceabilityFiles(data, merkleTree, token, computingInformation, additionalInformation);
         }
     }
 }

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.probativevalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -50,7 +51,7 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportV2;
-import fr.gouv.vitam.worker.core.utils.PluginHelper;
+import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
@@ -64,12 +65,14 @@ import static fr.gouv.vitam.batch.report.model.ReportType.PROBATIVE_VALUE;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 import static fr.gouv.vitam.worker.core.plugin.evidence.EvidenceService.JSON;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
+import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMasterData;
 
 public class ProbativeCreateReport extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeCreateReport.class);
 
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CREATE_REPORT";
     private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
+    private static final ReportVersion2 reportVersion2 = new ReportVersion2();
 
     private final BackupService backupService;
 
@@ -131,10 +134,10 @@ public class ProbativeCreateReport extends ActionHandler {
             ProbativeReportV2 probativeReportV2 = new ProbativeReportV2(operationSummary, reportSummary, context, probativeEntries);
             backupService.backup(JsonHandler.writeToInpustream(probativeReportV2), REPORT, param.getContainerName() + JSON);
 
-            return buildItemStatus(HANDLER_ID, StatusCode.OK, PluginHelper.EventDetails.of("Probative value report success."));
+            return buildItemStatusWithMasterData(HANDLER_ID, StatusCode.OK, EventDetails.of("Probative value report success."), JsonHandler.unprettyPrint(reportVersion2));
         } catch (Exception e) {
             LOGGER.error(e);
-            return buildItemStatus(HANDLER_ID, StatusCode.KO, PluginHelper.EventDetails.of("Probative value report error."));
+            return buildItemStatus(HANDLER_ID, StatusCode.KO, EventDetails.of("Probative value report error."));
         }
     }
 
@@ -144,5 +147,10 @@ public class ProbativeCreateReport extends ActionHandler {
         } catch (InvalidParseOperationException | IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             throw new VitamRuntimeException(e);
         }
+    }
+
+    public static class ReportVersion2 {
+        @JsonProperty("probativeReportVersion")
+        private final int probativeReportVersion = 2;
     }
 }
