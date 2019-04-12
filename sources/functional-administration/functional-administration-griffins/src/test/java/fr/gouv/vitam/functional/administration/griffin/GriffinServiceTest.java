@@ -77,7 +77,6 @@ public class GriffinServiceTest {
     private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef =
         new TypeReference<List<FileFormatModel>>() {
         };
-    private PreservationScenarioService preservationScenarioService;
 
     @Mock private FunctionalBackupService functionalBackupService;
 
