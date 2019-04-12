@@ -578,13 +578,10 @@ public class StorageDistributionImpl implements StorageDistribution {
             // Check if any has one IO Exception
             streams.throwLastException();
         } catch (IOException e1) {
-            LOGGER.error("Cannot create multipleInputStream", e1);
-            parameters = setLogbookStorageParameters(parameters, "none", null, requester, attempt,
-                    Status.INTERNAL_SERVER_ERROR);
-            DefaultClient.staticConsumeAnyEntityAndClose(response);
             throw new StorageTechnicalException("Cannot create multipleInputStream", e1);
+        } finally {
+            DefaultClient.staticConsumeAnyEntityAndClose(response);
         }
-        DefaultClient.staticConsumeAnyEntityAndClose(response);
         // ACK to prevent retry
         if (attempt < NB_RETRY && !datas.getKoList().isEmpty()) {
             attempt++;

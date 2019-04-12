@@ -151,7 +151,7 @@ public class PutBinaryOnWorkspaceTest {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
         given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
-            .willReturn(new ServerResponse(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 200, new Headers<>()));
+            .willAnswer((args) -> new ServerResponse(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 200, new Headers<>()));
 
         willThrow(new ProcessingException("transfer failed"))
             .willNothing()

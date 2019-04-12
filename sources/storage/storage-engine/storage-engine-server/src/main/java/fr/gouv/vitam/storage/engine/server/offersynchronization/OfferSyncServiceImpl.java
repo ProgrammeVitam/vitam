@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -186,14 +187,19 @@ public class OfferSyncServiceImpl implements OfferSyncService {
 
                                 if (!exists) {
                                     // load the object/file from the given offer
-                                    Response resp = distribution
-                                        .getContainerByCategory(STRATEGY_ID, offerLog.getFileName(), category,
-                                            sourceOffer);
-                                    if (resp != null &&
-                                        resp.getStatus() == Response.Status.OK.getStatusCode()) {
+                                    Response resp = null;
+                                    try {
+                                        resp = distribution
+                                            .getContainerByCategory(STRATEGY_ID, offerLog.getFileName(), category,
+                                                sourceOffer);
+                                        if (resp != null &&
+                                            resp.getStatus() == Response.Status.OK.getStatusCode()) {
 
-                                        distribution.storeData(STRATEGY_ID, offerLog.getFileName(),
-                                            category, null, destinationOffer, resp);
+                                            distribution.storeData(STRATEGY_ID, offerLog.getFileName(),
+                                                category, null, destinationOffer, resp);
+                                        }
+                                    } finally {
+                                        StreamUtils.consumeAnyEntityAndClose(resp);
                                     }
                                 }
                                 continue;

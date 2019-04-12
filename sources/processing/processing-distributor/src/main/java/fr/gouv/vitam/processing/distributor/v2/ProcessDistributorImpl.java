@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.model.processing.DistributionKind;
 import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
 import fr.gouv.vitam.common.model.processing.Step;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
@@ -218,14 +219,16 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     // Test regarding Unit to be indexed                    
                     if (DistributionType.Units == step.getDistribution().getType()) {
                         // get the file to retrieve the GUID
-                        final Response response = workspaceClient.getObject(workParams.getContainerName(),
-                            step.getDistribution().getElement());
-
+                        Response response = null;
+                        InputStream levelFile = null;
                         final JsonNode levelFileJson;
                         try {
-                            final InputStream levelFile = (InputStream) response.getEntity();
+                            response = workspaceClient.getObject(workParams.getContainerName(),
+                                step.getDistribution().getElement());
+                            levelFile = (InputStream) response.getEntity();
                             levelFileJson = JsonHandler.getFromInputStream(levelFile);
                         } finally {
+                            StreamUtils.closeSilently(levelFile);
                             workspaceClient.consumeAnyEntityAndClose(response);
                         }
                         final Iterator<Entry<String, JsonNode>> iteratorLevelFile = levelFileJson.fields();
@@ -278,10 +281,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
                     // List from Workspace
-                    Response response =
-                        workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
+                    Response response = null;
                     final JsonNode ogIdList;
                     try {
+                        response =
+                            workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
                         ogIdList = JsonHandler.getFromInputStream((InputStream) response.getEntity());
                     } finally {
                         workspaceClient.consumeAnyEntityAndClose(response);
@@ -349,10 +353,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
 
         try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             // get file's content
-            final Response response = workspaceClient.getObject(containerName, fileName);
+            Response response = null;
 
             ChainedFileModel chainedFile;
             try {
+                response = workspaceClient.getObject(containerName, fileName);
                 chainedFile =
                     JsonHandler.getFromInputStream((InputStream) response.getEntity(), ChainedFileModel.class);
             } finally {
