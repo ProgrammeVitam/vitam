@@ -296,7 +296,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         OtherMetadata otherMetadataExtracted = extractedMetadata.getOtherMetadata();
         otherMetadataExtracted.forEach((key, value) -> {
             List<Object> oldValue = oldMetadata.get(key);
-            if (oldMetadata.containsKey(key)) {
+            if (oldValue != null) {
                 diffOtherMetadataToAdd.add(key, oldValue, new ArrayList<>(CollectionUtils.union(oldValue, value)));
                 otherMetadata.put(key, new ArrayList<>(CollectionUtils.union(value, oldValue)));
             } else {
