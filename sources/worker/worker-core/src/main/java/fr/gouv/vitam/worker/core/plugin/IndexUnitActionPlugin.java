@@ -184,7 +184,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
                 throw new IllegalArgumentException(e);
             } catch (final MetaDataAlreadyExistException e) {
                 LOGGER.warn(e);
-                statusCode = StatusCode.ALREADY_EXECUTED;
+               // FIXME (US 5769) : Now return StatusCode.OK but should be StatusCode.ALREADY_EXECUTED. Todo: Do not recreate LFC events if already created in case of StatusCode.ALREADY_EXECUTED;
+                statusCode = StatusCode.OK;
             } catch (final MetaDataException e) {
                 LOGGER.error(e);
                 statusCode = StatusCode.FATAL;
