@@ -37,9 +37,8 @@
     - tmp
 
 - include_tasks: centos.yml
-    - ansible_os_family == "RedHat"
+  when: ansible_os_family == "RedHat"
 
 # No openjdk8 without jessie-backports with debian
 - include_tasks: debian.yml
-  when:
-    - ansible_os_family == "Debian"
+  when: ansible_os_family == "Debian"

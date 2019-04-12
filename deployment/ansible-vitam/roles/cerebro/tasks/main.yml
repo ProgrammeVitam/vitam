@@ -13,7 +13,19 @@
     name: openjdk-8-jre-headless
     state: latest
     default_release: "{{ ansible_distribution_release }}"
-  when: ansible_os_family == "Debian"
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == false
+  notify:
+    - restart cerebro
+
+- name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
+  apt:
+    name: openjdk-8-jre-headless
+    state: latest
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == true
   notify:
     - restart cerebro
 

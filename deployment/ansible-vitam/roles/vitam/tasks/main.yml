@@ -6,7 +6,17 @@
     name: openjdk-8-jre-headless
     state: latest
     default_release: "{{ ansible_distribution_release }}-backports"
-  when: ansible_os_family == "Debian"
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == false
+
+- name: "install openjdk only when Debian"
+  apt:
+    name: openjdk-8-jre-headless
+    state: latest
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == true
 
 - import_tasks: tape_offer.yml
 
