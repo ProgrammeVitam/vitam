@@ -10,13 +10,17 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.functional.administration.common.FileFormat;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.Griffin;
+import fr.gouv.vitam.functional.administration.common.PreservationScenario;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessReferential;
+import fr.gouv.vitam.functional.administration.format.model.FileFormatModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -42,7 +46,9 @@ import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
@@ -63,6 +69,7 @@ public class GriffinServiceTest {
     @Mock private MongoDbAccessReferential mongoDbAccess;
 
     private GriffinService griffinService;
+    private PreservationScenarioService preservationScenarioService;
 
     @Mock private FunctionalBackupService functionalBackupService;
 
@@ -72,6 +79,8 @@ public class GriffinServiceTest {
 
     @Before
     public void setUp() {
+        preservationScenarioService =
+            new PreservationScenarioService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
@@ -248,6 +257,44 @@ public class GriffinServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void givenRemovingUsedGriffinShouldFailedImport() throws Exception {
+        List<GriffinModel> allGriffinInDatabase = getGriffinsModels("griffins_referentiel.json");
+        List<PreservationScenarioModel> allPreservationScenarioInDatabase = new ArrayList<>();
+
+        DbRequestResult dbRequestResult = mock(DbRequestResult.class);
+
+        String requestId = getVitamSession().getRequestId();
+        File griffinFile = PropertiesUtils.getResourceFile(
+            "griffin_logbook_operation.json");
+        JsonNode griffinOperation = JsonHandler.getFromFile(griffinFile);
+
+        File preservationScenarioFile = getResourceFile(
+            "preservation_scenario_logbook_operation.json");
+        JsonNode preservationScenarioOperation = JsonHandler.getFromFile(preservationScenarioFile);
+
+        List<FileFormatModel> listFormat = getFileFormatModels("fileformatModel.json");
+
+        //When
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(allGriffinInDatabase);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+        when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(griffinOperation);
+        when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(preservationScenarioOperation);
+        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
+            .thenReturn(allPreservationScenarioInDatabase);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
+        when(dbRequestResult.getDocuments(FileFormat.class, FileFormatModel.class)).thenReturn(listFormat);
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
+
+        List<PreservationScenarioModel> listPreservationScenarioToImport = getPreservationScenarioModels("preservation_scenario.json");
+        preservationScenarioService.importScenarios(listPreservationScenarioToImport);
+
+        List<GriffinModel> listGriffinsToImport = getGriffinsModels("griffins/KO_griffin_maj_remove_used_griffin.json");
+        assertThatThrownBy(() -> griffinService.importGriffin(listGriffinsToImport))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("can not remove used griffin");
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void shouldImportGriffin() throws Exception {
         //Given
         List<GriffinModel> listToImport = JsonHandler.getFromFileAsTypeRefence(
@@ -304,5 +351,23 @@ public class GriffinServiceTest {
         RequestResponse<GriffinModel> griffin = griffinService.findGriffin(getFromString("{}"));
         //Then
         assertThat(griffin).isNotNull();
+    }
+
+    private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
+        throws InvalidParseOperationException, FileNotFoundException {
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<PreservationScenarioModel>>() {
+        });
+    }
+
+    private List<GriffinModel> getGriffinsModels(String s)
+        throws InvalidParseOperationException, FileNotFoundException {
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<GriffinModel>>() {
+        });
+    }
+
+    private List<FileFormatModel> getFileFormatModels(String s)
+        throws InvalidParseOperationException, FileNotFoundException {
+        return getFromFileAsTypeRefence(getResourceFile(s), new TypeReference<List<FileFormatModel>>() {
+        });
     }
 }
