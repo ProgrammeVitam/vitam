@@ -94,9 +94,9 @@ import static fr.gouv.vitam.functional.administration.common.PreservationScenari
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.GRIFFIN;
 import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.PRESERVATION_SCENARIO;
-import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbook;
-import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventKo;
-import static fr.gouv.vitam.functional.administration.griffin.LogbookHelper.createLogbookEventSuccess;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbook;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbookEventKo;
+import static fr.gouv.vitam.functional.administration.griffin.LogbookGriffinHelper.createLogbookEventSuccess;
 import static fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory.getInstance;
 import static java.time.LocalDateTime.now;
 import static java.util.stream.Collectors.toList;

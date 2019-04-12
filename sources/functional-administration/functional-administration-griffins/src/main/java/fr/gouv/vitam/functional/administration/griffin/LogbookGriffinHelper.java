@@ -52,10 +52,10 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory.n
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.MASTERDATA;
 
 /**
- * LogbookHelper class
+ * LogbookGriffinHelper class
  */
-class LogbookHelper {
-    LogbookHelper() {
+class LogbookGriffinHelper {
+    LogbookGriffinHelper() {
         throw new IllegalStateException("Utility class");
     }
 
@@ -90,7 +90,7 @@ class LogbookHelper {
         client.update(logbookParameters);
     }
 
-    static void createLogbookEventWarning(LogbookOperationsClientFactory factory, GUID guid, String stepName)
+    static void createLogbookEventWarning(LogbookOperationsClientFactory factory, GUID guid, String stepName, GriffinReport warnings)
         throws LogbookClientBadRequestException, LogbookClientServerException,
         LogbookClientNotFoundException {
 
@@ -103,6 +103,7 @@ class LogbookHelper {
         String parameterValue = stepName + "." + WARNING;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
 
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(warnings));
         LogbookOperationsClient client = factory.getClient();
         client.update(logbookParameters);
     }
