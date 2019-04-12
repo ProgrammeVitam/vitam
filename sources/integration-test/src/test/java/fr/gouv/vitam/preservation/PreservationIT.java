@@ -156,8 +156,6 @@ public class PreservationIT extends VitamRuleRunner {
     private static final String contractId = "contract";
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
-
     private static final HashSet<Class> servers = Sets.newHashSet(
         AccessInternalMain.class,
         AdminManagementMain.class,
@@ -171,16 +169,14 @@ public class PreservationIT extends VitamRuleRunner {
         DefaultOfferMain.class,
         BatchReportMain.class
     );
-
     private static final String mongoName = mongoRule.getMongoDatabase().getName();
     private static final String esName = elasticsearchRule.getClusterName();
     private static final String GRIFFIN_LIBREOFFICE = "griffin-libreoffice";
-
-    @Rule
-    public TemporaryFolder tmpGriffinFolder = new TemporaryFolder();
-
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(PreservationIT.class, mongoName, esName, servers);
+    @Rule
+    public TemporaryFolder tmpGriffinFolder = new TemporaryFolder();
+    private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -567,7 +563,10 @@ public class PreservationIT extends VitamRuleRunner {
             // Then
             assertThat(jsonNode.iterator())
                 .extracting(j -> j.get("outcome").asText())
-                .containsExactly(StatusCode.OK.name(),StatusCode.OK.name(),StatusCode.WARNING.name());
+                .containsExactly(StatusCode.OK.name(), StatusCode.OK.name(), StatusCode.WARNING.name());
+            assertEquals(jsonNode.get(2).get("evDetData"), JsonHandler.toJsonNode(
+                "{\"Warnings\":[\"1 identifiers removed.\",\" identifier(s) [GRI-000001] updated but they're already used in preservation scenarios.\"]}")
+            );
 
             assertThat(griffinReport.getStatusCode()).isEqualTo(StatusCode.WARNING);
 
@@ -610,13 +609,17 @@ public class PreservationIT extends VitamRuleRunner {
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
             JsonNode objectGroup =
-                JsonHandler.toJsonNode(MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId())).sort(
-                    Sorts.ascending(ObjectGroup.NBCHILD)));
-            Assertions.assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo("Dissemination");
+                JsonHandler.toJsonNode(
+                    MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId()))
+                        .sort(
+                            Sorts.ascending(ObjectGroup.NBCHILD)));
+            Assertions.assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText())
+                .isEqualTo("Dissemination");
         }
     }
 
-    private void validateAccessionRegisterDetails(List<String> excludeFields) throws FileNotFoundException, InvalidParseOperationException {
+    private void validateAccessionRegisterDetails(List<String> excludeFields)
+        throws FileNotFoundException, InvalidParseOperationException {
         long countDetails;
         // Get accession register details after start preservation
         countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
@@ -655,7 +658,8 @@ public class PreservationIT extends VitamRuleRunner {
             });
         }
 
-        JsonAssert.assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
+        JsonAssert
+            .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
     }
 
     @After

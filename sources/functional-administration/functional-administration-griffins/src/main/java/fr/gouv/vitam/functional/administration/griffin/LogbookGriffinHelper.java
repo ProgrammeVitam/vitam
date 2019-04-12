@@ -103,10 +103,7 @@ class LogbookGriffinHelper {
         String parameterValue = stepName + "." + WARNING;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
 
-        ObjectNode evDetData = JsonHandler.createObjectNode();
-        evDetData.put("Warning",warnings.getWarnings().toString());
-        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-            JsonHandler.unprettyPrint(evDetData));
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(warnings));
         LogbookOperationsClient client = factory.getClient();
         client.update(logbookParameters);
     }
