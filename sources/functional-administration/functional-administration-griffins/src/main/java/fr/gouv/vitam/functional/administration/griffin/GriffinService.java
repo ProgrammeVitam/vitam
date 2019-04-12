@@ -174,7 +174,7 @@ public class GriffinService {
             saveReport(guid, griffinReport);
 
             if(!griffinReport.getWarnings().isEmpty()){
-                createLogbookEventWarning(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT);
+                createLogbookEventWarning(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT, griffinReport);
                 return new RequestResponseOK<GriffinModel>().addAllResults(listToImport)
                     .setHttpCode(Response.Status.CREATED.getStatusCode());
             }
