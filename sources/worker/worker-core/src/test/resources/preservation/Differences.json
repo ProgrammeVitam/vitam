@@ -1,0 +1,16 @@
+{
+  "diff": [
+    {
+      "Name": "OtherMetadata",
+      "Changes": [
+        {
+          "MetadataName": "GPS",
+          "OldMetadataValue": [],
+          "NewMetadataValue": [
+            "40.714, -74.006"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -65,6 +65,7 @@ import org.apache.commons.collections4.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -161,7 +162,7 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
                 .filter(Difference::hasDifference)
                 .collect(Collectors.toList());
 
-            if (differencesFiltered.isEmpty() && generateOkActions.isEmpty() && extractedOkActions.isEmpty()) {
+            if (differencesFiltered.isEmpty() && generateOkActions.isEmpty()) {
                 ItemStatus itemStatus = new ItemStatus(PLUGIN_NAME);
                 return itemStatus.disableLfc();
             }
@@ -287,21 +288,29 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
         if (extractedMetadata == null) {
             throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
         }
-        Difference<String> diffOtherMetadataToReplace = new Difference<>("OtherMetadataToReplace");
-        Difference<List<String>> diffOtherMetadataToAdd = new Difference<>("OtherMetadataToAdd");
+        Difference<List<Object>> diffOtherMetadataToAdd = new Difference<>(OtherMetadata.class.getSimpleName());
 
         Map<String, List<Object>> oldMetadata = version.getOtherMetadata();
         OtherMetadata otherMetadata = new OtherMetadata(oldMetadata);
 
         OtherMetadata otherMetadataExtracted = extractedMetadata.getOtherMetadata();
         otherMetadataExtracted.forEach((key, value) -> {
-            if (oldMetadata.containsKey(key)) {
-                otherMetadata.put(key, new ArrayList<>(CollectionUtils.union(value, oldMetadata.get(key))));
+            List<Object> oldValue = oldMetadata.get(key);
+            if (oldValue != null) {
+                diffOtherMetadataToAdd.add(key, oldValue, new ArrayList<>(CollectionUtils.union(oldValue, value)));
+                otherMetadata.put(key, new ArrayList<>(CollectionUtils.union(value, oldValue)));
             } else {
+                diffOtherMetadataToAdd.add(key, Collections.emptyList(), value);
                 otherMetadata.put(key, value);
             }
         });
-        return DbVersionsModel.newVersionsFrom(version, otherMetadata);
+
+        if (diffOtherMetadataToAdd.hasDifference()) {
+            differences.add(diffOtherMetadataToAdd);
+            return DbVersionsModel.newVersionsFrom(version, otherMetadata);
+        }
+
+        return version;
     }
 
     private DbVersionsModel createVersion(OutputExtra outputExtra, WorkflowBatchResult workflowBatchResult, Integer newDataObjectVersion) {

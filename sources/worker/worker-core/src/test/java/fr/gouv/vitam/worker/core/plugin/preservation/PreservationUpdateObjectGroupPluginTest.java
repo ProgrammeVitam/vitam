@@ -539,6 +539,33 @@ public class PreservationUpdateObjectGroupPluginTest {
         return getWorkflowBatchResults("BinaryMaster", outputPreservation);
     }
 
+    @Test
+    public void should_write_differences_in_logbook_in_extraction() throws Exception {
+        ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
+
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(getOutputPreservation(EXTRACT));
+        TestHandlerIO testHandlerIO = new TestHandlerIO();
+        testHandlerIO.addOutputResult(0, batchResults);
+        testHandlerIO.setInputs(batchResults);
+
+        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+            .addResult(JsonHandler.getFromInputStream(objectGroupStream))
+            .setHttpCode(Response.Status.OK.getStatusCode());
+        given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
+        doNothing().when(metaDataClient)
+            .updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
+
+        // When
+        List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
+        // Then
+        InputStream differences = Object.class.getResourceAsStream("/preservation/Differences.json");
+        JsonNode fromInputStream = JsonHandler.getFromInputStream(differences);
+        String differencesEventDetailData = JsonHandler.unprettyPrint(fromInputStream);
+        assertThat(itemStatuses.get(0).getData("eventDetailData")).isEqualTo(differencesEventDetailData);
+    }
+
     private List<OutputExtra> emptyFormatOutputExtra(OutputPreservation... outputPreservation) {
         StoredInfoResult value = new StoredInfoResult();
         return Stream.of(outputPreservation).map(o ->
