@@ -556,51 +556,6 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     }
 
     @Override
-    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit)
-        throws AccessInternalClientServerException {
-        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
-        ParametersChecker.checkParameter(BLANK_UNIT_ID, idUnit);
-        VitamThreadUtils.getVitamSession().checkValidRequestId();
-        try {
-            return performRequest(HttpMethod.GET, UNITS + idUnit, null, queryDsl,
-                APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-        } catch (final VitamClientInternalException e) {
-            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
-        }
-    }
-
-
-    @Override
-    public Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
-        throws AccessInternalClientServerException {
-        // TODO implement client
-        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
-        ParametersChecker.checkParameter(BLANK_UNIT_ID, objectId);
-        VitamThreadUtils.getVitamSession().checkValidRequestId();
-
-        try {
-            return performRequest(HttpMethod.GET, OBJECTS + objectId, null, queryDsl,
-                APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-        } catch (final VitamClientInternalException e) {
-            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
-        }
-    }
-
-    @Override
-    public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
-        throws AccessInternalClientServerException {
-        ParametersChecker.checkParameter(BLANK_DSL, queryDsl);
-        ParametersChecker.checkParameter(BLANK_UNIT_ID, unitId);
-        VitamThreadUtils.getVitamSession().checkValidRequestId();
-        try {
-            return performRequest(HttpMethod.GET, OBJECTS + unitId, null, queryDsl,
-                APPLICATION_JSON_TYPE, MediaType.APPLICATION_XML_TYPE);
-        } catch (final VitamClientInternalException e) {
-            throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR, e); // access-common
-        }
-    }
-
-    @Override
     public RequestResponse<JsonNode> exportDIP(JsonNode dslRequest)
         throws AccessInternalClientServerException {
         ParametersChecker.checkParameter(BLANK_DSL, dslRequest);

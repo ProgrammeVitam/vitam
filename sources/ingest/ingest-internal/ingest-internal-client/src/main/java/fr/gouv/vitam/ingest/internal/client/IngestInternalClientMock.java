@@ -84,10 +84,8 @@ public class IngestInternalClientMock extends AbstractMockClient implements Inge
     }
 
     @Override
-    public Response uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList)
-        throws VitamException {
+    public void uploadInitialLogbook(Iterable<LogbookOperationParameters> logbookParametersList){
         ParametersChecker.checkParameter(PARAMS_CANNOT_BE_NULL, logbookParametersList);
-        return Response.status(Status.CREATED).build();
     }
 
     @Override

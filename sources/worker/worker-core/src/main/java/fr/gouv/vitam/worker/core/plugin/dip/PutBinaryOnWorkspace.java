@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameterName;
@@ -126,6 +127,8 @@ public class PutBinaryOnWorkspace extends ActionHandler {
 
     private void transferFile(WorkerParameters param, HandlerIO handler, Map<String, Object> guidToInfo)
         throws ProcessingException, StorageNotFoundException, StorageServerClientException {
+
+        Response response = null;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
             Map objectInfo = (Map) guidToInfo.get(param.getObjectName());
@@ -133,11 +136,13 @@ public class PutBinaryOnWorkspace extends ActionHandler {
             Boolean mustLog = Boolean.valueOf(param.getMapParameters().get(WorkerParameterName.mustLogAccessOnObject));
             AccessLogInfoModel logInfo = AccessLogUtils.getInfoFromWorkerInfo(objectInfo, VitamThreadUtils.getVitamSession(), mustLog);
 
-            Response response = storageClient
+            response = storageClient
                 .getContainerAsync(DEFAULT_STORAGE_STRATEGY, param.getObjectName(), DataCategory.OBJECT, logInfo);
 
             handler.transferInputStreamToWorkspace((String) objectInfo.get("FILE_NAME"),
                 (InputStream) response.getEntity(), null, false);
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 

@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ProfileFormat;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -124,12 +125,20 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
             }
 
             if (profile != null) {
-                Response dowloadResponse = adminClient.downloadProfileFile(profileIdentifier);
-                InputStream stream = dowloadResponse.readEntity(InputStream.class);
-                File tmpFile = PropertiesUtils.fileFromTmpFolder(profile.getPath());
-                OutputStream outputStream = new FileOutputStream(tmpFile);
-                IOUtils.copy(stream, outputStream);
-                outputStream.close();
+                Response downloadResponse = null;
+                InputStream stream = null;
+                File tmpFile;
+                try {
+                    downloadResponse = adminClient.downloadProfileFile(profileIdentifier);
+                    stream = downloadResponse.readEntity(InputStream.class);
+                    tmpFile = PropertiesUtils.fileFromTmpFolder(profile.getPath());
+                    OutputStream outputStream = new FileOutputStream(tmpFile);
+                    IOUtils.copy(stream, outputStream);
+                    outputStream.close();
+                } finally {
+                    StreamUtils.closeSilently(stream);
+                    StreamUtils.consumeAnyEntityAndClose(downloadResponse);
+                }
 
                 if (profile.getFormat().equals(ProfileFormat.XSD)) {
                     isValid = ValidationXsdUtils.getInstance().checkFileXSD(handlerIO.getInputStreamFromWorkspace(

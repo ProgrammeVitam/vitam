@@ -169,44 +169,6 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
-    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit)
-        throws AccessInternalClientServerException {
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/unit.xml")) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
-            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
-        } catch (IOException e) {
-            throw new AccessInternalClientServerException(e);
-        }
-    }
-
-    @Override
-    public Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException {
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
-            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
-        } catch (IOException e) {
-            throw new AccessInternalClientServerException(e);
-        }
-    }
-
-    @Override
-    public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException {
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            IOUtils.copy(resourceAsStream, byteArrayOutputStream);
-            return Response.ok().entity(byteArrayOutputStream.toByteArray()).build();
-        } catch (IOException e) {
-            throw new AccessInternalClientServerException(e);
-        }
-    }
-
-    @Override
     public Response downloadAccessLogFile(JsonNode params) throws AccessInternalClientServerException {
         //TODO make accesslog.log + InputStream resourceAsStream = getClass().getResourceAsStream("/accesslog.log")
         try (InputStream resourceAsStream = getClass().getResourceAsStream("/objectGroup.xml")) {

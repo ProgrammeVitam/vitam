@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -74,6 +75,7 @@ import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.accesslog.AccessLogUtils.getNoLogAccessLog;
+import static fr.gouv.vitam.common.stream.StreamUtils.closeSilently;
 import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.plugin.PluginHelper.tryDeleteLocalPreservationFiles;
@@ -176,12 +178,16 @@ public class PreservationActionPlugin extends ActionHandler {
     }
 
     private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient, Path inputFilesDirectory) throws Exception {
-        final Response fileResponse = storageClient
-            .getContainerAsync(DEFAULT_STORAGE_STRATEGY, entryParams.getObjectId(), OBJECT, getNoLogAccessLog());
-        try (InputStream src = fileResponse.readEntity(InputStream.class)) {
+        Response fileResponse = null;
+        InputStream src = null;
+        try {
+            fileResponse = storageClient
+                .getContainerAsync(DEFAULT_STORAGE_STRATEGY, entryParams.getObjectId(), OBJECT, getNoLogAccessLog());
+            src = fileResponse.readEntity(InputStream.class);
             Path target = inputFilesDirectory.resolve(entryParams.getObjectId());
             Files.copy(src, target, REPLACE_EXISTING);
         } finally {
+            closeSilently(src);
             consumeAnyEntityAndClose(fileResponse);
         }
     }

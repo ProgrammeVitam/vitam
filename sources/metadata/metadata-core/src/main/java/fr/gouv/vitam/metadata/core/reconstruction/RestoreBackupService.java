@@ -26,16 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.reconstruction;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.ws.rs.core.Response;
-
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import org.apache.commons.io.IOUtils;
-
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -43,6 +35,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -52,6 +45,10 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import org.apache.commons.io.IOUtils;
+
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Service used to recover a Backup copy of the given metadata Vitam collection.<br/>
@@ -135,7 +132,7 @@ public class RestoreBackupService {
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
                 filename, collection.name(), strategy));
         InputStream inputStream = null;
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
+        try {
             DataCategory type;
             switch (collection) {
                 case UNIT:
@@ -147,17 +144,14 @@ public class RestoreBackupService {
                 default:
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
-            Response response = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog());
-            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                inputStream = storageClient.getContainerAsync(strategy, filename, type, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
-                MetadataBackupModel metadataBackupModel =
-                    JsonHandler.getFromInputStream(inputStream, MetadataBackupModel.class);
-                if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
-                    metadataBackupModel.setOffset(offset);
-                    return metadataBackupModel;
-                }
+            inputStream = loadData(strategy, type, filename);
+            MetadataBackupModel metadataBackupModel =
+                JsonHandler.getFromInputStream(inputStream, MetadataBackupModel.class);
+            if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
+                metadataBackupModel.setOffset(offset);
+                return metadataBackupModel;
             }
-        } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
+        } catch (InvalidParseOperationException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         } finally {
             IOUtils.closeQuietly(inputStream);
@@ -175,12 +169,8 @@ public class RestoreBackupService {
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
 
-            Response response = storageClient.getContainerAsync(strategy, filename, category, AccessLogUtils.getNoLogAccessLog());
-            if (response != null && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                return storageClient.getContainerAsync(strategy, filename, category, AccessLogUtils.getNoLogAccessLog()).readEntity(InputStream.class);
-            } else {
-                return null;
-            }
+            return new VitamAsyncInputStream(storageClient.getContainerAsync(strategy, filename, category, AccessLogUtils.getNoLogAccessLog()));
+
         } catch (StorageServerClientException | StorageNotFoundException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }

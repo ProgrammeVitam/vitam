@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
@@ -567,6 +568,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     }
 
     private Optional<OperationTraceabilityFiles> getTraceabilityFile(LogbookOperation logbookEventOperation, StorageClient storageClient, HandlerIO handlerIO, String objectGroupId) {
+        Response response = null;
         try {
             TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(logbookEventOperation.getEvDetData(), TraceabilityEvent.class);
             String evType = logbookEventOperation.getEvType();
@@ -576,11 +578,13 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 return operationTraceabilityFilesFromWorkspace;
             }
 
-            Response response = storageClient.getContainerAsync("default", traceabilityEvent.getFileName(), LOGBOOK, AccessLogUtils.getNoLogAccessLog());
+            response = storageClient.getContainerAsync("default", traceabilityEvent.getFileName(), LOGBOOK, AccessLogUtils.getNoLogAccessLog());
             return Optional.of(extractZipFiles(response, handlerIO, objectGroupId, evType));
         } catch (Exception e) {
             LOGGER.error(e);
             return Optional.empty();
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 

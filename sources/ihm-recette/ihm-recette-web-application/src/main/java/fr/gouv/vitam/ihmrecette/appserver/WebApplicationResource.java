@@ -795,6 +795,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param operationId
      */
     private void downloadObjectAsync(final AsyncResponse asyncResponse, String operationId, int tenantId) {
+        Response response = null;
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             VitamContext context = new VitamContext(tenantId);
@@ -810,7 +811,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             JsonNode traceabilityEvent = JsonHandler.getFromString(evDetData);
             String fileName = traceabilityEvent.get("FileName").textValue();
             DataCategory documentType = DataCategory.LOGBOOK;
-            final Response response =
+            response =
                 storageClient.getContainerAsync("default", fileName, documentType, AccessLogUtils.getNoLogAccessLog());
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
@@ -838,6 +839,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             LOGGER.error("INTERNAL SERVER ERROR", e);
             AsyncInputStreamHelper.asyncResponseResume(asyncResponse,
                 Response.status(Status.INTERNAL_SERVER_ERROR).build());
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 
