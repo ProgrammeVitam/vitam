@@ -114,6 +114,7 @@
 					<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
+						<runOrder>alphabetical</runOrder>
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>

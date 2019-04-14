@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.ingest.external.common.config.IngestExternalConfiguration;
@@ -46,6 +47,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import javax.ws.rs.core.Response.Status;
+
 import java.io.File;
 
 import static io.restassured.RestAssured.given;
@@ -112,8 +114,12 @@ public class IngestExternalSslResourceTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
-        if (application != null) {
-            application.stop();
+        try {
+            if (application != null) {
+                application.stop();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();

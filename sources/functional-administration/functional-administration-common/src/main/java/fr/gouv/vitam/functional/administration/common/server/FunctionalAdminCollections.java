@@ -161,13 +161,13 @@ public enum FunctionalAdminCollections {
                 }
             }
         }
-        if (null != FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()) {
+        if (functionalAdminCollections.contains(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
                 .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
                     new IndexOptions().unique(true));
         }
 
-        if (null != FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()) {
+        if (functionalAdminCollections.contains(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
                 .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
                     new IndexOptions().unique(true));

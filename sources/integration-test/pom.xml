@@ -16,6 +16,7 @@
 					<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
+						<runOrder>alphabetical</runOrder>
 						<parallel>classes</parallel>
 						<threadCount>1</threadCount>
 						<perCoreThreadCount>false</perCoreThreadCount>
@@ -148,12 +149,6 @@
 			<artifactId>ingest-internal-client</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>ingest-internal-rest</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>access-internal-client</artifactId>
@@ -215,11 +210,6 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jhades</groupId>
-			<artifactId>jhades</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

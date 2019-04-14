@@ -29,12 +29,16 @@ package fr.gouv.vitam.common.serverv2;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
+import javax.net.ServerSocketFactory;
 import javax.servlet.DispatcherType;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
@@ -57,6 +61,7 @@ import fr.gouv.vitam.common.server.VitamServerFactory;
 import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
 import fr.gouv.vitam.common.tenant.filter.TenantFilter;
 import fr.gouv.vitam.common.xsrf.filter.XSRFFilter;
+import org.apache.shiro.util.Assert;
 import org.apache.shiro.web.env.EnvironmentLoaderListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -77,6 +82,11 @@ public class VitamServerTestRunner {// NOSONAR
     private final VitamClientFactoryInterface<?> factory;
     private final Class<? extends Application> application;
     private final Class<? extends Application> adminAapplication;
+
+
+    public static final int MIN_PORT = 11112;
+    private static final int MAX_PORT = 65535;
+    private static final Random random = new Random(System.currentTimeMillis());
 
     private final int businessPort;
     private final int adminPort;
@@ -177,7 +187,8 @@ public class VitamServerTestRunner {// NOSONAR
             hasShiroFilter, hasXsrFilter);
     }
 
-    public VitamServerTestRunner(Class<? extends Application> application, VitamClientFactoryInterface<?> factory) {// NOSONAR
+    public VitamServerTestRunner(Class<? extends Application> application,
+        VitamClientFactoryInterface<?> factory) {// NOSONAR
         this(application, factory, false);
     }
 
@@ -353,7 +364,11 @@ public class VitamServerTestRunner {// NOSONAR
     }
 
     protected void after() throws Exception {// NOSONAR
-        server.stop();
+        try {
+            server.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
+        }
     }
 
     public MockOrRestClient getClient() {// NOSONAR
@@ -374,7 +389,11 @@ public class VitamServerTestRunner {// NOSONAR
     }
 
     public void stop() throws Exception {// NOSONAR
-        server.stop();
+        try {
+            server.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
+        }
     }
 
     public void start() throws Exception {// NOSONAR
@@ -424,18 +443,13 @@ public class VitamServerTestRunner {// NOSONAR
             try {
                 Thread.sleep(10); // NOSONAR
             } catch (final InterruptedException e) {// NOSONAR
-                SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+                SysErrLogger.FAKE_LOGGER.syserr("", e);
             }
         } while (true);
     }
 
     private final int getPort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            socket.setReuseAddress(true);
-            return socket.getLocalPort();
-        } catch (final IOException e) {
-            throw new IllegalStateException(e);// NOSONAR
-        }
+        return SocketType.TCP.findAvailablePort(MIN_PORT, MAX_PORT);
     }
 
     public final synchronized void releasePort() {
@@ -449,5 +463,89 @@ public class VitamServerTestRunner {// NOSONAR
 
     public int getAdminPort() {
         return adminPort;
+    }
+
+
+    /**
+     * Copied from Spring SocketUtils
+     */
+    private enum SocketType {
+
+        TCP {
+            @Override
+            protected boolean isPortAvailable(int port) {
+                try {
+                    ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(
+                        port, 1, InetAddress.getByName("localhost"));
+                    serverSocket.close();
+                    return true;
+                }
+                catch (Exception ex) {
+                    return false;
+                }
+            }
+        },
+
+        UDP {
+            @Override
+            protected boolean isPortAvailable(int port) {
+                try {
+                    DatagramSocket socket = new DatagramSocket(port, InetAddress.getByName("localhost"));
+                    socket.close();
+                    return true;
+                }
+                catch (Exception ex) {
+                    return false;
+                }
+            }
+        };
+
+        /**
+         * Determine if the specified port for this {@code SocketType} is
+         * currently available on {@code localhost}.
+         */
+        protected abstract boolean isPortAvailable(int port);
+
+        /**
+         * Find a pseudo-random port number within the range
+         * [{@code minPort}, {@code maxPort}].
+         * @param minPort the minimum port number
+         * @param maxPort the maximum port number
+         * @return a random port number within the specified range
+         */
+        private int findRandomPort(int minPort, int maxPort) {
+            int portRange = maxPort - minPort;
+            return minPort + random.nextInt(portRange + 1);
+        }
+
+        /**
+         * Find an available port for this {@code SocketType}, randomly selected
+         * from the range [{@code minPort}, {@code maxPort}].
+         * @param minPort the minimum port number
+         * @param maxPort the maximum port number
+         * @return an available port number for this socket type
+         * @throws IllegalStateException if no available port could be found
+         */
+        int findAvailablePort(int minPort, int maxPort) {
+            Assert.isTrue(minPort > 0, "'minPort' must be greater than 0");
+            Assert.isTrue(maxPort >= minPort, "'maxPort' must be greater than or equal to 'minPort'");
+            Assert.isTrue(maxPort <= MAX_PORT, "'maxPort' must be less than or equal to " + MAX_PORT);
+
+            int portRange = maxPort - minPort;
+            int candidatePort;
+            int searchCounter = 0;
+            do {
+                if (searchCounter > portRange) {
+                    throw new IllegalStateException(String.format(
+                        "Could not find an available %s port in the range [%d, %d] after %d attempts",
+                        name(), minPort, maxPort, searchCounter));
+                }
+                candidatePort = findRandomPort(minPort, maxPort);
+                searchCounter++;
+            }
+            while (!isPortAvailable(candidatePort));
+
+            return candidatePort;
+        }
     }
 }

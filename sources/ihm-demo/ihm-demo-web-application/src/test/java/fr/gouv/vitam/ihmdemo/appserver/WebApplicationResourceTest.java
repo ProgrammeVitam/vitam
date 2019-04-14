@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.external.client.AbstractMockClient;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -185,7 +186,11 @@ public class WebApplicationResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        application.stop();
+        try {
+            application.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
         junitHelper.releasePort(port);
     }
 

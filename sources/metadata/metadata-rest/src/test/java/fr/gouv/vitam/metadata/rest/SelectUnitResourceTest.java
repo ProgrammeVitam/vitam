@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
@@ -60,6 +61,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.sound.midi.SysexMessage;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
@@ -219,6 +221,8 @@ public class SelectUnitResourceTest {
         try {
             MetadataCollections.afterTestClass(true, 1);
             application.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         } finally {
             junitHelper.releasePort(serverPort);
             VitamClientFactory.resetConnections();

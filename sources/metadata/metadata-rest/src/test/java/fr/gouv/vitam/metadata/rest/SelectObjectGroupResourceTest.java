@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.server.application.configuration.MongoDbNode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -149,9 +150,12 @@ public class SelectObjectGroupResourceTest {
     public static void tearDownAfterClass() throws Exception {
 
         try {
-            MetadataCollections.afterTestClass(true, 0);
             application.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         } finally {
+            MetadataCollections.afterTestClass(true, 0);
+
             junitHelper.releasePort(serverPort);
             VitamClientFactory.resetConnections();
         }

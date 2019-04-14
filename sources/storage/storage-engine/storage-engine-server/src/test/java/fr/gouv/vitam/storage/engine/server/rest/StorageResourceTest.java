@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -170,9 +171,14 @@ public class StorageResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        vitamStarter.stop();
-        junitHelper.releasePort(serverPort);
-        VitamClientFactory.resetConnections();
+        try {
+            vitamStarter.stop();
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
+        } finally {
+            junitHelper.releasePort(serverPort);
+            VitamClientFactory.resetConnections();
+        }
     }
 
     @Test
@@ -1070,7 +1076,7 @@ public class StorageResourceTest {
         @Override
         public StoredInfoResult storeDataInOffers(String strategyId, StreamAndInfo streamAndInfo, String objectId,
             DataCategory category, String requester, List<String> offerIds) throws StorageException {
-            throw  new UnsupportedOperationException("Not implemented");
+            throw new UnsupportedOperationException("Not implemented");
         }
 
         /**

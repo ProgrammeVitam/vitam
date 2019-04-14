@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.external.rest;
 import java.io.File;
 
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -60,8 +61,12 @@ public class IngestExternalApplicationTest {
 
     @After
     public void tearDown() throws Exception {
-        if (application != null) {
-            application.stop();
+        try {
+            if (application != null) {
+                application.stop();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         junitHelper.releasePort(portAvailable);
         VitamClientFactory.resetConnections();

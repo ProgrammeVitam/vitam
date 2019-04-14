@@ -106,10 +106,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>net.javacrumbs.json-unit</groupId>
             <artifactId>json-unit</artifactId>
             <scope>test</scope>
@@ -124,6 +120,7 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>2.22.1</version>
                     <configuration>
+                        <runOrder>alphabetical</runOrder>
                         <parallel>classes</parallel>
                         <threadCount>1</threadCount>
                         <perCoreThreadCount>false</perCoreThreadCount>

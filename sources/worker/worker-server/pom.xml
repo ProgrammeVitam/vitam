@@ -117,6 +117,23 @@
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
+				<execution>
+						<id>copy-debian-controlFiles</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/control</outputDirectory>
+							<overwrite>true</overwrite>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/deb/control</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
 					<execution>
 						<id>copy-config-resources</id>
 						<phase>validate</phase>
@@ -184,6 +201,7 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<configuration>
+					<runOrder>alphabetical</runOrder>
 					<systemPropertyVariables>
 						<log4j.configurationFile>log4j2-test.xml</log4j.configurationFile>
 						<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
@@ -194,29 +212,6 @@
 						<classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j</classpathDependencyExclude>
 					</classpathDependencyExcludes>
 				</configuration>
-			</plugin>
-			<!-- Debian -->
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-debian-controlFiles</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/control</outputDirectory>
-							<overwrite>true</overwrite>
-							<resources>
-								<resource>
-									<directory>${basedir}/src/deb/control</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>jdeb</artifactId>

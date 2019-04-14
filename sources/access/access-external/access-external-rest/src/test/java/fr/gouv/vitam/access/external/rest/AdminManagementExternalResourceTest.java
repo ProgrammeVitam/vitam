@@ -29,6 +29,7 @@ import fr.gouv.vitam.common.exception.WorkflowNotFoundException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.junit.JunitHelper;
+import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -191,10 +192,14 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        if (application != null && application.getVitamServer() != null &&
-            application.getVitamServer() != null) {
+        try {
+            if (application != null && application.getVitamServer() != null &&
+                application.getVitamServer() != null) {
 
-            application.stop();
+                application.stop();
+            }
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
