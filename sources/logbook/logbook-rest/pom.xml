@@ -144,6 +144,23 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>copy-debian-controlFiles</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/control</outputDirectory>
+							<overwrite>true</overwrite>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/deb/control</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
 						<id>copy-audit-dependencies</id>
 						<phase>package</phase>
 						<goals>
@@ -307,29 +324,6 @@
 						<script>%systemd_postun vitam-${unix.name}.service vitam-logbook-reconstruction.timer vitam-logbook-reconstruction.service vitam-traceability-audit.timer vitam-traceability-audit.service vitam-traceability-lfc-objectgroup.timer vitam-traceability-lfc-objectgroup.service vitam-traceability-lfc-unit.timer vitam-traceability-lfc-unit.service vitam-traceability-operations.timer vitam-traceability-operations.service</script>
 					</postremoveScriptlet>
 				</configuration>
-			</plugin>
-			<!-- Debian -->
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-debian-controlFiles</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/control</outputDirectory>
-							<overwrite>true</overwrite>
-							<resources>
-								<resource>
-									<directory>${basedir}/src/deb/control</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 
 			<plugin>

@@ -146,6 +146,23 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
 					<execution>
+						<id>copy-debian-controlFiles</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/control</outputDirectory>
+							<overwrite>true</overwrite>
+							<resources>
+								<resource>
+									<directory>${basedir}/src/deb/control</directory>
+									<filtering>true</filtering>
+								</resource>
+							</resources>
+						</configuration>
+					</execution>
+					<execution>
 						<id>copy-config-resources</id>
 						<phase>validate</phase>
 						<goals>
@@ -291,29 +308,6 @@
 						<script>%systemd_postun vitam-${unix.name}.service vitam-storage-accesslog-backup.timer vitam-storage-accesslog-backup.service vitam-storage-log-backup.timer vitam-storage-log-backup.service vitam-storage-log-traceability.timer vitam-storage-log-traceability.service</script>
 					</postremoveScriptlet>
 				</configuration>
-			</plugin>
-			<!-- Debian -->
-			<plugin>
-				<artifactId>maven-resources-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-debian-controlFiles</id>
-						<phase>generate-resources</phase>
-						<goals>
-							<goal>copy-resources</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/control</outputDirectory>
-							<overwrite>true</overwrite>
-							<resources>
-								<resource>
-									<directory>${basedir}/src/deb/control</directory>
-									<filtering>true</filtering>
-								</resource>
-							</resources>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>jdeb</artifactId>

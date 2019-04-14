@@ -1,5 +1,21 @@
 package fr.gouv.vitam.functional.administration.migration.r7r8;
 
+import static com.mongodb.client.model.Sorts.ascending;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -24,6 +40,7 @@ import fr.gouv.vitam.functional.administration.common.server.ElasticsearchAccess
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import org.apache.commons.lang3.time.StopWatch;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -36,21 +53,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static com.mongodb.client.model.Sorts.ascending;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 
 public class AccessionRegisterMigrationServiceTest {
@@ -94,8 +96,9 @@ public class AccessionRegisterMigrationServiceTest {
 
     @AfterClass
     public static void afterClass() {
-        FunctionalAdminCollections.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
+        FunctionalAdminCollections
+            .afterTestClass(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY), true);
     }
 
     @Test
@@ -103,30 +106,37 @@ public class AccessionRegisterMigrationServiceTest {
         // Given
         AccessionRegisterMigrationService instance =
             spy(new AccessionRegisterMigrationService(accessionRegisterMigrationRepository, functionalBackupService));
-        CountDownLatch awaitTermination_1 = new CountDownLatch(1);
-        doAnswer(i -> {
-            awaitTermination_1.countDown();
-            return null;
-        }).when(instance).mongoDataUpdate();
+        doNothing().when(instance).mongoDataUpdate();
 
         // When
         boolean started = instance.tryStartMigration(MigrationAction.MIGRATE);
-        awaitOrThrow(awaitTermination_1);
+
+        StopWatch stopWatch = StopWatch.createStarted();
+
+        while (instance.isMigrationInProgress()) {
+            Thread.sleep(5);
+            if (stopWatch.getTime(TimeUnit.MINUTES) >= 1) {
+                fail("Timeout waiting tryStartMigration MIGRATE");
+            }
+        }
 
         // Than
         assertThat(started).isTrue();
         verify(instance, times(1)).mongoDataUpdate();
 
-        CountDownLatch awaitTermination_2 = new CountDownLatch(1);
-        doAnswer(i -> {
-            awaitTermination_2.countDown();
-            return null;
-        }).when(instance).purge();
+
+        doNothing().when(instance).purge();
 
         // When
         started = instance.tryStartMigration(MigrationAction.PURGE);
-        awaitOrThrow(awaitTermination_2);
 
+        stopWatch = StopWatch.createStarted();
+        while (instance.isMigrationInProgress()) {
+            Thread.sleep(5);
+            if (stopWatch.getTime(TimeUnit.MINUTES) >= 1) {
+                fail("Timeout waiting tryStartMigration PURGE");
+            }
+        }
         // Than
         assertThat(started).isTrue();
         verify(instance, times(1)).purge();

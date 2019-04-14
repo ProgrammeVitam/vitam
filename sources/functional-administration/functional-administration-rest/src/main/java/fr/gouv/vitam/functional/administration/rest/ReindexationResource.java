@@ -43,7 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
 import org.bson.Document;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -70,7 +70,6 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 /**
@@ -92,27 +91,27 @@ public class ReindexationResource {
     private static final String ALIASES_URI = "/alias";
 
     /**
-     * logbookClient
+     * logbookOperationsClientFactory
      */
-    private final LogbookOperationsClient logbookClient;
+    private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     /**
-     * metadataClient
+     * metaDataClientFactory
      */
-    private final MetaDataClient metadataClient;
+    private final MetaDataClientFactory metaDataClientFactory;
 
     private final IndexationHelper indexationHelper;
     /**
      * Constructor
      *
-     * @param logbookClient
-     * @param metadataClient
+     * @param logbookOperationsClientFactory
+     * @param metaDataClientFactory
      */
     @VisibleForTesting
-    public ReindexationResource(LogbookOperationsClient logbookClient,
-        MetaDataClient metadataClient, IndexationHelper indexationHelper) {
-        this.logbookClient = logbookClient;
-        this.metadataClient = metadataClient;
+    public ReindexationResource(LogbookOperationsClientFactory logbookOperationsClientFactory,
+        MetaDataClientFactory metaDataClientFactory, IndexationHelper indexationHelper) {
+        this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.metaDataClientFactory = metaDataClientFactory;
         this.indexationHelper = indexationHelper;
         LOGGER.debug("init Reindexation Resource server");
     }
@@ -123,8 +122,8 @@ public class ReindexationResource {
      * 
      */
     public ReindexationResource() {
-        logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
-        metadataClient = MetaDataClientFactory.getInstance().getClient();
+        logbookOperationsClientFactory = LogbookOperationsClientFactory.getInstance();
+        metaDataClientFactory = MetaDataClientFactory.getInstance();
         this.indexationHelper = IndexationHelper.getInstance();
         LOGGER.debug("init Reindexation Resource server");
     }
@@ -146,12 +145,12 @@ public class ReindexationResource {
         AtomicBoolean atLeastOneOK = new AtomicBoolean(false);
         // call the reindexation service
         indexParameters.forEach(index -> {
-            try {
+            try (MetaDataClient metaDataClient = metaDataClientFactory.getClient(); LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()){
                 if (VitamCollectionHelper.isLogbookCollection(index.getCollectionName())) {
-                    results.add(JsonHandler.getFromJsonNode(logbookClient.reindex(index), IndexationResult.class));
+                    results.add(JsonHandler.getFromJsonNode(logbookOperationsClient.reindex(index), IndexationResult.class));
                     atLeastOneOK.set(true);
                 } else if (VitamCollectionHelper.isMetadataCollection(index.getCollectionName())) {
-                    results.add(JsonHandler.getFromJsonNode(metadataClient.reindex(index), IndexationResult.class));
+                    results.add(JsonHandler.getFromJsonNode(metaDataClient.reindex(index), IndexationResult.class));
                     atLeastOneOK.set(true);
                 } else {
                     // Reindex of the given collection
@@ -242,19 +241,19 @@ public class ReindexationResource {
         AtomicBoolean atLeastOneOK = new AtomicBoolean(false);
         // call the switch service
         switchIndexParameters.forEach(switchIndex -> {
-            try {
+            try (MetaDataClient metaDataClient = metaDataClientFactory.getClient(); LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()){
 
                 if (VitamCollectionHelper.isLogbookCollection(switchIndex.getAlias())) {
                     String[] splits = switchIndex.getIndexName().split("_");
                     switchIndex.setAlias(splits[0] + "_" + splits[1]);
                     results.add(
-                        JsonHandler.getFromJsonNode(logbookClient.switchIndexes(switchIndex), IndexationResult.class));
+                        JsonHandler.getFromJsonNode(logbookOperationsClient.switchIndexes(switchIndex), IndexationResult.class));
                     atLeastOneOK.set(true);
                 } else if (VitamCollectionHelper.isMetadataCollection(switchIndex.getAlias())) {
                     String[] splits = switchIndex.getIndexName().split("_");
                     switchIndex.setAlias(splits[0] + "_" + splits[1]);
                     results.add(
-                        JsonHandler.getFromJsonNode(metadataClient.switchIndexes(switchIndex), IndexationResult.class));
+                        JsonHandler.getFromJsonNode(metaDataClient.switchIndexes(switchIndex), IndexationResult.class));
                     atLeastOneOK.set(true);
                 } else {
                     try {

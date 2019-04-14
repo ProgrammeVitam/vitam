@@ -105,7 +105,7 @@
                     <descriptors>
                         <descriptor>zip-conf.xml</descriptor>
                     </descriptors>
-                    <finalName>${ihm-demo.name}-${pom.version}</finalName>
+                    <finalName>${ihm-demo.name}-${project.version}</finalName>
                     <tarLongFileMode>posix</tarLongFileMode>
                 </configuration>
                 <executions>
@@ -132,7 +132,7 @@
                         <configuration>
                             <artifacts>
                                 <artifact>
-                                    <file>target/${ihm-demo.name}-${pom.version}-bundle.zip</file>
+                                    <file>target/${ihm-demo.name}-${project.version}-bundle.zip</file>
                                     <type>zip</type>
                                 </artifact>
                             </artifacts>

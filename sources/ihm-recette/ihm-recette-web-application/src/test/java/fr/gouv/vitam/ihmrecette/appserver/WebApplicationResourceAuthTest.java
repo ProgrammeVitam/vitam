@@ -71,7 +71,7 @@ public class WebApplicationResourceAuthTest {
         try {
             application.stop();
         } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+            SysErrLogger.FAKE_LOGGER.syserr("", e);
         }
         junitHelper.releasePort(port);
     }

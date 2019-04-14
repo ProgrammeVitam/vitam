@@ -363,6 +363,7 @@
                     <version>2.22.1</version>
                     <configuration>
                         <argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
+                        <runOrder>alphabetical</runOrder>
                         <!-- Non Parallel mode -->
                         <parallel>classes</parallel>
                         <threadCount>1</threadCount>

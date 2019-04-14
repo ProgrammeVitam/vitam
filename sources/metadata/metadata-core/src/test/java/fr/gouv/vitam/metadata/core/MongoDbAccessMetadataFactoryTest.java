@@ -86,8 +86,8 @@ public class MongoDbAccessMetadataFactoryTest {
     static final int tenantId = 0;
     static final List tenantList = new ArrayList() {
         /**
-        * 
-        */
+         *
+         */
         private static final long serialVersionUID = -315017116521336143L;
 
         {
@@ -128,9 +128,13 @@ public class MongoDbAccessMetadataFactoryTest {
      */
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        mongo.stop();
-        junitHelper.releasePort(port);
-        VitamClientFactory.resetConnections();
+        try {
+            mongo.stop();
+        } finally {
+            junitHelper.releasePort(port);
+            VitamClientFactory.resetConnections();
+        }
+
     }
 
     @Test
