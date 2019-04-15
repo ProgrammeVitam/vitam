@@ -148,8 +148,8 @@ public class GriffinService {
 
             classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listIdsToDelete,
                 allGriffinInDatabase);
-
-            Set<String> griffinIdentifiersUsedInPSC = getExistingPreservationScenarioUsingGriffins(listIdsToDelete);
+            final List<String> listIdsToUpdate= listToUpdate.stream().map(GriffinModel::getIdentifier).collect(Collectors.toList());
+            Set<String> griffinIdentifiersUsedInPSC = getExistingPreservationScenarioUsingGriffins(listIdsToUpdate);
 
             insertGriffins(listToInsert);
 
@@ -325,6 +325,7 @@ public class GriffinService {
         final ObjectNode finalSelect = new Select().getFinalSelect();
         DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, PRESERVATION_SCENARIO);
         final List<PreservationScenarioModel> allScenariosInDatabase = result.getDocuments(PreservationScenario.class, PreservationScenarioModel.class);
+
         List<String> usedGriffinsIds = allScenariosInDatabase
             .stream()
             .flatMap(preservationScenarioModel -> preservationScenarioModel.getGriffinByFormat().stream())
@@ -467,7 +468,7 @@ public class GriffinService {
         }
     }
 
-    private Set<String> getExistingPreservationScenarioUsingGriffins(List<String> listToDelete) throws ReferentialException, InvalidParseOperationException {
+    private Set<String> getExistingPreservationScenarioUsingGriffins(List<String> listToUpdate) throws ReferentialException, InvalidParseOperationException {
         try {
             DbRequestResult result = mongoDbAccess.findDocuments(new Select().getFinalSelect(), PRESERVATION_SCENARIO);
 
@@ -481,7 +482,7 @@ public class GriffinService {
                 .flatMap(psm -> psm.getAllGriffinIdentifiers().stream())
                 .collect(toSet());
 
-            return listToDelete.stream()
+            return listToUpdate.stream()
                 .filter(itemToUpdate -> griffinIdentifiers.contains(itemToUpdate))
                 .collect(toSet());
         } catch (BadRequestException e) {
