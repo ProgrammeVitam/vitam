@@ -162,9 +162,9 @@ public class GriffinService {
                 generateReport(allGriffinInDatabase, listToImport, updatedIdentifiers, new HashSet<>(listIdsToDelete),
                     addedIdentifiers);
 
-            saveReport(guid, griffinReport);
-
             functionalBackupService.saveCollectionAndSequence(guid, GRIFFIN_BACKUP_EVENT, GRIFFIN, operationId);
+
+            saveReport(guid, griffinReport);
 
         } catch (InvalidCreateOperationException | VitamException e) {
             createLogbookEventKo(logbookOperationsClientFactory, guid, GRIFFIN_BACKUP_EVENT, e.getMessage());
