@@ -402,8 +402,8 @@ export class SearchReferentialsComponent extends PageComponent {
           break;
         case 'scenarios':
           this.searchReferentialsService.setSearchAPI('preservationScenarios');
-          this.breadcrumbName = 'Scenarios';
-          this.specificTitle = 'Scenarios';
+          this.breadcrumbName = 'Scénarios de préservation';
+          this.specificTitle = 'Scénarios de préservation';
           this.referentialData = [
             new FieldDefinition('ScenarioName', 'Intitulé', 6, 8),
             FieldDefinition.createIdField('ScenarioID', 'Identifiant', 6, 8)
