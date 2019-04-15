@@ -51,7 +51,7 @@ export class MenuComponent implements OnInit {
               {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
               {label: 'Import des services agents', routerLink: ['admin/import/agencies']},
               {label: 'Import des griffons', routerLink: ['admin/import/griffins']},
-              {label: 'Import des scénarios de preservation', routerLink: ['admin/import/scenarios']}
+              {label: 'Import des scénarios de préservation', routerLink: ['admin/import/scenarios']}
             ];
           } else {
             importItems = [
@@ -62,7 +62,7 @@ export class MenuComponent implements OnInit {
               {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
               {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
               {label: 'Import des services agents', routerLink: ['admin/import/agencies']},
-              {label: 'Import des scénarios de preservation', routerLink: ['admin/import/scenarios']}
+              {label: 'Import des scénarios de préservation', routerLink: ['admin/import/scenarios']}
 
             ];
           }
@@ -101,7 +101,7 @@ export class MenuComponent implements OnInit {
                     {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled: false},
                     {label: 'Services agents', routerLink: ['admin/search/agencies']},
                     {label: 'Griffons', routerLink: ['admin/search/griffins']},
-                    {label: 'Scénarios de preservation', routerLink: ['admin/search/scenarios']}
+                    {label: 'Scénarios de préservation', routerLink: ['admin/search/scenarios']}
                   ]
                 },
                 {
