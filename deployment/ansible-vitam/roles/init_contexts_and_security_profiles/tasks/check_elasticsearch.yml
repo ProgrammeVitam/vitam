@@ -10,4 +10,5 @@
   until: result.json.status == "green"
   retries: "{{ vitam_defaults.services.api_call_timeout }}"
   delay: 10
+  delegate_to: "{{ groups['hosts-elasticsearch-data']|first }}"
   run_once: true
