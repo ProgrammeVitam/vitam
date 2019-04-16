@@ -1,0 +1,13 @@
+---
+# tasks file for rsyslog
+
+- name: ensure syslog-ng package is installed
+  package:
+    name: syslog-ng
+    state: latest
+
+- name: ensure service is started on boot && restart service
+  service:
+    name: syslog-ng
+    enabled: true
+    state: started
