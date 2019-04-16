@@ -36,27 +36,9 @@
     - script
     - tmp
 
-- include_tasks: epel.yml
-  when:
-    - vitam.ingestexternal.antivirus == 'clamav'
-    - inventory_hostname in groups['hosts-ingest-external']
-
-# No openjdk8 without jessie-backports with debian
-- include_tasks: epel.yml
-  when:
-    - ansible_os_family == "Debian"
-
-- name: Update yum cache
-  shell: "yum clean all && yum --disablerepo='*' --enablerepo='local, vitam-*' makecache"
-  tags:
-    - enable_vitam_repo
-    - update_package_vitam
+- include_tasks: centos.yml
   when: ansible_os_family == "RedHat"
 
-- name: Update apt cache
-  apt:
-    update_cache: yes
-  tags:
-    - enable_vitam_repo
-    - update_package_vitam
+# No openjdk8 without jessie-backports with debian
+- include_tasks: debian.yml
   when: ansible_os_family == "Debian"

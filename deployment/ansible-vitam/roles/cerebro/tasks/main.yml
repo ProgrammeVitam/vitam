@@ -8,15 +8,30 @@
   notify:
     - restart cerebro
 
-- name: install openjdk from jessie-backports (prerequisite for cerebro) only when Debian
+- name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
   apt:
     name: "{{ item }}"
     state: latest
-    default_release: jessie-backports
+    default_release: "{{ ansible_distribution_release }}-backports"
   with_items:
     - ca-certificates-java
     - openjdk-8-jre-headless
-  when: ansible_os_family == "Debian"
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == false
+  notify:
+    - restart cerebro
+
+- name: "install openjdk from {{ ansible_distribution_release }}-backports (prerequisite for cerebro) only when Debian"
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - ca-certificates-java
+    - openjdk-8-jre-headless
+  when:
+    - ansible_os_family == "Debian"
+    - disable_internet_repositories_install == true
   notify:
     - restart cerebro
 
