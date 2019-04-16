@@ -225,6 +225,10 @@ export class LogbookOperationComponent extends PageComponent {
           logbookService.downloadReport(item.evIdProc);
           break;
         }
+        if(item.evType === "EVIDENCE_AUDIT") {
+          logbookService.downloadReport(item.evIdProc);
+          break;
+        }
         break;
       case 'DATA_MIGRATION':
       case 'ELIMINATION':
