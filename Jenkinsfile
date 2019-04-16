@@ -77,7 +77,7 @@ pipeline {
                     branch "develop*"
                     branch "master_*"
                     branch "master"
-                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+-?[0-9]*\$", comparator: "REGEXP"
+                    tag pattern: "^[1-9]+\\.[0-9]+\\.[0-9]+[\\-\\.]?[0-9]*\$", comparator: "REGEXP"
                 }
             }
             environment {
@@ -101,7 +101,7 @@ pipeline {
             steps {
                 dir('sources') {
                     script {
-                        docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
+                       docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
                             docker.image("${env.SERVICE_DOCKER_PULL_URL}/elasticsearch/elasticsearch:6.5.4").withRun('-p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data"') { c ->
                                 docker.withRegistry("http://${env.SERVICE_DOCKER_PULL_URL}") {
                                     docker.image("${env.SERVICE_DOCKER_PULL_URL}/mongo:4.0.5").withRun('-p 27017:27017') { o ->
@@ -110,8 +110,7 @@ pipeline {
                         		}
                             }
                         }
-                    }   
-
+                    }
                 }
             }
             post {
