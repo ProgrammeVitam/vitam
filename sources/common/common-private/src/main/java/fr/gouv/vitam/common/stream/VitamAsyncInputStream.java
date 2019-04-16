@@ -52,7 +52,13 @@ public class VitamAsyncInputStream extends InputStream {
     public VitamAsyncInputStream(Response response) {
         this.response = response;
         try {
+
+            Object entity = response.getEntity();
+            if (entity instanceof InputStream) {
+                this.inputStream = (InputStream) entity;
+            } else {
             this.inputStream = response.readEntity(InputStream.class);
+            }
         } catch (IllegalStateException e) {
             // Not an InputStream
             Object object = response.getEntity();

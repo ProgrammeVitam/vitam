@@ -471,6 +471,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         } catch (final IllegalArgumentException | VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 
@@ -490,6 +492,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         } catch (final IllegalArgumentException | VitamClientInternalException e) {
             LOGGER.error(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
             throw new LogbookClientServerException(ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage(), e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 

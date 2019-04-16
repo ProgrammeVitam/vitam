@@ -231,14 +231,16 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                     // Test regarding Unit to be indexed
                     if (DistributionType.Units == step.getDistribution().getType()) {
                         // get the file to retrieve the GUID
-                        final Response response = workspaceClient.getObject(workParams.getContainerName(),
-                            step.getDistribution().getElement());
-
+                        Response response = null;
+                        InputStream levelFile = null;
                         final JsonNode levelFileJson;
                         try {
-                            final InputStream levelFile = (InputStream) response.getEntity();
+                            response = workspaceClient.getObject(workParams.getContainerName(),
+                                step.getDistribution().getElement());
+                            levelFile = (InputStream) response.getEntity();
                             levelFileJson = JsonHandler.getFromInputStream(levelFile);
                         } finally {
+                            StreamUtils.closeSilently(levelFile);
                             workspaceClient.consumeAnyEntityAndClose(response);
                         }
                         final Iterator<Entry<String, JsonNode>> iteratorLevelFile = levelFileJson.fields();
@@ -291,10 +293,11 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_FILE)) {
                 try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
                     // List from Workspace
-                    Response response =
-                        workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
+                    Response response = null;
                     final JsonNode ogIdList;
                     try {
+                        response =
+                            workspaceClient.getObject(workParams.getContainerName(), step.getDistribution().getElement());
                         ogIdList = JsonHandler.getFromInputStream((InputStream) response.getEntity());
                     } finally {
                         workspaceClient.consumeAnyEntityAndClose(response);
@@ -387,10 +390,10 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                 recursion = false; // by default, no recursion
 
                 // get file's content
-                final Response response = workspaceClient.getObject(currentContainerName, currentFileName);
-
+                Response response = null;
                 ChainedFileModel chainedFile;
                 try {
+                    response = workspaceClient.getObject(currentContainerName, currentFileName);
                     chainedFile =
                         JsonHandler.getFromInputStream((InputStream) response.getEntity(), ChainedFileModel.class);
                 } finally {

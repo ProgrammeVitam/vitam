@@ -50,6 +50,7 @@ public class LogbookCheckConsistencyStep {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
                 Response repResponse = world.getLogbookOperationsClient().checkLogbookCoherence();
                 LOGGER.debug("response -> ", repResponse.getStatus());
+                repResponse.close();
             } catch (VitamException e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR);
                 fail(INTERNAL_SERVER_ERROR);

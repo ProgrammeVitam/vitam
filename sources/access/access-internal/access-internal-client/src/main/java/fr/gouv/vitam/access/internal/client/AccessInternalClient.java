@@ -242,38 +242,6 @@ public interface AccessInternalClient extends MockOrRestClient {
         InvalidParseOperationException, AccessUnauthorizedException;
 
     /**
-     * @param queryDsl
-     * @param idUnit
-     * @return unit with a xml representation
-     */
-    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException;
-
-
-    /**
-     * Retrieve object group by id with XML format (DIP)
-     *
-     * @param queryDsl the given query dsl
-     * @param objectId the given object group id
-     * @return unit with a xml representation
-     */
-    Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException;
-
-    /**
-     * Retrieve object group by unit id with XML format (DIP)
-     *
-     * @param queryDsl the given query dsl
-     * @param unitId the given object group id
-     * @return unit with a xml representation
-     */
-    Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException;
-
-    /**
      * launch a DIP operation by a DSL query
      *
      * @param dslRequest query for the DIP creation

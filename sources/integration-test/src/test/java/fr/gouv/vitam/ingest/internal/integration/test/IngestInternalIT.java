@@ -392,8 +392,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);
@@ -630,8 +629,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);
@@ -767,8 +765,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest using updated contract
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);
@@ -833,9 +830,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(holding);
@@ -901,8 +896,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);
@@ -948,8 +942,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);
@@ -995,8 +988,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);
@@ -1061,8 +1053,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1116,8 +1107,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1170,8 +1160,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1226,8 +1215,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1264,9 +1252,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1317,13 +1303,11 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
 
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
         waitOperation(NB_TRY, SLEEP_TIME, operationGuid.toString());
 
@@ -1379,12 +1363,11 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
 
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
         client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
 
         awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.WARNING);
@@ -1432,9 +1415,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1487,9 +1468,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1544,9 +1523,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -1601,8 +1578,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);
@@ -1650,8 +1626,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             params2.add(initParameters2);
 
             final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
-            final Response response3 = client2.uploadInitialLogbook(params2);
-            assertEquals(response3.getStatus(), Status.CREATED.getStatusCode());
+            client2.uploadInitialLogbook(params2);
 
             // init workflow before execution
             client2.initWorkflow(holding);
@@ -1871,8 +1846,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client2 = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client2.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client2.uploadInitialLogbook(params);
 
             // init workflow before execution
             client2.initWorkflow(ingestSip);
@@ -1953,8 +1927,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -2180,8 +2153,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -2307,8 +2279,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // call ingest
         IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-        final Response response2 = client.uploadInitialLogbook(params);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(params);
 
         // init workflow before execution
         client.initWorkflow(ingestSip);
@@ -2397,8 +2368,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
             final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
-            final Response response2 = client.uploadInitialLogbook(params);
-            assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+            client.uploadInitialLogbook(params);
 
             // init workflow before execution
             client.initWorkflow(ingestSip);

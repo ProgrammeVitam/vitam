@@ -78,7 +78,6 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.Response;
-
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -150,34 +149,35 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             throw new TraceabilityException("Unable to get last traceability in database", e);
         }
 
-        Response response;
+        Response response = null;
         try {
             response = traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGETRACEABILITY);
-        } catch (StorageException e) {
-            throw new TraceabilityException("Unable to get last traceability information", e);
-        }
+            try (
+                InputStream stream = response.readEntity(InputStream.class);
+                ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+                    .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
 
-        try (
-            InputStream stream = response.readEntity(InputStream.class);
-            ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
-
-            ArchiveEntry entry = null;
-            while (entry == null || !"token.tsp".equals(entry.getName())) {
-                entry = archiveInputStream.getNextEntry();
-                if (entry == null) {
-                    throw new TraceabilityException("Can't find token.tsp file in ZIP");
+                ArchiveEntry entry = null;
+                while (entry == null || !"token.tsp".equals(entry.getName())) {
+                    entry = archiveInputStream.getNextEntry();
+                    if (entry == null) {
+                        throw new TraceabilityException("Can't find token.tsp file in ZIP");
+                    }
                 }
-            }
 
-            LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
-            lastTraceabilityData =
-                new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
-            this.traceabilityStartDate = lastTraceabilityData.startDate;
+                LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
+                lastTraceabilityData =
+                    new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
+                this.traceabilityStartDate = lastTraceabilityData.startDate;
+            }
         } catch (IOException e) {
             throw new TraceabilityException("Unable to read ZIP", e);
         } catch (ArchiveException e) {
             throw new TraceabilityException("Unable to create Archive Stream", e);
+        } catch (StorageException e) {
+            throw new TraceabilityException("Unable to get last traceability information", e);
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(response);
         }
     }
 
@@ -196,15 +196,11 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         while (traceabilityIterator.hasNext()) {
             final OfferLog storageFile = traceabilityIterator.next();
             String fileName = storageFile.getFileName();
-            Response response;
-            try {
-                response = traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGELOG);
-            } catch (StorageException e) {
-                throw new TraceabilityException("Unable to get the given object " + fileName, e);
-            }
             Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+            Response response = null;
             InputStream stream = null;
             try {
+                response = traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGELOG);
                 stream = response.readEntity(InputStream.class);
                 byte[] hash = digest.update(stream).digest();
 
@@ -215,7 +211,9 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
                 file.storeLog(bytes);
                 algo.addLeaf(bytes);
-            } finally {
+            } catch (StorageException e) {
+                throw new TraceabilityException("Unable to get the given object " + fileName, e);
+            }  finally {
                 StreamUtils.closeSilently(stream);
                 StreamUtils.consumeAnyEntityAndClose(response);
             }
