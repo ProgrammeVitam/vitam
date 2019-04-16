@@ -285,8 +285,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
             .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
     }
 
@@ -323,8 +322,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post()).thenReturn(
             Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
@@ -364,8 +362,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
 
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
 
     }
@@ -402,8 +399,7 @@ public class IngestInternalClientRestTest extends VitamJerseyTest {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final InputStream inputStream =
             PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf");
-        final Response response2 = client.uploadInitialLogbook(operationList);
-        assertEquals(response2.getStatus(), Status.CREATED.getStatusCode());
+        client.uploadInitialLogbook(operationList);
         client.upload(inputStream, CommonMediaType.ZIP_TYPE, CONTEXTID);
 
     }

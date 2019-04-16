@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.FunctionalBackupService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
@@ -107,19 +108,19 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
         Optional<String> lastBackupVersion = getLatestSavedFileName(strategy, DataCategory.BACKUP, collection);
 
         if (lastBackupVersion.isPresent()) {
+            Response response = null;
             try (final StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-                Response response =
+                response =
                     storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP);
-                if (null != response && response.getStatus() == Response.Status.OK.getStatusCode()) {
-                    final InputStream inputStream =
-                        storageClient.getContainerAsync(strategy, lastBackupVersion.get(), DataCategory.BACKUP)
-                            .readEntity(InputStream.class);
+                final InputStream inputStream =
+                    response.readEntity(InputStream.class);
 
                     // get backup collections to reconstruct.
                     return Optional.of(JsonHandler.getFromInputStream(inputStream, CollectionBackupModel.class));
-                }
             } catch (StorageServerClientException | StorageNotFoundException | InvalidParseOperationException e) {
                 LOGGER.error("ERROR: Exception has been thrown when using storage service:", e);
+            } finally {
+                StreamUtils.consumeAnyEntityAndClose(response);
             }
         }
         return Optional.empty();

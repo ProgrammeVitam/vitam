@@ -30,6 +30,8 @@ import static fr.gouv.vitam.worker.core.plugin.dip.PutBinaryOnWorkspace.GUID_TO_
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -148,14 +150,13 @@ public class PutBinaryOnWorkspaceTest {
     public void should_retry_when_transfer_to_workspace_failed_one_times() throws Exception {
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
-        ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
         given(storageClient.getContainerAsync("default", guid, DataCategory.OBJECT))
-            .willReturn(new ServerResponse(entity, 200, new Headers<>()));
+            .willAnswer((args) -> new ServerResponse(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 200, new Headers<>()));
 
         willThrow(new ProcessingException("transfer failed"))
             .willNothing()
             .given(handlerIO)
-            .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
+            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null), eq(false));
 
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -166,7 +167,7 @@ public class PutBinaryOnWorkspaceTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         verify(handlerIO, times(2))
-            .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
+            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null), eq(false));
     }
 
 }

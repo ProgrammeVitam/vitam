@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.access.internal.client;
 
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.NoWritingPermissionException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
@@ -209,38 +207,6 @@ public interface AccessInternalClient extends MockOrRestClient {
     Response downloadTraceabilityFile(String operationId)
         throws AccessInternalClientServerException, AccessInternalClientNotFoundException,
         InvalidParseOperationException, AccessUnauthorizedException;
-
-    /**
-     * @param queryDsl
-     * @param idUnit
-     * @return unit with a xml representation
-     */
-    Response getUnitByIdWithXMLFormat(JsonNode queryDsl, String idUnit)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException;
-
-
-    /**
-     * Retrieve object group by id with XML format (DIP)
-     *
-     * @param queryDsl the given query dsl
-     * @param objectId the given object group id
-     * @return unit with a xml representation
-     */
-    Response getObjectByIdWithXMLFormat(JsonNode queryDsl, String objectId)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException;
-
-    /**
-     * Retrieve object group by unit id with XML format (DIP)
-     *
-     * @param queryDsl the given query dsl
-     * @param unitId the given object group id
-     * @return unit with a xml representation
-     */
-    Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, String unitId)
-        throws AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
-        InvalidParseOperationException;
 
     /**
      * launch a DIP operation by a DSL query
