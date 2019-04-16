@@ -60,7 +60,7 @@ public class StorageAccessLogBackup {
             final StorageAccessLogBackupConfiguration conf =
                 PropertiesUtils.readYaml(confFile, StorageAccessLogBackupConfiguration.class);
 
-            storageLogBackup(conf);
+            accessLogBackup(conf);
 
         } catch (Exception e) {
             LOGGER.error(e);
@@ -76,13 +76,13 @@ public class StorageAccessLogBackup {
      * @param conf POJO of loaded config file for the service
      * @throws InterruptedException
      */
-    private static void storageLogBackup(StorageAccessLogBackupConfiguration conf) throws InterruptedException {
+    private static void accessLogBackup(StorageAccessLogBackupConfiguration conf) throws InterruptedException {
 
         CountDownLatch doneSignal = new CountDownLatch(conf.getTenants().size());
         AtomicBoolean reportError = new AtomicBoolean(false);
 
         conf.getTenants().forEach((v) -> {
-            storageLogBackupByTenantId(v, doneSignal, reportError);
+            accessLogBackupByTenantId(v, doneSignal, reportError);
         });
 
         doneSignal.await();
@@ -92,7 +92,7 @@ public class StorageAccessLogBackup {
         }
     }
 
-    private static void storageLogBackupByTenantId(int tenantId, CountDownLatch doneSignal,
+    private static void accessLogBackupByTenantId(int tenantId, CountDownLatch doneSignal,
         AtomicBoolean failedProcess) {
 
         VitamThreadFactory instance = VitamThreadFactory.getInstance();
@@ -106,7 +106,7 @@ public class StorageAccessLogBackup {
                 }
             } catch (Exception e) {
                 failedProcess.set(true);
-                throw new IllegalStateException(" Error when securing Tenant  :  " + tenantId, e);
+                LOGGER.error("Error during access log backup for tenant  :  " + tenantId, e);
             } finally {
                 VitamThreadUtils.getVitamSession().setTenantId(null);
                 doneSignal.countDown();
