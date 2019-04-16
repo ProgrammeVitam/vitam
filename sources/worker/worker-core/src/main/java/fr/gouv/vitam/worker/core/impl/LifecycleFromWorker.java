@@ -85,7 +85,7 @@ public class LifecycleFromWorker {
         for (ItemStatus itemStatus : pluginResponse) {
             String objectName = workParams.getObjectNameList().get(i);
             i++;
-            // FIXME (US 5769)
+
             if (!StatusCode.ALREADY_EXECUTED.equals(itemStatus.getGlobalStatus()) && itemStatus.isLifecycleEnable()) {
                 workParams.setObjectName(objectName);
                 LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(distributionType, handlerName, workParams);
@@ -99,7 +99,7 @@ public class LifecycleFromWorker {
                     logbookLifeCycleParametersBulks.add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
                 }
             } else {
-
+                // FIXME (US 5769)
             }
             aggregateItemStatus.setItemId(itemStatus.getItemId());
             aggregateItemStatus.setItemsStatus(itemStatus);
