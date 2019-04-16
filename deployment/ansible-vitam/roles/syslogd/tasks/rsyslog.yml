@@ -1,0 +1,13 @@
+---
+# tasks file for rsyslog
+
+- name: ensure rsyslog package is installed
+  package:
+    name: rsyslog
+    state: latest
+
+- name: ensure service is started on boot && restart service
+  service:
+    name: rsyslog
+    enabled: true
+    state: started
