@@ -29,8 +29,8 @@ set -e
 # Rebuild the entire repository. To be executed at the root of a VITAM repository
 echo "Building maven rpm (with parallel build)..."
 vitam-maven-build-only
-echo "Building griffins rpm..."
-vitam-build-griffins
+# echo "Building griffins rpm..."
+# vitam-build-griffins
 echo "Building platform rpm..."
 ./rpm/vitam-product/clean-all.sh
 ./rpm/vitam-product/build-all.sh
