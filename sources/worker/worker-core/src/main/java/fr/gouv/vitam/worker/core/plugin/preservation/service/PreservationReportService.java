@@ -26,27 +26,20 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.ReportBody;
-import fr.gouv.vitam.batch.report.model.ReportExportRequest;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 
 import java.util.List;
 
 import static fr.gouv.vitam.batch.report.model.ReportType.PRESERVATION;
-import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 
 /**
  * PreservationReportService
@@ -78,9 +71,10 @@ public class PreservationReportService {
         }
     }
 
-    public void storeReport(Report reportInfo) throws VitamException {
+    public void storeReport(Report reportInfo, String processId) throws VitamException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             batchReportClient.storeReport(reportInfo);
+            batchReportClient.cleanupReport(processId, ReportType.PRESERVATION);
         }
     }
 }

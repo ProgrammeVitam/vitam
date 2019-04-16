@@ -45,8 +45,6 @@ public class PreservationDistributionLine {
     private List<ActionPreservation> actionPreservationList;
     @JsonProperty("unitId")
     private String unitId;
-    @JsonProperty("griffinId")
-    private String griffinId;
     @JsonProperty("objectId")
     private String objectId;
     @JsonProperty("debug")
@@ -57,13 +55,19 @@ public class PreservationDistributionLine {
     private String targetUse;
     @JsonProperty("sourceUse")
     private String sourceUse;
+    @JsonProperty("griffinId")
+    private String griffinId;
+    @JsonProperty("preservationScenarioId")
+    private String scenarioId;
+    @JsonProperty("griffinIdentifier")
+    private String griffinIdentifier;
 
     public PreservationDistributionLine() {
     }
 
     public PreservationDistributionLine(String formatId, String filename,
         List<ActionPreservation> actionPreservationList, String unitId, String griffinId, String objectId,
-        boolean debug, int timeout, String id, String targetUse, String sourceUse) {
+        boolean debug, int timeout, String id, String targetUse, String sourceUse, String scenarioId, String griffinIdentifier) {
         this.formatId = formatId;
         this.filename = filename;
         this.actionPreservationList = actionPreservationList;
@@ -75,6 +79,8 @@ public class PreservationDistributionLine {
         this.id = id;
         this.targetUse = targetUse;
         this.sourceUse = sourceUse;
+        this.scenarioId = scenarioId;
+        this.griffinIdentifier = griffinIdentifier;
     }
 
     public String getId() {
@@ -164,5 +170,21 @@ public class PreservationDistributionLine {
 
     public void setSourceUse(String sourceUse) {
         this.sourceUse = sourceUse;
+    }
+
+    public String getScenarioId() {
+        return scenarioId;
+    }
+
+    public void setScenarioId(String scenarioId) {
+        this.scenarioId = scenarioId;
+    }
+
+    public String getGriffinIdentifier() {
+        return griffinIdentifier;
+    }
+
+    public void setGriffinIdentifier(String griffinIdentifier) {
+        this.griffinIdentifier = griffinIdentifier;
     }
 }

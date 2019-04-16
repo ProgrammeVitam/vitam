@@ -124,7 +124,7 @@ public class PreservationActionPluginTest {
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine("fmt/43", "photo.jpg", Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinId, objectId, true, 45, "gotId", "BinaryMaster",
-            "BinaryMaster");
+            "BinaryMaster", "ScenarioId", "griffinIdentifier");
         parameter.setObjectNameList(Collections.singletonList("gotId"));
         parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
 

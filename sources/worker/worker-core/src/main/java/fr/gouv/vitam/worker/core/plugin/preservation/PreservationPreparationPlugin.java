@@ -331,12 +331,12 @@ public class PreservationPreparationPlugin extends ActionHandler {
         GriffinModel griffinModel = griffinModelListForScenario.get(griffinId);
 
         return Optional.of(getPreservationDistributionLine(objectGroup.getId(), unitId, versionsModel,
-            formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, targetQualifier, sourceQualifier));
+            formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, targetQualifier, sourceQualifier, scenarioModel.getIdentifier()));
     }
 
     private PreservationDistributionLine getPreservationDistributionLine(String objectGroupId, String unitId,
         VersionsModel version, String format, GriffinByFormat griffinByFormatModel, GriffinModel griffinModel,
-        String targetQualifier, String sourceQualifier) {
+        String targetQualifier, String sourceQualifier, String scenarioId) {
 
         PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine();
 
@@ -351,7 +351,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
         preservationDistributionLine.setTimeout(griffinByFormatModel.getTimeOut());
         preservationDistributionLine.setTargetUse(targetQualifier);
         preservationDistributionLine.setSourceUse(sourceQualifier);
-
+        preservationDistributionLine.setScenarioId(scenarioId);
+        preservationDistributionLine.setGriffinIdentifier(griffinModel.getIdentifier());
         return preservationDistributionLine;
     }
 

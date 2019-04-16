@@ -36,7 +36,8 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 @JsonInclude(NON_NULL)
 public class PreservationReportEntry extends ReportEntry {
 
-    public static final String ID = "preservationId";
+    public static final String ID = "_id";
+    public static final String PRESERVATION_REPORT_ID = "preservationReportId";
     public static final String UNIT_ID = "unitId";
     public static final String OBJECT_GROUP_ID = "objectGroupId";
     public static final String PROCESS_ID = "processId";
@@ -44,12 +45,17 @@ public class PreservationReportEntry extends ReportEntry {
     public static final String CREATION_DATE_TIME = "creationDateTime";
     public static final String STATUS = "status";
     public static final String ACTION = "action";
+    public static final String GRIFFIN_ID = "griffinId";
+    public static final String SCENARIO_ID = "preservationScenarioId";
     public static final String ANALYSE_RESULT = "analyseResult";
     public static final String INPUT_OBJECT_ID = "inputObjectId";
     public static final String OUTPUT_OBJECT_ID = "outputObjectId";
 
     @JsonProperty(ID)
     private String preservationId;
+
+    @JsonProperty(PRESERVATION_REPORT_ID)
+    private String preservationReportId;
 
     @JsonProperty(PROCESS_ID)
     private String processId;
@@ -81,13 +87,24 @@ public class PreservationReportEntry extends ReportEntry {
     @JsonProperty(OUTPUT_OBJECT_ID)
     private String outputObjectId;
 
+    @JsonProperty(GRIFFIN_ID)
+    private String griffinId;
+
+    @JsonProperty(SCENARIO_ID)
+    private String preservationScenarioId;
+
+
+
     public PreservationReportEntry() {
         // Empty constructor for deserialization
     }
 
-    public PreservationReportEntry(String preservationId, String processId, int tenant, String creationDateTime, PreservationStatus status, String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputObjectId, String outputObjectId, String outcome) {
+    public PreservationReportEntry(String preservationId, String processId, int tenant, String creationDateTime, PreservationStatus status,
+        String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputObjectId, String outputObjectId,
+        String outcome, String griffinId, String preservationScenarioId) {
         super(outcome, "preservation", preservationId);
         this.preservationId = preservationId;
+        this.preservationReportId = preservationId;
         this.processId = processId;
         this.tenant = tenant;
         this.creationDateTime = creationDateTime;
@@ -98,6 +115,8 @@ public class PreservationReportEntry extends ReportEntry {
         this.analyseResult = analyseResult;
         this.inputObjectId = inputObjectId;
         this.outputObjectId = outputObjectId;
+        this.griffinId = griffinId;
+        this.preservationScenarioId = preservationScenarioId;
     }
 
     public String getPreservationId() {
@@ -186,5 +205,29 @@ public class PreservationReportEntry extends ReportEntry {
 
     public void setAnalyseResult(String analyseResult) {
         this.analyseResult = analyseResult;
+    }
+
+    public String getGriffinId() {
+        return griffinId;
+    }
+
+    public void setGriffinId(String griffinId) {
+        this.griffinId = griffinId;
+    }
+
+    public void setPreservationScenarioId(String preservationScenarioId) {
+        this.preservationScenarioId = preservationScenarioId;
+    }
+
+    public String getPreservationScenarioId() {
+        return preservationScenarioId;
+    }
+
+    public void setPreservationReportId(String preservationReportId) {
+        this.preservationReportId = preservationReportId;
+    }
+
+    public String getPreservationReportId() {
+        return preservationReportId;
     }
 }

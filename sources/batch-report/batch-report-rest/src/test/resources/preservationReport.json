@@ -11,6 +11,8 @@
     "objectGroupId": "bobiObject",
     "action": "ANALYSE",
     "analyseResult": "VALID_ALL",
-    "inputObjectId": "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq"
+    "inputObjectId": "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq",
+    "griffinId": "griffinId",
+    "scenarioId": "scenarioId"
   }
 }

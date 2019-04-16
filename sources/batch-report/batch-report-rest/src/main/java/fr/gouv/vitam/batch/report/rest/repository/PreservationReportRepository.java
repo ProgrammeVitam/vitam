@@ -26,36 +26,8 @@
  */
 package fr.gouv.vitam.batch.report.rest.repository;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Projections;
-import com.mongodb.client.model.UpdateOneModel;
-import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.WriteModel;
-import com.mongodb.client.result.DeleteResult;
-import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
-import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
-import fr.gouv.vitam.batch.report.model.Report;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
 import static com.mongodb.client.model.Accumulators.sum;
+import static com.mongodb.client.model.Aggregates.count;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Aggregates.project;
@@ -63,11 +35,55 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.KO;
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ACTION;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ANALYSE_RESULT;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.CREATION_DATE_TIME;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.GRIFFIN_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.INPUT_OBJECT_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OBJECT_GROUP_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OUTPUT_OBJECT_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.PRESERVATION_REPORT_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.PROCESS_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.SCENARIO_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.STATUS;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.TENANT;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.UNIT_ID;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.EXTRACT;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
+
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Aggregates;
+import com.mongodb.client.model.Projections;
+import com.mongodb.client.model.UpdateOneModel;
+import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.client.model.WriteModel;
+import com.mongodb.client.result.DeleteResult;
+import fr.gouv.vitam.batch.report.model.PreservationStatsModel;
+import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 public class PreservationReportRepository {
     private final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationReportRepository.class);
@@ -94,27 +110,11 @@ public class PreservationReportRepository {
     }
 
     private static WriteModel<Document> modelToWriteDocument(PreservationReportEntry model) {
-        try {
-            return new UpdateOneModel<>(
-                and(eq(PROCESS_ID, model.getProcessId()), eq(ID, model.getPreservationId())),
-                new Document("$set", Document.parse(JsonHandler.writeAsString(model))),
-                new UpdateOptions().upsert(true)
-            );
-        } catch (InvalidParseOperationException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static WriteModel<Document> modelToWriteDocument(Report report) {
-        try {
-            return new UpdateOneModel<>(
-                eq(PROCESS_ID, report.getOperationSummary().getEvId()),
-                new Document("$set", Document.parse(JsonHandler.writeAsString(report))),
-                new UpdateOptions().upsert(true)
-            );
-        } catch (InvalidParseOperationException e) {
-            throw new RuntimeException(e);
-        }
+        return new UpdateOneModel<>(
+            and(eq(PROCESS_ID, model.getProcessId()), eq(ID, model.getPreservationId())),
+            new Document("$set", Document.parse(JsonHandler.unprettyPrint(model))),
+            new UpdateOptions().upsert(true)
+        );
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
@@ -122,7 +122,7 @@ public class PreservationReportRepository {
             Arrays.asList(
                 match(and(eq(PROCESS_ID, processId), eq(TENANT, tenantId))),
                 Aggregates.project(Projections.fields(
-                    new Document(ID, "$preservationId"),
+                    new Document(PRESERVATION_REPORT_ID, "$preservationReportId"),
                     new Document(PROCESS_ID, "$processId"),
                     new Document(CREATION_DATE_TIME, "$creationDateTime"),
                     new Document(UNIT_ID, "$unitId"),
@@ -131,7 +131,9 @@ public class PreservationReportRepository {
                     new Document(ACTION, "$actions"),
                     new Document(ANALYSE_RESULT, "$analyseResult"),
                     new Document(INPUT_OBJECT_ID, "$inputObjectId"),
-                    new Document(OUTPUT_OBJECT_ID, "$outputObjectId")
+                    new Document(OUTPUT_OBJECT_ID, "$outputObjectId"),
+                    new Document(GRIFFIN_ID, "$griffinId"),
+                    new Document(SCENARIO_ID, "$preservationScenarioId")
                     )
                 ))
         ).allowDiskUse(true).iterator();
@@ -141,8 +143,8 @@ public class PreservationReportRepository {
         Bson eqProcessId = eq(PROCESS_ID, processId);
         Bson eqTenant = eq(TENANT, tenantId);
 
-        int nbUnits = getStats(and(eqProcessId, eqTenant), UNIT_ID);
-        int nbObjectGroups = getStats(and(eqProcessId, eqTenant), OBJECT_GROUP_ID);
+        int nbUnits = getUnitAndObjectGroupStats(and(eqProcessId, eqTenant), UNIT_ID);
+        int nbObjectGroups = getUnitAndObjectGroupStats(and(eqProcessId, eqTenant), OBJECT_GROUP_ID);
         int nbStatusKos = getStats(and(eqTenant, eqProcessId, eq(STATUS, KO.name())), STATUS);
 
         int nbActionsAnaylse = getStats(and(eqTenant, eqProcessId, eq(ACTION, ANALYSE.name())), ACTION);
@@ -152,14 +154,14 @@ public class PreservationReportRepository {
 
         Spliterator<SimpleEntry<String, Integer>> mapAnalyseResult = nbActionsAnaylse > 0
             ? collection.aggregate(
-                Arrays.asList(
-                    match(and(eqTenant, eqProcessId)),
-                    project(include("analyseResult")),
-                    group("$" + ANALYSE_RESULT, sum("count", 1)))
-                ).allowDiskUse(true)
-                .batchSize(1000)
-                .map(d -> new SimpleEntry<>(d.getString("_id"), d.get("count", Integer.class)))
-                .spliterator()
+            Arrays.asList(
+                match(and(eqTenant, eqProcessId)),
+                project(include("analyseResult")),
+                group("$" + ANALYSE_RESULT, sum("count", 1)))
+        ).allowDiskUse(true)
+            .batchSize(VitamConfiguration.getBatchSize())
+            .map(d -> new SimpleEntry<>(d.getString("_id"), d.get("count", Integer.class)))
+            .spliterator()
             : Spliterators.emptySpliterator();
 
         Map<String, Integer> analyseResults = StreamSupport.stream(mapAnalyseResult, false)
@@ -184,6 +186,22 @@ public class PreservationReportRepository {
         return result != null
             ? result.getInteger("result")
             : 0;
+    }
+
+    private Integer getUnitAndObjectGroupStats(Bson matchee, String name) {
+        Map<String, Object> group = new HashMap<>();
+        group.put("_id", null);
+        group.put("count", new Document("$sum", 1));
+        Document first = collection.aggregate(
+            Arrays.asList(
+                match(matchee),
+                group(String.format("$%s", name)),
+                new Document("$group", group)
+            )).first();
+        if (first != null) {
+            return first.getInteger("count");
+        }
+        return 0;
     }
 
     public void deleteReportByIdAndTenant(String processId, int tenantId) {

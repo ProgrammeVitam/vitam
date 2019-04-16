@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
@@ -109,7 +110,8 @@ public class BatchReportServiceImpl {
         EliminationActionObjectGroupRepository eliminationActionObjectGroupRepository,
         WorkspaceClientFactory workspaceClientFactory, PreservationReportRepository preservationReportRepository,
         AuditReportRepository auditReportRepository) {
-        this(eliminationActionUnitRepository, eliminationActionObjectGroupRepository, new BackupService(), workspaceClientFactory, preservationReportRepository, auditReportRepository);
+        this(eliminationActionUnitRepository, eliminationActionObjectGroupRepository, new BackupService(), workspaceClientFactory,
+            preservationReportRepository, auditReportRepository);
     }
 
     @VisibleForTesting
@@ -161,6 +163,7 @@ public class BatchReportServiceImpl {
         checkIfPresent("ObjectGroupId", entry.getObjectGroupId());
         checkIfPresent("Action", entry.getAction());
         checkIfPresent("InputObjectId", entry.getInputObjectId());
+        checkIfPresent("GriffinId", entry.getGriffinId());
 
         return new PreservationReportEntry(
             GUIDFactory.newGUID().toString(),
@@ -174,20 +177,21 @@ public class BatchReportServiceImpl {
             entry.getAnalyseResult(),
             entry.getInputObjectId(),
             entry.getOutputObjectId(),
-            entry.getOutcome()
-        );
+            entry.getOutcome(),
+            entry.getGriffinId(),
+            entry.getPreservationScenarioId());
     }
-    
+
     public void appendAuditReport(String processId, List<AuditObjectGroupReportEntry> auditEntries, int tenantId)
-            throws BatchReportException {
+        throws BatchReportException {
         List<AuditObjectGroupModel> documents = auditEntries.stream()
-                .map(auditEntry -> checkValuesAndGetAuditObjectGroupModel(processId, tenantId, auditEntry))
-                .collect(Collectors.toList());
+            .map(auditEntry -> checkValuesAndGetAuditObjectGroupModel(processId, tenantId, auditEntry))
+            .collect(Collectors.toList());
         auditReportRepository.bulkAppendReport(documents);
     }
 
     private AuditObjectGroupModel checkValuesAndGetAuditObjectGroupModel(String processId, int tenantId,
-            AuditObjectGroupReportEntry auditEntry) {
+        AuditObjectGroupReportEntry auditEntry) {
         checkIfPresent("DetailId", auditEntry.getDetailId());
         checkIfPresent("Outcome", auditEntry.getOutcome());
         checkIfPresent("DetailType", auditEntry.getDetailType());
@@ -197,7 +201,7 @@ public class BatchReportServiceImpl {
         checkIfPresent("Status", auditEntry.getStatus());
 
         return new AuditObjectGroupModel(GUIDFactory.newGUID().toString(), processId,
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditEntry, tenantId);
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()), auditEntry, tenantId);
     }
 
     private void checkIfPresent(String name, Object value) throws BatchReportException {
@@ -221,14 +225,15 @@ public class BatchReportServiceImpl {
     private JsonNode getExtendedInfo(Report reportInfo) throws InvalidParseOperationException {
         JsonNode extendedInfo = JsonHandler.createObjectNode();
 
-        switch(reportInfo.getReportSummary().getReportType()) {
+        switch (reportInfo.getReportSummary().getReportType()) {
             case PRESERVATION:
                 extendedInfo = JsonHandler.toJsonNode(
-                    preservationReportRepository.stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
+                    preservationReportRepository
+                        .stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
                 break;
             case AUDIT:
                 extendedInfo = JsonHandler.toJsonNode(
-                        auditReportRepository.stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
+                    auditReportRepository.stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
                 break;
             default:
                 // Nothing to do, keep empty extended info
@@ -239,9 +244,10 @@ public class BatchReportServiceImpl {
     private ReportResults getVitamResults(Report reportInfo) throws InvalidParseOperationException {
         ReportResults vitamResults = new ReportResults();
 
-        switch(reportInfo.getReportSummary().getReportType()) {
+        switch (reportInfo.getReportSummary().getReportType()) {
             case AUDIT:
-                vitamResults = auditReportRepository.computeVitamResults(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant());
+                vitamResults = auditReportRepository
+                    .computeVitamResults(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant());
                 break;
             default:
                 // Nothing to do, keep empty vitamResults
@@ -254,7 +260,6 @@ public class BatchReportServiceImpl {
 
         String processId = reportInfo.getOperationSummary().getEvId();
         Integer tenantId = reportInfo.getOperationSummary().getTenant();
-
         JsonNode extendedInfo = getExtendedInfo(reportInfo);
         reportInfo.getReportSummary().setExtendedInfo(extendedInfo);
         ReportResults vitamResults = getVitamResults(reportInfo);
@@ -267,9 +272,9 @@ public class BatchReportServiceImpl {
             reportWriter.addEntry(reportInfo.getReportSummary());
             reportWriter.addEntry(reportInfo.getContext());
 
-            switch(reportInfo.getReportSummary().getReportType()) {
+            switch (reportInfo.getReportSummary().getReportType()) {
                 case ELIMINATION_ACTION:
-                    MongoCursor<Document> archiveUnitIterator = eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId);
+                    MongoCursor<Document> archiveUnitIterator =eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId);
                     writeDocumentsInFile(reportWriter, archiveUnitIterator);
 
                     MongoCursor<Document> objectGroupIterator = eliminationActionObjectGroupRepository.findCollectionByProcessIdTenant(processId, tenantId);
@@ -284,7 +289,8 @@ public class BatchReportServiceImpl {
                     writeDocumentsInFile(reportWriter, auditIterator);
                     break;
                 default:
-                    throw new UnsupportedOperationException("Unsupported report type yo store: " + reportInfo.getReportSummary().getReportType());
+                    throw new UnsupportedOperationException(
+                        "Unsupported report type yo store: " + reportInfo.getReportSummary().getReportType());
             }
         }
 
@@ -333,10 +339,10 @@ public class BatchReportServiceImpl {
             deleteQuietly(file);
         }
     }
-    
-    
+
+
     public void exportAuditReport(String processId, String fileName, int tenantId)
-            throws IOException, ContentAddressableStorageServerException {
+        throws IOException, ContentAddressableStorageServerException {
         File file = Files.createFile(Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName)).toFile();
 
         try {
@@ -349,19 +355,19 @@ public class BatchReportServiceImpl {
 
     private void createAuditDocument(String processId, int tenantId, File file) throws IOException {
         try (FileOutputStream fileOut = new FileOutputStream(file);
-                OutputStreamWriter streamOut = new OutputStreamWriter(fileOut);
-                BufferedWriter writer = new BufferedWriter(streamOut)) {
+            OutputStreamWriter streamOut = new OutputStreamWriter(fileOut);
+            BufferedWriter writer = new BufferedWriter(streamOut)) {
 
             AuditStatsModel stats = auditReportRepository.stats(processId, tenantId);
             addDocumentToFile(stats, writer);
 
             try (MongoCursor<Document> reports = auditReportRepository.findCollectionByProcessIdTenant(processId,
-                    tenantId)) {
+                tenantId)) {
                 reports.forEachRemaining(d -> addDocumentToFile(mapToModel(d), writer));
             }
         }
     }
-             
+
     private PreservationReportEntry mapToModel(Document document) {
         try {
             return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(document), PreservationReportEntry.class);
@@ -542,7 +548,7 @@ public class BatchReportServiceImpl {
     public void deletePreservationByIdAndTenant(String processId, int tenantId) {
         preservationReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }
-    
+
     public void deleteAuditByIdAndTenant(String processId, int tenantId) {
         auditReportRepository.deleteReportByIdAndTenant(processId, tenantId);
     }

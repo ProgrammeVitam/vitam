@@ -250,7 +250,8 @@ public class PreservationActionPlugin extends ActionHandler {
         reportService.appendPreservationEntries(resultPreservation.getRequestId(), reportModels);
     }
 
-    private List<PreservationReportEntry> toReportModel(ResultPreservation outputs, List<PreservationDistributionLine> entries, int tenant, LocalDateTime now) {
+    private List<PreservationReportEntry> toReportModel(ResultPreservation outputs, List<PreservationDistributionLine> entries, int tenant,
+        LocalDateTime now) {
         return outputs.getOutputs().entrySet()
             .stream()
             .flatMap(entry -> entry.getValue()
@@ -259,7 +260,8 @@ public class PreservationActionPlugin extends ActionHandler {
             ).collect(Collectors.toList());
     }
 
-    private PreservationReportEntry getPreservationReportModel(ResultPreservation outputs, int tenant, LocalDateTime now, OutputPreservation value, List<PreservationDistributionLine> entries) {
+    private PreservationReportEntry getPreservationReportModel(ResultPreservation outputs, int tenant, LocalDateTime now,
+        OutputPreservation value, List<PreservationDistributionLine> entries) {
         PreservationDistributionLine model = IterableUtils.find(entries, j -> j.getObjectId().equals(value.getInputPreservation().getName()));
 
         return new PreservationReportEntry(
@@ -274,7 +276,8 @@ public class PreservationActionPlugin extends ActionHandler {
             value.getAnalyseResult(),
             value.getInputPreservation().getName(),
             value.getOutputName(),
-            "Outcome - TO BE DEFINED" // FIXME: Put outcome here !
-        );
+            "Outcome - TO BE DEFINED", // FIXME: Put outcome here !
+            model.getGriffinIdentifier(),
+            model.getScenarioId());
     }
 }
