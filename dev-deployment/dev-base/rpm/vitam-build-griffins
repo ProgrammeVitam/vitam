@@ -28,11 +28,12 @@ set -e
 #*******************************************************************************
 # Rebuild only the vitam code. To be executed at the root of a VITAM repository
 
+BASE_URL=$(git config --get remote.origin.url| awk -F[/:] '{print $4}')
 if [ ! -d /code/vitam-griffins ]
 then
     echo "Downloading vitam-griffins repository..."
     pushd /code
-    git clone https://gitlab.dev.programmevitam.fr/vitam/vitam-griffins.git
+    git clone https://${BASE_URL}/vitam/vitam-griffins.git
     popd
 fi
 echo "Building griffins..."
