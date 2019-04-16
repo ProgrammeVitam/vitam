@@ -1,19 +1,4 @@
 ---
-# tasks file for rsyslog
-
-- name: ensure syslog-ng package is installed
-  package:
-    name: syslog-ng
-    state: latest
-  notify:
-    - restart syslogng
-
-- name: ensure service is started on boot && restart service
-  service:
-    name: syslog-ng
-    enabled: true
-  notify:
-    - restart syslogng
 
 #### Configuration ####
 

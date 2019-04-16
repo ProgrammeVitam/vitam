@@ -36,6 +36,12 @@
   roles:
     - normalize-host
 
+### syslog daemon install
+- hosts: vitam
+  any_errors_fatal: true
+  roles:
+    - syslogd
+
 ### CONSUL INSTALLATION ###
 - hosts: hosts-consul-server
   any_errors_fatal: true
@@ -77,13 +83,11 @@
     elasticsearch_port: "{{ elasticsearch.log.port_http }}"
     # kibana_port: "{{ kibana.log.port }}"
 
-### RSYSLOG INSTALLATION ###
-# Vitam solution deployment
-# TODO : à régler properment
+### syslog daemon configuration ###
 - hosts: vitam
   any_errors_fatal: true
   roles:
-    - log_send
+    - syslogd_configure
 
 ### ELASTICSEARCH DATA INSTALLATION ###
 - hosts: hosts-elasticsearch-data
