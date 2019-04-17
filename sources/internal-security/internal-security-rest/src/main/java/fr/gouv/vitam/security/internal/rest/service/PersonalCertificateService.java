@@ -99,7 +99,7 @@ public class PersonalCertificateService {
 
         personalModel.setSubjectDN(parsedCertificate.getX509Certificate().getSubjectDN().getName());
         personalModel.setIssuerDN(parsedCertificate.getX509Certificate().getIssuerDN().getName());
-        personalModel.setSerialNumber(parsedCertificate.getX509Certificate().getSerialNumber());
+        personalModel.setSerialNumber(String.valueOf(parsedCertificate.getX509Certificate().getSerialNumber()));
 
         personalModel.setCertificateHash(parsedCertificate.getCertificateHash());
 

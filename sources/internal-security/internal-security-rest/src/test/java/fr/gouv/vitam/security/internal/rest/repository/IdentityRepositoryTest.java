@@ -77,7 +77,7 @@ public class IdentityRepositoryTest {
         identityModel.setContextId("1");
         identityModel.setIssuerDN("issuerDN");
         identityModel.setSubjectDN("distinguishedName");
-        identityModel.setSerialNumber(BigInteger.TEN);
+        identityModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         identityModel.setId(id.toString());
 
         // When
@@ -89,7 +89,7 @@ public class IdentityRepositoryTest {
             .isNotNull()
             .containsEntry("IssuerDN", "issuerDN")
             .containsEntry("SubjectDN", "distinguishedName")
-            .containsEntry("SerialNumber", 10);
+            .containsEntry("SerialNumber", "10");
     }
 
     @Test
@@ -101,19 +101,19 @@ public class IdentityRepositoryTest {
         identityModel.setContextId("1");
         identityModel.setIssuerDN("issuerDN");
         identityModel.setSubjectDN("distinguishedName");
-        identityModel.setSerialNumber(BigInteger.TEN);
+        identityModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         identityModel.setId(id.toString());
 
         identityRepository.createIdentity(identityModel);
 
         // When
-        Optional<IdentityModel> result = identityRepository.findIdentity("distinguishedName", BigInteger.TEN);
+        Optional<IdentityModel> result = identityRepository.findIdentity("distinguishedName", String.valueOf(BigInteger.TEN));
 
         // Then
         assertThat(result).isPresent().hasValueSatisfying(identity -> {
             assertThat(identity.getIssuerDN()).isEqualTo("issuerDN");
             assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
-            assertThat(identity.getSerialNumber()).isEqualTo(BigInteger.TEN);
+            assertThat(identity.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.TEN));
             assertThat(identity.getId()).isEqualTo(id.toString());
         });
     }
@@ -121,7 +121,7 @@ public class IdentityRepositoryTest {
     @Test
     public void should_return_empty_when_identity_is_missing() throws InvalidParseOperationException {
         // Given / When
-        Optional<IdentityModel> result = identityRepository.findIdentity("invalid_dn", BigInteger.ZERO);
+        Optional<IdentityModel> result = identityRepository.findIdentity("invalid_dn", String.valueOf(BigInteger.ZERO));
 
         // Then
         assertThat(result).isEmpty();
@@ -136,7 +136,7 @@ public class IdentityRepositoryTest {
         IdentityModel identityModel = new IdentityModel();
         identityModel.setIssuerDN("issuerDN");
         identityModel.setSubjectDN("distinguishedName");
-        identityModel.setSerialNumber(BigInteger.TEN);
+        identityModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         identityModel.setId(id.toString());
 
         identityRepository.createIdentity(identityModel);
@@ -165,13 +165,37 @@ public class IdentityRepositoryTest {
         identityModel.setContextId(CONTEXT_ID);
         identityModel.setIssuerDN("issuerDN");
         identityModel.setSubjectDN("distinguishedName");
-        identityModel.setSerialNumber(BigInteger.TEN);
+        identityModel.setSerialNumber(String.valueOf(BigInteger.TEN));
         identityModel.setId(id.toString());
 
         identityRepository.createIdentity(identityModel);
 
         // When / Then
         assertTrue(identityRepository.contextIsUsed(CONTEXT_ID));
+    }
+
+    @Test
+    public void should_store_certificate_with_big_serial_number() throws InvalidParseOperationException {
+        // Given
+        GUID id = GUIDFactory.newGUID();
+
+        IdentityModel identityModel = new IdentityModel();
+        identityModel.setContextId("1");
+        identityModel.setIssuerDN("issuerDN");
+        identityModel.setSubjectDN("distinguishedName");
+        identityModel.setSerialNumber("127890284121982523460526876445101669455454");
+        identityModel.setId(id.toString());
+
+        // When
+        identityRepository.createIdentity(identityModel);
+
+        // Then
+        Document document = certificateCollection.find(eq("_id", id.toString())).first();
+        assertThat(document)
+            .isNotNull()
+            .containsEntry("IssuerDN", "issuerDN")
+            .containsEntry("SubjectDN", "distinguishedName")
+            .containsEntry("SerialNumber", "127890284121982523460526876445101669455454");
     }
 
 }
