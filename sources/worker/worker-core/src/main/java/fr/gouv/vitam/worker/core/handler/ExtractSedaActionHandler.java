@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.CycleFoundException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.graph.DirectedCycle;
 import fr.gouv.vitam.common.graph.DirectedGraph;
 import fr.gouv.vitam.common.graph.Graph;
@@ -66,7 +67,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
@@ -101,17 +101,17 @@ import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectExc
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ExceptionType;
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
+import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentRequiredException;
 import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentUnauthorizedException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentRequiredException;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupEveryDataObjectVersionException;
-import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
+import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyVersionsByUsageException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -643,9 +643,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     }
 
     private UnitType getUnitType() {
-        UnitType unitType =
-            UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(UNIT_TYPE_INPUT_RANK)));
-        return unitType;
+        return UnitType.valueOf(UnitType.getUnitTypeString((String) handlerIO.getInput(UNIT_TYPE_INPUT_RANK)));
     }
 
     private String getMessageItemStatusAUDeclaringObject(final String unitId, final String bdoId, final String gotId) {
@@ -1469,7 +1467,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         for (DataObjectOrArchiveUnitReferenceType relatedObjectReferenceItem : dataObjectOrArchiveUnitReference) {
 
-            String archiveUnitRefId = (String) relatedObjectReferenceItem.getArchiveUnitRefId();
+            String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
 
             if (archiveUnitRefId != null) {
                 if (unitIdToGuid.containsKey(archiveUnitRefId)) {
@@ -1496,7 +1494,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         try {
             logbookLifeCycleClient.bulkUnit(containerId, collect);
         } catch (LogbookClientAlreadyExistsException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
@@ -1517,7 +1515,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         try {
             logbookLifeCycleClient.bulkObjectGroup(containerId, collect);
         } catch (LogbookClientAlreadyExistsException e) {
-            throw new RuntimeException(e);
+            throw new VitamRuntimeException(e);
         }
     }
 
@@ -1681,19 +1679,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
 
-        // If IngestContract ActivateStatus.ACTIVE Just do attachment defined in the manifest and apply IngestContract restriction Already done @see ArchiveUnitListener.attachArchiveUnitToExisting
-
-        // If IngestContract ActivateStatus.INACTIVE
-        // 1. Just do attachment manifest root units to attachment node defined in the ingest contract
-        // 2. and do attachment defined in the manifest without control (Already done in @see ArchiveUnitListener.attachArchiveUnitToExisting)
-        if (ingestContract != null) {
-            if (ActivationStatus.INACTIVE.equals(ingestContract.getCheckParentLink()) &&
-                !Strings.isNullOrEmpty(ingestContract.getLinkParentId())) {
-                // Check if unit is root then add if not null ingestContract.getLinkParentId() to unit _up
-                if (upNode.isEmpty(null)) {
-                    upNode.add(ingestContract.getLinkParentId());
-                }
-            }
+        if (ingestContract != null
+            && !Strings.isNullOrEmpty(ingestContract.getLinkParentId())
+            && upNode.isEmpty(null)) {
+            upNode.add(ingestContract.getLinkParentId());
         }
 
         workNode.set(IngestWorkflowConstants.UP_FIELD, upNode);
@@ -1758,7 +1747,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             ObjectNode evDetData = JsonHandler.createObjectNode();
 
-            if (parentAttachments.size() > 0) {
+            if (!parentAttachments.isEmpty()) {
                 ArrayNode arrayNode = JsonHandler.createArrayNode();
                 parentAttachments.forEach(arrayNode::add);
                 evDetData.set(ATTACHMENT_IDS, arrayNode);
@@ -2509,13 +2498,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
             String objectGroupType = "";
 
             String unitParentGUID = null;
-            if (objectGroupIdToUnitId != null && objectGroupIdToUnitId.size() != 0) {
-                if (objectGroupIdToUnitId.get(entry.getKey()) != null) {
-                    for (final String unitId : objectGroupIdToUnitId.get(entry.getKey())) {
-                        if (unitIdToGuid.get(unitId) != null) {
-                            unitParentGUID = unitIdToGuid.get(unitId);
-                            unitParent.add(unitParentGUID);
-                        }
+            if (objectGroupIdToUnitId != null && objectGroupIdToUnitId.size() != 0
+                && objectGroupIdToUnitId.get(entry.getKey()) != null) {
+                for (final String unitId : objectGroupIdToUnitId.get(entry.getKey())) {
+                    if (unitIdToGuid.get(unitId) != null) {
+                        unitParentGUID = unitIdToGuid.get(unitId);
+                        unitParent.add(unitParentGUID);
                     }
                 }
             }
@@ -2688,7 +2676,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
                 uuids.clear();
             } catch (LogbookClientBadRequestException | LogbookClientServerException e) {
-                throw new RuntimeException(e);
+                throw new VitamRuntimeException(e);
             }
         }
 
@@ -2714,7 +2702,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         LogbookTypeProcess typeProcess, List<String> uuids)
         throws ProcessingException {
         final Set<String> collect =
-            existingGOTs.entrySet().stream().filter(e -> e.getValue() != null).map(entry -> entry.getKey() + ".json")
+            existingGOTs.entrySet().stream().filter(e -> e.getValue() != null).map(entry -> entry.getKey() + JSON_EXTENSION)
                 .collect(Collectors.toSet());
 
         File existingGotsFile = handlerIO.getNewLocalFile(handlerIO.getOutput(EXISTING_GOT_RANK).getPath());
@@ -2764,7 +2752,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 bulkLifeCycleObjectGroup(containerId, logbookLifeCycleClient, uuids);
                 uuids.clear();
             } catch (LogbookClientBadRequestException | LogbookClientServerException e) {
-                throw new RuntimeException(e);
+                throw new VitamRuntimeException(e);
             }
         }
     }
