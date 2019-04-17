@@ -21,6 +21,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
+        performance_logger: "false"
     library:
         vitam_component: library
         host: "library.service.{{consul_domain}}"
@@ -33,6 +34,7 @@ vitam:
         logback_rolling_policy: true
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
+        performance_logger: "false"
 
 
 # Period units in seconds
