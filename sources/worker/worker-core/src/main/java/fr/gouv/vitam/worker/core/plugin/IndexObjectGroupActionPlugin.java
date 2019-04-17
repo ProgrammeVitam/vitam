@@ -120,6 +120,7 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
 
                 } catch (final StepAlreadyExecutedException e) {
                     LOGGER.warn(e);
+                    // FIXME (US 5769) : StepAlreadyExecutedException not thrown
                     itemStatus.increment(StatusCode.ALREADY_EXECUTED);
                 } catch (final ProcessingInternalServerException exc) {
                     LOGGER.error(exc);
@@ -141,8 +142,9 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                     metadataClient.insertObjectGroups(objectGroups);
                 } catch (final MetaDataAlreadyExistException e) {
                     LOGGER.warn(e);
+                    // FIXME (US 5769):  Now return StatusCode.OK but should be StatusCode.ALREADY_EXECUTED. Todo: Do not recreate LFC events if already created in case of StatusCode.ALREADY_EXECUTED;
                     for (ItemStatus itemStatus : aggregateItemStatus) {
-                        itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+                        itemStatus.increment(StatusCode.OK);
                     }
                 } catch (final MetaDataException | InvalidParseOperationException e) {
                     LOGGER.error(e);
@@ -173,7 +175,8 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
      * @param itemStatus item status
      * @throws ProcessingException when error in execution
      */
-    private ObjectNode indexObjectGroup(HandlerIO handlerIO, WorkerParameters params, ItemStatus itemStatus) throws ProcessingException {
+    private ObjectNode indexObjectGroup(HandlerIO handlerIO, WorkerParameters params, ItemStatus itemStatus)
+        throws ProcessingException {
         ParameterHelper.checkNullOrEmptyParameters(params);
 
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {

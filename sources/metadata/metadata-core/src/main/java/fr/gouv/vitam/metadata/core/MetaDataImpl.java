@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
-import com.mongodb.MongoWriteException;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.SedaConstants;
@@ -234,8 +233,6 @@ public class MetaDataImpl implements MetaData {
 
             dbRequest.execInsertUnitRequests(collect);
 
-        } catch (final MongoWriteException e) {
-            throw new MetaDataAlreadyExistException(e);
         } catch (VitamRuntimeException e) {
             if (e.getCause() instanceof InvalidParseOperationException) {
                 throw (InvalidParseOperationException) e.getCause();
@@ -266,15 +263,11 @@ public class MetaDataImpl implements MetaData {
     public void insertObjectGroup(JsonNode objectGroupRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException {
+        final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
+        insertParser.parse(objectGroupRequest);
+        insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
+        dbRequestFactory.create().execInsertObjectGroupRequests(singletonList(insertParser));
 
-        try {
-            final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
-            insertParser.parse(objectGroupRequest);
-            insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-            dbRequestFactory.create().execInsertObjectGroupRequests(singletonList(insertParser));
-        } catch (final MongoWriteException e) {
-            throw new MetaDataAlreadyExistException(e);
-        }
     }
 
     @Override
@@ -297,8 +290,6 @@ public class MetaDataImpl implements MetaData {
 
             dbRequest.execInsertObjectGroupRequests(collect);
 
-        } catch (final MongoWriteException e) {
-            throw new MetaDataAlreadyExistException(e);
         } catch (VitamRuntimeException e) {
             if (e.getCause() instanceof InvalidParseOperationException) {
                 throw (InvalidParseOperationException) e.getCause();

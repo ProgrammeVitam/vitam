@@ -27,6 +27,7 @@
 package fr.gouv.vitam.metadata.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Lists;
 import com.mongodb.MongoWriteException;
 import com.mongodb.ServerAddress;
 import com.mongodb.WriteError;
@@ -55,6 +56,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
+import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
@@ -159,19 +161,10 @@ public class MetaDataImplTest {
     }
 
     @Test(expected = MetaDataAlreadyExistException.class)
-    public void givenInsertUnitWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
-        final MongoWriteException error =
-            new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
+    public void testMetaDataAlreadyExistExceptionExpected() throws Exception {
+        final MetaDataAlreadyExistException error = new MetaDataAlreadyExistException("");
         doThrow(error).when(request).execInsertUnitRequests(any());
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
-    }
-
-    @Test(expected = MetaDataAlreadyExistException.class)
-    public void givenInsertObjectGroupWhenMongoWriteErrorThenThrowMetaDataExecutionException() throws Exception {
-        final MongoWriteException error =
-            new MongoWriteException(new WriteError(1, "", new BsonDocument()), new ServerAddress());
-        doThrow(error).when(request).execInsertObjectGroupRequests(any());
-        metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -270,11 +263,6 @@ public class MetaDataImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(any())).thenThrow(new MetaDataExecutionException(""));
         metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
-    }
-
-    public void given_empty_query_UpdateUnitbyId_When_IllegalAccessException_ThenThrow_MetaDataExecutionException()
-        throws Exception {
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(""), "");
     }
 
     @Test(expected = InvalidParseOperationException.class)
