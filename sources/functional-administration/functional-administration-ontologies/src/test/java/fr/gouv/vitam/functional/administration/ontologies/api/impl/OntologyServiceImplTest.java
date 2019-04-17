@@ -75,7 +75,11 @@ import java.util.Map;
 import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newRequestIdGUID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class OntologyServiceImplTest {
     private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<List<OntologyModel>>() {};
@@ -184,6 +188,8 @@ public class OntologyServiceImplTest {
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+            FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -474,6 +480,8 @@ public class OntologyServiceImplTest {
 
         final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
         assertThat(response3.isOk()).isTrue();
+        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+            FunctionalAdminCollections.ONTOLOGY), any());
     }
 
 
@@ -494,6 +502,8 @@ public class OntologyServiceImplTest {
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isTrue();
+        verify(functionalBackupService, times(2)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+            FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -509,6 +519,8 @@ public class OntologyServiceImplTest {
 
         // Then
         assertThat(response).isInstanceOf(RequestResponseOK.class);
+        verify(functionalBackupService, times(1)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+            FunctionalAdminCollections.ONTOLOGY), any());
     }
 
     @Test
@@ -527,6 +539,8 @@ public class OntologyServiceImplTest {
         assertThat(response.toString()).contains("instance value (\\\\\\\"BlablaCollection\\\\\\\") not found in enum");
 
         assertThat(response).isNotInstanceOf(RequestResponseOK.class);
+        verify(functionalBackupService, times(0)).saveCollectionAndSequence(any(), eq(OntologyServiceImpl.BACKUP_ONTOLOGY_EVENT), eq(
+            FunctionalAdminCollections.ONTOLOGY), any());
     }
 
 }
