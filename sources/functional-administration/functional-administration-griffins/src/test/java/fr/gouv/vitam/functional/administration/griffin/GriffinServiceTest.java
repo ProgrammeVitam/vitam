@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
@@ -178,6 +177,30 @@ public class GriffinServiceTest {
 
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void shouldFailedValidateGriffinWhenDateIsNotCorrect() throws Exception {
+
+        //Given
+        List<GriffinModel> listGriffins = JsonHandler.getFromFileAsTypeRefence(
+            PropertiesUtils.getResourceFile("KO_griffin_false_date.json"),
+            new TypeReference<List<GriffinModel>>() {
+            }
+        );
+
+        // When
+        List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
+
+        DbRequestResult dbRequestResult = mock(DbRequestResult.class);
+
+        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(allGriffinInDatabase);
+
+        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
+
+        // Then
+        assertThatThrownBy(() -> griffinService.importGriffin(listGriffins))
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("GRIFFIN1 Invalid CreationDate : 10 décembre 16");
+    }
 
     @Test
     @RunWithCustomExecutor

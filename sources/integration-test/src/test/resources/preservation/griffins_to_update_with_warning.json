@@ -1,0 +1,56 @@
+[
+  {
+    "Identifier": "GRI-000001111",
+    "Name": "Griffon ImageMagick",
+    "Description": "Ce griffon peut faire la validation, la conversion et l'extraction de metadonnées des formats images par ImageMagick.\nL'action ANALYSE n'utilise pas d'argument.\nL'action GENERATE utilise en argument tous les arguments d'ImageMagick.\nLes actions EXTRACT_MD_AU et EXTRACT_MD_GOT remonte les métadonnées sous forme arborescente (par exemple \"/image/properties/exif:ResolutionUnit\")",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "griffin-imagemagick",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000002",
+    "Name": "Griffon Jhove",
+    "Description": "Ce griffon peut analyser des formats par Jhove.\nL'action ANALYSE n'utilise pas d'arguments.",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "griffin-jhove",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000003",
+    "Name": "Griffon LibreOffice",
+    "Description": "Ce griffon peut faire la conversion des formats bureautiques par LibreOffice.\nL'action GENERATE utilise en argument tous les arguments du script \"unoconv\" https://github.com/dagwieers/unoconv",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "griffin-libreoffice",
+    "ExecutableVersion": "V1.0.0"
+  },
+  {
+    "Identifier": "GRI-000023",
+    "Name": "Normalisateur Bureautique",
+    "Description": "Ce griffon peut faire des actions de validation par ODFValidator, BFFValidator et OOXMLToolkit sur les formats bureautique et en faire la conversion de format par LibreOffice.\nL'action ANALYSE peut avoir un argument -strict pour n'accepter que ce qui est valide au niveau sémantique, à defaut la validation a lieu si le format est correctement formé.\nL'action GENERATE utilise en argument tous les arguments du script \"unoconv\" https://github.com/dagwieers/unoconv",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "griffin-office-normalisator",
+    "ExecutableVersion": "V1.0.1"
+  },
+  {
+    "Identifier": "GRI-000005",
+    "Name": "test ",
+    "Description": "Ce griffon peut faire des actions de validation par ODFValidator, BFFValidator et OOXMLToolkit sur les formats bureautique et en faire la conversion de format par LibreOffice.\nL'action ANALYSE peut avoir un argument -strict pour n'accepter que ce qui est valide au niveau sémantique, à defaut la validation a lieu si le format est correctement formé.\nL'action GENERATE utilise en argument tous les arguments du script \"unoconv\" https://github.com/dagwieers/unoconv",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "griffin-office-normalisator",
+    "ExecutableVersion": "V1.0.1"
+  },
+  {
+    "Identifier": "GRI-000012",
+    "Name": "test 12 ",
+    "Description": "Ce griffon peut faire des actions de validation par ODFValidator, BFFValidator et OOXMLToolkit sur les formats bureautique et en faire la conversion de format par LibreOffice.\nL'action ANALYSE peut avoir un argument -strict pour n'accepter que ce qui est valide au niveau sémantique, à defaut la validation a lieu si le format est correctement formé.\nL'action GENERATE utilise en argument tous les arguments du script \"unoconv\" https://github.com/dagwieers/unoconv",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2018-11-20T15:34:21.542",
+    "ExecutableName": "griffin-office-normalisator",
+    "ExecutableVersion": "V1.0.1"
+  }
+]
