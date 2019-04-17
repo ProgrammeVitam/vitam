@@ -170,23 +170,23 @@ public class ProcessingIT extends VitamRuleRunner {
     public static final String BIG_WORKFLOW = "BIG_WORKFLOW";
     @ClassRule
     public static VitamServerRunner runner =
-            new VitamServerRunner(ProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            MetadataMain.class,
-                            WorkerMain.class,
-                            AdminManagementMain.class,
-                            LogbookMain.class,
-                            WorkspaceMain.class,
-                            ProcessManagementMain.class
-                    ));
+        new VitamServerRunner(ProcessingIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class
+            ));
     private static final String PROCESSING_UNIT_PLAN = "integration-processing/unit_plan_metadata.json";
     private static final String INGEST_CONTRACTS_PLAN = "integration-processing/ingest_contracts_plan.json";
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
     private static final String SIP_FILE_WRONG_DATE = "integration-processing/SIP_INGEST_WRONG_DATE.zip";
     private static final String SIP_KO_AU_REF_OBJ =
-            "integration-processing/KO_SIP_1986_unit_declare_IDobjet_au_lieu_IDGOT.zip";
+        "integration-processing/KO_SIP_1986_unit_declare_IDobjet_au_lieu_IDGOT.zip";
     private static final String SIP_KO_MANIFEST_URI = "integration-processing/KO_MANIFESTE-URI.zip";
 
     private static final Integer tenantId = 0;
@@ -214,12 +214,13 @@ public class ProcessingIT extends VitamRuleRunner {
     private static String SIP_PROFIL_OK = "integration-processing/SIP_ok_profil.zip";
     private static String SIP_INGEST_CONTRACT_UNKNOW = "integration-processing/SIP_INGEST_CONTRACT_UNKNOW.zip";
     private static String SIP_INGEST_CONTRACT_NOT_IN_CONTEXT =
-            "integration-processing/SIP_INGEST_CONTRACT_NOT_IN_CONTEXT.zip";
+        "integration-processing/SIP_INGEST_CONTRACT_NOT_IN_CONTEXT.zip";
     private static String SIP_FILE_OK_WITH_SYSTEMID = "integration-processing/SIP_with_systemID.zip";
 
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET = "integration-processing";
     private static String SIP_FILE_ADD_AU_LINK_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK";
-    private static String link_to_manifest_and_existing_unit = "integration-processing/link_to_manifest_and_existing_unit";
+    private static String link_to_manifest_and_existing_unit =
+        "integration-processing/link_to_manifest_and_existing_unit";
     private static String SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME = "integration-processing/OK_SIP_ADD_AU_LINK_BY_QUERY";
 
     private static String LINK_AU_TO_EXISTING_GOT_OK_NAME = "integration-processing/OK_LINK_AU_TO_EXISTING_GOT";
@@ -294,27 +295,27 @@ public class ProcessingIT extends VitamRuleRunner {
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
         runAfterMongo(Sets.newHashSet(
-                MetadataCollections.UNIT.getName(),
-                MetadataCollections.OBJECTGROUP.getName(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-                LogbookCollections.OPERATION.getName(),
-                LogbookCollections.LIFECYCLE_UNIT.getName(),
-                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-                LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
+            MetadataCollections.UNIT.getName(),
+            MetadataCollections.OBJECTGROUP.getName(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            LogbookCollections.OPERATION.getName(),
+            LogbookCollections.LIFECYCLE_UNIT.getName(),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+            LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
 
         ));
 
         runAfterEs(Sets.newHashSet(
-                MetadataCollections.UNIT.getName().toLowerCase() + "_0",
-                MetadataCollections.UNIT.getName().toLowerCase() + "_1",
-                MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
-                MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1",
-                LogbookCollections.OPERATION.getName().toLowerCase() + "_0",
-                LogbookCollections.OPERATION.getName().toLowerCase() + "_1",
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase()
+            MetadataCollections.UNIT.getName().toLowerCase() + "_0",
+            MetadataCollections.UNIT.getName().toLowerCase() + "_1",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_0",
+            MetadataCollections.OBJECTGROUP.getName().toLowerCase() + "_1",
+            LogbookCollections.OPERATION.getName().toLowerCase() + "_0",
+            LogbookCollections.OPERATION.getName().toLowerCase() + "_1",
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName().toLowerCase()
         ));
     }
 
@@ -370,7 +371,7 @@ public class ProcessingIT extends VitamRuleRunner {
     @Test
     public void testTryWithSiegfried() throws Exception {
         final String CONFIG_SIEGFRIED_PATH_REAL =
-                PropertiesUtils.getResourcePath("integration-processing/format-identifiers-real.conf").toString();
+            PropertiesUtils.getResourcePath("integration-processing/format-identifiers-real.conf").toString();
         try {
             FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH_REAL);
             FormatIdentifierFactory.getInstance().getFormatIdentifierFor("siegfried-local").status();
@@ -391,7 +392,7 @@ public class ProcessingIT extends VitamRuleRunner {
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+            AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
 
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -402,26 +403,26 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                    zipInputStreamSipObject);
+                zipInputStreamSipObject);
             // call processing
             metaDataClient.insertUnit(
-                    new InsertMultiQuery()
-                            .addData((ObjectNode) JsonHandler
-                                    .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
-                            .getFinalInsert());
+                new InsertMultiQuery()
+                    .addData((ObjectNode) JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
+                    .getFinalInsert());
 
             metaDataClient.insertUnit(
-                    new InsertMultiQuery()
-                            .addData(
-                                    (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
-                            .getFinalInsert());
+                new InsertMultiQuery()
+                    .addData(
+                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    .getFinalInsert());
 
             metaDataClient.refreshUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                    });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -429,7 +430,7 @@ public class ProcessingIT extends VitamRuleRunner {
             processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
             RequestResponse<ItemStatus> ret =
-                    processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -441,7 +442,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
 
@@ -449,12 +450,12 @@ public class ProcessingIT extends VitamRuleRunner {
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                    "ROLL_BACK.OK");
+                "ROLL_BACK.OK");
             assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-                    "PROCESS_SIP_UNITARY.WARNING");
+                "PROCESS_SIP_UNITARY.WARNING");
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
-                    "bug2721_2racines_meme_rattachement");
+                "bug2721_2racines_meme_rattachement");
 
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
@@ -505,7 +506,7 @@ public class ProcessingIT extends VitamRuleRunner {
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
         final String containerName = objectGuid.getId();
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+            AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
 
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -516,26 +517,26 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                    zipInputStreamSipObject);
+                zipInputStreamSipObject);
             // call processing
             metaDataClient.insertUnit(
-                    new InsertMultiQuery()
-                            .addData((ObjectNode) JsonHandler
-                                    .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
-                            .getFinalInsert());
+                new InsertMultiQuery()
+                    .addData((ObjectNode) JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
+                    .getFinalInsert());
 
             metaDataClient.insertUnit(
-                    new InsertMultiQuery()
-                            .addData(
-                                    (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
-                            .getFinalInsert());
+                new InsertMultiQuery()
+                    .addData(
+                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    .getFinalInsert());
 
             metaDataClient.refreshUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                    });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -543,7 +544,7 @@ public class ProcessingIT extends VitamRuleRunner {
             processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
             RequestResponse<ItemStatus> ret =
-                    processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -555,7 +556,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
             LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
             fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                new fr.gouv.vitam.common.database.builder.request.single.Select();
             selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
             JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
 
@@ -563,12 +564,12 @@ public class ProcessingIT extends VitamRuleRunner {
             // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
             // "STP_INGEST_FINALISATION.OK"
             assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                    "ROLL_BACK.OK");
+                "ROLL_BACK.OK");
             assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-                    "PROCESS_SIP_UNITARY.WARNING");
+                "PROCESS_SIP_UNITARY.WARNING");
 
             assertEquals(logbookResult.get("$results").get(0).get("obIdIn").asText(),
-                    "bug2721_2racines_meme_rattachement");
+                "bug2721_2racines_meme_rattachement");
 
             JsonNode agIdExt = JsonHandler.getFromString(logbookResult.get("$results").get(0).get("agIdExt").asText());
             assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
@@ -621,35 +622,36 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_INGEST_CONTRACT_UNKNOW);
+            PropertiesUtils.getResourceAsStream(SIP_INGEST_CONTRACT_UNKNOW);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                new fr.gouv.vitam.common.database.builder.request.single.Select();
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertEquals(logbookNode.get("events").get(6).get("outDetail").asText(),
-                "CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO");
+            "CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_UNKNOWN.KO");
     }
 
 
@@ -666,25 +668,26 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_INGEST_CONTRACT_NOT_IN_CONTEXT);
+            PropertiesUtils.getResourceAsStream(SIP_INGEST_CONTRACT_NOT_IN_CONTEXT);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
 
@@ -692,7 +695,7 @@ public class ProcessingIT extends VitamRuleRunner {
         JsonNode logbookResult = logbookClient.selectOperationById(containerName);
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertThat(logbookNode.get("events").get(6).get("outDetail").asText())
-                .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
+            .isEqualTo("CHECK_HEADER.CHECK_CONTRACT_INGEST.CONTRACT_NOT_IN_CONTEXT.KO");
     }
 
     @RunWithCustomExecutor
@@ -704,17 +707,18 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_PROFIL_OK);
+            PropertiesUtils.getResourceAsStream(SIP_PROFIL_OK);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -722,7 +726,7 @@ public class ProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
 
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -730,12 +734,12 @@ public class ProcessingIT extends VitamRuleRunner {
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                new fr.gouv.vitam.common.database.builder.request.single.Select();
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
         selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
         JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
         JsonNode logbookNode = logbookResult.get("$results").get(0);
         assertEquals(logbookNode.get("rightsStatementIdentifier").asText(),
-                "{\"ArchivalAgreement\":\"IC_WITH_PROFILE\",\"ArchivalProfile\":\"PR-000001\"}");
+            "{\"ArchivalAgreement\":\"IC_WITH_PROFILE\",\"ArchivalProfile\":\"PR-000001\"}");
         JsonNode agIdExt = JsonHandler.getFromString(logbookNode.get("agIdExt").asText());
 
         assertEquals(agIdExt.get("originatingAgency").asText(), "producteur1");
@@ -756,21 +760,22 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_WITH_SYSTEMID);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_WITH_SYSTEMID);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
-        final RequestResponse<JsonNode> ret = processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        final RequestResponse<JsonNode> ret = processingClient
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertThat(processWorkflow).isNotNull();
         assertThat(processWorkflow.getState()).isEqualTo(ProcessState.COMPLETED);
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.WARNING);
@@ -785,24 +790,25 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_TAR_OK_NAME);
+            Thread.currentThread().getContextClassLoader().getResourceAsStream(SIP_FILE_TAR_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.TAR,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -821,22 +827,22 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_INHERITED_RULE_CA1_OK);
+            PropertiesUtils.getResourceAsStream(SIP_INHERITED_RULE_CA1_OK);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
 
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                        ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -845,9 +851,9 @@ public class ProcessingIT extends VitamRuleRunner {
         SelectMultiQuery query = new SelectMultiQuery();
         query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
         query.addProjection(JsonHandler.createObjectNode().set(FIELDS.exactToken(),
-                JsonHandler.createObjectNode()
-                        .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
-                        .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+            JsonHandler.createObjectNode()
+                .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
+                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
 
         JsonNode resultNoScroll = metaDataClient.selectUnits(query.getFinalSelect());
         assertFalse(JsonHandler.unprettyPrint(resultNoScroll.get("$hits")).contains("scrollId"));
@@ -855,11 +861,11 @@ public class ProcessingIT extends VitamRuleRunner {
         query.setScrollFilter(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, 100);
         JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
         assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
-                .get("R1"));
+            .get("R1"));
         assertNotNull(result.get("$hits").get("scrollId"));
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importRulesFile(PropertiesUtils.getResourceAsStream("integration-processing/new_rule.csv"),
-                    "new_rule.csv");
+                "new_rule.csv");
             JsonNode response = client.getRuleByID("R7");
             assertTrue(response.get("$results").size() > 0);
         }
@@ -874,7 +880,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_INHERITED_RULE_CA4_OK);
+            PropertiesUtils.getResourceAsStream(SIP_INHERITED_RULE_CA4_OK);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -883,7 +889,8 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -899,12 +906,12 @@ public class ProcessingIT extends VitamRuleRunner {
         SelectMultiQuery query = new SelectMultiQuery();
         query.addQueries(QueryHelper.eq("Title", "ArchiveUnite4").setRelativeDepthLimit(5));
         query.addProjection(JsonHandler.createObjectNode().set(FIELDS.exactToken(),
-                JsonHandler.createObjectNode()
-                        .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
-                        .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
+            JsonHandler.createObjectNode()
+                .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
+                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
         JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
         assertNotNull(result.get("$results").get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
-                .get("R1"));
+            .get("R1"));
         assertNull(result.get("$results").get(0).get(VitamFieldsHelper.management()).get("OriginatingAgency"));
     }
 
@@ -917,7 +924,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
+            PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -927,13 +934,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -948,7 +956,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_WITHOUT_MANIFEST);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -957,13 +965,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -978,7 +987,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT);
+            PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -987,13 +996,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
@@ -1009,7 +1019,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
+            PropertiesUtils.getResourceAsStream(SIP_NO_FORMAT_NO_TAG);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -1017,13 +1027,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         //N.B : The old status StatusCode.KO is do to Invalid content in manifest (validation ko against old SEDA 2.0 of no FormatIdentification tag)
@@ -1041,7 +1052,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
+            PropertiesUtils.getResourceAsStream(SIP_NB_OBJ_INCORRECT_IN_MANIFEST);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -1051,14 +1062,15 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -1073,7 +1085,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_OBJ);
+            PropertiesUtils.getResourceAsStream(SIP_WITHOUT_OBJ);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -1084,8 +1096,8 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                        ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -1093,7 +1105,7 @@ public class ProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
         // check conformity in warning state
         // File format warning state
@@ -1113,7 +1125,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_WITHOUT_FUND_REGISTER);
+            PropertiesUtils.getResourceAsStream(SIP_WITHOUT_FUND_REGISTER);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -1122,14 +1134,15 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -1146,7 +1159,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_BORD_AU_REF_PHYS_OBJECT);
+            PropertiesUtils.getResourceAsStream(SIP_BORD_AU_REF_PHYS_OBJECT);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -1155,13 +1168,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -1181,16 +1195,17 @@ public class ProcessingIT extends VitamRuleRunner {
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         ObjectNode options =
-                JsonHandler.createObjectNode().put("correctiveOption", false);
+            JsonHandler.createObjectNode().put("correctiveOption", false);
         workspaceClient.putObject(containerName, "evidenceOptions", JsonHandler.writeToInpustream(options));
 
         workspaceClient
-                .putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
+            .putObject(containerName, "query.json", JsonHandler.writeToInpustream(new Select().getFinalSelect()));
 
         processingClient.initVitamProcess(containerName, Contexts.EVIDENCE_AUDIT.name());
         // When
         RequestResponse<JsonNode> jsonNodeRequestResponse =
-                processingClient.executeOperationProcess(containerName, Contexts.EVIDENCE_AUDIT.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.EVIDENCE_AUDIT.name(),
+                ProcessAction.RESUME.getValue());
 
 
         assertNotNull(jsonNodeRequestResponse);
@@ -1199,7 +1214,7 @@ public class ProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
 
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -1218,16 +1233,16 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // upload SIP
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
+            PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
 
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -1249,7 +1264,8 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // When
         RequestResponse<JsonNode> jsonNodeRequestResponse =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         // Then
         assertNotNull(jsonNodeRequestResponse);
@@ -1257,7 +1273,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.OK);
@@ -1274,16 +1290,19 @@ public class ProcessingIT extends VitamRuleRunner {
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                "UnvalidGuid:");
+            "UnvalidGuid:");
         // prepare zip
-        String zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+        String zipPath =
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
-        ProcessWorkflow processWorflow = ingest(zipPath, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        ProcessWorkflow processWorflow =
+            ingest(zipPath, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         String operationId = processWorflow.getOperationId();
 
-        Document operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        Document operation =
+            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.INVALID_GUID_ATTACHMENT.KO"));
 
@@ -1297,11 +1316,14 @@ public class ProcessingIT extends VitamRuleRunner {
         zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
 
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                "aeaqaaaabeha2624aaqjmalhotiigyyaaaca");
+            "aeaqaaaabeha2624aaqjmalhotiigyyaaaca");
         // prepare zip
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" + zipName;
+        zipPath =
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" +
+                zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
-        processWorflow = ingest(zipPath, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        processWorflow =
+            ingest(zipPath, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         operationId = processWorflow.getOperationId();
 
@@ -1321,14 +1343,21 @@ public class ProcessingIT extends VitamRuleRunner {
     public void test_link_holdingscheme_to_filingscheme_ko() throws Exception {
         prepareVitamSession();
         // Import Filing scheme (Plan)
-        ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), Contexts.FILING_SCHEME, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+        ProcessWorkflow pw = ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), Contexts.FILING_SCHEME,
+            ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+
+        Document operation =
+            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", pw.getOperationId())).first();
+        assertThat(operation).isNotNull();
+        assertTrue(operation.toString().contains("CHECK_ARCHIVE_UNIT_PROFILE.OK"));
 
         // get one unit
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
         MongoCursor<Document> cursor = resultUnits.iterator();
         String unit = cursor.next().getString("_id");
 
-        String tmp = FileUtils.getTempDirectoryPath() + "/" + ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1);
+        String tmp =
+            FileUtils.getTempDirectoryPath() + "/" + ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1);
         FileUtils.forceMkdir(new File(tmp));
 
         // Enable attachment
@@ -1336,15 +1365,18 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Create SIP with attachment to unit
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
-        replaceStringInFile(link_to_manifest_and_existing_unit + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)", unit);
+        replaceStringInFile(link_to_manifest_and_existing_unit + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            unit);
         String zipPath = tmp + "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_unit), zipPath);
 
         // Attach to unitChild KO existing unit should not have a parent in the manifest
-        ProcessWorkflow processWorkflow = ingest(zipPath, Contexts.HOLDING_SCHEME, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        ProcessWorkflow processWorkflow =
+            ingest(zipPath, Contexts.HOLDING_SCHEME, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         String operationId = processWorkflow.getOperationId();
-        Document operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        operation =
+            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
@@ -1361,7 +1393,8 @@ public class ProcessingIT extends VitamRuleRunner {
     public void test_multiple_unit_link_cases() throws Exception {
         prepareVitamSession();
         // 1. First we create an AU by sip (Tree) (RATP_1 -> RATP_2)
-        ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), Contexts.HOLDING_SCHEME, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+        ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), Contexts.HOLDING_SCHEME,
+            ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
 
         // 2. Get id of both au from 1 and 2
         MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection().find();
@@ -1382,7 +1415,8 @@ public class ProcessingIT extends VitamRuleRunner {
 
 
         //3. Get number of events in LFC of both unit1 and unit2
-        MongoCursor<Document> logbookCursor = LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, unitRoot)).iterator();
+        MongoCursor<Document> logbookCursor =
+            LogbookCollections.LIFECYCLE_UNIT.getCollection().find(eq(Unit.ID, unitRoot)).iterator();
         Document lfcUnit1 = logbookCursor.next();
         List<JsonNode> eventsUnit1 = lfcUnit1.get("events", List.class);
         int lcfUnit1Size = eventsUnit1.size();
@@ -1392,7 +1426,8 @@ public class ProcessingIT extends VitamRuleRunner {
         List<JsonNode> eventsUnit2 = lfcUnit2.get("events", List.class);
         int lcfUnit2Size = eventsUnit2.size();
 
-        String tmp = FileUtils.getTempDirectoryPath() + "/" + ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1);
+        String tmp =
+            FileUtils.getTempDirectoryPath() + "/" + ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1);
         FileUtils.forceMkdir(new File(tmp));
 
         // Enable attachment
@@ -1401,16 +1436,20 @@ public class ProcessingIT extends VitamRuleRunner {
         // Ingest
         // Create SIP with unitRoot
         String zipName3 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "2.zip";
-        replaceStringInFile(link_to_manifest_and_existing_unit + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)", unitChild);
+        replaceStringInFile(link_to_manifest_and_existing_unit + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            unitChild);
         String zipPath3 = tmp + "/" + zipName3;
         zipFolder(PropertiesUtils.getResourcePath(link_to_manifest_and_existing_unit), zipPath3);
 
         // Attach to unitChild KO existing unit should not have a parent in the manifest
-        ProcessWorkflow processWorkflow = ingest(zipPath3, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        ProcessWorkflow processWorkflow =
+            ingest(zipPath3, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
         String operationId = processWorkflow.getOperationId();
-        Document operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        Document operation =
+            (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
-        assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED.KO"));
+        assertTrue(operation.toString()
+            .contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED.KO"));
 
 
         // Now update the ingest contract, set the check to ACTIVE and the link parent id takes unitChild value
@@ -1420,7 +1459,8 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Create SIP with unitChild
         String zipName1 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)", unitChild);
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            unitChild);
         String zipPath1 = tmp + "/" + zipName1;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath1);
 
@@ -1430,12 +1470,14 @@ public class ProcessingIT extends VitamRuleRunner {
         // 6.2 ingest here should be KO, we link an incorrect id (not a child of the referenced au in the ingest contract) into the sip
         // Create SIP with unitRoot
         String zipName2 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + "1.zip";
-        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)", unitRoot);
+        replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
+            unitRoot);
         String zipPath2 = tmp + "/" + zipName2;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath2);
 
         // Attach to unitChild KO because of ingest contract restriction
-        processWorkflow = ingest(zipPath2, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        processWorkflow =
+            ingest(zipPath2, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         // Check that we have an AU where in his up we have idUnit
         MongoIterable<Document> newChildUnit = MetadataCollections.UNIT.getCollection().find(eq("_up", unitRoot));
@@ -1450,7 +1492,8 @@ public class ProcessingIT extends VitamRuleRunner {
         // Test Null Parent Link
         updateIngestContractLinkParentId("ArchivalAgreement0", "", "AUTHORIZED", null);
         // Ingest should be OK
-        processWorkflow = ingest(zipPath2, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+        processWorkflow =
+            ingest(zipPath2, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
 
         operationId = processWorkflow.getOperationId();
         operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
@@ -1484,7 +1527,8 @@ public class ProcessingIT extends VitamRuleRunner {
         }
     }
 
-    private ProcessWorkflow ingest(String sipFilePath, Contexts contexts, ProcessAction processAction, ProcessState expectedState, StatusCode expectedStatus) throws Exception {
+    private ProcessWorkflow ingest(String sipFilePath, Contexts contexts, ProcessAction processAction,
+        ProcessState expectedState, StatusCode expectedStatus) throws Exception {
         String operationId = createOperationContainer();
         // use link sip
         final InputStream zipStream = new FileInputStream(new File(sipFilePath));
@@ -1495,11 +1539,12 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(operationId, contexts.name());
         final RequestResponse<JsonNode> resp =
-                processingClient.executeOperationProcess(operationId, contexts.name(), processAction.getValue());
+            processingClient.executeOperationProcess(operationId, contexts.name(), processAction.getValue());
         assertNotNull(resp);
         assertEquals(Status.ACCEPTED.getStatusCode(), resp.getStatus());
         wait(operationId);
-        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, tenantId);
+        ProcessWorkflow processWorkflow =
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationId, tenantId);
         assertThat(processWorkflow).isNotNull();
         assertEquals(expectedState, processWorkflow.getState());
         assertEquals(expectedStatus, processWorkflow.getStatus());
@@ -1507,20 +1552,22 @@ public class ProcessingIT extends VitamRuleRunner {
         return processWorkflow;
     }
 
-    private void updateIngestContractLinkParentId(String contractId, String linkParentId, String checkParentLink, List<String> checkParentId)
-            throws Exception {
+    private void updateIngestContractLinkParentId(String contractId, String linkParentId, String checkParentLink,
+        List<String> checkParentId)
+        throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             final UpdateParserSingle updateParserActive = new UpdateParserSingle(new SingleVarNameAdapter());
             final SetAction setLinkParentId = UpdateActionHelper.set(IngestContractModel.LINK_PARENT_ID, linkParentId);
             final SetAction setCheckParentLink =
-                    UpdateActionHelper.set(IngestContractModel.TAG_CHECK_PARENT_LINK, checkParentLink);
+                UpdateActionHelper.set(IngestContractModel.TAG_CHECK_PARENT_LINK, checkParentLink);
 
             final Update updateLinkParent = new Update();
             updateLinkParent.setQuery(QueryHelper.eq("Identifier", contractId));
             updateLinkParent.addActions(setLinkParentId, setCheckParentLink);
-            if(checkParentId != null) {
-                final SetAction setCheckParentId = UpdateActionHelper.set(IngestContractModel.TAG_CHECK_PARENT_ID, checkParentId);
+            if (checkParentId != null) {
+                final SetAction setCheckParentId =
+                    UpdateActionHelper.set(IngestContractModel.TAG_CHECK_PARENT_ID, checkParentId);
                 updateLinkParent.addActions(setCheckParentId);
             }
             updateParserActive.parse(updateLinkParent.getFinalUpdate());
@@ -1532,7 +1579,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
 
     private String createOperationContainer()
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
@@ -1542,7 +1589,7 @@ public class ProcessingIT extends VitamRuleRunner {
     }
 
     private String createOperationContainer(String action, LogbookTypeProcess logbookTypeProcess)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         final GUID objectGuid = GUIDFactory.newManifestGUID(tenantId);
@@ -1565,12 +1612,12 @@ public class ProcessingIT extends VitamRuleRunner {
     public void simulateAttachUnitToExistingGOT(String idGot, String zipName) throws Exception {
 
         replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
-                "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
-                idGot);
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            idGot);
 
         String zipPath =
-                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
-                        "/" + zipName;
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
 
         final String containerName2 = createOperationContainer();
@@ -1578,8 +1625,8 @@ public class ProcessingIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         // use link sip
         final InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
@@ -1589,7 +1636,8 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret2 =
-                processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret2);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
@@ -1612,23 +1660,24 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_PROD_SERV_A);
+            PropertiesUtils.getResourceAsStream(SIP_PROD_SERV_A);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -1646,11 +1695,11 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Search unit by #object: {$eq : idGOT}
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
-                "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
+            "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
-                "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
+            "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                "/" + zipName;
+            "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
 
 
@@ -1659,19 +1708,20 @@ public class ProcessingIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         // use link sip
         InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
+            zipStream);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret2 =
-                processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret2);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
@@ -1694,11 +1744,11 @@ public class ProcessingIT extends VitamRuleRunner {
         // Search unit by #object: {$eq : idGOT}
         // As we have already attached AU to this GOT then the query will return more than one. KO
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
-                "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
+            "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
-                "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
+            "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                "/" + zipName;
+            "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
 
         final String containerName3 = createOperationContainer();
@@ -1706,19 +1756,20 @@ public class ProcessingIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         // use link sip
         zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName3);
         workspaceClient.uncompressObject(containerName3, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
+            zipStream);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName3, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret3 =
-                processingClient.executeOperationProcess(containerName3, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName3, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret3);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret3.getStatus());
 
@@ -1746,10 +1797,10 @@ public class ProcessingIT extends VitamRuleRunner {
         String zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                "GUID_ARCHIVE_UNIT_PARENT");
+            "GUID_ARCHIVE_UNIT_PARENT");
         // prepare zip
         zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                "/" + zipName;
+            "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
 
@@ -1758,25 +1809,26 @@ public class ProcessingIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         // use link sip
         final InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
+            zipStream);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -1804,7 +1856,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -1812,13 +1864,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -1832,11 +1885,11 @@ public class ProcessingIT extends VitamRuleRunner {
         Document unit = resultUnits.first();
         String idGot = (String) unit.get("_og");
         replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
-                "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
-                idGot);
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            idGot);
 
         zipPath = PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
-                "/" + zipName;
+            "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
 
         final String containerName2 = createOperationContainer();
@@ -1844,8 +1897,8 @@ public class ProcessingIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         // use link sip
         final InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
@@ -1855,7 +1908,8 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret2 =
-                processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret2);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
@@ -1870,29 +1924,29 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(MetadataCollections.UNIT.getCollection().count(eq("_og", idGot)), 2);
 
         ArrayList<Document> logbookLifeCycleUnits =
-                Lists.newArrayList(LogbookCollections.LIFECYCLE_UNIT.getCollection().find().iterator());
+            Lists.newArrayList(LogbookCollections.LIFECYCLE_UNIT.getCollection().find().iterator());
 
         List<Document> currentLogbookLifeCycleUnits =
-                logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName2))
-                        .collect(Collectors.toList());
+            logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName2))
+                .collect(Collectors.toList());
 
         List<Document> events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleUnits).get("events");
 
         List<Document> lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.CHECK_MANIFEST.OK"))
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         assertThat(Iterables.getOnlyElement(lifeCycles).getString(EVENT_DETAILS)).containsIgnoringCase(idGot);
 
         ArrayList<Document> logbookLifeCycleGOTs =
-                Lists.newArrayList(LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().find().iterator());
+            Lists.newArrayList(LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().find().iterator());
 
         List<Document> currentLogbookLifeCycleGots =
-                logbookLifeCycleGOTs.stream().filter(t -> t.get("evIdProc").equals(containerName))
-                        .collect(Collectors.toList());
+            logbookLifeCycleGOTs.stream().filter(t -> t.get("evIdProc").equals(containerName))
+                .collect(Collectors.toList());
 
         events = (List<Document>) Iterables.getOnlyElement(currentLogbookLifeCycleGots).get("events");
 
         lifeCycles = events.stream().filter(t -> t.get("outDetail").equals("LFC.OBJECT_GROUP_UPDATE.OK"))
-                .collect(Collectors.toList());
+            .collect(Collectors.toList());
         assertThat(lifeCycles).hasSize(1);
         assertThat(Iterables.getOnlyElement(lifeCycles).getString(EVENT_DETAILS)).containsIgnoringCase("diff");
 
@@ -1920,11 +1974,11 @@ public class ProcessingIT extends VitamRuleRunner {
         // prepare zip
         String idGot = "aecaaaaaachwwr22aaudeak5ouo22jyaaaaq";
         replaceStringInFile(LINK_AU_TO_EXISTING_GOT_OK_NAME + "/manifest.xml",
-                "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
-                idGot);
+            "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
+            idGot);
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME),
-                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
-                        "/" + zipName);
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName);
 
 
         final String containerName = createOperationContainer();
@@ -1932,8 +1986,8 @@ public class ProcessingIT extends VitamRuleRunner {
         // workspace client dezip SIP in workspace
         // use link sip
         final InputStream zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
@@ -1943,7 +1997,8 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -1955,15 +2010,15 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow.getSteps());
         try {
             Files.delete(new File(
-                    PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
-                            "/" + zipName).toPath());
+                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+                    "/" + zipName).toPath());
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
     }
 
     private void replaceStringInFile(String targetFilename, String textToReplace, String replacementText)
-            throws IOException {
+        throws IOException {
         Path path = PropertiesUtils.getResourcePath(targetFilename);
         Charset charset = StandardCharsets.UTF_8;
 
@@ -1975,8 +2030,8 @@ public class ProcessingIT extends VitamRuleRunner {
 
     private void zipFolder(final Path path, final String zipFilePath) throws IOException {
         try (
-                FileOutputStream fos = new FileOutputStream(zipFilePath);
-                ZipOutputStream zos = new ZipOutputStream(fos)) {
+            FileOutputStream fos = new FileOutputStream(zipFilePath);
+            ZipOutputStream zos = new ZipOutputStream(fos)) {
             Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     zos.putNextEntry(new ZipEntry(path.relativize(file).toString()));
@@ -1995,12 +2050,12 @@ public class ProcessingIT extends VitamRuleRunner {
     }
 
     public void createLogbookOperation(GUID operationId, GUID objectId)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         createLogbookOperation(operationId, objectId, null, LogbookTypeProcess.INGEST);
     }
 
     public void createLogbookOperation(GUID operationId, GUID objectId, String type, LogbookTypeProcess typeProc)
-            throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
 
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         if (type == null) {
@@ -2008,13 +2063,13 @@ public class ProcessingIT extends VitamRuleRunner {
         }
 
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                operationId, type, objectId,
-                typeProc, StatusCode.STARTED,
-                operationId != null ? operationId.toString() : "outcomeDetailMessage",
-                operationId);
+            operationId, type, objectId,
+            typeProc, StatusCode.STARTED,
+            operationId != null ? operationId.toString() : "outcomeDetailMessage",
+            operationId);
         if ("EXPORT_DIP".equals(type)) {
             initParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                    VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + operationId);
+                VitamLogbookMessages.getLabelOp("EXPORT_DIP.STARTED") + " : " + operationId);
         }
         logbookClient.create(initParameters);
     }
@@ -2031,23 +2086,23 @@ public class ProcessingIT extends VitamRuleRunner {
         final String containerName = createOperationContainer();
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, BIG_WORKFLOW);
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, BIG_WORKFLOW, ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, BIG_WORKFLOW, ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -2066,7 +2121,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_MANIFEST_INCORRECT_REFERENCE);
+            PropertiesUtils.getResourceAsStream(SIP_MANIFEST_INCORRECT_REFERENCE);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -2075,13 +2130,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -2120,7 +2176,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_BUG_2182);
+            PropertiesUtils.getResourceAsStream(SIP_BUG_2182);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -2129,13 +2185,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -2151,7 +2208,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_KO_AU_REF_BDO);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_KO_AU_REF_BDO);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -2161,13 +2218,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -2181,11 +2239,11 @@ public class ProcessingIT extends VitamRuleRunner {
         final String containerName = createOperationContainer();
 
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
@@ -2194,29 +2252,29 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(dataManagement);
 
         assertNotNull(dataManagement.getProcessWorkflow(VitamConfiguration.getWorkspaceWorkflowsFolder(),
-                containerName));
+            containerName));
 
         RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-                        containerName);
+            processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
+                containerName);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
         // Let the processing do the job
         ret = processingClient.updateOperationActionProcess(ProcessAction.NEXT.getValue(),
-                containerName);
+            containerName);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
@@ -2224,13 +2282,13 @@ public class ProcessingIT extends VitamRuleRunner {
 
 
         ret = processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(),
-                containerName);
+            containerName);
         // Let the processing do the job
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2257,17 +2315,17 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_1791_CA1);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_1791_CA1);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -2288,24 +2346,24 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_1791_CA2);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_1791_CA2);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
 
         RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -2320,23 +2378,24 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_REFERENCE_CONTRACT_KO);
+            PropertiesUtils.getResourceAsStream(SIP_REFERENCE_CONTRACT_KO);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -2351,31 +2410,31 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
         LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
-                new fr.gouv.vitam.common.database.builder.request.single.Select();
+            new fr.gouv.vitam.common.database.builder.request.single.Select();
         selectQuery.setQuery(QueryHelper.eq("evIdProc", containerName));
         JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
 
@@ -2383,9 +2442,9 @@ public class ProcessingIT extends VitamRuleRunner {
         // the order is main-event > sub-events, so events[0] will be "ROLL_BACK.OK" and not
         // "STP_INGEST_FINALISATION.OK"
         assertEquals(logbookResult.get("$results").get(0).get("events").get(0).get("outDetail").asText(),
-                "ROLL_BACK.OK");
+            "ROLL_BACK.OK");
         assertEquals(logbookResult.get("$results").get(0).get("events").get(1).get("outDetail").asText(),
-                "PROCESS_SIP_UNITARY.WARNING");
+            "PROCESS_SIP_UNITARY.WARNING");
     }
 
     @RunWithCustomExecutor
@@ -2397,23 +2456,23 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_ARBRE_3062);
+            PropertiesUtils.getResourceAsStream(SIP_ARBRE_3062);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.HOLDING_SCHEME.name());
         RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
@@ -2428,7 +2487,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(OK_SIP_SIGNATURE);
+            PropertiesUtils.getResourceAsStream(OK_SIP_SIGNATURE);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -2438,14 +2497,15 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
@@ -2459,22 +2519,23 @@ public class ProcessingIT extends VitamRuleRunner {
 
         final String containerName2 = createOperationContainer();
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_COMPLEX_RULES);
+            PropertiesUtils.getResourceAsStream(SIP_COMPLEX_RULES);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName2);
         workspaceClient.uncompressObject(containerName2, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret2 =
-                processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret2);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
         wait(containerName2);
         ProcessWorkflow processWorkflow2 =
-                processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName2, tenantId);
         assertNotNull(processWorkflow2);
         assertEquals(ProcessState.COMPLETED, processWorkflow2.getState());
         assertEquals(StatusCode.OK, processWorkflow2.getStatus());
@@ -2483,16 +2544,16 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // put rules into workspace
         final InputStream rulesStream =
-                PropertiesUtils.getResourceAsStream("integration-processing/RULES.json");
+            PropertiesUtils.getResourceAsStream("integration-processing/RULES.json");
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.putObject(containerName,
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
-                rulesStream);
+            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON,
+            rulesStream);
         // call processing
         processingClient.initVitamProcess(containerName, Contexts.UPDATE_RULES_ARCHIVE_UNITS.name());
         RequestResponse<ItemStatus> ret =
-                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(ret);
 
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -2500,28 +2561,28 @@ public class ProcessingIT extends VitamRuleRunner {
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         ArrayList<Document> logbookLifeCycleUnits =
-                Lists.newArrayList(LogbookCollections.LIFECYCLE_UNIT.getCollection().find().iterator());
+            Lists.newArrayList(LogbookCollections.LIFECYCLE_UNIT.getCollection().find().iterator());
 
         List<Document> currentLogbookLifeCycleUnits =
-                logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName2))
-                        .collect(Collectors.toList());
+            logbookLifeCycleUnits.stream().filter(t -> t.get("evIdProc").equals(containerName2))
+                .collect(Collectors.toList());
         currentLogbookLifeCycleUnits.forEach((lifecycle) -> {
             List<Document> events = (List<Document>) lifecycle.get("events");
             List<Document> lifecycleEvent =
-                    events.stream().filter(t -> t.get("outDetail").equals("LFC.UPDATE_UNIT_RULES.OK"))
-                            .collect(Collectors.toList());
+                events.stream().filter(t -> t.get("outDetail").equals("LFC.UPDATE_UNIT_RULES.OK"))
+                    .collect(Collectors.toList());
             if (lifecycleEvent != null && lifecycleEvent.size() > 0) {
                 String evDetData = Iterables.getOnlyElement(lifecycleEvent).getString(EVENT_DETAILS);
                 assertThat(evDetData).containsIgnoringCase("diff");
                 assertThat(evDetData).contains(containerName2);
                 assertThat(Iterables.getOnlyElement(lifecycleEvent).getString("outMessg")).isEqualTo(
-                        "Succès de la mise à jour des règles de gestion de l'unité archivistique");
+                    "Succès de la mise à jour des règles de gestion de l'unité archivistique");
             }
         });
     }
@@ -2534,11 +2595,11 @@ public class ProcessingIT extends VitamRuleRunner {
         String containerName = createOperationContainer();
 
         InputStream zipStream =
-                PropertiesUtils.getResourceAsStream(SIP_PROD_SERV_A);
+            PropertiesUtils.getResourceAsStream(SIP_PROD_SERV_A);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
+            zipStream);
 
         StreamUtils.closeSilently(zipStream);
 
@@ -2548,7 +2609,8 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         RequestResponse<JsonNode> requestResponse =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(requestResponse);
 
@@ -2557,7 +2619,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
@@ -2571,30 +2633,31 @@ public class ProcessingIT extends VitamRuleRunner {
         String idUnit = (String) unit.get("_id");
         String opiBefore = (String) unit.get("_opi");
         replaceStringInFile(SIP_PROD_SERV_B_ATTACHED + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                idUnit);
+            idUnit);
         String zipPath =
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                        "/" + zipName;
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_PROD_SERV_B_ATTACHED), zipPath);
 
         containerName = createOperationContainer();
 
         // use link sip
         zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
+            zipStream);
 
         StreamUtils.closeSilently(zipStream);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         requestResponse =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(requestResponse);
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
 
@@ -2613,7 +2676,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Check _opi does not changed
         MongoIterable<Document> resultUnitsAfter =
-                MetadataCollections.UNIT.getCollection().find(eq("_id", idUnit));
+            MetadataCollections.UNIT.getCollection().find(eq("_id", idUnit));
         Document unitAfter = resultUnitsAfter.first();
         String opiAfter = (String) unitAfter.get("_opi");
         assertEquals(opiBefore, opiAfter);
@@ -2621,63 +2684,64 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Check accession register detail
         long countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count(
-                eq("OriginatingAgency", "P-A"));
+            eq("OriginatingAgency", "P-A"));
         assertThat(countDetails).isEqualTo(1);
 
         long countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count(
-                eq("OriginatingAgency", "P-A"));
+            eq("OriginatingAgency", "P-A"));
         assertThat(countSummary).isEqualTo(1);
 
 
         MongoIterable<Document> accessReg =
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                        .find(eq("OriginatingAgency", "P-A"));
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(eq("OriginatingAgency", "P-A"));
         assertNotNull(accessReg);
         assertNotNull(accessReg.first());
         Document accessRegDoc = accessReg.first();
         // 2 units are attached - 1 was previously added
         assertEquals("1.0",
-                ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
 
         assertEquals("1.0",
-                ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 1 Got is attached - 1 was previously added
         assertEquals("1.0",
-                ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 285804 octets is attached - 4109 was previously added
         assertEquals("4109.0",
-                ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 3. Add object to an existing GOT
         containerName = createOperationContainer();
         zipName = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
 
         replaceStringInFile(ADD_OBJET_TO_GOT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-                idUnit);
+            idUnit);
         zipPath =
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
-                        "/" + zipName;
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+                "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(ADD_OBJET_TO_GOT), zipPath);
 
 
         // use link sip
         zipStream = new FileInputStream(new File(
-                PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
-                        "/" + zipName));
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
+                "/" + zipName));
 
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipStream);
+            zipStream);
 
         StreamUtils.closeSilently(zipStream);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         requestResponse =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(requestResponse);
         assertEquals(Status.ACCEPTED.getStatusCode(), requestResponse.getStatus());
 
@@ -2697,34 +2761,34 @@ public class ProcessingIT extends VitamRuleRunner {
         // Re-check accession register detail
 
         countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count(
-                eq("OriginatingAgency", "P-A"));
+            eq("OriginatingAgency", "P-A"));
         assertThat(countDetails).isEqualTo(2);
 
         countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count(
-                eq("OriginatingAgency", "P-A"));
+            eq("OriginatingAgency", "P-A"));
         assertThat(countSummary).isEqualTo(1);
 
         accessReg =
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                        .find(eq("OriginatingAgency", "P-A"));
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(eq("OriginatingAgency", "P-A"));
         assertNotNull(accessReg);
         assertNotNull(accessReg.first());
 
         accessRegDoc = accessReg.first();
         // 2 units are attached - 1 was previously added
         assertEquals("2.0",
-                ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("TotalUnits")).get(AccessionRegisterSummary.INGESTED).toString());
 
         assertEquals("2.0",
-                ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("TotalObjects")).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 1 Got is attached - 1 was previously added
         assertEquals("1.0",
-                ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("TotalObjectGroups")).get(AccessionRegisterSummary.INGESTED).toString());
 
         // 285804 octets is attached - 4109 was previously added
         assertEquals("14077.0",
-                ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
+            ((Document) accessRegDoc.get("ObjectSize")).get(AccessionRegisterSummary.INGESTED).toString());
 
 
         // Check global accession register count
@@ -2740,7 +2804,7 @@ public class ProcessingIT extends VitamRuleRunner {
     public void testBlankWorkflow() throws Exception {
         prepareVitamSession();
         try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-             AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
+            AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
 
             final String containerName = createOperationContainer();
 
@@ -2749,26 +2813,26 @@ public class ProcessingIT extends VitamRuleRunner {
             workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(containerName);
             workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                    zipInputStreamSipObject);
+                zipInputStreamSipObject);
             // call processing
             metaDataClient.insertUnit(
-                    new InsertMultiQuery()
-                            .addData((ObjectNode) JsonHandler
-                                    .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
-                            .getFinalInsert());
+                new InsertMultiQuery()
+                    .addData((ObjectNode) JsonHandler
+                        .getFromFile(PropertiesUtils.getResourceFile("integration-processing/unit_metadata.json")))
+                    .getFinalInsert());
 
             metaDataClient.insertUnit(
-                    new InsertMultiQuery()
-                            .addData(
-                                    (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
-                            .getFinalInsert());
+                new InsertMultiQuery()
+                    .addData(
+                        (ObjectNode) JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROCESSING_UNIT_PLAN)))
+                    .getFinalInsert());
 
             metaDataClient.refreshUnits();
             // import contract
             File fileContracts = PropertiesUtils.getResourceFile(INGEST_CONTRACTS_PLAN);
             List<IngestContractModel> IngestContractModelList =
-                    JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
-                    });
+                JsonHandler.getFromFileAsTypeRefence(fileContracts, new TypeReference<List<IngestContractModel>>() {
+                });
 
             functionalClient.importIngestContracts(IngestContractModelList);
 
@@ -2777,7 +2841,7 @@ public class ProcessingIT extends VitamRuleRunner {
             processingClient.initVitamProcess(containerName, Contexts.BLANK_TEST.name());
 
             RequestResponse<ItemStatus> ret =
-                    processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+                processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -2786,6 +2850,12 @@ public class ProcessingIT extends VitamRuleRunner {
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
+
+            Document operation =
+                (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", containerName)).first();
+            assertThat(operation).isNotNull();
+            assertTrue(operation.toString().contains("CHECK_ARCHIVE_UNIT_PROFILE.OK"));
+
         }
     }
 
@@ -2799,18 +2869,19 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_OK_BIRTH_PLACE);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_BIRTH_PLACE);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
-        RequestResponse<JsonNode> resp = processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+        RequestResponse<JsonNode> resp = processingClient
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         // wait a little bit
         assertNotNull(resp);
 
@@ -2818,7 +2889,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2835,18 +2906,18 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FILE_WRONG_DATE);
+            PropertiesUtils.getResourceAsStream(SIP_FILE_WRONG_DATE);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
         RequestResponse<JsonNode> resp = processingClient
-                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
         // wait a little bit
         assertNotNull(resp);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
@@ -2854,7 +2925,7 @@ public class ProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2872,19 +2943,19 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client dezip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_AU_REF_OBJ);
+            PropertiesUtils.getResourceAsStream(SIP_KO_AU_REF_OBJ);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
         RequestResponse<JsonNode> resp = processingClient
-                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                        ProcessAction.RESUME.getValue());
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         // wait a little bit
         assertNotNull(resp);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
@@ -2892,7 +2963,7 @@ public class ProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2910,19 +2981,19 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_KO_MANIFEST_URI);
+            PropertiesUtils.getResourceAsStream(SIP_KO_MANIFEST_URI);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
         RequestResponse<JsonNode> resp = processingClient
-                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                        ProcessAction.RESUME.getValue());
+            .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         // wait a little bit
         assertNotNull(resp);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
@@ -2930,7 +3001,7 @@ public class ProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -2948,16 +3019,17 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_APPRAISAL_RULES);
+            PropertiesUtils.getResourceAsStream(SIP_APPRAISAL_RULES);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
 
@@ -2965,13 +3037,13 @@ public class ProcessingIT extends VitamRuleRunner {
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         MongoIterable<Document> resultUnits =
-                MetadataCollections.UNIT.getCollection().find(eq("Title", "Porte de Pantin"));
+            MetadataCollections.UNIT.getCollection().find(eq("Title", "Porte de Pantin"));
         final Document unitToAssert = resultUnits.first();
         Document appraisalRule = ((Document) ((Document) unitToAssert.get("_mgt")).get("AppraisalRule"));
         final List<Object> rules = ((List<Object>) appraisalRule.get("Rules"));
@@ -2990,7 +3062,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FULL_SEDA_2_1);
+            PropertiesUtils.getResourceAsStream(SIP_FULL_SEDA_2_1);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -2998,19 +3070,20 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
         MongoIterable<Document> resultUnits =
-                MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));
+            MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));
         final Document unitToAssert = resultUnits.first();
 
         //AgentType fullname field
@@ -3045,7 +3118,7 @@ public class ProcessingIT extends VitamRuleRunner {
 
         //Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf
         MongoIterable<Document> gots = MetadataCollections.OBJECTGROUP.getCollection()
-                .find(eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
+            .find(eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
         final Document bdoWithMetadataJson = gots.first();
 
         List<Object> qualifiers = (List<Object>) bdoWithMetadataJson.get("_qualifiers");
@@ -3071,11 +3144,11 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
+            PropertiesUtils.getResourceAsStream(SIP_FUND_REGISTER_OK);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-                zipInputStreamSipObject);
+            zipInputStreamSipObject);
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
@@ -3083,7 +3156,8 @@ public class ProcessingIT extends VitamRuleRunner {
         ProcessPause info = new ProcessPause("INGEST", tenantId, null);
         processingClient.forcePause(info);
         final RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
 
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -3091,7 +3165,7 @@ public class ProcessingIT extends VitamRuleRunner {
         wait(containerName);
 
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         // Verify pause
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
@@ -3104,9 +3178,10 @@ public class ProcessingIT extends VitamRuleRunner {
 
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret2 =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         // Verify no pause
         assertEquals(ProcessState.RUNNING, processWorkflow.getState());
@@ -3137,13 +3212,14 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName0, Contexts.DEFAULT_WORKFLOW.name());
         RequestResponse<JsonNode> ret =
-                processingClient.executeOperationProcess(containerName0, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName0, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName0);
         ProcessWorkflow processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName0, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName0, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.KO, processWorkflow.getStatus());
@@ -3162,22 +3238,25 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         ret =
-                processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         wait(containerName);
         processWorkflow =
-                processMonitoring.findOneProcessWorkflow(containerName, tenantId);
+            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
         assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(1l);
-        ObjectGroup got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
+        ObjectGroup got =
+            (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
         assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(1);
         assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
-        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple("BinaryMaster", 1), tuple("PhysicalMaster", 1));
+        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc")
+            .contains(tuple("BinaryMaster", 1), tuple("PhysicalMaster", 1));
 
         // 2. Add objects to existing got
         String containerName2 = createOperationContainer();
@@ -3194,7 +3273,8 @@ public class ProcessingIT extends VitamRuleRunner {
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name());
         final RequestResponse<JsonNode> ret2 =
-                processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.getValue());
+            processingClient.executeOperationProcess(containerName2, Contexts.DEFAULT_WORKFLOW.name(),
+                ProcessAction.RESUME.getValue());
         assertNotNull(ret2);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret2.getStatus());
 
@@ -3210,14 +3290,15 @@ public class ProcessingIT extends VitamRuleRunner {
         got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
         assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(2);
         assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);
-        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc").contains(tuple("BinaryMaster", 3), tuple("PhysicalMaster", 1));
+        assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).extracting("qualifier", "_nbc")
+            .contains(tuple("BinaryMaster", 3), tuple("PhysicalMaster", 1));
 
         // Fix check bug 5199. Assert that all versions of all qualifiers have DataObjectGroupId equals to got id
         String gotId = got.getString(ObjectGroup.ID);
         Stream<String> stream = ((List<Document>) got.get(ObjectGroup.QUALIFIERS, List.class))
-                .stream()
-                .flatMap(o -> ((List<Document>) o.get("versions", List.class)).stream())
-                .map(o -> o.getString(SedaConstants.TAG_DATA_OBJECT_GROUPE_ID));
+            .stream()
+            .flatMap(o -> ((List<Document>) o.get("versions", List.class)).stream())
+            .map(o -> o.getString(SedaConstants.TAG_DATA_OBJECT_GROUPE_ID));
 
         assertThat(stream).hasSize(4).allMatch(o -> gotId.equals(o));
     }
