@@ -120,7 +120,8 @@ public class IndexUnitActionPlugin extends ActionHandler {
             indexArchiveUnit(params, itemStatus);
         } catch (final StepAlreadyExecutedException e) {
             LOGGER.warn(e);
-            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
+            // FIXME (US 5769) : Now return StatusCode.OK but should be StatusCode.ALREADY_EXECUTED. Todo: Do not recreate LFC events if already created in case of StatusCode.ALREADY_EXECUTED;
+            itemStatus.increment(StatusCode.OK);
         } catch (final IllegalArgumentException | InvalidCreateOperationException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);

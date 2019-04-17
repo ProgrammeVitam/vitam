@@ -268,6 +268,7 @@ public class WorkerImpl implements Worker {
                                 LogbookLifeCycleParameters lfcParam =
                                     createStartLogbookLfc(step, handlerName, workParams);
                                 pluginResponse = actionPlugin.execute(workParams, handlerIO);
+                                // FIXME (US 5769)
                                 if (!StatusCode.ALREADY_EXECUTED.equals(pluginResponse.getGlobalStatus()) &&
                                     lfcParam != null) {
                                     writeLogBookLfcFromResponse(handlerName, logbookLfcClient, pluginResponse,

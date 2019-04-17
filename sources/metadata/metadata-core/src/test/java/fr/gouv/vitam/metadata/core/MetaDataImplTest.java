@@ -148,17 +148,17 @@ public class MetaDataImplTest {
 
     }
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test(expected = MetaDataAlreadyExistException.class)
     public void givenInsertUnitWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(request).execInsertUnitRequest(anyObject());
+        doThrow(new MetaDataAlreadyExistException("")).when(request).execInsertUnitRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertUnit(buildQueryJsonWithOptions("", DATA_INSERT));
     }
 
-    @Test(expected = InvalidParseOperationException.class)
+    @Test(expected = MetaDataAlreadyExistException.class)
     public void givenInsertObjectGroupWhenDuplicateEntryThenThrowMetaDataAlreadyExistException() throws Exception {
-        doThrow(new InvalidParseOperationException("")).when(request).execInsertObjectGroupRequest(anyObject());
+        doThrow(new MetaDataAlreadyExistException("")).when(request).execInsertObjectGroupRequest(anyObject());
 
         metaDataImpl = MetaDataImpl.newMetadata(MongoDbAccessMetadataFactory.create(null));
         metaDataImpl.insertObjectGroup(buildQueryJsonWithOptions("", DATA_INSERT));
