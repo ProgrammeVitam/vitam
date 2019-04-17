@@ -20,6 +20,8 @@ elasticsearch:
         baseuri: "elasticsearch-log"
         cluster_name: "elasticsearch-log"
         https_enabled: false
+        index_search_slowlog_rolling_level: "warn"
+        index_indexing_slowlog_level: "warn"
         # default index template
         index_templates:
             default:
@@ -35,6 +37,8 @@ elasticsearch:
         baseuri: "elasticsearch-data"
         cluster_name: "elasticsearch-data"
         https_enabled: false
+        index_search_slowlog_rolling_level: "warn"
+        index_indexing_slowlog_level: "warn"
         # default index template
         index_templates:
             default:
