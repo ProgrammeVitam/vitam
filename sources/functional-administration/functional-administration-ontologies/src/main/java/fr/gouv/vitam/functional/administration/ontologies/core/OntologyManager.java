@@ -27,18 +27,6 @@
 
 package fr.gouv.vitam.functional.administration.ontologies.core;
 
-import static com.mongodb.client.model.Filters.in;
-import static com.mongodb.client.model.Filters.or;
-import static com.mongodb.client.model.Filters.regex;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.FindIterable;
@@ -68,6 +56,18 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.or;
+import static com.mongodb.client.model.Filters.regex;
 
 /**
  * This class manage validation and log operation of Ontology service
@@ -255,6 +255,25 @@ public class OntologyManager {
             .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
                 StatusCode.FATAL,
                 VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
+
+        logbookMessageError(objectId, errorsDetails, logbookParameters);
+
+        logbookClient.update(logbookParameters);
+    }
+
+    /**
+     * log KO error (system or technical error)
+     *
+     * @param errorsDetails
+     * @throws VitamException
+     */
+    public void logKoError(String eventType, String objectId, String errorsDetails) throws VitamException {
+        LOGGER.error("There validation errors on the input file {}", errorsDetails);
+        final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
+        final LogbookOperationParameters logbookParameters = LogbookParametersFactory
+            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
+                StatusCode.KO,
+                VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
 
         logbookMessageError(objectId, errorsDetails, logbookParameters);
 

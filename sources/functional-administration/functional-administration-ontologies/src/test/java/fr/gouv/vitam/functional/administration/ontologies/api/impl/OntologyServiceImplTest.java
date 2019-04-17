@@ -34,7 +34,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.error.VitamError;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -67,7 +66,6 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -80,6 +78,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.reset;
 
 public class OntologyServiceImplTest {
+    private final TypeReference<List<OntologyModel>> listOfOntologyType = new TypeReference<List<OntologyModel>>() {};
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
@@ -180,8 +179,7 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -194,8 +192,7 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ko_duplicate_identifier.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -207,8 +204,7 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("KO_ontology_vocExt_WithBlank.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isFalse();
         assertThat(response.getHttpCode()).isEqualTo(Response.Status.BAD_REQUEST.getStatusCode());
@@ -222,15 +218,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
 
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_update_identifiers_ko.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -243,8 +237,7 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ko_no_type.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isFalse();
     }
@@ -255,8 +248,7 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ko_no_origin.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -270,8 +262,7 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ko_invalid_identifiers.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -285,15 +276,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
         final File fileOntology2 =
             PropertiesUtils.getResourceFile("ontology_Ko_identifier_equals_sedafield_in_DB.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -306,8 +295,7 @@ public class OntologyServiceImplTest {
 
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_Ko_identifier_equals_sedafield.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
 
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isFalse();
@@ -319,8 +307,7 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isFalse();
     }
@@ -332,15 +319,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
         //Insert same file (same identifier= update different identifier=create)
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_update_ok.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isTrue();
@@ -352,15 +337,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
 
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_ko_update_wrong_type.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -374,15 +357,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_double.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
 
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_long.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -394,15 +375,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_long.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
 
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_double.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -410,8 +389,7 @@ public class OntologyServiceImplTest {
 
         final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_keyword.json");
         final List<OntologyModel> ontologyModelList3 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, listOfOntologyType);
 
         final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
         assertThat(response3.isOk()).isFalse();
@@ -425,15 +403,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_boolean.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
 
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_text.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -441,8 +417,7 @@ public class OntologyServiceImplTest {
 
         final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_keyword.json");
         final List<OntologyModel> ontologyModelList3 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, listOfOntologyType);
 
         final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
         assertThat(response3.isOk()).isFalse();
@@ -455,15 +430,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_text.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
 
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_double.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -471,8 +444,7 @@ public class OntologyServiceImplTest {
 
         final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_keyword.json");
         final List<OntologyModel> ontologyModelList3 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, listOfOntologyType);
 
         final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
         assertThat(response3.isOk()).isTrue();
@@ -484,15 +456,13 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_keyword.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
 
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_double.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isFalse();
@@ -500,8 +470,7 @@ public class OntologyServiceImplTest {
 
         final File fileOntology3 = PropertiesUtils.getResourceFile("ontology_text.json");
         final List<OntologyModel> ontologyModelList3 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology3, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology3, listOfOntologyType);
 
         final RequestResponse response3 = ontologyService.importOntologies(true, ontologyModelList3);
         assertThat(response3.isOk()).isTrue();
@@ -515,20 +484,49 @@ public class OntologyServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
         final File fileOntology = PropertiesUtils.getResourceFile("ontology_ok.json");
         final List<OntologyModel> ontologyModelList =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
         final RequestResponse response = ontologyService.importOntologies(true, ontologyModelList);
         assertThat(response.isOk()).isTrue();
         //Insert same file (same identifier= update different identifier=create)
         final File fileOntology2 = PropertiesUtils.getResourceFile("ontology_empty_property_ok.json");
         final List<OntologyModel> ontologyModelList2 =
-            JsonHandler.getFromFileAsTypeRefence(fileOntology2, new TypeReference<List<OntologyModel>>() {
-            });
+            JsonHandler.getFromFileAsTypeRefence(fileOntology2, listOfOntologyType);
 
         final RequestResponse response2 = ontologyService.importOntologies(true, ontologyModelList2);
         assertThat(response2.isOk()).isTrue();
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void shouldImportRightOntology() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        File fileOntology = PropertiesUtils.getResourceFile("ok_ontology.json");
+        List<OntologyModel> ontologyModelListOk = JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
 
+        // When
+        RequestResponse response = ontologyService.importOntologies(true, ontologyModelListOk);
+
+        // Then
+        assertThat(response).isInstanceOf(RequestResponseOK.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldNotImportWrongOntologyWithUnknownCollection() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+
+        File fileOntologyKo = PropertiesUtils.getResourceFile("KO_ontology_unknown_collection.json");
+        List<OntologyModel> ontologyModelListKo = JsonHandler.getFromFileAsTypeRefence(fileOntologyKo, listOfOntologyType);
+
+        // When
+        RequestResponse response = ontologyService.importOntologies(true, ontologyModelListKo);
+
+        // Then
+        assertThat(response.toString()).contains("instance value (\\\\\\\"BlablaCollection\\\\\\\") not found in enum");
+
+        assertThat(response).isNotInstanceOf(RequestResponseOK.class);
+    }
 
 }
