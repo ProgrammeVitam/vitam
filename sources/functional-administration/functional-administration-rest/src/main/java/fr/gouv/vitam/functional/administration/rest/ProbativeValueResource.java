@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -84,6 +86,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 
@@ -96,6 +99,8 @@ public class ProbativeValueResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueResource.class);
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
+    private static final String ACCESS_CONTRACT = "AccessContract";
+
 
     /**
      * probative value  service
@@ -138,9 +143,18 @@ public class ProbativeValueResource {
                         GUIDReader.getGUID(operationId),
                     GUIDReader.getGUID(operationId));
 
+            addRightsStatementIdentifier(initParameters);
             client.create(initParameters);
 
         }
+    }
+
+    private void addRightsStatementIdentifier(LogbookOperationParameters initParameters) {
+        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+        rightsStatementIdentifier
+            .put(ACCESS_CONTRACT, getVitamSession().getContract().getIdentifier());
+        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+            rightsStatementIdentifier.toString());
     }
 
     @POST
