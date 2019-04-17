@@ -106,10 +106,11 @@
   <logger name="fr.gouv.vitam.metadata.core.graph.StoreGraphService" level="INFO"/>
   <logger name="fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl" level="INFO"/>
   <logger name="fr.gouv.vitam.common" level="WARN" />
+{% if vitam_struct.performance_logger|lower == "true" %}}
   <logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="DEBUG" additivity="false" >
      <appender-ref ref="SYSLOG" />
   </logger>
-
+{% endif %}
   <logger name="fr.gouv.vitam.common.alert.AlertServiceImpl" level="INFO">
 	  <appender-ref ref="SECURITY" />
   </logger>
