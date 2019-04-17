@@ -43,8 +43,8 @@ public class StorageLogFactory implements StorageLog {
 
     private static StorageLog instance;
     private final List<Integer> tenants;
-    private Path writeOperationLogPath;
-    private Path accessOperationLogPath;
+    private final Path writeOperationLogPath;
+    private final Path accessOperationLogPath;
     private final Map<Integer, StorageLogAppender> writeOperationLogAppenders;
     private final Map<Integer, StorageLogAppender> accessOperationLogAppenders;
     private final Map<Integer, Object> writeLockers;
@@ -68,7 +68,7 @@ public class StorageLogFactory implements StorageLog {
         this.accessOperationLogAppenders = new HashMap<>();
         this.writeLockers = new HashMap<>();
         this.accessLockers = new HashMap<>();
-        initializeStorageLogs(basePath);
+        initializeStorageLogs();
     }
 
     /**
@@ -199,9 +199,7 @@ public class StorageLogFactory implements StorageLog {
         }
     }
 
-    public void initializeStorageLogs(Path basePath) throws IOException {
-        writeOperationLogPath = createStoragePathDirectory(basePath, true);
-        accessOperationLogPath = createStoragePathDirectory(basePath, false);
+    public void initializeStorageLogs() throws IOException {
 
         for (Integer tenant : tenants) {
             writeOperationLogAppenders.put(tenant, createAppender(tenant, true));

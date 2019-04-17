@@ -561,9 +561,6 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
             response = performRequest(HttpMethod.POST, STORAGE_LOG_TRACEABILITY_URI, headers,
                 MediaType.APPLICATION_JSON_TYPE);
-
-            getRequestResponseOK(response);
-
             return RequestResponse.parseRequestResponseOk(response);
         } catch (final VitamClientInternalException e) {
             LOGGER.error("Internal Server Error:", e);

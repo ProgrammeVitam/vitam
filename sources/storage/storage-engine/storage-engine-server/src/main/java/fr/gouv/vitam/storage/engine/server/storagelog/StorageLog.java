@@ -31,7 +31,6 @@ import fr.gouv.vitam.storage.engine.server.storagelog.parameters.AccessLogParame
 import fr.gouv.vitam.storage.engine.server.storagelog.parameters.StorageLogbookParameters;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 
 
@@ -64,7 +63,7 @@ public interface StorageLog extends VitamAutoCloseable {
      */
     List<LogInformation> rotateLogFile(Integer tenantId, boolean isWriteOperation) throws IOException;
 
-    void initializeStorageLogs(Path basePath) throws IOException;
+    void initializeStorageLogs() throws IOException;
 
     String getFileName(boolean isWriteOperation);
 }

@@ -107,7 +107,7 @@ public class StorageLogBackup {
                 }
             } catch (Exception e) {
                 failedProcess.set(true);
-                throw new IllegalStateException(" Error when securing Tenant  :  " + tenantId, e);
+                LOGGER.error("Error during storage log backup for tenant  :  " + tenantId, e);
             } finally {
                 VitamThreadUtils.getVitamSession().setTenantId(null);
                 doneSignal.countDown();
