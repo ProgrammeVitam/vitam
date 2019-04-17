@@ -19,11 +19,6 @@
 
 		<dependency>
 			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-private</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
 			<artifactId>common-database-public</artifactId>
 			<version>${project.version}</version>
 		</dependency>

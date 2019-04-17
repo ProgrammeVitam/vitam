@@ -254,7 +254,7 @@
 				<configuration>
 					<name>vitam-${unix.name}</name>
 					<disabled>false</disabled>
-					<licence>CeCILL 2.1</licence>
+					<license>CeCILL 2.1</license>
 					<distribution>Vitam Project</distribution>
 					<group>Application/Archiving</group>
 					<packager>Vitam Package Team</packager>
@@ -265,8 +265,8 @@
 						<require>java-1.8.0</require>
 						<require>vitam-user-${unix.user}</require>
 					</requires>
-					<defaultDirMode>750</defaultDirMode>
-					<defaultFileMode>640</defaultFileMode>
+					<defaultDirmode>750</defaultDirmode>
+					<defaultFilemode>640</defaultFilemode>
 					<defaultUsername>${unix.user}</defaultUsername>
 					<defaultGroupname>${unix.group}</defaultGroupname>
 					<mappings>
