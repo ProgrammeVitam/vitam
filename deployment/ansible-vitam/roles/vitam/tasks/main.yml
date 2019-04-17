@@ -24,8 +24,6 @@
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == true
 
-- import_tasks: tape_offer.yml
-
 
 # state: latest to handle snapshot versions
 - name: Install {{ package_name }} package
@@ -145,6 +143,8 @@
     - "jetty-config.xml"
     - "vitam.conf"
     - "vitam.metrics.conf"
+  when: ( item != "logbook-client.conf" ) or
+        ( item == "logbook-client.conf" and vitam_struct.vitam_component != "ihm-demo" )
   tags:
     - update_vitam_configuration
   notify:
