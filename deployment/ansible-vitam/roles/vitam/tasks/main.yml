@@ -138,9 +138,8 @@
     - "jetty-config.xml"
     - "vitam.conf"
     - "vitam.metrics.conf"
-  when:
-    - item == "logbook-client.conf"
-    - vitam_struct.vitam_component != "ihm-demo"
+  when: ( item != "logbook-client.conf" ) or
+        ( item == "logbook-client.conf" and vitam_struct.vitam_component != "ihm-demo" )
   tags:
     - update_vitam_configuration
   notify:
