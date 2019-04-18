@@ -1351,7 +1351,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     message,
                     GUIDReader.getGUID(operationId)
                 );
-
+                // Add access contract rights
+                addRightsStatementIdentifier(initParameters);
                 logbookOperationsClient.create(initParameters);
 
                 workspaceClient.createContainer(operationId);

@@ -1,6 +1,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.willThrow;
@@ -78,11 +79,14 @@ public class ProbativeValueResourceTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(managementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(adminManagementClient.findAccessContracts(any()))
-                .thenReturn(new RequestResponseOK<AccessContractModel>()
-                                .addAllResults(Arrays.asList(new AccessContractModel()
-                                        .setEveryOriginatingAgency(true)
-                                        .setEveryDataObjectVersion(true))));
+            .thenReturn(new RequestResponseOK<AccessContractModel>()
+                .addAllResults(Arrays.asList(new AccessContractModel()
+                    .setEveryOriginatingAgency(true)
+                    .setEveryDataObjectVersion(true))));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        AccessContractModel accessContractModel = new AccessContractModel();
+        accessContractModel.setIdentifier("fakeIdentifier");
+        VitamThreadUtils.getVitamSession().setContract(accessContractModel);
 
         GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
