@@ -133,7 +133,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -148,7 +148,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -164,7 +164,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
@@ -180,7 +180,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     batchreport:
         vitam_component: batch-report
         host: "batch-report.service.{{ consul_domain }}"
@@ -195,7 +195,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
@@ -225,7 +225,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -240,7 +240,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -274,7 +274,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -298,7 +298,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -314,7 +314,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
@@ -329,7 +329,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -344,7 +344,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -369,7 +369,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -383,7 +383,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     worker:
         vitam_component: worker
         port_service: 9104
@@ -397,7 +397,7 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -412,4 +412,4 @@ vitam:
         logback_max_file_size: "10MB"
         logback_total_size_cap: "5GB"
         jvm_log: false
-	performance_logger: "false"
+        performance_logger: "false"
