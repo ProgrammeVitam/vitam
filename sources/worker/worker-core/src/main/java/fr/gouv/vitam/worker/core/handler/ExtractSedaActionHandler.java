@@ -221,8 +221,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String OBJECT_GROUP_ID = "_og";
     private static final String TRANSFER_AGENCY = "TransferringAgency";
     private static final String ARCHIVAL_AGENCY = "ArchivalAgency";
-    public static final int BATCH_SIZE = 50;
-    public static final String RULES = "Rules";
+    private static final int BATCH_SIZE = 50;
+    private static final String RULES = "Rules";
 
     private static String ORIGIN_ANGENCY_NAME = "originatingAgency";
     private static final String ORIGIN_ANGENCY_SUBMISSION = "submissionAgency";
@@ -426,11 +426,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             ObjectNode evDetData = extractSEDA(lifeCycleClient, params, globalCompositeItemStatus, workflowUnitType);
 
             if (!existingUnitGuids.isEmpty()) {
-                try {
-                    evDetData.set(ATTACHMENT_IDS, JsonHandler.toJsonNode(existingUnitGuids));
-                } catch (InvalidParseOperationException e) {
-                    throw new ProcessingException(e);
-                }
+                evDetData.set(ATTACHMENT_IDS, JsonHandler.toJsonNode(existingUnitGuids));
             }
 
             globalCompositeItemStatus.setEvDetailData(JsonHandler.unprettyPrint(evDetData));
@@ -488,16 +484,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     .setMasterData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
                         rightsStatementIdentifier.toString());
                 ObjectNode data;
-                try {
-                    data = (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
-                    data.set(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier);
-                    globalCompositeItemStatus.setEvDetailData(data.toString());
-                    globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
-                        rightsStatementIdentifier.toString());
+                data = (ObjectNode) JsonHandler.getFromString(globalCompositeItemStatus.getEvDetailData());
+                data.set(LogbookMongoDbName.rightsStatementIdentifier.getDbname(), rightsStatementIdentifier);
+                globalCompositeItemStatus.setEvDetailData(data.toString());
+                globalCompositeItemStatus.setData(LogbookMongoDbName.rightsStatementIdentifier.getDbname(),
+                    rightsStatementIdentifier.toString());
 
-                } catch (InvalidParseOperationException e) {
-                    throw new ProcessingException(e);
-                }
+
             }
 
         } catch (final ProcessingDuplicatedVersionException e) {
@@ -585,8 +578,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 getMessageItemStatusGOTLinkingException(e.getUnitId(), e.getObjectGroupId()),
                 SUBTASK_UNAUTHORIZED_ATTACHMENT);
             globalCompositeItemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingException | WorkerspaceQueueException e) {
-            LOGGER.debug("ProcessingException", e);
+        } catch (final ProcessingException | WorkerspaceQueueException | InvalidParseOperationException e) {
+            LOGGER.debug("ProcessingException ", e);
             globalCompositeItemStatus.increment(StatusCode.FATAL);
         } catch (final CycleFoundException e) {
             LOGGER.debug("ProcessingException: cycle found", e);
@@ -976,7 +969,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 if (comments != null && comments.isArray()) {
                     ArrayNode commentsArray = (ArrayNode) comments;
                     for (JsonNode node : commentsArray) {
-                        String comment = null, lang = null;
+                        String comment = null;
+                        String lang = null;
                         if (node.isTextual()) {
                             comment = node.asText();
                         } else {
@@ -1066,7 +1060,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 } else {
                     LOGGER.debug("Put a null ServiceLevel (No Data Object Package)");
-                    evDetData.set("ServiceLevel", (ObjectNode) null);
+                    evDetData.set("ServiceLevel", null);
                 }
 
             } catch (InvalidParseOperationException e) {
@@ -1469,10 +1463,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
 
-            if (archiveUnitRefId != null) {
-                if (unitIdToGuid.containsKey(archiveUnitRefId)) {
-                    relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
-                }
+            if (archiveUnitRefId != null && (unitIdToGuid.containsKey(archiveUnitRefId)) {
+                relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
             }
         }
     }
@@ -1706,13 +1698,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void createUnitLifeCycle(String unitGuid, String containerId)
         throws LogbookClientNotFoundException {
 
-        if (guidToLifeCycleParameters.get(unitGuid) != null) {
-            if (!existingUnitGuids.contains(unitGuid)) {
-                LogbookLifeCycleUnitParameters unitLifeCycle =
-                    createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
+        if (guidToLifeCycleParameters.get(unitGuid) != null &&(!existingUnitGuids.contains(unitGuid)) {
+            LogbookLifeCycleUnitParameters unitLifeCycle =
+                createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
 
-                handlerIO.getHelper().updateDelegate(unitLifeCycle);
-            }
+            handlerIO.getHelper().updateDelegate(unitLifeCycle);
         }
     }
 
@@ -2906,7 +2896,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             RequestResponse<OntologyModel> responseOntologies =
                 adminClient.findOntologies(selectOntologies.getFinalSelect());
             if (responseOntologies != null && responseOntologies.isOk() &&
-                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
+                !((RequestResponseOK<OntologyModel>) responseOntologies).getResults().isEmpty()) {
                 ontologyModelList =
                     ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
             }
