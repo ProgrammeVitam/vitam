@@ -518,4 +518,37 @@ public class OntologyServiceImplTest {
             FunctionalAdminCollections.ONTOLOGY), any());
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void shouldImportRightOntology() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+        File fileOntology = PropertiesUtils.getResourceFile("ok_ontology.json");
+        List<OntologyModel> ontologyModelListOk = JsonHandler.getFromFileAsTypeRefence(fileOntology, listOfOntologyType);
+
+        // When
+        RequestResponse response = ontologyService.importOntologies(true, ontologyModelListOk);
+
+        // Then
+        assertThat(response).isInstanceOf(RequestResponseOK.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldNotImportWrongOntologyWithUnknownCollection() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT);
+
+        File fileOntologyKo = PropertiesUtils.getResourceFile("KO_ontology_unknown_collection.json");
+        List<OntologyModel> ontologyModelListKo = JsonHandler.getFromFileAsTypeRefence(fileOntologyKo, listOfOntologyType);
+
+        // When
+        RequestResponse response = ontologyService.importOntologies(true, ontologyModelListKo);
+
+        // Then
+        assertThat(response.toString()).contains("instance value (\\\\\\\"BlablaCollection\\\\\\\") not found in enum");
+
+        assertThat(response).isNotInstanceOf(RequestResponseOK.class);
+    }
+
 }
