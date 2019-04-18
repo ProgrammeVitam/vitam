@@ -1463,7 +1463,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             String archiveUnitRefId = relatedObjectReferenceItem.getArchiveUnitRefId();
 
-            if (archiveUnitRefId != null && (unitIdToGuid.containsKey(archiveUnitRefId)) {
+            if (archiveUnitRefId != null && (unitIdToGuid.containsKey(archiveUnitRefId))) {
                 relatedObjectReferenceItem.setArchiveUnitRefId(unitIdToGuid.get(archiveUnitRefId));
             }
         }
@@ -1698,7 +1698,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void createUnitLifeCycle(String unitGuid, String containerId)
         throws LogbookClientNotFoundException {
 
-        if (guidToLifeCycleParameters.get(unitGuid) != null &&(!existingUnitGuids.contains(unitGuid)) {
+        if (guidToLifeCycleParameters.get(unitGuid) != null &&(!existingUnitGuids.contains(unitGuid))) {
             LogbookLifeCycleUnitParameters unitLifeCycle =
                 createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
 
