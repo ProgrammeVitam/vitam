@@ -351,8 +351,7 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
@@ -363,6 +362,35 @@ public class PreservationUpdateObjectGroupPluginTest {
             .containsOnly(OK);
         assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS/0").textValue())
             .isEqualTo("40.714, -74.006");
+    }
+
+    @Test
+    public void should_update_extracted_metadata_with_raw_metadata() throws Exception {
+        // Given
+        ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
+
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(getOutputPreservationWithRawMetadata(EXTRACT));
+        TestHandlerIO testHandlerIO = new TestHandlerIO();
+        testHandlerIO.addOutputResult(0, batchResults);
+        testHandlerIO.setInputs(batchResults);
+
+        InputStream objectGroupStream = Object.class.getResourceAsStream("/preservation/objectGroupDslResponse.json");
+
+        RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+            .addResult(JsonHandler.getFromInputStream(objectGroupStream))
+            .setHttpCode(Response.Status.OK.getStatusCode());
+        given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
+
+        // When
+        List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
+
+        // Then
+        assertThat(itemStatuses)
+            .extracting(ItemStatus::getGlobalStatus)
+            .containsOnly(OK);
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata/0").textValue())
+            .isEqualTo("rawMetadata : {plop}");
     }
 
     @Test
@@ -664,6 +692,18 @@ public class PreservationUpdateObjectGroupPluginTest {
         OtherMetadata otherMetadata = new OtherMetadata();
         otherMetadata.put("GPS", Collections.singletonList("40.714, -74.006"));
         extractedMetadata.setOtherMetadata(otherMetadata);
+        output.setExtractedMetadata(extractedMetadata);
+        return output;
+    }
+
+    private OutputPreservation getOutputPreservationWithRawMetadata(ActionTypePreservation action) {
+        OutputPreservation output = new OutputPreservation();
+        output.setStatus(PreservationStatus.OK);
+        output.setAction(action);
+        output.setInputPreservation(new InputPreservation("aeaaaaaaaahiu6xhaaksgalhnbwn3siaaaaq", "fmt/43"));
+        output.setFormatIdentification(new DbFormatIdentificationModel("Batman", "text/winner", "x-fmt/42"));
+        ExtractedMetadata extractedMetadata = new ExtractedMetadata();
+        extractedMetadata.setRawMetadata("rawMetadata : {plop}");
         output.setExtractedMetadata(extractedMetadata);
         return output;
     }
