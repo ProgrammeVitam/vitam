@@ -58,6 +58,11 @@ public class TapeLibraryConfiguration {
     private boolean useSudo = false;
 
     /**
+     * Override non empty cartridges before label creation
+     */
+    private boolean forceOverrideNonEmptyCartridges = false;
+
+    /**
      * File bucket & bucket configuration
      */
     private TapeLibraryTopologyConfiguration topology;
@@ -136,6 +141,15 @@ public class TapeLibraryConfiguration {
 
     public TapeLibraryConfiguration setUseSudo(boolean useSudo) {
         this.useSudo = useSudo;
+        return this;
+    }
+
+    public boolean isForceOverrideNonEmptyCartridges() {
+        return forceOverrideNonEmptyCartridges;
+    }
+
+    public TapeLibraryConfiguration setForceOverrideNonEmptyCartridges(boolean forceOverrideNonEmptyCartridges) {
+        this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
         return this;
     }
 }

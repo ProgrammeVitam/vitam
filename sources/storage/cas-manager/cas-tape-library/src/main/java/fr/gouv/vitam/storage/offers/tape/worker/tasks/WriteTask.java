@@ -105,11 +105,13 @@ public class WriteTask implements Future<ReadWriteResult> {
     private final WriteOrder writeOrder;
     private boolean retryEnabled = true;
     private int cartridgeRetry = CARTRIDGE_RETRY;
+    private final boolean forceOverrideNonEmptyCartridges;
 
     public WriteTask(
         WriteOrder writeOrder, TapeCatalog workerCurrentTape, TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService, TapeCatalogService tapeCatalogService,
-        TarReferentialRepository tarReferentialRepository, String inputTarPath) {
+        TarReferentialRepository tarReferentialRepository, String inputTarPath,
+        boolean forceOverrideNonEmptyCartridges) {
         ParametersChecker.checkParameter("WriteOrder param is required.", writeOrder);
         ParametersChecker.checkParameter("TapeRobotPool param is required.", tapeRobotPool);
         ParametersChecker.checkParameter("TapeDriveService param is required.", tapeDriveService);
@@ -124,6 +126,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         this.inputTarPath = inputTarPath;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
             tapeDriveService.getTapeDriveConf().getIndex());
+        this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
     }
 
     @Override
@@ -343,11 +346,27 @@ public class WriteTask implements Future<ReadWriteResult> {
             // Check empty tape
             TapeResponse moveResponse = tapeDriveService.getDriveCommandService().goToPosition(1);
             if (moveResponse.isOK()) {
-                workerCurrentTape.setCurrentPosition(workerCurrentTape.getCurrentPosition() + 1);
-                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                    " Action : Is Tape Empty, Order: " + JsonHandler.unprettyPrint(writeOrder) +
-                    ", Error: Tape not empty but tape catalog is empty",
-                    ReadWriteErrorCode.KO_LABEL_DISCORDING_NOT_EMPTY_TAPE, moveResponse);
+
+                if (this.forceOverrideNonEmptyCartridges) {
+
+                    LOGGER.warn("OVERRIDING NON EMPTY CARTRIDGE " + workerCurrentTape.getCode());
+                    TapeResponse rewindResponse = tapeDriveService.getDriveCommandService().rewind();
+
+                    if (!rewindResponse.isOK()) {
+                        throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                            " Action : Force override non empty tape, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                            ", Error: Could not rewind for force empty cartridge overriding",
+                            ReadWriteErrorCode.KO_REWIND_BEFORE_FORCE_OVERRIDE_NON_EMPTY_TAPE, rewindResponse);
+                    }
+
+                } else {
+
+                    workerCurrentTape.setCurrentPosition(workerCurrentTape.getCurrentPosition() + 1);
+                    throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                        " Action : Is Tape Empty, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                        ", Error: Tape not empty but tape catalog is empty",
+                        ReadWriteErrorCode.KO_LABEL_DISCORDING_NOT_EMPTY_TAPE, moveResponse);
+                }
             }
 
             // Do status to get tape TYPE and some other information (update catalog)
