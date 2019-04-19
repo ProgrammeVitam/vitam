@@ -154,7 +154,7 @@ export class IngestContractComponent extends PageComponent {
     if (this.contract.DataObjectVersion === undefined) {
       this.contract.DataObjectVersion = [];
     }
-    if (this.contract.CheckParentId) {
+    if (!this.contract.CheckParentId) {
       this.contract.CheckParentId = [];
     }
     this.modifiedContract = ObjectsService.clone(this.contract);
