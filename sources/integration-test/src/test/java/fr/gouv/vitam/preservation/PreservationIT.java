@@ -26,6 +26,45 @@
  *******************************************************************************/
 package fr.gouv.vitam.preservation;
 
+import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
+import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
+import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
+import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
+import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
+import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
+import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
+import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+
+import javax.ws.rs.core.Response;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -36,6 +75,7 @@ import com.mongodb.client.model.Sorts;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
+import fr.gouv.vitam.batch.report.model.OperationSummary;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
@@ -111,41 +151,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
-import static fr.gouv.vitam.batch.report.model.PreservationStatus.OK;
-import static fr.gouv.vitam.common.VitamServerRunner.NB_TRY;
-import static fr.gouv.vitam.common.VitamServerRunner.PORT_SERVICE_ACCESS_INTERNAL;
-import static fr.gouv.vitam.common.VitamServerRunner.SLEEP_TIME;
-import static fr.gouv.vitam.common.client.VitamClientFactoryInterface.VitamClientType.PRODUCTION;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFileAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
-import static fr.gouv.vitam.common.json.JsonHandler.writeAsFile;
-import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
-import static fr.gouv.vitam.common.model.PreservationVersion.LAST;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
-import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
-import static fr.gouv.vitam.elimination.EndToEndEliminationIT.prepareVitamSession;
-import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Ingest Internal integration test
@@ -603,9 +608,36 @@ public class PreservationIT extends VitamRuleRunner {
                 .get("events");
 
             // Then
-            assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
-                .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+            Response response = null;
+            try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
+                response =
+                    client.getContainerAsync("default", String.format("%s.jsonl", operationGuid.getId()), DataCategory.REPORT,
+                        AccessLogUtils.getNoLogAccessLog());
+                try (InputStream inputStream = response.readEntity(InputStream.class)) {
+                    assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
+                        .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+                    try (InputStream inputStreamExpected = getClass().getResourceAsStream("/preservation/preservationReport.jsonl")) {
+                        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+                        BufferedReader bufferedReaderExpected =
+                            new BufferedReader(new InputStreamReader(inputStreamExpected, StandardCharsets.UTF_8));
+                        Optional<String> iteratorExpected = bufferedReaderExpected.lines().findFirst();
+                        Optional<String> iterator1 = bufferedReader.lines().findFirst();
+                        OperationSummary operationSummaryExpected =
+                            JsonHandler.getFromStringAsTypeRefence(iteratorExpected.get(), new TypeReference<OperationSummary>() {
+                            });
+                        OperationSummary operationSummary =
+                            JsonHandler.getFromStringAsTypeRefence(iterator1.get(), new TypeReference<OperationSummary>() {
+                            });
 
+                        assertThat(operationSummary.getEvType()).isEqualTo(operationSummaryExpected.getEvType());
+                        assertThat(operationSummary.getOutcome()).isEqualTo(operationSummaryExpected.getOutcome());
+                        assertThat(operationSummary.getOutMsg()).isEqualTo(operationSummaryExpected.getOutMsg());
+                        assertThat(operationSummary.getTenant()).isEqualTo(operationSummaryExpected.getTenant());
+                        assertThat(operationSummary.getRightsStatementIdentifier())
+                            .isEqualTo(operationSummaryExpected.getRightsStatementIdentifier());
+                    }
+                }
+            }
             JsonNode objectGroup =
                 JsonHandler.toJsonNode(
                     MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId()))

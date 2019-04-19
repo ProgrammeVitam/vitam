@@ -35,20 +35,31 @@ import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ReportOutput;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.StatusOutcome;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -56,18 +67,21 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class PreservationFinalizationPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationFinalizationPlugin.class);
-
     private static final String PLUGIN_NAME = "PRESERVATION_FINALIZATION";
-
+    protected static final String PRESERVATION = "PRESERVATION";
+    private static final String PRESERVATION_OK = "PRESERVATION.OK";
     private PreservationReportService preservationReportService;
+    private LogbookOperationsClient logbookOperationsClient;
 
     public PreservationFinalizationPlugin() {
-        this(new PreservationReportService());
+        this(new PreservationReportService(), LogbookOperationsClientFactory.getInstance().getClient());
     }
 
     @VisibleForTesting
-    PreservationFinalizationPlugin(PreservationReportService preservationReportService) {
+    PreservationFinalizationPlugin(PreservationReportService preservationReportService,
+        LogbookOperationsClient logbookOperationsClient) {
         this.preservationReportService = preservationReportService;
+        this.logbookOperationsClient = logbookOperationsClient;
     }
 
     @Override
@@ -75,31 +89,37 @@ public class PreservationFinalizationPlugin extends ActionHandler {
 
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
         String evId = param.getRequestId();
-        String evType = ""; // FIXME To be Fill in a post commit
-        String outcome = ""; // FIXME To be Fill in a post commit
-        String outDetail = ""; // FIXME To be Fill in a post commit
-        String outMsg = ""; // FIXME To be Fill in a post commit
-        // VitamThreadUtils.getVitamSession().getContractId();
-        // VitamThreadUtils.getVitamSession().getContextId();
-        // rSI = {AccessContract: contractId, Context: contextId }
-        // FIXME: What should we put in rightsStatementIdentifier for Preservation ?
-        JsonNode rSI = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        JsonNode evDetData = JsonHandler.createObjectNode(); // Will be set later by appended status data
-        OperationSummary operationSummary = new OperationSummary(tenant, evId, evType, outcome, outDetail, outMsg, rSI, evDetData);
-
-        String startDate = null; // FIXME To be Fill in a post commit
-        String endDate = LocalDateUtil.getString(LocalDateTime.now());
-        ReportType reportType = ReportType.PRESERVATION;
-        ReportResults vitamResults = new ReportResults(); // FIXME To be Fill in a post commit
-        JsonNode extendedInfo = JsonHandler.createObjectNode(); // FIXME To be Fill in a post commit
-        ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
-
-        JsonNode context = JsonHandler.createObjectNode();
-
-        Report reportInfo = new Report(operationSummary, reportSummary, context);
-
         try {
-            preservationReportService.storeReport(reportInfo);
+            JsonNode result = logbookOperationsClient.selectOperationById(param.getContainerName());
+            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(result);
+            LogbookOperation logbookOperationVersionModel =
+                JsonHandler.getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
+            List<LogbookEventOperation> events = logbookOperationVersionModel.getEvents();
+
+            List<StatusOutcome> statusOutcomes = events.stream()
+                .map(e -> createLogbookReport(e.getOutcome(), e.getOutDetail(), e.getOutMessg(), e.getEvDetData()))
+                .collect(Collectors.toList());
+
+
+            ReportOutput reportOutput = createLogbookReport(statusOutcomes);
+            JsonNode rSI = JsonHandler.toJsonNode(logbookOperationVersionModel.getRightsStatementIdentifier());
+            JsonNode evDetData = null;
+            if (reportOutput.getEvDetData() != null) {
+                evDetData = JsonHandler.toJsonNode(reportOutput.getEvDetData());
+            }
+            OperationSummary operationSummary =
+                new OperationSummary(tenant, evId, reportOutput.getEvType(), reportOutput.getOutcome(), reportOutput.getOutDetail(),
+                    reportOutput.getOutMsg(), rSI, evDetData);
+
+            String startDate = logbookOperationVersionModel.getEvDateTime();
+            String endDate = LocalDateUtil.getString(LocalDateTime.now());
+            ReportType reportType = ReportType.PRESERVATION;
+            ReportResults vitamResults = new ReportResults();
+            JsonNode extendedInfo = JsonHandler.createObjectNode();
+            ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
+            JsonNode context = JsonHandler.createObjectNode();
+            Report reportInfo = new Report(operationSummary, reportSummary, context);
+            preservationReportService.storeReport(reportInfo, param.getRequestId());
         } catch (Exception e) {
             LOGGER.error("Error on finalization", e);
             ObjectNode eventDetails = JsonHandler.createObjectNode();
@@ -109,4 +129,39 @@ public class PreservationFinalizationPlugin extends ActionHandler {
 
         return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("Finalization ok."));
     }
+
+    private ReportOutput createLogbookReport(List<StatusOutcome> statusOutcomes) {
+        List<StatusOutcome> statusOutcomeNotOk =
+            statusOutcomes.stream().filter(s -> !OK.equals(s.getStatusCode())).collect(Collectors.toList());
+        if (statusOutcomeNotOk.isEmpty()) {
+            return createReportOutput(new StatusOutcome(StatusCode.OK, PRESERVATION_OK, VitamLogbookMessages.getCodeOp(
+                PRESERVATION, StatusCode.OK), null), StatusCode.OK);
+        }
+        List<StatusOutcome> statusKo = statusOutcomeNotOk.stream().filter(statusOutcome -> StatusCode.KO.equals(statusOutcome.getStatusCode()))
+            .collect(Collectors.toList());
+        if (statusOutcomeNotOk.size() == statusOutcomes.size() && statusKo.size() == statusOutcomeNotOk.size()) {
+            return statusOutcomeNotOk.stream().map(statusOutcome -> createReportOutput(statusOutcome, StatusCode.KO)).reduce((this::reportCombine))
+                .orElseGet(() -> new ReportOutput("", "", "", "", ""));
+        }
+        return statusOutcomeNotOk.stream().map(statusOutcome -> createReportOutput(statusOutcome, StatusCode.WARNING)).reduce((this::reportCombine))
+            .orElseGet(() -> new ReportOutput("", "", "", "", ""));
+    }
+
+    ReportOutput reportCombine(ReportOutput reportOutput1, ReportOutput reportOutput2) {
+        return new ReportOutput(PRESERVATION,  reportOutput1.getOutcome(),
+            String.join(", ", reportOutput1.getOutDetail(), reportOutput2.getOutDetail()),
+            String.join(", ", reportOutput1.getOutMsg(), reportOutput2.getOutMsg()),
+            String.join(", ", reportOutput1.getEvDetData(), reportOutput2.getEvDetData()));
+    }
+
+    private ReportOutput createReportOutput(StatusOutcome statusOutcome, StatusCode statusCode) {
+        return new ReportOutput(PRESERVATION, statusCode.name(), statusOutcome.getOutDetail(), statusOutcome.getOutMessg(),
+            statusOutcome.getEvDetData());
+    }
+
+    private StatusOutcome createLogbookReport(String outcome, String outDetail, String outMessg, String evDetData) {
+        return new StatusOutcome(StatusCode.valueOf(outcome), outDetail, outMessg, evDetData);
+    }
+
+
 }

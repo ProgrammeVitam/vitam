@@ -37,7 +37,6 @@ import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -50,7 +49,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,7 +101,7 @@ public class PreservationReportServiceTest {
             new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
                 tenantId, "2018-11-15T11:13:20.986",
                 PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "outcome - TEST");
+                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "outcome - TEST", "griffinId", "preservationScenarioId");
         List<PreservationReportEntry> reports = new ArrayList<>();
         reports.add(preservationReportEntry);
 
@@ -124,7 +122,7 @@ public class PreservationReportServiceTest {
         Report reportInfo = new Report(operationSummary, reportSummary, context);
 
         // Given / When
-        ThrowingCallable exportReport = () -> preservationReportService.storeReport(reportInfo);
+        ThrowingCallable exportReport = () -> preservationReportService.storeReport(reportInfo, processId);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();

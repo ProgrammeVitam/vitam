@@ -190,7 +190,7 @@ public class AgenciesServiceTest {
             Files.copy(argumentAt, reportPath);
             return null;
         }).when(functionalBackupService).saveFile(any(InputStream.class), any(GUID.class), eq(AGENCIES_REPORT),
-                eq(DataCategory.REPORT), endsWith(".json"));
+            eq(DataCategory.REPORT), endsWith(".json"));
 
         File fileAgencies1 = getResourceFile("agencies.csv");
 

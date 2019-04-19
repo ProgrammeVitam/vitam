@@ -63,6 +63,7 @@ public class PreservationReportRepositoryTest {
 
     private MongoCollection<Document> preservationReportCollection;
     private PreservationReportEntry preservationReportEntry;
+    private PreservationReportEntry preservationReportEntry2;
     private String processId;
 
     @Before
@@ -74,7 +75,13 @@ public class PreservationReportRepositoryTest {
         preservationReportEntry = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
             TENANT_ID, "2018-11-15T11:13:20.986",
             PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST");
+            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",
+            "preservationScenarioId");
+        preservationReportEntry2 = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq", processId,
+            TENANT_ID, "2018-11-15T11:13:20.986",
+            PreservationStatus.OK, "unitId2", "objectGroupId", ANALYSE, "VALID_ALL",
+            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",
+            "preservationScenarioId");
     }
 
     @Test
@@ -107,12 +114,13 @@ public class PreservationReportRepositoryTest {
             Document reportModel = iterator.next();
             documents.add(reportModel);
         }
-        assertThat(documents.size()).isEqualTo(1);
+        assertThat(documents.size()).isEqualTo(2);
     }
 
     private void populateDatabase() {
         List<PreservationReportEntry> reports = new ArrayList<>();
         reports.add(preservationReportEntry);
+        reports.add(preservationReportEntry2);
         repository.bulkAppendReport(reports);
     }
 
@@ -125,9 +133,14 @@ public class PreservationReportRepositoryTest {
         PreservationStatsModel stats = repository.stats(processId, TENANT_ID);
 
         // Then
-        assertThat(stats.getNbActionsAnaylse()).isEqualTo(1);
+        assertThat(stats.getNbObjectGroups()).isEqualTo(1);
+        assertThat(stats.getNbUnits()).isEqualTo(2);
+        assertThat(stats.getNbActionsExtract()).isEqualTo(0);
+        assertThat(stats.getNbActionsGenerate()).isEqualTo(0);
+        assertThat(stats.getNbActionsIdentify()).isEqualTo(0);
+        assertThat(stats.getNbActionsAnaylse()).isEqualTo(2);
         assertThat(stats.getNbStatusKos()).isEqualTo(0);
-        assertThat(stats.getAnalyseResults().get("VALID_ALL")).isEqualTo(1);
+        assertThat(stats.getAnalyseResults().get("VALID_ALL")).isEqualTo(2);
     }
 
     @Test

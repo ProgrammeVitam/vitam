@@ -92,7 +92,6 @@ public class ReportManagementIT extends VitamRuleRunner {
     public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final String REPORT_JSON = "report.json";
     private static final String PROCESS_ID = "123456789";
     private static final int TENANT_0 = 0;
     private static BatchReportClient batchReportClient;
