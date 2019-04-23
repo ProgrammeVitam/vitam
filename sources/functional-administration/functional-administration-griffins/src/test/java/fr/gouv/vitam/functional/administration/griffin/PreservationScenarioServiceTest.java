@@ -216,13 +216,12 @@ public class PreservationScenarioServiceTest {
         verify(functionalBackupService)
             .saveCollectionAndSequence(guid, "STP_BACKUP_SCENARIO", PRESERVATION_SCENARIO, guid.getId());
 
-
         // test false type creation date
         List<PreservationScenarioModel> scenarios =
             getPreservationScenarioModels("preservationScenarios/KO_scenario_false_type_creationDate.json");
         assertThatThrownBy(
             () -> preservationScenarioService.importScenarios(scenarios))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid date");
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("field 'CreationDate' format is invalid");
     }
 
 
