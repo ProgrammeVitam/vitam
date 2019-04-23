@@ -66,6 +66,7 @@ Ce *playbook* permet d'installer :
   - un reverse proxy, afin de fournir une page d'accueil pour les environnements de test
   - l'outillage de tests de performance
 
+.. warning:: Pour se connecter aux :term:`IHM`, il faut désormais configurer ``reverse_proxy_port=443`` dans l'inventaire.
 
 .. code-block:: console
 
