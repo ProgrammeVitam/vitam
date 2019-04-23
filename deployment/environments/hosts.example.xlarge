@@ -109,17 +109,17 @@ xlarge-app-vm-8
 xlarge-app-vm-6
 xlarge-app-vm-7
 xlarge-app-vm-8
-
-[hosts-processing]
-xlarge-app-vm-9
-
-[hosts-storage-engine]
-xlarge-app-vm-22
-xlarge-app-vm-23
-xlarge-app-vm-24
-xlarge-app-vm-25
-
-[hosts-batch-report]
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
+reverse_proxy_port
 xlarge-app-vm-11
 
 [hosts-worker]
@@ -279,7 +279,7 @@ vitam_tests_gitrepo_baseurl=github.com
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/ProgrammeVitam/vitam-itests.git
 
 ### reverse proxy ###
-reverse_proxy_port=80
+reverse_proxy_port=443
 http_proxy_environnement=
 vitam_reverse_external_dns=
 vitam_reverse_external_protocol=http

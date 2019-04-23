@@ -73,7 +73,7 @@ hosts-access-internal
 hosts-metadata
 hosts-functional-administration
 hosts-logbook
-hosts-workspace
+hosts-workspacereverse_proxy_port
 hosts-storage-engine
 hosts-security-internal
 
@@ -89,7 +89,7 @@ medium-app-vm-2
 [hosts-ingest-internal]
 medium-app-vm-1
 
-[hosts-access-internal]
+[hosts-access-internal]reverse_proxy_port
 medium-app-vm-1
 
 [hosts-metadata]
@@ -241,7 +241,7 @@ primary_site=true
 # ===============================
 # EXTRA
 # ===============================
-
+reverse_proxy_port
 # environnement=local
 ### vitam-itest repository ###
 vitam_tests_branch=master_2.1.x
@@ -250,7 +250,7 @@ vitam_tests_gitrepo_baseurl=github.com
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/ProgrammeVitam/vitam-itests.git
 
 ### reverse proxy ###
-reverse_proxy_port=80
+reverse_proxy_port=443
 http_proxy_environnement=
 vitam_reverse_external_dns=
 vitam_reverse_external_protocol=http

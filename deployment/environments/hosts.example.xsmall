@@ -228,7 +228,7 @@ vitam_tests_gitrepo_baseurl=github.com
 vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo_baseurl}}/ProgrammeVitam/vitam-itests.git
 
 ### reverse proxy ###
-reverse_proxy_port=80
+reverse_proxy_port=443
 http_proxy_environnement=
 vitam_reverse_external_dns=
 vitam_reverse_external_protocol=http

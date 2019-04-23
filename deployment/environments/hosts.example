@@ -360,6 +360,6 @@ vitam_tests_gitrepo_url=
 # Used when VITAM is behind a reverse proxy (provides configuration for reverse proxy && displayed in header page)
 vitam_reverse_external_dns=
 # For reverse proxy use
-reverse_proxy_port=80
+reverse_proxy_port=443
 # http_proxy env var to use ; has to be declared even if empty
 http_proxy_environnement=
