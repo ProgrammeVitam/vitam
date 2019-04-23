@@ -6,6 +6,15 @@
 
     # Enable SSL for the Reverse proxy
     SSLProxyEngine on
+
+    # SSL
+    SSLEngine on
+        # according to http://blog.noizeramp.com/2010/10/03/apache-2-and-ssl-configuration/
+    SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+    SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+
+
+
     # Client certificate path
     # SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{ vitam_site_name }}.pem
     # Client CA path
@@ -66,12 +75,12 @@
     ProxyPassReverse  {{vitam.metadata.baseuri}}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam.metadata.port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ihm-demo'] %}
-    ProxyPass /{{ vitam.ihm_demo.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_demo.port_admin}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  /{{ vitam.ihm_demo.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_demo.port_admin}}/admin/v1
+    ProxyPass /{{ vitam.ihm_demo.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_demo.port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  /{{ vitam.ihm_demo.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_demo.port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass /{{ vitam.ihm_recette.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_recette.port_admin}}/admin/v1 {{reverse_connection_params}}
-    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_recette.port_admin}}/admin/v1
+    ProxyPass /{{ vitam.ihm_recette.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_recette.port_admin}}/admin/v1 {{reverse_connection_params}}
+    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam.ihm_recette.port_admin}}/admin/v1
     {% endfor %}
     {% for host in groups['hosts-logbook'] %}
     ProxyPass /{{ vitam.logbook.baseuri }}{% if loop.index > 1 %}{{loop.index}}{% endif %}/admin/v1 http://{{hostvars[host]['ip_admin']}}:{{vitam.logbook.port_admin}}/admin/v1 {{reverse_connection_params}}
@@ -104,13 +113,13 @@
 
     # IHM Demo
     {% for host in groups['hosts-ihm-demo'] %}
-    ProxyPass /{{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }} {{reverse_connection_params}}
-    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}
+    ProxyPass /{{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }} {{reverse_connection_params}}
+    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}
     {% endfor %}
     # IHM Recette
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass /{{ vitam.ihm_recette.baseuri }}  https://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }} {{reverse_connection_params}}
-    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}
+    ProxyPass /{{ vitam.ihm_recette.baseuri }}  http{% if vitam.ihm_recette.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }} {{reverse_connection_params}}
+    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}  http{% if vitam.ihm_recette.https_enabled|lower == 'true' %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}
     {% endfor %}
 
     # Enable chunked mode for all requests to access-external & ingest-external
