@@ -56,6 +56,7 @@ import fr.gouv.vitam.common.SedaConfiguration;
 import fr.gouv.vitam.common.SedaVersion;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
@@ -823,63 +824,86 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 if (!includeUnits.isEmpty() && !excludeUnits.isEmpty()) {
                     checkUnits.addAll(includeUnits);
                     checkUnits.addAll(excludeUnits);
+
+                    checkUnits.removeIf(unit -> unit.trim().isEmpty());
+                    if (checkUnits.isEmpty()) {
+                        return Optional.empty();
+                    }
+
+                    return selectUnits(metaDataClient, contract, contractName, checkUnits, "AllUnits");
                 } else if (!excludeUnits.isEmpty()) {
                     checkUnits = excludeUnits;
+                    return selectUnits(metaDataClient, contract, contractName, checkUnits, AccessContractModel.EXCLUDED_ROOT_UNITS);
                 } else if (!includeUnits.isEmpty()) {
                     checkUnits = includeUnits;
+                    return selectUnits(metaDataClient, contract, contractName, checkUnits, AccessContractModel.ROOT_UNITS);
                 } else {
                     return Optional.empty();
-                }
-
-                checkUnits.removeIf(unit -> unit.trim().isEmpty());
-                if (checkUnits.isEmpty()) {
-                    return Optional.empty();
-                }
-
-                String[] rootUnitArray = checkUnits.toArray(new String[checkUnits.size()]);
-
-                final Select select = new Select();
-                try {
-                    select.setQuery(QueryHelper.in(PROJECTIONARGS.ID.exactToken(), rootUnitArray).setDepthLimit(0));
-                    select.setProjection(JsonHandler.getFromString("{\"$fields\": { \"#id\": 1}}"));
-                } catch (InvalidCreateOperationException |
-                    InvalidParseOperationException e) {
-                    return Optional
-                        .of(GenericRejectionCause.rejectExceptionOccurred(contract.getName(), "Error parse query", e));
-                }
-
-                final JsonNode queryDsl = select.getFinalSelect();
-
-                try {
-                    JsonNode resp = metaDataClient.selectUnits(queryDsl);
-                    RequestResponseOK<JsonNode> responseOK = RequestResponseOK.getFromJsonNode(resp);
-                    List<JsonNode> result = responseOK.getResults();
-                    if (null == result || result.isEmpty()) {
-                        return Optional.of(GenericRejectionCause
-                            .rejectRootUnitsNotFound(contractName, String.join(",", checkUnits)));
-
-                    } else if (result.size() == checkUnits.size()) {
-                        return Optional.empty();
-                    } else {
-                        Set<String> notFoundRootUnits = new HashSet<>(checkUnits);
-                        result.forEach(unit -> {
-                            notFoundRootUnits.remove(unit.get("#id").asText());
-                        });
-                        return Optional.of(GenericRejectionCause
-                            .rejectRootUnitsNotFound(contractName, String.join(",", notFoundRootUnits)));
-                    }
-                } catch (InvalidParseOperationException |
-                    MetaDataExecutionException |
-                    MetaDataDocumentSizeException |
-                    MetaDataClientServerException e) {
-                    return Optional.of(GenericRejectionCause
-                        .rejectExceptionOccurred(contract.getName(), "Error while select units", e));
                 }
             };
         }
     }
 
+    private static Optional<GenericRejectionCause> selectUnits(
+        MetaDataClient metaDataClient, AccessContractModel contract, String contractName, Set<String> checkUnits, String unitType) {
 
+        String[] rootUnitArray = checkUnits.toArray(new String[checkUnits.size()]);
+
+        final Select select = new Select();
+        try {
+            select.setQuery(QueryHelper.in(PROJECTIONARGS.ID.exactToken(), rootUnitArray).setDepthLimit(0));
+            select.setProjection(
+                JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
+                    JsonHandler.createObjectNode()
+                        .put(PROJECTIONARGS.ID.exactToken(), 1)));
+        } catch (InvalidCreateOperationException |
+            InvalidParseOperationException e) {
+            return Optional
+                .of(GenericRejectionCause.rejectExceptionOccurred(contract.getName(), "Error parse query", e));
+        }
+
+        final JsonNode queryDsl = select.getFinalSelect();
+
+        try {
+            JsonNode resp = metaDataClient.selectUnits(queryDsl);
+            RequestResponseOK<JsonNode> responseOK = RequestResponseOK.getFromJsonNode(resp);
+            List<JsonNode> result = responseOK.getResults();
+            if (null == result || result.isEmpty()) {
+                String guidArrayString = String.join(",", checkUnits);
+                switch(unitType){
+                    case "AllUnits" :
+                        return Optional.of(GenericRejectionCause
+                            .rejectExcludedAndRootUnitsNotFound(contractName, guidArrayString));
+                    case AccessContractModel.ROOT_UNITS:
+                        return Optional.of(GenericRejectionCause
+                            .rejectRootUnitsNotFound(contractName, guidArrayString));
+                    case AccessContractModel.EXCLUDED_ROOT_UNITS:
+                        return Optional.of(GenericRejectionCause
+                            .rejectExcludedRootUnitsNotFound(contractName, guidArrayString));
+                    default:
+                        return Optional.of(GenericRejectionCause
+                            .rejectRootUnitsNotFound(contractName, guidArrayString));
+
+                }
+
+            } else if (result.size() == checkUnits.size()) {
+                return Optional.empty();
+            } else {
+                Set<String> notFoundRootUnits = new HashSet<>(checkUnits);
+                result.forEach(unit -> {
+                    notFoundRootUnits.remove(unit.get("#id").asText());
+                });
+                return Optional.of(GenericRejectionCause
+                    .rejectRootUnitsNotFound(contractName, String.join(",", notFoundRootUnits)));
+            }
+        } catch (InvalidParseOperationException |
+            MetaDataExecutionException |
+            MetaDataDocumentSizeException |
+            MetaDataClientServerException e) {
+            return Optional.of(GenericRejectionCause
+                .rejectExceptionOccurred(contract.getName(), "Error while select units", e));
+        }
+    }
 
     @Override
     public void close() {
