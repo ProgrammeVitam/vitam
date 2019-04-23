@@ -73,7 +73,7 @@ hosts-access-internal
 hosts-metadata
 hosts-functional-administration
 hosts-logbook
-hosts-workspacereverse_proxy_port
+hosts-workspace
 hosts-storage-engine
 hosts-security-internal
 
@@ -89,7 +89,7 @@ medium-app-vm-2
 [hosts-ingest-internal]
 medium-app-vm-1
 
-[hosts-access-internal]reverse_proxy_port
+[hosts-access-internal]
 medium-app-vm-1
 
 [hosts-metadata]
@@ -241,7 +241,6 @@ primary_site=true
 # ===============================
 # EXTRA
 # ===============================
-reverse_proxy_port
 # environnement=local
 ### vitam-itest repository ###
 vitam_tests_branch=master_2.1.x
