@@ -26,19 +26,20 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.mongodb;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.json.JsonHandler;
+import org.assertj.core.api.Assertions;
+import org.bson.Document;
+import org.junit.Test;
+
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import org.assertj.core.api.Assertions;
-import org.bson.Document;
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class VitamDocumentCodecTest {
     private static class PseudoClass extends Document {
@@ -86,13 +87,27 @@ public class VitamDocumentCodecTest {
 
     @Test
     public final void testdiff() {
-        List<String> list = new ArrayList<>();
-        list.add("-  \"Name\" : \"PToUpdate\",");
-        list.add("-  \"_v\" : 0");
-        List<String> result = VitamDocument.getConcernedDiffLines(list);
-        Assertions.assertThat(result.get(0)).isEqualTo("-  Name : PToUpdate");
+        ObjectNode obNode1 = JsonHandler.createObjectNode();
+        obNode1.put("Name", "MyName \" é ");
+        obNode1.put("_v", 0);
+        obNode1.put("_a", "test\"");
 
-        Assertions.assertThat(result.get(1)).isEqualTo("-  _v : 0");
+        ObjectNode obNode2 = JsonHandler.createObjectNode();
+        obNode2.put("Name", "MyModifiedName \" é ");
+        obNode2.put("_v", 1);
+        obNode2.put("_a", "test1\"");
+
+        List<String> list =
+            VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(obNode1), JsonHandler.prettyPrint(obNode2));
+
+        List<String> result = VitamDocument.getConcernedDiffLines(list);
+
+        Assertions.assertThat(result.get(0)).isEqualTo("-  \"Name\" : \"MyName \\\" \\u00E9 \"");
+        Assertions.assertThat(result.get(1)).isEqualTo("-  \"_v\" : 0");
+        Assertions.assertThat(result.get(2)).isEqualTo("-  \"_a\" : \"test\\\"\"");
+        Assertions.assertThat(result.get(3)).isEqualTo("+  \"Name\" : \"MyModifiedName \\\" \\u00E9 \"");
+        Assertions.assertThat(result.get(4)).isEqualTo("+  \"_v\" : 1");
+        Assertions.assertThat(result.get(5)).isEqualTo("+  \"_a\" : \"test1\\\"\"");
 
     }
 }

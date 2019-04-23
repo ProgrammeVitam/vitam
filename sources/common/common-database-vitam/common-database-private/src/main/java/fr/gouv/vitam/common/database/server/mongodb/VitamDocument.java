@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -205,8 +206,8 @@ public abstract class VitamDocument<E> extends Document {
      * @return unified diff (each list entry is a diff line)
      */
     public static List<String> getUnifiedDiff(String original, String revised) {
-        final List<String> beforeList = Arrays.asList(original.split("\\n"));
-        final List<String> revisedList = Arrays.asList(revised.split("\\n"));
+        final List<String> beforeList = Arrays.asList(original.split(",\\n|\\n"));
+        final List<String> revisedList = Arrays.asList(revised.split(",\\n|\\n"));
 
         final Patch<String> patch = DiffUtils.diff(beforeList, revisedList);
 
@@ -225,10 +226,12 @@ public abstract class VitamDocument<E> extends Document {
         for (final String line : diff) {
             if (line.matches(REGEX)) {
                 // remove the last character which is a ","
-                if (line.endsWith(",")) {
-                    result.add(line.substring(0, line.length() - 1).replace("\"", ""));
+                if (line.endsWith("\",")) {
+                    result.add(StringUtils.substringBeforeLast(line, "\","));
+                } else if (line.endsWith(",")) {
+                    result.add(StringUtils.substringBeforeLast(line, ","));
                 } else {
-                    result.add(line.replace("\"", ""));
+                    result.add(line);
                 }
             }
 
