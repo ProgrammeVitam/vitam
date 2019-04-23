@@ -38,9 +38,7 @@ public class Difference<T> {
 
     public boolean hasNoDifference() {
         return changes.stream()
-            .filter(DiffNode::isNotEmpty)
-            .collect(Collectors.toList())
-            .isEmpty();
+            .allMatch(DiffNode::isEmpty);
     }
 
     public boolean hasDifference() {

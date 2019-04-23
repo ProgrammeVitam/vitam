@@ -57,6 +57,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ExtractedMetadata;
 import fr.gouv.vitam.common.model.preservation.OtherMetadata;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
@@ -88,6 +89,7 @@ import static java.util.stream.Collectors.toMap;
 
 public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     private static final String PLUGIN_NAME = "PRESERVATION_INDEXATION_METADATA";
+    private static final String RAW_METADATA = "RawMetadata";
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationUpdateObjectGroupPlugin.class);
     private final MetaDataClientFactory metaDataClientFactory;
 
@@ -284,30 +286,40 @@ public class PreservationUpdateObjectGroupPlugin extends ActionHandler {
     }
 
     private DbVersionsModel createNewVersionExtracted(OutputExtra outputExtra, DbVersionsModel version, List<Difference> differences) {
-        ExtractedMetadata extractedMetadata = outputExtra.getOutput().getExtractedMetadata();
-        if (extractedMetadata == null) {
+        OutputPreservation output = outputExtra.getOutput();
+        if (output.getExtractedMetadata() == null) {
             throw new VitamRuntimeException("ExtractedMetadata cannot be null.");
         }
         Difference<List<Object>> diffOtherMetadataToAdd = new Difference<>(OtherMetadata.class.getSimpleName());
 
-        Map<String, List<Object>> oldMetadata = version.getOtherMetadata();
-        OtherMetadata otherMetadata = new OtherMetadata(oldMetadata);
+        OtherMetadata oldMetadata = version.getOtherMetadata();
+        OtherMetadata newOtherMetadata = new OtherMetadata(oldMetadata);
+        OtherMetadata extractedOtherMetadata = output.getExtractedMetadata().getOtherMetadata();
+        String extractedRawMetadata = output.getExtractedMetadata().getRawMetadata();
 
-        OtherMetadata otherMetadataExtracted = extractedMetadata.getOtherMetadata();
-        otherMetadataExtracted.forEach((key, value) -> {
-            List<Object> oldValue = oldMetadata.get(key);
-            if (oldValue != null) {
-                diffOtherMetadataToAdd.add(key, oldValue, new ArrayList<>(CollectionUtils.union(oldValue, value)));
-                otherMetadata.put(key, new ArrayList<>(CollectionUtils.union(value, oldValue)));
-            } else {
-                diffOtherMetadataToAdd.add(key, Collections.emptyList(), value);
-                otherMetadata.put(key, value);
-            }
-        });
+        if (extractedRawMetadata != null) {
+            newOtherMetadata.put(RAW_METADATA, Collections.singletonList(extractedRawMetadata));
+        }
+
+        if (extractedOtherMetadata == null || extractedOtherMetadata.isEmpty()) {
+            diffOtherMetadataToAdd.add(RAW_METADATA, Collections.emptyList(), Collections.singletonList(extractedRawMetadata));
+        } else {
+            extractedOtherMetadata.forEach((key, value) -> {
+                List<Object> oldValue = oldMetadata.get(key);
+                if (oldValue != null) {
+                    ArrayList<Object> union = new ArrayList<>(CollectionUtils.union(oldValue, value));
+                    diffOtherMetadataToAdd.add(key, oldValue, union);
+                    newOtherMetadata.put(key, union);
+                } else {
+                    diffOtherMetadataToAdd.add(key, Collections.emptyList(), value);
+                    newOtherMetadata.put(key, value);
+                }
+            });
+        }
 
         if (diffOtherMetadataToAdd.hasDifference()) {
             differences.add(diffOtherMetadataToAdd);
-            return DbVersionsModel.newVersionsFrom(version, otherMetadata);
+            return DbVersionsModel.newVersionsFrom(version, newOtherMetadata);
         }
 
         return version;
