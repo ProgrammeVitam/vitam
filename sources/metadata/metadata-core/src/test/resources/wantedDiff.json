@@ -1,0 +1,3 @@
+{
+  "#diff": "-    \"title\" : \"title\"\n-    \"description\" : \"description\"\n+    \"title\" : \"MODIFIED title\"\n+    \"description\" : \"MODIFIED \\\"description\""
+}

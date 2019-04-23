@@ -465,7 +465,7 @@ public class FunctionalAdminIT {
         assertThat(evDetData.get("IngestContract")).isNotNull();
         assertThat(evDetData.get("IngestContract").get("updatedDiffs")).isNotNull();
         assertThat(evDetData.get("IngestContract").get("updatedDiffs").asText())
-            .contains("-  Status : ACTIVE+  Status : INACTIVE");
+            .contains("-  \"Status\" : \"ACTIVE\"+  \"Status\" : \"INACTIVE\"");
 
         updateQuery = new UpdateMultiQuery();
         updateQuery.addActions(new SetAction("Status", "INACTIVE"));
