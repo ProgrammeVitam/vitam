@@ -136,7 +136,7 @@ function generateHostCertAndStorePassphrase {
                                 ${CA_INTERMEDIATE_PASSWORD} \
                                 ${SERVER} \
                                 "server" \
-                                "${COMPONENT}.service.consul"
+                                "${COMPONENT}.service.${CONSUL_DOMAIN}"
         # Store the key to the vault
         setComponentPassphrase certs "server_${COMPONENT}_key" \
                                      "${CERT_KEY}"
@@ -211,6 +211,9 @@ if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
     pki_logger "ERROR" "Cannot find environment file: ${ENVIRONNEMENT_FILE}"
     exit 1
 fi
+
+# Get consul_domain
+CONSUL_DOMAIN=$(grep --perl-regexp "^\s*consul_domain:\s*.*" environments/group_vars/all/vitam_vars.yml |awk -F ":" '{gsub("\\s","",$2); print $2}')
 
 # Cleaning or creating vault file for certs
 initVault certs
