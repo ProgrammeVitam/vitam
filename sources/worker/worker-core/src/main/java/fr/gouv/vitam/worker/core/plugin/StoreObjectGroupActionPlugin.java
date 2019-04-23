@@ -91,57 +91,55 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
             // get list of object group's objects
             for (String objectName : params.getObjectNameList()) {
-                try {
-                    MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params.getContainerName(), objectName);
-                    Map<String, ItemStatus> itemStatusByObject = new HashMap<>();
-                    for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore().entrySet()) {
-                        itemStatusByObject.put(objectGuid.getKey(), new ItemStatus(STORING_OBJECT_TASK_ID));
-                        workspaceObjectURIs.add(SIP + objectGuid.getValue());
-                        objectNames.add(objectGuid.getKey());
-                    }
+                MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params.getContainerName(), objectName);
+                Map<String, ItemStatus> itemStatusByObject = new HashMap<>();
+                for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore()
+                    .entrySet()) {
+                    itemStatusByObject.put(objectGuid.getKey(), new ItemStatus(STORING_OBJECT_TASK_ID));
+                    workspaceObjectURIs.add(SIP + objectGuid.getValue());
+                    objectNames.add(objectGuid.getKey());
+                }
 
-                    itemStatusByObjectList.add(itemStatusByObject);
-                    itemStatusList.add(new ItemStatus(STORING_OBJECT_TASK_ID));
-                    mapOfObjectsList.add(mapOfObjects);
+                itemStatusByObjectList.add(itemStatusByObject);
+                itemStatusList.add(new ItemStatus(STORING_OBJECT_TASK_ID));
+                mapOfObjectsList.add(mapOfObjects);
 
-                    // get list of object uris
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.getJsonOG()));
-                    }
-                } catch (StepAlreadyExecutedException e) {
-                    LOGGER.warn(e);
-                    itemStatusList.add(new ItemStatus().increment(StatusCode.ALREADY_EXECUTED));
+                // get list of object uris
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.getJsonOG()));
                 }
             }
 
-            if(objectNames.isEmpty()) {
-                return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.OK)));
+            if (objectNames.isEmpty()) {
+                return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID)
+                    .setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.OK)));
             }
 
             BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(params.getContainerName(),
-                    workspaceObjectURIs, DataCategory.OBJECT, objectNames);
+                workspaceObjectURIs, DataCategory.OBJECT, objectNames);
 
             // store objects
             BulkObjectStoreResponse result = storeObjects(bulkObjectStoreRequest);
-            if (result != null) {
-                // update sub task itemStatus
-                updateSubTasksAndTasksFromStorageInfos(result, itemStatusByObjectList, itemStatusList);
 
-                storeStorageInfos(DEFAULT_STRATEGY, mapOfObjectsList, result);
-            }
+            // update sub task itemStatus
+            updateSubTasksAndTasksFromStorageInfos(result, itemStatusByObjectList, itemStatusList);
 
-            for (int i=0; i<mapOfObjectsList.size(); i++) {
+            storeStorageInfos(DEFAULT_STRATEGY, mapOfObjectsList, result);
+
+            for (int i = 0; i < mapOfObjectsList.size(); i++) {
                 handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                        params.getObjectNameList().get(i),
-                        mapOfObjectsList.get(i).getJsonOG(), false, asyncIO);
+                    params.getObjectNameList().get(i),
+                    mapOfObjectsList.get(i).getJsonOG(), false, asyncIO);
             }
 
         } catch (final ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
-            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
+            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID)
+                .setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
         } catch (StorageClientException e) {
             LOGGER.error(e);
-            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
+            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID)
+                .setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
         }
 
         return getFinalResult(itemStatusList);
@@ -149,7 +147,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-            throws ProcessingException {
+        throws ProcessingException {
         throw new ProcessingException("No need to implements method");
     }
 
@@ -178,10 +176,6 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         // informations linked to the ObjectGroup
         final JsonNode original = mapOfObjects.getJsonOG().get(SedaConstants.PREFIX_QUALIFIERS);
         final JsonNode work = mapOfObjects.getJsonOG().get(SedaConstants.PREFIX_WORK);
-        if (work == null) {
-            // work is null, that means the object has been processed
-            throw new StepAlreadyExecutedException("Object " + objectName + " has already been processed");
-        }
         final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
             return mapOfObjects;
@@ -220,7 +214,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     private List<ItemStatus> getFinalResult(List<ItemStatus> itemStatusList) {
         List<ItemStatus> finalItemStatusList = new ArrayList<>();
         for (ItemStatus itemStatus : itemStatusList) {
-            finalItemStatusList.add(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus));
+            finalItemStatusList
+                .add(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus));
         }
         return finalItemStatusList;
     }
