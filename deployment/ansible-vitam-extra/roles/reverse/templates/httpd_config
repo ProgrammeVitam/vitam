@@ -10,9 +10,15 @@
     # SSL
     SSLEngine on
         # according to http://blog.noizeramp.com/2010/10/03/apache-2-and-ssl-configuration/
+{% if ansible_os_family == "RedHat" %}
     SSLCertificateFile /etc/pki/tls/certs/localhost.crt
     SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
-
+{% endif %}
+        # according to https://wiki.debian.org/Self-Signed_Certificate
+{% if ansible_os_family == "Debian" %}
+    SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+    SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+{% endif %}
 
 
     # Client certificate path
