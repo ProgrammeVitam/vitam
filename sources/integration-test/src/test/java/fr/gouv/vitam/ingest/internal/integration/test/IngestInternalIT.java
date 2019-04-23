@@ -56,6 +56,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
@@ -291,8 +292,7 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY =
         "integration-ingest-internal/KO_ArchivesPhysiques_EmptyPhysicalId.zip";
 
-    private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT = "integration-ingest-internal/" +
-        "OK_ArchivesPhysiques_With_Attachment_Contract.zip";
+    private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT = "integration-ingest-internal/OK_ArchivesPhysiques_With_Attachment_Contract.zip";
     private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
 
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
@@ -794,12 +794,16 @@ public class IngestInternalIT extends VitamRuleRunner {
             final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
             JsonNode lfc = retrieveLfcForUnit(unit.get("#id").asText(), accessClient);
             assertNotNull(lfc);
+
+            JsonNode unitups = unit.get(BuilderToken.PROJECTIONARGS.UNITUPS.exactToken());
+            assertTrue(unitups.isArray());
+            assertTrue(unitups.toString().contains(linkParentId));
+
             // check evDetData of checkManifest event
             JsonNode checkManifestEvent = lfc.get(LogbookDocument.EVENTS).get(0);
-            assertTrue(checkManifestEvent.get("evType").asText().equals("LFC.CHECK_MANIFEST"));
+            assertEquals(checkManifestEvent.get("evType").asText(), "LFC.CHECK_MANIFEST");
             assertNotNull(checkManifestEvent.get("_lastPersistedDate"));
-            assertTrue(
-                checkManifestEvent.get("evDetData").asText().equals("{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}"));
+            assertEquals(checkManifestEvent.get("evDetData").asText(), "{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}");
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
