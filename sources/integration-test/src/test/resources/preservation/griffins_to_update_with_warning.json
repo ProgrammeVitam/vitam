@@ -1,12 +1,12 @@
 [
   {
-    "Identifier": "GRI-000001111",
-    "Name": "Griffon ImageMagick",
+    "Identifier": "GRI-000001",
+    "Name": "Griffon ImageMagick 2",
     "Description": "Ce griffon peut faire la validation, la conversion et l'extraction de metadonnées des formats images par ImageMagick.\nL'action ANALYSE n'utilise pas d'argument.\nL'action GENERATE utilise en argument tous les arguments d'ImageMagick.\nLes actions EXTRACT_MD_AU et EXTRACT_MD_GOT remonte les métadonnées sous forme arborescente (par exemple \"/image/properties/exif:ResolutionUnit\")",
     "CreationDate": "2018-11-16T15:55:30.721",
     "LastUpdate": "2018-11-20T15:34:21.542",
-    "ExecutableName": "griffin-imagemagick",
-    "ExecutableVersion": "V1.0.0"
+    "ExecutableName": "griffin-imagemagick2",
+    "ExecutableVersion": "V2.0.0"
   },
   {
     "Identifier": "GRI-000002",
