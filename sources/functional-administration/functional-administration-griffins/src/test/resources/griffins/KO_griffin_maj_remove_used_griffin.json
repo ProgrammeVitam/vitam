@@ -1,0 +1,9 @@
+[
+  {
+    "Identifier": "GRI-000002",
+    "Name": "Griffon 2 : Griffon Jhove",
+    "Description": "JHOVE est un outil d'identification, de validation et de conversion de fichiers. Il traite les formats suivants : AIFF, ASCII, GIF, HTML, JPEG, JPEG 2000, PDF, TIFF, UTF-8, WAVE, XML, GZIP, PNG, WARC.",
+    "ExecutableName": "jhove-griffin",
+    "ExecutableVersion": "V1.0.0"
+  }
+]
