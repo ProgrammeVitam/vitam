@@ -48,6 +48,7 @@ import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
@@ -523,7 +524,7 @@ public class PreservationIT extends VitamRuleRunner {
                 .extracting(j -> j.get("outcome").asText())
                 .containsExactly(StatusCode.OK.name(), StatusCode.OK.name(), StatusCode.WARNING.name());
 
-            assertThat(jsonNode.get(2).get("evDetData").textValue().contains("updated but they're already used in preservation scenarios."));
+            assertTrue(jsonNode.get(2).get("evDetData").textValue().contains("updated but they're already used in preservation scenarios."));
 
             assertThat(griffinReport.getStatusCode()).isEqualTo(StatusCode.WARNING);
 
