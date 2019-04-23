@@ -80,3 +80,4 @@
     name: disable_transparent_hugepages.service
     enabled: yes
     state: started
+  when: ansible_virtualization_type != 'docker'
