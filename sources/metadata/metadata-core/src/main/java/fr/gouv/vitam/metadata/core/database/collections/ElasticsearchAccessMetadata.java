@@ -299,7 +299,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (hits.getHits().length > GlobalDatas.LIMIT_LOAD) {
             LOGGER.warn("Warning, more than " + GlobalDatas.LIMIT_LOAD + " hits: " + hits.getTotalHits());
         }
-        if (hits.getTotalHits() == 0) {
+        if (hits.getTotalHits().value == 0) {
             LOGGER.debug("No result from : " + request);
             return isUnit ? MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS)
                 : MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS);
@@ -312,7 +312,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("FinalEsResult: {} : {}", resultRequest.getCurrentIds(), resultRequest.getNbResult());
         }
-        resultRequest.setTotal(hits.getTotalHits());
+        resultRequest.setTotal(hits.getTotalHits().value);
 
         // facets
         Aggregations aggregations = response.getAggregations();

@@ -142,7 +142,7 @@
         <json-unit-version>2.13.0</json-unit-version>
 
         <!-- database libraries -->
-        <elasticsearch.version>6.8.6</elasticsearch.version>
+        <elasticsearch.version>7.3.0</elasticsearch.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
         <mongo.version>3.12.1</mongo.version>
 

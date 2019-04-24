@@ -367,10 +367,10 @@ public class DbRequestSingle {
             return new EmptyMongoCursor<>();
         }
         final SearchHits hits = elasticSearchResponse.getHits();
-        if (hits.getTotalHits() == 0) {
+        if (hits.getTotalHits().value == 0) {
             return new EmptyMongoCursor<>();
         }
-        total = hits.getTotalHits();
+        total = hits.getTotalHits().value;
         final Iterator<SearchHit> iterator = hits.iterator();
         count = hits.getHits().length;
         final List<String> list = new ArrayList<>((int) count);

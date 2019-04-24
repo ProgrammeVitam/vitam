@@ -3,7 +3,6 @@
     "description": "",
     "title": "Temps de reponse moyen de l'URI",
     "uiStateJSON": "{\"vis\":{\"colors\":{\"Max response time\":\"#BF1B00\",\"Min min\":\"#9AC48A\",\"Mean response time\":\"#5195CE\",\"P99 repsonse time\":\"#EF843C\",\"mean response time\":\"#0A50A1\",\"min response time\":\"#629E51\",\"P99 response time\":\"#EF843C\",\"max response time\":\"#BF1B00\"}}}",
-    "savedSearchId": "resources-timers",
     "kibanaSavedObjectMeta": {
       "searchSourceJSON": "{\"filter\":[]}"
     }

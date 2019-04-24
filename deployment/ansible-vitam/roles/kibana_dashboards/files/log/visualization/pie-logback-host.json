@@ -3,7 +3,6 @@
     "visState": "{\"title\":\"pie-logback-host\",\"type\":\"pie\",\"params\":{\"shareYAxis\":true,\"addTooltip\":true,\"addLegend\":true,\"isDonut\":false,\"legendPosition\":\"right\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"2\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"hostname.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\",\"customLabel\":\"Vitam Component\"}}],\"listeners\":{}}",
     "uiStateJSON": "{}",
     "description": "",
-    "savedSearchId": "vitam-type-logback",
     "version": 1,
     "kibanaSavedObjectMeta": {
       "searchSourceJSON": "{\"filter\":[]}"
