@@ -252,16 +252,17 @@ public class ConnectionImpl extends AbstractConnection {
                     request.getDigestAlgorithm(), request.getSize(), null),
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
+            final JsonNode json = handleResponseStatus(response, JsonNode.class);
+
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 throw new StorageDriverException(getDriverName(),
                     "Error while performing put object operation for object " + request.getGuid() + " (" +
                         request.getType() + ")", true);
             }
 
-            final JsonNode json = handleResponseStatus(response, JsonNode.class);
-
-            StoragePutResult result = new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
-                json.get("digest").textValue(), json.get("size").longValue());
+            StoragePutResult result =
+                new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
+                    json.get("digest").textValue(), json.get("size").longValue());
 
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 LOGGER.error("Error while performing put object operation");
