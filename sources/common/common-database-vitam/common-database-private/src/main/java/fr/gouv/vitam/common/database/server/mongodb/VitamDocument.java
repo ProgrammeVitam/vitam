@@ -26,26 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.server.mongodb;
 
-import static difflib.DiffUtils.generateUnifiedDiff;
+import com.fasterxml.jackson.databind.JsonNode;
+import difflib.DiffUtils;
+import difflib.Patch;
+import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
+import fr.gouv.vitam.common.guid.GUIDReader;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bson.Document;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import difflib.DiffUtils;
-import difflib.Patch;
-import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
-import fr.gouv.vitam.common.exception.VitamThreadAccessException;
-import fr.gouv.vitam.common.guid.GUIDReader;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import static difflib.DiffUtils.generateUnifiedDiff;
 
 /**
  * Vitam Document MongoDb abstract
@@ -61,7 +57,7 @@ public abstract class VitamDocument<E> extends Document {
      */
     public static final String ID = "_id";
     /**
-     * Version of the document: Incresed for each update
+     * Version of the document: Incremented for each main updates (excluding computed fields)
      */
     public static final String VERSION = "_v";
     /**
@@ -163,7 +159,6 @@ public abstract class VitamDocument<E> extends Document {
      */
 
     /**
-     *
      * @return the ID
      */
     public String getId() {
@@ -171,7 +166,6 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the TenantId
      */
     public final Integer getTenantId() {
@@ -179,7 +173,6 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the version
      */
     public final Integer getVersion() {
@@ -187,7 +180,6 @@ public abstract class VitamDocument<E> extends Document {
     }
 
     /**
-     *
      * @return the bypass toString
      */
     public String toStringDirect() {
@@ -208,8 +200,8 @@ public abstract class VitamDocument<E> extends Document {
      * @return unified diff (each list entry is a diff line)
      */
     public static List<String> getUnifiedDiff(String original, String revised) {
-        final List<String> beforeList = Arrays.asList(original.split("\\n"));
-        final List<String> revisedList = Arrays.asList(revised.split("\\n"));
+        final List<String> beforeList = Arrays.asList(original.split(",\\n|\\n"));
+        final List<String> revisedList = Arrays.asList(revised.split(",\\n|\\n"));
 
         final Patch<String> patch = DiffUtils.diff(beforeList, revisedList);
 
@@ -228,10 +220,12 @@ public abstract class VitamDocument<E> extends Document {
         for (final String line : diff) {
             if (line.matches(REGEX)) {
                 // remove the last character which is a ","
-                if (line.endsWith(",")) {
-                    result.add(line.substring(0, line.length() - 1).replace("\"", ""));
+                if (line.endsWith("\",")) {
+                    result.add(StringUtils.substringBeforeLast(line, "\","));
+                } else if (line.endsWith(",")) {
+                    result.add(StringUtils.substringBeforeLast(line, ","));
                 } else {
-                    result.add(line.substring(0, line.length()).replace("\"", ""));
+                    result.add(line);
                 }
             }
 

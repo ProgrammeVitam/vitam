@@ -1,0 +1,15 @@
+{
+  "$roots": [
+    "#id"
+  ],
+  "$query": [],
+  "$filter": {},
+  "$action": [
+    {
+      "$set": {
+        "title": "MODIFIED title",
+        "description": "MODIFIED \"description"
+      }
+    }
+  ]
+}
