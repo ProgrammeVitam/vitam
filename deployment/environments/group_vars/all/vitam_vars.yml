@@ -105,7 +105,7 @@ consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ consul_compon
 
 # Workspace should be useless but storage have a dependency to it...
 # elastic-kibana-interceptor is present as kibana is present, if kibana-data & interceptor are not needed in the secondary site, just do not add them in the hosts file
-vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" ]
+vitam_secondary_site_components: [ "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" , "consul" ]
 
 # Vitams griffins required to launch preservation scenario
 vitam_griffins: []
