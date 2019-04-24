@@ -37,6 +37,8 @@ import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInforma
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.CheckedItem.TIMESTAMP_OPERATION;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksAction.COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksAction.VALIDATION;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksSourceDestination.ADDITIONAL_TRACEABILITY;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksSourceDestination.COMPUTATION;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksSourceDestination.DATABASE;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksSourceDestination.OFFER;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksSourceDestination.TRACEABILITY_FILE;
@@ -47,26 +49,33 @@ import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInforma
 
 public enum ChecksInformation {
     // Local integrity checks
-    FILE_DIGEST_OFFER_DATABASE_COMPARISON(LOCAL_INTEGRITY, OFFER, DATABASE, COMPARISON, FILE_DIGEST, "Comparing file digest stored in offers (offer FILE) with file digest found in storing/calculation events (database FILE)."),
-    FILE_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, FILE_DIGEST, "Comparing file digest found in storing/calculation events (database FILE) with file digest found in secured file (secured file FILE)."),
-    EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OBJECT_GROUP,"Comparing events object group lfc digest found in events (database EVENT) with events object group lfc digest found in secured file (secured file EVENT)."),
-    EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OPERATION, "Comparing events operation found in events (database EVENT) with events operation found in secured file (secured file EVENT)."),
+    FILE_DIGEST_OFFER_DATABASE_COMPARISON(LOCAL_INTEGRITY, OFFER, DATABASE, COMPARISON, FILE_DIGEST, "Comparing file digest stored in offers with file digest found in storing/calculation logbook events in database."),
+    FILE_DIGEST_LFC_DATABASE_COMPARISON(LOCAL_INTEGRITY, DATABASE, DATABASE, COMPARISON, FILE_DIGEST, "Comparing file digest found in object group with file digest found in storing/calculation logbook events in database."),
+    FILE_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, FILE_DIGEST, "Comparing file digest found in storing/calculation logbook events in database with file digest found in traceability secured file."),
+    EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OBJECT_GROUP,"Comparing object group lfc digest found in database with object group lfc digest found in traceability secured file."),
+    EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON(LOCAL_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, EVENT_OPERATION, "Comparing operation found in database with operation found in traceability secured file."),
 
     // Merkle integrity checks
-    MERKLE_OPERATION_DIGEST_DATABASE_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, MERKLE_TREE_ROOT_OPERATION_DIGEST, "Comparing operation merkle digest found in events (database EVENT) with operation merkle digest found in secured file (secured file EVENT)."),
-    MERKLE_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, MERKLE_TREE_ROOT_OBJECT_GROUP_DIGEST, "Comparing objectGroup merkle digest found in events (database EVENT) with objectGroup merkle digest found in secured file (secured file EVENT)."),
+    MERKLE_OPERATION_DIGEST_DATABASE_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, MERKLE_TREE_ROOT_OPERATION_DIGEST, "Comparing operation merkle digest found in database with operation merkle digest found in traceability secured file."),
+    MERKLE_OPERATION_DIGEST_COMPUTATION_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, COMPUTATION, TRACEABILITY_FILE, COMPARISON, MERKLE_TREE_ROOT_OPERATION_DIGEST, "Comparing operation merkle digest computed from secured data with operation merkle digest found in traceability secured file."),
+    MERKLE_OPERATION_DIGEST_COMPUTATION_ADDITIONAL_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, COMPUTATION, ADDITIONAL_TRACEABILITY, COMPARISON, MERKLE_TREE_ROOT_OPERATION_DIGEST, "Comparing operation merkle digest computed from secured data with operation merkle digest found in additional traceability secured file."),
+    MERKLE_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, DATABASE, TRACEABILITY_FILE, COMPARISON, MERKLE_TREE_ROOT_OBJECT_GROUP_DIGEST, "Comparing object group merkle digest found in database with object group merkle digest found in traceability secured file."),
+    MERKLE_OBJECT_GROUP_DIGEST_COMPUTATION_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, COMPUTATION, TRACEABILITY_FILE, COMPARISON, MERKLE_TREE_ROOT_OBJECT_GROUP_DIGEST, "Comparing object group merkle digest computed from secured data with object group merkle digest found in traceability secured file."),
+    MERKLE_OBJECT_GROUP_DIGEST_COMPUTATION_ADDITIONAL_TRACEABILITY_COMPARISON(MERKLE_INTEGRITY, COMPUTATION, ADDITIONAL_TRACEABILITY, COMPARISON, MERKLE_TREE_ROOT_OBJECT_GROUP_DIGEST, "Comparing object group merkle digest computed from secured data with object group merkle digest found in additional traceability secured file."),
 
     // Timestamp checks
-    TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, VALIDATION, TIMESTAMP_OPERATION,"Validating timestamp operation found in events (database EVENT) 'AND' timestamp operation found in secured file (secured file EVENT)."),
-    TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, COMPARISON, TIMESTAMP_OPERATION,"Comparing timestamp operation found in events (database EVENT) with timestamp operation found in secured file (secured file EVENT)."),
-    TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, VALIDATION, TIMESTAMP_OBJECT_GROUP, "Validating timestamp objectGroup found in events (database EVENT) 'AND' timestamp objectGroup found in secured file (secured file EVENT)."),
-    TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, COMPARISON, TIMESTAMP_OBJECT_GROUP,"Comparing timestamp objectGroup found in events (database EVENT) with timestamp objectGroup found in secured file (secured file EVENT)."),
+    TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, VALIDATION, TIMESTAMP_OPERATION, "Validating timestamp operation found in database 'AND' timestamp operation found in traceability secured file."),
+    TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, COMPARISON, TIMESTAMP_OPERATION, "Comparing timestamp operation found in database with timestamp operation found in traceability secured file."),
+    TIMESTAMP_OPERATION_COMPUTATION_TRACEABILITY_COMPARISON(TIMESTAMP_CHECKING, COMPUTATION, TRACEABILITY_FILE, COMPARISON, TIMESTAMP_OPERATION, "Comparing timestamp operation computed from computing information traceability file with timestamp operation found in traceability secured file."),
+    TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, VALIDATION, TIMESTAMP_OBJECT_GROUP, "Validating timestamp object group found in database 'AND' timestamp object group found in traceability secured file."),
+    TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON(TIMESTAMP_CHECKING, DATABASE, TRACEABILITY_FILE, COMPARISON, TIMESTAMP_OBJECT_GROUP, "Comparing timestamp object group found in database with timestamp object group found in secured file."),
+    TIMESTAMP_OBJECT_GROUP_COMPUTATION_TRACEABILITY_COMPARISON(TIMESTAMP_CHECKING, COMPUTATION, TRACEABILITY_FILE, COMPARISON, TIMESTAMP_OBJECT_GROUP, "Comparing timestamp object group computed from computing information traceability file with timestamp object group found in secured file."),
 
     // Chain checks
-    PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION(CHAIN, DATABASE, TRACEABILITY_FILE, VALIDATION, PREVIOUS_TIMESTAMP_OPERATION,  "Validating previous timestamp operation found in events (database EVENT) 'AND' previous timestamp operation found in secured file (secured file EVENT)."),
-    PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON(CHAIN, DATABASE, TRACEABILITY_FILE, COMPARISON, PREVIOUS_TIMESTAMP_OPERATION,  "Comparing previous timestamp operation found in events (database EVENT) with previous timestamp operation found in secured file (secured file EVENT)."),
-    PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION(CHAIN, DATABASE, TRACEABILITY_FILE, VALIDATION, PREVIOUS_TIMESTAMP_OBJECT_GROUP, "Validating previous timestamp objectGroup found in events (database EVENT) 'AND' previous timestamp objectGroup found in secured file (secured file EVENT)."),
-    PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON(CHAIN, DATABASE, TRACEABILITY_FILE, COMPARISON, PREVIOUS_TIMESTAMP_OBJECT_GROUP,  "Comparing previous timestamp objectGroup found in events (database EVENT) with previous timestamp objectGroup found in secured file (secured file EVENT).");
+    PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION(CHAIN, DATABASE, TRACEABILITY_FILE, VALIDATION, PREVIOUS_TIMESTAMP_OPERATION, "Validating previous timestamp operation found in database 'AND' previous timestamp operation found in traceability secured file."),
+    PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON(CHAIN, DATABASE, TRACEABILITY_FILE, COMPARISON, PREVIOUS_TIMESTAMP_OPERATION, "Comparing previous timestamp operation found in database with previous timestamp operation found in traceability secured file."),
+    PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION(CHAIN, DATABASE, TRACEABILITY_FILE, VALIDATION, PREVIOUS_TIMESTAMP_OBJECT_GROUP, "Validating previous timestamp object group found in database 'AND' previous timestamp object group found in traceability secured file."),
+    PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON(CHAIN, DATABASE, TRACEABILITY_FILE, COMPARISON, PREVIOUS_TIMESTAMP_OBJECT_GROUP, "Comparing previous timestamp object group found in database with previous timestamp object group found in traceability secured file.");
 
     public final ChecksType checksType;
     public final ChecksSourceDestination source;
@@ -99,7 +108,9 @@ public enum ChecksInformation {
     public enum ChecksSourceDestination {
         OFFER,
         DATABASE,
-        TRACEABILITY_FILE
+        TRACEABILITY_FILE,
+        ADDITIONAL_TRACEABILITY,
+        COMPUTATION
     }
 
     public enum ChecksAction {

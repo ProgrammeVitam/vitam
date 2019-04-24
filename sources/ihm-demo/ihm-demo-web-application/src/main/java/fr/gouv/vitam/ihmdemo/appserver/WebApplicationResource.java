@@ -3514,7 +3514,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
             ProbativeValueRequest queryDSL = JsonHandler.getFromString(criteria, ProbativeValueRequest.class);
-            final RequestResponse response = userInterfaceTransactionManager.exportProbativeValue(queryDSL, userInterfaceTransactionManager.getVitamContext(request));
+            RequestResponse response = userInterfaceTransactionManager.exportProbativeValue(queryDSL, userInterfaceTransactionManager.getVitamContext(request));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);

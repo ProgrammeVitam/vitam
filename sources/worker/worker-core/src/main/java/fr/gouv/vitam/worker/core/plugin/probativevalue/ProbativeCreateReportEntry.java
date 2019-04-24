@@ -47,7 +47,6 @@ import fr.gouv.vitam.common.model.LifeCycleTraceabilitySecureFileObject;
 import fr.gouv.vitam.common.model.ObjectGroupDocumentHash;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
@@ -58,6 +57,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
+import fr.gouv.vitam.logbook.common.traceability.TimeStampService;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -73,7 +73,6 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 import fr.gouv.vitam.worker.core.plugin.lfc_traceability.BuildTraceabilityActionPlugin;
 import fr.gouv.vitam.worker.core.plugin.preservation.PreservationGenerateBinaryHash;
 import fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin;
@@ -89,8 +88,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.cms.Attribute;
 import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.asn1.ess.ESSCertIDv2;
@@ -104,11 +101,9 @@ import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.DigestCalculatorProvider;
 import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
-import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
 import org.bouncycastle.util.Selector;
 import org.bouncycastle.util.Store;
-import org.bouncycastle.util.encoders.Base64;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
@@ -123,13 +118,13 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -147,7 +142,12 @@ import static fr.gouv.vitam.common.model.MetadataType.OBJECTGROUP;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.currentHash;
 import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.previousTimestampToken;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.previousTimestampTokenMinusOneMonth;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.previousTimestampTokenMinusOneYear;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABILITY;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.LOGBOOK;
@@ -155,19 +155,25 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.computeMerkleTree;
 import static fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin.CALC_CHECK;
 import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
-import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.OK;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin.MESSAGE_DIGEST;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.FILE_DIGEST_LFC_DATABASE_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.FILE_DIGEST_OFFER_DATABASE_COMPARISON;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.MERKLE_OBJECT_GROUP_DIGEST_COMPUTATION_ADDITIONAL_TRACEABILITY_COMPARISON;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.MERKLE_OBJECT_GROUP_DIGEST_COMPUTATION_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.MERKLE_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.MERKLE_OPERATION_DIGEST_COMPUTATION_ADDITIONAL_TRACEABILITY_COMPARISON;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.MERKLE_OPERATION_DIGEST_COMPUTATION_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.MERKLE_OPERATION_DIGEST_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.TIMESTAMP_OBJECT_GROUP_COMPUTATION_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.TIMESTAMP_OPERATION_COMPUTATION_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.OperationTraceabilityFilesBuilder.anOperationTraceabilityFiles;
@@ -198,17 +204,19 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
     private final StorageClientFactory storageClientFactory;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
+    private final TimeStampService timeStampService;
 
     @VisibleForTesting
-    public ProbativeCreateReportEntry(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    public ProbativeCreateReportEntry(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory, StorageClientFactory storageClientFactory, LogbookOperationsClientFactory logbookOperationsClientFactory, TimeStampService timeStampService) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
+        this.timeStampService = timeStampService;
     }
 
     public ProbativeCreateReportEntry() {
-        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), StorageClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(), StorageClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(), new TimeStampService());
     }
 
     @Override
@@ -290,8 +298,10 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 .flatMap(operationWithClosestPreviousOperation -> doChecks(traceabilityFiles.get(operationWithClosestPreviousOperation.getOperation().getEvType()).get(), operationWithClosestPreviousOperation, dbVersionsModel, rawLogbookObjectGroupLFC, logbookOperationVersionModel, handler))
                 .collect(Collectors.toList());
 
-            ProbativeCheck check = fileDigestComparison(dbVersionsModel.getMessageDigest(), new TreeSet<>(offerDigests), lifecycleDigests);
-            probativeChecks.add(check);
+            ProbativeCheck databaseOfferFileDigestCheck = fileDigestComparison(FILE_DIGEST_OFFER_DATABASE_COMPARISON, dbVersionsModel.getMessageDigest(), new HashSet<>(offerDigests));
+            ProbativeCheck databaseGotLfcFileDigestCheck = fileDigestComparison(FILE_DIGEST_LFC_DATABASE_COMPARISON, dbVersionsModel.getMessageDigest(), lifecycleDigests);
+            probativeChecks.add(databaseOfferFileDigestCheck);
+            probativeChecks.add(databaseGotLfcFileDigestCheck);
             if (probativeChecks.size() != ChecksInformation.values().length) {
                 transferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion, probativeOperations, probativeChecks));
                 return buildItemStatus(HANDLER_ID, KO, EventDetails.of(String.format("Cannot found ALL %s checks for GOT %s and with VERSION %s.", ChecksInformation.values().length, objectGroupId, usageVersion)));
@@ -300,7 +310,8 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             ProbativeReportEntry probativeReportEntry = new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, dbVersionsModel.getId(), usageVersion, probativeOperations, probativeChecks);
             transferReportEntryToWorkspace(handler, objectGroupId, probativeReportEntry);
 
-            return buildItemStatus(HANDLER_ID, StatusCode.OK, EventDetails.of(String.format("Entry build for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
+            return buildItemStatus(HANDLER_ID,
+                OK, EventDetails.of(String.format("Entry build for GOT %s and with VERSION %s.", objectGroupId, usageVersion)));
         } catch (Exception e) {
             LOGGER.error(e);
             tryTransferReportEntryToWorkspace(handler, objectGroupId, ProbativeReportEntry.koFrom(startEntryCreation, Collections.emptyList(), objectGroupId, NO_BINARY_ID, usageVersion));
@@ -365,7 +376,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON,
                 logbookOperationVersionModel.getId(),
                 logbookOperationSecured.getId(),
-                logbookOperationVersionModel.equals(logbookOperationSecured) ? OK : EvidenceStatus.KO
+                logbookOperationVersionModel.equals(logbookOperationSecured) ? OK : KO
             );
 
             Stream<ProbativeCheck> generalChecks = getGeneralCheck(
@@ -374,6 +385,9 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION,
                 PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON,
                 MERKLE_OPERATION_DIGEST_DATABASE_TRACEABILITY_COMPARISON,
+                MERKLE_OPERATION_DIGEST_COMPUTATION_TRACEABILITY_COMPARISON,
+                MERKLE_OPERATION_DIGEST_COMPUTATION_ADDITIONAL_TRACEABILITY_COMPARISON,
+                TIMESTAMP_OPERATION_COMPUTATION_TRACEABILITY_COMPARISON,
                 traceabilityLogbookOperation,
                 traceabilityFiles,
                 computingInformation,
@@ -429,14 +443,14 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 ChecksInformation.FILE_DIGEST_DATABASE_TRACEABILITY_COMPARISON,
                 objectModel.getMessageDigest(),
                 objectDigestFromSecuredFile,
-                objectDigestFromSecuredFile.equals(objectModel.getMessageDigest()) ? OK : EvidenceStatus.KO
+                objectDigestFromSecuredFile.equals(objectModel.getMessageDigest()) ? OK : KO
             );
 
             ProbativeCheck specificCheckEvent = ProbativeCheck.from(
                 EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON,
                 digestFromDatabase,
                 eventDigestFromSecuredFile,
-                eventDigestFromSecuredFile.equals(digestFromDatabase) ? OK : EvidenceStatus.KO
+                eventDigestFromSecuredFile.equals(digestFromDatabase) ? OK : KO
             );
 
             Stream<ProbativeCheck> generalChecks = getGeneralCheck(
@@ -445,6 +459,9 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION,
                 PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON,
                 MERKLE_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON,
+                MERKLE_OBJECT_GROUP_DIGEST_COMPUTATION_TRACEABILITY_COMPARISON,
+                MERKLE_OBJECT_GROUP_DIGEST_COMPUTATION_ADDITIONAL_TRACEABILITY_COMPARISON,
+                TIMESTAMP_OBJECT_GROUP_COMPUTATION_TRACEABILITY_COMPARISON,
                 traceabilityLogbookOperation,
                 traceabilityFiles,
                 computingInformation,
@@ -461,7 +478,23 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         }
     }
 
-    private Stream<ProbativeCheck> getGeneralCheck(ChecksInformation timeStampValidation, ChecksInformation timeStampComparison, ChecksInformation previousTimeStampValidation, ChecksInformation previousTimeStampComparison, ChecksInformation checkMerkleTreeInformation, LogbookOperation traceabilityLogbookOperation, OperationTraceabilityFiles traceabilityFiles, InputStream computingInformation, LogbookOperation closestTraceabilityLogbookOperation, HandlerIO handlerIO, String objectGroupId, String evType) throws Exception {
+    private Stream<ProbativeCheck> getGeneralCheck(
+        ChecksInformation timeStampValidation,
+        ChecksInformation timeStampComparison,
+        ChecksInformation previousTimeStampValidation,
+        ChecksInformation previousTimeStampComparison,
+        ChecksInformation checkMerkleTreeInformation,
+        ChecksInformation checkMerkleTreeInformationComputed,
+        ChecksInformation checkMerkleComputingInformation,
+        ChecksInformation checkComputedTimestamp,
+        LogbookOperation traceabilityLogbookOperation,
+        OperationTraceabilityFiles traceabilityFiles,
+        InputStream computingInformation,
+        LogbookOperation closestTraceabilityLogbookOperation,
+        HandlerIO handlerIO,
+        String objectGroupId,
+        String evType) throws Exception {
+
         List<ProbativeCheck> generalChecksFromWorkspace = getGeneralChecksFromWorkspace(handlerIO, objectGroupId, evType);
         if (!generalChecksFromWorkspace.isEmpty()) {
             return generalChecksFromWorkspace.stream();
@@ -470,15 +503,22 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         String timeStampFromTraceabilityFile = new String(Files.readAllBytes(traceabilityFiles.getToken().toPath()));
         String timeStampFromLogbookOperation = getTimeStampFromLogbookOperation(traceabilityLogbookOperation);
         ProbativeCheck validateTimeStamp = validateTimeStamp(timeStampValidation, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
-        ProbativeCheck compareTimeStamp = compareTimeStamp(timeStampComparison, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
+        ProbativeCheck compareTimeStamp = compare(timeStampComparison, timeStampFromTraceabilityFile, timeStampFromLogbookOperation);
 
         String digestFromDatabase = JsonHandler.getFromString(traceabilityLogbookOperation.getEvDetData(), TraceabilityEvent.class).getHash();
         MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(new FileInputStream(traceabilityFiles.getData()));
         String digestRecalculated = BaseXx.getBase64(merkleTreeAlgo.generateMerkle().getRoot());
-        ProbativeCheck checkFromMerkleTree = getCheckFromMerkleTree(checkMerkleTreeInformation, traceabilityFiles.getMerkleTree(), digestFromDatabase, digestRecalculated);
+
+        String traceabilityMerkleFileMerkleTreeRootDigest = getTraceabilityMerkleFileMerkleTreeRootDigest(traceabilityFiles.getMerkleTree());
+
+        ProbativeCheck checkFromMerkleTree = compare(checkMerkleTreeInformation, traceabilityMerkleFileMerkleTreeRootDigest, digestFromDatabase);
+        ProbativeCheck checkFromMerkleTreeComputed = compare(checkMerkleTreeInformationComputed, traceabilityMerkleFileMerkleTreeRootDigest, digestRecalculated);
 
         Properties computingProperties = new Properties();
         computingProperties.load(computingInformation);
+
+        ProbativeCheck merkleDigestInAdditionalInformation = compare(checkMerkleComputingInformation, digestRecalculated, computingProperties.getProperty(currentHash));
+        ProbativeCheck computedTimeStampComparison = computeAndCompareTimeStamp(checkComputedTimestamp, timeStampFromTraceabilityFile, computingProperties);
 
         String previousTimeStampFromTraceabilityFile = computingProperties.getProperty(previousTimestampToken);
         if (previousTimeStampFromTraceabilityFile == null || previousTimeStampFromTraceabilityFile.equals("null")) {
@@ -486,6 +526,9 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                 validateTimeStamp,
                 compareTimeStamp,
                 checkFromMerkleTree,
+                checkFromMerkleTreeComputed,
+                merkleDigestInAdditionalInformation,
+                computedTimeStampComparison,
                 ProbativeCheck.warnFrom(previousTimeStampValidation, "No previous secured file.", "No previous secured file."),
                 ProbativeCheck.warnFrom(previousTimeStampComparison, "No previous secured file.", "No previous secured file.")
             );
@@ -495,17 +538,44 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
         String previousTimeStampFromLogbookOperation = getTimeStampFromLogbookOperation(closestTraceabilityLogbookOperation);
         ProbativeCheck validatePreviousTimeStamp = validateTimeStamp(previousTimeStampValidation, previousTimeStampFromTraceabilityFile, previousTimeStampFromLogbookOperation);
-        ProbativeCheck comparePreviousTimeStamp = compareTimeStamp(previousTimeStampComparison, previousTimeStampFromTraceabilityFile, previousTimeStampFromLogbookOperation);
+        ProbativeCheck comparePreviousTimeStamp = compare(previousTimeStampComparison, previousTimeStampFromTraceabilityFile, previousTimeStampFromLogbookOperation);
 
         List<ProbativeCheck> probativeChecks = Arrays.asList(
             validateTimeStamp,
             compareTimeStamp,
             checkFromMerkleTree,
+            checkFromMerkleTreeComputed,
+            merkleDigestInAdditionalInformation,
             validatePreviousTimeStamp,
+            computedTimeStampComparison,
             comparePreviousTimeStamp
         );
         transferGeneralChecksToWorkspace(handlerIO, objectGroupId, evType, probativeChecks);
         return probativeChecks.stream();
+    }
+
+    private ProbativeCheck computeAndCompareTimeStamp(ChecksInformation checkComputedTimestamp, String timeStampFromTraceabilityFile, Properties computingProperties) {
+        try {
+            byte[] prevTimeStampToken = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampToken));
+            byte[] prevTimestampTokenMinusOneMonth = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneMonth));
+            byte[] prevTimestampTokenMinusOneYear = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneYear));
+            byte[] rootMerkleTree = timeStampService.getDigestAsBytes(computingProperties.getProperty(currentHash));
+
+            TimeStampToken timeStampToken = timeStampService.getTimeStampFrom(timeStampFromTraceabilityFile);
+
+            byte[] timeStampDataFromFile = timeStampToken.getTimeStampInfo().getMessageImprintDigest();
+            byte[] computedTimeStampData = timeStampService.getDigestFrom(rootMerkleTree, prevTimeStampToken, prevTimestampTokenMinusOneMonth, prevTimestampTokenMinusOneYear);
+
+            return ProbativeCheck.from(
+                checkComputedTimestamp,
+                BaseXx.getBase64(timeStampDataFromFile),
+                BaseXx.getBase64(computedTimeStampData),
+                Arrays.equals(timeStampDataFromFile, computedTimeStampData) ? OK : KO
+            );
+        } catch (Exception e) {
+            LOGGER.warn(e);
+            return ProbativeCheck.koFrom(checkComputedTimestamp, timeStampFromTraceabilityFile, "NO_COMPUTED_TIMESTAMP_DATA");
+        }
     }
 
     private List<ProbativeCheck> getGeneralChecksFromWorkspace(HandlerIO handlerIO, String objectGroupId, String evType) {
@@ -529,21 +599,21 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         handlerIO.transferInputStreamToWorkspace(traceabilityFilesDirectoryName(objectGroupId, evType) + File.separator + TRACEABILITY_GENERAL_CHECKS_COMPLETE, new ByteArrayInputStream(new byte[0]), null, false);
     }
 
-    private ProbativeCheck compareTimeStamp(ChecksInformation information, String timeStampFromTraceabilityFile, String timeStampFromLogbookOperation) {
+    private ProbativeCheck compare(ChecksInformation information, String digest, String otherDigest) {
         return ProbativeCheck.from(
             information,
-            timeStampFromLogbookOperation,
-            timeStampFromTraceabilityFile,
-            timeStampFromLogbookOperation.equals(timeStampFromTraceabilityFile) ? OK : EvidenceStatus.KO
+            otherDigest,
+            digest,
+            otherDigest.equals(digest) ? OK : KO
         );
     }
 
-    private ProbativeCheck validateTimeStamp(ChecksInformation information, String timeStampFromTraceabilityFile, String timeStampFromLogbookOperation) throws Exception {
+    private ProbativeCheck validateTimeStamp(ChecksInformation information, String timeStampFromTraceabilityFile, String timeStampFromLogbookOperation) {
         return ProbativeCheck.from(
             information,
             timeStampFromLogbookOperation,
             timeStampFromTraceabilityFile,
-            isTimeStampValid(timeStampFromLogbookOperation) && isTimeStampValid(timeStampFromTraceabilityFile) ? OK : EvidenceStatus.KO
+            isTimeStampValid(timeStampFromLogbookOperation) && isTimeStampValid(timeStampFromTraceabilityFile) ? OK : KO
         );
     }
 
@@ -552,19 +622,6 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         JsonNode eventDetail = JsonHandler.getFromString(evDetData);
         TraceabilityEvent traceabilityEvent = JsonHandler.getFromJsonNode(eventDetail, TraceabilityEvent.class);
         return BaseXx.getBase64(traceabilityEvent.getTimeStampToken());
-    }
-
-    private ProbativeCheck getCheckFromMerkleTree(ChecksInformation information, File merkleeTree, String digestFromDatabase, String recalculatedDigest) throws InvalidParseOperationException {
-        String traceabilityMerkleFileMerkleTreeRootDigest = getTraceabilityMerkleFileMerkleTreeRootDigest(merkleeTree);
-        return ProbativeCheck.from(
-            information,
-            digestFromDatabase,
-            traceabilityMerkleFileMerkleTreeRootDigest,
-            recalculatedDigest,
-            digestFromDatabase.equals(traceabilityMerkleFileMerkleTreeRootDigest) && recalculatedDigest.equals(traceabilityMerkleFileMerkleTreeRootDigest)
-                ? OK
-                : EvidenceStatus.KO
-        );
     }
 
     private Optional<OperationTraceabilityFiles> getTraceabilityFile(LogbookOperation logbookEventOperation, StorageClient storageClient, HandlerIO handlerIO, String objectGroupId) {
@@ -641,7 +698,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             Select select = new Select();
             BooleanQuery query = and().add(
                 eq(LogbookMongoDbName.eventType.getDbname(), operation.getEvType()),
-                in("events.outDetail", operation.getEvType() + ".OK", operation.getEvType() + ".WARNING"),
+                in("events.outDetail", operation.getEvType() + "." + OK, operation.getEvType() + "." + WARNING),
                 exists("events.evDetData.FileName"),
                 ne("#id", operation.getId()),
                 lte("events.evDetData.EndDate", operation.getEvDateTime())
@@ -683,7 +740,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         Select select = new Select();
         BooleanQuery query = and().add(
             eq(LogbookMongoDbName.eventType.getDbname(), eventType),
-            in("events.outDetail", eventType + ".OK", eventType + ".WARNING"),
+            in("events.outDetail", eventType + "." + OK, eventType + "." + WARNING),
             exists("events.evDetData.FileName"),
             lte("events.evDetData.StartDate", lastPersistedIngestOperationDate),
             gte("events.evDetData.EndDate", lastPersistedIngestOperationDate)
@@ -730,16 +787,11 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             .collect(Collectors.toList());
     }
 
-    private ProbativeCheck fileDigestComparison(String databaseDigest, Set<String> offerDigests, Set<String> lifecycleDigests) {
-        boolean fileDigestComparisonError = offerDigests.size() != 1
-            || lifecycleDigests.size() != 1
-            || !offerDigests.contains(databaseDigest)
-            || !lifecycleDigests.contains(databaseDigest);
-
-        if (fileDigestComparisonError) {
-            return ProbativeCheck.koFrom(FILE_DIGEST_OFFER_DATABASE_COMPARISON, String.join(", ", databaseDigest), String.join(", ", lifecycleDigests), databaseDigest);
+    private ProbativeCheck fileDigestComparison(ChecksInformation information, String databaseDigest, Set<String> otherDigests) {
+        if (otherDigests.size() != 1 || !otherDigests.contains(databaseDigest)) {
+            return ProbativeCheck.koFrom(information, String.join(", ", otherDigests), databaseDigest);
         }
-        return ProbativeCheck.okFrom(FILE_DIGEST_OFFER_DATABASE_COMPARISON, String.join(", ", offerDigests), databaseDigest);
+        return ProbativeCheck.okFrom(information, String.join(", ", otherDigests), databaseDigest);
     }
 
     private String getDigest(JsonNode jsonNode) {
@@ -780,24 +832,9 @@ public class ProbativeCreateReportEntry extends ActionHandler {
     }
 
     @JsonIgnore
-    private boolean isTimeStampValid(String timeStamp) {
-        if(StringUtils.isBlank(timeStamp)) {
-            return false;
-        }
-
-        try (ByteArrayInputStream is = new ByteArrayInputStream(Base64.decode(timeStamp.getBytes()));
-            ASN1InputStream timeStampAsn1Stream = new ASN1InputStream(is)) {
-
-            ASN1Primitive timeStampAsn1Primitive = timeStampAsn1Stream.readObject();
-            if (timeStampAsn1Primitive == null) {
-                return false;
-            }
-
-            TimeStampToken timeStampToken = new TimeStampResponse(timeStampAsn1Primitive.getEncoded()).getTimeStampToken();
-            if (timeStampToken.getTimeStampInfo().getNonce() != null) {
-                return false;
-            }
-
+    private boolean isTimeStampValid(String timeStampTokenAsString) {
+        try {
+            TimeStampToken timeStampToken = timeStampService.getTimeStampFrom(timeStampTokenAsString);
             CMSSignedData cmsSignedData = timeStampToken.toCMSSignedData();
             Store<X509CertificateHolder> certificates = cmsSignedData.getCertificates();
 
