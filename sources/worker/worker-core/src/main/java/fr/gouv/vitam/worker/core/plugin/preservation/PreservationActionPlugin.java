@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -48,7 +47,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.InputPreservation;
-import fr.gouv.vitam.worker.core.plugin.preservation.model.OutputPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ParametersPreservation;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ResultPreservation;
@@ -131,7 +129,9 @@ public class PreservationActionPlugin extends ActionHandler {
             Path batchDirectory = createBatchDirectory(griffinId, batchId);
 
             copyInputFiles(batchDirectory, entries);
-            createParametersBatchFile(entries, batchDirectory, workerParameters.getRequestId(), batchId);
+            String requestId = workerParameters.getRequestId();
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            createParametersBatchFile(entries, batchDirectory, requestId, batchId);
 
             int timeout = entries.get(0).getTimeout();
             ResultPreservation result = launchGriffin(griffinId, batchDirectory, timeout);
@@ -141,7 +141,8 @@ public class PreservationActionPlugin extends ActionHandler {
             handler.setCurrentObjectId(WorkflowBatchResults.NAME);
             handler.addOutputResult(0, new WorkflowBatchResults(batchDirectory, workflowResults));
 
-            createReport(result, entries, VitamThreadUtils.getVitamSession().getTenantId());
+
+            createReport(workflowResults, entries, tenantId, requestId);
 
             return workflowResults.stream()
                 .map(w -> buildItemStatus(PLUGIN_NAME, w.getGlobalStatus(), EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
@@ -177,7 +178,8 @@ public class PreservationActionPlugin extends ActionHandler {
         }
     }
 
-    private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient, Path inputFilesDirectory) throws Exception {
+    private void copyBinaryFile(PreservationDistributionLine entryParams, StorageClient storageClient, Path inputFilesDirectory)
+        throws Exception {
         Response fileResponse = null;
         InputStream src = null;
         try {
@@ -192,14 +194,16 @@ public class PreservationActionPlugin extends ActionHandler {
         }
     }
 
-    private void createParametersBatchFile(List<PreservationDistributionLine> lines, Path batchDirectory, String requestId, String batchId) throws VitamException {
+    private void createParametersBatchFile(List<PreservationDistributionLine> lines, Path batchDirectory, String requestId, String batchId)
+        throws VitamException {
         List<InputPreservation> inputPreservations = lines.stream()
             .map(this::mapToInput)
             .collect(Collectors.toList());
         List<ActionPreservation> preservationActions = lines.get(0).getActionPreservationList();
 
         boolean debug = lines.get(0).isDebug();
-        ParametersPreservation parametersPreservation = new ParametersPreservation(requestId, batchId, inputPreservations, preservationActions, debug);
+        ParametersPreservation parametersPreservation =
+            new ParametersPreservation(requestId, batchId, inputPreservations, preservationActions, debug);
         Path parametersPath = batchDirectory.resolve(PARAMETERS_JSON);
         JsonHandler.writeAsFile(parametersPreservation, parametersPath.toFile());
     }
@@ -245,39 +249,39 @@ public class PreservationActionPlugin extends ActionHandler {
         return WorkflowBatchResult.of(e.getId(), e.getUnitId(), e.getTargetUse(), result.getRequestId(), outputExtras, e.getSourceUse());
     }
 
-    private void createReport(ResultPreservation resultPreservation, List<PreservationDistributionLine> entries, int tenant) throws VitamClientInternalException {
-        List<PreservationReportEntry> reportModels = toReportModel(resultPreservation, entries, tenant, now());
-        reportService.appendPreservationEntries(resultPreservation.getRequestId(), reportModels);
+    protected void createReport(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries, Integer tenantId,
+        String requestId) throws VitamClientInternalException {
+        List<PreservationReportEntry> reportModels = toReportModel(workflowResults, entries, tenantId, now(), requestId);
+        reportService.appendPreservationEntries(requestId, reportModels);
+
     }
 
-    private List<PreservationReportEntry> toReportModel(ResultPreservation outputs, List<PreservationDistributionLine> entries, int tenant,
-        LocalDateTime now) {
-        return outputs.getOutputs().entrySet()
-            .stream()
-            .flatMap(entry -> entry.getValue()
-                .stream()
-                .map(value -> getPreservationReportModel(outputs, tenant, now, value, entries))
-            ).collect(Collectors.toList());
+    private List<PreservationReportEntry> toReportModel(List<WorkflowBatchResult> workflowResults, List<PreservationDistributionLine> entries,
+        Integer tenantId, LocalDateTime now, String requestId) {
+        return workflowResults.stream()
+            .flatMap(w -> w.getOutputExtras().stream()
+                .map(output -> getPreservationReportModel(requestId, tenantId, now, output, entries)))
+            .collect(Collectors.toList());
     }
 
-    private PreservationReportEntry getPreservationReportModel(ResultPreservation outputs, int tenant, LocalDateTime now,
-        OutputPreservation value, List<PreservationDistributionLine> entries) {
-        PreservationDistributionLine model = IterableUtils.find(entries, j -> j.getObjectId().equals(value.getInputPreservation().getName()));
-
+    private PreservationReportEntry getPreservationReportModel(String requestId, int tenant, LocalDateTime now,
+        OutputExtra value, List<PreservationDistributionLine> entries) {
+        PreservationDistributionLine model = IterableUtils.find(entries, j -> j.getObjectId().equals(value.getOutput().getInputPreservation().getName()));
         return new PreservationReportEntry(
-            outputs.getRequestId(),
-            outputs.getId(),
+            requestId,
+            requestId,
             tenant,
             now.toString(),
-            value.getStatus(),
+            value.getOutput().getStatus(),
             model.getUnitId(),
-            model.getObjectId(),
-            value.getAction(),
-            value.getAnalyseResult(),
-            value.getInputPreservation().getName(),
-            value.getOutputName(),
+            model.getId(),
+            value.getOutput().getAction(),
+            value.getOutput().getAnalyseResult(),
+            value.getOutput().getInputPreservation().getName(),
+            value.getBinaryGUID(),
             "Outcome - TO BE DEFINED", // FIXME: Put outcome here !
             model.getGriffinIdentifier(),
             model.getScenarioId());
     }
+    
 }
