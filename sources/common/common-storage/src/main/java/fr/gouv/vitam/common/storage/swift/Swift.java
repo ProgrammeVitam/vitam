@@ -140,17 +140,6 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public long countObjects(String containerName) throws ContentAddressableStorageNotFoundException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        Map<String, String> metadata = osClient.get().objectStorage().containers().getMetadata(containerName);
-        if (metadata.containsKey(X_CONTAINER_OBJECT_COUNT)) {
-            return Long.valueOf(metadata.get(X_CONTAINER_OBJECT_COUNT));
-        }
-        throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
-    }
-
-    @Override
     public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
         Long size) throws
         ContentAddressableStorageException {

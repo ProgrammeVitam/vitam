@@ -27,30 +27,17 @@
 
 package fr.gouv.vitam.storage.offers.common.core;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.cas.container.builder.StoreContextBuilder;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -63,34 +50,43 @@ import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Default offer service implementation
  */
 public class DefaultOfferServiceImpl implements DefaultOfferService {
 
-    private static final String CONTAINER_ALREADY_EXISTS = "Container already exists";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
     private final ContentAddressableStorage defaultStorage;
     private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
-    private final Map<String, DigestType> digestTypeFor;
-    private final Map<String, String> objectTypeFor;
-
     private final Map<String, String> mapXCusor;
 
     private OfferLogDatabaseService offerDatabaseService;
+
+    private AlertService alertService = new AlertServiceImpl();
 
     // FIXME When the server shutdown, it should be able to close the
     // defaultStorage (Http clients)
@@ -106,8 +102,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ExceptionInInitializerError(exc);
         }
         defaultStorage = StoreContextBuilder.newStoreContext(configuration);
-        digestTypeFor = new HashMap<>();
-        objectTypeFor = new HashMap<>();
         mapXCusor = new HashMap<>();
     }
 
@@ -128,44 +122,78 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
             response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
 
-        return new VitamAsyncInputStreamResponse(response, Response.Status.fromStatusCode(response.getStatus()), headers);
+        return new VitamAsyncInputStreamResponse(response, Response.Status.fromStatusCode(response.getStatus()),
+            headers);
     }
 
     @Override
-    public ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+    public String createObject(String containerName, String objectId, InputStream objectPart,
+        DataCategory type, Long size, DigestType digestType) throws ContentAddressableStorageException {
+
+        ensureContainerExists(containerName);
+
+        String existingDigest = checkNonRewritableObjects(containerName, objectId, objectPart, type, digestType);
+        if (existingDigest != null) {
+            return existingDigest;
+        }
+
+        logObjectWriteInOfferLog(containerName, objectId);
+
+        return putObject(containerName, objectId, objectPart, size, digestType);
+    }
+
+    private void ensureContainerExists(String containerName) throws ContentAddressableStorageServerException {
         if (!defaultStorage.isExistingContainer(containerName)) {
             defaultStorage.createContainer(containerName);
         }
-
-        objectInit.setId(objectGUID);
-        objectTypeFor.put(objectGUID, objectInit.getType().getFolder());
-        if (objectInit.getDigestAlgorithm() != null) {
-            digestTypeFor.put(objectGUID, objectInit.getDigestAlgorithm());
-        } else {
-            digestTypeFor.put(objectGUID, VitamConfiguration.getDefaultDigestType());
-        }
-
-        offerDatabaseService.save(containerName, objectInit.getId(), "write");
-        return objectInit;
     }
 
+    private String checkNonRewritableObjects(String containerName, String objectId, InputStream objectPart,
+        DataCategory type, DigestType digestType) throws ContentAddressableStorageException {
 
-    @Override
-    public String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-        DataCategory type, Long size) throws ContentAddressableStorageException {
-        // TODO: review this check and the defaultstorage implementation
-        if (isObjectExist(containerName, objectId) && !type.canUpdate()) {
-            throw new ContentAddressableStorageAlreadyExistException("Object with id " + objectId + "already exists " +
-                "and cannot be updated");
+        try {
+
+            if (type.canUpdate() || !isObjectExist(containerName, objectId)) {
+                return null;
+            }
+
+            // Compute file digest
+            Digest digest = new Digest(digestType);
+            digest.update(objectPart);
+            String streamDigest = digest.digestHex();
+
+            // Check actual object digest (without cache for full checkup)
+            String actualObjectDigest = defaultStorage.computeObjectDigest(containerName, objectId, digestType);
+
+            if (streamDigest.equals(actualObjectDigest)) {
+                LOGGER.warn(
+                    "Non rewritable object updated with same content. Ignoring duplicate. Object Id '" + objectId +
+                        "' in " + containerName);
+                return actualObjectDigest;
+            } else {
+                alertService.createAlert(VitamLogLevel.ERROR, String.format(
+                    "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
+                    objectId, containerName, actualObjectDigest, streamDigest));
+                throw new NonUpdatableContentAddressableStorageException(
+                    "Object with id " + objectId + " already exists " +
+                        "and cannot be updated");
+            }
+
+        } catch (IOException e) {
+            throw new ContentAddressableStorageException("Could not read input stream", e);
         }
-        DigestType digestType = getDigestAlgoFor(objectId);
+    }
 
+    private void logObjectWriteInOfferLog(String containerName, String objectId)
+        throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
+        offerDatabaseService.save(containerName, objectId, "write");
+    }
+
+    private String putObject(String containerName, String objectId, InputStream objectPart, Long size,
+        DigestType digestType) throws ContentAddressableStorageException {
         defaultStorage.putObject(containerName, objectId, objectPart, digestType, size);
         // Check digest AFTER writing in order to ensure correctness
         final String digest = defaultStorage.computeObjectDigest(containerName, objectId, digestType);
-        // remove digest algo
-        digestTypeFor.remove(objectId);
         return digest;
     }
 
@@ -189,19 +217,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         result.put("usableSpace", containerInformation.getUsableSpace());
         result.put("usedSpace", containerInformation.getUsedSpace());
         return result;
-    }
-
-    @Override
-    public JsonNode countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        final ObjectNode result = JsonHandler.createObjectNode();
-        final long objectNumber = defaultStorage.countObjects(containerName);
-        result.put("objectNumber", objectNumber);
-        return result;
-    }
-
-    private DigestType getDigestAlgoFor(String id) {
-        return digestTypeFor.get(id) != null ? digestTypeFor.get(id) : VitamConfiguration.getDefaultDigestType();
     }
 
     @Override

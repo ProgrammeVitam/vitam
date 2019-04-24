@@ -24,37 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.driver.model;
+package fr.gouv.vitam.storage.offers.common.core;
+
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 
 /**
- * Holds result data that come as a result of a request to count the objects on
- * a container of the distant storage offer
+ * Thrown when updating an existing non updatable object.
  */
-public class StorageCountResult extends StorageResult {
-    private final long numberObjects;
+public class NonUpdatableContentAddressableStorageException extends ContentAddressableStorageException {
+
+    private static final long serialVersionUID = 672300958086946348L;
 
     /**
-     * Initialize the needed parameters for count results
+     * Constructor
      *
-     * @param tenantId
-     *            The request tenantId
-     * @param type
-     *            the type The request type
-     * @param numberObjects
-     *            Response of the number of objects in the container of the
-     *            offer
+     * @param message as String message to associate with the exception
      */
-    public StorageCountResult(Integer tenantId, String type, long numberObjects) {
-        super(tenantId, type);
-        this.numberObjects = numberObjects;
+    public NonUpdatableContentAddressableStorageException(String message) {
+        super(message);
     }
 
     /**
-     * 
-     * @return the numberObjects
+     * Constructor
+     *
+     * @param cause as String to associate with the exception
      */
-    public long getNumberObjects() {
-        return numberObjects;
+    public NonUpdatableContentAddressableStorageException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * Constructor
+     *
+     * @param message : message to associate with the exception
+     * @param cause : cause to associate with the exception
+     */
+    public NonUpdatableContentAddressableStorageException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

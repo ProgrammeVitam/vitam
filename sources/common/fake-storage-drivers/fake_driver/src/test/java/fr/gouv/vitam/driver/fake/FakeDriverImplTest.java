@@ -109,7 +109,6 @@ public class FakeDriverImplTest {
         final StoragePutRequest putObjectRequest3 = new StoragePutRequest(tenant, "type", "digest_bad_test",
             VitamConfiguration.getDefaultDigestType().getName(), StreamUtils.toInputStream("Vitam test"));
         assertNotNull(connect.putObject(putObjectRequest3));
-        assertNotNull(connect.countObjects(new StorageRequest(tenant, "object")));
 
         assertThatCode(() -> {
             final StorageRemoveRequest storageRemoveRequest =

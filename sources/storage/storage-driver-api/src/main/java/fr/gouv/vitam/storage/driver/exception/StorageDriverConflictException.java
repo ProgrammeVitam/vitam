@@ -25,34 +25,45 @@
  * accept its terms.
  *******************************************************************************/
 
-package fr.gouv.vitam.storage.offers.common.core;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
-
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
+package fr.gouv.vitam.storage.driver.exception;
 
 /**
- * Object init test implementation
+ * Exceptions to be thrown by the storage drivers in case of conflicting resource
+ *
  */
-public class ObjectInitTest {
+public class StorageDriverConflictException extends StorageDriverException {
 
-    @Test
-    public void objectInitTest() {
-        final ObjectInit objectInit = new ObjectInit();
-        objectInit.setId("id");
-        objectInit.setSize(1024);
-        objectInit.setType(DataCategory.UNIT);
-        objectInit.setDigestAlgorithm(VitamConfiguration.getDefaultDigestType());
+    private static final long serialVersionUID = 1L;
 
-        assertNotNull(objectInit);
-        assertEquals("id", objectInit.getId());
-        assertEquals(1024, objectInit.getSize());
-        assertEquals(DataCategory.UNIT, objectInit.getType());
-        assertEquals(VitamConfiguration.getDefaultDigestType(), objectInit.getDigestAlgorithm());
+    /**
+     * Constructor with a message and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param message a message to add
+     */
+    public StorageDriverConflictException(String driverInfos, String message) {
+        super(driverInfos, message, false);
     }
+
+    /**
+     * Constructor with a message and an original exception and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param message the exception message
+     * @param cause the original exception
+     */
+    public StorageDriverConflictException(String driverInfos, String message, Throwable cause) {
+        super(driverInfos, message, false, cause);
+    }
+
+    /**
+     * Constructor with an original exception and additional info about the driver
+     *
+     * @param driverInfos information about the driver (id, name, version...)
+     * @param cause the original exception
+     */
+    public StorageDriverConflictException(String driverInfos, Throwable cause) {
+        super(driverInfos, false, cause);
+    }
+
 }

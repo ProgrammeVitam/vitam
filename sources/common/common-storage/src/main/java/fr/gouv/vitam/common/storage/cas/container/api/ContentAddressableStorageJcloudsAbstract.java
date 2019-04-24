@@ -134,23 +134,6 @@ public abstract class ContentAddressableStorageJcloudsAbstract extends ContentAd
     }
 
     @Override
-    public long countObjects(String containerName) throws ContentAddressableStorageNotFoundException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        try {
-            final BlobStore blobStore = context.getBlobStore();
-            if (!isExistingContainer(containerName)) {
-                LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-                throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
-            }
-            return blobStore.countBlobs(containerName);
-        } finally {
-            closeContext();
-        }
-    }
-
-    @Override
     public void putObject(String containerName, String objectName, InputStream stream, DigestType digestType,
                             Long size)
             throws ContentAddressableStorageException {

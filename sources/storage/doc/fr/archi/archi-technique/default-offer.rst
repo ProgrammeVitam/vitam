@@ -33,7 +33,7 @@ Description
 Les fonctionnalités sont :
 
 - récupérer la capacité et disponibilité de l'offre
-- envoyer un objet en mode chunk
+- envoyer un objet
 - récupérer un objet
 - tester l'existence d'un objet
 - récupérer l'empreinte d'un objet
@@ -50,12 +50,6 @@ Description
 L'API REST, trois header spécifiques sont définis :
 
 - X-Tenant-Id : l'identifiant du Tenant
-
-- X-Command : utilisée pour l'envoi d'un objet par fragments (chunk)
-
-  - INIT : création de l'objet donc l'offre de stockage, sans données envoyés
-  - WRITE : envoi d'un fragment de data
-  - END : indique que l'objet est fini d'être créé
 
 - X-Type : permets de préciser le résultat attendu pour la recupération de l'objet
 
@@ -133,39 +127,21 @@ REST API
   - code : 200
   - contenu : un boolean indiquant si le digest de l'objet correspond ou non
 
+**PUT /objects/{type}/{id}**
 
-**POST /objects**
-
-- description : création d'un nouvel objet vide sur l'offre
-
-- headers :
-
-  - X-Command: INIT
-  - X-Tenant-Id: id du tenant
-
-- body :
-
-  - GUID
-  - ObjectInit contenant la taille (taille finale), le type (unit/objectgroup/logbook/etc, se basant sur une enum), le digest-type (type de digest) ainsi qu'un identifiant vide à l'envoi qui sera rempli pour l'offre. Il s'agit de l'identifiant de l'objet sur l'offre. Dans l'implémentation par défaut, c'est le GUID.
-
-- response :
-
-  - code : 201
-  - contenu : l'objectInit envoyé avec l'identifiant de l'objet créé
-
-
-**PUT /objects/{id}**
-
-- description : écriture  et finalisation d'objet de l'offre
+- description : écriture d'un objet sur l'offre
 
 - headers :
 
-  - X-Command: WRITE / END
   - X-Tenant-Id: id du tenant
+  - Vitam-Content-Length: Taille de l'objet
+  - X-digest-algorithm: Algorithme de hash utilisé pour vérifier l'empreinte de l'objet
+
 
 - path :
 
   - {id} : id de l'objet
+  - {type} : le type (unit/objectgroup/logbook/etc, se basant sur une enum)
 
 - body :
 
@@ -174,7 +150,7 @@ REST API
 - response :
 
   - code : 201
-  - contenu : un json avec une clef unique, digest, le digest du fichier complet sur l'offre pour le END, le digest du morceau envoyé pour le WRITE
+  - contenu : un json avec le digest de l'objet et sa taille.
 
 
 **HEAD /objects/{id}**

@@ -33,7 +33,6 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
@@ -77,40 +76,19 @@ public interface DefaultOfferService {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Initialize object creation
-     *
-     * Create container on offer if does not exist for one object Also update digest type and object GUID
-     *
-     * @param containerName the container name to create
-     * @param objectInit    informations about object to create
-     * @param objectGUID    the object GUID to create
-     * @return objectInit with the offer object id (needed for the create object operation)
-     * @throws ContentAddressableStorageServerException       thrown when a server error occurs
-     * @throws ContentAddressableStorageNotFoundException     thrown if the container storage could not be created
-     * @throws ContentAddressableStorageDatabaseException     thrown if the container sequence could not be incremented
-     */
-    ObjectInit initCreateObject(String containerName, ObjectInit objectInit, String objectGUID)
-        throws ContentAddressableStorageServerException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageDatabaseException;
-
-    /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be
      * send in the great order.
      *
      * @param containerName the container name
      * @param objectId      the offer objectId to create
      * @param objectPart    the part of the object to create (chunk style)
-     * @param ending        true if objectPart is the last part
      * @param type          the object type to create
      * @param size          inputstream size
      * @return the digest of the complete file or the digest of the chunk
      * @throws ContentAddressableStorageException if the container does not exist
      */
-    // TODO P1 : add chunk number to be able to retry and check error
-    // TODO P1 : better chunk management
-    String createObject(String containerName, String objectId, InputStream objectPart, boolean ending,
-        DataCategory type, Long size) throws IOException, ContentAddressableStorageException;
-
+    String createObject(String containerName, String objectId, InputStream objectPart, DataCategory
+        type, Long size, DigestType digestType) throws ContentAddressableStorageException;
 
     /**
      * Check if object exists
@@ -145,17 +123,6 @@ public interface DefaultOfferService {
      */
     boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException;
-
-    /**
-     * Count the number of objects in a container defined by the tenant and the type
-     *
-     * @param containerName the container name
-     * @return Json with number of objects (objectNumber)
-     * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
-     * @throws ContentAddressableStorageServerException
-     */
-    JsonNode countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName

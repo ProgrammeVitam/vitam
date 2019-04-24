@@ -49,7 +49,6 @@ public class RequestResultTest {
     private static StorageRemoveRequest removeObjectRequest;
     private static StorageRemoveResult removeObjectResult;
     private static StorageCapacityResult storageCapacityResult;
-    private static StorageCountResult storageCountResult;
     private static final Integer TENANT_ID = 0;
 
     @BeforeClass
@@ -61,7 +60,6 @@ public class RequestResultTest {
         removeObjectResult = new StorageRemoveResult(TENANT_ID, "object", "oi", VitamConfiguration.getDefaultDigestType(),
                 "digest", true);
         storageCapacityResult = new StorageCapacityResult(TENANT_ID, 1000, 100);
-        storageCountResult = new StorageCountResult(TENANT_ID, "object", 2L);
     }
 
     @Test
@@ -82,11 +80,4 @@ public class RequestResultTest {
         assertEquals(1000, storageCapacityResult.getUsableSpace());
         assertEquals(100, storageCapacityResult.getUsedSpace());
     }
-
-    @Test
-    public void testStorageCount() throws Exception {
-        assertNotNull(storageCountResult);
-        assertEquals(2L, storageCountResult.getNumberObjects());
-    }
-
 }
