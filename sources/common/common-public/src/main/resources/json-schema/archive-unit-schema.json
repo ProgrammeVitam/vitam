@@ -2,22 +2,20 @@
   "$schema": "http://json-schema.org/draft-04/schema#",
   "definitions": {
     "date": {
-      "title": "putain de date",
       "type": "string",
-      "format": "date-time"
+      "pattern": "^([0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))$"
     },
     "date-time": {
       "type": "string",
-      "format": "date-time"
+      "format": "date-time-vitam"
     },
     "date-time-opt": {
-      "type": "string",
       "anyOf": [
         {
-          "format": "date"
+          "$ref": "#/definitions/date"
         },
         {
-          "format": "date-time"
+          "$ref": "#/definitions/date-time"
         }
       ]
     },
@@ -35,6 +33,23 @@
       "items": {
         "type": "string"
       }
+    },
+    "token": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "non-empty-tokens": {
+      "type": [
+        "array",
+        "string"
+      ],
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minLength": 1
     },
     "agent-type": {
       "$ref": "#/definitions/agent-type+signature+validation",
@@ -113,8 +128,82 @@
         },
         "Mandate": {
           "$ref": "#/definitions/string-array"
+        },
+        "SigningTime": {
+          "$ref": "#/definitions/date-time-opt"
+        },
+        "ValidationTime": {
+          "$ref": "#/definitions/date-time-opt"
         }
-      }
+      },
+      "oneOf": [
+        {
+          "anyOf": [
+            {
+              "required": [
+                "FirstName"
+              ]
+            },
+            {
+              "required": [
+                "BirthName"
+              ]
+            },
+            {
+              "required": [
+                "FullName"
+              ]
+            },
+            {
+              "required": [
+                "GivenName"
+              ]
+            },
+            {
+              "required": [
+                "Gender"
+              ]
+            },
+            {
+              "required": [
+                "BirthDate"
+              ]
+            },
+            {
+              "required": [
+                "BirthPlace"
+              ]
+            },
+            {
+              "required": [
+                "DeathDate"
+              ]
+            },
+            {
+              "required": [
+                "DeathPlace"
+              ]
+            },
+            {
+              "required": [
+                "Nationality"
+              ]
+            },
+            {
+              "not": {
+                "required": [
+                  "Corpname"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "required": [
+            "Corpname"
+          ]
+        }
+      ]
     },
     "location-group": {
       "type": "object",
@@ -197,41 +286,84 @@
           "ExternalReference": {
             "type": "string"
           }
-        }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "ArchiveUnitRefId"
+            ]
+          },
+          {
+            "required": [
+              "DataObjectReference"
+            ]
+          },
+          {
+            "required": [
+              "RepositoryArchiveUnitPID"
+            ]
+          },
+          {
+            "required": [
+              "RepositoryObjectPID"
+            ]
+          },
+          {
+            "required": [
+              "ExternalReference"
+            ]
+          }
+        ]
       }
     },
-    "token": {
-      "type": "string"
-    },
-    "id": {
-      "type": "string"
-    },
-    "non-empty-tokens": {
-      "type": [
-        "array",
-        "string"
-      ],
-      "items": {
-        "type": "string",
-        "minLength": 1
+    "event": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "EventIdentifier": {
+          "$ref": "#/definitions/non-empty-tokens"
+        },
+        "EventTypeCode": {
+          "$ref": "#/definitions/non-empty-tokens"
+        },
+        "EventType": {
+          "$ref": "#/definitions/non-empty-tokens"
+        },
+        "EventDateTime": {
+          "$ref": "#/definitions/date-time-opt"
+        },
+        "EventDetail": {
+          "type": "string"
+        },
+        "Outcome": {
+          "$ref": "#/definitions/non-empty-tokens"
+        },
+        "OutcomeDetail": {
+          "$ref": "#/definitions/non-empty-tokens"
+        },
+        "OutcomeDetailMessage": {
+          "$ref": "#/definitions/non-empty-tokens"
+        },
+        "EventDetailData": {
+          "$ref": "#/definitions/non-empty-tokens"
+        },
+        "EventAbstract": {
+          "type": "array"
+        }
       },
-      "minLength": 1
+      "required": [
+        "EventDateTime"
+      ]
     }
   },
   "properties": {
-    "_id": {
-      "type": "string"
-    },
-    "_og": {
-      "type": "string"
-    },
     "ArchiveUnitProfile": {
       "$ref": "#/definitions/token"
     },
     "Management": {
       "type": "object",
       "properties": {
-        "AccessRule": {
+        "StorageRule": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
@@ -255,6 +387,13 @@
                   "Rule"
                 ]
               }
+            },
+            "FinalAction": {
+              "enum": [
+                "RestrictAccess",
+                "Transfer",
+                "Copy"
+              ]
             },
             "Inheritance": {
               "$ref": "#/definitions/inheritance"
@@ -291,6 +430,96 @@
                 "Keep",
                 "Destroy"
               ]
+            },
+            "Inheritance": {
+              "$ref": "#/definitions/inheritance"
+            }
+          }
+        },
+        "AccessRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "Rule": {
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "$ref": "#/definitions/date"
+                  },
+                  "EndDate": {
+                    "$ref": "#/definitions/date"
+                  }
+                },
+                "required": [
+                  "Rule"
+                ]
+              }
+            },
+            "Inheritance": {
+              "$ref": "#/definitions/inheritance"
+            }
+          }
+        },
+        "DisseminationRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "Rule": {
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "$ref": "#/definitions/date"
+                  },
+                  "EndDate": {
+                    "$ref": "#/definitions/date"
+                  }
+                },
+                "required": [
+                  "Rule"
+                ]
+              }
+            },
+            "Inheritance": {
+              "$ref": "#/definitions/inheritance"
+            }
+          }
+        },
+        "ReuseRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "Rule": {
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "$ref": "#/definitions/date"
+                  },
+                  "EndDate": {
+                    "$ref": "#/definitions/date"
+                  }
+                },
+                "required": [
+                  "Rule"
+                ]
+              }
             },
             "Inheritance": {
               "$ref": "#/definitions/inheritance"
@@ -342,105 +571,20 @@
             }
           }
         },
-        "DisseminationRule": {
+        "LogBook": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "Rules": {
+            "event": {
               "type": "array",
               "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "Rule": {
-                    "type": "string"
-                  },
-                  "StartDate": {
-                    "$ref": "#/definitions/date"
-                  },
-                  "EndDate": {
-                    "$ref": "#/definitions/date"
-                  }
-                },
-                "required": [
-                  "Rule"
-                ]
+                "$ref": ""
               }
-            },
-            "Inheritance": {
-              "$ref": "#/definitions/inheritance"
             }
           }
         },
         "NeedAuthorization": {
           "type": "boolean"
-        },
-        "ReuseRule": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "Rules": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "Rule": {
-                    "type": "string"
-                  },
-                  "StartDate": {
-                    "$ref": "#/definitions/date"
-                  },
-                  "EndDate": {
-                    "$ref": "#/definitions/date"
-                  }
-                },
-                "required": [
-                  "Rule"
-                ]
-              }
-            },
-            "Inheritance": {
-              "$ref": "#/definitions/inheritance"
-            }
-          }
-        },
-        "StorageRule": {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "Rules": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "additionalProperties": false,
-                "properties": {
-                  "Rule": {
-                    "type": "string"
-                  },
-                  "StartDate": {
-                    "$ref": "#/definitions/date"
-                  },
-                  "EndDate": {
-                    "$ref": "#/definitions/date"
-                  }
-                },
-                "required": [
-                  "Rule"
-                ]
-              }
-            },
-            "FinalAction": {
-              "enum": [
-                "RestrictAccess",
-                "Transfer",
-                "Copy"
-              ]
-            },
-            "Inheritance": {
-              "$ref": "#/definitions/inheritance"
-            }
-          }
         },
         "UpdateOperation": {}
       }
@@ -464,6 +608,14 @@
       "type": "string",
       "minLength": 1
     },
+    "Title_": {
+      "patternProperties": {
+        ".*": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
     "FilePlanPosition": {
       "$ref": "#/definitions/string-array"
     },
@@ -483,7 +635,16 @@
       "$ref": "#/definitions/non-empty-tokens"
     },
     "Description": {
-      "$ref": "#/definitions/non-empty-tokens"
+      "type": "string",
+      "minLength": 1
+    },
+    "Description_": {
+      "patternProperties": {
+        ".*": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     },
     "CustodialHistory": {
       "type": "object",
@@ -598,7 +759,10 @@
         "OrganizationDescriptiveMetadata": {
           "type": "object"
         }
-      }
+      },
+      "required": [
+        "Identifier"
+      ]
     },
     "SubmissionAgency": {
       "type": "object",
@@ -610,7 +774,10 @@
         "OrganizationDescriptiveMetadata": {
           "type": "object"
         }
-      }
+      },
+      "required": [
+        "Identifier"
+      ]
     },
     "AgentAbstract": {
       "type": "array",
@@ -704,43 +871,7 @@
     "Event": {
       "type": "array",
       "items": {
-        "additionalProperties": false,
-        "type": "object",
-        "properties": {
-          "EventIdentifier": {
-            "$ref": "#/definitions/non-empty-tokens"
-          },
-          "EventTypeCode": {
-            "$ref": "#/definitions/non-empty-tokens"
-          },
-          "EventType": {
-            "$ref": "#/definitions/non-empty-tokens"
-          },
-          "EventDateTime": {
-            "$ref": "#/definitions/date-time-opt"
-          },
-          "EventDetail": {
-            "type": "string"
-          },
-          "Outcome": {
-            "$ref": "#/definitions/non-empty-tokens"
-          },
-          "OutcomeDetail": {
-            "$ref": "#/definitions/non-empty-tokens"
-          },
-          "OutcomeDetailMessage": {
-            "$ref": "#/definitions/non-empty-tokens"
-          },
-          "EventDetailData": {
-            "$ref": "#/definitions/non-empty-tokens"
-          },
-          "EventAbstract": {
-            "type": "array"
-          }
-        },
-        "required": [
-          "EventDateTime"
-        ]
+        "$ref": "#/definitions/event"
       }
     },
     "Signature": {
@@ -773,6 +904,33 @@
             "type": "object",
             "properties": {
               "Value": {
+                "type": "string"
+              },
+              "ListID": {
+                "$ref": "#/definitions/token"
+              },
+              "ListAgencyID": {
+                "$ref": "#/definitions/token"
+              },
+              "listAgencyName": {
+                "type": "string"
+              },
+              "ListName": {
+                "type": "string"
+              },
+              "ListVersionID": {
+                "$ref": "#/definitions/token"
+              },
+              "Name": {
+                "type": "string"
+              },
+              "LanguageID": {
+                "type": "string"
+              },
+              "ListURI": {
+                "type": "string"
+              },
+              "ListSchemeURI": {
                 "type": "string"
               }
             },
