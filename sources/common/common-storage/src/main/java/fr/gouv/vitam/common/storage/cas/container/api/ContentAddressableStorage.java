@@ -70,17 +70,6 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      */
     boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException;
 
-    /**
-     * Determines if a container exists
-     *
-     * @param containerName name of container
-     * @return long number of binary objects (excluding directory markers)
-     * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
-     * @throws ContentAddressableStorageServerException Thrown when internal server error happens
-     */
-    long countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
-
     // Object
 
     /**

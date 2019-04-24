@@ -140,18 +140,6 @@ public class HashFileSystem extends ContentAddressableStorageAbstract {
         return fsHelper.isContainer(containerName);
     }
 
-    // FIXME : return a correct value
-    @Override
-    public long countObjects(String containerName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        if (!isExistingContainer(containerName)) {
-            throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND + containerName);
-        }
-        return containerMetadata.get(containerName).getNbObjects();
-    }
-
     // FIXME : This method doesn't implement the contract of ContentAdressableStorage interface
     // On update, it rewrites the file and doesn't throw an ContentAddressableStorageAlreadyExistException
     // This was choosen to be coherent with existing Jclouds implementation of ContentAdressableStorage

@@ -46,17 +46,15 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
-import fr.gouv.vitam.common.storage.exception.StreamAlreadyConsumedException;
 import fr.gouv.vitam.common.stream.SizedInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
+import fr.gouv.vitam.storage.offers.common.core.NonUpdatableContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
@@ -69,7 +67,6 @@ import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -96,7 +93,8 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferResource.class);
     private static final String DEFAULT_OFFER_MODULE = "DEFAULT_OFFER";
     private static final String CODE_VITAM = "code_vitam";
-    public static final String RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED = "Caused by re-authentication call. Stream already consumed but no file created, storage engine must retry to re-put object";
+    public static final String RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED =
+        "Caused by re-authentication call. Stream already consumed but no file created, storage engine must retry to re-put object";
 
     private static final String MISSING_X_DIGEST_ALGORITHM = "Missing the digest type (X-digest-algorithm)";
     private static final String MISSING_X_DIGEST = "Missing the type (X-digest)";
@@ -272,39 +270,6 @@ public class DefaultOfferResource extends ApplicationStatusResource {
         }
     }
 
-
-    /**
-     * Count the number of objects on the offer objects defined container (exlude directories)
-     *
-     * @param xTenantId
-     * @param type
-     * @return number of binary objects in the container
-     */
-    @GET
-    // FIXME Later we should count in a standard get request (no /count in path)
-    // with a DSL that specify a count
-    // operation (aggregate)
-    @Path("/count/objects/{type}")
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response countObjects(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("type") DataCategory type) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        final String containerName = buildContainerName(type, xTenantId);
-        try {
-            final JsonNode result = defaultOfferService.countObjects(containerName);
-            return Response.status(Response.Status.OK).entity(result).build();
-        } catch (final ContentAddressableStorageNotFoundException exc) {
-            LOGGER.error(exc);
-            return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (final ContentAddressableStorageServerException exc) {
-            LOGGER.error(exc);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
     /**
      * Get the object data or digest from its id.
      * <p>
@@ -342,123 +307,64 @@ public class DefaultOfferResource extends ApplicationStatusResource {
     }
 
     /**
-     * Initialise a new object.
-     * <p>
-     * HEADER X-Command (mandatory) : INIT <br>
-     * HEADER X-Tenant-Id (mandatory) : tenant's identifier
-     * </p>
+     * Creates or updates an object.
      *
-     *
-     * @param type New object's type
-     * @param objectGUID the GUID Of the object
+     * @param type Object's type
+     * @param objectId the object id
      * @param headers http header
-     * @param objectInit data for object creation
      * @return structured response with the object id
      */
-    // TODO - us#1982 - to be changed with this story - tenantId to stay in the
-    // header but path (type unit or object) in
-    // the uri
-    @POST
-    @Path("/objects/{type}/{guid:.+}")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @PUT
+    @Path("/objects/{type}/{objectId:.+}")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response postObject(@PathParam("guid") String objectGUID, @PathParam("type") DataCategory type,
-        @Context HttpHeaders headers, ObjectInit objectInit) {
+    public Response putObject(@PathParam("objectId") String objectId, @PathParam("type") DataCategory type,
+        @Context HttpHeaders headers, InputStream input) {
         final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-        if (objectInit == null) {
-            LOGGER.error(MISSING_THE_BODY);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
         if (Strings.isNullOrEmpty(xTenantId)) {
             LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         final String containerName = buildContainerName(type, xTenantId);
-        if (!objectInit.getType().equals(type)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
+
+        final String size = headers.getHeaderString(GlobalDataRest.VITAM_CONTENT_LENGTH);
+        Long inputStreamSize;
+        try {
+            inputStreamSize = Long.valueOf(size);
+        } catch (NumberFormatException e) {
+            LOGGER.error("Bad or missing size '" + size + "'");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
-        if (xCommandHeader == null || !xCommandHeader.equals(StorageConstants.COMMAND_INIT)) {
-            LOGGER.error("Missing the INIT required command (X-Command header)");
+
+
+        String xDigestAlgorithm = headers.getHeaderString(GlobalDataRest.X_DIGEST_ALGORITHM);
+        if (StringUtils.isEmpty(xDigestAlgorithm)) {
+            LOGGER.error("Missing digest");
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        try {
-            SanityChecker.checkParameter(objectGUID);
-            final ObjectInit objectInitFilled = defaultOfferService.initCreateObject(containerName, objectInit,
-                objectGUID);
-            LOGGER.info("ContainerName: " + containerName + " ObjectGUID " + objectGUID);
-            return Response.status(Response.Status.CREATED).entity(objectInitFilled).build();
-        } catch (final ContentAddressableStorageException | InvalidParseOperationException exc) {
-            LOGGER.error(exc);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        DigestType digestType = DigestType.fromValue(xDigestAlgorithm);
+
+        try (final SizedInputStream sis = new SizedInputStream(input)) {
+            LOGGER.info("Writing object '" + objectId + "' of container " + containerName + " (size: " + size + ")");
+
+            SanityChecker.checkParameter(objectId);
+
+            final String digest =
+                defaultOfferService.createObject(containerName, objectId, sis,
+                    type, inputStreamSize, digestType);
+            return Response.status(Response.Status.CREATED)
+                .entity("{\"digest\":\"" + digest + "\",\"size\":" + sis.getSize() + "}").build();
+        } catch (ConnectionException e) {
+            LOGGER.error(RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED, e);
+            return Response.status(Status.SERVICE_UNAVAILABLE).entity(JsonHandler.createObjectNode()
+                .put("msg", RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED)).build();
+
+        } catch (NonUpdatableContentAddressableStorageException e) {
+            LOGGER.error("Object overriding forbidden", e);
+            return Response.status(Status.CONFLICT).build();
         }
-    }
-
-    /**
-     * Write a new chunk in an object or end its creation.<br>
-     * Replaces units and objectGroups object type if exist
-     * <p>
-     * HEADER X-Command (mandatory) : WRITE/END HEADER X-Tenant-Id (mandatory) : tenant's identifier
-     * </p>
-     *
-     * @param type Object type to update
-     * @param objectId object id
-     * @param headers http header
-     * @param input object data
-     * @return structured response with the object id (and new digest ?)
-     */
-    // TODO - us#1982 - to be changed with this story - tenantId to stay in the
-    // header but path (type unit or object) in
-    // the uri
-    @PUT
-    @Path("/objects/{type}/{id:.+}")
-    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response putObject(@PathParam("type") DataCategory type, @PathParam("id") String objectId,
-        @Context HttpHeaders headers, InputStream input) {
-        try {
-            final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
-            if (Strings.isNullOrEmpty(xTenantId)) {
-                LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-                return Response.status(Response.Status.BAD_REQUEST).build();
-            }
-            final String containerName = buildContainerName(type, xTenantId);
-            final String xCommandHeader = headers.getHeaderString(GlobalDataRest.X_COMMAND);
-            if (xCommandHeader == null || !xCommandHeader.equals(StorageConstants.COMMAND_WRITE) &&
-                !xCommandHeader.equals(StorageConstants.COMMAND_END)) {
-
-                LOGGER.error("Missing the WRITE or END required command (X-Command header), {} found",
-                    xCommandHeader);
-                return Response.status(Response.Status.BAD_REQUEST).build();
-            }
-            try {
-                SanityChecker.checkParameter(objectId);
-                final SizedInputStream sis = new SizedInputStream(input);
-                final String size = headers.getHeaderString(GlobalDataRest.VITAM_CONTENT_LENGTH);
-
-                Long inputStreamSize;
-                try {
-                    inputStreamSize = Long.valueOf(size);
-                } catch (NumberFormatException e) {
-                    //Default size for the inputStream
-                    inputStreamSize = 100_000L;
-                }
-                final String digest =
-                    defaultOfferService.createObject(containerName, objectId, sis,
-                        xCommandHeader.equals(StorageConstants.COMMAND_END), type, inputStreamSize);
-                return Response.status(Response.Status.CREATED)
-                    .entity("{\"digest\":\"" + digest + "\",\"size\":\"" + sis.getSize() + "\"}").build();
-            } catch (ConnectionException e) {
-                LOGGER.error(RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED, e);
-                return Response.status(Status.SERVICE_UNAVAILABLE).entity(JsonHandler.createObjectNode().put("msg", RE_AUTHENTICATION_CALL_STREAM_ALREADY_CONSUMED_BUT_NO_FILE_CREATED)).build();
-
-            } catch (ContentAddressableStorageException exc) {
-                LOGGER.error("Cannot create object", exc);
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-            }
-        } catch (Exception e) {
-            LOGGER.error(e);
+        catch (Exception exc) {
+            LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         } finally {
             StreamUtils.closeSilently(input);
@@ -506,7 +412,7 @@ public class DefaultOfferResource extends ApplicationStatusResource {
                 .entity("{\"id\":\"" + idObject + "\",\"status\":\"" + Response.Status.OK.toString() + "\"}")
                 .build();
         } catch (ContentAddressableStorageNotFoundException e) {
-            LOGGER.error(e);
+            LOGGER.info(e);
             return Response.status(Response.Status.NOT_FOUND).build();
         } catch (ContentAddressableStorageException | InvalidParseOperationException e) {
             LOGGER.error(e);

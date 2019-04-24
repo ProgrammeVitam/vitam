@@ -27,28 +27,6 @@
 
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import javax.ws.rs.core.Response.Status;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.DigestInputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -62,6 +40,7 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.stream.MultiplePipedInputStream;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
@@ -88,6 +67,28 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.TryAndRetryData;
 import fr.gouv.vitam.storage.engine.server.rest.StorageConfiguration;
 import fr.gouv.vitam.storage.engine.server.spi.DriverManager;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 
 /**
@@ -135,7 +136,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         try {
             storageOffer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         } catch (StorageException e) {
-           LOGGER.error(e);
+            LOGGER.error(e);
         }
         return storageOffer;
     }
@@ -146,12 +147,12 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
      * create 2 methods
      *
      * @param strategyId strategyId
-     * @param objectId   objectId
-     * @param file       file
-     * @param category   category
-     * @param tenantId   tenantId
+     * @param objectId objectId
+     * @param file file
+     * @param category category
+     * @param tenantId tenantId
      * @return StoredInfoResult
-     * @throws StorageException      StorageException
+     * @throws StorageException StorageException
      * @throws FileNotFoundException FileNotFoundException
      */
     public StoredInfoResult storeData(String strategyId, String objectId, File file,
@@ -187,7 +188,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
     private void tryAndRetry(String objectId, DataCategory category, File file,
         Integer tenantId, TryAndRetryData datas, int attempt)
-        throws StorageTechnicalException, StorageNotFoundException, StorageAlreadyExistsException,
+        throws StorageTechnicalException, StorageNotFoundException,
         FileNotFoundException {
         Digest globalDigest = new Digest(digestType);
         InputStream digestInputStream = globalDigest.getDigestInputStream(new FileInputStream(file));
@@ -209,7 +210,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                     final Driver driver = retrieveDriverInternal(offerReference.getId());
                     InputStream inputStream = new BufferedInputStream(streams.getInputStream(rank));
                     StoragePutRequest request =
-                        new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.name(),
+                        new StoragePutRequest(tenantId, category.getFolder(), objectId, digestType.getName(),
                             inputStream);
                     futureMap.put(offerReference.getId(),
                         executor
@@ -262,7 +263,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
                 } catch (ExecutionException e) {
                     LOGGER.error("Error on offer ID " + offerId, e);
                     Status status = Status.INTERNAL_SERVER_ERROR;
-                    if (e.getCause() instanceof StorageAlreadyExistsException) {
+                    if (e.getCause() instanceof StorageDriverConflictException) {
                         status = Status.CONFLICT;
                         datas.changeStatus(offerId, status);
                     }

@@ -56,14 +56,12 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -71,7 +69,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
@@ -343,7 +340,7 @@ public class StorageDistributionImplTest {
     @Test(expected = StorageAlreadyExistsException.class)
     public void testObjectAlreadyInOffer() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final String objectId = "already_in_offer";
+        final String objectId = "conflict";
         final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceContainerGUID("container1" + this);
         createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
@@ -698,11 +695,5 @@ public class StorageDistributionImplTest {
             simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, null, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
-    }
-
-    private JsonNode getCheckObjectResult() throws IOException {
-        final ObjectNode result = JsonHandler.createObjectNode();
-        result.put(StorageConstants.OBJECT_VERIFICATION, true);
-        return result;
     }
 }

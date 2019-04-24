@@ -42,6 +42,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import org.apache.commons.io.IOUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,9 +66,7 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
-import fr.gouv.vitam.storage.driver.model.StorageOfferLogResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadatasResult;
@@ -76,7 +75,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
@@ -219,11 +217,6 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public StorageCountResult countObjects(StorageRequest request) throws StorageDriverException {
-            return new StorageCountResult(request.getTenantId(), request.getType(), 1);
-        }
-
-        @Override
         public StorageGetResult getObject(StorageObjectRequest objectRequest) throws StorageDriverException {
 
             return new StorageGetResult(objectRequest.getTenantId(), objectRequest.getType(), objectRequest.getGuid(),
@@ -237,6 +230,10 @@ public class FakeDriverImpl extends AbstractDriver {
                 return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
                     objectRequest.getGuid(),
                     objectRequest.getGuid(), "different_digest_hash", 0);
+            }
+
+            if ("conflict".equals(objectRequest.getGuid())) {
+                throw new StorageDriverConflictException(getName(), "conflict");
             }
             if ("retry_test".equals(objectRequest.getGuid())) {
                 throw new StorageDriverException(getName(), "retry_test", false);

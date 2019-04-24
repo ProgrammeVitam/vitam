@@ -255,20 +255,6 @@ public abstract class ContentAddressableStorageTestAbstract {
         storage.getContainerInformation(CONTAINER_NAME);
     }
 
-
-
-    @Test(expected = ContentAddressableStorageNotFoundException.class)
-    public void givenContainerNotFoundWhenCountObjectsThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        storage.countObjects(WRONG_CONTAINER_NAME);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void givenNullContainerNameWhenCountObjectsThenRaiseAnException()
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        storage.countObjects(null);
-    }
-
     @Test
     public void givenObjectAlreadyExistsWhenCheckObjectThenOK()
         throws ContentAddressableStorageException, IOException {

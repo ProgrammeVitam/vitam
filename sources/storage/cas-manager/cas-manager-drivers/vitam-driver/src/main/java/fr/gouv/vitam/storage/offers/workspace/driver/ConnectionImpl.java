@@ -26,9 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.workspace.driver;
 
-import static javax.ws.rs.HttpMethod.POST;
-import static javax.ws.rs.HttpMethod.PUT;
-
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -39,11 +36,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
-import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -51,6 +46,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
@@ -58,7 +54,6 @@ import fr.gouv.vitam.storage.driver.exception.StorageDriverServiceUnavailableExc
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageCheckRequest;
 import fr.gouv.vitam.storage.driver.model.StorageCheckResult;
-import fr.gouv.vitam.storage.driver.model.StorageCountResult;
 import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
@@ -68,10 +63,7 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.driver.model.StorageRequest;
-import fr.gouv.vitam.storage.engine.common.StorageConstants;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.ObjectInit;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 
@@ -89,7 +81,6 @@ public class ConnectionImpl extends AbstractConnection {
 
     private static final String OBJECTS_PATH = "/objects";
     private static final String LOGS_PATH = "/logs";
-    private static final String COUNT_PATH = "/count";
     private static final String METADATAS = "/metadatas";
 
     private static final String REQUEST_IS_A_MANDATORY_PARAMETER = "Request is a mandatory parameter";
@@ -127,7 +118,7 @@ public class ConnectionImpl extends AbstractConnection {
         Response response = null;
         try {
             response = performRequest(HttpMethod.HEAD, OBJECTS_PATH + "/" + DataCategory.OBJECT,
-                getDefaultHeaders(tenantId, null, null, null, null),
+                getDefaultHeaders(tenantId, null, null, null),
                 MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
 
@@ -173,44 +164,6 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public StorageCountResult countObjects(StorageRequest request) throws StorageDriverException {
-        ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
-        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
-        ParametersChecker.checkParameter(FOLDER_IS_A_MANDATORY_PARAMETER, request.getType());
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.GET, COUNT_PATH + OBJECTS_PATH + "/" + request.getType(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
-                MediaType.APPLICATION_JSON_TYPE);
-            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
-
-            switch (status) {
-                case OK:
-                    JsonNode result = handleResponseStatus(response, JsonNode.class);
-                    return new StorageCountResult(request.getTenantId(), request.getType(),
-                        result.get("numberObjects").longValue());
-                case NOT_FOUND:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
-                        request.getTenantId() + "_" + request.getType()));
-                    throw new StorageDriverNotFoundException(getDriverName(),
-                        VitamCodeHelper.getLogMessage(VitamCode.STORAGE_CONTAINER_NOT_FOUND,
-                            request.getTenantId() + "_" + request.getType()));
-                case BAD_REQUEST:
-                    LOGGER.error("Bad request");
-                    throw new StorageDriverPreconditionFailedException(getDriverName(), "Bad request");
-                default:
-                    LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR));
-                    throw new StorageDriverException(getDriverName(), response.getStatusInfo().getReasonPhrase(), true);
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), e.getMessage(), true);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-    }
-
-    @Override
     public StorageGetResult getObject(StorageObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
@@ -221,7 +174,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                getDefaultHeaders(request.getTenantId(), null, null, null),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -264,21 +217,27 @@ public class ConnectionImpl extends AbstractConnection {
 
             final InputStream stream = request.getDataStream();
             // init
-            final ObjectInit objectInit = new ObjectInit();
-            objectInit.setDigestAlgorithm(DigestType.valueOf(request.getDigestAlgorithm()));
-            objectInit.setType(DataCategory.getByFolder(request.getType()));
-            response =
-                performRequest(HttpMethod.POST, OBJECTS_PATH + "/" + objectInit.getType() + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), StorageConstants.COMMAND_INIT, null, null, request.getSize()),
-                    objectInit, MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE, false);
+            response = performRequest(HttpMethod.PUT,
+                OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+                getDefaultHeaders(request.getTenantId(), null,
+                    request.getDigestAlgorithm(), request.getSize()),
+                stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
-            return performPutRequests(stream, handleResponseStatus(response, ObjectInit.class), request.getTenantId(),
-                request.getSize());
+            final JsonNode json = handleResponseStatus(response, JsonNode.class);
+
+            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
+                LOGGER.error("Error while performing put object operation");
+                throw new StorageDriverException(getDriverName(), "Error while performing put object operation", true);
+            }
+
+            StoragePutResult result =
+                new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
+                    json.get("digest").textValue(), json.get("size").longValue());
+
+            return result;
         } catch (final IllegalArgumentException exc) {
-            LOGGER.error(exc);
-            throw new StorageDriverPreconditionFailedException(getDriverName(), exc.getMessage());
+            throw new StorageDriverPreconditionFailedException(getDriverName(), exc);
         } catch (final VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
             throw new StorageDriverException(getDriverName(), true, e);
         } finally {
             consumeAnyEntityAndClose(response);
@@ -299,7 +258,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.DELETE,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, request.getDigestHashBase16(),
+                getDefaultHeaders(request.getTenantId(), request.getDigestHashBase16(),
                     request.getDigestAlgorithm().getName(), null),
                 MediaType.APPLICATION_JSON_TYPE);
 
@@ -339,7 +298,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.HEAD,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                getDefaultHeaders(request.getTenantId(), null, null, null),
                 MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -391,8 +350,7 @@ public class ConnectionImpl extends AbstractConnection {
                 throw new StorageDriverServiceUnavailableException(getDriverName(), status.getReasonPhrase());
             case CONFLICT:
                 LOGGER.error(status.getReasonPhrase());
-                throw new StorageDriverException(getDriverName(),
-                        status.getReasonPhrase(), false);
+                throw new StorageDriverConflictException(getDriverName(), status.getReasonPhrase());
             default:
                 LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
                 throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
@@ -403,20 +361,16 @@ public class ConnectionImpl extends AbstractConnection {
      * Generate the default header map
      *
      * @param tenantId   the tenantId
-     * @param command    the command to be added
      * @param digest     the digest of the object to be added
      * @param digestType the type of the digest to be added
      * @param size
      * @return header map
      */
-    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String command, String digest,
+    private MultivaluedHashMap<String, Object> getDefaultHeaders(Integer tenantId, String digest,
         String digestType, Long size) {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         if (tenantId != null) {
             headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
-        }
-        if (command != null) {
-            headers.add(GlobalDataRest.X_COMMAND, command);
         }
         if (digest != null) {
             headers.add(GlobalDataRest.X_DIGEST, digest);
@@ -428,40 +382,6 @@ public class ConnectionImpl extends AbstractConnection {
             headers.add(GlobalDataRest.VITAM_CONTENT_LENGTH, size);
         }
         return headers;
-    }
-
-    /**
-     * Method performing a PutRequests
-     *
-     * @param stream   the stream to be chunked if necessary
-     * @param result   the result received from the server after the init
-     * @param tenantId the tenant id
-     * @return a PutObjectResult the final result received from the server
-     * @throws StorageDriverException in case the server encounters an exception
-     */
-    private StoragePutResult performPutRequests(InputStream stream, ObjectInit result, Integer tenantId, long size)
-        throws StorageDriverException {
-        StoragePutResult finalResult;
-        Response response = null;
-        try {
-            response = performRequest(HttpMethod.PUT, OBJECTS_PATH + "/" + result.getType() + "/" + result.getId(),
-                getDefaultHeaders(tenantId, StorageConstants.COMMAND_END, null, null, size), stream,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
-            final JsonNode json = handleResponseStatus(response, JsonNode.class);
-            finalResult = new StoragePutResult(tenantId, result.getType().getFolder(), result.getId(), result.getId(),
-                json.get("digest").textValue(), Long.valueOf(json.get("size").textValue()));
-            // TODO G1 : deal with different types of errors
-            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
-                LOGGER.error("Error while performing put object operation");
-                throw new StorageDriverException(getDriverName(), "Error while performing put object operation", true);
-            }
-        } catch (final VitamClientInternalException e) {
-            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e);
-            throw new StorageDriverException(getDriverName(), true, e);
-        } finally {
-            consumeAnyEntityAndClose(response);
-        }
-        return finalResult;
     }
 
     @Override
@@ -478,7 +398,7 @@ public class ConnectionImpl extends AbstractConnection {
             response =
                 performRequest(HttpMethod.HEAD,
                     OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
-                    getDefaultHeaders(request.getTenantId(), null,
+                    getDefaultHeaders(request.getTenantId(),
                         request.getDigestHashBase16(), request.getDigestAlgorithm().getName(), null),
                     MediaType.APPLICATION_OCTET_STREAM_TYPE);
 
@@ -521,7 +441,7 @@ public class ConnectionImpl extends AbstractConnection {
         try {
             response = performRequest(HttpMethod.GET,
                 OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid() + METADATAS,
-                getDefaultHeaders(request.getTenantId(), null, null, null, null), MediaType.APPLICATION_JSON_TYPE);
+                getDefaultHeaders(request.getTenantId(), null, null, null), MediaType.APPLICATION_JSON_TYPE);
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
             switch (status) {
                 case OK:
