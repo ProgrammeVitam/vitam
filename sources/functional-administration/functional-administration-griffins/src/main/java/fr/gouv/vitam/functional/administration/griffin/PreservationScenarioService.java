@@ -190,7 +190,8 @@ public class PreservationScenarioService {
         throws ReferentialException {
         for (GriffinByFormat griffinByFormat : scenario.getGriffinByFormat()) {
             if (!griffinsIdentifiers.contains(griffinByFormat.getGriffinIdentifier())) {
-                throw new ReferentialException("Griffin '"+griffinByFormat.getGriffinIdentifier()+"' is not in database");
+                throw new ReferentialException(
+                    "Griffin '" + griffinByFormat.getGriffinIdentifier() + "' is not in database");
             }
         }
 
@@ -198,7 +199,8 @@ public class PreservationScenarioService {
             !griffinsIdentifiers.contains(scenario.getDefaultGriffin().getGriffinIdentifier());
 
         if (defaultGriffinDoesNotExists) {
-            throw new ReferentialException("Griffin '"+scenario.getDefaultGriffin().getGriffinIdentifier()+"' is not in database");
+            throw new ReferentialException(
+                "Griffin '" + scenario.getDefaultGriffin().getGriffinIdentifier() + "' is not in database");
         }
     }
 
@@ -234,11 +236,12 @@ public class PreservationScenarioService {
         List<String> identifiers = new ArrayList<>();
         for (PreservationScenarioModel model : listToImport) {
             if (identifiers.contains(model.getIdentifier())) {
-                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier()+"'");
+                throw new ReferentialException("Duplicate scenario : '" + model.getIdentifier() + "'");
             }
 
-            if((model.getGriffinByFormat().isEmpty()) && model.getDefaultGriffin() == null) {
-                throw new ReferentialException("Invalid scenario for : '" + model.getIdentifier() + "' : at least one griffin must be defined (griffin by format or default griffin)");
+            if ((model.getGriffinByFormat().isEmpty()) && model.getDefaultGriffin() == null) {
+                throw new ReferentialException("Invalid scenario for : '" + model.getIdentifier() +
+                    "' : at least one griffin must be defined (griffin by format or default griffin)");
             }
 
             Set<ConstraintViolation<PreservationScenarioModel>> constraints = validator.validate(model);
@@ -282,14 +285,15 @@ public class PreservationScenarioService {
         puidsToCheck.removeAll(referencePuids);
 
         if (!puidsToCheck.isEmpty()) {
-            throw new ReferentialException(String.format("List: %s does not exist in the database.", puidsToCheck.toString()));
+            throw new ReferentialException(
+                String.format("List: %s does not exist in the database.", puidsToCheck.toString()));
         }
     }
 
     private String getConstraintsStrings(Set<ConstraintViolation<PreservationScenarioModel>> constraints) {
-        List<String> result = new ArrayList<>() ;
-        for (ConstraintViolation<PreservationScenarioModel> constraintViolation :constraints){
-            result.add( "'"+ constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
+        List<String> result = new ArrayList<>();
+        for (ConstraintViolation<PreservationScenarioModel> constraintViolation : constraints) {
+            result.add("'" + constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
         }
         return result.toString();
     }
@@ -485,14 +489,19 @@ public class PreservationScenarioService {
         try {
             String lastUpdate = getFormattedDateForMongo(getFormattedDateForMongo(LocalDateUtil.now()));
             preservationScenarioModel.setLastUpdate(lastUpdate);
+        } catch (DateTimeParseException e) {
+            throw new ReferentialException("Error in scenario '" + preservationScenarioModel.getIdentifier() +
+                "' : field '" + PreservationScenarioModel.TAG_LAST_UPDATE + "' format is invalid", e);
+        }
 
-            if (preservationScenarioModel.getCreationDate() != null) {
-
+        if (preservationScenarioModel.getCreationDate() != null) {
+            try {
                 String creationDate = getFormattedDateForMongo(preservationScenarioModel.getCreationDate());
                 preservationScenarioModel.setCreationDate(creationDate);
+            } catch (DateTimeParseException e) {
+                throw new ReferentialException("Error in scenario '" + preservationScenarioModel.getIdentifier() +
+                    "' : field '" + PreservationScenarioModel.TAG_CREATION_DATE + "' format is invalid", e);
             }
-        } catch (DateTimeParseException e) {
-            throw new ReferentialException("Invalid date", e);
         }
     }
 
