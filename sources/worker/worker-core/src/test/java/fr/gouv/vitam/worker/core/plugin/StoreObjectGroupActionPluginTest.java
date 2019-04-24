@@ -28,9 +28,12 @@ package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import javax.ws.rs.core.Response;
@@ -148,6 +151,7 @@ public class StoreObjectGroupActionPluginTest {
 
         final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
         assertEquals(StatusCode.FATAL, response.get(0).getGlobalStatus());
+        verify(workspaceClient, never()).putObject(any(), any(), any());
     }
 
     @Test
@@ -172,6 +176,8 @@ public class StoreObjectGroupActionPluginTest {
 
         final List<ItemStatus> response = plugin.executeList(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.get(0).getGlobalStatus());
+        verify(workspaceClient)
+            .putObject(eq(CONTAINER_NAME), eq("ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"), any());
     }
 
     @Test
