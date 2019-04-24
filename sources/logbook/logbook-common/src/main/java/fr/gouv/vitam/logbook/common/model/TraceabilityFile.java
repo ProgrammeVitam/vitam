@@ -49,6 +49,9 @@ import java.nio.charset.StandardCharsets;
 public class TraceabilityFile implements AutoCloseable {
 
     public static final String previousTimestampToken = "previousTimestampToken";
+    public static final String previousTimestampTokenMinusOneMonth = "previousTimestampTokenMinusOneMonth";
+    public static final String previousTimestampTokenMinusOneYear = "previousTimestampTokenMinusOneYear";
+    public static final String currentHash = "currentHash";
 
     private static final String EXTRACT_FILENAME = "data.txt";
     private static final String ADDITIONAL_INFORMATION_FILENAME = "additional_information.txt";

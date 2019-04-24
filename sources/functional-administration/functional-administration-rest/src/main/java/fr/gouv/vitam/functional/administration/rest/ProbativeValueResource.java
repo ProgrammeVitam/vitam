@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
+import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -83,6 +85,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
 
@@ -125,7 +128,6 @@ public class ProbativeValueResource {
         LogbookClientAlreadyExistsException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-
             final LogbookOperationParameters initParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
@@ -137,8 +139,11 @@ public class ProbativeValueResource {
                         GUIDReader.getGUID(operationId),
                     GUIDReader.getGUID(operationId));
 
-            client.create(initParameters);
+            ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode()
+                .put("AccessContract", getVitamSession().getContractId());
+            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier.toString());
 
+            client.create(initParameters);
         }
     }
 

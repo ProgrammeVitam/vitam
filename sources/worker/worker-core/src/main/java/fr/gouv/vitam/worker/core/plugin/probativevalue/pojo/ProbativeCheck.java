@@ -29,15 +29,16 @@ package fr.gouv.vitam.worker.core.plugin.probativevalue.pojo;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.CheckedItem;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksAction;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksSourceDestination;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.ChecksType;
 
-import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.KO;
-import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.OK;
-import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.WARN;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+
 
 public class ProbativeCheck {
     private final String name;
@@ -47,10 +48,9 @@ public class ProbativeCheck {
     private final ChecksSourceDestination destination;
     private final String sourceComparable;
     private final String destinationComparable;
-    private final String destinationComparable2;
     private final ChecksAction action;
     private final CheckedItem item;
-    private final EvidenceStatus status;
+    private final StatusCode status;
 
     @JsonCreator
     public ProbativeCheck(
@@ -61,10 +61,9 @@ public class ProbativeCheck {
         @JsonProperty("destination") ChecksSourceDestination destination,
         @JsonProperty("sourceComparable") String sourceComparable,
         @JsonProperty("destinationComparable") String destinationComparable,
-        @JsonProperty("destinationComparable2") String destinationComparable2,
         @JsonProperty("action") ChecksAction action,
         @JsonProperty("item") CheckedItem item,
-        @JsonProperty("status") EvidenceStatus status) {
+        @JsonProperty("status") StatusCode status) {
         this.name = name;
         this.details = details;
         this.type = type;
@@ -72,14 +71,13 @@ public class ProbativeCheck {
         this.destination = destination;
         this.sourceComparable = sourceComparable;
         this.destinationComparable = destinationComparable;
-        this.destinationComparable2 = destinationComparable2;
         this.action = action;
         this.item = item;
         this.status = status;
     }
 
     @JsonIgnore
-    public static ProbativeCheck from(ChecksInformation information, String source, String destination, EvidenceStatus status) {
+    public static ProbativeCheck from(ChecksInformation information, String source, String destination, StatusCode status) {
         return new ProbativeCheck(
             information.name(),
             information.explanation,
@@ -88,24 +86,6 @@ public class ProbativeCheck {
             information.destination,
             source,
             destination,
-            null,
-            information.action,
-            information.item,
-            status
-        );
-    }
-
-    @JsonIgnore
-    public static ProbativeCheck from(ChecksInformation information, String source, String destination, String destination2, EvidenceStatus status) {
-        return new ProbativeCheck(
-            information.name(),
-            information.explanation,
-            information.checksType,
-            information.source,
-            information.destination,
-            source,
-            destination,
-            destination2,
             information.action,
             information.item,
             status
@@ -122,7 +102,6 @@ public class ProbativeCheck {
             information.destination,
             source,
             destination,
-            null,
             information.action,
             information.item,
             OK
@@ -130,7 +109,7 @@ public class ProbativeCheck {
     }
 
     @JsonIgnore
-    public static ProbativeCheck koFrom(ChecksInformation information, String source, String destination, String destination2) {
+    public static ProbativeCheck koFrom(ChecksInformation information, String source, String destination) {
         return new ProbativeCheck(
             information.name(),
             information.explanation,
@@ -139,7 +118,6 @@ public class ProbativeCheck {
             information.destination,
             source,
             destination,
-            destination2,
             information.action,
             information.item,
             KO
@@ -156,10 +134,9 @@ public class ProbativeCheck {
             information.destination,
             source,
             destination,
-            null,
             information.action,
             information.item,
-            WARN
+            WARNING
         );
     }
 
@@ -198,11 +175,6 @@ public class ProbativeCheck {
         return destinationComparable;
     }
 
-    @JsonProperty("destinationComparable2")
-    public String getDestinationComparable2() {
-        return destinationComparable2;
-    }
-
     @JsonProperty("action")
     public ChecksAction getAction() {
         return action;
@@ -214,7 +186,7 @@ public class ProbativeCheck {
     }
 
     @JsonProperty("status")
-    public EvidenceStatus getStatus() {
+    public StatusCode getStatus() {
         return status;
     }
 }

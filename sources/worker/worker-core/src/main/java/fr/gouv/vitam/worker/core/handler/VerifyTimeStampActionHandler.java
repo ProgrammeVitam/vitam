@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -34,14 +35,13 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.logbook.common.traceability.TimeStampService;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.IOUtils;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.cms.Attribute;
 import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.asn1.ess.SigningCertificateV2;
@@ -56,20 +56,26 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcDigestCalculatorProvider;
 import org.bouncycastle.tsp.TSPException;
 import org.bouncycastle.tsp.TSPValidationException;
-import org.bouncycastle.tsp.TimeStampResponse;
 import org.bouncycastle.tsp.TimeStampToken;
-import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Store;
-import org.bouncycastle.util.encoders.Base64;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Objects;
+import java.util.Properties;
+
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.currentHash;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.previousTimestampToken;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.previousTimestampTokenMinusOneMonth;
+import static fr.gouv.vitam.logbook.common.model.TraceabilityFile.previousTimestampTokenMinusOneYear;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_COMPUTING_INFORMATION;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_MERKLE_TREE;
 
 public class VerifyTimeStampActionHandler extends ActionHandler {
 
@@ -80,11 +86,10 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     private static final int TRACEABILITY_EVENT_DETAIL_RANK = 0;
 
     private static final String TIMESTAMP_FILENAME = "token.tsp";
-
-    private static JsonNode traceabilityEvent = null;
-
     private static final String HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP = "COMPARE_TOKEN_TIMESTAMP";
     private static final String HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP = "VALIDATE_TOKEN_TIMESTAMP";
+    private static final String HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP = "VERIFY_TOKEN_TIMESTAMP";
+    private static JsonNode traceabilityEvent = null;
 
     public static final String getId() {
         return HANDLER_ID;
@@ -132,6 +137,21 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
 
+            final ItemStatus subItemStatusTokenVerification = new ItemStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP);
+            try {
+                String computingInformationPath = String.format("%s/%s", SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, TRACEABILITY_COMPUTING_INFORMATION);
+                String merkleTreePath = String.format("%s/%s", SedaConstants.TRACEABILITY_OPERATION_DIRECTORY, TRACEABILITY_MERKLE_TREE);
+                verifyTimestamp(encodedTimeStampToken, computingInformationPath, merkleTreePath, handler);
+                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
+                    subItemStatusTokenVerification.increment(StatusCode.OK));
+            } catch (ProcessingException e) {
+                LOGGER.error("Timestamps is not valid", e);
+                // lets stop the process and return an error
+                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
+                    subItemStatusTokenVerification.increment(StatusCode.KO));
+                return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+            }
+
         } catch (InvalidParseOperationException | ContentAddressableStorageNotFoundException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -140,6 +160,41 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         }
 
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
+    }
+
+    private void verifyTimestamp(String encodedTimeStampToken, String computingInformationPath, String merkleTreePath, HandlerIO handler)
+        throws ProcessingException {
+        try (InputStream computingInformation = handler.getInputStreamFromWorkspace(computingInformationPath);
+            InputStream merkleTreeInformation = handler.getInputStreamFromWorkspace(merkleTreePath)) {
+
+            Properties computingProperties = new Properties();
+            computingProperties.load(computingInformation);
+
+            String merkleTreeDigest = JsonHandler.getFromInputStream(merkleTreeInformation).get("Root").asText();
+            String computingCurrentDigest = computingProperties.getProperty(currentHash);
+
+            if (!Objects.equals(merkleTreeDigest, computingCurrentDigest)) {
+                throw new ProcessingException(String.format("Not same digest %s %s.", merkleTreeDigest, computingCurrentDigest));
+            }
+
+            TimeStampService timeStampService = new TimeStampService();
+
+            byte[] rootMerkleTree = timeStampService.getDigestAsBytes(computingCurrentDigest);
+            byte[] prevTimeStampToken = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampToken));
+            byte[] prevTimestampTokenMinusOneMonth = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneMonth));
+            byte[] prevTimestampTokenMinusOneYear = timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneYear));
+
+            TimeStampToken timeStampToken = timeStampService.getTimeStampFrom(encodedTimeStampToken);
+
+            byte[] timeStampDataFromFile = timeStampToken.getTimeStampInfo().getMessageImprintDigest();
+            byte[] computedTimeStampData = timeStampService.getDigestFrom(rootMerkleTree, prevTimeStampToken, prevTimestampTokenMinusOneMonth, prevTimestampTokenMinusOneYear);
+
+            if (!Arrays.equals(timeStampDataFromFile, computedTimeStampData)) {
+                throw new ProcessingException(String.format("Not same digest %s %s.", BaseXx.getBase16(timeStampDataFromFile), BaseXx.getBase16(computedTimeStampData)));
+            }
+        } catch (Exception e) {
+            throw new ProcessingException(e);
+        }
     }
 
     private void compareTimeStamps(String timeStampToken) throws ProcessingException {
@@ -151,11 +206,8 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
 
     private void validateTimestamp(String encodedTimeStampToken) throws ProcessingException {
         try {
-            ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(
-                Base64.decode(encodedTimeStampToken.getBytes())));
-            ASN1Primitive obj = bIn.readObject();
-            TimeStampResponse tsResp = new TimeStampResponse(obj.toASN1Primitive().getEncoded());
-            TimeStampToken tsToken = tsResp.getTimeStampToken();
+            TimeStampService timeStampService = new TimeStampService();
+            TimeStampToken tsToken = timeStampService.getTimeStampFrom(encodedTimeStampToken);
 
             AttributeTable table = tsToken.getSignedAttributes();
             Attribute attribute = table.get(PKCSObjectIdentifiers.id_aa_signingCertificate);
@@ -163,14 +215,6 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 attribute = table.get(PKCSObjectIdentifiers.id_aa_signingCertificateV2);
             }
             SigningCertificateV2 sigCertV2 = SigningCertificateV2.getInstance(attribute.getAttributeValues()[0]);
-
-            // nonce should be null for now
-            // TODO maybe nonce could be different than null ? If so, check what is set in LogbookAdministration >
-            // generateTimeStampToken
-            if (tsToken.getTimeStampInfo().getNonce() != null) {
-                LOGGER.error("Nonce couldnt be not null");
-                throw new ProcessingException("Nonce couldnt be not null");
-            }
 
             try {
 
@@ -196,7 +240,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 dOut.write(x509Certificate.getEncoded());
                 dOut.close();
                 byte[] certHash = digCalc.getDigest();
-                if (!Arrays.areEqual(sigCertV2.getCerts()[0].getCertHash(), certHash)) {
+                if (!Arrays.equals(sigCertV2.getCerts()[0].getCertHash(), certHash)) {
                     LOGGER.error("Hash from certificates are different");
                     throw new ProcessingException("Hash from certificates are different");
                 }

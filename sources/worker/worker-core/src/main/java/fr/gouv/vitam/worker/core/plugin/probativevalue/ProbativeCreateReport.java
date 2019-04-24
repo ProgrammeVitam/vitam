@@ -35,12 +35,12 @@ import fr.gouv.vitam.batch.report.model.ReportResults;
 import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.BackupService;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.batch.report.model.ReportType.PROBATIVE_VALUE;
+import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.REPORT;
 import static fr.gouv.vitam.worker.core.plugin.evidence.EvidenceService.JSON;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -72,7 +73,7 @@ public class ProbativeCreateReport extends ActionHandler {
 
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CREATE_REPORT";
     private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
-    private static final ReportVersion2 reportVersion2 = new ReportVersion2();
+    private static final ReportVersion2 REPORT_VERSION_2 = new ReportVersion2();
 
     private final BackupService backupService;
 
@@ -90,8 +91,8 @@ public class ProbativeCreateReport extends ActionHandler {
 
         try (InputStream inputStream = handler.getInputStreamFromWorkspace("distributionFile.jsonl");
              JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE)){
-             JsonNode context = JsonHandler.getFromFile(handler.getFileFromWorkspace("request"));
 
+            JsonNode context = JsonHandler.getFromFile(handler.getFileFromWorkspace("request"));
             List<ProbativeReportEntry> probativeEntries = lines.stream()
                 .map(line -> getFromFile(handler, line))
                 .collect(Collectors.toList());
@@ -108,8 +109,8 @@ public class ProbativeCreateReport extends ActionHandler {
                 .map(ProbativeReportEntry::getEvStartDateTime)
                 .orElse("NO_START_DATE_FOUND");
             String endDate = probativeEntries.stream()
-                .max(Comparator.comparing(ProbativeReportEntry::getEvStartDateTime))
-                .map(ProbativeReportEntry::getEvStartDateTime)
+                .max(Comparator.comparing(ProbativeReportEntry::getEvEndDateTime))
+                .map(ProbativeReportEntry::getEvEndDateTime)
                 .orElse("NO_END_DATE_FOUND");
 
             ReportSummary reportSummary = new ReportSummary(
@@ -120,25 +121,50 @@ public class ProbativeCreateReport extends ActionHandler {
                 null
             );
 
+            StatusCode outcome = getOutcome(reportResults);
+            String evType = param.getWorkflowIdentifier();
+
             OperationSummary operationSummary = new OperationSummary(
-                VitamThreadUtils.getVitamSession().getTenantId(),
+                getVitamSession().getTenantId(),
                 param.getContainerName(),
-                "PROBATIVE_VALUE",
-                "",
-                "",
-                "",
-                JsonHandler.createObjectNode(),
-                JsonHandler.createObjectNode()
+                evType,
+                outcome.name(),
+                getOutDetail(outcome, evType),
+                getOutMsg(outcome, evType),
+                getRightStatement(getVitamSession().getContractId()),
+                null
             );
 
             ProbativeReportV2 probativeReportV2 = new ProbativeReportV2(operationSummary, reportSummary, context, probativeEntries);
             backupService.backup(JsonHandler.writeToInpustream(probativeReportV2), REPORT, param.getContainerName() + JSON);
 
-            return buildItemStatusWithMasterData(HANDLER_ID, StatusCode.OK, EventDetails.of("Probative value report success."), JsonHandler.unprettyPrint(reportVersion2));
+            return buildItemStatusWithMasterData(HANDLER_ID, StatusCode.OK, EventDetails.of("Probative value report success."), JsonHandler.unprettyPrint(REPORT_VERSION_2));
         } catch (Exception e) {
             LOGGER.error(e);
             return buildItemStatus(HANDLER_ID, StatusCode.KO, EventDetails.of("Probative value report error."));
         }
+    }
+
+    private String getOutMsg(StatusCode outcome, String probativeValue) {
+        return VitamLogbookMessages.getFromFullCodeKey(VitamLogbookMessages.getCodeOp(probativeValue, outcome));
+    }
+
+    private String getOutDetail(StatusCode outcome, String probativeValue) {
+        return String.format("%s.%s", probativeValue, outcome.name());
+    }
+
+    private JsonNode getRightStatement(String rightStatementIdentifier) {
+        return JsonHandler.createObjectNode().put("AccessContract", rightStatementIdentifier);
+    }
+
+    private StatusCode getOutcome(ReportResults reportResults) {
+        if (reportResults.getNbOk().equals(reportResults.getTotal())) {
+            return StatusCode.OK;
+        }
+        if (reportResults.getNbKo().equals(reportResults.getTotal())) {
+            return StatusCode.KO;
+        }
+        return StatusCode.WARNING;
     }
 
     private ProbativeReportEntry getFromFile(HandlerIO handler, JsonLineModel line) {

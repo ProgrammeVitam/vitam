@@ -231,7 +231,7 @@ public class TestWorkerParameter implements WorkerParameters {
 
     @Override
     public String getWorkflowIdentifier() {
-        throw new IllegalStateException("Not implemented");
+        return "TEST WORKFLOW";
     }
 
     @Override
