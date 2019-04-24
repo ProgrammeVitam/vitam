@@ -3,7 +3,6 @@
   "visState": "{\"title\":\"Security events from AlertServiceImpl (pie chart, excluding common errors)\",\"type\":\"pie\",\"params\":{\"addTooltip\":true,\"addLegend\":true,\"legendPosition\":\"right\",\"isDonut\":false,\"type\":\"pie\"},\"aggs\":[{\"id\":\"1\",\"enabled\":true,\"type\":\"count\",\"schema\":\"metric\",\"params\":{}},{\"id\":\"3\",\"enabled\":true,\"type\":\"filters\",\"schema\":\"split\",\"params\":{\"filters\":[{\"input\":{\"query\":{\"query_string\":{\"query\":\"NOT log_message : \\\".*There are missing traceability logbooks of tenant.*\\\" AND NOT log_message : \\\".*add here the log message you do not want to see because it is, like, totally boring.*\\\"\"}}},\"label\":\"\"}],\"row\":true}},{\"id\":\"4\",\"enabled\":true,\"type\":\"terms\",\"schema\":\"segment\",\"params\":{\"field\":\"log_message.keyword\",\"size\":10,\"order\":\"desc\",\"orderBy\":\"1\"}}],\"listeners\":{}}",
   "uiStateJSON": "{}",
   "description": "",
-  "savedSearchId": "alertes-de-securite-search",
   "version": 1,
   "kibanaSavedObjectMeta": {
     "searchSourceJSON": "{\"filter\":[]}"

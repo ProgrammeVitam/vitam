@@ -7,8 +7,8 @@
 # The primary way of configuring a node is via this file. This template lists
 # the most important settings you may want to configure for a production cluster.
 #
-# Please see the documentation for further information on configuration options:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/setup-configuration.html>
+# Please consult the documentation for further information on configuration options:
+# https://www.elastic.co/guide/en/elasticsearch/reference/index.html
 #
 # ---------------------------------- Cluster -----------------------------------
 #
@@ -66,37 +66,34 @@ network.host: {{ ip_service }}
 # Set a custom port for HTTP:
 #
 http.port: {{ composant.port_http }}
-transport.tcp.port: {{ composant.port_tcp }}
 #
-# For more information, see the documentation at:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html>
+# For more information, consult the network module documentation.
 #
 # --------------------------------- Discovery ----------------------------------
 #
-# Pass an initial list of hosts to perform discovery when new node is started:
+# Pass an initial list of hosts to perform discovery when this node is started:
 # The default list of hosts is ["127.0.0.1", "[::1]"]
 #
-discovery.zen.ping.unicast.hosts: [ {% for host in groups['hosts_elasticsearch_data'] %}"{{ hostvars[host]['ip_service'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
+discovery.seed_hosts: [ {% for host in groups['hosts-elasticsearch-data'] %}"{{ hostvars[host]['ip_service'] }}"{% if not loop.last %},{% endif %}{% endfor %} ]
 #
-# Prevent the "split brain" by configuring the majority of nodes (total number of nodes / 2 + 1):
+# Bootstrap the cluster using an initial set of master-eligible nodes:
 #
 {% if composant.discovery_zen_minimum_master_nodes is defined %}
-discovery.zen.minimum_master_nodes: {{ composant.discovery_zen_minimum_master_nodes }}
+cluster.initial_master_nodes: {{ composant.discovery_zen_minimum_master_nodes }}
 
 {% else %}
 {% if groups['hosts_elasticsearch_data']|length < 4 %}
 # for small deployments ; should be located only in "one rack_id"
-discovery.zen.minimum_master_nodes: {{ ((groups['hosts_elasticsearch_data']|length / 2)+1)| round (0, 'floor')| int }}
+cluster.initial_master_nodes: {{ ((groups['hosts_elasticsearch_data']|length / 2)+1)| round (0, 'floor')| int }}
 
 {% else %}
 # Between ((N/2)-1) and (N/2) ; may be usefull when 2 "rooms"
-discovery.zen.minimum_master_nodes: {{ (groups['hosts_elasticsearch_data']|length / 2)| round (0, 'floor')| int }}
+cluster.initial_master_nodes: {{ (groups['hosts_elasticsearch_data']|length / 2)| round (0, 'floor')| int }}
 
 {% endif %}
 {% endif %}
 #
-# For more information, see the documentation at:
-# <http://www.elastic.co/guide/en/elasticsearch/reference/current/modules-discovery.html>
+# For more information, consult the discovery and cluster formation module documentation.
 #
 # ---------------------------------- Gateway -----------------------------------
 #
@@ -129,8 +126,8 @@ indices.memory.index_buffer_size: {{ ((elasticsearch_memory_value|int)*(composan
 
 # thread_pool configuration
 thread_pool:
-    index:
-        size: {{ elasticsearch.data.thread_pool.index.size |default((ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int) }}
+    analyze:
+        size: {{ (ansible_processor_cores * ansible_processor_threads_per_core) | round (0, 'floor') | int }}
         queue_size: 5000
     get:
         size: {{ elasticsearch.data.thread_pool.get.size |default((ansible_processor_cores * ansible_processor_threads_per_core)| round (0, 'floor') | int) }}

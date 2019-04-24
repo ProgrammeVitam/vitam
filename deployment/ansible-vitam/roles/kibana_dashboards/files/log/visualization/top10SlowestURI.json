@@ -3,7 +3,6 @@
     "description": "",
     "title": "TOP 10 des URI avec le temps de reponse le plus eleve",
     "uiStateJSON": "{}",
-    "savedSearchId": "resources-timers",
     "kibanaSavedObjectMeta": {
       "searchSourceJSON": "{\"filter\":[]}"
     }

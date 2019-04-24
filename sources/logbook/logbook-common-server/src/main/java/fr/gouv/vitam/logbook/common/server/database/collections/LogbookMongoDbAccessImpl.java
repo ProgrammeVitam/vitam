@@ -1498,7 +1498,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             return new VitamMongoCursor<>(new EmptyMongoCursor());
         }
         final SearchHits hits = elasticSearchResponse.getHits();
-        if (hits.getTotalHits() == 0) {
+        if (hits.getTotalHits().value == 0) {
             return new VitamMongoCursor<>(new EmptyMongoCursor());
         }
         final Iterator<SearchHit> iterator = hits.iterator();
@@ -1513,7 +1513,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         parser.getRequest().setQuery(new NopQuery());
         return new VitamMongoCursor(
             DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(collection.getVitamCollection(), parser,
-                idsSorted, null), hits.getTotalHits(), elasticSearchResponse.getScrollId());
+                idsSorted, null), hits.getTotalHits().value, elasticSearchResponse.getScrollId());
     }
 
 

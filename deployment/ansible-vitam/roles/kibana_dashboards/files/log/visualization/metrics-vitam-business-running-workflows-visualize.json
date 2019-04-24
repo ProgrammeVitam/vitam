@@ -3,7 +3,6 @@
     "description": "",
     "title": "metrics-vitam-business-running-workflows-visualize",
     "uiStateJSON": "{}",
-    "savedSearchId": "metrics-vitam-business-running-workflows-search",
     "kibanaSavedObjectMeta": {
       "searchSourceJSON": "{\"filter\":[]}"
     }

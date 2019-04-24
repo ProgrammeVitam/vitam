@@ -3,7 +3,6 @@
     "description": "",
     "title": "Ratio FileDescriptor max / FileDescriptor ouverts",
     "uiStateJSON": "{}",
-    "savedSearchId": "JVMFileDescriptorRatioGaugeSearch",
     "kibanaSavedObjectMeta": {
       "searchSourceJSON": "{\"filter\":[]}"
     }
