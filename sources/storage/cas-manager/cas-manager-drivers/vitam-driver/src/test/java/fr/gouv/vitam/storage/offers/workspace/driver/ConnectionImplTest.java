@@ -45,6 +45,7 @@ import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.storage.driver.AbstractConnection;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverConflictException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverPreconditionFailedException;
@@ -399,6 +400,15 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test(expected = StorageDriverException.class)
     public void putObjectThrowsOtherException() throws Exception {
         when(mock.put()).thenReturn(Response.status(Status.SERVICE_UNAVAILABLE).build());
+        final StoragePutRequest request = getPutObjectRequest(true, true, true, true, true);
+        try (Connection connection = driver.connect(offer.getId())) {
+            connection.putObject(request);
+        }
+    }
+
+    @Test(expected = StorageDriverConflictException.class)
+    public void putObjectThrowsConflictException() throws Exception {
+        when(mock.put()).thenReturn(Response.status(Status.CONFLICT).build());
         final StoragePutRequest request = getPutObjectRequest(true, true, true, true, true);
         try (Connection connection = driver.connect(offer.getId())) {
             connection.putObject(request);
