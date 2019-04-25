@@ -39,6 +39,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -131,8 +132,8 @@ public class ExternalLogbookStep {
                     statusExpected = Status.BAD_REQUEST;
             }
             assertThat(response.getHttpCode()).isEqualTo(statusExpected.getStatusCode());
-
-            world.setOperationId(operationGuid.getId());
+            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            world.setOperationId(operationId);
         } catch (Exception e) {
             fail("should not produce this exception", e);
         }
