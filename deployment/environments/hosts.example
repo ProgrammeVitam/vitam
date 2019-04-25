@@ -191,6 +191,7 @@ hosts-mongod-offer
 # Mandatory param : id of the current shard, increment by 1 from 0 to n
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
 # Optional param : mongo_arbiter=true : the node will be only an arbiter ; do not add this paramter on a mongo_rs_bootstrap node
+# Optional param : mongod_memory=x ; this will force the wiredtiger cache size to x (unit is GB) ; can be usefull when colocalization with elasticsearch
 # Recommended practice in production: use 3 instances per shard
 # Example :
 # vitam-mongo-swift-offer-01   mongo_cluster_name=offer-swift-1    mongo_shard_id=0                   mongo_rs_bootstrap=true
@@ -255,6 +256,7 @@ hosts-mongod-data
 # Mandatory param : mongo_cluster_name=mongo-data ("mongo-data" is mandatory)
 # Mandatory param : id of the current shard, increment by 1 from 0 to n
 # Optional param : mandatory for 1 node of the shard, some init commands will be executed on it
+# Optional param : mongod_memory=x ; this will force the wiredtiger cache size to x (unit is GB) ; can be usefull when colocalization with elasticsearch
 # Recommended practice in production: use 3 instances per shard
 # Example:
 # vitam-mdbd-01  mongo_cluster_name=mongo-data   mongo_shard_id=0  mongo_rs_bootstrap=true
