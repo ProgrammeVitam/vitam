@@ -1,6 +1,6 @@
 # Authors of Vitam
 
-## Release 9 (V2) active development team (03/2019)
+## Release 10 (V2) active development team (04/2019)
 
 ### French government team
 
@@ -15,15 +15,16 @@
 * Thierry Devillechabrolle
 
 ### Linagora development team
+
 * Olivier Elbhar
 * Abderrahim Fraoucene
 * Mahmoud Sayad
 
 ### Smile - Ulteam
 
-* Ludovic Blanchet
+
 * Antoine Paris
-* Thomas Peigné
+
 * Jean-Eudes Couignoux
 * Djamel Hamas
 * Dédé Agbodji
@@ -32,6 +33,7 @@
 * Romain Chauveau
 * Nabil El Hajjioui
 * Gaëlle Fournier
+* Olga Zviezdicheva
 
 
 ### Thales integration team
@@ -43,10 +45,12 @@
 * Karima Belili
 
 ## Others contributors
+
 * Gabriel Arena
 * Emmanuel Castro
 * Jean-Paul Pham
 * Julien Georges - Adamant
+* Germain Ledroit et Gaëlle Fournier - CEA
 
 
 ## Those who have gone a long (or short) way with us
@@ -77,7 +81,6 @@
 * Charles Pouplin
 * Zhang Chen
 * Ba Tuan Ngo
-* Germain Ledroit
 * Cédric Legrand
 * Hassen Bamri
 * Ludivine Lenoir
@@ -93,6 +96,8 @@
 * Laurent Dubois
 * Idrissa Manzo
 * Edith Abouquir
+* Ludovic Blanchet
+* Thomas Peigné
 
 ## Thanks for collaboration
 
@@ -114,6 +119,7 @@
 * French National Health Insurance Agency for Wage Earners (CNAMTS)
 * TGIR Huma-Num
 * Central Agency for Social Security Organizations (ACOSS)
+* Vaucluse Departmental Council
 
 ## Thanks for support
 
