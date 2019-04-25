@@ -1,27 +1,5 @@
 package fr.gouv.vitam.metadata.management.integration.test;
 
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Indexes.ascending;
-import static com.mongodb.client.model.Sorts.orderBy;
-import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
-import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -42,7 +20,7 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.graph.GraphUtils;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -56,6 +34,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
@@ -69,7 +48,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
+import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
@@ -111,12 +90,36 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import static com.mongodb.client.model.Indexes.ascending;
+import static com.mongodb.client.model.Sorts.orderBy;
+import static fr.gouv.vitam.common.PropertiesUtils.readYaml;
+import static fr.gouv.vitam.common.PropertiesUtils.writeYaml;
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
- * Integration tests for the reconstruction of metadatas. <br/>
+ * Integration tests for the reconstruction of metadata. <br/>
  */
 public class MetadataManagementIT {
 
@@ -128,6 +131,7 @@ public class MetadataManagementIT {
     private static final String unit_with_graph_0 = "integration-metadata-management/data/unit_with_graph_0.json";
     private static final String unit_with_graph_1 = "integration-metadata-management/data/unit_with_graph_1.json";
     private static final String unit_with_graph_2 = "integration-metadata-management/data/unit_with_graph_2.json";
+    private static final String unit_with_graph_2_v2 = "integration-metadata-management/data/unit_with_graph_2_v2.json";
     private static final String unit_with_graph_3 = "integration-metadata-management/data/unit_with_graph_3.json";
 
 
@@ -141,6 +145,7 @@ public class MetadataManagementIT {
     private static final String got_with_graph_0 = "integration-metadata-management/data/got_0.json";
     private static final String got_with_graph_1 = "integration-metadata-management/data/got_1.json";
     private static final String got_with_graph_2 = "integration-metadata-management/data/got_2.json";
+    private static final String got_with_graph_2_v2 = "integration-metadata-management/data/got_2_v2.json";
 
 
     private static final String got_with_graph_0_guid = "aebaaaaaaahlm6sdabzmoalc4pzqrpqaaaaq";
@@ -156,11 +161,29 @@ public class MetadataManagementIT {
     private static final String got_graph_zip_file =
         "integration-metadata-management/data/1970-01-01-00-00-00-000_2018-04-20-17-00-01-471";
 
+    private static final String reclassification_units = "integration-metadata-management/reclassification/units.json";
+    private static final String reclassification_units_lfc =
+        "integration-metadata-management/reclassification/units_lfc.json";
+    private static final String reclassification_gots = "integration-metadata-management/reclassification/gots.json";
+    private static final String dsl_attach_arbre_ingest_ko =
+        "integration-metadata-management/reclassification/dsl_attach_arbre_ingest_ko.json";
+    private static final String dsl_attach_arbre_plan_ko =
+        "integration-metadata-management/reclassification/dsl_attach_arbre_plan_ko.json";
+    private static final String dsl_attach_plan_ingest_ko =
+        "integration-metadata-management/reclassification/dsl_attach_plan_ingest_ko.json";
+    private static final String dsl_cycle_ko =
+        "integration-metadata-management/reclassification/dsl_cycle_ko.json";
+    private static final String dsl_attach_detach_ok_parallel =
+        "integration-metadata-management/reclassification/dsl_attach_detach_ok_parallel.json";
+    private static final String dsl_attach_detach_ok =
+        "integration-metadata-management/reclassification/dsl_attach_detach_ok.json";
+
     private static final String DEFAULT_OFFER_CONF = "integration-metadata-management/storage-default-offer.conf";
     private static final String LOGBOOK_CONF = "integration-metadata-management/logbook.conf";
     private static final String STORAGE_CONF = "integration-metadata-management/storage-engine.conf";
     private static final String WORKSPACE_CONF = "integration-metadata-management/workspace.conf";
     private static final String METADATA_CONF = "integration-metadata-management/metadata.conf";
+
 
     private static final String OFFER_FOLDER = "offer";
     private static final int TENANT_0 = 0;
@@ -365,6 +388,8 @@ public class MetadataManagementIT {
             new Retrofit.Builder().client(okHttpClient).baseUrl(METADATA_URL)
                 .addConverterFactory(JacksonConverterFactory.create()).build();
         metadataManagementResource = retrofit.create(MetadataManagementResource.class);
+        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
+        storageClient = StorageClientFactory.getInstance().getClient();
 
 
         Map<MetadataCollections, VitamMongoRepository> mongoRepository = new HashMap<>();
@@ -407,214 +432,143 @@ public class MetadataManagementIT {
         // 0. prepare data
         String container = GUIDFactory.newGUID().getId();
         workspaceClient.createContainer(container);
-        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
 
-        createInWorkspace(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
-        createInWorkspace(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
-        createInWorkspace(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
 
-        RequestResponse<OfferLog> offerLogResponse1 =
-            storageClient.getOfferLogs("default", DataCategory.UNIT, 0L, 10, Order.ASC);
-        assertThat(offerLogResponse1).isNotNull();
-        assertThat(offerLogResponse1.isOk()).isTrue();
-        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults().size()).isEqualTo(3);
+        checkOfferLogSize(DataCategory.UNIT, 3);
 
-        List<ReconstructionRequestItem> reconstructionItems;
-        ReconstructionRequestItem reconstructionItem2;
-        Response<List<ReconstructionResponseItem>> response;
-        RequestResponse<JsonNode> metadataResponse;
-        JsonNode lifecycleResponse;
+        // 1. Reconstruct units
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, 2L);
+        ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_0_guid, 0, 5);
+        ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_1_guid, 0, 4);
 
-        // 1. Reconstruct unit
-        reconstructionItems = new ArrayList<>();
-        ReconstructionRequestItem reconstructionItem1 = new ReconstructionRequestItem();
-        reconstructionItem1.setCollection(DataCategory.UNIT.name());
-        reconstructionItem1.setLimit(2);
-        reconstructionItem1.setTenant(TENANT_0);
-        reconstructionItems.add(reconstructionItem1);
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
-        assertThat(response.body().get(0).getTenant()).isEqualTo(0);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        // 2. Reconstruct object groups
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, 5L);
 
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_0_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(unit_with_graph_0_guid);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
-
-        lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unit_with_graph_0_guid);
-        assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unit_with_graph_0_guid);
-        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(5);
-
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(unit_with_graph_1_guid);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
-
-        lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unit_with_graph_1_guid);
-        assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unit_with_graph_1_guid);
-        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(4);
-
-
-        // 2. Reconstruct object group
-        reconstructionItems = new ArrayList<>();
-        reconstructionItem2 = new ReconstructionRequestItem();
-        reconstructionItem2.setCollection(DataCategory.OBJECTGROUP.name());
-        reconstructionItem2.setLimit(2);
-        reconstructionItem2.setTenant(TENANT_0);
-        reconstructionItems.add(reconstructionItem2);
-
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(1);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(5L);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_0_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        JsonNode first = ((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult();
-        assertThat(first.get("_id").asText()).isEqualTo(got_with_graph_0_guid);
-        assertThat(first.get("_v").asInt()).isEqualTo(0);
-
-        lifecycleResponse =
-            lifecycleClient.getRawObjectGroupLifeCycleById(got_with_graph_0_guid);
-        assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(got_with_graph_0_guid);
-        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(8);
-
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_1_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(got_with_graph_1_guid);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
-
-        lifecycleResponse =
-            lifecycleClient.getRawObjectGroupLifeCycleById(got_with_graph_1_guid);
-        assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(got_with_graph_1_guid);
-        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(8);
+        ensureGotExists(metadataClient, lifecycleClient, got_with_graph_0_guid, 0, 8);
+        ensureGotExists(metadataClient, lifecycleClient, got_with_graph_1_guid, 0, 8);
 
         // 3. Rest offset and relaunch reconstruct for unit and got
         offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0L);
         offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.OBJECTGROUP.getName(), 0L);
 
-
-        reconstructionItems = new ArrayList<>();
-        reconstructionItems.add(reconstructionItem1);
-        reconstructionItems.add(reconstructionItem2);
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(5L);
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, 2L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, 5L);
 
         // 4. Reconstruct next for unit and got
-        reconstructionItems = new ArrayList<>();
-        reconstructionItems.add(reconstructionItem1);
-        reconstructionItems.add(reconstructionItem2);
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(6L);
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, 3L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, 6L);
 
-        metadataResponse = metadataClient.getUnitByIdRaw(unit_with_graph_2_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(unit_with_graph_2_guid);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
-
-        lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unit_with_graph_2_guid);
-        assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unit_with_graph_2_guid);
-        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(5);
-
-        metadataResponse = metadataClient.getObjectGroupByIdRaw(got_with_graph_2_guid);
-        assertThat(metadataResponse.isOk()).isTrue();
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
-            .isEqualTo(got_with_graph_2_guid);
-        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt()).isEqualTo(0);
-
-        lifecycleResponse =
-            lifecycleClient.getRawObjectGroupLifeCycleById(got_with_graph_2_guid);
-        assertThat(lifecycleResponse).isNotNull();
-        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(got_with_graph_2_guid);
-        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(8);
+        ensureUnitExists(metadataClient, lifecycleClient, unit_with_graph_2_guid, 0, 5);
+        ensureGotExists(metadataClient, lifecycleClient, got_with_graph_2_guid, 0, 8);
 
         // 5. Reconstruct nothing for unit and got
-        reconstructionItems = new ArrayList<>();
-        reconstructionItems.add(reconstructionItem1);
-        reconstructionItems.add(reconstructionItem2);
-
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(3L);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(6L);
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_0, 3L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_0, 6L);
 
         // 6. Reconstruct on unused tenants
-        reconstructionItems = new ArrayList<>();
         offsetRepository.createOrUpdateOffset(TENANT_1, MetadataCollections.UNIT.getName(), 0L);
-
-        reconstructionItem1.setTenant(TENANT_1);
-        reconstructionItems.add(reconstructionItem1);
         offsetRepository.createOrUpdateOffset(TENANT_1, MetadataCollections.OBJECTGROUP.getName(), 0L);
-        reconstructionItem2.setTenant(TENANT_1);
-        reconstructionItems.add(reconstructionItem2);
 
-        response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
-        assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.UNIT.getName())).isEqualTo(0L);
-        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
-        assertThat(offsetRepository.findOffsetBy(TENANT_1, MetadataCollections.OBJECTGROUP.getName())).isEqualTo(0L);
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.OK);
+        reconstruction(DataCategory.UNIT, MetadataCollections.UNIT, 2, TENANT_1, 0L);
+        reconstruction(DataCategory.OBJECTGROUP, MetadataCollections.OBJECTGROUP, 2, TENANT_1, 0L);
 
-        // 6. Reset Unit offset and reconstruct on unit and another invalid collection
+        // 7. Reset Unit offset and reconstruct on unit and another invalid collection
         offsetRepository.createOrUpdateOffset(TENANT_0, MetadataCollections.UNIT.getName(), 0L);
-        reconstructionItems = new ArrayList<>();
 
-        reconstructionItem1.setTenant(TENANT_0);
-        reconstructionItems.add(reconstructionItem1);
-        reconstructionItem2.setCollection(DataCategory.MANIFEST.name());
-        reconstructionItem2.setTenant(TENANT_0);
-        reconstructionItems.add(reconstructionItem2);
+        Response<List<ReconstructionResponseItem>> response;
+
+        List<ReconstructionRequestItem> reconstructionItems = Arrays.asList(
+            new ReconstructionRequestItem().setCollection(DataCategory.UNIT.name()).setTenant(TENANT_0).setLimit(2),
+            new ReconstructionRequestItem().setCollection(DataCategory.MANIFEST.name()).setTenant(TENANT_0).setLimit(2)
+        );
 
         response = metadataManagementResource.reconstructCollection(reconstructionItems).execute();
         assertThat(response.code()).isEqualTo(200);
-        assertThat(response.body().size()).isEqualTo(2);
-        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
+        assertThat(response.body()).hasSize(2);
         assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
+        assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, DataCategory.MANIFEST.name())).isEqualTo(0L);
 
-        assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
+        // Purge reconstructed documents with only graph data and older than a configured delay
+        Call<Void> purge = metadataManagementResource.purgeReconstructedDocumentsWithGraphOnlyDataUNIT();
+        assertThat(purge.execute().isSuccessful()).isTrue();
+
+        purge = metadataManagementResource.purgeReconstructedDocumentsWithGraphOnlyDataOBJECTGROUP();
+        assertThat(purge.execute().isSuccessful()).isTrue();
+
+        purge = metadataManagementResource.purgeReconstructedDocumentsWithGraphOnlyDataUNITOBJECTGROUP();
+        assertThat(purge.execute().isSuccessful()).isTrue();
     }
 
+    private void checkOfferLogSize(DataCategory dataCategory, int size) throws StorageServerClientException {
+        RequestResponse<OfferLog> offerLogResponse1 =
+            storageClient.getOfferLogs("default", dataCategory, null, Integer.MAX_VALUE, Order.ASC);
+        assertThat(offerLogResponse1).isNotNull();
+        assertThat(offerLogResponse1.isOk()).isTrue();
+        assertThat(((RequestResponseOK<OfferLog>) offerLogResponse1).getResults()).hasSize(size);
+    }
 
+    private void reconstruction(DataCategory dataCategory,
+        MetadataCollections metadataCollection, int limit, int tenant,
+        long expectedOffset) throws IOException {
+        List<ReconstructionRequestItem> unitReconstructionItems = singletonList(
+            new ReconstructionRequestItem()
+                .setCollection(dataCategory.name())
+                .setLimit(limit)
+                .setTenant(tenant));
+        Response<List<ReconstructionResponseItem>> response =
+            metadataManagementResource.reconstructCollection(unitReconstructionItems).execute();
+        assertThat(response.code()).isEqualTo(200);
+        assertThat(response.body()).hasSize(1);
+        assertThat(response.body().get(0).getTenant()).isEqualTo(tenant);
+        assertThat(response.body().get(0).getStatus()).isEqualTo(StatusCode.OK);
+        assertThat(offsetRepository.findOffsetBy(tenant, metadataCollection.getName())).isEqualTo(expectedOffset);
+    }
+
+    private void ensureUnitExists(MetaDataClient metadataClient,
+        LogbookLifeCyclesClient lifecycleClient, String unitId, int metadataVersion, int lfcVersion)
+        throws VitamClientException, LogbookClientException, InvalidParseOperationException {
+
+        RequestResponse<JsonNode> metadataResponse = metadataClient.getUnitByIdRaw(unitId);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
+            .isEqualTo(unitId);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt())
+            .isEqualTo(metadataVersion);
+
+        JsonNode lifecycleResponse = lifecycleClient.getRawUnitLifeCycleById(unitId);
+        assertThat(lifecycleResponse).isNotNull();
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(unitId);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(lfcVersion);
+    }
+
+    private void ensureGotExists(MetaDataClient metadataClient,
+        LogbookLifeCyclesClient lifecycleClient, String gotId, int metadataVersion, int lfcVersion)
+        throws VitamClientException, LogbookClientException, InvalidParseOperationException {
+
+        RequestResponse<JsonNode> metadataResponse = metadataClient.getObjectGroupByIdRaw(gotId);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getResults().size()).isEqualTo(1);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_id").asText())
+            .isEqualTo(gotId);
+        assertThat(((RequestResponseOK<JsonNode>) metadataResponse).getFirstResult().get("_v").asInt())
+            .isEqualTo(metadataVersion);
+
+        JsonNode lifecycleResponse = lifecycleClient.getRawObjectGroupLifeCycleById(gotId);
+        assertThat(lifecycleResponse).isNotNull();
+        assertThat(lifecycleResponse.get("_id").asText()).isEqualTo(gotId);
+        assertThat(lifecycleResponse.get("_v").asInt()).isEqualTo(lfcVersion);
+    }
 
     @Test
     @RunWithCustomExecutor
-    public void testStoreUnitGraphThenStoreThenOK() throws DatabaseException, StoreGraphException, IOException {
+    public void testStoreUnitGraphThenStoreThenOK() throws Exception {
         VitamConfiguration.setStoreGraphElementsPerFile(5);
 
         LocalDateTime dateTime =
@@ -663,10 +617,10 @@ public class MetadataManagementIT {
         // 0. prepare data
         String container = GUIDFactory.newGUID().getId();
         workspaceClient.createContainer(container);
-        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
 
 
         RequestResponse<OfferLog> offerLogResponse =
@@ -703,7 +657,7 @@ public class MetadataManagementIT {
         //        Reconstruction Graph
         ///////////////////////////////////////////////////////////////
         VitamThreadUtils.getVitamSession().setTenantId(1);
-        createInWorkspace(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
+        storeFileToOffer(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
 
 
         offerLogResponse =
@@ -747,14 +701,14 @@ public class MetadataManagementIT {
         // 0. prepare data
         String container = GUIDFactory.newGUID().getId();
         workspaceClient.createContainer(container);
-        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
 
-        createInWorkspace(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
-        createInWorkspace(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
-        createInWorkspace(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
 
 
         RequestResponse<OfferLog> offerLogResponse =
@@ -771,8 +725,8 @@ public class MetadataManagementIT {
 
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
-        createInWorkspace(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
-        createInWorkspace(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
+        storeFileToOffer(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
+        storeFileToOffer(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
 
         offerLogResponse =
             storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
@@ -839,7 +793,8 @@ public class MetadataManagementIT {
         assertThat(response.body().get(3).getStatus()).isEqualTo(StatusCode.OK);
 
 
-
+        // Check Unit
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         // Check Unit
         String expectedUnitJson = "integration-metadata-management/expected/units_2.json";
         assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
@@ -861,8 +816,8 @@ public class MetadataManagementIT {
         workspaceClient.createContainer(container);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
-        createInWorkspace(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
-        createInWorkspace(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
+        storeFileToOffer(container, unit_graph_zip_file_name, "", unit_graph_zip_file, DataCategory.UNIT_GRAPH);
+        storeFileToOffer(container, got_graph_zip_file_name, "", got_graph_zip_file, DataCategory.OBJECTGROUP_GRAPH);
 
         RequestResponse<OfferLog> offerLogResponse =
             storageClient.getOfferLogs("default", DataCategory.UNIT_GRAPH, 0L, 10, Order.ASC);
@@ -912,15 +867,14 @@ public class MetadataManagementIT {
         String expectedGotJson = "integration-metadata-management/expected/gots_3.json";
         assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
 
+        storeFileToOffer(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
+        storeFileToOffer(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
 
-        createInWorkspace(container, unit_with_graph_0_guid, JSON_EXTENTION, unit_with_graph_0, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_1_guid, JSON_EXTENTION, unit_with_graph_1, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2, DataCategory.UNIT);
-        createInWorkspace(container, unit_with_graph_3_guid, JSON_EXTENTION, unit_with_graph_3, DataCategory.UNIT);
-
-        createInWorkspace(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
-        createInWorkspace(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
-        createInWorkspace(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_0_guid, JSON_EXTENTION, got_with_graph_0, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_1_guid, JSON_EXTENTION, got_with_graph_1, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2, DataCategory.OBJECTGROUP);
 
 
         offerLogResponse =
@@ -975,39 +929,6 @@ public class MetadataManagementIT {
         // Check Got
         expectedGotJson = "integration-metadata-management/expected/gots_4.json";
         assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
-    }
-
-
-    @Test
-    @RunWithCustomExecutor
-    public void testComputeUnitAndObjectGroupGraph() throws Exception {
-        // Clean offerLog
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-
-        //Given
-        initializeDbWithUnitAndObjectGroupData();
-
-        //Then
-        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(10);
-        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(5);
-
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
-
-        // Compute Graph
-        Map<MetadataCollections, Integer> body = metadataManagementResource.computeGraph().execute().body();
-
-        // Check that 4 unit and 4 ObjectGroup are trated
-        assertThat(body.get(MetadataCollections.UNIT)).isEqualTo(4);
-        assertThat(body.get(MetadataCollections.OBJECTGROUP)).isEqualTo(4);
-
-
-        // Check Unit
-        String expectedUnitJson = "integration-metadata-management/expected/units_5.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.UNIT.getCollection(), expectedUnitJson);
-        // Check Got
-        String expectedGotJson = "integration-metadata-management/expected/gots_5.json";
-        assertDataSetEqualsExpectedFile(MetadataCollections.OBJECTGROUP.getCollection(), expectedGotJson);
-
     }
 
     @Test
@@ -1068,76 +989,117 @@ public class MetadataManagementIT {
 
 
     // See computegraph.png for more information
-    private void initializeDbWithUnitAndObjectGroupData() {
+    private void initializeDbWithUnitAndObjectGroupData() throws DatabaseException {
         // Create units with or without graph data
         Document au1 = new Document(Unit.ID, "AU_1")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
         Document au2 = new Document(Unit.ID, "AU_2")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au3 =
             new Document(Unit.ID, "AU_3")
+                .append(Unit.MAXDEPTH, 1)
+                .append(Unit.TENANT_ID, 1)
+                .append(Unit.OG, "GOT_8")
                 .append(Unit.UP, Lists.newArrayList("AU_1"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA1").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA1"));
 
         Document au4 = new Document(Unit.ID, "AU_4")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_4")
             .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au5 = new Document(Unit.ID, "AU_5")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList("AU_2"))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au6 = new Document(Unit.ID, "AU_6")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_6")
             .append(Unit.UP, Lists.newArrayList("AU_2", "AU_5"))
             .append(Unit.ORIGINATING_AGENCY, "OA2")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au7 =
             new Document(Unit.ID, "AU_7")
+                .append(Unit.MAXDEPTH, 1)
+                .append(Unit.TENANT_ID, 1)
+                .append(Unit.OG, "GOT_8")
                 .append(Unit.UP, Lists.newArrayList("AU_4"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA4").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au8 = new Document(Unit.ID, "AU_8")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_8")
             .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         Document au9 = new Document(Unit.ID, "AU_9")
+            .append(Unit.MAXDEPTH, 1)
+            .append(Unit.TENANT_ID, 1)
+            .append(Unit.OG, "GOT_9")
             .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
+            .append("fakefake", "fakefake")
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au10 =
             new Document(Unit.ID, "AU_10")
+                .append(Unit.MAXDEPTH, 1)
+                .append(Unit.TENANT_ID, 1)
+                .append(Unit.OG, "GOT_10")
                 .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(Unit.ORIGINATING_AGENCY, "OA2").append(Unit.ORIGINATING_AGENCIES,
                 Lists.newArrayList("OA4", "OA1", "OA2"));
 
         List<Document> units = Lists.newArrayList(au1, au2, au3, au4, au5, au6, au7, au8, au9, au10);
-        MetadataCollections.UNIT.getCollection()
-            .insertMany(units);
+        VitamRepositoryFactory.getInstance().getVitamMongoRepository(MetadataCollections.UNIT).save(units);
+        VitamRepositoryFactory.getInstance().getVitamESRepository(MetadataCollections.UNIT).save(units);
 
         ////////////////////////////////////////////////
         // Create corresponding ObjectGroup (only 4 GOT subject of compute graph as no _glpd defined on them)
         ///////////////////////////////////////////////
         Document got4 = new Document(ObjectGroup.ID, "GOT_4")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_4"))
-            .append(ObjectGroup.ORIGINATING_AGENCY, "OA4");
+            .append(ObjectGroup.ORIGINATING_AGENCY, "OA4")
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4"));
 
         // Got 6 have Graph Data
         Document got6 = new Document(ObjectGroup.ID, "GOT_6")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2").append(ObjectGroup.ORIGINATING_AGENCIES,
@@ -1145,37 +1107,47 @@ public class MetadataManagementIT {
 
         //Unit "AU_8", "AU_3", "AU_7" attached to got 8
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_8", "AU_3", "AU_7"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got9 = new Document(ObjectGroup.ID, "GOT_9")
+            .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_9"))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got10 =
             new Document(ObjectGroup.ID, "GOT_10")
+                .append(Unit.TENANT_ID, 1)
                 .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
+                .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
                 .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);
-        MetadataCollections.OBJECTGROUP.getCollection().insertMany(gots);
+        VitamRepositoryFactory.getInstance().getVitamMongoRepository(MetadataCollections.OBJECTGROUP)
+            .save(gots);
+        VitamRepositoryFactory.getInstance().getVitamESRepository(MetadataCollections.OBJECTGROUP)
+            .save(gots);
     }
 
-    private void createInWorkspace(String container, String fileName, String extention, String file, DataCategory type)
+    private void storeFileToOffer(String container, String fileName, String extension, String file, DataCategory type)
         throws ContentAddressableStorageServerException, IOException,
         StorageAlreadyExistsClientException, StorageNotFoundClientException,
         StorageServerClientException {
         final ObjectDescription objectDescription = new ObjectDescription();
         objectDescription.setWorkspaceContainerGUID(container);
-        objectDescription.setObjectName(fileName + extention);
+        objectDescription.setObjectName(fileName + extension);
         objectDescription.setType(type);
-        objectDescription.setWorkspaceObjectURI(fileName + extention);
+        objectDescription.setWorkspaceObjectURI(fileName + extension);
 
         try (FileInputStream stream = new FileInputStream(PropertiesUtils.findFile(file))) {
-            workspaceClient.putObject(container, fileName + extention, stream);
+            workspaceClient.putObject(container, fileName + extension, stream);
         }
         storageClient.storeFileFromWorkspace("default", type, fileName, objectDescription);
     }
+
 
     /**
      * Clean offers content.
@@ -1220,8 +1192,29 @@ public class MetadataManagementIT {
         })
         Call<Map<MetadataCollections, Integer>> computeGraph();
 
-    }
 
+
+        @DELETE("/metadata/v1/purgeGraphOnlyDocuments/UNIT")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> purgeReconstructedDocumentsWithGraphOnlyDataUNIT();
+
+        @DELETE("/metadata/v1/purgeGraphOnlyDocuments/OBJECTGROUP")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> purgeReconstructedDocumentsWithGraphOnlyDataOBJECTGROUP();
+
+        @DELETE("/metadata/v1/purgeGraphOnlyDocuments/UNIT_OBJECTGROUP")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> purgeReconstructedDocumentsWithGraphOnlyDataUNITOBJECTGROUP();
+    }
 
     private <T> void assertDataSetEqualsExpectedFile(MongoCollection<T> mongoCollection, String expectedDataSetFile)
         throws InvalidParseOperationException, FileNotFoundException {

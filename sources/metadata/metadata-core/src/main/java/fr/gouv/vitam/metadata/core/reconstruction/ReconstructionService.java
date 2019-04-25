@@ -26,31 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.reconstruction;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.exists;
-import static com.mongodb.client.model.Filters.lte;
-import static com.mongodb.client.model.Projections.include;
-import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
-import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphObjectGroupFields;
-import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphUnitFields;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -85,6 +60,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
@@ -102,6 +78,32 @@ import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Filters.in;
+import static com.mongodb.client.model.Filters.lte;
+import static com.mongodb.client.model.Projections.include;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
+import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphObjectGroupFields;
+import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphUnitFields;
+
 /**
  * Reconstruction of Vitam Metadata Collections.<br>
  */
@@ -111,15 +113,13 @@ public class ReconstructionService {
      * Vitam Logger.
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionService.class);
-    private static final String RECONSTRUCTION_ITEM_MONDATORY_MSG = "the item defining reconstruction is mandatory.";
-    private static final String RECONSTRUCTION_COLLECTION_MONDATORY_MSG = "the collection to reconstruct is mondatory.";
-    private static final String RECONSTRUCTION_TENANT_MONDATORY_MSG = "the tenant to reconstruct is mondatory.";
+    private static final String RECONSTRUCTION_ITEM_MANDATORY_MSG = "the item defining reconstruction is mandatory.";
+    private static final String RECONSTRUCTION_COLLECTION_MANDATORY_MSG = "the collection to reconstruct is mandatory.";
+    private static final String RECONSTRUCTION_TENANT_MANDATORY_MSG = "the tenant to reconstruct is mandatory.";
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
 
     private static final String STRATEGY_ID = "default";
-    public static final String $_SET = "$set";
-    public static final String GRAPH_LAST_PERSISTED_DTE = "_glpd";
-    public static final String GRAPH_LAST_PERSISTED_DATE = GRAPH_LAST_PERSISTED_DTE;
+    private static final String $_SET = "$set";
 
     private RestoreBackupService restoreBackupService;
 
@@ -133,7 +133,7 @@ public class ReconstructionService {
      * Constructor
      *
      * @param vitamRepositoryProvider vitamRepositoryProvider
-     * @param offsetRepository        offsetRepository
+     * @param offsetRepository offsetRepository
      */
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository) {
@@ -144,8 +144,8 @@ public class ReconstructionService {
     /**
      * Constructor for tests
      *
-     * @param vitamRepositoryProvider       vitamRepositoryProvider
-     * @param recoverBackupService          recoverBackupService
+     * @param vitamRepositoryProvider vitamRepositoryProvider
+     * @param recoverBackupService recoverBackupService
      * @param logbookLifecycleClientFactory logbookLifecycleClientFactory
      * @param offsetRepository
      */
@@ -164,13 +164,13 @@ public class ReconstructionService {
      *
      * @param reconstructionItem request for reconstruction
      * @return response of reconstruction
-     * @throws DatabaseException        database exception
+     * @throws DatabaseException database exception
      * @throws IllegalArgumentException invalid input
      */
     public ReconstructionResponseItem reconstruct(ReconstructionRequestItem reconstructionItem) {
-        ParametersChecker.checkParameter(RECONSTRUCTION_ITEM_MONDATORY_MSG, reconstructionItem);
-        ParametersChecker.checkParameter(RECONSTRUCTION_COLLECTION_MONDATORY_MSG, reconstructionItem.getCollection());
-        ParametersChecker.checkParameter(RECONSTRUCTION_TENANT_MONDATORY_MSG, reconstructionItem.getTenant());
+        ParametersChecker.checkParameter(RECONSTRUCTION_ITEM_MANDATORY_MSG, reconstructionItem);
+        ParametersChecker.checkParameter(RECONSTRUCTION_COLLECTION_MANDATORY_MSG, reconstructionItem.getCollection());
+        ParametersChecker.checkParameter(RECONSTRUCTION_TENANT_MANDATORY_MSG, reconstructionItem.getTenant());
         if (reconstructionItem.getLimit() < 0) {
             throw new IllegalArgumentException(RECONSTRUCTION_LIMIT_POSITIVE_MSG);
         }
@@ -223,7 +223,7 @@ public class ReconstructionService {
 
 
         try {
-            // get the list of datas to backup.
+            // get the list of data to backup.
             List<OfferLog> listing =
                 restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC);
 
@@ -251,7 +251,7 @@ public class ReconstructionService {
                     Files.deleteIfExists(filePath);
                 }
                 newOffset = offerLog.getSequence();
-                // log the recontruction of Vitam collection.
+                // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
                     collectionName, tenant, offset, LocalDateUtil.now()));
@@ -261,7 +261,7 @@ public class ReconstructionService {
             response.setStatus(StatusCode.OK);
         } catch (ReconstructionException | IOException de) {
             LOGGER.error(String.format(
-                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
+                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata on the tenant {%s} from {offset:%s}",
                 collectionName, tenant, offset), de);
             newOffset = offset;
             response.setStatus(StatusCode.KO);
@@ -276,12 +276,11 @@ public class ReconstructionService {
      * Reconstruct collection.
      *
      * @param collection collection
-     * @param tenant     tenant
-     * @param limit      number of data to reconstruct
+     * @param tenant tenant
+     * @param limit number of data to reconstruct
      * @return response of reconstruction
-     * @throws DatabaseException        database exception
      * @throws IllegalArgumentException invalid input
-     * @throws VitamRuntimeException    storage error
+     * @throws VitamRuntimeException storage error
      */
     private ReconstructionResponseItem reconstructCollection(MetadataCollections collection, int tenant, int limit) {
 
@@ -313,66 +312,114 @@ public class ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            // get the list of datas to backup.
+            // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
+            // get the list of data to backup.
             List<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC);
             List<List<OfferLog>> partition = Lists.partition(listing, VitamConfiguration.getRestoreBulkSize());
 
-            for (List<OfferLog> listingBulk : partition) {
+            for (List<OfferLog> writtenMetadata : partition) {
 
-                List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
-                for (OfferLog offerLog : listingBulk) {
-                    MetadataBackupModel model = restoreBackupService
-                        .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
-                    if (model != null && model.getMetadatas() != null && model.getLifecycle() != null &&
-                        model.getOffset() != null) {
-                        dataFromOffer.add(model);
-                    } else {
-                        throw new StorageException(String.format(
-                            "[Reconstruction]: Metadatas or Logbooklifecycle is not present in file {%s} for the collection {%s} on the tenant {%s}",
-                            offerLog.getFileName(), collection, tenant));
-                    }
-                }
+                processWrittenMetadata(collection, tenant, writtenMetadata);
 
-                // reconstruct Vitam collection from the backup datas.
-                if (dataFromOffer.isEmpty()) {
-                    continue;
-                }
+                newOffset = Iterables.getLast(writtenMetadata).getSequence();
 
-
-                reconstructCollectionMetadatas(collection, dataFromOffer,
-                    VitamConfiguration.getOptimisticLockRetryNumber());
-                reconstructCollectionLifecycles(collection, dataFromOffer);
-                MetadataBackupModel last = Iterables.getLast(dataFromOffer);
-                newOffset = last.getOffset();
-
-
-                // log the recontruction of Vitam collection.
+                // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
                     collection.name(), tenant, offset, LocalDateUtil.now()));
             }
+
+            offsetRepository.createOrUpdateOffset(tenant, collection.getName(), newOffset);
+
             response.setStatus(StatusCode.OK);
-        } catch (DatabaseException de) {
+
+        } catch (LogbookClientException | InvalidParseOperationException | StorageException | DatabaseException e) {
             LOGGER.error(String.format(
-                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadatas on the tenant {%s} from {offset:%s}",
-                collection, tenant, offset), de);
-            newOffset = offset;
-            response.setStatus(StatusCode.KO);
-        } catch (StorageException se) {
-            LOGGER.error(se.getMessage());
-            newOffset = offset;
-            response.setStatus(StatusCode.KO);
-        } catch (LogbookClientException | InvalidParseOperationException exc) {
-            LOGGER.error(String.format(
-                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} lifecycles on the tenant {%s} from {offset:%s}",
-                collection, tenant, offset), exc);
-            newOffset = offset;
+                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata & lifecycles on the tenant {%s} from {offset:%s}",
+                collection, tenant, offset), e);
             response.setStatus(StatusCode.KO);
         } finally {
-            offsetRepository.createOrUpdateOffset(tenant, collection.getName(), newOffset);
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
         return response;
+    }
+
+    /**
+     * reconstruct Vitam collection from the backup data.
+     */
+    private void processWrittenMetadata(MetadataCollections collection, int tenant, List<OfferLog> writtenMetadata)
+        throws StorageException, DatabaseException, LogbookClientException, InvalidParseOperationException {
+
+        if (writtenMetadata.isEmpty()) {
+            return;
+        }
+
+        for (int retry = VitamConfiguration.getOptimisticLockRetryNumber(); retry > 0; retry--) {
+
+            List<MetadataBackupModel> dataFromOffer = loadMetadataSet(collection, tenant, writtenMetadata);
+
+            if (dataFromOffer.isEmpty()) {
+                // NOP
+                return;
+            }
+
+            try {
+                reconstructCollectionMetadata(collection, dataFromOffer);
+                reconstructCollectionLifecycles(collection, dataFromOffer);
+
+                // DONE
+                return;
+
+            } catch (DatabaseException e) {
+
+                if (!(e.getCause() instanceof MongoBulkWriteException)) {
+                    throw e;
+                }
+
+                LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct AU/GOT");
+
+                try {
+                    Thread.sleep(
+                        ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
+                } catch (InterruptedException e1) {
+                    SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
+                    Thread.currentThread().interrupt();
+                    throw new DatabaseException(e1);
+                }
+            }
+        }
+
+        throw new DatabaseException("Optimistic lock number of retry reached");
+    }
+
+    private List<MetadataBackupModel> loadMetadataSet(MetadataCollections collection, int tenant,
+        List<OfferLog> writtenMetadata) throws StorageException {
+
+        // FIXME : parallel processing
+        List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
+        for (OfferLog offerLog : writtenMetadata) {
+            MetadataBackupModel model = restoreBackupService
+                .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
+
+            if (model == null) {
+                // 2 possibilities :
+                // - File have never been written to offer (atomic commit bug in offer. Should be fixed in dedicated bug)
+                // - File have been deleted meanwhile (it's ok to skip)
+                LOGGER.warn(String.format(
+                    "[Reconstruction]: Could not find file {%s} for the collection {%s} on the tenant {%s}. Corrupted file (atomicity bug) OR eliminated? ",
+                    offerLog.getFileName(), collection, tenant));
+                continue;
+            }
+
+            if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {
+                throw new StorageException(String.format(
+                    "[Reconstruction]: Invalid data to reconstruct in file {%s} for the collection {%s} on the tenant {%s}",
+                    offerLog.getFileName(), collection, tenant));
+            }
+
+            dataFromOffer.add(model);
+        }
+        return dataFromOffer;
     }
 
     /**
@@ -416,7 +463,8 @@ public class ReconstructionService {
         }
 
 
-        try (MongoCursor<Document> iterator = this.vitamRepositoryProvider.getVitamMongoRepository(collection)
+        try (MongoCursor<Document> iterator = this.vitamRepositoryProvider
+            .getVitamMongoRepository(collection)
             .findDocuments(dataMap.keySet(), projection)
             .iterator()) {
 
@@ -439,8 +487,8 @@ public class ReconstructionService {
      * Reconstruct lifecycles in logbook
      *
      * @param collection collection
-     * @param bulk       list of items to back up
-     * @throws LogbookClientException         error from logbook
+     * @param bulk list of items to back up
+     * @throws LogbookClientException error from logbook
      * @throws InvalidParseOperationException error parsing logbook response
      */
     private void reconstructCollectionLifecycles(MetadataCollections collection, List<MetadataBackupModel> bulk)
@@ -482,62 +530,39 @@ public class ReconstructionService {
     }
 
     /**
-     * Reconstruct metadatas in databases
+     * Reconstruct metadata in databases
      *
-     * @param collection    the concerning collection
+     * @param collection the concerning collection
      * @param dataFromOffer list of items to back up
      * @throws DatabaseException databaseException
      */
-    private void reconstructCollectionMetadatas(MetadataCollections collection, List<MetadataBackupModel> dataFromOffer,
-        Integer nbRetry)
+    private void reconstructCollectionMetadata(MetadataCollections collection, List<MetadataBackupModel> dataFromOffer)
         throws DatabaseException {
-        if (nbRetry < 0) {
-            throw new DatabaseException("Optimistic lock number of retry reached");
-        }
-        LOGGER.info("[Reconstruction]: Back up of metadatas bulk");
+        LOGGER.info("[Reconstruction]: Back up of metadata bulk");
 
         // Do not erase graph data
         preventAlreadyExistingGraphData(collection, dataFromOffer);
 
         // Create bulk of ReplaceOneModel
-        List<WriteModel<Document>> metadatas =
+        List<WriteModel<Document>> metadata =
             dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).map(this::createReplaceOneModel)
                 .collect(Collectors.toList());
-        try {
-            this.bulkMongo(collection, metadatas);
-        } catch (DatabaseException e) {
-            if (e.getCause() instanceof MongoBulkWriteException) {
-                LOGGER.warn("[Reconstruction]: [Optimistic_Lock]: optimistic lock occurs while reconstruct AU/GOT");
 
-                try {
-                    Thread.sleep(ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
-                } catch (InterruptedException e1) {
-                    SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
-                    throw new DatabaseException(e1);
-                }
-
-                nbRetry--; // Retry after optimistic lock problem
-                reconstructCollectionMetadatas(collection, dataFromOffer, nbRetry);
-
-            } else {
-                throw e;
-            }
-
-        }
+        this.bulkMongo(collection, metadata);
 
         List<Document> documents =
             dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).collect(Collectors.toList());
-        bulkElasticsearch(collection, documents);
+        bulkElasticSearch(collection, documents);
     }
 
     /**
      * @param metaDaCollection
-     * @param zipStream        The zip inputStream
+     * @param zipStream The zip inputStream
      * @throws DatabaseException
      */
     private void reconstructGraphFromZipStream(MetadataCollections metaDaCollection, InputStream zipStream)
         throws ReconstructionException {
-        LOGGER.info("[Reconstruction]: Back up of metadatas bulk");
+        LOGGER.info("[Reconstruction]: Back up of metadata bulk");
 
         try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
             .createArchiveInputStream(CommonMediaType.valueOf(CommonMediaType.ZIP), zipStream)) {
@@ -552,32 +577,6 @@ public class ReconstructionService {
             }
         } catch (InvalidParseOperationException | IOException | ArchiveException | DatabaseException e) {
             throw new ReconstructionException(e);
-        } finally {
-            removeGraphOnlyReconstructedOlderDocuments(metaDaCollection);
-        }
-
-    }
-
-
-    /**
-     * Find all older (AU/GOT) where only graph data are reconstructed
-     * As Documents with only graph data are not indexed in elasticsearch=> we have not to implement deletion from Elastcisearch
-     */
-    private void removeGraphOnlyReconstructedOlderDocuments(MetadataCollections metaDaCollection) {
-
-        try {
-
-            String dateDeleteLimit = LocalDateUtil.getFormattedDateForMongo(
-                LocalDateTime
-                    .now()
-                    .minus(VitamConfiguration.getDeleteIncompleteReconstructedUnitDelay(), ChronoUnit.SECONDS));
-            Bson query = and(
-                exists(Unit.TENANT_ID, false),
-                lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));
-
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).remove(query);
-        } catch (DatabaseException e) {
-            LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
         }
     }
 
@@ -608,8 +607,8 @@ public class ReconstructionService {
         // Save in MongoDB
         bulkMongo(metadataCollections, collection);
 
-        // Save in Elasticsearch
-        bulkElasticsearch(metadataCollections, ids);
+        // Save in ElasticSearch
+        bulkElasticSearch(metadataCollections, ids);
     }
 
     /**
@@ -626,38 +625,41 @@ public class ReconstructionService {
 
 
     /**
-     * Bulk save in elasticsearch
+     * Bulk save in ElasticSearch
      *
      * @param metaDaCollection
-     * @param collection       of id of documents
+     * @param collection of id of documents
      * @throws DatabaseException
      */
-    private void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
+    private void bulkElasticSearch(MetadataCollections metaDaCollection, Set<String> collection)
         throws DatabaseException {
 
         if (collection.isEmpty()) {
             return;
         }
-
+        // Index in ElasticSearch only documents with existing _tenant field. Else, documents have only graph data and only exists in MongoDB
+        Bson query = and(exists(Unit.TENANT_ID, true), in(ID, collection));
         FindIterable<Document> fit =
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).findDocuments(collection, null);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection)
+                .findDocuments(query, VitamConfiguration.getBatchSize());
+
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
             documents.add(it.next());
         }
 
-        bulkElasticsearch(metaDaCollection, documents);
+        bulkElasticSearch(metaDaCollection, documents);
     }
 
     /**
      * Bulk save in elasticsearch
      *
      * @param metaDaCollection
-     * @param collection       of documents
+     * @param collection of documents
      * @throws DatabaseException
      */
-    private void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
+    private void bulkElasticSearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
         this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection).save(collection);
     }
@@ -680,7 +682,7 @@ public class ReconstructionService {
      * @throws InvalidParseOperationException
      */
     private WriteModel<Document> createReplaceOneModel(Document document) {
-        final Object glpd = document.get(Unit.GRAPH_LAST_PERSISTED_DATE);
+        final Object glpd = document.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE);
 
         Bson filter;
         if (null == glpd) {
@@ -693,9 +695,33 @@ public class ReconstructionService {
             // Document already exists in mongodb and already have graph data
             filter = and(
                 eq(ID, document.get(ID)),
-                eq(Unit.GRAPH_LAST_PERSISTED_DATE, glpd.toString())
+                eq(MetadataDocument.GRAPH_LAST_PERSISTED_DATE, glpd.toString())
             );
         }
+
+        // No need for "_av" (ATOMIC_VERSION) update in secondary site
         return new ReplaceOneModel<>(filter, document, new UpdateOptions().upsert(true));
+    }
+
+    /**
+     * Find all older (AU/GOT) where only graph data are reconstructed
+     * As Documents with only graph data are not indexed in elasticsearch => we have not to implement deletion from Elastcisearch
+     */
+    public void purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections metaDaCollection) {
+
+        try {
+
+            String dateDeleteLimit = LocalDateUtil.getFormattedDateForMongo(
+                LocalDateTime
+                    .now()
+                    .minus(VitamConfiguration.getDeleteIncompleteReconstructedUnitDelay(), ChronoUnit.SECONDS));
+            Bson query = and(
+                exists(Unit.TENANT_ID, false),
+                lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));
+
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection).remove(query);
+        } catch (DatabaseException e) {
+            LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
+        }
     }
 }

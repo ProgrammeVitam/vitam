@@ -46,9 +46,11 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -66,10 +68,14 @@ public class MetadataManagementResource {
      * Vitam Logger.
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataManagementResource.class);
+    public static final String OBJECTGROUP = "OBJECTGROUP";
+    public static final String UNIT = "UNIT";
+    public static final String UNIT_OBJECTGROUP = UNIT + "_" + OBJECTGROUP;
 
     private final String RECONSTRUCTION_URI = "/reconstruction";
     private final String STORE_GRAPH_URI = "/storegraph";
     private final String COMPUTE_GRAPH_URI = "/computegraph";
+    private final String PURGE_GRAPH_ONLY_DOCUMENTS = "/purgeGraphOnlyDocuments";
     private final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
     private final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
     /**
@@ -165,6 +171,8 @@ public class MetadataManagementResource {
     public Response storeGraph() {
         try {
             VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
             Map<MetadataCollections, Integer> map = this.storeGraphService.tryStoreGraph();
             return Response.ok().entity(map).build();
         } catch (Exception e) {
@@ -184,7 +192,9 @@ public class MetadataManagementResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response storeGraphInProgress() {
+
         VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
+
         boolean inProgress = this.storeGraphService.isInProgress();
         if (inProgress) {
             LOGGER.info("Store graph in progress ...");
@@ -238,6 +248,43 @@ public class MetadataManagementResource {
             LOGGER.info("No active graph builder");
             return Response.status(Response.Status.NOT_FOUND).entity("{\"msg\": \"No active graph builder\"}")
                 .build();
+        }
+    }
+
+
+
+    /**
+     * API to purge documents reconstructed but having only graph data
+     * This will remove all documents older than a configured delay (deleteIncompleteReconstructedUnitDelay) in vitam conf
+     *
+     * @return the response
+     */
+    @Path(PURGE_GRAPH_ONLY_DOCUMENTS + "/{collection:" + UNIT + "|" + OBJECTGROUP + "|" + UNIT_OBJECTGROUP + "}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response purgeReconstructedDocumentsWithGraphOnlyData(@PathParam("collection") String action) {
+        try {
+            switch (action) {
+                case UNIT:
+                    reconstructionService.purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.UNIT);
+                    break;
+                case OBJECTGROUP:
+                    reconstructionService
+                        .purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.OBJECTGROUP);
+                    break;
+                case UNIT_OBJECTGROUP:
+                    reconstructionService.purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.UNIT);
+                    reconstructionService
+                        .purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.OBJECTGROUP);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Not implemented action :" + action);
+            }
+
+            return Response.ok().build();
+        } catch (Exception e) {
+            LOGGER.error("Could not purge reconstructed documents with graph only data", e);
+            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
         }
     }
 }
