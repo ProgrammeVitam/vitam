@@ -26,30 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.rest;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.AuthenticationLevel;
@@ -69,6 +52,21 @@ import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Metadata reconstruction resource.
  */
@@ -87,6 +85,7 @@ public class MetadataManagementResource {
     private final String RECONSTRUCTION_URI = "/reconstruction";
     private final String STORE_GRAPH_URI = "/storegraph";
     private final String COMPUTE_GRAPH_URI = "/computegraph";
+    private final String PURGE_GRAPH_ONLY_DOCUMENTS = "/purgeGraphOnlyDocuments";
     private final String STORE_GRAPH_PROGRESS_URI = "/storegraph/progress";
     private final String COMPUTE_GRAPH_PROGRESS_URI = "/computegraph/progress";
     /**
@@ -244,7 +243,8 @@ public class MetadataManagementResource {
             VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
 
             GraphComputeResponse response = this.graphComputeService.computeGraph(queryDsl);
-            return Response.ok().header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId()).entity(response).build();
+            return Response.ok().header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+                .entity(response).build();
         } catch (Exception e) {
             LOGGER.error(COMPUTE_GRAPH_EXCEPTION_MSG, e);
             return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
@@ -327,6 +327,43 @@ public class MetadataManagementResource {
             return Response.ok().build();
         } catch (Exception e) {
             LOGGER.error("Could not export child nodes for reclassification graph update", e);
+            return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
+        }
+    }
+
+
+
+    /**
+     * API to purge documents reconstructed but having only graph data
+     * This will remove all documents older than a configured delay (deleteIncompleteReconstructedUnitDelay) in vitam conf
+     *
+     * @return the response
+     */
+    @Path(PURGE_GRAPH_ONLY_DOCUMENTS + "/{collection:" + UNIT + "|" + OBJECTGROUP + "|" + UNIT_OBJECTGROUP + "}")
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response purgeReconstructedDocumentsWithGraphOnlyData(@PathParam("collection") GraphComputeAction action) {
+        try {
+            switch (action) {
+                case UNIT:
+                    reconstructionService.purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.UNIT);
+                    break;
+                case OBJECTGROUP:
+                    reconstructionService
+                        .purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.OBJECTGROUP);
+                    break;
+                case UNIT_OBJECTGROUP:
+                    reconstructionService.purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.UNIT);
+                    reconstructionService
+                        .purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections.OBJECTGROUP);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Not implemented action :" + action);
+            }
+
+            return Response.ok().build();
+        } catch (Exception e) {
+            LOGGER.error("Could not purge reconstructed documents with graph only data", e);
             return Response.serverError().entity("{\"ErrorMsg\":\"" + e.getMessage() + "\"}").build();
         }
     }
