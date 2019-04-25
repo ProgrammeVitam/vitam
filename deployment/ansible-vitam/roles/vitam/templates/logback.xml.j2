@@ -102,10 +102,17 @@
 
   <logger name="org.eclipse.jetty" level="WARN"/>
   <logger name="fr.gouv.vitam.storage.engine.server.logbook.StorageLogbookMock" level="INFO"/>
-  <logger name="fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService" level="INFO"/>
   <logger name="fr.gouv.vitam.metadata.core.graph.StoreGraphService" level="INFO"/>
   <logger name="fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl" level="INFO"/>
   <logger name="fr.gouv.vitam.common" level="WARN" />
+{% if vitam_defaults.reconstruction.log_level is defined or vitam_struct.reconstruction.log_level is defined %}
+  <logger name="fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.metadata.core.reconstruction.RestoreBackupService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.logbook.common.server.reconstruction.RestoreBackupService" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.functional.administration.common.impl.ReconstructionServiceImpl" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
+  <logger name="fr.gouv.vitam.functional.administration.common.impl.RestoreBackupServiceImpl" level="{{ vitam_struct.reconstruction.log_level |default(vitam_defaults.reconstruction.log_level) }}"/>
+{% endif %}
 {% if vitam_struct.performance_logger|lower == "true" %}}
   <logger name="fr.gouv.vitam.common.performance.PerformanceLogger" level="DEBUG" additivity="false" >
      <appender-ref ref="SYSLOG" />

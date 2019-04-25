@@ -35,6 +35,9 @@ vitam_defaults:
     vitam_force_chunk_mode: false
     # syslog_facility
     syslog_facility: local0
+    # Configuration of log for reconstruction services (INFO or DEBUG for active logs). Logs will be present only on secondary site.
+    reconstruction:
+        log_level: INFO
 
 # Used in ingest, unitary update, mass-update
 classificationList: ["Non protégé","Secret Défense", "Confidentiel Défense"]
@@ -134,6 +137,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -149,6 +153,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -165,6 +170,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
@@ -181,6 +187,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     batchreport:
         vitam_component: batch-report
         host: "batch-report.service.{{ consul_domain }}"
@@ -196,6 +203,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
@@ -226,6 +234,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -241,6 +250,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -284,6 +294,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -308,6 +319,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -324,6 +336,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
@@ -339,6 +352,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -354,6 +368,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -381,6 +396,7 @@ vitam:
         # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer (if the calculated result is less than 60s, this time is used)
         timeoutMsPerKB: 100
         performance_logger: "false"
+        reconstruction:
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -395,6 +411,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     worker:
         vitam_component: worker
         port_service: 9104
@@ -409,6 +426,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -424,3 +442,4 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
