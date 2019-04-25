@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
@@ -103,7 +104,7 @@ import static java.util.stream.Collectors.toSet;
 
 public class GriffinService {
     private static final String GRIFFIN_BACKUP_EVENT = "STP_BACKUP_GRIFFIN";
-    private static final String GRIFFIN_IMPORT_EVENT = "IMPORT_GRIFFIN";
+    private static final String GRIFFIN_IMPORT_EVENT = "STP_IMPORT_GRIFFIN";
     private static final String GRIFFIN_REPORT = "GRIFFIN_REPORT";
     private static final String UND_TENANT = "_tenant";
 
@@ -147,8 +148,8 @@ public class GriffinService {
 
             classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listIdsToDelete,
                 allGriffinInDatabase);
-
-            Set<String> griffinIdentifiersUsedInPSC = getExistingPreservationScenarioUsingGriffins(listIdsToDelete);
+            final List<String> listIdsToUpdate= listToUpdate.stream().map(GriffinModel::getIdentifier).collect(Collectors.toList());
+            Set<String> griffinIdentifiersUsedInPSC = getExistingPreservationScenarioUsingGriffins(listIdsToUpdate);
 
             insertGriffins(listToInsert);
 
@@ -303,22 +304,46 @@ public class GriffinService {
         }
     }
 
-    private void validate(List<GriffinModel> listToImport) throws ReferentialException, InvalidParseOperationException {
+    private void validate(List<GriffinModel> listToImport)
+        throws ReferentialException, BadRequestException, InvalidParseOperationException {
+
         Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
         List<String> identifiers = new ArrayList<>();
         for (GriffinModel model : listToImport) {
             if (identifiers.contains(model.getIdentifier())) {
-                throw new ReferentialException("Duplicate griffin : '" + model.getIdentifier());
+                throw new ReferentialException("Duplicate griffin : '" + model.getIdentifier() + "'");
             }
 
             Set<ConstraintViolation<GriffinModel>> constraint = validator.validate(model);
             if (!constraint.isEmpty()) {
-                throw new ReferentialException("Invalid griffin : '" + JsonHandler.toJsonNode(model));
+                throw new ReferentialException("Invalid griffin for  : '" + model.getIdentifier() + "' : " + getConstraintsStrings(constraint));
             }
 
             identifiers.add(model.getIdentifier());
         }
+
+        final ObjectNode finalSelect = new Select().getFinalSelect();
+        DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, PRESERVATION_SCENARIO);
+        final List<PreservationScenarioModel> allScenariosInDatabase = result.getDocuments(PreservationScenario.class, PreservationScenarioModel.class);
+
+        List<String> usedGriffinsIds = allScenariosInDatabase
+            .stream()
+            .flatMap(preservationScenarioModel -> preservationScenarioModel.getGriffinByFormat().stream())
+            .map(GriffinByFormat::getGriffinIdentifier)
+            .collect(Collectors.toList());
+
+        if(!identifiers.containsAll(usedGriffinsIds)) {
+            throw new ReferentialException("can not remove used griffin");
+        }
+    }
+
+    private String getConstraintsStrings(Set<ConstraintViolation<GriffinModel>> constraints) {
+        List<String> result = new ArrayList<>() ;
+        for (ConstraintViolation<GriffinModel> constraintViolation :constraints){
+            result.add( "'"+ constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
+        }
+        return result.toString();
     }
 
     private List<String> diff(GriffinModel griffinModel, GriffinModel newModel) {
@@ -444,8 +469,7 @@ public class GriffinService {
         }
     }
 
-
-    private Set<String> getExistingPreservationScenarioUsingGriffins(List<String> listToDelete) throws ReferentialException, InvalidParseOperationException {
+    private Set<String> getExistingPreservationScenarioUsingGriffins(List<String> listToUpdate) throws ReferentialException, InvalidParseOperationException {
         try {
             DbRequestResult result = mongoDbAccess.findDocuments(new Select().getFinalSelect(), PRESERVATION_SCENARIO);
 
@@ -459,7 +483,7 @@ public class GriffinService {
                 .flatMap(psm -> psm.getAllGriffinIdentifiers().stream())
                 .collect(toSet());
 
-            return listToDelete.stream()
+            return listToUpdate.stream()
                 .filter(itemToUpdate -> griffinIdentifiers.contains(itemToUpdate))
                 .collect(toSet());
         } catch (BadRequestException e) {
@@ -480,12 +504,10 @@ public class GriffinService {
             }
             creationDate = getFormattedDateForMongo(creationDate);
             griffinModel.setCreationDate(creationDate);
-        } catch (
-            DateTimeParseException e) {
+        } catch (DateTimeParseException e) {
             throw new ReferentialException(griffinModel.getIdentifier() + " Invalid " + GriffinModel.TAG_CREATION_DATE + " : " + griffinModel.getCreationDate() , e);
         }
     }
-
 
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
         throws ReferentialException, BadRequestException, InvalidParseOperationException {
