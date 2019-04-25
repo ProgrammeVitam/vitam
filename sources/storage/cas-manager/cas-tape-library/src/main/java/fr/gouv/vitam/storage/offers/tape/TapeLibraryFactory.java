@@ -203,6 +203,11 @@ public class TapeLibraryFactory {
         // Everything's alright. Start tar creation listeners
         writeOrderCreator.startListener();
         fileBucketTarCreatorManager.startListeners();
+
+        // Start tape drive workers
+        for (TapeDriveWorkerManager tapeDriveWorkerManager : tapeDriveWorkerManagers.values()) {
+            tapeDriveWorkerManager.startWorkers();
+        }
     }
 
     public TapeLibraryContentAddressableStorage getTapeLibraryContentAddressableStorage() {

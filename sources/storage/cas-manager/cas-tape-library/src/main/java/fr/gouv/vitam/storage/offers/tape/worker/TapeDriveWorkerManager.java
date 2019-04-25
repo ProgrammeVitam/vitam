@@ -88,6 +88,16 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
     }
 
+    public void startWorkers() {
+        for (TapeDriveWorker tapeDriveWorker : workers) {
+            final Thread thread =
+                VitamThreadFactory.getInstance().newThread(tapeDriveWorker);
+            thread.setName(TAPE_DRIVE_WORKER + tapeDriveWorker.getIndex());
+            thread.start();
+            LOGGER.debug("Start worker :" + thread.getName());
+        }
+    }
+
     public void enqueue(QueueMessageEntity entity) throws QueueException {
         // FIXME : Unused
         this.readWriteQueue.add(entity);
