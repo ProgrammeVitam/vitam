@@ -5,7 +5,7 @@
     "eventDateTime": "2019-02-11T14:23:42.006",
     "eventDetailData": "{\n  \"EvDetailReq\" : \"RATP - Jeu de test permettant de tester tous les comportements des r\\u00E8gles de gestion\",\n  \"eventDateTimeReq\" : \"2017-04-05T08:11:55\",\n  \"ArchivalAgreement\" : \"IC-000001\",\n  \"ServiceLevel\" : null\n}",
     "eventIdentifierProcess": "aeeaaaaaaohklx6baai5yali3tytkpaaaaaq",
-    "eventTypeProcess": "EXTERNAL",
+    "eventTypeProcess": "EXTERNAL_LOGBOOK",
     "outcome": "STARTED",
     "outcomeDetail": "PROCESS_SIP_UNITARY.STARTED",
     "outcomeDetailMessage": "Début du processus d'entrée du SIP : aeeaaaaaaohklx6baai5yali3tytkpaaaaaq",

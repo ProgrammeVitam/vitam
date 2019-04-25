@@ -944,12 +944,12 @@ public class AdminManagementResourceTest {
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
             guid);
         logbookParamaters
-            .putParameterValue(LogbookParameterName.eventType, LogbookParameterName.eventType.name());
+            .putParameterValue(LogbookParameterName.eventType, "EXT_"+LogbookParameterName.eventType.name());
         logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
             evIdProc != null ? evIdProc : guid);
-        logbookParamaters.setTypeProcess(LogbookTypeProcess.EXTERNAL);
+        logbookParamaters.setTypeProcess(LogbookTypeProcess.EXTERNAL_LOGBOOK);
         logbookParamaters.putParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
         logbookParamaters
             .putParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
@@ -961,7 +961,7 @@ public class AdminManagementResourceTest {
             LogbookParameterName.agentIdentifierApplicationSession.name());
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
             LogbookParameterName.eventIdentifierRequest.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt, null);
+        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt, JsonHandler.unprettyPrint(JsonHandler.createObjectNode()));
 
         logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifier,
             LogbookParameterName.objectIdentifier.name());
