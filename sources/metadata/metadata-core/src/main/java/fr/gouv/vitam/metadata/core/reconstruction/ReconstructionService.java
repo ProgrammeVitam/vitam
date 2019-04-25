@@ -99,6 +99,7 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.ID;
@@ -622,7 +623,7 @@ public class ReconstructionService {
 
         List<Document> documents =
             dataFromOffer.stream().map(MetadataBackupModel::getMetadatas).collect(Collectors.toList());
-        bulkElasticsearch(collection, documents);
+        bulkElasticSearch(collection, documents);
     }
 
     /**
@@ -647,32 +648,6 @@ public class ReconstructionService {
             }
         } catch (InvalidParseOperationException | IOException | ArchiveException | DatabaseException e) {
             throw new ReconstructionException(e);
-        } finally {
-            removeGraphOnlyReconstructedOlderDocuments(metaDaCollection);
-        }
-
-    }
-
-
-    /**
-     * Find all older (AU/GOT) where only graph data are reconstructed
-     * As Documents with only graph data are not indexed in elasticsearch=> we have not to implement deletion from Elastcisearch
-     */
-    private void removeGraphOnlyReconstructedOlderDocuments(MetadataCollections metaDaCollection) {
-
-        try {
-
-            String dateDeleteLimit = LocalDateUtil.getFormattedDateForMongo(
-                LocalDateTime
-                    .now()
-                    .minus(VitamConfiguration.getDeleteIncompleteReconstructedUnitDelay(), ChronoUnit.SECONDS));
-            Bson query = and(
-                exists(Unit.TENANT_ID, false),
-                lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));
-
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).remove(query);
-        } catch (DatabaseException e) {
-            LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
         }
     }
 
@@ -704,7 +679,7 @@ public class ReconstructionService {
         bulkMongo(metadataCollections, collection);
 
         // Save in Elasticsearch
-        bulkElasticsearch(metadataCollections, ids);
+        bulkElasticSearch(metadataCollections, ids);
     }
 
     /**
@@ -721,29 +696,31 @@ public class ReconstructionService {
 
 
     /**
-     * Bulk save in elasticsearch
+     * Bulk save in ElasticSearch
      *
      * @param metaDaCollection
      * @param collection of id of documents
      * @throws DatabaseException
      */
-    private void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
+    private void bulkElasticSearch(MetadataCollections metaDaCollection, Set<String> collection)
         throws DatabaseException {
 
         if (collection.isEmpty()) {
             return;
         }
-
+        // Index in ElasticSearch only documents with existing _tenant field. Else, documents have only graph data and only exists in MongoDB
+        Bson query = and(exists(Unit.TENANT_ID, true), in(ID, collection));
         FindIterable<Document> fit =
             this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection())
-                .findDocuments(collection, null);
+                .findDocuments(query, VitamConfiguration.getBatchSize());
+
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
             documents.add(it.next());
         }
 
-        bulkElasticsearch(metaDaCollection, documents);
+        bulkElasticSearch(metaDaCollection, documents);
     }
 
     /**
@@ -753,7 +730,7 @@ public class ReconstructionService {
      * @param collection of documents
      * @throws DatabaseException
      */
-    private void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
+    private void bulkElasticSearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
         this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection()).save(collection);
     }
@@ -795,5 +772,27 @@ public class ReconstructionService {
 
         // No need for "_av" (ATOMIC_VERSION) update in secondary site
         return new ReplaceOneModel<>(filter, document, new UpdateOptions().upsert(true));
+    }
+
+    /**
+     * Find all older (AU/GOT) where only graph data are reconstructed
+     * As Documents with only graph data are not indexed in elasticsearch => we have not to implement deletion from Elastcisearch
+     */
+    public void purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections metaDaCollection) {
+
+        try {
+
+            String dateDeleteLimit = LocalDateUtil.getFormattedDateForMongo(
+                LocalDateTime
+                    .now()
+                    .minus(VitamConfiguration.getDeleteIncompleteReconstructedUnitDelay(), ChronoUnit.SECONDS));
+            Bson query = and(
+                exists(Unit.TENANT_ID, false),
+                lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));
+
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).remove(query);
+        } catch (DatabaseException e) {
+            LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
+        }
     }
 }
