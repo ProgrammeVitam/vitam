@@ -9,11 +9,6 @@
   
   <dependencies>
 		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-private</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
@@ -23,6 +18,19 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+	  <dependency>
+		  <groupId>fr.gouv.vitam</groupId>
+		  <artifactId>common-public</artifactId>
+		  <version>${project.version}</version>
+	  </dependency>
+	  <dependency>
+		  <groupId>javax.servlet</groupId>
+		  <artifactId>javax.servlet-api</artifactId>
+	  </dependency>
+	  <dependency>
+		  <groupId>org.apache.shiro</groupId>
+		  <artifactId>shiro-core</artifactId>
+	  </dependency>
 
-	</dependencies>
+  </dependencies>
 </project>
