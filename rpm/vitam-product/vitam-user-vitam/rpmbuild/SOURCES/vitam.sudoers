@@ -1,3 +1,3 @@
-%vitam-admin ALL=NOPASSWD: /bin/systemctl stop vitam-*,/bin/systemctl start vitam-*,/bin/systemctl restart vitam-*
-%vitam-admin ALL=NOPASSWD: /bin/systemctl stop logstash,/bin/systemctl start logstash,/bin/systemctl restart logstash
-%vitam-admin ALL=NOPASSWD: /bin/systemctl stop kibana,/bin/systemctl start kibana,/bin/systemctl restart kibana
+%vitam-admin ALL=NOPASSWD: /bin/systemctl stop vitam-*,/bin/systemctl start vitam-*,/bin/systemctl restart vitam-*,/bin/systemctl reload vitam-*
+%vitam-admin ALL=NOPASSWD: /bin/systemctl stop logstash,/bin/systemctl start logstash,/bin/systemctl restart logstash,/bin/systemctl reload logstash
+%vitam-admin ALL=NOPASSWD: /bin/systemctl stop kibana,/bin/systemctl start kibana,/bin/systemctl restart kibana,/bin/systemctl reload kibana
