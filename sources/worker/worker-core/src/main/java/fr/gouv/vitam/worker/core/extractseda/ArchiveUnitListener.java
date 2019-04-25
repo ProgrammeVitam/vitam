@@ -86,7 +86,6 @@ import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialNotFoundException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
@@ -127,6 +126,7 @@ import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.originatingAgencies;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
+import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ALLUNITUPS;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.ID;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OBJECT;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.OPERATIONS;
@@ -500,14 +500,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
                 existingArchiveUnitGuid = keyValueUnitId;
             }
 
-            if (ingestContract != null
-                && ingestContract.getCheckParentId() != null
-                && ingestContract.getCheckParentId().size() > 0
-                && !ingestContract.getCheckParentId().contains(existingArchiveUnitGuid)) {
-                throw new ProcessingUnitLinkingException(
-                    "archive unit is not equals or is not descending from allowed units : " +
-                        ingestContract.getCheckParentId(), archiveUnitId, null, workflowUnitType);
-            }
 
             JsonNode existingData = loadExistingArchiveUnitByKeyValue(metadataName, metadataValue, archiveUnitId);
 
@@ -530,6 +522,12 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             JsonNode unitInDB = result.get(0);
             String type = unitInDB.get("#unitType").asText();
             UnitType dataUnitType = UnitType.valueOf(type);
+
+            if (ingestContractRestrictAttachment(unitInDB)) {
+                throw new ProcessingUnitLinkingException(
+                    "archive unit is not equals or is not descending from allowed units : " +
+                        ingestContract.getCheckParentId(), archiveUnitId, null, workflowUnitType);
+            }
 
             // In case where systemId is key:value format, then erase value with the correct unit id
             existingArchiveUnitGuid = unitInDB.get("#id").asText();
@@ -557,10 +555,10 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             // Do not get originating agencies of holding
             if (!UnitType.HOLDING_UNIT.equals(dataUnitType)) {
-                ArrayNode originatingAgencies =
+                ArrayNode originAgencies =
                     (ArrayNode) unitInDB.get(originatingAgencies());
                 List<String> originatingAgencyList = new ArrayList<>();
-                for (JsonNode agency : originatingAgencies) {
+                for (JsonNode agency : originAgencies) {
                     originatingAgencyList.add(agency.asText());
                 }
                 this.originatingAgencies.addAll(originatingAgencyList);
@@ -570,6 +568,27 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             throw new VitamRuntimeException(e);
         }
         return existingArchiveUnitGuid;
+    }
+
+    private boolean ingestContractRestrictAttachment(JsonNode unitInDB) {
+        JsonNode ascendants = unitInDB.get(ALLUNITUPS.exactToken());
+        String unitId = unitInDB.get(ID.exactToken()).asText();
+
+        if(ingestContract == null
+            || ingestContract.getCheckParentId() == null
+            || ingestContract.getCheckParentId().isEmpty()
+            || ingestContract.getCheckParentId().contains(unitId)) {
+            return false;
+        }
+
+
+        for(JsonNode ascendant : ascendants) {
+            if(ingestContract.getCheckParentId().contains(ascendant.asText())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void fillListRulesToMap(String archiveUnitId, RuleCategoryModel ruleCategory) {
@@ -874,7 +893,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
         final SelectMultiQuery select = new SelectMultiQuery();
         try {
-            Query qr = tryApplyIngestContractRestriction(ingestContract, QueryHelper.eq(metadataName, metadataValue));
+            Query qr = QueryHelper.eq(metadataName, metadataValue);
             select.setQuery(qr);
         } catch (IllegalStateException e) {
             throw new ProcessingNotFoundException(
@@ -914,6 +933,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             fields.put(ORIGINATING_AGENCIES.exactToken(), 1);
             fields.put(ORIGINATING_AGENCY.exactToken(), 1);
             fields.put(OBJECT.exactToken(), 1);
+            fields.put(ALLUNITUPS.exactToken(), 1);
             projection.set(FIELDS.exactToken(), fields);
 
             selectMultiQuery.setProjection(projection);
