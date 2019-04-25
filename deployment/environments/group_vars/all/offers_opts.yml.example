@@ -17,6 +17,67 @@ vitam_strategy:
 # ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage
 # WARNING : for offer names, please only use [a-z][a-z0-9-]* pattern
 vitam_offers:
+  offer-tape-1:
+    provider: tape-library
+    tapeLibraryConfiguration:
+      maxTarEntrySize: 100000
+      maxTarFileSize: 1000000
+      # Enable overriding non empty cartridges
+      # WARNING : FOR DEV/TEST ONLY. DO NOT ENABLE IN PRODUCTION.
+      forceOverrideNonEmptyCartridges: false
+
+      useSudo: false
+    topology:
+      buckets:
+        -
+          name: test
+          tenants: [0]
+          tarBufferingTimeoutInMinutes: 60
+        -
+          name: admin
+          tenants: [1]
+          tarBufferingTimeoutInMinutes: 60
+        -
+          name: prod
+          tenants: [2,3,4,5,6,7,8,9]
+          tarBufferingTimeoutInMinutes: 60
+    tapeLibraries:
+      -
+        name: TAPE_LIB_1
+        robots:
+          -
+            device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
+            mtxPath: "/usr/sbin/mtx"
+            timeoutInMilliseconds: 3600000
+        drives:
+          -
+            index: 0
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            tarPath: "/bin/tar"
+            timeoutInMilliseconds: 3600000
+          -
+            index: 1
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            tarPath: "/bin/tar"
+            timeoutInMilliseconds: 3600000
+          -
+            index: 2
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            tarPath: "/bin/tar"
+            timeoutInMilliseconds: 3600000
+          -
+            index: 3
+            device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
+            mtPath: "/bin/mt"
+            ddPath: "/bin/dd"
+            tarPath: "/bin/tar"
+            timeoutInMilliseconds: 3600000
   offer-fs-1:
     # param can be filesystem-hash (recomended) or filesystem (not recomended)
     provider: filesystem-hash
