@@ -26,19 +26,13 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
 import javax.ws.rs.core.Response;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Iterator;
 
 /**
  * Service that allow Storage Traceability to use StorageDistribution in order to get some file and information in Offers
@@ -53,43 +47,14 @@ public class TraceabilityStorageService {
     }
 
     /**
-     * Get the files of the last storage backup since the last traceability (fromDate) as a StorageTraceabilityIterator
+     * Get the files of the last storage backup since the last traceability (fromDate)
      *
      * @param strategyId The storage strategy ID
-     * @param fromDate   the limit date to get backup files
      * @return list of last saved files as iterator
-     * @throws StorageException if some error technical problem while call StorageDistribution
      */
-    public StorageTraceabilityIterator getLastSavedStorageLogs(String strategyId, LocalDateTime fromDate) throws StorageException {
-        List<OfferLog> allFiles = new ArrayList<>();
-        Long offset = null;
-
-        while (true) {
-
-            List<OfferLog> files = getLast(strategyId, DataCategory.STORAGELOG, offset, GET_LAST_BASE);
-            allFiles.addAll(files);
-
-            // Directly return if no more items in DB
-            if (files.size() < GET_LAST_BASE) {
-                break;
-            }
-
-            OfferLog oldestReturnedFile = files.get(files.size() - 1);
-            LocalDateTime date =
-                StorageFileNameHelper.parseDateFromStorageLogFileName(oldestReturnedFile.getFileName());
-            if (date.isBefore(fromDate)) {
-                break;
-            }
-
-            offset = oldestReturnedFile.getSequence() - 1;
-        }
-
-        List<OfferLog> filesUpdatedAfterDate = allFiles.stream().filter(
-            (OfferLog file) -> !StorageFileNameHelper.parseDateFromStorageLogFileName(file.getFileName())
-                .isBefore(fromDate)
-        ).collect(Collectors.toList());
-
-        return new StorageTraceabilityIterator(filesUpdatedAfterDate);
+    public Iterator<String> getLastSavedStorageLogIterator(String strategyId) {
+        return new OfferLogIterator(
+            strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
     }
 
     /**
@@ -97,36 +62,22 @@ public class TraceabilityStorageService {
      *
      * @param strategyId The storage strategy ID
      * @return the zip's fileName of the last storage traceability operation
-     * @throws StorageException if some error technical problem while call StorageDistribution
      */
-    public String getLastTraceability(String strategyId) throws StorageException {
-        List<OfferLog> file = getLast(strategyId, DataCategory.STORAGETRACEABILITY, null, 1);
-        if (file.isEmpty()) {
-            return null;
-        }
-        return file.get(0).getFileName();
+    public Iterator<String> getLastTraceabilityZipIterator(String strategyId) {
+        return new OfferLogIterator(
+            strategyId, Order.DESC, DataCategory.STORAGETRACEABILITY, this.distribution, GET_LAST_BASE);
     }
 
     /**
      * Only direct call to @StorageDistribution.getContainerByCategory
      *
      * @param strategyId strategyID
-     * @param objectId   file id or name
-     * @param category   storage category of the file
+     * @param objectId file id or name
+     * @param category storage category of the file
      * @return the file as stream
      * @throws StorageException if some error technical problem while call StorageDistribution
      */
     public Response getObject(String strategyId, String objectId, DataCategory category) throws StorageException {
         return this.distribution.getContainerByCategory(strategyId, objectId, category);
     }
-
-    private List<OfferLog> getLast(String strategyId, DataCategory category, Long offset, Integer limit)
-        throws StorageException {
-        RequestResponse<OfferLog> response = distribution.getOfferLogs(strategyId, category, offset, limit, Order.DESC);
-        if (response.isOk()) {
-            return ((RequestResponseOK<OfferLog>) response).getResults();
-        }
-        throw new StorageException("Response KO ?");
-    }
-
 }
