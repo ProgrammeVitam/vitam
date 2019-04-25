@@ -27,8 +27,12 @@
 package fr.gouv.vitam.worker.core.plugin;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.FileNotFoundException;
@@ -146,6 +150,7 @@ public class StoreObjectGroupActionPluginTest {
 
         final ItemStatus response = plugin.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
+        verify(workspaceClient, never()).putObject(any(), any(), any());
     }
 
     @Test
@@ -176,6 +181,7 @@ public class StoreObjectGroupActionPluginTest {
 
         final ItemStatus response = plugin.execute(paramsObjectGroups, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+        verify(workspaceClient).putObject(eq(CONTAINER_NAME), eq("ObjectGroup/aeaaaaaaaaaam7myaaaamakxfgivuryaaaaq.json"), any());
     }
 
     @Test

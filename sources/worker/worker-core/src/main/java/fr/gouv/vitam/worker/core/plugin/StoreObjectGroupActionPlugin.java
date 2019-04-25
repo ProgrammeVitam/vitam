@@ -26,16 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -43,16 +37,18 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
-import fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * StoreObjectGroupAction Plugin.<br>
- *
  */
 public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
@@ -67,7 +63,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     /**
      * Constructor
      */
-    public StoreObjectGroupActionPlugin() {}
+    public StoreObjectGroupActionPlugin() {
+    }
 
 
     @Override
@@ -81,7 +78,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             // get list of object group's objects
             final MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params);
             // get list of object uris
-            if(LOGGER.isDebugEnabled()) {
+            if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Pre OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
             }
             for (final Map.Entry<String, String> objectGuid : mapOfObjects.binaryObjectsToStore.entrySet()) {
@@ -97,7 +94,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
 
                 // create ItemStatus for subtask
                 ItemStatus subTaskItemStatus = new ItemStatus(STORING_OBJECT_TASK_ID);
-                
+
                 // store object
                 StoredInfoResult result = storeObject(description, subTaskItemStatus);
 
@@ -111,32 +108,31 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                     storeStorageInfo((ObjectNode) mapOfObjects.objectJsonMap.get(objectGuid.getKey()), result);
                 }
 
-                if(LOGGER.isDebugEnabled()) {
+                if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
                 }
 
                 // increment itemStatus with subtask 
-                itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus).increment(subTaskItemStatus.getGlobalStatus());
+                itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus)
+                    .increment(subTaskItemStatus.getGlobalStatus());
 
             }
+
             // store OG to workspace
-            //((ObjectNode) mapOfObjects.jsonOG).remove(SedaConstants.PREFIX_WORK);
-            // why is that ?
-            if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
-            }
-            try {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
-                    params.getObjectName(),
-                    mapOfObjects.jsonOG, false, asyncIO);
-            } catch (ProcessingException e) {
-                LOGGER.error(params.getObjectName(), e);
-                throw e;
+            if (itemStatus.getGlobalStatus() == StatusCode.OK) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Pre Final OG: {}", JsonHandler.prettyPrint(mapOfObjects.jsonOG));
+                }
+                try {
+                    handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
+                        params.getObjectName(),
+                        mapOfObjects.jsonOG, false, asyncIO);
+                } catch (ProcessingException e) {
+                    LOGGER.error(params.getObjectName(), e);
+                    throw e;
+                }
             }
 
-        } catch (StepAlreadyExecutedException e) {
-            LOGGER.warn(e);
-            itemStatus.increment(StatusCode.ALREADY_EXECUTED);
         } catch (final ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -179,10 +175,6 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         // informations linked to the ObjectGroup
         final JsonNode original = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
         final JsonNode work = mapOfObjects.jsonOG.get(SedaConstants.PREFIX_WORK);
-        if (work == null) {
-            // work is null, that means the object has been processed
-            throw new StepAlreadyExecutedException("Object " + objectName + " has already been processed");
-        }
         final JsonNode qualifiers = work.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null) {
             return mapOfObjects;
