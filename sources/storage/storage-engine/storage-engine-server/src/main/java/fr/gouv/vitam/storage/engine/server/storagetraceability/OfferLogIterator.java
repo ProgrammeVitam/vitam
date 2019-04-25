@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -36,56 +35,97 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
-import javax.ws.rs.core.Response;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * Service that allow Storage Traceability to use StorageDistribution in order to get some file and information in Offers
+ * Implementation of TraceabilityIterator for Storage.
+ *
+ * Iterate over OfferLog for the traceability
  */
-public class TraceabilityStorageService {
+public class OfferLogIterator implements Iterator<String> {
 
-    private static final Integer GET_LAST_BASE = 100;
+    private final String strategyId;
     private final StorageDistribution distribution;
+    private final Order order;
+    private final DataCategory dataCategory;
+    private final int bufferLimit;
+    private Long lastOffset;
 
-    public TraceabilityStorageService(StorageDistribution distribution) {
+    private List<OfferLog> buffer;
+    private int nextPos = 0;
+    private boolean endOfStream = false;
+
+    public OfferLogIterator(String strategyId, Order order, DataCategory dataCategory,
+        StorageDistribution distribution, int bufferLimit) {
+
+        this.strategyId = strategyId;
+        this.order = order;
+        this.dataCategory = dataCategory;
         this.distribution = distribution;
+        this.bufferLimit = bufferLimit;
+        this.lastOffset = null;
     }
 
-    /**
-     * Get the files of the last storage backup since the last traceability (fromDate)
-     *
-     * @param strategyId The storage strategy ID
-     * @return list of last saved files as iterator
-     */
-    public Iterator<String> getLastSavedStorageLogIterator(String strategyId) {
-        return new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
+    @Override
+    public boolean hasNext() {
+
+        if (this.endOfStream) {
+            return false;
+        }
+
+        if (this.buffer == null || this.nextPos >= this.buffer.size()) {
+            loadResultBuffer();
+        }
+
+        return !this.endOfStream;
     }
 
-    /**
-     * Get the last storage traceability zip fileName
-     *
-     * @param strategyId The storage strategy ID
-     * @return the zip's fileName of the last storage traceability operation
-     */
-    public Iterator<String> getLastTraceabilityZipIterator(String strategyId) {
-        return new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGETRACEABILITY, this.distribution, GET_LAST_BASE);
+    private void loadResultBuffer() {
+
+        try {
+            RequestResponse<OfferLog> response = this.distribution.getOfferLogs(this.strategyId,
+                this.dataCategory, this.lastOffset, this.bufferLimit, this.order);
+
+            if (!response.isOk()) {
+                throw new StorageException("Could not list offer log");
+            }
+
+            this.buffer = ((RequestResponseOK<OfferLog>) response).getResults();
+            this.nextPos = 0;
+
+            if (this.buffer.isEmpty()) {
+                this.endOfStream = true;
+            } else {
+
+                switch (this.order) {
+
+                    case ASC:
+                        this.lastOffset = this.buffer.get(this.buffer.size() - 1).getSequence() + 1;
+                        break;
+                    case DESC:
+                        this.lastOffset = this.buffer.get(this.buffer.size() - 1).getSequence() - 1;
+                        break;
+                    default:
+                        throw new IllegalStateException("Invalid order " + this.order);
+                }
+            }
+        } catch (StorageException e) {
+            throw new VitamRuntimeException(e);
+        }
     }
 
-    /**
-     * Only direct call to @StorageDistribution.getContainerByCategory
-     *
-     * @param strategyId strategyID
-     * @param objectId file id or name
-     * @param category storage category of the file
-     * @return the file as stream
-     * @throws StorageException if some error technical problem while call StorageDistribution
-     */
-    public Response getObject(String strategyId, String objectId, DataCategory category) throws StorageException {
-        return this.distribution
-            .getContainerByCategory(strategyId, objectId, category, AccessLogUtils.getNoLogAccessLog());
+    @Override
+    public String next() {
+
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+
+        OfferLog offerLog = this.buffer.get(nextPos);
+        nextPos++;
+
+        return offerLog.getFileName();
     }
 }
