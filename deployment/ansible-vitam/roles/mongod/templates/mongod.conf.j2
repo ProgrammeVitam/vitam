@@ -19,6 +19,12 @@ storage:
 
   directoryPerDB: true
 
+{% if mongod_memory is defined and mongod_memory != '' %}
+  wiredTiger:
+    engineConfig:
+        cacheSizeGB: {{ mongod_memory }}
+{% endif %}
+
 
 # network interfaces
 net:
