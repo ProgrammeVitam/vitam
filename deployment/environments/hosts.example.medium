@@ -219,7 +219,6 @@ medium-admin-vm-3
 # VITAM
 # ===============================
 
-ansible_connection=local
 ansible_become=true
 
 ### dns ###
