@@ -23,6 +23,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        reconstruction:
     library:
         vitam_component: library
         host: "library.service.{{consul_domain}}"
@@ -37,7 +38,7 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
-
+        reconstruction:
 
 # Period units in seconds
 metricbeat:
