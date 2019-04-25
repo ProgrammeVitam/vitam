@@ -207,6 +207,7 @@ vitam:
         https_enabled: true
         secret_platform: "false"
         antivirus: "clamav"
+        timeoutScanDelay: 60000
         # Directory where files should be placed for local ingest
         upload_dir: "/vitam/data/ingest-external/upload"
         # Directory where successful ingested files will be moved to
