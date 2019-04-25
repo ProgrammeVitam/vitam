@@ -197,7 +197,7 @@ hosts-logstash
 # VITAM
 # ===============================
 
-ansible_connection=local
+#ansible_connection=local
 ansible_become=true
 
 ### dns ###

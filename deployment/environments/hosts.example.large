@@ -230,7 +230,6 @@ large-admin-vm-5
 # VITAM
 # ===============================
 
-ansible_connection=local
 ansible_become=true
 
 ### dns ###
