@@ -53,7 +53,6 @@ import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveResult;
-import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
@@ -210,21 +209,16 @@ public class ConnectionImpl extends AbstractConnection {
                     request.getDigestAlgorithm(), request.getSize(), null),
                 stream, MediaType.APPLICATION_OCTET_STREAM_TYPE, MediaType.APPLICATION_JSON_TYPE);
 
-            if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
-                throw new StorageDriverException(getDriverName(),
-                    "Error while performing put object operation for object " + request.getGuid() + " (" +
-                        request.getType() + ")", true);
-            }
-
             final JsonNode json = handleResponseStatus(response, JsonNode.class);
-
-            StoragePutResult result = new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
-                json.get("digest").textValue(), json.get("size").longValue());
 
             if (Response.Status.CREATED.getStatusCode() != response.getStatus()) {
                 LOGGER.error("Error while performing put object operation");
                 throw new StorageDriverException(getDriverName(), "Error while performing put object operation", true);
             }
+
+            StoragePutResult result =
+                new StoragePutResult(request.getTenantId(), request.getType(), request.getGuid(), request.getGuid(),
+                    json.get("digest").textValue(), json.get("size").longValue());
 
             return result;
         } catch (final IllegalArgumentException exc) {
