@@ -35,6 +35,8 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import joptsimple.internal.Strings;
 import org.apache.commons.collections4.CollectionUtils;
 
+import java.io.File;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -57,6 +59,19 @@ public class ProcessExecutor {
      * @return
      */
     public Output execute(String commandPath, boolean asSudo, long timeoutInMilliseconds, List<String> args) {
+        return execute(commandPath, asSudo, false, timeoutInMilliseconds, args);
+    }
+
+    /**
+     * @param commandPath
+     * @param asSudo
+     * @param redirectStreamToFile
+     * @param timeoutInMilliseconds
+     * @param args
+     * @return
+     */
+    public Output execute(String commandPath, boolean asSudo, boolean redirectStreamToFile, long timeoutInMilliseconds,
+        List<String> args) {
         List<String> command;
         if (asSudo) {
             command = Lists.newArrayList(SUDO, commandPath);
@@ -77,16 +92,29 @@ public class ProcessExecutor {
         ProcessBuilder processBuilder = new ProcessBuilder(command);
         Process process = null;
         Output result;
+
+        File cmd_stdout = null;
+        File cmd_stderr = null;
+
         try {
+            if (redirectStreamToFile) {
+                cmd_stderr = Files.createTempFile("cmd_stderr_", GUIDFactory.newGUID().getId()).toFile();
+                cmd_stdout = Files.createTempFile("cmd_stdout_", GUIDFactory.newGUID().getId()).toFile();
+
+                processBuilder.redirectError(cmd_stderr);
+                processBuilder.redirectOutput(cmd_stdout);
+            }
+
             process = processBuilder.start();
+
             boolean processExit = process.waitFor(timeoutInMilliseconds, TimeUnit.MILLISECONDS);
             if (processExit) {
-                result = new Output(process, process.exitValue(), processBuilder);
+                result = new Output(process, process.exitValue(), processBuilder, cmd_stdout, cmd_stderr);
             } else {
-                result = new Output(process, Output.EXIT_CODE_WAIT_FOR_TIMEOUT, processBuilder);
+                result = new Output(process, Output.EXIT_CODE_WAIT_FOR_TIMEOUT, processBuilder, cmd_stdout, cmd_stderr);
             }
         } catch (Exception e) {
-            result = new Output(e, process, processBuilder);
+            result = new Output(e, process, processBuilder, cmd_stdout, cmd_stderr);
         }
 
         if (LOGGER.isDebugEnabled()) {

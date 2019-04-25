@@ -27,16 +27,16 @@
 package fr.gouv.vitam.storage.offers.tape.process;
 
 import fr.gouv.vitam.common.logging.SysErrLogger;
-import org.apache.commons.collections4.queue.CircularFifoQueue;
+import fr.gouv.vitam.common.stream.StreamUtils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -50,48 +50,56 @@ public class Output {
 
     private final int exitCode;
 
-    public Output(Exception exception, Process process, ProcessBuilder processBuilder) {
+    public Output(Exception exception, Process process, ProcessBuilder processBuilder, File stdout, File stderr) {
 
         this.exception = exception;
         this.command = processBuilder.command();
         this.exitCode = EXIT_CODE_WAIT_FOR_TIMEOUT;
         if (null != process) {
-            this.stdout = stdToString(process.getInputStream());
-            this.stderr = stdToString(process.getErrorStream());
+            this.stdout = stdToString(process, stdout, false);
+            this.stderr = stdToString(process, stderr, true);
         } else {
             this.stdout = "";
             this.stderr = "";
         }
     }
 
-    public Output(Process process, int exitCode, ProcessBuilder processBuilder) {
+    public Output(Process process, int exitCode, ProcessBuilder processBuilder, File stdout, File stderr) {
         this.command = processBuilder.command();
         this.exception = null;
         this.exitCode = exitCode;
-        this.stdout = stdToString(process.getInputStream());
-        this.stderr = stdToString(process.getErrorStream());
+        this.stdout = stdToString(process, stdout, false);
+        this.stderr = stdToString(process, stderr, true);
     }
 
-    private static String stdToString(InputStream std) {
-        // TODO: 15/03/19  2000 must be configurable
-        CircularFifoQueue<String> lastLines = new CircularFifoQueue<>(2000);
-        List<String> firstLines = new ArrayList<>();
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(std, UTF_8))) {
-            String c;
-            while ((c = reader.readLine()) != null) {
-                if (firstLines.size() < 250) {
-                    firstLines.add(c);
+    private static String stdToString(Process process, File stdFile, boolean isErrorStream) {
+
+        String msgToReturn = "";
+        InputStream std = null;
+        try {
+
+            if (stdFile != null) {
+                std = Files.newInputStream(stdFile.toPath());
+            } else {
+                if (isErrorStream) {
+                    std = process.getErrorStream();
                 } else {
-                    lastLines.add(c);
+                    std = process.getInputStream();
                 }
             }
+
+
+            msgToReturn =
+                new BufferedReader(new InputStreamReader(std, UTF_8)).lines().collect(Collectors.joining(" | "));
+
+            return msgToReturn;
+
         } catch (IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return Stream.concat(firstLines.stream(), lastLines.stream())
-                .collect(Collectors.joining(" | ")) + "|" + e.getMessage();
+            return msgToReturn + "|" + e.getMessage();
+        } finally {
+            StreamUtils.closeSilently(std);
         }
-        return Stream.concat(firstLines.stream(), lastLines.stream())
-            .collect(Collectors.joining(" | "));
     }
 
     public Exception getException() {

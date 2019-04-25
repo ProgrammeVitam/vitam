@@ -88,7 +88,7 @@ public class MtxTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(0);
         when(output.getStdout()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
@@ -101,7 +101,7 @@ public class MtxTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
@@ -118,7 +118,7 @@ public class MtxTapeLibraryServiceTest {
         Output output = mock(Output.class);
         when(output.getExitCode()).thenReturn(1);
         when(output.getStderr()).thenReturn("Fake Just To Avoid Null");
-        when(processExecutor.execute(anyString(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
+        when(processExecutor.execute(anyString(), anyBoolean(), anyBoolean(), anyLong(), anyList())).thenReturn(output);
 
 
         MtxTapeLibraryService mtxTapeLibraryService = new MtxTapeLibraryService(tapeRobotConf, processExecutor);
@@ -132,7 +132,7 @@ public class MtxTapeLibraryServiceTest {
         ArgumentCaptor<List> args = ArgumentCaptor.forClass(List.class);
 
         verify(processExecutor, VerificationModeFactory.times(1))
-            .execute(commandPath.capture(), anyBoolean(), timeout.capture(), args.capture());
+            .execute(commandPath.capture(), anyBoolean(), anyBoolean(), timeout.capture(), args.capture());
 
         assertThat(commandPath.getValue()).isEqualTo(COMMAND_MTX);
         assertThat(timeout.getValue()).isEqualTo(1_000l);
