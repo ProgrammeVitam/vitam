@@ -71,6 +71,7 @@ public class TapeDriveWorker implements Runnable {
     private final TarReferentialRepository tarReferentialRepository;
     private final AtomicBoolean stop = new AtomicBoolean(false);
     private final AtomicBoolean pause = new AtomicBoolean(false);
+    private final boolean forceOverrideNonEmptyCartridges;
     private ReadWriteResult readWriteResult;
     private final CountDownLatch shutdownSignal;
     private CountDownLatch pauseSignal;
@@ -84,7 +85,8 @@ public class TapeDriveWorker implements Runnable {
         TapeDriveOrderConsumer receiver,
         TarReferentialRepository tarReferentialRepository,
         TapeCatalog currentTape,
-        String inputTarPath, long sleepTime) {
+        String inputTarPath, long sleepTime, boolean forceOverrideNonEmptyCartridges) {
+        this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService,
                 tarReferentialRepository, tapeCatalogService,
@@ -117,9 +119,9 @@ public class TapeDriveWorker implements Runnable {
         TapeDriveOrderConsumer receiver,
         TarReferentialRepository tarReferentialRepository,
         TapeCatalog currentTape,
-        String inputTarPath) {
+        String inputTarPath, boolean forceOverrideNonEmptyCartridges) {
         this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, tarReferentialRepository, currentTape,
-            inputTarPath, SLEEP_TIME);
+            inputTarPath, SLEEP_TIME, forceOverrideNonEmptyCartridges);
     }
 
     @Override
@@ -176,7 +178,7 @@ public class TapeDriveWorker implements Runnable {
 
                     ReadWriteTask readWriteTask =
                         new ReadWriteTask(readWriteOrder, currentTape, tapeRobotPool, tapeDriveService,
-                            tapeCatalogService, tarReferentialRepository, inputTarPath);
+                            tapeCatalogService, tarReferentialRepository, inputTarPath, forceOverrideNonEmptyCartridges);
                     readWriteResult = readWriteTask.get();
 
                     currentTape = readWriteResult.getCurrentTape();

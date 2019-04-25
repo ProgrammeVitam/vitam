@@ -73,11 +73,11 @@ public class TapeDriveWorkerTest {
     public void test_constructor() {
         new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
             tarReferentialRepository, null,
-            "/tmp");
+            "/tmp", false);
 
         try {
             new TapeDriveWorker(null, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, "/tmp");
+                tarReferentialRepository, null, "/tmp", false);
             Assertions.fail("Should fail tapeRobotPool required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -85,7 +85,7 @@ public class TapeDriveWorkerTest {
 
         try {
             new TapeDriveWorker(tapeRobotPool, null, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, "/tmp");
+                tarReferentialRepository, null, "/tmp", false);
             Assertions.fail("Should fail tapeDriveService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -93,7 +93,7 @@ public class TapeDriveWorkerTest {
 
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, null, tapeDriveOrderConsumer, tarReferentialRepository,
-                null, "/tmp");
+                null, "/tmp", false);
             Assertions.fail("Should fail tapeCatalogService required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -101,7 +101,7 @@ public class TapeDriveWorkerTest {
 
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, null, tarReferentialRepository,
-                null, "/tmp");
+                null, "/tmp", false);
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -109,7 +109,7 @@ public class TapeDriveWorkerTest {
 
         try {
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer, null, null,
-                "/tmp");
+                "/tmp", false);
             Assertions.fail("Should fail tapeDriveOrderConsumer required");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -127,7 +127,7 @@ public class TapeDriveWorkerTest {
     public void stop_wait() throws InterruptedException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, null, 1000);
+                tarReferentialRepository, null, null, 1000, false);
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
         tapeDriveWorker.stop();
@@ -140,7 +140,7 @@ public class TapeDriveWorkerTest {
     public void stop_no_wait() throws QueueException, InterruptedException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, null, 1000);
+                tarReferentialRepository, null, null, 1000, false);
 
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(5);
@@ -161,7 +161,7 @@ public class TapeDriveWorkerTest {
     public void test_get_index_ok() throws QueueException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, null, 1000);
+                tarReferentialRepository, null, null, 1000, false);
         when(tapeDriveConf.getIndex()).thenReturn(1);
         when(tapeDriveOrderConsumer.consume(eq(tapeDriveWorker))).thenAnswer(o -> {
             Thread.sleep(5);
@@ -181,7 +181,7 @@ public class TapeDriveWorkerTest {
     public void test_get_priority_ok() throws QueueException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, null, 1000);
+                tarReferentialRepository, null, null, 1000, false);
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
             Thread.sleep(5);
@@ -201,7 +201,7 @@ public class TapeDriveWorkerTest {
     public void test_get_read_write_result_and_current_tape() throws QueueException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, null, 1000);
+                tarReferentialRepository, null, null, 1000, false);
 
         when(tapeDriveConf.getReadWritePriority()).thenReturn(ReadWritePriority.READ);
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {

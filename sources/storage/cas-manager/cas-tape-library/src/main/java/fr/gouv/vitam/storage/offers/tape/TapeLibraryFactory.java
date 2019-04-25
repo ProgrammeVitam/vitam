@@ -197,7 +197,7 @@ public class TapeLibraryFactory {
             tapeDriveWorkerManagers
                 .put(tapeLibraryIdentifier,
                     new TapeDriveWorkerManager(readWriteQueue, tarReferentialRepository, libraryPool, driveTape,
-                        configuration.getInputTarStorageFolder()));
+                        configuration.getInputTarStorageFolder(), configuration.isForceOverrideNonEmptyCartridges()));
         }
 
         // Everything's alright. Start tar creation listeners

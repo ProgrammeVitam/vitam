@@ -43,9 +43,13 @@ tapeLibraryConfiguration:
   inputFileStorageFolder: "{{ vitam_folder_data }}/offer/inputFiles"
   inputTarStorageFolder: "{{ vitam_folder_data }}/offer/inputTars"
   outputTarStorageFolder: "{{ vitam_folder_data }}/offer/outputTars"
-  maxTarEntrySize: 100000
-  maxTarFileSize: 1000000
+  maxTarEntrySize: 1000000000
+  maxTarFileSize: 10000000000
   useSudo: false
+  
+  # Enable overriding non empty cartridges
+  # WARNING : FOR DEV/TEST ONLY. DO NOT ENABLE IN PRODUCTION.
+  forceOverrideNonEmptyCartridges: false
 
   topology:
     buckets:
