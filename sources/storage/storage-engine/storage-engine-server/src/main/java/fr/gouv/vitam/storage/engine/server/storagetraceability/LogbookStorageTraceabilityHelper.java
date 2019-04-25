@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -37,6 +39,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -50,7 +53,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
-import fr.gouv.vitam.logbook.common.model.TraceabilityIterator;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
 import fr.gouv.vitam.logbook.common.model.TraceabilityType;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
@@ -64,8 +66,8 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientE
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -84,6 +86,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.Iterator;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -97,6 +100,7 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.TRACEAB
 public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookStorageTraceabilityHelper.class);
+    private static final AlertService alertService = new AlertServiceImpl();
 
     private static final String STRATEGY_ID = "default";
     private static final String STORAGE_SECURISATION_STORAGE = "STORAGE_SECURISATION_STORAGE";
@@ -114,15 +118,15 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private StorageTraceabilityData lastTraceabilityData = null;
     private LocalDateTime traceabilityStartDate;
     private LocalDateTime traceabilityEndDate;
-    private TraceabilityIterator<OfferLog> traceabilityIterator = null;
+    private int fileCount = 0;
 
     private Boolean isLastEventInit = false;
     private String previousStartDate = null;
     private byte[] previousTimestampToken = null;
 
     /**
-     * @param logbookOperations     used to search the operation to secure
-     * @param operationID           guid of the traceability operation
+     * @param logbookOperations used to search the operation to secure
+     * @param operationID guid of the traceability operation
      * @param overlapDelayInSeconds the overlap delay in second used to avoid to forgot logbook operation for traceability
      */
     public LogbookStorageTraceabilityHelper(LogbookOperationsClient logbookOperations, WorkspaceClient workspaceClient,
@@ -137,65 +141,76 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     @Override
     public void initialize() throws TraceabilityException {
         this.traceabilityEndDate = LocalDateUtil.now();
-        String fileName;
-        try {
-            fileName = traceabilityLogbookService.getLastTraceability(STRATEGY_ID);
-            if (fileName == null) {
-                lastTraceabilityData = null;
-                this.traceabilityStartDate = INITIAL_START_DATE;
-                return;
-            }
-        } catch (StorageException e) {
-            throw new TraceabilityException("Unable to get last traceability in database", e);
-        }
 
-        Response response = null;
-        try {
-            response = traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGETRACEABILITY);
-            try (
-                InputStream stream = response.readEntity(InputStream.class);
-                ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                    .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
+        Iterator<String> lastTraceabilityZipIterator =
+            traceabilityLogbookService.getLastTraceabilityZipIterator(STRATEGY_ID);
 
-                ArchiveEntry entry = null;
-                while (entry == null || !"token.tsp".equals(entry.getName())) {
-                    entry = archiveInputStream.getNextEntry();
-                    if (entry == null) {
-                        throw new TraceabilityException("Can't find token.tsp file in ZIP");
+        while (lastTraceabilityZipIterator.hasNext()) {
+
+            String fileName = lastTraceabilityZipIterator.next();
+
+            Response response = null;
+            try {
+                response =
+                    traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGETRACEABILITY);
+                try (
+                    InputStream stream = response.readEntity(InputStream.class);
+                    ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+                        .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
+
+                    ArchiveEntry entry = null;
+                    while (entry == null || !"token.tsp".equals(entry.getName())) {
+                        entry = archiveInputStream.getNextEntry();
+                        if (entry == null) {
+                            throw new TraceabilityException("Can't find token.tsp file in ZIP");
+                        }
                     }
-                }
 
-                LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
-                lastTraceabilityData =
-                    new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
-                this.traceabilityStartDate = lastTraceabilityData.startDate;
+                    LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
+                    this.lastTraceabilityData =
+                        new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
+                    this.traceabilityStartDate = lastTraceabilityData.startDate;
+
+                    // Init succeeded
+                    return;
+                }
+            } catch (StorageNotFoundException e) {
+                LOGGER.warn("Traceability ZIP file not found '" + fileName + "'. Skipping", e);
+                alertService.createAlert(VitamLogLevel.WARN, "Traceability ZIP file not found '" + fileName +
+                    "'. File may never have been written to offer OR have been DELETED?");
+                // Try next file...
+            } catch (IOException e) {
+                throw new TraceabilityException("Unable to read ZIP", e);
+            } catch (ArchiveException e) {
+                throw new TraceabilityException("Unable to create Archive Stream", e);
+            } catch (StorageException e) {
+                throw new TraceabilityException("Unable to get last traceability information", e);
+            } finally {
+                StreamUtils.consumeAnyEntityAndClose(response);
             }
-        } catch (IOException e) {
-            throw new TraceabilityException("Unable to read ZIP", e);
-        } catch (ArchiveException e) {
-            throw new TraceabilityException("Unable to create Archive Stream", e);
-        } catch (StorageException e) {
-            throw new TraceabilityException("Unable to get last traceability information", e);
-        } finally {
-            StreamUtils.consumeAnyEntityAndClose(response);
         }
+
+        lastTraceabilityData = null;
+        this.traceabilityStartDate = INITIAL_START_DATE;
+        return;
     }
 
     @Override
     public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file)
         throws IOException, TraceabilityException {
 
-        try {
-            traceabilityIterator =
-                traceabilityLogbookService.getLastSavedStorageLogs(STRATEGY_ID, this.traceabilityStartDate);
-        } catch (StorageException e) {
-            throw new TraceabilityException("Unable to get last backup in database", e);
-        }
+        Iterator<String> traceabilityIterator =
+            traceabilityLogbookService.getLastSavedStorageLogIterator(STRATEGY_ID);
 
         file.initStoreLog();
         while (traceabilityIterator.hasNext()) {
-            final OfferLog storageFile = traceabilityIterator.next();
-            String fileName = storageFile.getFileName();
+            String fileName = traceabilityIterator.next();
+
+            if (StorageFileNameHelper.parseDateFromStorageLogFileName(fileName).isBefore(this.traceabilityStartDate)) {
+                // No more files
+                break;
+            }
+
             Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
             Response response = null;
             InputStream stream = null;
@@ -211,9 +226,16 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
 
                 file.storeLog(bytes);
                 algo.addLeaf(bytes);
+                fileCount++;
+
+            } catch (StorageNotFoundException e) {
+                LOGGER.warn("Traceability LOG file not found '" + fileName + "'. Skipping", e);
+                alertService.createAlert(VitamLogLevel.WARN, "Traceability LOG file not found '" + fileName +
+                    "'. File may never have been written to offer OR have been DELETED?");
+                // Skip file...
             } catch (StorageException e) {
                 throw new TraceabilityException("Unable to get the given object " + fileName, e);
-            }  finally {
+            } finally {
                 StreamUtils.closeSilently(stream);
                 StreamUtils.consumeAnyEntityAndClose(response);
             }
@@ -391,11 +413,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public long getDataSize() throws TraceabilityException {
-        if (traceabilityIterator != null) {
-            return traceabilityIterator.getNumberOfLines();
-        }
-        throw new TraceabilityException("Iterator is not yet initialized");
+    public long getDataSize() {
+        return fileCount;
     }
 
     @Override
