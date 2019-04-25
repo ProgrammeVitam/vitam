@@ -43,60 +43,38 @@ tapeLibraryConfiguration:
   inputFileStorageFolder: "{{ vitam_folder_data }}/offer/inputFiles"
   inputTarStorageFolder: "{{ vitam_folder_data }}/offer/inputTars"
   outputTarStorageFolder: "{{ vitam_folder_data }}/offer/outputTars"
-  maxTarEntrySize: 1000000000
-  maxTarFileSize: 10000000000
-  useSudo: false
-  
-  # Enable overriding non empty cartridges
-  # WARNING : FOR DEV/TEST ONLY. DO NOT ENABLE IN PRODUCTION.
-  forceOverrideNonEmptyCartridges: false
+  maxTarEntrySize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarEntrySize"] | default(100000) }}
+  maxTarFileSize: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["maxTarFileSize"] | default(1000000) }}
+  useSudo: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["useSudo"] | default('false') }}
+  forceOverrideNonEmptyCartridges: {{ vitam_offers[offer_conf]["tapeLibraryConfiguration"]["forceOverrideNonEmptyCartridges"] | default('false') }}
 
   topology:
     buckets:
-      test:
-        tenants: [0]
-        tarBufferingTimeoutInMinutes: 60
-      admin:
-        tenants: [1]
-        tarBufferingTimeoutInMinutes: 60
-      prod:
-        tenants: [2,3,4,5,6,7,8,9]
-        tarBufferingTimeoutInMinutes: 60
+ {% for bucket in vitam_offers[offer_conf]["topology"]["buckets"] %}
+        {{bucket.name}}:
+          tenants: {{bucket.tenants}}
+          tarBufferingTimeoutInMinutes: {{bucket.tarBufferingTimeoutInMinutes}}
+ {% endfor %}
 
   tapeLibraries:
-    TAPE_LIB_1:
+{% for library in vitam_offers[offer_conf]["tapeLibraries"] %}
+    {{ library.name }}:
       robots:
+{% for robot in library.robots %}
         -
-          device: /dev/tape/by-id/scsi-1QUANTUM_10F73224E6664C84A1D00000
-          mtxPath: "/usr/sbin/mtx"
-          timeoutInMilliseconds: 3600000
+          device: {{ robot.device }}
+          mtxPath: "{{  robot.mtxPath }}"
+          timeoutInMilliseconds: {{ robot.timeoutInMilliseconds }}
+{% endfor %}
       drives:
+{% for drive in library.drives %}
         -
-          index: 0
-          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
-          mtPath: "/bin/mt"
-          ddPath: "/bin/dd"
-          tarPath: "/bin/tar"
-          timeoutInMilliseconds: 3600000
-        -
-          index: 1
-          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
-          mtPath: "/bin/mt"
-          ddPath: "/bin/dd"
-          tarPath: "/bin/tar"
-          timeoutInMilliseconds: 3600000
-        -
-          index: 2
-          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
-          mtPath: "/bin/mt"
-          ddPath: "/bin/dd"
-          tarPath: "/bin/tar"
-          timeoutInMilliseconds: 3600000
-        -
-          index: 3
-          device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
-          mtPath: "/bin/mt"
-          ddPath: "/bin/dd"
-          tarPath: "/bin/tar"
-          timeoutInMilliseconds: 3600000
+          index: {{ drive.index }}
+          device: {{ drive.device }}
+          mtPath: "{{ drive.mtPath }}"
+          ddPath: "{{ drive.ddPath }}"
+          tarPath: "{{ drive.tarPath }}"
+          timeoutInMilliseconds: {{ drive.timeoutInMilliseconds }}
+{% endfor %}
+{% endfor %}
 {% endif %}
