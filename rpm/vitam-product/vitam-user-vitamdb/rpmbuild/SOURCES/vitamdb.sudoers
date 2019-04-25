@@ -1,4 +1,5 @@
-%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop elasticsearch,/bin/systemctl start elasticsearch,/bin/systemctl restart elasticsearch
-%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop mongos,/bin/systemctl start mongos,/bin/systemctl restart mongos
-%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop mongoc,/bin/systemctl start mongoc,/bin/systemctl restart mongoc
-%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop mongod,/bin/systemctl start mongod,/bin/systemctl restart mongod
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop vitam-elasticsearch-data,/bin/systemctl start vitam-elasticsearch-data,/bin/systemctl restart vitam-elasticsearch-data, /bin/systemctl reload vitam-elasticsearch-data
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop vitam-elasticsearch-log,/bin/systemctl start vitam-elasticsearch-log,/bin/systemctl restart vitam-elasticsearch-log, /bin/systemctl reload vitam-elasticsearch-log
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop vitam-mongos,/bin/systemctl start vitam-mongos,/bin/systemctl restart vitam-mongos,/bin/systemctl reload vitam-mongos
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop vitam-mongoc,/bin/systemctl start vitam-mongoc,/bin/systemctl restart vitam-mongoc,/bin/systemctl reload vitam-mongoc
+%vitamdb-admin    ALL=NOPASSWD: /bin/systemctl stop vitam-mongod,/bin/systemctl start vitam-mongod,/bin/systemctl restart vitam-mongod,/bin/systemctl reload vitam-mongod
