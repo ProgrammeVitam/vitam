@@ -35,3 +35,33 @@ La version R10 apporte une modification quant à la déclaration des certificats
 La commande suivante est à depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/R10_upgrade_serial_number.yml --ask-vault-pass``
+
+Migration des contrats d'entrée
+--------------------------------
+
+La montée de version vers la release R10 requiert une migration de données (contrats d'entrée) suite à une modification sur les droits relatifs aux rattachements. Cette migration s'effectue à l'aide de la commande suivante, exécutée (une seule fois) sur l'une des machines [hosts-mongod-data] de l'inventaire : 
+
+.. code-block:: bash
+
+    mongo --host=<hosts-mongod-data> admin --username='<mongodb.mongo-data.admin.user>' --password='<mongodb.mongo-data.admin.password>' migration_ingest_contract.js 
+
+
+Où migration_ingest_contract.js contient : 
+
+.. code-block:: bash
+
+    // Switch to masterdata database
+    db = db.getSiblingDB('masterdata');
+
+    // Update IngestContract
+    db.IngestContract.find({}).forEach(function(item)
+    {
+        if (item.CheckParentLink == "ACTIVE") {
+            item.checkParentId = new Array(item.LinkParentId);
+        }
+
+        item.CheckParentLink = "AUTHORIZED";
+
+    //    printjson(item);
+        db.IngestContract.update({_id: item._id}, item);
+    });
