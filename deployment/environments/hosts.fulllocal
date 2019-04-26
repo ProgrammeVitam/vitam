@@ -39,7 +39,7 @@ zone-admin
 ##### Zone externe
 
 [hosts-ihm-recette]
-#localhost
+localhost
 
 [zone-external:children]
 hosts-ihm-demo
