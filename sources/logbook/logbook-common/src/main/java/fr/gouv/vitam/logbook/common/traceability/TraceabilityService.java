@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
@@ -51,6 +52,7 @@ import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Service used to make the generic traceability algo.
@@ -135,14 +137,14 @@ public class TraceabilityService {
                 long size = zipFile.length();
                 boolean maxEntriesReached = helper.getMaxEntriesReached();
                 TraceabilityStatistics traceabilityStatistics = helper.getTraceabilityStatistics();
+                List<String> warnings = helper.getWarnings();
 
                 event =
                     new TraceabilityEvent(helper.getTraceabilityType(), startDate, endDate, rootHash, timestampToken,
                         previousDate,
                         previousMonthDate, previousYearDate, numberOfLine, fileName, size,
-                        VitamConfiguration.getDefaultDigestType(), maxEntriesReached, SECURISATION_VERSION, traceabilityStatistics);
-
-                helper.saveEvent(event);
+                        VitamConfiguration.getDefaultDigestType(), maxEntriesReached, SECURISATION_VERSION,
+                        traceabilityStatistics, warnings);
 
             } else {
                 // do nothing, nothing to be handled
@@ -161,7 +163,8 @@ public class TraceabilityService {
         }
 
         helper.storeAndDeleteZip(tenantId, zipFile, fileName, uri, event);
-        helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.OK, event);
+        StatusCode statusCode = CollectionUtils.isEmpty(event.getWarnings()) ? StatusCode.OK : StatusCode.WARNING;
+        helper.createLogbookOperationEvent(tenantId, helper.getStepName(), statusCode, event);
     }
 
     private String createZipFile(Integer tenantId, LocalDateTime date) {
