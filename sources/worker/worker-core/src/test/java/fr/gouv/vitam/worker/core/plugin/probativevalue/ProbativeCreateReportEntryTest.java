@@ -328,7 +328,8 @@ public class ProbativeCreateReportEntryTest {
         operation.setLastPersistedDate(date);
         operation.setId(id);
         operation.setEvDateTime("Date operation");
-        TraceabilityEvent value = new TraceabilityEvent(null, null,null,null,null,null,null,null,1, fileName,1,null,false,null,null);
+        TraceabilityEvent value = new TraceabilityEvent(null, null,null,null,null,null,null,null,1, fileName,1,null,false,null,null,
+            null);
         operation.setEvDetData(objectMapper.writeValueAsString(value));
         return operation;
     }
