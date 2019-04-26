@@ -12,7 +12,7 @@ Paramétrages supplémentaires
 Tuning JVM
 ==========
 
-.. caution:: en cas de colocalisation, bien prendre en compte la taille :term:`JVM` de chaque composant (VITAM : ``-Xmx512m`` par défaut) pour éviter de `swapper`.
+.. caution:: En cas de colocalisation, bien prendre en compte la taille :term:`JVM` de chaque composant (VITAM : ``-Xmx512m`` par défaut) pour éviter de `swapper`.
 
 
 Un `tuning` fin des paramètres JVM de chaque composant :term:`VITAM` est possible.
@@ -24,10 +24,10 @@ Pour chaque composant, il est possible de modifier ces 3 variables:
 * gc: parmètres gc
 * java: autres paramètres java
 
-Installation des *griffins*
-============================
+Installation des *griffins* (greffons de préservation)
+======================================================
 
-.. note:: Fonctionnalité apparue en R9.
+.. note:: Fonctionnalité disponible partir de la R9 (2.1.1) .
 
 .. caution:: Cette version de :term:`VITAM` ne mettant pas encore en oeuvre de mesure d'isolation particulière des *griffins*, il est recommandé de veiller à ce que l'usage de chaque *griffin* soit en conformité avec la politique de sécurité de l'entité. Il est en particulier déconseillé d'utiliser un griffon qui utiliserait un outil externe qui n'est plus maintenu.
 
@@ -65,7 +65,7 @@ L'antivirus utilisé par ingest-externe est modifiable (par défaut, ClamAV) ; p
 
 .. caution:: En cas de remplacement de clamAV par un autre antivirus, l'installation de celui-ci devient dès lors un prérequis de l'installation et le script doit être testé.
 
-.. warning:: Sur plate-forme Debian, ClamAV est installé sans base de données. Pour que l'antivirus soit fonctionnel, il est nécessaire, durant l'installation, de la télécharger ; il est donc nécessaire de renseigner dans l'inventaire la directive ``http_proxy_environnement``.
+.. warning:: Sur plate-forme Debian, ClamAV est installé sans base de données. Pour que l'antivirus soit fonctionnel, il est nécessaire, durant l'installation, de le télécharger ; il est donc nécessaire de renseigner dans l'inventaire la directive ``http_proxy_environnement``.
 
 Paramétrage des certificats externes (\*-externe)
 =================================================
@@ -75,13 +75,13 @@ Se reporter au chapitre dédié à la gestion des certificats: :doc:`20-certific
 Placer "hors Vitam" le composant ihm-demo 
 =========================================
 
-Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé par le nom de machine hébergeant le composant ihm-demo et ajouter le contenu ci-dessous ::
+Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé par le nom de machine qui héberge le composant ihm-demo et ajouter le contenu ci-dessous ::
 
    consul_disabled: true
 
 A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse IP de services les composants "access-external" et "ingest-external".
 
-Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à  ``false`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer de données sur "elasticsearch-log".
+Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à  ``false`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer des données sur "elasticsearch-log".
 
 
 Paramétrage de la centralisation des logs Vitam
@@ -89,8 +89,8 @@ Paramétrage de la centralisation des logs Vitam
 
 2 cas sont possibles :
 
-* Utiliser le sous-système de gestion des logs fournis par la solution logicielle VITAM ;
-* Utiliser un SIEM tiers.
+* Utiliser le sous-système de gestion des logs fourni par la solution logicielle VITAM ;
+* Utiliser un :term:`SIEM` tiers.
 
 Gestion par Vitam
 -------------------
@@ -101,8 +101,8 @@ Pour une gestion des logs par Vitam, il est nécessaire de déclarer les serveur
     - hosts-elasticsearch-log
 
 
-Redirection des logs sur un SIEM tiers
---------------------------------------
+Redirection des logs sur un :term:`SIEM` tiers
+----------------------------------------------
 
 En configuration par défaut, les logs Vitam sont tout d'abord routés vers un serveur rsyslog installé sur chaque machine.
 Il est possible d'en modifier le routage, qui par défaut redirige vers le serveur logstash via le protocole syslog en TCP.
@@ -111,8 +111,8 @@ Pour cela, il est nécessaire de placer un fichier de configuration dédié dans
 
 .. tip:: Pour cela, il peut être utile de s'inspirer du fichier de référence VITAM ``deployment/ansible-vitam/roles/rsyslog/templates/vitam_transport.conf.j2`` (attention, il s'agit d'un fichier template ansible, non directement convertible en fichier de configuration sans en ôter les directives jinja2).
 
-Passage des identifiants des référentiels en mode esclave
-==============================================================
+Passage des identifiants des référentiels en mode `esclave`
+===========================================================
 
 La génération des identifiants des référentiels est géré par Vitam quand il fonctionne en mode maître.
 
@@ -158,7 +158,7 @@ La liste des choix possibles, pour chaque tenant, est :
 
   - INGEST_CONTRACT : contrats d'entrée
   - ACCESS_CONTRACT : contrats d'accès
-  - PROFILE : profils SEDA
+  - PROFILE : profils :term:`SEDA`
   - SECURITY_PROFILE : profils de sécurité (utile seulement sur le tenant d'administration)
   - CONTEXT : contextes applicatifs (utile seulement sur le tenant d'administration)
   - ARCHIVEUNITPROFILE : profils d'unités archivistiques
@@ -217,7 +217,7 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 .. note:: Cas du composant ingest-external. Les directives ``upload_dir``, ``success_dir``, ``fail_dir`` et ``upload_final_action`` permettent de prendre en charge (ingest) des fichiers déposés dans ``upload_dir`` et appliquer une règle ``upload_final_action`` à l'issue du traitement (NONE, DELETE ou MOVE dans ``success_dir`` ou ``fail_dir`` selon le cas). Se référer au :term:`DEX` pour de plus amples détails. Se référer au manuel de développement pour plus de détails sur l'appel à ce cas.
 
-.. warning:: Selon les informations apportées par le métier, redéfinir les valeurs associées dans les directives ``classificationList`` et ``classificationLevelOptional``. Cela permet de définir quels niveaux de protection du secret de la défense nationale supporte l'instance. Attention : une instance de niveau supérieur doit toujours supporter les niveaux inférieurs
+.. warning:: Selon les informations apportées par le métier, redéfinir les valeurs associées dans les directives ``classificationList`` et ``classificationLevelOptional``. Cela permet de définir quels niveaux de protection du secret de la défense nationale supporte l'instance. Attention : une instance de niveau supérieur doit toujours supporter les niveaux inférieurs.
 
 * |repertoire_inventory| ``/group_vars/all/cots_vars.yml``, comme suit :
 
@@ -225,7 +225,7 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
      :language: yaml
      :linenos:
 
-.. note:: installation multi-sites. Déclarer dans ``consul_remote_sites`` les datacenters Consul des autres site ; se référer à l'exemple fourni pour renseigner les informations.
+.. note:: Installation multi-sites. Déclarer dans ``consul_remote_sites`` les datacenters Consul des autres site ; se référer à l'exemple fourni pour renseigner les informations.
 
 .. note:: Concernant Curator, en environnement de production, il est recommandé de procéder à la fermeture des index au bout d'une semaine pour les index de type "logstash" ( 3 jours pour les index "metrics"), qui sont le reflet des traces applicatives des composants de la solution logicielle :term:`VITAM`. Il est alors recommandé de lancer le *delete* de ces index au bout de la durée minimale de rétention : 1 an (il n'y a pas de durée de rétention minimale légale sur les index "metrics", qui ont plus une vocation technique et, éventuellement, d'investigations).
 

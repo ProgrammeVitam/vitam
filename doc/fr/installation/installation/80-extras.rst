@@ -4,17 +4,17 @@
 .. |repertoire_inventory| replace:: ``environments``
 .. |repertoire_playbook ansible| replace:: ``ansible-vitam``
 
-Elements extras de l'installation
-#################################
+Elements *extras* de l'installation
+###################################
 
-.. caution:: Les élements décrits dans cette section sont des élements "extras" ; il ne sont pas officiellement supportés, et ne sont par conséquence pas inclus dans l'installation de base. Cependant, ils peuvent s'avérer utile, notamment pour les installation sur des environnements hors production.
+.. caution:: Les élements décrits dans cette section sont des élements "extras" ; il ne sont pas officiellement supportés, et ne sont par conséquence pas inclus dans l'installation de base. Cependant, ils peuvent s'avérer utile, notamment pour les installations sur des environnements hors production.
 
 .. caution:: Dans le cas où l'installateur souhaite utiliser un `repository` de binaires qu'il gère par lui-même, il est fortement recommandé de rajouter ``--skip-tags "enable_vitam_repo"`` à la commande ``ansible-playbook`` ; dans ce cas, le comportement de ``yum`` n'est pas impacté par la solution de déploiement.
 
-Configuration des extra
-=======================
+Configuration des *extra*
+=========================
 
-Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la configuration des extra :
+Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la configuration des *extra* :
 
 .. literalinclude:: ../../../../deployment/environments/group_vars/all/extra_vars.yml
      :language: yaml
@@ -36,10 +36,10 @@ Le fichier |repertoire_inventory| ``/group_vars/all/all/vault-extra.yml`` contie
 .. note:: Pour ce fichier, l'encrypter avec le même mot de passe que ``vault-vitam.yml``.
 
 
-Déploiement des extra
-=====================
+Déploiement des *extra*
+=======================
 
-Plusieurs *playbook* d'extra sont fournis pour usage "tel quel".
+Plusieurs *playbook* d'*extra* sont fournis pour usage "tel quel".
 
 ihm-recette
 -----------
@@ -50,12 +50,12 @@ Ce *playbook* permet d'installer également le composant :term:`VITAM` ihm-recet
 
    ansible-playbook ansible-vitam-extra/ihm-recette.yml -i environments/<ficher d'inventaire> --ask-vault-pass
 
-.. caution:: avant de jouer le `playbook`, ne pas oublier, selon le contexte d'usage, de positionner correctement la variable ``secure_cookie`` décrite plus haut.
+.. caution:: Avant de jouer le `playbook`, ne pas oublier, selon le contexte d'usage, de positionner correctement la variable ``secure_cookie`` décrite plus haut.
 
 
 
-extra complet
--------------
+*Extra* complet
+---------------
 
 Ce *playbook* permet d'installer :
   - des éléments de monitoring système

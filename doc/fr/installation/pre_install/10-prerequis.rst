@@ -27,15 +27,15 @@ Le déploiement est orchestré depuis un poste ou serveur d'administration ; les
 
 .. caution:: Les IP des machines sur lesquelles la solution Vitam sera installée ne doivent pas changer d'IP au cours du temps, en cas de changement d'IP, la plateforme ne pourra plus fonctionner.
 
-.. caution:: dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet.
+.. caution:: Dans le cadre de l'installation des packages "extra", il est nécessaire, pour les partitions hébergeant des containeurs docker (mongo-express, head), qu'elles aient un accès internet.
 
-.. warning:: dans le cas d'une installation du composant ``vitam-offer`` en ``filesystem-hash``, il est fortement recommandé d'employer un système de fichiers ``xfs`` pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des *filesystems* dans la solution logicielle :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option ``user_xattr``.
+.. warning:: Dans le cas d'une installation du composant ``vitam-offer`` en ``filesystem-hash``, il est fortement recommandé d'employer un système de fichiers ``xfs`` pour le stockage des données. Se référer au :term:`DAT` pour connaître la structuration des *filesystems* dans la solution logicielle :term:`VITAM`. En cas d'utilisation d'un autre type, s'assurer que le filesystem possède/gère bien l'option ``user_xattr``.
 
 
 PKI
 ===
 
-La solution logicielle :term:`VITAM` nécessite des certificats pour son bon fonctionnement (cf. :term:`DAT` pour la liste des secrets et :doc:`/annexes/10-overview_certificats` pour une vue d'ensemble de leur usage.) La gestion de ces certificats, par le biais d'une ou plusieurs :term:`PKI`, est à charge de l'équipe d'exploitation. La mise à disposition des certificats et des chaînes de validation CA, placés dans les répertoires de déploiement adéquats, est un pré-requis à tout déploiement en production de la solution logicielle :term:`VITAM`.
+La solution logicielle :term:`VITAM` nécessite des certificats pour son bon fonctionnement (cf. :term:`DAT` pour la liste des secrets et :doc:`/annexes/10-overview_certificats` pour une vue d'ensemble de leur usage.) La gestion de ces certificats, par le biais d'une ou plusieurs :term:`PKI`, est à charge de l'équipe d'exploitation. La mise à disposition des certificats et des chaînes de validation :term:`CA`, placés dans les répertoires de déploiement adéquats, est un pré-requis à tout déploiement en production de la solution logicielle :term:`VITAM`.
 
 .. seealso:: Veuillez vous référer à la section :doc:`/annexes/10-overview_certificats` pour la liste des certificats nécessaires au déploiement de la solution VITAM, ainsi que pour leurs répertoires de déploiement.
 
@@ -54,7 +54,7 @@ SELinux doit être configuré en mode ``permissive`` ou ``disabled``.
 
 .. Sujets à adresser : préciser la version minimale ; donner une matrice de compatibilité -> post-V1
 
-.. caution:: En cas d'installation initiale, les utilisateurs et groupes systèmes (noms et UID) utilisés par VITAM (et listés dans le :term:`DAT`) ne doivent pas être présents sur les serveurs cible. Ces comptes sont créés lors de l'installation de VITAM et gérés par VITAM.
+.. caution:: En cas d'installation initiale, les utilisateurs et groupes systèmes (noms et :term:`UID`) utilisés par VITAM (et listés dans le :term:`DAT`) ne doivent pas être présents sur les serveurs cible. Ces comptes sont créés lors de l'installation de VITAM et gérés par VITAM.
 
 Déploiement sur environnement CentOS
 ------------------------------------

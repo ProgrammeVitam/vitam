@@ -5,12 +5,12 @@ Introduction
 Objectif de ce document
 =======================
 
-Ce document est le document d'architecture de la solution VITAM ; il vise à donner une vision d'ensemble des problématiques structurantes, donner une vision d'ensemble de la solution (d'un point de vue applicatif et technique), ainsi que de présenter les choix structurants de principes et de composants, ainsi que les raisons de ces choix.
+Ce document est le document d'architecture de la solution logicielle :term:`VITAM` ; il vise à donner une vision d'ensemble des problématiques structurantes, donner une vision d'ensemble de la solution (d'un point de vue applicatif et technique), ainsi que de présenter les choix structurants de principes et de composants, ainsi que les raisons de ces choix.
 
 Il s'adresse aux personnes suivantes :
 
-* Les architectes applicatifs des projets désirant intégrer VITAM ;
-* Les architectes techniques des projets désirant intégrer VITAM.
+* Les architectes applicatifs des projets désirant intégrer :term:`VITAM` ;
+* Les architectes techniques des projets désirant intégrer :term:`VITAM`.
 
 
 Structure du document

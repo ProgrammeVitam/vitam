@@ -5,13 +5,13 @@ Architecture applicative
 Drivers de l'architecture
 =========================
 
-Les principes d'implémentation applicative ont pour but de faciliter, voire d'assurer les enjeux auxquels le système VITAM est confronté :
+Les principes d'implémentation applicative ont pour but de faciliter, voire d'assurer les enjeux auxquels la solution logicielle :term:`VITAM` est confrontée :
 
 
-* Modèle Open-Source pour la réutilisation dans la sphère publique ainsi que pour conserver la maîtrise dans le temps du socle logiciel ;
+* Modèle *Open-Source* pour la réutilisation dans la sphère publique ainsi que pour conserver la maîtrise dans le temps du socle logiciel ;
 * Couplage lâche entre les composants ;
 * Nécessité de pouvoir disposer de composants de générations différentes rendant un même service ;
-* Usage d’API REST pour la communication entre composants internes à VITAM, ainsi qu'en extrême majorité pour les services exposés à l'extérieur ;
+* Usage d’API :term:`REST` pour la communication entre composants internes à :term:`VITAM`, ainsi qu'en extrême majorité pour les services exposés à l'extérieur ;
 * Exploitabilité de la solution : limiter le coût d’entrée et de maintenance en : 
 
     - Intégrant un outillage favorisant le déploiement et les mises à jour de la plateforme ;
@@ -24,7 +24,7 @@ Services
 
 La solution logicielle :term:`VITAM` est découpée en services autonomes interagissant pour permettre de rendre le service global ; ce découpage applicatif suit en grande partie le découpage présenté plus haut dans l'architecture fonctionnelle. 
 
-Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ihm-demo et storage-offer-default (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle VITAM.
+Les schémas suivants présentent l'architecture applicative et les flux d'informations entre composants. Tous les composants jaunes sont fournis dans le cadre de la solution logicielle VITAM ; tous sont requis pour le bon fonctionnement de la solution, à l'exception de deux d'entre eux : ``ihm-demo`` et ``storage-offer-default`` (selon les choix de déploiement). Enfin, chaque service possède un nom propre qui l'identifie de manière unique au sein de la solution logicielle :term:`VITAM`.
 
 
 .. figure:: images/vitam-applicative-architecture-legend.*
@@ -55,7 +55,7 @@ Les schémas suivants présentent l'architecture applicative et les flux d'infor
 
 Les services sont organisés en zones logiques :
 
-* Les API externes contiennent les services exposés aux clients (ex: à un SIA) ; tout accès externe au système VITAM doit passer par eux. Ils sont responsables notamment de la validation de l'authentification des systèmes externes, de la validation du droit d'accès aux API internes et de l'appel des API internes (principe d'API-Gateway);
+* Les :term:`API` externes contiennent les services exposés aux clients (ex: à un :term:`SIA`) ; tout accès externe à la solution logicielle :term:`VITAM` doit passer par eux. Ils sont responsables notamment de la validation de l'authentification des systèmes externes, de la validation du droit d'accès aux API internes et de l'appel des API internes (principe d'API-Gateway);
 * Les services métiers internes hébergent la logique métier de gestion des archives ; ils se subdivisent en :
 
     - Les services de traitement des archives : ils effectuent tous les traitements concernant les archives (unitaires ou de masse) ;

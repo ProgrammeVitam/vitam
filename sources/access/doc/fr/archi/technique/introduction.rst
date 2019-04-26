@@ -4,7 +4,7 @@ Introduction
 Présentation
 ------------
 
-|  *Parent package:		* **fr.gouv.vitam**
+|  *Parent package:* **fr.gouv.vitam**
 |  *Package proposition:* **fr.gouv.vitam.access**
 
 Itération 4
