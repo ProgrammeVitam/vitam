@@ -10,6 +10,7 @@ ldap
 ########### Tests environments specifics ###########
 
 [reverse] # EXTRA : Front reverse-proxy (test environments ONLY)
+localhost
 
 ########### Extra VITAM applications ###########
 

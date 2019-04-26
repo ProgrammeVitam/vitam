@@ -22,7 +22,7 @@ Le fichier |repertoire_inventory| ``/group_vars/all/extra_vars.yml`` contient la
 
 .. bug #113
 
-.. warning:: A modifier selon le besoin avant de lancer le playbook ! Le composant ihm-recette, s'il est déployé en "https", doit avoir un paramétrage différent dans ``environments/group_vars/all/extra_vars.yml`` sur le paramètre ``secure_cookie`` selon qu'il est attaqué en direct ou derrière un proxy https (``secure_cookie: true``) ou un proxy http (``secure_cookie: false``). Par défaut, la variable est à ``true``. Le symptôme observé, en cas de problème, est une bonne authentification, mais l'impossibilité de sélectionner un tenant.
+.. warning:: A modifier selon le besoin avant de lancer le playbook ! Les composant ihm-recette et ihm-demo ont la variable ``secure_cookie`` paramétrée à true par défaut, ce qui impose de pouvoir se connecter dessus uniquement en https (même derrière un reverse proxy). Le paramétrage de cette variable se fait dans le fichier ``environments/group_vars/all/vitam_vars.yml``
 
 .. note:: La section ``metricbeat`` permet de configurer la périodicité d'envoi des informations collectées. Selon l'espace disponible sur le `cluster` Elasticsearch de log et la taille de l'environnement :term:`VITAM` (en particulier, le nombre de machines), il peut être nécessaire d'allonger cette périodicité (en secondes).
 
@@ -66,6 +66,7 @@ Ce *playbook* permet d'installer :
   - un reverse proxy, afin de fournir une page d'accueil pour les environnements de test
   - l'outillage de tests de performance
 
+.. warning:: Pour se connecter aux :term:`IHM`, il faut désormais configurer ``reverse_proxy_port=443`` dans l'inventaire.
 
 .. code-block:: console
 

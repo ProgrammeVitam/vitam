@@ -256,12 +256,12 @@ vitam:
     ihm_demo:
         vitam_component: "ihm-demo"
         host: "ihm-demo.service.{{ consul_domain }}"
-        port_service: 8002
+        port_service: 8446
         port_admin: 28002
         baseurl: "/ihm-demo"
         static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
         baseuri: "ihm-demo"
-        https_enabled: false
+        https_enabled: true
         secret_platform: "false"
         # User session timeout in milliseconds (for shiro)
         session_timeout: 1800000

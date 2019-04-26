@@ -6,6 +6,22 @@
 
     # Enable SSL for the Reverse proxy
     SSLProxyEngine on
+    
+    {% if vitam_reverse_external_protocol == "https" %}
+    # SSL
+    SSLEngine on
+    # according to http://blog.noizeramp.com/2010/10/03/apache-2-and-ssl-configuration/
+    {% if ansible_os_family == "RedHat" %}
+    SSLCertificateFile /etc/pki/tls/certs/localhost.crt
+    SSLCertificateKeyFile /etc/pki/tls/private/localhost.key
+    {% endif %}
+    # according to https://wiki.debian.org/Self-Signed_Certificate
+    {% if ansible_os_family == "Debian" %}
+    SSLCertificateFile /etc/ssl/certs/ssl-cert-snakeoil.pem
+    SSLCertificateKeyFile /etc/ssl/private/ssl-cert-snakeoil.key
+    {% endif %}
+    {% endif %}
+
     # Client certificate path
     # SSLProxyMachineCertificateFile /etc/{{apache_service}}/certs/keystore_client_{{ vitam_site_name }}.pem
     # Client CA path
@@ -104,13 +120,13 @@
 
     # IHM Demo
     {% for host in groups['hosts-ihm-demo'] %}
-    ProxyPass /{{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }} {{reverse_connection_params}}
-    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}
+    ProxyPass /{{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }} {{reverse_connection_params}}
+    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}
     {% endfor %}
     # IHM Recette
     {% for host in groups['hosts-ihm-recette'] %}
-    ProxyPass /{{ vitam.ihm_recette.baseuri }}  https://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }} {{reverse_connection_params}}
-    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}  https://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}
+    ProxyPass /{{ vitam.ihm_recette.baseuri }}  http{% if vitam.ihm_recette.https_enabled|lower == 'true' %}s{% endif %}://{{hostvars[host]['ip_service']}}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }} {{reverse_connection_params}}
+    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}  http{% if vitam.ihm_recette.https_enabled|lower == 'true' %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}
     {% endfor %}
 
     # Enable chunked mode for all requests to access-external & ingest-external

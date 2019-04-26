@@ -72,7 +72,7 @@ Paramétrage des certificats externes (\*-externe)
 
 Se reporter au chapitre dédié à la gestion des certificats: :doc:`20-certificats`
 
-Placer "hors Vitam" le composant ihm-demo 
+Placer "hors Vitam" le composant ihm-demo
 =========================================
 
 Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé par le nom de machine qui héberge le composant ihm-demo et ajouter le contenu ci-dessous ::
@@ -82,6 +82,15 @@ Sous ``deployment/environments/host_vars``, créer ou éditer un fichier nommé 
 A l'issue, le déploiement n'installera pas l'agent Consul. Le composant ihm-demo appellera, alors, par l'adresse IP de services les composants "access-external" et "ingest-external".
 
 Il est également fortement recommandé de positionner la valeur de la directive ``vitam.ihm_demo.metrics_enabled`` à  ``false`` dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, afin que ce composant ne tente pas d'envoyer des données sur "elasticsearch-log".
+
+Paramétrer le ``secure_cookie`` pour ihm-demo
+=============================================
+
+Le composant ihm-demo (ainsi qu'ihm-recette) dispose d'une option suplémentaire par rapport aux autres composants vitam dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``: le ``secure_cookie`` qui permet de renforcer ces deux ihm contre certaines attaques assez répandues comme les CSRF.
+
+Il faut savoir que si cette variable est à true (valeur par défaut), le client doit obligatoirement sec connecter en https sur l'ihm, et ce même si un reverse proxy se trouve entre le serveur web et le client.
+
+Cela peut donc obliger le reverse proxy frontal de la chaine d'accès à écouter en https.
 
 
 Paramétrage de la centralisation des logs Vitam
