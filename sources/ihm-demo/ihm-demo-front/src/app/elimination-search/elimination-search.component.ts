@@ -34,7 +34,7 @@ export class EliminationSearchComponent extends PageComponent {
     new FieldDefinition('EliminationOperationId', 'Opération d\'élimination', 4, 12),
     new FieldDefinition('title', 'Intitulé', 4, 12),
     new FieldDefinition('description', 'Description', 4, 12),
-    new FieldDefinition('documentType', 'Document type', 4, 12)
+    new FieldDefinition('documentType', 'Profil d\'unités archivistiques', 4, 12)
   ];
 
   facetDefinition: FacetDefinition[] = [

@@ -20,12 +20,12 @@ export class ImportComponent  extends PageComponent {
     {label:"Contrats d'accès", value:'accessContract'},
     {label:"Contrats d'entrée", value:'ingestContract'},
     {label:"Formats", value:'format'},
-    {label:"Profils d'archivage", value:'profil'},
-    {label:"Règles de gestion", value:'rule'},
-    {label:"Documents type", value:'archiveUnitProfile'},
-    {label:"Ontologies", value:'ontology'},
-    {label:"Scénarios de préservation", value:'scenarios'},
     {label:"Griffons", value:'griffins'},
+    {label:"Ontologies", value:'ontology'},
+    {label:"Profils d'archivage", value:'profil'},
+    {label:"Profils d'unités archivistiques", value:'archiveUnitProfile'},
+    {label:"Règles de gestion", value:'rule'},
+    {label:"Scénarios de préservation", value:'scenarios'},
     {label:"Services agents", value:'agencies'}
   ];
   extensions : string[];
@@ -63,9 +63,9 @@ export class ImportComponent  extends PageComponent {
         case "archiveUnitProfile":
           this.extensions = ["json"];
           this.uploadAPI = 'archiveunitprofiles';
-          this.importSucessMsg = 'Les documents type ont bien été importés';
+          this.importSucessMsg = 'Les profils d\'unités archivistiques ont bien été importés';
           this.importErrorMsg = "Echec de l'import du fichier.";
-          this.breadcrumbName = "Import des documents type";
+          this.breadcrumbName = "Import des profils d\'unités archivistiques";
           break;
         case "format":
           this.extensions = ["xml"];
