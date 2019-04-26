@@ -282,4 +282,4 @@ vitam_tests_gitrepo_url={{vitam_tests_gitrepo_protocol}}://{{vitam_tests_gitrepo
 reverse_proxy_port=443
 http_proxy_environnement=
 vitam_reverse_external_dns=
-vitam_reverse_external_protocol=http
+vitam_reverse_external_protocol=https
