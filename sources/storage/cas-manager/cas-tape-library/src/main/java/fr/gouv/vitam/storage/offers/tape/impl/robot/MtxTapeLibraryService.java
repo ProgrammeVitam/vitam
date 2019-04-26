@@ -65,7 +65,7 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
             tapeRobotConf.getTimeoutInMilliseconds(),
             args);
         Output output =
-            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(),
+            getExecutor().execute(tapeRobotConf.getMtxPath(), tapeRobotConf.isUseSudo(), true,
                 tapeRobotConf.getTimeoutInMilliseconds(), args);
         return parseTapeLibraryState(output);
     }
