@@ -160,14 +160,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public void saveEvent(TraceabilityEvent event) {
-        String evDetailData = JsonHandler.unprettyPrint(event);
-        itemStatus.setEvDetailData(evDetailData);
-        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
-            evDetailData);
-    }
-
-    @Override
     public void saveEmpty(Integer tenantId) {
         // Nothing to do. Empty master event will be close by workflow
     }
@@ -178,9 +170,19 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
+    public List<String> getWarnings() {
+        return null;
+    }
+
+    @Override
     public void storeAndDeleteZip(Integer tenant, File zipFile,
         String fileName, String uri, TraceabilityEvent event)
         throws TraceabilityException {
+
+        String evDetailData = JsonHandler.unprettyPrint(event);
+        itemStatus.setEvDetailData(evDetailData);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(),
+            evDetailData);
 
         final ItemStatus subItemStatusSecurisationStorage = new ItemStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE);
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));

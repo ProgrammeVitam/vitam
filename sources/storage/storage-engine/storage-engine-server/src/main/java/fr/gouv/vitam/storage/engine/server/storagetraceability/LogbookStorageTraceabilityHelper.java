@@ -85,7 +85,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -122,6 +124,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private Boolean isLastEventInit = false;
     private String previousStartDate = null;
     private byte[] previousTimestampToken = null;
+
+    private List<String> warnings = new ArrayList<>();
 
     /**
      * @param logbookOperations used to search the operation to secure
@@ -177,6 +181,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 LOGGER.warn("Traceability ZIP file not found '" + fileName + "'. Skipping", e);
                 alertService.createAlert(VitamLogLevel.WARN, "Traceability ZIP file not found '" + fileName +
                     "'. File may never have been written to offer OR have been DELETED?");
+                warnings.add("Traceability ZIP file not found '" + fileName + "'");
                 // Try next file...
             } catch (IOException e) {
                 throw new TraceabilityException("Unable to read ZIP", e);
@@ -231,6 +236,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 LOGGER.warn("Traceability LOG file not found '" + fileName + "'. Skipping", e);
                 alertService.createAlert(VitamLogLevel.WARN, "Traceability LOG file not found '" + fileName +
                     "'. File may never have been written to offer OR have been DELETED?");
+                warnings.add("Traceability LOG file not found '" + fileName + "'");
                 // Skip file...
             } catch (StorageException e) {
                 throw new TraceabilityException("Unable to get the given object " + fileName, e);
@@ -322,11 +328,6 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public void saveEvent(TraceabilityEvent event) {
-        // Nothing to do, event is saved in logbook after with 'createLogbookOperationEvent'
-    }
-
-    @Override
     public void saveEmpty(Integer tenantId) throws TraceabilityException {
         createLogbookOperationEvent(tenantId, STP_STORAGE_SECURISATION, StatusCode.WARNING, null);
     }
@@ -407,7 +408,12 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public long getDataSize() throws TraceabilityException {
+    public List<String> getWarnings() {
+        return warnings.isEmpty() ? null : warnings;
+    }
+
+    @Override
+    public long getDataSize() {
         return fileCount;
     }
 

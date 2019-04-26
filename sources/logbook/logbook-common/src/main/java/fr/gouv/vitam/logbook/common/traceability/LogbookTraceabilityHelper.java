@@ -3,9 +3,9 @@ package fr.gouv.vitam.logbook.common.traceability;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.merkletree.MerkleTreeAlgo;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
@@ -171,13 +171,6 @@ public interface LogbookTraceabilityHelper {
     String getPreviousYearStartDate() throws InvalidParseOperationException, TraceabilityException;
 
     /**
-     * Save the finalized event if needed
-     * 
-     * @param event The TraceabilityEvent of the operation
-     */
-    void saveEvent(TraceabilityEvent event);
-
-    /**
      * Save the close master event if needed
      * 
      * @param tenantId the tenant used for log
@@ -189,4 +182,6 @@ public interface LogbookTraceabilityHelper {
      * @return true if max entries reached (unit & object group lifecycle traceability operation are limited in size)
      */
     boolean getMaxEntriesReached();
+
+    List<String> getWarnings();
 }

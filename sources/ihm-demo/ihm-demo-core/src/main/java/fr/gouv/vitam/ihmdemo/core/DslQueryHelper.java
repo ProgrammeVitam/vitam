@@ -53,6 +53,8 @@ import fr.gouv.vitam.common.database.builder.facet.FiltersFacet;
 import fr.gouv.vitam.common.database.builder.facet.RangeFacetValue;
 import fr.gouv.vitam.common.database.builder.facet.TermsFacet;
 import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.ExistsQuery;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -291,12 +293,18 @@ public final class DslQueryHelper {
                     case TRACEABILITY_OK:
                         // FIXME : check if it is normal that the end event is a step event for a traceability
                         if ("true".equals(searchValue)) {
-                            BooleanQuery queryOrTraceability = or();
-                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "STP_OP_SECURISATION.OK"));
-                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "STP_STORAGE_SECURISATION.OK"));
-                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "LOGBOOK_UNIT_LFC_TRACEABILITY.OK"));
-                            queryOrTraceability.add(eq(EVENT_OUT_DETAIL, "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK"));
-                            query.add(queryOrTraceability);
+                            InQuery checkStatus = in(EVENT_OUT_DETAIL,
+                                "STP_OP_SECURISATION.OK",
+                                "STP_STORAGE_SECURISATION.OK",
+                                "STP_STORAGE_SECURISATION.WARNING",
+                                "LOGBOOK_UNIT_LFC_TRACEABILITY.OK",
+                                "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING",
+                                "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK",
+                                "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.WARNING");
+                            ExistsQuery hasFilename = exists("events.evDetData.FileName");
+                            query
+                                .add(checkStatus)
+                                .add(hasFilename);
                         }
                         break;
                     case TRACEABILITY_ID:

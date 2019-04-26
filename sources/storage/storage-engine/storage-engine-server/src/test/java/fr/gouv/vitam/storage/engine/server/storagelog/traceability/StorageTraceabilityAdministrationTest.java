@@ -70,6 +70,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -82,12 +83,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
@@ -171,10 +173,9 @@ public class StorageTraceabilityAdministrationTest {
         storageAdministration.generateTraceabilityStorageLogbook(guid);
 
         // Then
-        verify(logbookOperationsClient).update(captor.capture());
-        LogbookOperationParameters log = captor.getValue();
-        String outcome = log.getMapParameters().get(LogbookParameterName.outcome);
-        assertEquals(StatusCode.WARNING.name(), outcome);
+        LogbookOperationParameters log = getMasterLogbookOperations().get(0);
+        checkOutcome(log, StatusCode.WARNING);
+        assertThat(getTraceabilityEvent(log)).isNull();
     }
 
     @Test
@@ -222,7 +223,7 @@ public class StorageTraceabilityAdministrationTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
         storageAdministration.generateTraceabilityStorageLogbook(guid);
 
-        TraceabilityEvent lastEvent = extractLastTimestampToken(true);
+        TraceabilityEvent lastEvent = extractLastTimestampToken();
 
         // Existing traceability file
         given(traceabilityLogbookService.getLastTraceabilityZipIterator(STRATEGY_ID)).
@@ -245,8 +246,39 @@ public class StorageTraceabilityAdministrationTest {
         assertThat(archive2).
             exists();
 
-        validateFile(archive2, 1, BaseXx.getBase64(new String(lastEvent.getTimeStampToken()).
-            getBytes()));
+        String previousHash = BaseXx.getBase64(new String(lastEvent.getTimeStampToken()).getBytes());
+        validateFile(archive2, 1, previousHash);
+
+        List<LogbookOperationParameters> logs = getMasterLogbookOperations();
+
+        assertThat(logs).hasSize(2);
+        LogbookOperationParameters lastTraceability = logs.get(1);
+        checkOutcome(lastTraceability, StatusCode.OK);
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(lastTraceability);
+        assertThat(traceabilityEvent).isNotNull();
+        assertThat(traceabilityEvent.getWarnings()).isNull();
+    }
+
+    private TraceabilityEvent getTraceabilityEvent(LogbookOperationParameters logbookOperationParameters)
+        throws InvalidParseOperationException {
+        String evDetData = logbookOperationParameters.getMapParameters().get(LogbookParameterName.masterData);
+        if (evDetData == null) {
+            return null;
+        }
+        return JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
+    }
+
+    private void checkOutcome(LogbookOperationParameters lastTraceability, StatusCode ok) {
+        String outcome = lastTraceability.getMapParameters().get(LogbookParameterName.outcome);
+        assertEquals(ok.name(), outcome);
+    }
+
+    private List<LogbookOperationParameters> getMasterLogbookOperations()
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
+        verify(logbookOperationsClient, Mockito.atLeastOnce()).update(captor.capture());
+        return captor.getAllValues().stream()
+            .filter(l -> l.getMapParameters().get(LogbookParameterName.eventType).equals("STP_STORAGE_SECURISATION"))
+            .collect(Collectors.toList());
     }
 
     @Test
@@ -289,11 +321,21 @@ public class StorageTraceabilityAdministrationTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
         storageAdministration.generateTraceabilityStorageLogbook(guid);
 
-        TraceabilityEvent lastEvent = extractLastTimestampToken(true);
+        TraceabilityEvent lastEvent = extractLastTimestampToken();
         assertThat(lastEvent).isNotNull();
 
         assertThat(archive).exists();
         validateFile(archive, 1, "null");
+
+        List<LogbookOperationParameters> logs = getMasterLogbookOperations();
+
+        assertThat(logs).hasSize(1);
+        LogbookOperationParameters lastTraceability = logs.get(0);
+        checkOutcome(lastTraceability, StatusCode.WARNING);
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(lastTraceability);
+        assertThat(traceabilityEvent).isNotNull();
+        assertThat(traceabilityEvent.getWarnings()).hasSize(1);
+        assertThat(traceabilityEvent.getWarnings().get(0)).contains(TRACEABILITY_FILE_MISSING);
     }
 
     @Test
@@ -340,11 +382,21 @@ public class StorageTraceabilityAdministrationTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
         storageAdministration.generateTraceabilityStorageLogbook(guid);
 
-        TraceabilityEvent lastEvent = extractLastTimestampToken(true);
+        // Then
+        TraceabilityEvent lastEvent = extractLastTimestampToken();
         assertThat(lastEvent).isNotNull();
-
         assertThat(archive).exists();
         validateFile(archive, 1, "MTIzNA==");
+
+        List<LogbookOperationParameters> logs = getMasterLogbookOperations();
+
+        assertThat(logs).hasSize(1);
+        LogbookOperationParameters lastTraceability = logs.get(0);
+        checkOutcome(lastTraceability, StatusCode.WARNING);
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(lastTraceability);
+        assertThat(traceabilityEvent).isNotNull();
+        assertThat(traceabilityEvent.getWarnings()).hasSize(1);
+        assertThat(traceabilityEvent.getWarnings().get(0)).contains(TRACEABILITY_FILE_MISSING);
     }
 
     @Test
@@ -387,11 +439,20 @@ public class StorageTraceabilityAdministrationTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
         storageAdministration.generateTraceabilityStorageLogbook(guid);
 
-        TraceabilityEvent lastEvent = extractLastTimestampToken(true);
+        TraceabilityEvent lastEvent = extractLastTimestampToken();
         assertThat(lastEvent).isNotNull();
 
         assertThat(archive).exists();
         validateFile(archive, 2, "null");
+
+        List<LogbookOperationParameters> logs = getMasterLogbookOperations();
+
+        assertThat(logs).hasSize(1);
+        LogbookOperationParameters lastTraceability = logs.get(0);
+        checkOutcome(lastTraceability, StatusCode.OK);
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(lastTraceability);
+        assertThat(traceabilityEvent).isNotNull();
+        assertThat(traceabilityEvent.getWarnings()).isNull();
     }
 
     @Test
@@ -434,11 +495,21 @@ public class StorageTraceabilityAdministrationTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
         storageAdministration.generateTraceabilityStorageLogbook(guid);
 
-        TraceabilityEvent lastEvent = extractLastTimestampToken(true);
+        TraceabilityEvent lastEvent = extractLastTimestampToken();
         assertThat(lastEvent).isNotNull();
 
         assertThat(archive).exists();
         validateFile(archive, 1, "null");
+
+        List<LogbookOperationParameters> logs = getMasterLogbookOperations();
+
+        assertThat(logs).hasSize(1);
+        LogbookOperationParameters lastTraceability = logs.get(0);
+        checkOutcome(lastTraceability, StatusCode.WARNING);
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(lastTraceability);
+        assertThat(traceabilityEvent).isNotNull();
+        assertThat(traceabilityEvent.getWarnings()).hasSize(1);
+        assertThat(traceabilityEvent.getWarnings().get(0)).contains(BACKUP_FILE_2);
     }
 
     @Test
@@ -466,26 +537,24 @@ public class StorageTraceabilityAdministrationTest {
         storageAdministration.generateTraceabilityStorageLogbook(guid);
 
         // Then
-        verify(logbookOperationsClient).update(captor.capture());
-        LogbookOperationParameters log = captor.getValue();
-        String outcome = log.getMapParameters().get(LogbookParameterName.outcome);
-        assertEquals(StatusCode.WARNING.name(), outcome);
+        List<LogbookOperationParameters> logs = getMasterLogbookOperations();
+
+        assertThat(logs).hasSize(1);
+        LogbookOperationParameters lastTraceability = logs.get(0);
+        checkOutcome(lastTraceability, StatusCode.WARNING);
+        TraceabilityEvent traceabilityEvent = getTraceabilityEvent(lastTraceability);
+        assertThat(traceabilityEvent).isNull();
     }
 
-    private TraceabilityEvent extractLastTimestampToken(Boolean check)
+    private TraceabilityEvent extractLastTimestampToken()
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException,
         InvalidParseOperationException {
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
         verify(logbookOperationsClient, atLeastOnce()).update(captor.capture());
         LogbookOperationParameters log = captor.getValue();
-        String evDetData = log.getParameterValue(LogbookParameterName.eventDetailData);
-        TraceabilityEvent event = JsonHandler.getFromString(evDetData, TraceabilityEvent.class);
-
-        if (check) {
-            assertNotNull(event.getSize());
-            assertEquals(TraceabilityType.STORAGE, event.getLogType());
-        }
+        TraceabilityEvent event = getTraceabilityEvent(log);
+        assertEquals(TraceabilityType.STORAGE, event.getLogType());
 
         return event;
     }
