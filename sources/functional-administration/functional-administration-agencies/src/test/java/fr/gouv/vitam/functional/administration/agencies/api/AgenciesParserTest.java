@@ -46,7 +46,7 @@ public class AgenciesParserTest {
     public void readFromCsv() throws Exception {
         List<AgenciesModel> test =
             AgenciesParser.readFromCsv(new FileInputStream(PropertiesUtils.findFile(FILE_TO_TEST_OK)));
-        assertThat(test).hasSize(2);
+        assertThat(test).hasSize(3);
         assertThat(test.get(0).getIdentifier()).isEqualTo("AG-000001");
         assertThat(test.get(1).getIdentifier()).isEqualTo("AG-000002");
     }
