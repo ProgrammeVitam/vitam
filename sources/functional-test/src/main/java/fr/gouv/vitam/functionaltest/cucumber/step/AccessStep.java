@@ -1201,6 +1201,25 @@ public class AccessStep {
         assertThat(response.isOk()).isTrue();
         auditStatus = Status.ACCEPTED;
     }
+    @When("^je veux faire un audit sur (.*) des objets liés aux unités archivistiques de la requête$")
+    public void je_veux_faire_l_audit_des_objets_par_requete(String action) throws Throwable {
+        auditStatus = null;
+        JsonNode query = JsonHandler.getFromString(world.getQuery());
+        ObjectNode auditOption = JsonHandler.createObjectNode();
+        if (action.equals("l'existence")) {
+            auditOption.put("auditActions", "AUDIT_FILE_EXISTING");
+        } else if (action.equals("l'intégrité")) {
+            auditOption.put("auditActions", "AUDIT_FILE_INTEGRITY");
+        }
+        auditOption.put("auditType", "dsl");
+        auditOption.set("query", query);
+        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+            .setApplicationSessionId(world.getApplicationSessionId());
+
+        RequestResponse response = world.getAdminClient().launchAudit(vitamContext, auditOption);
+        assertThat(response.isOk()).isTrue();
+        auditStatus = Status.ACCEPTED;
+    }
 
     @Then("^le réultat de l'audit est succès$")
     public void le_réultat_de_l_audit_est_succès() throws Throwable {
