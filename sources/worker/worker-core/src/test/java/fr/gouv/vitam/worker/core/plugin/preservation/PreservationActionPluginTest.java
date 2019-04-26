@@ -26,7 +26,10 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.batch.report.model.entry.ReportEntry;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -42,17 +45,23 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.Assertions;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.BDDMockito;
 import org.mockito.Captor;
 import org.mockito.Mock;
+import org.mockito.internal.matchers.Any;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -62,6 +71,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -70,11 +80,13 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPlugin.DEFAULT_STORAGE_STRATEGY;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
+import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
@@ -118,19 +130,24 @@ public class PreservationActionPluginTest {
 
     private HandlerIO handler = new TestHandlerIO();
 
+    private static final int WORKFLOWBATCHRESULTS_IN_MEMORY = 0;
+
     @Before
     public void setup() throws Exception {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
-        PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine("fmt/43", "photo.jpg", Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinId, objectId, true, 45, "gotId", "BinaryMaster",
+        PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine("fmt/43", "photo.jpg",
+            Collections.singletonList(new ActionPreservation(ActionTypePreservation.ANALYSE)), "unitId", griffinId, objectId, true, 45, "gotId",
+            "BinaryMaster",
             "BinaryMaster", "ScenarioId", "griffinIdentifier");
         parameter.setObjectNameList(Collections.singletonList("gotId"));
         parameter.setObjectMetadataList(Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
 
         File inputFolder = tmpGriffinFolder.newFolder("input-folder");
         File execFolder = tmpGriffinFolder.newFolder("exec-folder");
-        plugin = new PreservationActionPlugin(storageClientFactory, reportService, inputFolder.toPath().toString(), execFolder.toPath().toString());
+        plugin =
+            new PreservationActionPlugin(storageClientFactory, reportService, inputFolder.toPath().toString(), execFolder.toPath().toString());
 
         Path target = Files.createDirectory(execFolder.toPath().resolve(griffinId));
         String src = Object.class.getResource("/preservation/griffin").toURI().getPath();
@@ -163,7 +180,7 @@ public class PreservationActionPluginTest {
         plugin.executeList(parameter, handler);
 
         // When
-        verify(reportService).appendPreservationEntries(eq("REQUEST_ID"), captor.capture());
+        verify(reportService).appendPreservationEntries(eq("REQUEST_ID_TEST"), captor.capture());
 
         // Then
         assertThat(captor.getValue()).extracting(PreservationReportEntry::getAnalyseResult).contains("NOT_VALID");
@@ -217,6 +234,23 @@ public class PreservationActionPluginTest {
 
         // Then
         assertThatThrownBy(throwingCallable).isInstanceOf(ProcessingException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_create_preservation_report_with_binary_guid() throws Exception {
+        // Given
+        given(storageClient.getContainerAsync(DEFAULT_STORAGE_STRATEGY, objectId, OBJECT, getNoLogAccessLog()))
+            .willReturn(createOkResponse("image-files-with-data"));
+        doNothing().when(reportService).appendPreservationEntries(ArgumentMatchers.anyString(), captor.capture());
+        // When
+        List<ItemStatus> status = plugin.executeList(parameter, handler);
+        // Then
+        assertThat(status).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
+        String binaryId = captor.getValue().get(0).getOutputObjectId();
+        assertThat(binaryId).isNotNull();
+        WorkflowBatchResults results = (WorkflowBatchResults) handler.getInput(WORKFLOWBATCHRESULTS_IN_MEMORY);
+        assertThat(binaryId).isEqualTo(results.getWorkflowBatchResults().get(0).getOutputExtras().get(0).getBinaryGUID());
     }
 
     private Response createOkResponse(String entity) {
