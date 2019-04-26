@@ -6,25 +6,31 @@
     <version>1.4.16-SNAPSHOT</version>
   </parent>
   <artifactId>ihm-demo-common</artifactId>
-  
-  <dependencies>
-		<dependency>
-			<groupId>fr.gouv.vitam</groupId>
-			<artifactId>common-private</artifactId>
-			<version>${project.version}</version>
-		</dependency>
 
+  <dependencies>
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
+	  <dependency>
+		  <groupId>fr.gouv.vitam</groupId>
+		  <artifactId>common-public</artifactId>
+		  <version>${project.version}</version>
+	  </dependency>
+	  <dependency>
+		  <groupId>javax.servlet</groupId>
+		  <artifactId>javax.servlet-api</artifactId>
+	  </dependency>
+	  <dependency>
+		  <groupId>org.apache.shiro</groupId>
+		  <artifactId>shiro-core</artifactId>
+	  </dependency>
 		<dependency>
 			<groupId>org.powermock</groupId>
 			<artifactId>powermock-module-junit4</artifactId>
@@ -36,5 +42,5 @@
 			<scope>test</scope>
 		</dependency>
 
-	</dependencies>
+  </dependencies>
 </project>
