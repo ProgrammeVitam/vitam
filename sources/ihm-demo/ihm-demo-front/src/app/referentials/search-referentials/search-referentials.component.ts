@@ -161,11 +161,11 @@ export class SearchReferentialsComponent extends PageComponent {
           let options = [
             {label: 'Tous', value: 'All'},
             {label: 'Durée d\'utilité administrative', value: 'AppraisalRule'},
-            {label: 'Délai de communicabilité', value: 'AccessRule'},
             {label: 'Durée d\'utilité courante', value: 'StorageRule'},
+            {label: 'Durée de classification', value: 'ClassificationRule'},
+            {label: 'Délai de communicabilité', value: 'AccessRule'},
             {label: 'Délai de diffusion', value: 'DisseminationRule'},
-            {label: 'Durée de réutilisation', value: 'ReuseRule'},
-            {label: 'Durée de classification', value: 'ClassificationRule'}
+            {label: 'Durée de réutilisation', value: 'ReuseRule'}
           ];
           this.referentialData = [
             new FieldDefinition('RuleValue', 'Intitulé', 6, 8),
@@ -222,8 +222,8 @@ export class SearchReferentialsComponent extends PageComponent {
           break;
         case 'archiveUnitProfile':
           this.searchReferentialsService.setSearchAPI('archiveunitprofiles');
-          this.breadcrumbName = 'Documents type';
-          this.specificTitle = 'Documents type';
+          this.breadcrumbName = 'Profils d\'unités archivistiques';
+          this.specificTitle = 'Profils d\'unités archivistiques';
           this.referentialData = [
             new FieldDefinition('ArchiveUnitProfileName', 'Intitulé', 6, 8),
             FieldDefinition.createIdField('ArchiveUnitProfileID', 'Identifiant', 6, 8)

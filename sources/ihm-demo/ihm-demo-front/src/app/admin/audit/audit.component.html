@@ -19,12 +19,12 @@
     </div>
     <div class="ui-g-12 textAlignLeft">
       <div class="ui-g-3">
-        <p-dropdown [styleClass]="'dropdown100'" placeholder="Sélectionner la collection"
+        <p-dropdown [styleClass]="'dropdown100'" placeholder="Sélectionner dans la liste"
                     [options]="auditTypes" [(ngModel)]="auditType">
         </p-dropdown>
       </div>
       <div class="ui-g-3 ui-g-offset-1"  *ngIf="auditType != 'tenant'">
-        <p-dropdown [styleClass]="'dropdown100'" placeholder="Sélectionner la collection"
+        <p-dropdown [styleClass]="'dropdown100'" placeholder="Sélectionner dans la liste  "
                     [options]="registers" [(ngModel)]="objectId">
         </p-dropdown>
       </div>
