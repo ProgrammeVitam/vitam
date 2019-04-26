@@ -10,6 +10,11 @@ pour le service ingest-external.
 	le timeout pour le scan. Le script utilisé actuellement est scan-clamav.sh 
 	utilisant l’antivirus ClamAV.
 
+        Le paramètre 'timeoutScanDelay' est utilisé comme timeout du traitement de l'antivirus. Il faut 
+        choisir une valeur (en millisecondes) en fonction de la performance de l'antivirus et de la somme 
+        des tailles de binaires que l'on doit pouvoir traiter simultanément sur le composant ingest-external.
+        La valeur par défaut est de 60000 millisecondes. 
+
 .. code-block:: yaml
 
 	antiVirusScriptName : scan-clamav.sh
