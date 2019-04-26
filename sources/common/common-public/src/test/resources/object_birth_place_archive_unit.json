@@ -17,7 +17,7 @@
           "City": "Paris",
           "Country": "FR"
         },
-        "Identifier": "ID03"
+        "Identifier": ["ID03"]
       }
     ],
     "_unitType": "INGEST",
