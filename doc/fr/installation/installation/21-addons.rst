@@ -86,7 +86,7 @@ Il est également fortement recommandé de positionner la valeur de la directive
 Paramétrer le ``secure_cookie`` pour ihm-demo
 =============================================
 
-Le composant ihm-demo (ainsi qu'ihm-recette) dispose d'une option suplémentaire par rapport aux autres composants vitam: le ``secure_cookie`` qui permet de renforcer ces deux ihm contre certaines attaques assez répandues comme les CSRF.
+Le composant ihm-demo (ainsi qu'ihm-recette) dispose d'une option suplémentaire par rapport aux autres composants vitam dans le fichier ``deployment/environments/group_vars/all/vitam_vars.yml``: le ``secure_cookie`` qui permet de renforcer ces deux ihm contre certaines attaques assez répandues comme les CSRF.
 
 Il faut savoir que si cette variable est à true (valeur par défaut), le client doit obligatoirement sec connecter en https sur l'ihm, et ce même si un reverse proxy se trouve entre le serveur web et le client.
 
