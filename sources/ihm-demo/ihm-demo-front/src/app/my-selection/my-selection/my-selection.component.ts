@@ -40,13 +40,13 @@ export class MySelectionComponent extends PageComponent {
   selectedOption: string;
   form: any = {};
   basketOptions: SelectItem[] = [
-    {label: 'Export DIP', value: 'EXPORT'},
     {label: 'Audit de cohérence', value: 'AUDIT'},
     {label: 'Élimination', value: 'ELIMINATION'},
+    {label: 'Export DIP', value: 'EXPORT'},
     {label: 'Mise à jour de masse', value: 'MASS_UPDATE'},
-    {label: 'Vider le panier', value: 'DELETE'},
+    {label: 'Préservation ', value: 'PRESERVATION'},
     {label: 'Relevé de valeur probante ', value: 'PROBATIVE_VALUE'},
-    {label: 'Préservation ', value: 'PRESERVATION'}
+    {label: 'Vider le panier', value: 'DELETE'}
   ];
 
   frLocale = DateService.vitamFrLocale;
