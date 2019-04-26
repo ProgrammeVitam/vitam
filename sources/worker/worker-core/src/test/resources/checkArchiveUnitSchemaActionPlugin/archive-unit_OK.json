@@ -42,39 +42,29 @@
 				"Rules": [
 					{
 						"Rule": "CLR001",
-						"StartDate": "2012-11-15T14:30:23",
-						"ClassificationLevel": "Level",
-						"ClassificationOwner": "Owner",
-						"ClassificationReassessingDate": "2016-05-02",
-						"NeedReassessingAuthorization": false
+						"StartDate": "2012-11-15T14:30:23"
 					},
 					{
 						"Rule": "CLR001",
-						"StartDate": "2012-11-15T14:30:23",
-						"ClassificationLevel": "Level",
-						"ClassificationOwner": "Owner",
-						"ClassificationReassessingDate": "2016-05-02",
-						"NeedReassessingAuthorization": true
+						"StartDate": "2012-11-15T14:30:23"
 					},
 					{
 						"Rule": "CLR002",
-						"StartDate": "2012-11-15T14:30:23",
-						"ClassificationLevel": "Level",
-						"ClassificationOwner": "Owner",
-						"ClassificationReassessingDate": "2016-05-02",
-						"NeedReassessingAuthorization": false
+						"StartDate": "2012-11-15T14:30:23"
 					}
-				],"ClassificationLevel":"Secret Défense"
-				,"ClassificationOwner":"ClassificationOwner",
+				],
 				"Inheritance": {
 					"PreventRulesId": [
 						"ID1",
 						"ID2"
 					],
 					"PreventInheritance": "ID"
-				}
+				},
+				"ClassificationLevel": "Secret Défense",
+				"ClassificationOwner": "ClassificationOwner",
+				"ClassificationReassessingDate": "2016-05-02",
+				"NeedReassessingAuthorization": true
 			},
-			"NeedAuthorization": true,
 			"AnyOtherField": "AnyOtherValue",
 			"UpdateOperation": {
 				"SystemId": "",
@@ -88,7 +78,8 @@
 			},
 			"ArchiveUnit": {
 				"ArchiveUnitRefId": "ID_CHILD"
-			}
+			},
+			"NeedAuthorization": true
 		},
 		"AnyOtherField": "AnyOtherValue",
 		"DescriptionLevel": "Item",
