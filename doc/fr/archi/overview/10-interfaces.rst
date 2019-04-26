@@ -18,13 +18,13 @@ Dans cette version du système, aucune interface externe autre que les services 
 Interfaces métier exposées
 ==========================
 
-VITAM expose trois grands groupes d'API métier :
+La solution logicielle :term:`VITAM` expose trois grands groupes d':term:`API` métier :
 
-* Les API d'ingest : elles permettent l'entrée d'une nouvelle archive dans le système ;
+* Les API d'*ingest* : elles permettent l'entrée d'une nouvelle archive dans le système ;
 * Les API d'accès : elles permettent d'accéder aux données d'archives présentes dans le système (métadonnées et données d'archives, journaux, référentiels) ;
 * Les API d'administration fonctionnelles : elles permettent notamment la modification des référentiels métier.
 
-Ces API sont exposées en tant qu'API REST (HTTPS) au niveau des composants externes (composants ``*-external``), avec un accès protégé par une authentification par certificat.
+Ces API sont exposées en tant qu'API :term:`REST` (HTTPS) au niveau des composants externes (composants ``*-external``), avec un accès protégé par une authentification par certificat.
 
 .. seealso:: Les points relatifs à la sécurité des interfaces externes exposées sont abordés dans la section :doc:`sécurité </securite/_toc>`.
 

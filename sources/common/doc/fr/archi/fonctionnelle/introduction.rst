@@ -19,7 +19,7 @@ Ces 2 packages sont liés car ServerIdentity fournit des informations utiles au 
 
 Le Logger enverra un certain nombre d'information vers le log centralisé, via un filtre issu de VitamLoggerHelper.
 
-Cette centralisation permettra notamment d'avoir des informations analysées par l'outil d'administration (a priori ELK).
+Cette centralisation permettra notamment d'avoir des informations analysées par l'outil d'administration (par défaut, :term:`ELK`).
 
 L'ensemble des logs seront centralisés mais tous n'iront pas dans la partie "analytique" des logs.
 

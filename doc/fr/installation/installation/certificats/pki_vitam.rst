@@ -7,7 +7,7 @@ Pour des usages de développement ou de tests hors production, il est possible d
 Procédure générale
 ------------------
 
-.. danger:: La :term:`PKI` fournie avec la solution logicielle :term:`VITAM` ne doit être utilisée que pour faire des tests, et ne doit par conséquent surtout pas être utilisée en environnement de production ! De plus il n'est pas prévu de l'utiliser pour générer les certificats d'une autre application qui serait cliente de VITAM.
+.. danger:: La :term:`PKI` fournie avec la solution logicielle :term:`VITAM` ne doit être utilisée UNIQUEMENT pour faire des tests, et ne doit par conséquent surtout pas être utilisée en environnement de production ! De plus il n'est pas prévu de l'utiliser pour générer les certificats d'une autre application qui serait cliente de VITAM.
 
 La :term:`PKI` de la solution logicielle :term:`VITAM` est une suite de scripts qui vont générer dans l'ordre ci-dessous:
 
@@ -19,7 +19,7 @@ La :term:`PKI` de la solution logicielle :term:`VITAM` est une suite de scripts 
 Génération des CA par les scripts Vitam
 ---------------------------------------
 
-Il faut faire générer les autorités de certification (:term:`CA`) par le script décrit ci-dessous.
+Il faut faire la génération des autorités de certification (:term:`CA`) par le script décrit ci-dessous.
 
 
 Dans le répertoire de déploiement, lancer le script :
@@ -29,7 +29,7 @@ Dans le répertoire de déploiement, lancer le script :
    pki/scripts/generate_ca.sh
 
 
-Ce script génère sous ``pki/ca`` les autorités de certification root et intermédiaires pour générer des certificats clients, serveurs, et de timestamping.
+Ce script génère sous ``pki/ca`` les autorités de certification `root` et intermédiaires pour générer des certificats clients, serveurs, et de timestamping.
 Les mots de passe des clés privées des autorités de certification sont stockés dans le vault ansible environments/certs/vault-ca.yml
 
 .. warning:: Bien noter les dates de création et de fin de validité des CA. En cas d'utilisation de la PKI fournie, la CA root a une durée de validité de 10 ans ; la CA intermédiaire a une durée de 3 ans.

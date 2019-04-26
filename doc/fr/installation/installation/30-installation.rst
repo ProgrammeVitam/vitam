@@ -17,7 +17,7 @@ Dans le cas de l'installation en environnement Debian, la base de données n'est
 Fichier de mot de passe
 -----------------------
 
-Par défaut, le mot de passe des "vault" sera demandé à chaque exécution d'ansible. Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environments/group_vars/all/vault-vitam.yml``, le mot de passe ne sera pas demandé (dans ce cas, changez l'option ``--ask-vault-pass`` des invocations ansible par l'option ``--vault-password-file=VAULT_PASSWORD_FILES``.
+Par défaut, le mot de passe des `vault` sera demandé à chaque exécution d'ansible. Si le fichier ``deployment/vault_pass.txt`` est renseigné avec le mot de passe du fichier ``environments/group_vars/all/vault-vitam.yml``, le mot de passe ne sera pas demandé (dans ce cas, changez l'option ``--ask-vault-pass`` des invocations ansible par l'option ``--vault-password-file=VAULT_PASSWORD_FILES``.
 
 
 Mise en place des repositories VITAM (optionnel)
@@ -49,7 +49,7 @@ Pour mettre en place ces repositories sur les machines cibles, lancer la command
 
   ansible-playbook ansible-vitam-extra/bootstrap.yml -i environments/<fichier d'inventaire>  --ask-vault-pass
 
-.. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  "vitam-" .
+.. note:: En environnement CentOS, il est recommandé de créer des noms de repository commençant par  `vitam-` .
 
 Génération des *hostvars*
 --------------------------
@@ -72,7 +72,7 @@ Cette définition des host_vars se base sur la directive ansible ``ansible_defau
 Cas 2: Machines avec plusieurs interfaces réseau
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Si les machines sur lesquelles Vitam sera déployé disposent de plusieurs interfaces, si celles-ci respectent cette règle:
+Si les machines sur lesquelles Vitam sera déployé disposent de plusieurs interfaces et si celles-ci respectent cette règle:
 
     - Interface nommée eth0 = ip_service
     - Interface nommée eth1 = ip_admin
@@ -86,16 +86,16 @@ Vérification de la génération des hostvars
 
 A l'issue, vérifier le contenu des fichiers générés sous ``environments/host_vars/`` et les adapter au besoin.
 
-.. caution:: Cas d'une installation multi-sites. Sur site secondaire, s'assurer que, pour les machines hébergeant les offres, la directive ``ip_wan`` a bien été déclarée (l'ajouter manuellement, le cas échéant), pour que site le site "primaire" sache les contacter via une IP particulière. Par défaut, c'est l'IP de service qui sera utilisée.
+.. caution:: Cas d'une installation multi-sites. Sur site secondaire, s'assurer que, pour les machines hébergeant les offres, la directive ``ip_wan`` a bien été déclarée (l'ajouter manuellement, le cas échéant), pour que site le site `primaire` sache les contacter via une IP particulière. Par défaut, c'est l'IP de service qui sera utilisée.
 
 
 
 Déploiement
 -------------
 
-Le déploiement s'effectue depuis la machine "ansible" et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
+Le déploiement s'effectue depuis la machine `ansible` et va distribuer la solution VITAM selon l'inventaire correctement renseigné.
 
-Une fois l'étape de la génération des hosts a été effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
+Une fois l'étape de la génération des hosts effectuée avec succès, le déploiement est à réaliser avec la commande suivante :
 
 .. code-block:: console
 

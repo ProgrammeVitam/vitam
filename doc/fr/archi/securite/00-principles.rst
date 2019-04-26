@@ -1,15 +1,15 @@
 Principes
 #########
 
-Les principes de sécurité de VITAM suivent les directives suivantes :
+Les principes de sécurité de la solution logicielle :term:`VITAM` suivent les directives suivantes :
 
 * Authentification et autorisation systématique des systèmes clients de VITAM basées sur une authentification TLS mutuelle utilisant des certificats (pour les composants de la couche accès) ;
 * Validation systématique des entrées du système :
 
     - Détection et suppression de codes malveillants dans les archives déposées dans VITAM ;
-    - Robustesse contre les failles du Top Ten OWASP pour toutes les interfaces REST ;
+    - Robustesse contre les failles du *Top Ten* :term:`OWASP` pour toutes les interfaces :term:`REST` ;
 
-* Validation périodique des listes de CRL pour toutes les AC trustées par VITAM (non implémentée dans cette version de VITAM, cf. ci-dessous).
+* Validation périodique des listes de :term:`CRL` pour toutes les :term:`CA` *trustées* par VITAM (non implémentée dans cette version de VITAM, cf. ci-dessous).
 
 
 Principes de cloisonnement
@@ -22,7 +22,7 @@ Les principes de cloisonnement en zones, et notamment les implications en termes
 Principes de sécurisation des accès externes
 ============================================
 
-Les services logiciels en contact direct avec les clients du SAE (i.e. les services ``*-external``) implémentent les mesures de sécurité suivantes :
+Les services logiciels en contact direct avec les clients du :term:`SAE` (i.e. les services ``*-external``) implémentent les mesures de sécurité suivantes :
 
 * Chiffrement du transport des données entre les applications externes et VITAM via HTTPS ; par défaut, la configuration suivante est appliquée :
 
@@ -31,16 +31,23 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 
 .. note:: Les ciphers recommandés sont : ``TLS_ECDHE.*``, ``TLS_DHE_RSA.*``
 
-* Authentification par certificat x509 requise des applications externes (authentification M2M) basée sur une liste blanche de certificats valides :
+.. TODO : faire mieux, la phrase est laconique...
 
-    - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (not before, not after) et qu'il est validé par une Autorité de Certification connue (liste des AC potée par un fichier truststore) ;
+Fichier déployé :
+
+.. literalinclude:: ../../../../deployment/ansible-vitam/roles/vitam/templates/java.security.j2
+
+
+* Authentification par certificat x509 requise des applications externes (authentification :term:`M2M`) basée sur une liste blanche de certificats valides :
+
+    - Lors d’une connexion, la vérification synchrone confirme que le certificat proposé n’est pas expiré (*not before*, *not after*) et qu'il est validé par une Autorité de Certification connue (liste des :term:`CA` portée par un fichier *truststore*) ;
     - Avant de valider tout appel d'API, l'applicatif vérifie que le certificat proposé est bien présent dans le référentiel d’authentification des certificats valides (un des référentiels métier portés par la base des métadonnées).
 
-.. caution:: La révocation des certificats se fait par leur suppression dans les différents magasins et référentiels. Les CRL ne sont pas supportées dans cette version de la solution logicielle VITAM.
+.. caution:: La révocation des certificats se fait par leur suppression dans les différents magasins et référentiels. Se reporter au :term:`DEX` pour plus d'informations.
 
 * Filtrage exhaustif des données et requêtes entrant dans le système basé sur :
 
-    - Un WAF applicatif permettant le filtrage d'entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ dans les composants ``*-external`` protégeant notamment contre les attaques de type XSS) ;
+    - Un :term:`WAF` applicatif permettant le filtrage d'entrées pouvant être une menace pour le système (intégration de la bibliothèque `ESAPI <https://www.owasp.org/index.php/Category:OWASP_Enterprise_Security_API>`_ dans les composants ``*-external`` protégeant notamment contre les attaques de type XSS) ;
     - Support de l'utilisation d'un ou plusieurs antivirus (configurables et extensibles) dans le composant d'entrée (``ingest-external``) permettant de valider l'innocuité des données entrantes.
 
 .. note:: Dans cette version du système, le paramétrage de l'antivirus est supporté lors de l'installation, mais pas le paramétrage d'ESAPI (notamment les filtres appliqués).
@@ -49,7 +56,7 @@ Les services logiciels en contact direct avec les clients du SAE (i.e. les servi
 Principes de sécurisation des communications internes au système
 ================================================================
 
-Le secret de plateforme permet de se protéger contre des erreurs de manipulation et de configuration en séparant les environnements de manière logique (secret partagé par l'ensemble de la plateforme mais différent entre plateformes). Ce secret (chaîne de caractères) est positionné dans la configuration des composants lors de l'installation du système.
+Le secret de plateforme permet de se protéger contre des erreurs de manipulation et de configuration en séparant les environnements de manière logique (secret partagé par l'ensemble de la plateforme mais différent entre plateformes). Ce secret (chaîne de caractères) est positionné dans la configuration des composants lors de l'installation de la solution logicielle :term:`VITAM`.
 
 Dans chaque requête, les deux headers suivants sont positionnés :
 
@@ -59,12 +66,12 @@ Dans chaque requête, les deux headers suivants sont positionnés :
 Du côté du composant cible de la requête, le contrôle est alors le suivant :
 
 * Existence des deux headers précédents ;
-* Vérification que timestamp envoyé est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes ( ``| Timestamp - temps local | < 10 s`` )
-* Validation du hash transmis via la réalisation du même calul sur le serveur cible et de la comparaison des résultats.
+* Vérification que *timestamp* envoyé est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes ( ``| Timestamp - temps local | < 10 s`` )
+* Validation du *hash* transmis via la réalisation du même calul sur le serveur cible et de la comparaison des résultats.
 
 En cas d'échec d'une de ces validations, la requête est refusée.
 
-.. note:: Les headers et le body de la requête ne sont pas inclus dans le calcul du X-Platform-ID pour des raisons de performance.
+.. note:: Les *headers* et le *body* de la requête ne sont pas inclus dans le calcul du ``X-Platform-ID`` pour des raisons de performance.
 
 
 Principes de sécurisation des bases de données
@@ -87,9 +94,9 @@ Enfin, l'accès anonyme à MongoDB est désactivé, et les utilisateurs sont aut
 Elasticsearch
 -------------
 
-Dans le cas d'Elasticsearch, le cloisonnement est principalement physique, dans le sens où le cluster hébergeant les données métier est disjoint du cluster hébergeant les données techniques.
+Dans le cas d'Elasticsearch, le cloisonnement est principalement physique, dans le sens où le *cluster* hébergeant les données métier est disjoint du *cluster* hébergeant les données techniques.
 
-.. caution:: L'accès au cluster Elasticsearch est anonyme sans authentification requise ; ceci est dû à une limitation de la version OpenSource d'Elasticsearch, et pourra être réévalué dans les futures versions du système VITAM.
+.. caution:: L'accès au cluster Elasticsearch est anonyme sans authentification requise ; ceci est dû à une limitation de la version *OpenSource* d'Elasticsearch, et pourra être réévalué dans les futures versions de la solution logicielle :term:`VITAM`.
 
 
 Principes de sécurisation des secrets de déploiement

@@ -9,17 +9,17 @@ API externes (ingest-external et access-external)
 
 Rôle :
 
-* Exposer les API publiques du système
-* Sécuriser l'accès aux API de VITAM
+* Exposer les :term:`API` publiques du système
+* Sécuriser l'accès aux :term:`API` de VITAM
 
 Contraintes techniques :
 
 * Authentification forte requise de la part des clients
-* WAF
+* :term:`WAF`
 
 Données gérées :
 
-* Pour ingest-external : SIP dans le sas d'entrée (conservés uniquement pendant leur analyse antivirus)
+* Pour ``ingest-external`` : :term:`SIP` dans le sas d'entrée (conservés uniquement pendant leur analyse antivirus)
 
 
 Moteur d'entrée (ingest-internal)
@@ -31,9 +31,9 @@ Rôle :
 
 Fonctions :
 
-* Upload HTTP de fichiers au format SEDA
-* Persistance du SEDA dans workspace
-* Lancement des workflows de traitements liés à l'entrée dans processing
+* Upload HTTP de fichiers au format :term:`SEDA`
+* Persistance du SEDA dans ``workspace``
+* Lancement des *workflows* de traitements liés à l'entrée dans ``processing``
 
 Données gérées :
 
@@ -49,9 +49,9 @@ Rôle :
 
 Fonction :
 
-* Exposition des fonctions de recherche d'archives offertes par metadata
-* Exposition des fonctions de parcours de journaux offertes par logbook
-* Exposition des fonctions d'admnistration métier du système offertes par functional-administration
+* Exposition des fonctions de recherche d'archives offertes par ``metadata``
+* Exposition des fonctions de parcours de journaux offertes par ``logbook``
+* Exposition des fonctions d'admnistration métier du système offertes par ``functional-administration``
 
 Données gérées :
 
@@ -67,13 +67,13 @@ Rôle :
 
 Fonctions :
 
-* Gestion des certificats d'accès des applications (SIA)
+* Gestion des certificats d'accès des applications (:term:`SIA`)
 * Gestion des certificats personnels
 * Gestion des endpoints nécessitant le contrôle des certificats personnels
 
 Données gérées :
 
-* Certificats des applications appelant VITAM (SIA)
+* Certificats des applications appelant VITAM (:term:`SIA`)
 * Certificats personnels (pour les endpoints nécessitant une authentification personae)
 
 
@@ -100,7 +100,7 @@ Contraintes techniques :
 
 Données gérées :
 
-* Etat des workflow en cours d'exécution
+* Etat des *workflows* en cours d'exécution
 
 
 Espace de travail (workspace)
@@ -149,7 +149,7 @@ Rôle :
 
 Fonctions :
 
-* Fournit une API agrégeant et abstrayant une technologie de base de données et un moteur d’indexation
+* Fournit une :term:`API` agrégeant et abstrayant une technologie de base de données et un moteur d’indexation
 
 Données gérées :
 
@@ -244,7 +244,7 @@ Interface de démonstration (ihm-demo)
 
 Rôle :
 
-* Permettre une utilisation basique de VITAM, notamment sans SIA
+* Permettre une utilisation basique de VITAM, notamment sans :term:`SIA`
 
 Fonctions :
 
@@ -255,7 +255,7 @@ Fonctions :
 
 Contraintes techniques :
 
-* IHM intuitive (sans workflows métiers), accessible (au sens RGAA), « responsive design»
+* :term:`IHM` intuitive (sans workflows métiers), accessible (au sens RGAA), *responsive design*
 * Compatibilité avec les navigateurs actuels
 * Pas d’applets/clients lourds
 

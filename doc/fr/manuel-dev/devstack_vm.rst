@@ -1,8 +1,8 @@
-#############################################
-Création d'une machine de dev contenant swift
-#############################################
+################################################
+Création d'une machine de dev contenant *Swift*
+################################################
 
-Afin de pouvoir tester facilement swift en local, il est possible de créer en local une machine virtuelle contenant une implémentation de swift.
+Afin de pouvoir tester facilement Swift en local, il est possible de créer en local une machine virtuelle contenant une implémentation de swift.
 Cette documentation décrit la procédure d'installation d'une machine virtuelle basé sur devstack, avec comme hyperviseur Qemu/Kvm ou virtualbox.
 
 Préparation de la machine virtuelle avec Qemu

@@ -4,17 +4,17 @@ Vue d'ensemble de la gestion des certificats
 Liste des suites cryptographiques & protocoles supportés par Vitam
 ==================================================================
 
-Il est possible de consulter les ciphers supportés par Vitam dans deux fichiers disponibles sur ce chemin: `ansible-vitam/roles/vitam/templates/`
+Il est possible de consulter les *ciphers* supportés par Vitam dans deux fichiers disponibles sur ce chemin: `ansible-vitam/roles/vitam/templates/`
 
 * Le fichier ``jetty-config.xml.j2``
     - La balise contenant l'attribut name="IncludeCipherSuites" référence les ciphers supportés
     - La balise contenant l'attribut name="ExcludeCipherSuites" référence les ciphers non supportés
 * Le fichier ``java.security.j2``
-    - La ligne jdk.tls.disabledAlgorithms renseigne les ciphers désactivés au niveau java
+    - La ligne jdk.tls.disabledAlgorithms renseigne les *ciphers* désactivés au niveau java
 
-.. warning:: Les 2 balises concernant les ciphers sur le fichier jetty-config.xml.j2 sont complémentaires car elles comportent des wildcards (*) ; en cas de conflit, l'exclusion est prioritaire.
+.. warning:: Les 2 balises concernant les *ciphers* sur le fichier jetty-config.xml.j2 sont complémentaires car elles comportent des wildcards (*) ; en cas de conflit, l'exclusion est prioritaire.
 
-.. seealso:: Ces fichiers correspondent à la configuration recommandée ; celle-ci est décrite plus en détail dans le DAT (chapitre sécurité).
+.. seealso:: Ces fichiers correspondent à la configuration recommandée ; celle-ci est décrite plus en détail dans le :term:`DAT` (chapitre sécurité).
 
 Vue d'ensemble de la gestion des certificats
 ============================================
@@ -35,15 +35,15 @@ Vue d'ensemble de la gestion des certificats
 
         Vue d'ensemble de la gestion des certificats au déploiement
 
-Description de l'arborescence de la PKI
-=======================================
+Description de l'arborescence de la :term:`PKI`
+===============================================
 
-Tous les fichiers de gestion de la PKI se trouvent dans le répertoire ``deployment`` de l'arborescence Vitam:
+Tous les fichiers de gestion de la :term:`PKI` se trouvent dans le répertoire ``deployment`` de l'arborescence Vitam:
 
-* Le sous répertoire ``pki`` contient les scripts de génération des CA & des certificats, les CA générées par les scripts, et les fichiers de configuration d'openssl
+* Le sous répertoire ``pki`` contient les scripts de génération des :term:`CA` & des certificats, les :term:`CA` générées par les scripts, et les fichiers de configuration d'openssl
 * Le sous répertoire ``environments`` contient tous les certificats nécessaires au bon déploiement de Vitam:
 
-    - certificats publics des CA
+    - certificats publics des :term:`CA`
     - Certificats clients, serveurs, de timestamping, et coffre fort contenant les mots de passe des clés privées des certificats (sous-répertoire ``certs``)
     - Magasins de certificats (keystores / truststores / grantedstores), et coffre fort contenant les mots de passe des magasins de certificats (sous-répertoire ``keystores``)
 
@@ -56,14 +56,14 @@ Tous les fichiers de gestion de la PKI se trouvent dans le répertoire ``deploym
     .. figure:: images/arborescence_pki.svg
         :align: center
 
-        Vue l'arborescence de la PKI Vitam
+        Vue l'arborescence de la :term:`PKI` Vitam
 
 .. only:: latex
 
     .. figure:: images/arborescence_pki.png
         :align: center
 
-        Vue l'arborescence de la PKI Vitam
+        Vue l'arborescence de la :term:`PKI` Vitam
 
 
 .. only:: html
@@ -123,10 +123,10 @@ Description de l'arborescence du répertoire deployment/environments/keystores
 .. _fonctionnementScriptsPki:
 
 
-Fonctionnement des scripts de la PKI
-====================================
+Fonctionnement des scripts de la :term:`PKI`
+============================================
 
-La gestion de la PKI se fait avec 3 scripts dans le répertoire deployment de l'arborescence Vitam:
+La gestion de la :term:`PKI` se fait avec 3 scripts dans le répertoire deployment de l'arborescence Vitam:
 
 * ``pki/scripts/generate_ca.sh`` : génère des autorités de certifications (si besoin)
 * ``pki/scripts/generate_certs.sh`` : génère des certificats à partir des autorités de certifications présentes (si besoin)
@@ -139,4 +139,4 @@ La gestion de la PKI se fait avec 3 scripts dans le répertoire deployment de l'
     - Récupère le mot de passe du magasin indiqué dans ``environments/group_vars/all/vault-keystore.yml``
     - Insère les bon certificats dans les magasins qui en ont besoin
 
-Si les certificats sont créés par la PKI externe, il faut donc les positionner dans l'arborescence attendue avec le nom attendu pour certains (cf :ref:`l'image ci-dessus<arborescence_certs>`).
+Si les certificats sont créés par la :term:`PKI` externe, il faut donc les positionner dans l'arborescence attendue avec le nom attendu pour certains (cf :ref:`l'image ci-dessus<arborescence_certs>`).

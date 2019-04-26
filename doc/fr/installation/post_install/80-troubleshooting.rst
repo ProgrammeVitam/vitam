@@ -10,6 +10,5 @@ Dans le cas de machines petitement taillées, il peut arriver que, durant le dé
 Pour fixer cela, il suffit de relancer le déploiement.
 
 
-.. attention, titres très moyen
 
 .. include:: ../../exploitation/FAQ/kb.rst

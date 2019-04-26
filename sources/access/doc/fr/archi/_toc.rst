@@ -5,6 +5,6 @@ Access
    :numbered:
    :maxdepth: 3
 
-   fonctionnelle/_toc.rst
+   fonctionnelle/basics.rst
    technique/_toc.rst
    securite/_toc.rst

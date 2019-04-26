@@ -7,8 +7,8 @@
 ,"Définition des workflows de traitement","processing","/vitam/conf",,,,,"REF : X"
 "métier","Données en cours de traitement par un processus","worker","/vitam/tmp",,"REF : X",,,
 "métier","Registre des fonds","functional-administration",,"ES + MongoDB",,,,
-"métier","JOP","logbook",,"ES + MongoDB",,"REF : X",,
-"métier","JOP sécurisé","logbook (timer systemd)",,,,"REF : X",,
+"métier","JOP (Journal des opérations)","logbook",,"ES + MongoDB",,"REF : X",,
+"métier","JOP sécurisé (Journal des opérations sécurisé)","logbook (timer systemd)",,,,"REF : X",,
 "métier","JCV Unit / ObjectGroup","logbook",,"MongoDB",,"REF : X",,
 "métier","JCV sécurisé","logbook (timer systemd)",,,,"REF : X",,
 "métier","ArchiveUnit (AU), ObjectGroup (GOT)","metadata",,"ES + MongoDB",,"REF : X",,

@@ -10,9 +10,11 @@ avec ESAPI.
 Packages:
 *********
 
-fr.gouv.vitam.access.external.config : contient les paramètres de configurations du service web d'application.
-fr.gouv.vitam.access.external.model : classes métiers, classes implémentant le pattern DTO... .
-fr.gouv.vitam.access.external.rest : classes de lancement du serveur d'application et du controlleur REST.
+**fr.gouv.vitam.access.external.config** : contient les paramètres de configurations du service web d'application.
+
+**fr.gouv.vitam.access.external.model** : classes métiers, classes implémentant le pattern DTO... .
+
+**fr.gouv.vitam.access.external.rest** : classes de lancement du serveur d'application et du controlleur REST.
 
 fr.gouv.vitam.access.external.rest
 **********************************
@@ -51,8 +53,8 @@ classe de démarrage du serveur d'application.
   }
 
 Dans le startApplication on effectue le start de VitamServer.
-Le join permet de lancer les tests unitaires et d'arreter le serveur.
-Dans le fichier de configuration, le paramètre jettyConfig est à
+Le *join* permet de lancer les tests unitaires et d'arreter le serveur.
+Dans le fichier de configuration, le paramètre ``jettyConfig`` est à
 paramétrer avec le nom du fichier de configuration de jetty.
 
 

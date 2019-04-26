@@ -31,7 +31,7 @@ Certificats serveurs
 
 Les certificats serveurs générés doivent prendre en compte des alias "web" ( ``subjectAltName`` ).
 
-Le *subjectAltName* des certificats serveurs ( ``deployment/environments/certs/server/hosts/*`` ) doit contenir le nom dns du service sur consul associé.
+Le *subjectAltName* des certificats serveurs ( ``deployment/environments/certs/server/hosts/*`` ) doit contenir le nom DNS du service sur consul associé.
 
 Exemple avec un cas standard: <composant_vitam>.service.<consul_domain>.
 Ce qui donne pour le certificat serveur de access-external par exemple:
@@ -41,9 +41,9 @@ Ce qui donne pour le certificat serveur de access-external par exemple:
     X509v3 Subject Alternative Name:
         DNS:access-external.service.consul, DNS:localhost
 
-Il faudra alors mettre le même nom de domaine pour la configuration de consul (fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, variable ``consul_domain`` )
+Il faudra alors mettre le même nom de domaine pour la configuration de Consul (fichier ``deployment/environments/group_vars/all/vitam_vars.yml``, variable ``consul_domain`` )
 
-Cas particulier pour ihm-demo et ihm-recette: il faut rajouter le nom dns qui sera utilisé pour requêter ces deux applications si celles-ci sont appelées directement en frontal en https.
+Cas particulier pour ihm-demo et ihm-recette: il faut ajouter le nom DNS qui sera utilisé pour requêter ces deux applications, si celles-ci sont appelées directement en frontal en https.
 
 Certificat clients
 ^^^^^^^^^^^^^^^^^^
@@ -88,7 +88,7 @@ Une fois les certificats et CA mis à disposition par votre PKI, il convient de 
 
 Ne pas oublier de renseigner le vault contenant les passphrases des clés des certificats: ``environments/certs/vault-certs.yml``
 
-Pour modifier/créer un vault ansible, se référer à la documentation sur `cette url <http://docs.ansible.com/ansible/playbooks_vault.html>`_.
+Pour modifier/créer un vault ansible, se référer à la documentation Ansible sur `cette url <http://docs.ansible.com/ansible/playbooks_vault.html>`_.
 
 Intégration d'une application externe (cliente)
 -----------------------------------------------
