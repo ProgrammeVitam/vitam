@@ -991,5 +991,22 @@
         }
       }
     }
-  }
+  },
+  "required": [
+    "_id",
+    "Management",
+    "DescriptionLevel"
+  ],
+  "anyOf": [
+    {
+      "required": [
+        "Title"
+      ]
+    },
+    {
+      "required": [
+        "Title_"
+      ]
+    }
+  ]
 }
