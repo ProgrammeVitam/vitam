@@ -54,11 +54,7 @@
 					}
 				],
 				"Inheritance": {
-					"PreventRulesId": [
-						"ID1",
-						"ID2"
-					],
-					"PreventInheritance": "ID"
+					"PreventInheritance": true
 				},
 				"ClassificationLevel": "Secret Défense",
 				"ClassificationOwner": "ClassificationOwner",

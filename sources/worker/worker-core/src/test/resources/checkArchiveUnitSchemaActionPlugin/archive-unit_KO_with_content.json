@@ -69,8 +69,7 @@
 					"PreventRulesId": [
 						"ID1",
 						"ID2"
-					],
-					"PreventInheritance": "ID"
+					]
 				}
 			},
 			"NeedAuthorization": true,
