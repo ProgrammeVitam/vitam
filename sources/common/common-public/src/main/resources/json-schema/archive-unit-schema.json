@@ -3,7 +3,7 @@
   "definitions": {
     "date": {
       "type": "string",
-      "pattern": "^([0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))$"
+      "pattern": "^([0-8][0-9]{3}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01]))$"
     },
     "date-time": {
       "type": "string",
@@ -244,10 +244,31 @@
         {
           "required": [
             "PreventInheritance"
-          ]
+          ],
+          "not" : {            
+            "required": [
+              "PreventRulesId"
+            ]              
+          }
         },
         {
           "required": [
+            "PreventRulesId"
+          ],
+          "not" : {            
+            "required": [
+              "PreventInheritance"
+            ]              
+          }
+        },
+        {
+          "properties": {
+            "PreventRulesId": {
+              "maxItems": 0
+            }
+          },
+          "required": [
+            "PreventInheritance",
             "PreventRulesId"
           ]
         }
@@ -398,7 +419,10 @@
             "Inheritance": {
               "$ref": "#/definitions/inheritance"
             }
-          }
+          },
+          "required": [
+            "FinalAction"
+          ]
         },
         "AppraisalRule": {
           "type": "object",
@@ -434,7 +458,10 @@
             "Inheritance": {
               "$ref": "#/definitions/inheritance"
             }
-          }
+          },
+          "required": [
+            "FinalAction"
+          ]
         },
         "AccessRule": {
           "type": "object",
@@ -569,7 +596,11 @@
             "Inheritance": {
               "$ref": "#/definitions/inheritance"
             }
-          }
+          },
+          "required": [
+            "ClassificationLevel",
+            "ClassificationOwner"
+          ]
         },
         "LogBook": {
           "type": "object",
