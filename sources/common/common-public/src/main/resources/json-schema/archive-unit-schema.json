@@ -606,10 +606,10 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "event": {
+            "Event": {
               "type": "array",
               "items": {
-                "$ref": ""
+                "$ref": "#/definitions/event"
               }
             }
           }
