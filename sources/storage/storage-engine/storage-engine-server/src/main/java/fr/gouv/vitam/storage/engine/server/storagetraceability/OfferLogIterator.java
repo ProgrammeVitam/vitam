@@ -89,7 +89,7 @@ public class OfferLogIterator implements Iterator<String> {
                 this.dataCategory, this.lastOffset, this.bufferLimit, this.order);
 
             if (!response.isOk()) {
-                throw new StorageException("Could not list offer log");
+                throw new VitamRuntimeException("Could not list offer log");
             }
 
             this.buffer = ((RequestResponseOK<OfferLog>) response).getResults();
