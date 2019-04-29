@@ -26,27 +26,6 @@
  */
 package fr.gouv.vitam.common.external.client;
 
-import java.io.InputStream;
-import java.net.UnknownHostException;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Random;
-import java.util.concurrent.Future;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.AsyncInvoker;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.InvocationCallback;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -62,30 +41,48 @@ import org.apache.http.NoHttpResponseException;
 import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.conn.HttpHostConnectException;
 
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.AsyncInvoker;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.InvocationCallback;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.InputStream;
+import java.net.NoRouteToHostException;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Random;
+import java.util.concurrent.Future;
+
 /**
  * Abstract Partial client class for all vitam clients
  */
 abstract class AbstractCommonClient implements BasicClient {
-    private static final String UNABLE_TO_ESTABLISH_ROUTE = "Unable to establish route:";
+    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
     private static final String TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY = "TimeoutOccurs or DNS probe error, retry: ";
     private static final String UNKNOWN_ERROR_IN_CLIENT = "Unknown error in client";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
     private static final String BODY_AND_CONTENT_TYPE_CANNOT_BE_NULL = "Body and ContentType cannot be null";
-
     private static final String ARGUMENT_CANNOT_BE_NULL_EXCEPT_HEADERS = "Argument cannot be null except headers";
-    protected static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
-
     /**
      * Client Factory
      */
     final VitamClientFactory<?> clientFactory;
-
-    private Client client;
-    private Client clientNotChunked;
     /**
      * Used to get random sleep only
      */
     private final Random random = new Random(System.currentTimeMillis());
+    private Client client;
+    private Client clientNotChunked;
 
     /**
      * Constructor with standard configuration
@@ -97,6 +94,15 @@ abstract class AbstractCommonClient implements BasicClient {
         client = getClient(true);
         clientNotChunked = getClient(false);
         // External client or with no Session context are excluded
+    }
+
+    /**
+     * This method consume everything (in particular InpuStream) and close the response.
+     *
+     * @param response
+     */
+    public static final void staticConsumeAnyEntityAndClose(Response response) {
+        StreamUtils.consumeAnyEntityAndClose(response);
     }
 
     protected Client getClient(boolean chunked) throws IllegalStateException {
@@ -112,15 +118,6 @@ abstract class AbstractCommonClient implements BasicClient {
     @Override
     public final void consumeAnyEntityAndClose(Response response) {
         staticConsumeAnyEntityAndClose(response);
-    }
-
-    /**
-     * This method consume everything (in particular InpuStream) and close the response.
-     *
-     * @param response
-     */
-    public static final void staticConsumeAnyEntityAndClose(Response response) {
-        StreamUtils.consumeAnyEntityAndClose(response);
     }
 
     @Override
@@ -154,7 +151,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * Helper for retry request when unreachable or Connect timeout
      *
      * @param retry retry count
-     * @param e     the original ProcessingException
+     * @param e the original ProcessingException
      * @return the original exception allowing to continue and store the last one
      * @throws ProcessingException
      */
@@ -167,7 +164,7 @@ abstract class AbstractCommonClient implements BasicClient {
         }
         if (source instanceof ConnectTimeoutException || source instanceof UnknownHostException ||
             source instanceof HttpHostConnectException || source instanceof NoHttpResponseException ||
-            source.getMessage().startsWith(UNABLE_TO_ESTABLISH_ROUTE)) {
+            source instanceof NoRouteToHostException || source instanceof SocketException) {
             LOGGER.info(TIMEOUT_OCCURS_OR_DNS_PROBE_ERROR_RETRY + retry, source);
             try {
                 long sleep = random.nextInt(50) + 20;
@@ -187,7 +184,7 @@ abstract class AbstractCommonClient implements BasicClient {
      * Helper for retry request when unreachable or Connect timeout for Stream
      *
      * @param retry retry count
-     * @param e     the original ProcessingException
+     * @param e the original ProcessingException
      * @return the original exception allowing to continue and store the last one
      * @throws ProcessingException
      */
@@ -199,7 +196,7 @@ abstract class AbstractCommonClient implements BasicClient {
 
     /**
      * @param httpMethod
-     * @param body        may be null
+     * @param body may be null
      * @param contentType may be null
      * @param builder
      * @return the final response
@@ -245,9 +242,9 @@ abstract class AbstractCommonClient implements BasicClient {
      * Perform a HTTP request to the server for synchronous call
      *
      * @param httpMethod HTTP method to use for request
-     * @param path       URL to request
-     * @param headers    headers HTTP to add to request, may be null
-     * @param accept     asked type of response
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
      * @return the response from the server
      * @throws VitamClientInternalException
      */
@@ -265,12 +262,12 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform a HTTP request to the server for synchronous call
      *
-     * @param httpMethod  HTTP method to use for request
-     * @param path        URL to request
-     * @param headers     headers HTTP to add to request, may be null
-     * @param body        body content of type contentType, may be null
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
      * @param contentType the media type of the body to send, null if body is null
-     * @param accept      asked type of response
+     * @param accept asked type of response
      * @return the response from the server
      * @throws VitamClientInternalException
      */
@@ -292,12 +289,12 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform a HTTP request to the server for synchronous call
      *
-     * @param httpMethod  HTTP method to use for request
-     * @param path        URL to request
-     * @param headers     headers HTTP to add to request, may be null
-     * @param body        body content of type contentType, may be null
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
      * @param contentType the media type of the body to send, null if body is null
-     * @param accept      asked type of response
+     * @param accept asked type of response
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the response from the server
      * @throws VitamClientInternalException
@@ -319,11 +316,11 @@ abstract class AbstractCommonClient implements BasicClient {
 
     /**
      * @param httpMethod
-     * @param body        may be null
+     * @param body may be null
      * @param contentType may be null
      * @param builder
      * @param callback
-     * @param <T>         the type of the Future result (generally Response)
+     * @param <T> the type of the Future result (generally Response)
      * @return the response from the server as Future
      * @throws VitamClientInternalException if retry is not possible and http call is failed
      */
@@ -367,14 +364,14 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform an Async HTTP request to the server with callback
      *
-     * @param httpMethod  HTTP method to use for request
-     * @param path        URL to request
-     * @param headers     headers HTTP to add to request, may be null
-     * @param body        body content of type contentType, may be null
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
      * @param contentType the media type of the body to send, null if body is null
-     * @param accept      asked type of response
+     * @param accept asked type of response
      * @param callback
-     * @param <T>         the type of the Future result (generally Response)
+     * @param <T> the type of the Future result (generally Response)
      * @return the response from the server as Future
      * @throws VitamClientInternalException
      */
@@ -399,7 +396,7 @@ abstract class AbstractCommonClient implements BasicClient {
 
     /**
      * @param httpMethod
-     * @param body        may be null
+     * @param body may be null
      * @param contentType may be null
      * @param builder
      * @return the response from the server as Future
@@ -445,12 +442,12 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Perform an Async HTTP request to the server with full control of action on caller
      *
-     * @param httpMethod  HTTP method to use for request
-     * @param path        URL to request
-     * @param headers     headers HTTP to add to request, may be null
-     * @param body        body content of type contentType, may be null
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param body body content of type contentType, may be null
      * @param contentType the media type of the body to send, null if body is null
-     * @param accept      asked type of response
+     * @param accept asked type of response
      * @return the response from the server as a Future
      * @throws VitamClientInternalException
      */
@@ -516,10 +513,10 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Build a HTTP request to the server for synchronous call without Body
      *
-     * @param httpMethod  HTTP method to use for request
-     * @param path        URL to request
-     * @param headers     headers HTTP to add to request, may be null
-     * @param accept      asked type of response
+     * @param httpMethod HTTP method to use for request
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the builder ready to be performed
      */
@@ -532,11 +529,11 @@ abstract class AbstractCommonClient implements BasicClient {
     /**
      * Build a HTTP request to the server for synchronous call without Body
      *
-     * @param httpMethod  HTTP method to use for request
-     * @param url         base url
-     * @param path        URL to request
-     * @param headers     headers HTTP to add to request, may be null
-     * @param accept      asked type of response
+     * @param httpMethod HTTP method to use for request
+     * @param url base url
+     * @param path URL to request
+     * @param headers headers HTTP to add to request, may be null
+     * @param accept asked type of response
      * @param chunkedMode True use default client, else False use non Chunked mode client
      * @return the builder ready to be performed
      */
