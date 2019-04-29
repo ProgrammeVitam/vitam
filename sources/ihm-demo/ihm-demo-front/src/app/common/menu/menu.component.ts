@@ -44,26 +44,25 @@ export class MenuComponent implements OnInit {
               {label: 'Import des contextes applicatifs', routerLink: ['admin/import/context']},
               {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
               {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
-              {label: 'Import des documents type', routerLink: ['admin/import/archiveUnitProfile']},
-              {label: 'Import des ontologies', routerLink: ['admin/import/ontology']},
               {label: 'Import des formats', routerLink: ['admin/import/format']},
+              {label: 'Import des griffons', routerLink: ['admin/import/griffins']},
+              {label: 'Import des ontologies', routerLink: ['admin/import/ontology']},
+              {label: 'Import des profils d\'unités archivistiques', routerLink: ['admin/import/archiveUnitProfile']},
               {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
               {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
-              {label: 'Import des services agents', routerLink: ['admin/import/agencies']},
-              {label: 'Import des griffons', routerLink: ['admin/import/griffins']},
-              {label: 'Import des scénarios de préservation', routerLink: ['admin/import/scenarios']}
+              {label: 'Import des scénarios de préservation', routerLink: ['admin/import/scenarios']},
+              {label: 'Import des services agents', routerLink: ['admin/import/agencies']}
             ];
           } else {
             importItems = [
               {label: 'Import d\'un arbre de positionnement', routerLink: ['admin/holdingScheme']},
               {label: 'Import des contrats d\'entrée', routerLink: ['admin/import/ingestContract']},
               {label: 'Import des contrats d\'accès', routerLink: ['admin/import/accessContract']},
-              {label: 'Import des documents type', routerLink: ['admin/import/archiveUnitProfile']},
               {label: 'Import des profils d\'archivage', routerLink: ['admin/import/profil']},
+              {label: 'Import des profils d\'unités archivistiques', routerLink: ['admin/import/archiveUnitProfile']},
               {label: 'Import des règles de gestion', routerLink: ['admin/import/rule']},
-              {label: 'Import des services agents', routerLink: ['admin/import/agencies']},
-              {label: 'Import des scénarios de préservation', routerLink: ['admin/import/scenarios']}
-
+              {label: 'Import des scénarios de préservation', routerLink: ['admin/import/scenarios']},
+              {label: 'Import des services agents', routerLink: ['admin/import/agencies']}
             ];
           }
 
@@ -94,14 +93,14 @@ export class MenuComponent implements OnInit {
                     {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
                     {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
                     {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']},
-                    {label: 'Documents type', routerLink: ['admin/search/archiveUnitProfile']},
-                    {label: 'Ontologies', routerLink: ['admin/search/ontology']},
                     {label: 'Formats', routerLink: ['admin/search/format']},
-                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
-                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled: false},
-                    {label: 'Services agents', routerLink: ['admin/search/agencies']},
                     {label: 'Griffons', routerLink: ['admin/search/griffins']},
-                    {label: 'Scénarios de préservation', routerLink: ['admin/search/scenarios']}
+                    {label: 'Ontologies', routerLink: ['admin/search/ontology']},
+                    {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
+                    {label: 'Profils d\'unités archivistiques', routerLink: ['admin/search/archiveUnitProfile']},
+                    {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled: false},
+                    {label: 'Scénarios de préservation', routerLink: ['admin/search/scenarios']},
+                    {label: 'Services agents', routerLink: ['admin/search/agencies']}
                   ]
                 },
                 {
@@ -161,10 +160,10 @@ export class MenuComponent implements OnInit {
                     {label: 'Contextes applicatifs', routerLink: ['admin/search/context']},
                     {label: 'Contrats d\'entrée', routerLink: ['admin/search/ingestContract']},
                     {label: 'Contrats d\'accès', routerLink: ['admin/search/accessContract']},
-                    {label: 'Documents type', routerLink: ['admin/search/archiveUnitProfile']},
-                    {label: 'Ontologies', routerLink: ['admin/search/ontology']},
                     {label: 'Formats', routerLink: ['admin/search/format']},
+                    {label: 'Ontologies', routerLink: ['admin/search/ontology']},
                     {label: 'Profils d\'archivage', routerLink: ['admin/search/profil']},
+                    {label: 'Profils d\'unités archivistiques', routerLink: ['admin/search/archiveUnitProfile']},
                     {label: 'Règles de gestion', routerLink: ['admin/search/rule'], disabled: false},
                     {label: 'Services agents', routerLink: ['admin/search/agencies']}
                   ]

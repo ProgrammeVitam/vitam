@@ -43,7 +43,7 @@ export class ArchiveUnitProfileComponent extends PageComponent {
   constructor(private activatedRoute: ActivatedRoute, private router : Router, private errorService: ErrorService,
               public titleService: Title, public breadcrumbService: BreadcrumbService,
               private searchReferentialsService : ReferentialsService, private dialogService : DialogService) {
-    super('Détail du document type ', [], titleService, breadcrumbService);
+    super('Détail du profil d\'unités archivistiques ', [], titleService, breadcrumbService);
   }
 
   pageOnInit() {
@@ -52,8 +52,8 @@ export class ArchiveUnitProfileComponent extends PageComponent {
       this.getDetail();
       let newBreadcrumb = [
         {label: 'Administration', routerLink: ''},
-        {label: 'Documents type', routerLink: 'admin/search/archiveUnitProfile'},
-        {label: 'Détail du document type ' + this.id, routerLink: ''}
+        {label: 'Profils d\'unités archivistiques', routerLink: 'admin/search/archiveUnitProfile'},
+        {label: 'Détail du profil d\'unités archivistiques ' + this.id, routerLink: ''}
       ];
 
       this.setBreadcrumb(newBreadcrumb);
@@ -109,7 +109,7 @@ export class ArchiveUnitProfileComponent extends PageComponent {
             });
         }, (error) => {
           this.saveRunning = false;
-          this.dialogService.displayMessage('Le document type est peut-être au mauvais format', 'Echec de l\'import du fichier');
+          this.dialogService.displayMessage('Le profil d\'unités archivistiques est peut-être au mauvais format', 'Echec de l\'import du fichier');
         });
     } else {
       this.searchReferentialsService.updateArchiveUnitProfileById(this.id, this.updatedFields)
