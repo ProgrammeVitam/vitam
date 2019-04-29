@@ -28,6 +28,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -52,19 +53,18 @@ import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.apache.commons.io.input.NullInputStream;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.FakeInputStream;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -318,6 +318,32 @@ public class StorageDistributionImplTest {
             IOUtils.closeQuietly(stream);
             IOUtils.closeQuietly(stream2);
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testStoreData_TestDeadlockOfferFailureTransferThreadShutdown() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        // Offer 1 ok, offer 2 will fail
+        final String objectId = "fail-offer-default2";
+        final ObjectDescription createObjectDescription = new ObjectDescription();
+        createObjectDescription.setWorkspaceContainerGUID("container1" + this);
+        createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
+
+        reset(client);
+
+        // Long enough to be blocking in MultiplePipedInputStream
+        long longFileSize = 10_000_000L;
+
+        when(client.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenAnswer((args) -> Response.status(Status.OK).entity(new NullInputStream(longFileSize))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), longFileSize).build());
+
+        // When / Then
+        assertThatThrownBy( () ->
+            customDistribution
+                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester")
+        ).isInstanceOf(StorageTechnicalException.class);
     }
 
     @Test(expected = StorageTechnicalException.class)
