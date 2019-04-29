@@ -503,7 +503,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             String queryUpdate =
                 "{\"$roots\":[\"" + unitId + "\"],\"$query\":[],\"$filter\":{}," +
-                    "\"$action\":[{\"$set\": {\"#management.AccessRule.Inheritance\" : {\"PreventRulesId\": [\"ACC-00004\",\"ACC-00005\"], \"PreventInheritance\": false}}}]}";
+                    "\"$action\":[{\"$set\": {\"#management.AccessRule.Inheritance\" : {\"PreventRulesId\": [], \"PreventInheritance\": false}}}]}";
             RequestResponse responsePreventInheritance = accessClient
                 .updateUnitbyId(JsonHandler.getFromString(queryUpdate), unitId);
             assertTrue(responsePreventInheritance.isOk());
@@ -512,7 +512,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitAfterUpdatePreventInheritance =
                 (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
-            assertEquals(2,
+            assertEquals(0,
                 responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule")
                     .get("Inheritance").get("PreventRulesId").size());
             assertEquals(false,
