@@ -36,6 +36,7 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import org.apache.commons.io.IOUtils;
 
 import java.io.InputStream;
 import java.util.List;
@@ -68,6 +69,18 @@ public class MultiplexedStreamTransferThread implements Callable<StorageBulkPutR
 
     @Override
     public StorageBulkPutResult call() throws Exception {
+
+        try {
+            return storeInOffer();
+        } catch (Exception ex) {
+            LOGGER.error("An error occurred during bulk transfer to offer " + this.storageOffer.getId(), ex);
+            throw ex;
+        } finally {
+            IOUtils.closeQuietly(this.inputStream);
+        }
+    }
+
+    private StorageBulkPutResult storeInOffer() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
