@@ -7,7 +7,7 @@
 			"Rules": [
 				{
 					"Rule": "STR001",
-					"StartDate": "2012-11-15T14:30:23"
+					"StartDate": "2012-11-15"
 				}
 			],
 			"FinalAction": "Copy"
@@ -16,7 +16,7 @@
 			"Rules": [
 				{
 					"Rule": "APR001",
-					"StartDate": "2012-11-15T14:30:23"
+					"StartDate": "2012-11-15"
 				}
 			],
 			"Inheritance": {
@@ -30,7 +30,7 @@
 			"Rules": [
 				{
 					"Rule": "ID",
-					"StartDate": "2012-11-15T14:30:23"
+					"StartDate": "2012-11-15"
 				}
 			],
 			"Inheritance": {
@@ -43,24 +43,20 @@
 			"Rules": [
 				{
 					"Rule": "CLR001",
-					"StartDate": "2012-11-15T14:30:23"
+					"StartDate": "2012-11-15"
 				},
 				{
 					"Rule": "CLR001",
-					"StartDate": "2012-11-15T14:30:23"
+					"StartDate": "2012-11-15"
 				},
 				{
 					"Rule": "CLR002",
-					"StartDate": "2012-11-15T14:30:23"
+					"StartDate": "2012-11-15"
 				}
 			],"ClassificationLevel":"ClassificationLevel"
 				,"ClassificationOwner":"ClassificationOwner",
 			"Inheritance": {
-				"PreventRulesId": [
-					"ID1",
-					"ID2"
-				],
-				"PreventInheritance": "ID"
+				"PreventInheritance": false
 			}
 		},
 		"NeedAuthorization": true,
