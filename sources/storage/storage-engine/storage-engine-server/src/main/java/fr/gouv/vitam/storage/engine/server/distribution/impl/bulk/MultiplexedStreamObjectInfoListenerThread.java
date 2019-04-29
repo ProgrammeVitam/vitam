@@ -30,9 +30,12 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +45,9 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 
 public class MultiplexedStreamObjectInfoListenerThread implements Callable<List<ObjectInfo>> {
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(MultiplexedStreamObjectInfoListenerThread.class);
 
     private final InputStream inputStream;
     private final DigestType digestType;
@@ -56,6 +62,17 @@ public class MultiplexedStreamObjectInfoListenerThread implements Callable<List<
 
     @Override
     public List<ObjectInfo> call() throws IOException, InvalidParseOperationException {
+        try {
+            return computeDigests();
+        } catch (Exception ex) {
+            LOGGER.error("An error occurred during digestion computation of bulk transfer", ex);
+            throw ex;
+        } finally {
+            IOUtils.closeQuietly(this.inputStream);
+        }
+    }
+
+    private List<ObjectInfo> computeDigests() throws IOException, InvalidParseOperationException {
 
         try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(inputStream)) {
 
