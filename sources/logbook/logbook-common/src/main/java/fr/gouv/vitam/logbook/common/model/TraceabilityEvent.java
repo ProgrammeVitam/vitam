@@ -26,7 +26,10 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.digest.DigestType;
+
+import java.util.List;
 
 /**
  * Class used to save traceability event to be store in logbook collection
@@ -103,6 +106,12 @@ public class TraceabilityEvent {
     private boolean maxEntriesReached;
 
     /**
+     * Traceability statistics
+     */
+    @JsonProperty("Warnings")
+    private List<String> warnings;
+
+    /**
      * Empty constructor for Jackson
      */
     public TraceabilityEvent() {
@@ -110,7 +119,7 @@ public class TraceabilityEvent {
     }
 
     /**
-     * Constructor 
+     * Constructor
      * 
      * @param logType logType
      * @param startDate startDate
@@ -124,11 +133,13 @@ public class TraceabilityEvent {
      * @param fileName fileName
      * @param size size
      * @param digestAlgorithm digestAlgorithm
+     * @param warnings
      */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash,
         byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
         String minusOneYearLogbookTraceabilityDate, long numberOfElements, String fileName, long size,
-        DigestType digestAlgorithm, boolean maxEntriesReached, String securisationVersion ) {
+        DigestType digestAlgorithm, boolean maxEntriesReached, String securisationVersion,
+        List<String> warnings) {
         this.logType = logType;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -144,6 +155,7 @@ public class TraceabilityEvent {
         this.maxEntriesReached = maxEntriesReached;
         this.securisationVersion = securisationVersion;
 
+        this.warnings = warnings;
     }
 
     /**
@@ -250,5 +262,14 @@ public class TraceabilityEvent {
      **/
     public void setSecurisationVersion(String securisationVersion) {
         this.securisationVersion = securisationVersion;
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public TraceabilityEvent setWarnings(List<String> warnings) {
+        this.warnings = warnings;
+        return this;
     }
 }

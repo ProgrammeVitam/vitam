@@ -84,6 +84,15 @@ public class OfferLog {
         this.action = action;
     }
 
+    public OfferLog(long sequence, LocalDateTime time, String container, String fileName,
+        String action) {
+        this.sequence = sequence;
+        this.time = time;
+        this.container = container;
+        this.fileName = fileName;
+        this.action = action;
+    }
+
     /**
      * @return the sequence
      */

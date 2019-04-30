@@ -23,12 +23,16 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
 
   columns = {
     'operation': [
-      ColumnDefinition.makeStaticColumn('startDate', 'Date début', DateService.handleDateWithTime,
+      ColumnDefinition.makeStaticColumn('status', 'Statut', undefined,
+        () => ({'width': '200px'}), false),
+      ColumnDefinition.makeStaticColumn('evDateTime', 'Date de l\'opération', DateService.handleDateWithTime,
         () => ({'width': '250px'}), false),
-      ColumnDefinition.makeStaticColumn('endDate', 'Date fin', DateService.handleDateWithTime,
+      ColumnDefinition.makeStaticColumn('startDate', 'Date début de sécurisation', DateService.handleDateWithTime,
+        () => ({'width': '250px'}), false),
+      ColumnDefinition.makeStaticColumn('endDate', 'Date fin de sécurisation', DateService.handleDateWithTime,
         () => ({'width': '250px'}), false),
       ColumnDefinition.makeStaticColumn('numberOfElements', 'Nombre d\'opérations', undefined,
-        () => ({'width': '700px'}), false),
+        () => ({'width': '250px'}), false),
     ], 'file': [
       ColumnDefinition.makeStaticColumn('fileName', 'Nom fichier', undefined,
         () => ({'width': '750px'}), false),
@@ -77,6 +81,8 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
 
   extractData(data) {
     let item = this.getEvDetData(data);
+    item.evDateTime = data.evDateTime;
+    item.status = (data.events.length > 0 && data.events[data.events.length - 1].outcome) ? data.events[data.events.length - 1].outcome : '';
     this.traceabilityService.extractTimeStampInformation(item.timeStampToken)
       .subscribe(
         (response) => {

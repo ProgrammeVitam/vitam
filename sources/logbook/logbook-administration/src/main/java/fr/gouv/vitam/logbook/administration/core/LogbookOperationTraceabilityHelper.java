@@ -280,11 +280,6 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public void saveEvent(TraceabilityEvent event) {
-        // Nothing to do, event is saved in logbook after with 'createLogbookOperationEvent'
-    }
-
-    @Override
     public void saveEmpty(Integer tenantId) throws TraceabilityException {
         createLogbookOperationEvent(tenantId, STP_OP_SECURISATION, StatusCode.WARNING, null);
     }
@@ -363,6 +358,11 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     @Override
     public boolean getMaxEntriesReached() {
         return false;
+    }
+
+    @Override
+    public List<String> getWarnings() {
+        return null;
     }
 
     @Override

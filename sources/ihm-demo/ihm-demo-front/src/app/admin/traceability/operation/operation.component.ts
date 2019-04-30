@@ -57,17 +57,24 @@ export class OperationComponent extends PageComponent {
   }
 
   public columns = [
+
     ColumnDefinition.makeSpecialValueColumn('Type de journal sécurisé',
       (item) => !!item.evDetData ? JSON.parse(item.evDetData).LogType : '',
         undefined, () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de début',
+    ColumnDefinition.makeSpecialValueColumn('Statut',
+      (item) => (item.events.length > 1 && item.events[1].outcome) ? item.events[1].outcome : '',
+      undefined, () => ({'width': '75px', 'overflow-wrap': 'break-word'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Date de l\'opération',
+      (item) => item.evDateTime,
+      DateService.handleDateWithTime, () => ({'width': '175px', 'overflow-wrap': 'break-word'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Date de début de sécurisation',
       (item) => !!item.evDetData ? JSON.parse(item.evDetData).StartDate : '',
-        DateService.handleDateWithTime, () => ({'width': '200px', 'overflow-wrap': 'break-word'}), false),
-    ColumnDefinition.makeSpecialValueColumn('Date de fin',
+        DateService.handleDateWithTime, () => ({'width': '125px', 'overflow-wrap': 'break-word'}), false),
+    ColumnDefinition.makeSpecialValueColumn('Date de fin de sécurisation',
       (item) => !!item.evDetData ? JSON.parse(item.evDetData).EndDate : '',
         DateService.handleDateWithTime, () => ({'width': '125px'}), false),
     ColumnDefinition.makeSpecialIconColumn('Télécharger',
-      (item) => (item.events.length > 1 && item.events[1].outcome) === 'OK' ? ['fa-download'] : [],
+      (item) => ['fa-download'],
       () => ({'width': '125px', 'overflow-wrap': 'break-word'}), OperationComponent.downloadReports,
       this.logbookService, false)
   ];
