@@ -335,6 +335,7 @@ public class DslQueryHelper {
                             InQuery checkStatus = in(EVENT_OUT_DETAIL,
                                 "STP_OP_SECURISATION.OK",
                                 "STP_STORAGE_SECURISATION.OK",
+                                "STP_STORAGE_SECURISATION.WARNING",
                                 "LOGBOOK_UNIT_LFC_TRACEABILITY.OK",
                                 "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING",
                                 "LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY.OK",
