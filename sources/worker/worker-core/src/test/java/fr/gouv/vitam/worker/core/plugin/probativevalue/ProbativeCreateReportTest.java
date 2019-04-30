@@ -96,7 +96,7 @@ public class ProbativeCreateReportTest {
         String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
 
         PreservationRequest request = new PreservationRequest();
-        ProbativeReportEntry object = new ProbativeReportEntry(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
+        ProbativeReportEntry object = ProbativeReportEntry.koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
         handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
@@ -122,7 +122,7 @@ public class ProbativeCreateReportTest {
         String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
 
         PreservationRequest request = new PreservationRequest();
-        ProbativeReportEntry object = new ProbativeReportEntry(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
+        ProbativeReportEntry object = ProbativeReportEntry.koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
         handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
@@ -149,7 +149,7 @@ public class ProbativeCreateReportTest {
         String probativeEntryIdInDistributionFile = "BATMAN_GOT_ID";
 
         PreservationRequest request = new PreservationRequest();
-        ProbativeReportEntry object = new ProbativeReportEntry(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
+        ProbativeReportEntry object = ProbativeReportEntry.koFrom(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()), Collections.singletonList("unitId"), "groupId", "objectId", "usageVersion");
 
         TestHandlerIO handler = new TestHandlerIO();
         handler.transferFileToWorkspace("request", pojoToFile(request), false, false);
