@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 public class MultiplexedStreamObjectInfoListenerThreadTest {
 
@@ -39,7 +42,7 @@ public class MultiplexedStreamObjectInfoListenerThreadTest {
             multiplexedStreamWriter.appendEntry(entry.length, new ByteArrayInputStream(entry));
         }
         multiplexedStreamWriter.appendEndOfFile();
-        InputStream multiplexedInputStream = multiplexedByteArrayOutputStream.toInputStream();
+        InputStream multiplexedInputStream = spy(multiplexedByteArrayOutputStream.toInputStream());
 
         // When
         MultiplexedStreamObjectInfoListenerThread multiplexedStreamObjectInfoListenerThread =
@@ -58,6 +61,7 @@ public class MultiplexedStreamObjectInfoListenerThreadTest {
             digest.update(entries[i]);
             assertThat(objectInfo.getDigest()).isEqualTo(digest.digestHex());
         }
-    }
 
+        verify(multiplexedInputStream, atLeastOnce()).close();
+    }
 }
