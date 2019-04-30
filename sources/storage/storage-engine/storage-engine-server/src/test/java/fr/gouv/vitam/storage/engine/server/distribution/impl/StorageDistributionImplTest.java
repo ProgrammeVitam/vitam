@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -70,6 +71,7 @@ import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.NullInputStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -353,6 +355,32 @@ public class StorageDistributionImplTest {
             IOUtils.closeQuietly(stream);
             IOUtils.closeQuietly(stream2);
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testStoreData_TestDeadlockOfferFailureTransferThreadShutdown() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        // Offer 1 ok, offer 2 will fail
+        final String objectId = "fail-offer-default2";
+        final ObjectDescription createObjectDescription = new ObjectDescription();
+        createObjectDescription.setWorkspaceContainerGUID("container1" + this);
+        createObjectDescription.setWorkspaceObjectURI("SIP/content/test.pdf");
+
+        reset(workspaceClient);
+
+        // Long enough to be blocking in MultiplePipedInputStream
+        long longFileSize = 10_000_000L;
+
+        when(workspaceClient.getObject("container1" + this, "SIP/content/test.pdf"))
+            .thenAnswer((args) -> Response.status(Status.OK).entity(new NullInputStream(longFileSize))
+                .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), longFileSize).build());
+
+        // When / Then
+        assertThatThrownBy( () ->
+            customDistribution
+                .storeDataInAllOffers(STRATEGY_ID, objectId, createObjectDescription, DataCategory.OBJECT, "testRequester")
+        ).isInstanceOf(StorageTechnicalException.class);
     }
 
     @Test(expected = StorageTechnicalException.class)

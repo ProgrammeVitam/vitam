@@ -6,6 +6,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.storage.driver.Connection;
 import fr.gouv.vitam.storage.driver.Driver;
+import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -18,8 +19,10 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -62,6 +65,55 @@ public class MultiplexedStreamTransferThreadTest {
         assertThat(storageBulkPutResult).isSameAs(result);
 
         verify(connection).close();
+        verify(is).close();
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testTransferThreadWithErrorDuringConnection() throws Exception {
+
+        // Given
+        InputStream is = mock(InputStream.class);
+        Driver driver = mock(Driver.class);
+        StorageOffer storageOffer = mock(StorageOffer.class);
+        doReturn("OfferId").when(storageOffer).getId();
+
+        Exception ex = mock(StorageDriverException.class);
+        doThrow(ex).when(driver).connect("OfferId");
+
+        MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
+            2, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512);
+
+        // When / When
+        assertThatThrownBy(multiplexedStreamTransferThread::call)
+            .isEqualTo(ex);
+
+        verify(is).close();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testTransferThreadWithErrorDuringTransfer() throws Exception {
+
+        // Given
+        InputStream is = mock(InputStream.class);
+        Driver driver = mock(Driver.class);
+        StorageOffer storageOffer = mock(StorageOffer.class);
+        Connection connection = mock(Connection.class);
+        doReturn("OfferId").when(storageOffer).getId();
+        doReturn(connection).when(driver).connect("OfferId");
+
+        Exception ex = mock(StorageDriverException.class);
+        doThrow(ex).when(connection).bulkPutObjects(any(StorageBulkPutRequest.class));
+
+        MultiplexedStreamTransferThread multiplexedStreamTransferThread = new MultiplexedStreamTransferThread(
+            2, DataCategory.UNIT, Arrays.asList("ob1", "ob2"), is, 100L, driver, storageOffer, DigestType.SHA512);
+
+        // When / When
+        assertThatThrownBy(multiplexedStreamTransferThread::call)
+            .isEqualTo(ex);
+
+        verify(connection).close();
+        verify(is).close();
+    }
 }

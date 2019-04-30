@@ -5,6 +5,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.stream.MultiplexedStreamWriter;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -24,11 +25,14 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -37,7 +41,9 @@ import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +67,9 @@ public class BulkPutTransferManagerTest {
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder folder = new TemporaryFolder();
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -422,6 +431,62 @@ public class BulkPutTransferManagerTest {
         assertThat(bulkPutResult.getObjectInfos().get(2).getObjectId()).isEqualTo("obj3");
         assertThat(bulkPutResult.getObjectInfos().get(0).getDigest()).isEqualTo(getFileDigest(file1));
         assertThat(bulkPutResult.getObjectInfos().get(0).getSize()).isEqualTo(file1.length());
+        assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
+            "offer1", OfferBulkPutStatus.OK,
+            "offer2", OfferBulkPutStatus.KO
+        ));
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void bulkSendDataToOfferTestDeadlockOfferFailureTransferThreadShutdown() throws Exception {
+
+        // Given
+        List<String> offerIds = Arrays.asList("offer1", "offer2");
+
+        Map<String, StorageOffer> storageOfferMap = ImmutableMap.of(
+            "offer1", mock(StorageOffer.class),
+            "offer2", mock(StorageOffer.class));
+
+        Map<String, Driver> driverMap = ImmutableMap.of(
+            "offer1", driver1,
+            "offer2", driver2);
+
+        List<String> workspaceObjectURIs = Arrays.asList("uri1");
+        List<String> objectIds = Arrays.asList("obj1");
+
+        // Long enough to be blocking in MultiplePipedInputStream
+        long longFileSize = 10_000_000L;
+        File veryLargeFile = folder.newFile(GUIDFactory.newGUID().toString());
+        Digest digest = new Digest(DigestType.SHA512);
+        try(OutputStream os = new FileOutputStream(veryLargeFile)) {
+            MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(os);
+
+            NullInputStream bigFileInputStream = new NullInputStream(longFileSize);
+            multiplexedStreamWriter.appendEntry(longFileSize, digest.getDigestInputStream(bigFileInputStream));
+            multiplexedStreamWriter.appendEndOfFile();
+        }
+
+        doReturn(Response.ok(new FileInputStream(veryLargeFile))
+            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), veryLargeFile.length()).build())
+            .when(workspaceClient).bulkGetObjects(WORKSPACE_CONTAINER, workspaceObjectURIs);
+
+        StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(Arrays.asList(
+            new StorageBulkPutResultEntry("obj1", digest.digestHex(), longFileSize)
+        ));
+        doReturn(storageBulkPutResult).when(connection1).bulkPutObjects(any());
+
+        doThrow(new StorageDriverException("driver", "ko", true)).when(connection2).bulkPutObjects(any());
+
+        // When / Then
+        BulkPutResult bulkPutResult = bulkPutTransferManager.bulkSendDataToOffers(WORKSPACE_CONTAINER, TENANT_ID,
+            DATA_CATEGORY, offerIds, driverMap, storageOfferMap, workspaceObjectURIs, objectIds);
+
+        // Then
+        assertThat(bulkPutResult.getObjectInfos()).hasSize(1);
+        assertThat(bulkPutResult.getObjectInfos().get(0).getObjectId()).isEqualTo("obj1");
+        assertThat(bulkPutResult.getObjectInfos().get(0).getDigest()).isEqualTo(digest.digestHex());
+        assertThat(bulkPutResult.getObjectInfos().get(0).getSize()).isEqualTo(longFileSize);
         assertThat(bulkPutResult.getStatusByOfferIds()).isEqualTo(ImmutableMap.of(
             "offer1", OfferBulkPutStatus.OK,
             "offer2", OfferBulkPutStatus.KO

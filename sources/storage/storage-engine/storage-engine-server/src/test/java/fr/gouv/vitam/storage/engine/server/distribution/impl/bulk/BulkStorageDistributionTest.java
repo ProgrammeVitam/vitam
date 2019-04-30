@@ -86,9 +86,6 @@ public class BulkStorageDistributionTest {
         List<String> objectNames = Arrays.asList("obj1", "obj2", "obj3");
         List<String> offerIds = Arrays.asList("offer1", "offer2");
 
-        BulkStorageDistribution instance = new BulkStorageDistribution(
-            3, storageLogService, DIGEST_TYPE, bulkPutTransferManager);
-
         List<ObjectInfo> objectInfos = Arrays.asList(
             new ObjectInfo("obj1", "digest1", 1L),
             new ObjectInfo("obj2", "digest2", 2L),
@@ -123,9 +120,6 @@ public class BulkStorageDistributionTest {
         List<String> workspaceUris = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectNames = Arrays.asList("obj1", "obj2", "obj3");
         List<String> offerIds = Arrays.asList("offer1", "offer2");
-
-        BulkStorageDistribution instance = new BulkStorageDistribution(
-            3, storageLogService, DIGEST_TYPE, bulkPutTransferManager);
 
         List<ObjectInfo> objectInfos = Arrays.asList(
             new ObjectInfo("obj1", "digest1", 1L),
@@ -168,9 +162,6 @@ public class BulkStorageDistributionTest {
         List<String> workspaceUris = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectNames = Arrays.asList("obj1", "obj2", "obj3");
         List<String> offerIds = Arrays.asList("offer1", "offer2");
-
-        BulkStorageDistribution instance = new BulkStorageDistribution(
-            3, storageLogService, DIGEST_TYPE, bulkPutTransferManager);
 
         List<ObjectInfo> objectInfos = Arrays.asList(
             new ObjectInfo("obj1", "digest1", 1L),
@@ -216,9 +207,6 @@ public class BulkStorageDistributionTest {
         List<String> workspaceUris = Arrays.asList("uri1", "uri2", "uri3");
         List<String> objectNames = Arrays.asList("obj1", "obj2", "obj3");
         List<String> offerIds = Arrays.asList("offer1", "offer2");
-
-        BulkStorageDistribution instance = new BulkStorageDistribution(
-            3, storageLogService, DIGEST_TYPE, bulkPutTransferManager);
 
         List<ObjectInfo> objectInfos = Arrays.asList(
             new ObjectInfo("obj1", "digest1", 1L),
