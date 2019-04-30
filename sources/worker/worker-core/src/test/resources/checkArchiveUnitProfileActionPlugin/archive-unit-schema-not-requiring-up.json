@@ -1,0 +1,2269 @@
+{
+  "$schema": "http:\/\/vitam-json-schema.org\/draft-04\/schema#",
+  "id": "http:\/\/example.com\/root.json",
+  "type": "object",
+  "additionalProperties": false,
+  "anyOf": [
+    {
+      "required": [
+        "Management",
+        "DescriptionLevel",
+        "Title"
+      ]
+    },
+    {
+      "required": [
+        "Management",
+        "DescriptionLevel",
+        "Title_"
+      ]
+    }
+  ],
+  "properties": {
+    "ArchiveUnitProfile" : {
+      "type" : "string"
+    },
+    "_up": {
+      "type": "array",
+      "minItems": 1
+    },
+    "_id": {
+      "type": "string"
+    },
+    "_og": {
+      "type": "string"
+    },
+    "Management": {
+      "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management",
+      "additionalProperties": true,
+      "properties": {
+        "AccessRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "Inheritance": {
+              "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Inheritance",
+              "type": "object",
+              "properties": {
+                "PreventInheritance": {
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Inheritance/PreventInheritance",
+                  "description": "An explanation about the purpose of this instance.",
+                  "title": "The PreventInheritance schema.",
+                  "type": [
+                    "string",
+                    "boolean"
+                  ]
+                },
+                "PreventRulesId": {
+                  "type": "array",
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/AccessRule/Inheritance/PreventRulesId",
+                  "items": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The PreventRulesId 0 schema.",
+                    "type": "string"
+                  }
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "PreventInheritance"
+                  ]
+                },
+                {
+                  "required": [
+                    "PreventRulesId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "AppraisalRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "FinalAction": {
+              "enum": [
+                "Keep",
+                "Destroy"
+              ]
+            },
+            "Inheritance": {
+              "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Inheritance",
+              "type": "object",
+              "properties": {
+                "PreventInheritance": {
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Inheritance/PreventInheritance",
+                  "description": "An explanation about the purpose of this instance.",
+                  "title": "The PreventInheritance schema.",
+                  "type": [
+                    "string",
+                    "boolean"
+                  ]
+                },
+                "PreventRulesId": {
+                  "type": "array",
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/AppraisalRule/Inheritance/PreventRulesId",
+                  "items": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The PreventRulesId 0 schema.",
+                    "type": "string"
+                  }
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "PreventInheritance"
+                  ]
+                },
+                {
+                  "required": [
+                    "PreventRulesId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "ArchiveUnit": {
+          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/ArchiveUnit",
+          "properties": {
+            "ArchiveUnitRefId": {
+              "description": "An explanation about the purpose of this instance.",
+              "title": "The Archiveunitrefid schema.",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "ClassificationRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "ClassificationLevel": {
+                    "type": "string"
+                  },
+                  "ClassificationOwner": {
+                    "type": "string"
+                  },
+                  "ClassificationReassessingDate": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                      },
+                      {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    ]
+                  },
+                  "NeedReassessingAuthorization": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            },
+            "Inheritance": {
+              "id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Inheritance",
+              "type": "object",
+              "properties": {
+                "PreventInheritance": {
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Inheritance/PreventInheritance",
+                  "description": "An explanation about the purpose of this instance.",
+                  "title": "The PreventInheritance schema.",
+                  "type": [
+                    "string",
+                    "boolean"
+                  ]
+                },
+                "PreventRulesId": {
+                  "type": "array",
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/ClassificationRule/Inheritance/PreventRulesId",
+                  "items": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The PreventRulesId 0 schema.",
+                    "type": "string"
+                  }
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "PreventInheritance"
+                  ]
+                },
+                {
+                  "required": [
+                    "PreventRulesId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "DisseminationRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "Inheritance": {
+              "id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Inheritance",
+              "type": "object",
+              "properties": {
+                "PreventInheritance": {
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Inheritance/PreventInheritance",
+                  "description": "An explanation about the purpose of this instance.",
+                  "title": "The PreventInheritance schema.",
+                  "type": [
+                    "string",
+                    "boolean"
+                  ]
+                },
+                "PreventRulesId": {
+                  "type": "array",
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/DisseminationRule/Inheritance/PreventRulesId",
+                  "items": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The PreventRulesId 0 schema.",
+                    "type": "string"
+                  }
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "PreventInheritance"
+                  ]
+                },
+                {
+                  "required": [
+                    "PreventRulesId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "NeedAuthorization": {
+          "description": "An explanation about the purpose of this instance.",
+          "title": "The Needauthorization schema.",
+          "type": "boolean"
+        },
+        "ReuseRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "Inheritance": {
+              "id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Inheritance",
+              "type": "object",
+              "properties": {
+                "PreventInheritance": {
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Inheritance/PreventInheritance",
+                  "description": "An explanation about the purpose of this instance.",
+                  "title": "The PreventInheritance schema.",
+                  "type": [
+                    "string",
+                    "boolean"
+                  ]
+                },
+                "PreventRulesId": {
+                  "type": "array",
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/ReuseRule/Inheritance/PreventRulesId",
+                  "items": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The PreventRulesId 0 schema.",
+                    "type": "string"
+                  }
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "PreventInheritance"
+                  ]
+                },
+                {
+                  "required": [
+                    "PreventRulesId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "StorageRule": {
+          "type": "object",
+          "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule",
+          "properties": {
+            "Rules": {
+              "type": "array",
+              "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules",
+              "description": "An explanation about the purpose of this instance.",
+              "items": {
+                "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Rules/Item/0",
+                "type": "object",
+                "properties": {
+                  "Rule": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The Rule schema.",
+                    "type": "string"
+                  },
+                  "StartDate": {
+                    "title": "The Startdate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-8]{1}[0-9]{3}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  },
+                  "EndDate": {
+                    "title": "The Enddate schema.",
+                    "description": "pattern: Date",
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "FinalAction": {
+              "enum": [
+                "RestrictAccess",
+                "Transfer",
+                "Copy"
+              ]
+            },
+            "Inheritance": {
+              "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Inheritance",
+              "type": "object",
+              "properties": {
+                "PreventInheritance": {
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Inheritance/PreventInheritance",
+                  "description": "An explanation about the purpose of this instance.",
+                  "title": "The PreventInheritance schema.",
+                  "type": [
+                    "string",
+                    "boolean"
+                  ]
+                },
+                "PreventRulesId": {
+                  "type": "array",
+                  "id": "http://example.com/root.json/ArchiveUnit/Management/StorageRule/Inheritance/PreventRulesId",
+                  "items": {
+                    "description": "NonEmptyTokenType + FIXME: attribute (xsd:ID)",
+                    "title": "The PreventRulesId 0 schema.",
+                    "type": "string"
+                  }
+                }
+              },
+              "anyOf": [
+                {
+                  "required": [
+                    "PreventInheritance"
+                  ]
+                },
+                {
+                  "required": [
+                    "PreventRulesId"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "UpdateOperation": {
+          "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/UpdateOperation",
+          "properties": {
+            "SystemId": {
+              "description": "An explanation about the purpose of this instance.",
+              "title": "The Systemid schema.",
+              "type": "string"
+            },
+            "ToDelete": {
+              "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/UpdateOperation\/ToDelete",
+              "properties": {
+                "ArchiveUnitRefId": {
+                  "id": "http:\/\/example.com\/root.json\/ArchiveUnit\/Management\/UpdateOperation\/ToDelete\/ArchiveUnitRefId",
+                  "items": {
+                    "description": "An explanation about the purpose of this instance.",
+                    "title": "The 0 schema.",
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                "FullUpdate": {
+                  "description": "An explanation about the purpose of this instance.",
+                  "title": "The Fullupdate schema.",
+                  "type": "boolean"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "DescriptionLevel": {
+      "type": "string",
+      "enum": [
+        "Fonds",
+        "Subfonds",
+        "Class",
+        "Collection",
+        "Series",
+        "Subseries",
+        "RecordGrp",
+        "SubGrp",
+        "File",
+        "Item"
+      ]
+    },
+    "Title": {
+      "description": "All TitleGroup",
+      "type": [
+        "string",
+        "array",
+        "number"
+      ],
+      "minLength": 1,
+      "minItems": 1
+    },
+    "FilePlanPosition": {
+      "description": "Start of IdentifierGroup",
+      "type": "string"
+    },
+    "SystemId": {
+      "description": "Part of IdentifierGroup",
+      "type": "string"
+    },
+    "OriginatingSystemId": {
+      "description": "Part of IdentifierGroup",
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "ArchivalAgencyArchiveUnitIdentifier": {
+      "description": "Part of IdentifierGroup",
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "OriginatingAgencyArchiveUnitIdentifier": {
+      "description": "Part of IdentifierGroup",
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "TransferringAgencyArchiveUnitIdentifier": {
+      "description": "End of IdentifierGroup",
+      "type": [
+        "string",
+        "number"
+      ]
+    },
+    "Description": {
+      "description": "All of DescriptionGroup",
+      "type": [
+        "null",
+        "string",
+        "array"
+      ]
+    },
+    "CustodialHistory": {
+      "description": "All of CustodialHistoryGroup",
+      "type": "object",
+      "properties": {
+        "CustodialHistoryItem": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "CustodialHistoryFile": {
+          "type": "object",
+          "properties": {
+            "DataObjectReferenceId": {
+              "description": "xsd:IDREF",
+              "type": "string"
+            },
+            "DataObjectGroupReferenceId": {
+              "description": "xsd:IDREF",
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "CustodialHistoryItem"
+      ]
+    },
+    "Type": {
+      "description": "All of TypeGroup",
+      "type": [
+        "string",
+        "object"
+      ]
+    },
+    "DocumentType": {
+      "description": "All of DocumentTypeGroup",
+      "type": "string"
+    },
+    "Language": {
+      "description": "Start of LanguageGroup",
+      "type": "string"
+    },
+    "DescriptionLanguage": {
+      "description": "End of LanguageGroup",
+      "type": "string"
+    },
+    "Status": {
+      "description": "All of StatusGroup",
+      "type": "string"
+    },
+    "Version": {
+      "description": "All of VersionGroup",
+      "type": "string"
+    },
+    "Tag": {
+      "description": "Start of KeywordsGroup",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "Keyword": {
+      "description": "End of KeywordsGroup",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "KeywordContent": {
+            "type": "string"
+          },
+          "KeywordReference": {
+            "type": "string"
+          },
+          "KeywordType": {
+            "description": "How TODO ? listVersionID (attribute) + String: [@listVersionID + $, Only string]?",
+            "enum": [
+              "corpname",
+              "famname",
+              "geogname",
+              "name",
+              "occupation",
+              "persname",
+              "subject",
+              "genreform",
+              "function"
+            ]
+          }
+        }
+      }
+    },
+    "Coverage": {
+      "type": "object",
+      "properties": {
+        "Spatial": {
+          "type": [
+            "string",
+            "array",
+            "number"
+          ]
+        },
+        "Temporal": {
+          "type": [
+            "string",
+            "array",
+            "number"
+          ]
+        },
+        "Juridictional": {
+          "type": [
+            "string",
+            "array",
+            "number"
+          ]
+        }
+      }
+    },
+    "OriginatingAgency": {
+      "description": "All of OriginatingAgencyGroup",
+      "properties": {
+        "Identifier": {
+          "type": "string"
+        },
+        "OrganizationDescriptiveMetadata": {
+          "additionalProperties": true,
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "SubmissionAgency": {
+      "description": "All of SubmissionAgencyGroup",
+      "properties": {
+        "Identifier": {
+          "type": "string"
+        },
+        "OrganizationDescriptiveMetadata": {
+          "additionalProperties": true,
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "AuthorizedAgent": {
+      "description": "All of AuthorizedAgentGroup",
+      "type": "object",
+      "properties": {
+        "FirstName": {
+          "type": "string"
+        },
+        "BirthName": {
+          "type": "string"
+        },
+        "GivenName": {
+          "type": "string"
+        },
+        "Gender": {
+          "type": "string"
+        },
+        "BirthDate": {
+          "description": "pattern: Date",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ]
+        },
+        "BirthPlace": {
+          "description": "LocationGroup",
+          "type": "object",
+          "properties": {
+            "Geogname": {
+              "type": "string"
+            },
+            "Address": {
+              "type": "string"
+            },
+            "PostalCode": {
+              "type": "string"
+            },
+            "City": {
+              "type": "string"
+            },
+            "Region": {
+              "type": "string"
+            },
+            "Country": {
+              "type": "string"
+            }
+          }
+        },
+        "DeathDate": {
+          "description": "pattern: Date",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            {
+              "type": "string",
+              "format": "date-time"
+            }
+          ]
+        },
+        "DeathPlace": {
+          "description": "LocationGroup",
+          "type": "object",
+          "properties": {
+            "Geogname": {
+              "type": "string"
+            },
+            "Address": {
+              "type": "string"
+            },
+            "PostalCode": {
+              "type": "string"
+            },
+            "City": {
+              "type": "string"
+            },
+            "Region": {
+              "type": "string"
+            },
+            "Country": {
+              "type": "string"
+            }
+          }
+        },
+        "Nationality": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "Identifier": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "Corpname": {
+          "type": "string"
+        }
+      },
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "required": [
+                "FirstName"
+              ]
+            },
+            {
+              "required": [
+                "BirthName"
+              ]
+            },
+            {
+              "required": [
+                "GivenName"
+              ]
+            },
+            {
+              "required": [
+                "Gender"
+              ]
+            },
+            {
+              "required": [
+                "BirthDate"
+              ]
+            },
+            {
+              "required": [
+                "DeathDate"
+              ]
+            },
+            {
+              "required": [
+                "DeathPlace"
+              ]
+            },
+            {
+              "required": [
+                "Nationality"
+              ]
+            }
+          ]
+        },
+        {
+          "anyOf": [
+            {
+              "required": [
+                "Corpname"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "Writer": {
+      "type": [
+        "array",
+        "object"
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "GivenName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Gender": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}[Z]?$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "BirthPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "DeathDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}[Z]?$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "DeathPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "Nationality": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Function": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Activity": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Position": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "Role": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "Addressee": {
+      "description": "All of AddresseeGroup (AudienceGroup)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "GivenName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Gender": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "BirthPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "DeathDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "DeathPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "Nationality": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "string"
+            ]
+          },
+          "Corpname": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "FirstName"
+                ]
+              },
+              {
+                "required": [
+                  "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "GivenName"
+                ]
+              },
+              {
+                "required": [
+                  "Gender"
+                ]
+              },
+              {
+                "required": [
+                  "BirthDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathPlace"
+                ]
+              },
+              {
+                "required": [
+                  "Nationality"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "Corpname"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Recipient": {
+      "description": "All of RecipientGroup (AudienceGroup)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "FirstName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "GivenName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "Gender": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "BirthDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "BirthPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "DeathDate": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              }
+            ]
+          },
+          "DeathPlace": {
+            "description": "LocationGroup",
+            "type": "object",
+            "properties": {
+              "Geogname": {
+                "type": "string"
+              },
+              "Address": {
+                "type": "string"
+              },
+              "PostalCode": {
+                "type": "string"
+              },
+              "City": {
+                "type": "string"
+              },
+              "Region": {
+                "type": "string"
+              },
+              "Country": {
+                "type": "string"
+              }
+            }
+          },
+          "Nationality": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "Identifier": {
+            "items": {
+              "type": "string"
+            },
+            "type": [
+              "array",
+              "string"
+            ]
+          },
+          "Corpname": {
+            "type": "string"
+          }
+        },
+        "anyOf": [
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "FirstName"
+                ]
+              },
+              {
+                "required": [
+                  "BirthName"
+                ]
+              },
+              {
+                "required": [
+                  "GivenName"
+                ]
+              },
+              {
+                "required": [
+                  "Gender"
+                ]
+              },
+              {
+                "required": [
+                  "BirthDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathDate"
+                ]
+              },
+              {
+                "required": [
+                  "DeathPlace"
+                ]
+              },
+              {
+                "required": [
+                  "Nationality"
+                ]
+              }
+            ]
+          },
+          {
+            "anyOf": [
+              {
+                "required": [
+                  "Corpname"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Source": {
+      "description": "All of SourceGroup",
+      "type": "string"
+    },
+    "RelatedObjectReference": {
+      "description": "All of RelationGroup",
+      "type": "object",
+      "properties": {
+        "IsVersionOf": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ArchiveUnitRefId": {
+                "description": "TYPE: xsd:IDREF",
+                "type": "string"
+              },
+              "DataObjectReference": {
+                "type": "object",
+                "properties": {
+                  "DataObjectReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  },
+                  "DataObjectGroupReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  }
+                }
+              },
+              "RepositoryArchiveUnitPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              },
+              "RepositoryObjectPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "Replaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ArchiveUnitRefId": {
+                "description": "TYPE: xsd:IDREF",
+                "type": "string"
+              },
+              "DataObjectReference": {
+                "type": "object",
+                "properties": {
+                  "DataObjectReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  },
+                  "DataObjectGroupReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  }
+                }
+              },
+              "RepositoryArchiveUnitPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              },
+              "RepositoryObjectPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "Requires": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ArchiveUnitRefId": {
+                "description": "TYPE: xsd:IDREF",
+                "type": "string"
+              },
+              "DataObjectReference": {
+                "type": "object",
+                "properties": {
+                  "DataObjectReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  },
+                  "DataObjectGroupReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  }
+                }
+              },
+              "RepositoryArchiveUnitPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              },
+              "RepositoryObjectPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "IsPartOf": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ArchiveUnitRefId": {
+                "description": "TYPE: xsd:IDREF",
+                "type": "string"
+              },
+              "DataObjectReference": {
+                "type": "object",
+                "properties": {
+                  "DataObjectReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  },
+                  "DataObjectGroupReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  }
+                }
+              },
+              "RepositoryArchiveUnitPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              },
+              "RepositoryObjectPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "References": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "ArchiveUnitRefId": {
+                "description": "TYPE: xsd:IDREF",
+                "type": "string"
+              },
+              "DataObjectReference": {
+                "type": "object",
+                "properties": {
+                  "DataObjectReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  },
+                  "DataObjectGroupReferenceId": {
+                    "description": "TYPE: xsd:IDREF",
+                    "type": "string"
+                  }
+                }
+              },
+              "RepositoryArchiveUnitPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              },
+              "RepositoryObjectPID": {
+                "description": "NonEmptyTokenType",
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "CreatedDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "TransactedDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "AcquiredDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "SentDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "ReceivedDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "RegisteredDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "StartDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "EndDate": {
+      "description": "pattern: Date",
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        {
+          "type": "string",
+          "format": "date-time"
+        },
+        {
+          "type": "string",
+          "format": "date-time-vitam"
+        }
+      ]
+    },
+    "Event": {
+      "type": [
+        "array",
+        "object"
+      ],
+      "items": {
+        "type": "object",
+        "properties": {
+          "EventIdentifier": {
+            "description": "NonEmptyTokenType",
+            "type": "string"
+          },
+          "EventType": {
+            "description": "NonEmptyTokenType",
+            "type": "string"
+          },
+          "EventDateTime": {
+            "description": "pattern: Date",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "string",
+                "format": "date-time-vitam"
+              }
+            ]
+          },
+          "EventDetail": {
+            "description": "TextType",
+            "type": "string"
+          }
+        }
+      }
+    },
+    "Signature": {
+      "type": "object",
+      "properties": {
+        "DateSignature": {
+          "description": "pattern: Date",
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+            }
+          ]
+        },
+        "Signer": {
+          "type": "object",
+          "properties": {
+            "FirstName": {
+              "type": "string"
+            },
+            "BirthName": {
+              "type": "string"
+            },
+            "GivenName": {
+              "type": "string"
+            },
+            "Gender": {
+              "type": "string"
+            },
+            "BirthDate": {
+              "description": "pattern: Date",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                },
+                {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              ]
+            },
+            "BirthPlace": {
+              "description": "LocationGroup",
+              "type": "object",
+              "properties": {
+                "Geogname": {
+                  "type": "string"
+                },
+                "Address": {
+                  "type": "string"
+                },
+                "PostalCode": {
+                  "type": "string"
+                },
+                "City": {
+                  "type": "string"
+                },
+                "Region": {
+                  "type": "string"
+                },
+                "Country": {
+                  "type": "string"
+                }
+              }
+            },
+            "DeathDate": {
+              "description": "pattern: Date",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                },
+                {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              ]
+            },
+            "DeathPlace": {
+              "description": "LocationGroup",
+              "type": "object",
+              "properties": {
+                "Geogname": {
+                  "type": "string"
+                },
+                "Address": {
+                  "type": "string"
+                },
+                "PostalCode": {
+                  "type": "string"
+                },
+                "City": {
+                  "type": "string"
+                },
+                "Region": {
+                  "type": "string"
+                },
+                "Country": {
+                  "type": "string"
+                }
+              }
+            },
+            "Nationality": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "Identifier": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "Corpname": {
+              "type": "string"
+            },
+            "SigningTime": {
+              "description": "pattern: Date",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                }
+              ]
+            },
+            "Function": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "Activity": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "Position": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "Role": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "required": [
+                    "FirstName"
+                  ]
+                },
+                {
+                  "required": [
+                    "BirthName"
+                  ]
+                },
+                {
+                  "required": [
+                    "GivenName"
+                  ]
+                },
+                {
+                  "required": [
+                    "Gender"
+                  ]
+                },
+                {
+                  "required": [
+                    "BirthDate"
+                  ]
+                },
+                {
+                  "required": [
+                    "DeathDate"
+                  ]
+                },
+                {
+                  "required": [
+                    "DeathPlace"
+                  ]
+                },
+                {
+                  "required": [
+                    "Nationality"
+                  ]
+                }
+              ]
+            },
+            {
+              "anyOf": [
+                {
+                  "required": [
+                    "Corpname"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Validator": {
+          "type": "object",
+          "properties": {
+            "FirstName": {
+              "type": "string"
+            },
+            "BirthName": {
+              "type": "string"
+            },
+            "GivenName": {
+              "type": "string"
+            },
+            "Gender": {
+              "type": "string"
+            },
+            "BirthDate": {
+              "description": "pattern: Date",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                },
+                {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              ]
+            },
+            "BirthPlace": {
+              "description": "LocationGroup",
+              "type": "object",
+              "properties": {
+                "Geogname": {
+                  "type": "string"
+                },
+                "Address": {
+                  "type": "string"
+                },
+                "PostalCode": {
+                  "type": "string"
+                },
+                "City": {
+                  "type": "string"
+                },
+                "Region": {
+                  "type": "string"
+                },
+                "Country": {
+                  "type": "string"
+                }
+              }
+            },
+            "DeathDate": {
+              "description": "pattern: Date",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                },
+                {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              ]
+            },
+            "DeathPlace": {
+              "description": "LocationGroup",
+              "type": "object",
+              "properties": {
+                "Geogname": {
+                  "type": "string"
+                },
+                "Address": {
+                  "type": "string"
+                },
+                "PostalCode": {
+                  "type": "string"
+                },
+                "City": {
+                  "type": "string"
+                },
+                "Region": {
+                  "type": "string"
+                },
+                "Country": {
+                  "type": "string"
+                }
+              }
+            },
+            "Nationality": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "Identifier": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "Corpname": {
+              "type": "string"
+            },
+            "ValidationTime": {
+              "description": "pattern: Date",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}"
+                }
+              ]
+            },
+            "Function": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "Activity": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "Position": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "Role": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "anyOf": [
+            {
+              "anyOf": [
+                {
+                  "required": [
+                    "FirstName"
+                  ]
+                },
+                {
+                  "required": [
+                    "BirthName"
+                  ]
+                },
+                {
+                  "required": [
+                    "GivenName"
+                  ]
+                },
+                {
+                  "required": [
+                    "Gender"
+                  ]
+                },
+                {
+                  "required": [
+                    "BirthDate"
+                  ]
+                },
+                {
+                  "required": [
+                    "DeathDate"
+                  ]
+                },
+                {
+                  "required": [
+                    "DeathPlace"
+                  ]
+                },
+                {
+                  "required": [
+                    "Nationality"
+                  ]
+                }
+              ]
+            },
+            {
+              "anyOf": [
+                {
+                  "required": [
+                    "Corpname"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Masterdata": {
+          "description": "Type: CodeType (NonEmptyTokenType + FIXME: some attributes, How to do)",
+          "type": "string"
+        },
+        "ReferencedObject": {
+          "type": "object",
+          "properties": {
+            "SignedObjectId": {
+              "description": "xsd:IDREF",
+              "type": "string"
+            },
+            "SignedObjectDigest": {
+              "description": "String type: (FIXME: Check xsd:base64Binary OR xsd:hexBinary, can specify Format for those ?) \/ + FIXME: Attributes (How to do)",
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "Gps": {
+      "type": "object",
+      "properties": {
+        "GpsVersionID": {
+          "type": "string"
+        },
+        "GpsAltitude": {
+          "type": "integer"
+        },
+        "GpsAltitudeRef": {
+          "type": "string"
+        },
+        "GpsLatitude": {
+          "type": "string"
+        },
+        "GpsLatitudeRef": {
+          "type": "string"
+        },
+        "GpsLongitude": {
+          "type": "string"
+        },
+        "GpsLongitudeRef": {
+          "type": "string"
+        },
+        "GpsDateStamp": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
