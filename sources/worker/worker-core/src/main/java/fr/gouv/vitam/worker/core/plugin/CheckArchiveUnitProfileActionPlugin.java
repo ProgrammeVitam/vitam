@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
@@ -59,9 +60,11 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Instant;
 
 import static fr.gouv.vitam.common.SedaConstants.EV_DET_TECH_DATA;
 import static fr.gouv.vitam.common.SedaConstants.PREFIX_ID;
+import static fr.gouv.vitam.common.SedaConstants.PREFIX_WORK;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_UNIT;
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_UNIT_PROFILE;
 import static fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum.NOT_AU_JSON_VALID;
@@ -74,6 +77,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus.INACTIVE;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDetailData;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.UP;
 import static fr.gouv.vitam.worker.core.plugin.CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.EMPTY_CONTROL_SCHEMA;
 import static fr.gouv.vitam.worker.core.plugin.CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INACTIVE_STATUS;
 import static fr.gouv.vitam.worker.core.plugin.CheckArchiveUnitProfileActionPlugin.CheckArchiveUnitProfileSchemaStatus.INVALID_UNIT;
@@ -115,7 +119,6 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
         checkMandatoryParameters(params);
-
         final String objectName = params.getObjectName();
         final ItemStatus itemStatus = new ItemStatus(CHECK_UNIT_PROFILE_TASK_ID);
         ObjectNode infoNode = JsonHandler.createObjectNode();
@@ -138,16 +141,20 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             }
 
             final File file = (File) handlerIO.getInput(GUID_MAP_RANK);
+            String archiveUnitTagId = archiveUnitTag.get(PREFIX_ID).asText();
             if (file != null) {
                 JsonNode fromFile = JsonHandler.getFromFile(file);
-                unitId = fromFile.path(archiveUnitTag.get(PREFIX_ID).asText()).asText();
+                unitId = fromFile.path(archiveUnitTagId).asText();
             }
 
             archiveUnitProfileIdentifier = archiveUnitTag.get(TAG_ARCHIVE_UNIT_PROFILE).asText();
 
+            PerformanceLogger.getInstance().log(CHECK_UNIT_PROFILE_TASK_ID, "Validation of archive against AUP.", Instant.now().toEpochMilli());
+            LOGGER.info("START - Validation of archive unit {} on {} - Time: {}", archiveUnitTagId, archiveUnitProfileIdentifier, Instant.now().toEpochMilli());
             SchemaValidationStatus schemaStatus = checkAUAgainstAUProfileSchema(
                 itemStatus, infoNode, archiveUnit, archiveUnitProfileIdentifier
             );
+            PerformanceLogger.getInstance().log(CHECK_UNIT_PROFILE_TASK_ID, "Validation of archive against AUP.", Instant.now().toEpochMilli());
 
             if (VALID.equals(schemaStatus.getValidationStatus())) {
                 String evdev = JsonHandler.unprettyPrint(infoNode);
@@ -223,7 +230,7 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
             select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
             RequestResponse<ArchiveUnitProfileModel> response =
                 adminClient.findArchiveUnitProfiles(select.getFinalSelect());
-            ArchiveUnitProfileModel archiveUnitProfile = null;
+            ArchiveUnitProfileModel archiveUnitProfile;
             if (response.isOk() && ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().size() > 0) {
 
                 archiveUnitProfile = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().get(0);
@@ -239,11 +246,15 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
                     itemStatus.setGlobalOutcomeDetailSubcode(
                         CheckArchiveUnitSchemaActionPlugin.CheckUnitSchemaStatus.INVALID_UNIT.toString());
                     final String err = "Sanity Checker failed for Archive Unit: " + e.getMessage();
-                    LOGGER.error(err);
                     throw new ArchiveUnitContainSpecialCharactersException(err);
                 }
 
-                return validator.validateInsertOrUpdateUnit(archiveUnit.get(TAG_ARCHIVE_UNIT));
+                ObjectNode archiveUnitCopy = archiveUnit.get(TAG_ARCHIVE_UNIT).deepCopy();
+                if (!archiveUnit.path(PREFIX_WORK).path(UP).isMissingNode()) {
+                    archiveUnitCopy.set(UP, archiveUnit.path(PREFIX_WORK).path(UP));
+                }
+
+                return validator.validateInsertOrUpdateUnit(archiveUnitCopy);
             } else {
                 return new SchemaValidationStatus("Archive Unit Profile not found", NOT_FOUND);
             }
@@ -255,7 +266,6 @@ public class CheckArchiveUnitProfileActionPlugin extends ActionHandler {
         } catch(ArchiveUnitProfileInactiveException | ArchiveUnitProfileEmptyControlSchemaException e) {
             throw e;
         } catch (Exception e) {
-            LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(FATAL);
             throw new ProcessingException(e);
         }
