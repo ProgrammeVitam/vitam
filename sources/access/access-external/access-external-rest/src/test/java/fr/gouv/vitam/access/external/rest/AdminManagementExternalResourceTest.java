@@ -203,6 +203,7 @@ public class AdminManagementExternalResourceTest extends ResteasyTestApplication
         }
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     @Before

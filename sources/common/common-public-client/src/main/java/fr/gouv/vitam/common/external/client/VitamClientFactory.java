@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.external.client;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.MockOrRestClient;
@@ -455,6 +456,17 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         if (notChunkedPoolingManager != null && notChunkedPoolingManager != POOLING_CONNECTION_MANAGER_NOT_CHUNKED) {
             allManagers.remove(notChunkedPoolingManager);
             notChunkedPoolingManager.close();
+        }
+    }
+
+    /**
+     * Closes any pending connection.
+     */
+    @VisibleForTesting
+    public static void resetConnections() {
+        for (PoolingHttpClientConnectionManager manager : allManagers) {
+            manager.closeExpiredConnections();
+            manager.closeIdleConnections(0, TimeUnit.MICROSECONDS);
         }
     }
 
