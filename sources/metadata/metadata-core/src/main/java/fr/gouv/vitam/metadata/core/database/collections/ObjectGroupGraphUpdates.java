@@ -74,9 +74,19 @@ public class ObjectGroupGraphUpdates {
 
         // Debug
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("DEBUG: OG {}", JSON.serialize(updates));
+            LOGGER.debug("DEBUG: OG {}", toString());
         }
 
         return updates;
+    }
+
+    @Override
+    public String toString() {
+        return "ObjectGroupGraphUpdates{" +
+            "parentUnitsToAdd=" + parentUnitsToAdd +
+            ", allParentUnitsToAdd=" + allParentUnitsToAdd +
+            ", operationsToAdd=" + operationsToAdd +
+            ", originatingAgenciesToAdd=" + originatingAgenciesToAdd +
+            '}';
     }
 }
