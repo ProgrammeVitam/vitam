@@ -195,7 +195,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
 
         try {
-            response = performRequest(HttpMethod.HEAD, "/" + type.getCollectionName() + "/" + guid,
+            response = performRequest(HttpMethod.HEAD, "/" + type.name() + "/" + guid,
                 headers, MediaType.APPLICATION_JSON_TYPE);
             return notContentResponseToBoolean(handleNoContentResponseStatus(response));
         } catch (final VitamClientInternalException e) {

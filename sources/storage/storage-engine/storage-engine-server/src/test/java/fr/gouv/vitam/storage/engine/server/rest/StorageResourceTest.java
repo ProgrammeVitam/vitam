@@ -304,13 +304,12 @@ public class StorageResourceTest {
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E)
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .when().head(DataCategory.OBJECT.name() + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
                 TENANT_ID_E, VitamHttpHeader.OFFERS_IDS.getName(), "offerId")
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then().statusCode(Status.NO_CONTENT.getStatusCode());
-
+            .when().head(DataCategory.OBJECT.name() + OBJECT_ID_URI, ID_O1).then().statusCode(Status.NO_CONTENT.getStatusCode());
     }
 
     @Test
