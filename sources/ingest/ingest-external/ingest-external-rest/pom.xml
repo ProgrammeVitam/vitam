@@ -80,7 +80,13 @@
             <artifactId>common-dsl-schema</artifactId>
             <version>${project.version}</version>
         </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>fr.gouv.vitam</groupId>
+			<artifactId>common-public-client</artifactId>
+			<version>${project.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>

@@ -28,6 +28,7 @@ package fr.gouv.vitam.ingest.external.rest;
 
 import com.jayway.restassured.RestAssured;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -97,6 +98,8 @@ public class IngestExternalSslResourceTest {
             application.stop();
         }
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     @Test

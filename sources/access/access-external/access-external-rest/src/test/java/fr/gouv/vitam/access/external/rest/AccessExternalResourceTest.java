@@ -43,6 +43,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import org.hamcrest.CoreMatchers;
 import org.junit.AfterClass;
@@ -216,6 +217,8 @@ public class AccessExternalResourceTest {
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
         }
+        VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     private static JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
