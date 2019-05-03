@@ -192,30 +192,10 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         }
 
         @HEAD
-        @Path("/objects/{id_object}")
+        @Path("/{type}/{id_object}")
         public Response checkObject(@PathParam("id_object") String idObject) {
             return expectedResponse.head();
         }
-
-        @HEAD
-        @Path("/units/{id_unit}")
-        public Response checkUnit(@PathParam("id_unit") String idUnit) {
-            return expectedResponse.head();
-        }
-
-        @HEAD
-        @Path("/logbooks/{id_logbook}")
-        public Response checkLogbook(@PathParam("id_logbook") String idLogbook) {
-            return expectedResponse.head();
-        }
-
-        @HEAD
-        @Path("/objectgroups/{id_objectgroup}")
-        public Response checkObjectGroup(@PathParam("id_objectgroup") String idObjectGroup) {
-            return expectedResponse.head();
-        }
-
-
 
         @DELETE
         @Path("/delete/{id_object}")
