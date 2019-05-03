@@ -203,30 +203,10 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         }
 
         @HEAD
-        @Path("/objects/{id_object}")
+        @Path("/{type}/{id_object}")
         public Response checkObject(@PathParam("id_object") String idObject) {
             return expectedResponse.head();
         }
-
-        @HEAD
-        @Path("/units/{id_unit}")
-        public Response checkUnit(@PathParam("id_unit") String idUnit) throws StorageClientException {
-            throw new StorageServerClientException("NotYetImplemented");
-        }
-
-        @HEAD
-        @Path("/logbooks/{id_logbook}")
-        public Response checkLogbook(@PathParam("id_logbook") String idLogbook) throws StorageClientException {
-            throw new StorageServerClientException("NotYetImplemented");
-        }
-
-        @HEAD
-        @Path("/objectgroups/{id_objectgroup}")
-        public Response checkObjectGroup(@PathParam("id_objectgroup") String idObjectGroup) throws StorageClientException {
-            throw new StorageServerClientException("NotYetImplemented");
-        }
-
-
 
         @DELETE
         @Path("/delete/{id_object}")
@@ -428,24 +408,6 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         assertFalse(client.existsContainer("idStrategy"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         assertNotNull(client.exists("idStrategy", DataCategory.OBJECT, "idObject", SingletonUtils.singletonList()));
-    }
-    
-    @RunWithCustomExecutor
-    @Test
-    public void existsNotYetImplemented() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        // should throw exception
-        assertThatThrownBy(() -> {
-            client.exists("idStrategy", DataCategory.UNIT, "idUnit", SingletonUtils.singletonList());
-        }).isInstanceOf(StorageServerClientException.class);
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertThatThrownBy(() -> {
-            client.exists("idStrategy", DataCategory.LOGBOOK, "idLogbook", SingletonUtils.singletonList());
-        }).isInstanceOf(StorageServerClientException.class);
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        assertThatThrownBy(() -> {
-            client.exists("idStrategy", DataCategory.OBJECTGROUP, "idObjectGroup", SingletonUtils.singletonList());
-        }).isInstanceOf(StorageServerClientException.class);
     }
 
     @RunWithCustomExecutor
