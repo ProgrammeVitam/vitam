@@ -70,6 +70,7 @@ public class IngestExternalApplicationTest {
         }
         junitHelper.releasePort(portAvailable);
         VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     @Test(expected = IllegalArgumentException.class)

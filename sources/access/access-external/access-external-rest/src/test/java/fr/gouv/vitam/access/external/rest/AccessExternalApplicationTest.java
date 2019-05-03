@@ -43,6 +43,7 @@ public class AccessExternalApplicationTest {
 
         junitHelper.releasePort(portAvailable);
         VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     @Test(expected = Exception.class)
