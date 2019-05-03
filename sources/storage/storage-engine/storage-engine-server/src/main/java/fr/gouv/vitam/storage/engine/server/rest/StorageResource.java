@@ -887,11 +887,14 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
      * @param objectId the id of the object
      * @return Response NOT_IMPLEMENTED
      */
-    @Path("/objects/{id_object}")
+    @Path(
+        "/{type:UNIT|OBJECT|OBJECTGROUP|LOGBOOK|REPORT|MANIFEST|PROFILE|STORAGELOG|STORAGETRACEABILITY|RULES|DIP|AGENCIES|BACKUP" +
+            "|BACKUP_OPERATION|CHECKLOGBOOKREPORTS|OBJECTGROUP_GRAPH|UNIT_GRAPH|DISTRIBUTIONREPORTS|ACCESSION_REGISTER_DETAIL|ACCESSION_REGISTER_SYMBOLIC}/{id_object}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId) {
+    public Response checkObject(@Context HttpHeaders headers, @PathParam("type") DataCategory type,
+        @PathParam("id_object") String objectId) {
         String strategyId;
         Response response = checkTenantStrategyHeader(headers);
         if (response == null) {
@@ -903,7 +906,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             List<String> offerIds = Arrays.asList(listOffer.split(","));
             try {
                 Map<String, Boolean> resultByOffer = distribution.checkObjectExisting(strategyId, objectId,
-                        DataCategory.OBJECT, offerIds);
+                    type, offerIds);
                 final ResponseBuilder responseBuilder;
                 if (resultByOffer.containsValue(Boolean.FALSE)) {
                     responseBuilder = Response.status(Status.NOT_FOUND);
@@ -1024,28 +1027,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
-
-
-    /**
-     * Check the existence of a logbook Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @param logbookId the id of the logbook
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/logbooks/{id_logbook}")
-    @HEAD
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkLogbook(@Context HttpHeaders headers, @PathParam("id_logbook") String logbookId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
     /**
      * Get a list of units
      * <p>
@@ -1142,28 +1123,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (!DataCategory.UNIT.canUpdate()) {
             status = UNAUTHORIZED;
         }
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
-
-
-    /**
-     * Check the existence of a unit metadata
-     *
-     * @param headers http header
-     * @param metadataId the id of the unit metadata
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/units/{id_md}")
-    @HEAD
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkUnit(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
@@ -1267,28 +1226,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         if (!DataCategory.OBJECTGROUP.canUpdate()) {
             status = UNAUTHORIZED;
         }
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
-    /**
-     * Check the existence of a Object Group metadata
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @param metadataId the id of the Object Group metadata
-     * @return Response OK if the object exists, NOT_FOUND otherwise (or BAD_REQUEST in cas of bad request format)
-     */
-    @Path("/objectgroups/{id_md}")
-    @HEAD
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response checkObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
         return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 

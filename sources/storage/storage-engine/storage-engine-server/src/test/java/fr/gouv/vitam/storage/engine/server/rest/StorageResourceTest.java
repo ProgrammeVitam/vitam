@@ -273,7 +273,7 @@ public class StorageResourceTest {
                 VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID,
                 VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E
             )
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
+            .when().head(DataCategory.OBJECT.name() + "/" + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
         given().contentType(ContentType.JSON)
         .headers(
@@ -281,7 +281,7 @@ public class StorageResourceTest {
             VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
             VitamHttpHeader.OFFERS_IDS.getName(), OFFER_ID+","+OFFER_ID_KO
         )
-        .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1)
+        .when().head(DataCategory.OBJECT.name() + "/" + OBJECT_ID_URI, ID_O1)
         .then().statusCode(Status.NOT_FOUND.getStatusCode())
         .and().header(OFFER_ID, "true").and().header(OFFER_ID_KO, "false");
 
@@ -291,7 +291,7 @@ public class StorageResourceTest {
                 VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E,
                 VitamHttpHeader.OFFERS_IDS.getName(), OFFER_ID
             )
-            .when().head(OBJECTS_URI + OBJECT_ID_URI, ID_O1)
+            .when().head(DataCategory.OBJECT.name() + "/" + OBJECT_ID_URI, ID_O1)
             .then().statusCode(Status.NO_CONTENT.getStatusCode())
             .and().header(OFFER_ID, "true");
 
