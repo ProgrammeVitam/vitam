@@ -210,7 +210,7 @@ public class BatchReportServiceImplTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
-        PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>());
+        PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>(), 0);
         Document preservationData = getPreservationDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationData));
 

@@ -138,7 +138,7 @@ public class PreservationReportRepositoryTest {
         assertThat(stats.getNbActionsExtract()).isEqualTo(0);
         assertThat(stats.getNbActionsGenerate()).isEqualTo(0);
         assertThat(stats.getNbActionsIdentify()).isEqualTo(0);
-        assertThat(stats.getNbActionsAnaylse()).isEqualTo(2);
+        assertThat(stats.getNbActionsAnalyse()).isEqualTo(2);
         assertThat(stats.getNbStatusKos()).isEqualTo(0);
         assertThat(stats.getAnalyseResults().get("VALID_ALL")).isEqualTo(2);
     }

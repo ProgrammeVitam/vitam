@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
@@ -57,10 +58,12 @@ import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportS
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
@@ -68,6 +71,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class PreservationFinalizationPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationFinalizationPlugin.class);
     private static final String PLUGIN_NAME = "PRESERVATION_FINALIZATION";
+    private static final String PRESERVATION_PREPARATION = "PRESERVATION_PREPARATION";
     protected static final String PRESERVATION = "PRESERVATION";
     private static final String PRESERVATION_OK = "PRESERVATION.OK";
     private PreservationReportService preservationReportService;
@@ -89,7 +93,9 @@ public class PreservationFinalizationPlugin extends ActionHandler {
 
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
         String evId = param.getRequestId();
-        try {
+        try (InputStream inputRequest = handler.getInputStreamFromWorkspace("preservationRequest")) {
+            PreservationRequest preservationRequest = JsonHandler.getFromInputStream(inputRequest, PreservationRequest.class);
+
             JsonNode result = logbookOperationsClient.selectOperationById(param.getContainerName());
             RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(result);
             LogbookOperation logbookOperationVersionModel =
@@ -117,7 +123,7 @@ public class PreservationFinalizationPlugin extends ActionHandler {
             ReportResults vitamResults = new ReportResults();
             JsonNode extendedInfo = JsonHandler.createObjectNode();
             ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
-            JsonNode context = JsonHandler.createObjectNode();
+            JsonNode context = preservationRequest.getDslQuery();
             Report reportInfo = new Report(operationSummary, reportSummary, context);
             preservationReportService.storeReport(reportInfo, param.getRequestId());
         } catch (Exception e) {
@@ -140,15 +146,17 @@ public class PreservationFinalizationPlugin extends ActionHandler {
         List<StatusOutcome> statusKo = statusOutcomeNotOk.stream().filter(statusOutcome -> StatusCode.KO.equals(statusOutcome.getStatusCode()))
             .collect(Collectors.toList());
         if (statusOutcomeNotOk.size() == statusOutcomes.size() && statusKo.size() == statusOutcomeNotOk.size()) {
-            return statusOutcomeNotOk.stream().map(statusOutcome -> createReportOutput(statusOutcome, StatusCode.KO)).reduce((this::reportCombine))
+            return statusOutcomeNotOk.stream().map(statusOutcome -> createReportOutput(statusOutcome, StatusCode.KO))
+                .reduce((this::reportCombine))
                 .orElseGet(() -> new ReportOutput("", "", "", "", ""));
         }
-        return statusOutcomeNotOk.stream().map(statusOutcome -> createReportOutput(statusOutcome, StatusCode.WARNING)).reduce((this::reportCombine))
+        return statusOutcomeNotOk.stream().map(statusOutcome -> createReportOutput(statusOutcome, StatusCode.WARNING))
+            .reduce((this::reportCombine))
             .orElseGet(() -> new ReportOutput("", "", "", "", ""));
     }
 
     ReportOutput reportCombine(ReportOutput reportOutput1, ReportOutput reportOutput2) {
-        return new ReportOutput(PRESERVATION,  reportOutput1.getOutcome(),
+        return new ReportOutput(PRESERVATION, reportOutput1.getOutcome(),
             String.join(", ", reportOutput1.getOutDetail(), reportOutput2.getOutDetail()),
             String.join(", ", reportOutput1.getOutMsg(), reportOutput2.getOutMsg()),
             String.join(", ", reportOutput1.getEvDetData(), reportOutput2.getEvDetData()));

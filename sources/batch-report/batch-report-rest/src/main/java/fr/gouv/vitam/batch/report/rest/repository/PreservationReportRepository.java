@@ -35,6 +35,7 @@ import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.batch.report.model.PreservationStatus.KO;
+import static fr.gouv.vitam.batch.report.model.PreservationStatus.WARNING;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ACTION;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ANALYSE_RESULT;
 import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.CREATION_DATE_TIME;
@@ -61,14 +62,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Spliterator;
 import java.util.Spliterators;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.UpdateOneModel;
@@ -146,6 +145,7 @@ public class PreservationReportRepository {
         int nbUnits = getUnitAndObjectGroupStats(and(eqProcessId, eqTenant), UNIT_ID);
         int nbObjectGroups = getUnitAndObjectGroupStats(and(eqProcessId, eqTenant), OBJECT_GROUP_ID);
         int nbStatusKos = getStats(and(eqTenant, eqProcessId, eq(STATUS, KO.name())), STATUS);
+        int nbStatusWarning = getStats(and(eqTenant, eqProcessId, eq(STATUS, WARNING.name())), STATUS);
 
         int nbActionsAnaylse = getStats(and(eqTenant, eqProcessId, eq(ACTION, ANALYSE.name())), ACTION);
         int nbActionsGenerate = getStats(and(eqTenant, eqProcessId, eq(ACTION, GENERATE.name())), ACTION);
@@ -175,8 +175,8 @@ public class PreservationReportRepository {
             nbActionsGenerate,
             nbActionsIdentify,
             nbActionsExtract,
-            analyseResults
-        );
+            analyseResults,
+            nbStatusWarning);
     }
 
     private Integer getStats(Bson matchee, String name) {

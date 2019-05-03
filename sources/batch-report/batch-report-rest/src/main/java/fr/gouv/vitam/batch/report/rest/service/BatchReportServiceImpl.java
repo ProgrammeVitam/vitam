@@ -41,12 +41,12 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import fr.gouv.vitam.batch.report.model.ReportSummary;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 
@@ -222,18 +222,19 @@ public class BatchReportServiceImpl {
         backupService.backup(new FileInputStream(report), DataCategory.REPORT, operationId + ".jsonl");
     }
 
-    private JsonNode getExtendedInfo(Report reportInfo) throws InvalidParseOperationException {
+    private JsonNode getExtendedInfo(Report reportInfo, ReportSummary reportSummary, ReportResults reportResults) throws InvalidParseOperationException {
         JsonNode extendedInfo = JsonHandler.createObjectNode();
 
         switch (reportInfo.getReportSummary().getReportType()) {
             case PRESERVATION:
-                extendedInfo = JsonHandler.toJsonNode(
-                    preservationReportRepository
-                        .stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
+                PreservationStatsModel stats = preservationReportRepository
+                    .stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant());
+                extendedInfo = JsonHandler.toJsonNode(stats);
+                createReportResult(reportSummary, stats);
                 break;
             case AUDIT:
-                extendedInfo = JsonHandler.toJsonNode(
-                    auditReportRepository.stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
+                extendedInfo = JsonHandler.toJsonNode(auditReportRepository.stats(reportInfo.getOperationSummary().getEvId(), reportInfo.getOperationSummary().getTenant()));
+                reportSummary.setVitamResults(reportResults);
                 break;
             default:
                 // Nothing to do, keep empty extended info
@@ -241,7 +242,15 @@ public class BatchReportServiceImpl {
         return extendedInfo;
     }
 
-    private ReportResults getVitamResults(Report reportInfo) throws InvalidParseOperationException {
+    private void createReportResult(ReportSummary reportSummary, PreservationStatsModel stats) {
+        int nbStatusWarning = stats.getNbStatusWarning();
+        int nbStatusKos = stats.getNbStatusKos();
+        int nbStatusOk = stats.getNbActionsAnalyse() + stats.getNbActionsExtract() + stats.getNbActionsGenerate() + stats.getNbActionsIdentify();
+        ReportResults reportResults = new ReportResults(nbStatusOk, nbStatusKos, nbStatusWarning, nbStatusKos + nbStatusOk + nbStatusWarning);
+        reportSummary.setVitamResults(reportResults);
+    }
+
+    private ReportResults getVitamResults(Report reportInfo) {
         ReportResults vitamResults = new ReportResults();
 
         switch (reportInfo.getReportSummary().getReportType()) {
@@ -260,37 +269,41 @@ public class BatchReportServiceImpl {
 
         String processId = reportInfo.getOperationSummary().getEvId();
         Integer tenantId = reportInfo.getOperationSummary().getTenant();
-        JsonNode extendedInfo = getExtendedInfo(reportInfo);
-        reportInfo.getReportSummary().setExtendedInfo(extendedInfo);
-        ReportResults vitamResults = getVitamResults(reportInfo);
-        reportInfo.getReportSummary().setVitamResults(vitamResults);
+        ReportResults reportResults = getVitamResults(reportInfo);
+        ReportSummary reportSummary = reportInfo.getReportSummary();
+        JsonNode extendedInfo = getExtendedInfo(reportInfo, reportSummary, reportResults);
+        reportSummary.setExtendedInfo(extendedInfo);
 
         File tempReport = File.createTempFile(REPORT_JSONL, JSONL_EXTENSION, new File(VitamConfiguration.getVitamTmpFolder()));
 
         try (JsonLineWriter reportWriter = new JsonLineWriter(new FileOutputStream(tempReport))) {
             reportWriter.addEntry(reportInfo.getOperationSummary());
-            reportWriter.addEntry(reportInfo.getReportSummary());
+            reportWriter.addEntry(reportSummary);
             reportWriter.addEntry(reportInfo.getContext());
 
-            switch (reportInfo.getReportSummary().getReportType()) {
+            switch (reportSummary.getReportType()) {
                 case ELIMINATION_ACTION:
-                    MongoCursor<Document> archiveUnitIterator =eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId);
+                    MongoCursor<Document> archiveUnitIterator =
+                        eliminationActionUnitRepository.findCollectionByProcessIdTenant(processId, tenantId);
                     writeDocumentsInFile(reportWriter, archiveUnitIterator);
 
-                    MongoCursor<Document> objectGroupIterator = eliminationActionObjectGroupRepository.findCollectionByProcessIdTenant(processId, tenantId);
+                    MongoCursor<Document> objectGroupIterator =
+                        eliminationActionObjectGroupRepository.findCollectionByProcessIdTenant(processId, tenantId);
                     writeDocumentsInFile(reportWriter, objectGroupIterator);
                     break;
                 case PRESERVATION:
-                    MongoCursor<Document> preservationIterator = preservationReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
+                    MongoCursor<Document> preservationIterator =
+                        preservationReportRepository.findCollectionByProcessIdTenant(processId, tenantId);
                     writeDocumentsInFile(reportWriter, preservationIterator);
                     break;
                 case AUDIT:
-                    MongoCursor<Document> auditIterator = auditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, tenantId, "WARNING", "KO");
+                    MongoCursor<Document> auditIterator =
+                        auditReportRepository.findCollectionByProcessIdTenantAndStatus(processId, tenantId, "WARNING", "KO");
                     writeDocumentsInFile(reportWriter, auditIterator);
                     break;
                 default:
                     throw new UnsupportedOperationException(
-                        "Unsupported report type yo store: " + reportInfo.getReportSummary().getReportType());
+                        "Unsupported report type yo store: " + reportSummary.getReportType());
             }
         }
 
