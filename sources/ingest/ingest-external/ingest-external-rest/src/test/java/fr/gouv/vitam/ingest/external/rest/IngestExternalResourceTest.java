@@ -126,6 +126,7 @@ public class IngestExternalResourceTest {
         }
         junitHelper.releasePort(serverPort);
         VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     @Before

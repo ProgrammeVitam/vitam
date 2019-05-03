@@ -242,7 +242,11 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
     public static void tearDownAfterClass() throws Exception {
         LOGGER.debug("Ending tests");
         junitHelper.releasePort(port);
+        if(application != null) {
+            application.stop();
+        }
         VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     private static JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
