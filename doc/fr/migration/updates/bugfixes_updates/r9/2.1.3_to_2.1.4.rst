@@ -1,6 +1,0 @@
-.. _2.1.3_to_2.1.4: 
-
-Montée de version 2.1.3 vers 2.1.4
-##################################
-
-La montée de version 2.1.3 (« R9.3 ») vers 2.1.4 (« R9.4 ») est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 

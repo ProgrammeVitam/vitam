@@ -9,7 +9,6 @@
    :numbered:
 
    introduction
-   nomenclature
    generalites
    updates/_toc
 

@@ -1,11 +1,13 @@
+.. _bugfixes_updates: 
+
 Montées de version bugfix
 #########################
 
 .. toctree::
    :glob:
-   :maxdepth: 2
+   :maxdepth: 1
 
-   r6/_toc.rst
-   r7/_toc.rst
-   r8/_toc.rst
-   r9/_toc.rst   
+   r6_update.rst
+   r7_update.rst
+   r8_update.rst
+   r9_update.rst

@@ -1,10 +1,12 @@
+.. _releases_updates: 
+
 Montées de version mineure
 ##########################
 
 .. toctree::
    :glob:
-   :maxdepth: 2
+   :maxdepth: 1
 
-   r6_to_r7/_toc.rst
-   r7_to_r8/_toc.rst
-   r7_to_r9/_toc.rst
+   r7_update.rst
+   r8_update.rst
+   r9_update.rst
