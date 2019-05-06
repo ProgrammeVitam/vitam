@@ -799,6 +799,10 @@ public class ContextServiceImpl implements ContextService {
                         .of(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.SECURITY_PROFILE));
                 }
 
+                if (context.getStatus() == null) {
+                    return Optional.of(ContextValidator.ContextRejectionCause.rejectMandatoryMissing(Context.STATUS));
+                }
+
                 return Optional.empty();
             };
         }
