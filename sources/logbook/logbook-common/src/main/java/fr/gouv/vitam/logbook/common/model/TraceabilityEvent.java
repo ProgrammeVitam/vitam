@@ -29,6 +29,8 @@ package fr.gouv.vitam.logbook.common.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.digest.DigestType;
 
+import java.util.List;
+
 /**
  * Class used to save traceability event to be store in logbook collection
  */
@@ -125,6 +127,12 @@ public class TraceabilityEvent {
     private TraceabilityStatistics statistics;
 
     /**
+     * Traceability statistics
+     */
+    @JsonProperty("Warnings")
+    private List<String> warnings;
+
+    /**
      * Empty constructor for Jackson
      */
     public TraceabilityEvent() {
@@ -132,8 +140,8 @@ public class TraceabilityEvent {
     }
 
     /**
-     * Constructor 
-     *  @param logType logType
+     * Constructor
+     * @param logType logType
      * @param startDate startDate
      * @param endDate endDate
      * @param hash  hash
@@ -146,12 +154,13 @@ public class TraceabilityEvent {
      * @param size size
      * @param digestAlgorithm digestAlgorithm
      * @param statistics
+     * @param warnings
      */
     public TraceabilityEvent(TraceabilityType logType, String startDate, String endDate, String hash,
         byte[] timeStampToken, String previousLogbookTraceabilityDate, String minusOneMonthLogbookTraceabilityDate,
         String minusOneYearLogbookTraceabilityDate, long numberOfElements, String fileName, long size,
         DigestType digestAlgorithm, boolean maxEntriesReached, String securisationVersion,
-        TraceabilityStatistics statistics) {
+        TraceabilityStatistics statistics, List<String> warnings) {
         this.logType = logType;
         this.startDate = startDate;
         this.endDate = endDate;
@@ -168,6 +177,7 @@ public class TraceabilityEvent {
         this.securisationVersion = securisationVersion;
 
         this.statistics = statistics;
+        this.warnings = warnings;
     }
 
     /**
@@ -279,5 +289,14 @@ public class TraceabilityEvent {
 
     public TraceabilityStatistics getStatistics() {
         return statistics;
+    }
+
+    public List<String> getWarnings() {
+        return warnings;
+    }
+
+    public TraceabilityEvent setWarnings(List<String> warnings) {
+        this.warnings = warnings;
+        return this;
     }
 }
