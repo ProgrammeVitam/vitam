@@ -799,8 +799,8 @@ documentation:
             description: some predicates are incorrect, therefore the operation is not possible.
 
 /evidenceaudit/:
-  displayName: LFC traceability audit
-  description: API qui définit les requêtes pour générer un audit de la traçabilité des journaux de cycles de vie.
+  displayName: Audit de cohérence
+  description: API qui définit les requêtes pour générer un audit de cohérence.
   is: [ StandardTraits.StandardOptionalHeader ]
   post:
     headers:
@@ -810,12 +810,12 @@ documentation:
       Content-Type:
         required: true
         enum: [ "application/json" ]
-    description: Lancement d'une opération d'audit
+    description: Lancement d'une opération d'audit de cohérence
     body:
       application/json:
         description: Requête DSL de sélection d'unité archivistique
         type: object
-        example: !include libraries/examples/dslQuery.json
+        example: !include libraries/examples/evidenceAuditQuery.json
     responses:
       202:
         description: Succès
@@ -827,6 +827,11 @@ documentation:
         body:
           application/json:
             description: some predicates are incorrect, therefore the operation is not possible.
+      400:
+        description: Precondition Failed
+        body:
+          application/json:
+            description: some predicates are incorrect, DSL Query is not valid.
 
 /rulesreferential/{opId}:
   displayName: Référentiel des rêgles de gestion
