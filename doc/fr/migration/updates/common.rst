@@ -4,17 +4,21 @@ Etats attendus
 Pré-migration
 ==============
 
-Avant toute migration, il est attendu de la part des exploitants :
+Avant toute migration, il est attendu de la part des exploitants de vérifier :
 
-- que la solution logicielle :term:`VITAM` fonctionne normalement
-- qu'ils stoppent (se référer au :term:`DEX`) tous les *timers* systemD
-- qu'ils s'assurent qu'aucun *workflow* n'est en statut **FATAL**
+- Que la solution logicielle :term:`VITAM` fonctionne normalement
+- Que l'ensemble des `timers` systemd sont stoppés
+- Qu'aucun `workflow` n'est en statut **FATAL**
+
+Se référer au chapitre « Suivi de l'état du système » du :term:`DEX` pour plus d'informations. 
 
 Post-migration
 ==============
 
-A l'issue de toute migration, il est attendu de la part des exploitants :
+A l'issue de toute migration, il est attendu de la part des exploitants de vérifier :
 
-- qu'ils vérifient que les *tiers* systemD sont bien redémarrés ( les redémarrer, le cas échéant)
-- qu'ils s'assurent qu'aucun *workflow* n'est en statut **FATAL**
+- Que la solution logicielle :term:`VITAM` fonctionne normalement
+- Que l'ensemble des `timers` systemd sont bien redémarrés (les redémarrer, le cas échéant)
+- Qu'aucun `workflow` n'est en statut **FATAL**
 
+Se référer au chapitre « Suivi de l'état du système » du :term:`DEX` pour plus d'informations. 
