@@ -56,6 +56,8 @@ Certificat clients
 Certificats d'horodatage
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
+Ces certificats sont à générer pour les composants ``logbook`` et ``storage``.
+
 * Key Usage
     * digitalSignature, nonRepudiation
 * Extended Key Usage
@@ -90,6 +92,11 @@ Ne pas oublier de renseigner le vault contenant les passphrases des clés des ce
 
 Pour modifier/créer un vault ansible, se référer à la documentation Ansible sur `cette url <http://docs.ansible.com/ansible/playbooks_vault.html>`_.
 
+.. caution:: Durant l'installation de VITAM, il est nécessaire de créer un certificat "vitam-admin-int" (à placer sous ``deployment/environments/certs/client-external/clients/vitam-admin-int``).
+
+.. caution:: Durant l'installation des extra de  VITAM, il est nécessaire de créer un certificat "gatling" (à placer sous ``deployment/environments/certs/client-external/clients/gatling``).
+
+
 Intégration d'une application externe (cliente)
 -----------------------------------------------
 
@@ -98,3 +105,17 @@ Dans le cas d'ajout de certificats :term:`SIA` externes :
     * Déposer le certificat (``.crt``) de l'application client dans ``environments/certs/client-external/clients/external/``
     * Déposer les :term:`CA` du certificat de l'application (``.crt``) dans ``environments/certs/client-external/ca/``
     * Editer le fichier ``environments/group_vars/all/vitam_security.yml`` et ajouter le(s) entrée(s) supplémentaire(s)  (sous forme répertoire/fichier.crt, exemple: ``external/mon_sia.crt``) dans  la directive ``admin_context_certs`` pour que ceux-ci soient ajoutés aux profils de sécurité durant le déploiement de la solution logicielle :term:`VITAM`.
+
+Cas des offres objet
+-----------------------
+
+Placer le ``.crt`` de la :term:`CA` dans ``deployment/environments/certs/client-storage``.
+
+
+Absence d'usage d'un *reverse*
+---------------------------------
+
+Dans ce cas, il convient de :
+
+- supprimer le répertoire ``deployment/environments/certs/client-external/clients/reverse`` 
+- supprimer les entrées **reverse** dans le fichier ``vault_keystore.yml``
