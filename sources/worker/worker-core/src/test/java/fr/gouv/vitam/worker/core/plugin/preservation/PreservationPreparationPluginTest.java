@@ -1,5 +1,6 @@
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromString;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
@@ -21,8 +22,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -92,9 +95,7 @@ public class PreservationPreparationPluginTest {
     }
 
     @Test
-    public void shouldCreateJsonLFile()
-        throws ContentAddressableStorageServerException, ProcessingException, IOException,
-        InvalidParseOperationException {
+    public void shouldCreateJsonLFile() throws Exception {
 
         // Given
         HandlerIO handler = mock(HandlerIO.class);
@@ -119,6 +120,37 @@ public class PreservationPreparationPluginTest {
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
+        List<String> lines = IOUtils.readLines(new FileInputStream(files.get(OBJECT_GROUPS_TO_PRESERVE_JSONL)), "UTF-8");
+        assertThat(lines.size()).isEqualTo(5);
+    }
+
+    @Test
+    public void should_write_query_dsl_in_logbook() throws Exception {
+        // Given
+        HandlerIO handler = mock(HandlerIO.class);
+        WorkerParameters workerParameters = mock(WorkerParameters.class);
+
+        ObjectNode finalSelect = new Select().getFinalSelect();
+        PreservationRequest preservationRequest =
+            new PreservationRequest(finalSelect, "id", "BinaryMaster", LAST, "BinaryMaster");
+
+        when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(preservationRequest));
+
+        Map<String, File> files = new HashMap<>();
+        doAnswer((args) -> {
+            File file = temporaryFolder.newFile();
+            files.put(args.getArgument(0), file);
+            return file;
+        }).when(handler).getNewLocalFile(anyString());
+
+        // When
+        ItemStatus itemStatus = preservationPreparationPlugin.execute(workerParameters, handler);
+
+        // Then
+        StatusCode globalStatus = itemStatus.getGlobalStatus();
+        assertThat(globalStatus).isEqualTo(StatusCode.OK);
+        assertThat(itemStatus.getEvDetailData())
+            .isEqualTo(JsonHandler.unprettyPrint(createObjectNode().put("query", JsonHandler.unprettyPrint(finalSelect))));
         List<String> lines = IOUtils.readLines(new FileInputStream(files.get(OBJECT_GROUPS_TO_PRESERVE_JSONL)), "UTF-8");
         assertThat(lines.size()).isEqualTo(5);
     }

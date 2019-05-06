@@ -140,10 +140,10 @@ public class PreservationPreparationPlugin extends ActionHandler {
         throws ContentAddressableStorageServerException {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
-            computePreparation(handler, metaDataClient);
-
-            return buildItemStatus(PRESERVATION_PREPARATION, StatusCode.OK, createObjectNode());
+            PreservationRequest preservationRequest = loadPreservationRequest(handler);
+            computePreparation(handler, metaDataClient, preservationRequest);
+            return buildItemStatus(PRESERVATION_PREPARATION, StatusCode.OK,
+                createObjectNode().put("query", preservationRequest.getDslQuery().toString()));
 
         } catch (Exception e) {
             LOGGER.error(String.format("Preservation action failed with status [%s]", KO), e);
@@ -165,10 +165,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
         );
     }
 
-    private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient)
+    private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient, PreservationRequest preservationRequest)
         throws VitamException {
-
-        PreservationRequest preservationRequest = loadPreservationRequest(handler);
 
         PreservationScenarioModel scenarioModel;
         Map<String, GriffinModel> griffinModelListForScenario;
@@ -331,7 +329,8 @@ public class PreservationPreparationPlugin extends ActionHandler {
         GriffinModel griffinModel = griffinModelListForScenario.get(griffinId);
 
         return Optional.of(getPreservationDistributionLine(objectGroup.getId(), unitId, versionsModel,
-            formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, targetQualifier, sourceQualifier, scenarioModel.getIdentifier()));
+            formatIdentificationModel.getFormatId(), griffinByFormatModel, griffinModel, targetQualifier, sourceQualifier,
+            scenarioModel.getIdentifier()));
     }
 
     private PreservationDistributionLine getPreservationDistributionLine(String objectGroupId, String unitId,

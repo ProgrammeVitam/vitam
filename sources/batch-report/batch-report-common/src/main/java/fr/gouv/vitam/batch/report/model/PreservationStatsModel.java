@@ -11,11 +11,14 @@ public class PreservationStatsModel {
     @JsonProperty("nbObjectGroups")
     private int nbObjectGroups;
 
-    @JsonProperty("nbStatusKos")
+    @JsonProperty("nbStatusKo")
     private int nbStatusKos;
 
-    @JsonProperty("nbActionAnaylses")
-    private int nbActionsAnaylse;
+    @JsonProperty("nbStatusWarning")
+    private int nbStatusWarning;
+
+    @JsonProperty("nbActionAnalyses")
+    private int nbActionsAnalyse;
 
     @JsonProperty("nbActionGenerates")
     private int nbActionsGenerate;
@@ -29,15 +32,17 @@ public class PreservationStatsModel {
     @JsonProperty("analyseResults")
     private Map<String, Integer> analyseResults;
 
-    public PreservationStatsModel(int nbUnits, int nbObjectGroups, int nbStatusKos, int nbActionsAnaylse, int nbActionsGenerate, int nbActionsIdentify, int nbActionsExtract, Map<String, Integer> analyseResults) {
+    public PreservationStatsModel(int nbUnits, int nbObjectGroups, int nbStatusKos, int nbActionsAnalyse, int nbActionsGenerate,
+        int nbActionsIdentify, int nbActionsExtract, Map<String, Integer> analyseResults, int nbStatusWarning) {
         this.nbUnits = nbUnits;
         this.nbObjectGroups = nbObjectGroups;
         this.nbStatusKos = nbStatusKos;
-        this.nbActionsAnaylse = nbActionsAnaylse;
+        this.nbActionsAnalyse = nbActionsAnalyse;
         this.nbActionsGenerate = nbActionsGenerate;
         this.nbActionsIdentify = nbActionsIdentify;
         this.nbActionsExtract = nbActionsExtract;
         this.analyseResults = analyseResults;
+        this.nbStatusWarning = nbStatusWarning;
     }
 
     public int getNbUnits() {
@@ -64,12 +69,12 @@ public class PreservationStatsModel {
         this.nbStatusKos = nbStatusKos;
     }
 
-    public int getNbActionsAnaylse() {
-        return nbActionsAnaylse;
+    public int getNbActionsAnalyse() {
+        return nbActionsAnalyse;
     }
 
-    public void setNbActionsAnaylse(int nbActionsAnaylse) {
-        this.nbActionsAnaylse = nbActionsAnaylse;
+    public void setNbActionsAnalyse(int nbActionsAnalyse) {
+        this.nbActionsAnalyse = nbActionsAnalyse;
     }
 
     public int getNbActionsGenerate() {
@@ -102,5 +107,13 @@ public class PreservationStatsModel {
 
     public void setAnalyseResults(Map<String, Integer> analyseResults) {
         this.analyseResults = analyseResults;
+    }
+
+    public int getNbStatusWarning() {
+        return nbStatusWarning;
+    }
+
+    public void setNbStatusWarning(int nbStatusWarning) {
+        this.nbStatusWarning = nbStatusWarning;
     }
 }

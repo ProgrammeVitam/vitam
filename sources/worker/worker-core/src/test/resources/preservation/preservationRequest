@@ -1,0 +1,26 @@
+{
+  "dslQuery" : {
+    "$roots" : [ ],
+    "$query" : [ {
+      "$or" : [ {
+        "$in" : {
+          "#id" : [ "aeaqaaaaaahlt7y7aa5mualkn4xs5qqaaaaq" ]
+        }
+      }, {
+        "$in" : {
+          "#allunitups" : [ ]
+        }
+      } ],
+      "$depth" : 1000
+    } ],
+    "$filter" : {
+      "$limit" : 10000
+    },
+    "$projection" : { },
+    "$facets" : [ ]
+  },
+  "scenarioId" : "PSC-000003",
+  "targetUsage" : "BinaryMaster",
+  "sourceUsage" : "BinaryMaster",
+  "version" : "FIRST"
+}
