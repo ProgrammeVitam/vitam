@@ -1,7 +1,7 @@
 Notes et procédures spécifiques R9
 ##################################
 
-.. caution:: Rappel : la montée de version vers la release R9 s'effectue depuis la release R7 (LTS V1) ou la release R8 (V1, deprecated) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
+.. caution:: Rappel : la montée de version vers la release R9 s'effectue depuis la release R7 (:term:`LTS` V1) ou la release R8 (V1, *deprecated*) et doit être réalisée en s'appuyant sur les dernières versions bugfixes publiées. 
 
 Prérequis à la montée de version
 ================================
@@ -9,31 +9,31 @@ Prérequis à la montée de version
 Gestion de la rétro-compatibilité des données des offres
 ---------------------------------------------------------
 
-En préalable à l'installation, et uniquement dans le cas d'une montée de version (ne concerne pas le cas d'une installation R9 from scratch), il est nécessaire d'éditer le fichier d'inventaire ansible sur le modèle du fichier ``deployment/environments/hosts.example`` afin de décommenter la ligne ci-dessous : 
+En préalable à l'installation, et uniquement dans le cas d'une montée de version (ne concerne pas le cas d'une installation R9 *from scratch*), il est nécessaire d'éditer le fichier d'inventaire ansible sur le modèle du fichier ``deployment/environments/hosts.example`` afin de décommenter la ligne ci-dessous : 
 
 .. code-block:: yaml
 
     # On offer, value is the prefix for all containers' names. If upgrading from R8, you MUST UNCOMMENT this parameter AS IS !!!
     vitam_prefix_offer=""
 
-Cela est du à la mise en place à partir de la version R9 d'un prefixe au niveau des noms de conteneurs de tenants logiques :term:`VITAM` sur les offres de stockage. Dans le cas d'une montée de version, cette étape préalable à l'installation permettra de garantir la rétro-compatibilité des données entre les versions précédentes et la version R9. 
+Cela est dû à la mise en place, à partir de la version R9, d'un prefixe au niveau des noms de conteneurs de *tenants* logiques :term:`VITAM` sur les offres de stockage. Dans le cas d'une montée de version, cette étape préalable à l'installation permettra de garantir la rétro-compatibilité des données entre les versions précédentes et la version R9 (et supérieures). 
 
-Arrêt des timers systemd
-------------------------
+Arrêt des *timers* systemd
+--------------------------
 
 Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --vault-password-file vault_pass.txt``
 
-ou, si vault_pass.txt n'a pas été renseigné :
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_timers.yml --ask-vault-pass``
 
-A l'issue de l'exécution du `playbook`, les timers systemd ont été arrêtés, afin de ne pas perturber la migration.
+A l'issue de l'exécution du `playbook`, les *timers* systemd ont été arrêtés, afin de ne pas perturber la migration.
 
 Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est en cours de traitement. 
 
-Montée de version Mongodb 3.4 vers 4.0
+Montée de version MongoDB 3.4 vers 4.0
 --------------------------------------
 
 La montée de version R7 vers R9 comprend une montée de version de la bases de données MongoDB de la version 3.4 à la version 4.0. 
@@ -49,16 +49,20 @@ Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur 
 Reprise des données de certificats
 ----------------------------------
 
-La version R9 apporte une nouvelle fonctionnalité permettant la révocation des certificats SIA et Personae afin d'empecher des accès non autorisés aux API :term:`VITAM` (vérification dans la couche https des CRL). Cette fonctionnalité impose d'effectuer une reprise des données des certificats (base MongoDB identity, collections Certificate et PersonalCertificate). 
+La version R9 apporte une nouvelle fonctionnalité permettant la révocation des certificats :term:`SIA` et *Personae*, afin d'empecher des accès non autorisés aux :term:`API` :term:`VITAM` (vérification dans la couche https des :term:`CRL`). Cette fonctionnalité impose d'effectuer une reprise des données des certificats (base MongoDB identity, collections ``Certificate`` et ``PersonalCertificate``). 
 
 Les commandes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+``ansible-playbook ansible-vitam-exploitation/migration_r7_certificates.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 ``ansible-playbook ansible-vitam-exploitation/migration_r7_certificates.yml --ask-vault-pass``
 
 Montée de version
 =================
 
-La montée de version vers la release R9 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux playbooks ansible fournis, et selon la procédure d'installation classique décrite dans le Document d'INstallation (DIN). 
+La montée de version vers la release R9 est réalisée par réinstallation de la solution logicielle :term:`VITAM` grâce aux *playbooks* ansible fournis, et selon la procédure d'installation classique décrite dans le :term:`DIN`. 
 
 Etapes de migration 
 ===================
@@ -77,7 +81,7 @@ Lancer les commandes ci-après dans l'ordre suivant :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r8.yml --vault-password-file vault_pass.txt``
 
-ou, si vault_pass.txt n'a pas été renseigné :
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r8.yml --ask-vault-pass``
 
@@ -108,6 +112,10 @@ Procédure de réindexation des ObjectGroup
 
 Sous ``deployment``, exécuter la commande suivante :
 
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r9.yml --vault-password-file vault_pass.txt``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/migration_r7_r9.yml --ask-vault-pass``
 
 Les changement apportés touchent le mapping Elasticsearch sur l'attribut ``qualifier.version`` de la collection ``ObjectGroup`` (passé en nested)
@@ -121,7 +129,7 @@ Exécuter la commande suivante afin de réactiver les timers systemd sur les dif
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --vault-password-file vault_pass.txt``
 
-ou, si vault_pass.txt n'a pas été renseigné :
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 ``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_timers.yml --ask-vault-pass``
 
