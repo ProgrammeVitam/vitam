@@ -31,7 +31,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
@@ -49,13 +48,27 @@ import com.fasterxml.jackson.databind.node.DoubleNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
+import org.junit.Test;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static fr.gouv.vitam.common.model.administration.OntologyType.DATE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class SchemaValidationUtilsTest {
 
@@ -132,25 +145,24 @@ public class SchemaValidationUtilsTest {
                 .get(TAG_ARCHIVE_UNIT));
         assertTrue(status.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
         // When
+        ObjectNode fromInputStream = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE));
         SchemaValidationStatus status2 = schemaValidation
-            .validateInsertOrUpdateUnit(
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_FILE)));
+            .validateInsertOrUpdateUnit(fromInputStream.deepCopy());
         // Then
         assertTrue(status2.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
 
         // lets validate with a complete external schema
-        JsonNode archUnit = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_MAIL_FILE));
+        ObjectNode archUnit = (ObjectNode) JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(AU_JSON_MAIL_FILE));
         JsonNode schemaMail =
             JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SCHEMA_JSON_MAIL_FILE));
         SchemaValidationUtils schemaValidation2 =
             new SchemaValidationUtils(JsonHandler.writeAsString(schemaMail), true);
         // unit validates schema -> ok
-        SchemaValidationStatus status3 = schemaValidation2.validateInsertOrUpdateUnit(archUnit);
+        SchemaValidationStatus status3 = schemaValidation2.validateInsertOrUpdateUnit(archUnit.deepCopy());
         assertTrue(status3.getValidationStatus().equals(SchemaValidationStatusEnum.VALID));
         // we add a random field, forbidden for the schema -> ko
-        ((ObjectNode) archUnit).set("randomAddedField", new TextNode("This field will be rejected"));
-        SchemaValidationStatus status4 = schemaValidation2
-            .validateInsertOrUpdateUnit(archUnit);
+        archUnit.set("randomAddedField", new TextNode("This field will be rejected"));
+        SchemaValidationStatus status4 = schemaValidation2.validateInsertOrUpdateUnit(archUnit.deepCopy());
         assertTrue(status4.getValidationStatus().equals(SchemaValidationStatusEnum.NOT_AU_JSON_VALID));
         assertTrue(status4.getValidationMessage().contains("randomAddedField"));
     }
