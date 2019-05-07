@@ -254,7 +254,7 @@ vitam:
         performance_logger: "false"
         reconstruction:
     ihm_demo:
-        vitam_component: "ihm-demo"
+        vitam_component: ihm-demo
         host: "ihm-demo.service.{{ consul_domain }}"
         port_service: 8446
         port_admin: 28002
