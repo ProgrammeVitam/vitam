@@ -25,9 +25,9 @@ public class ProcessExecutorTest {
 
         OutputStreamWriter writer = new OutputStreamWriter(Files.newOutputStream(actual.toPath()));
 
-        for (int i = 0; i < 500000; i++) {
+        for (int i = 0; i < 10_000; i++) {
             writer.write(
-                "18:42:22.476 [main] DEBUG fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService - [youdsys-XPS-15-9570:UnknownRole:30199069] Execute script : /bin/mtx,timeout: 1000, args : [-f, /dev/sg0, status]\n");
+                "18:42:22.476 [main] DEBUG fr.gouv.vitam.storage.offers.tape.impl.robot.MtxTapeLibraryService - Execute script : /bin/mtx,timeout: 1000, args : [-f, /dev/sg0, status]\n");
         }
 
         System.err.println("============================");
