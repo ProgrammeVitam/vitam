@@ -412,18 +412,16 @@ public class SchemaValidationUtils {
     /**
      * Validate a json for insert or update with a schema
      *
-     * @param archiveUnit the json to be validated
+     * @param archiveUnitCopy the json to be validated
      * @return a status ({@link SchemaValidationStatus})
      */
-    public SchemaValidationStatus validateInsertOrUpdateUnit(JsonNode archiveUnit) {
-        ObjectNode archiveUnitCopy = archiveUnit.deepCopy();
-
-        if (archiveUnit.get("_mgt") != null) {
+    public SchemaValidationStatus validateInsertOrUpdateUnit(ObjectNode archiveUnitCopy) {
+        if (archiveUnitCopy.get("_mgt") != null) {
             final JsonNode value = archiveUnitCopy.remove("_mgt");
             archiveUnitCopy.set("Management", value);
         }
 
-        if (archiveUnit.get("#management") != null) {
+        if (archiveUnitCopy.get("#management") != null) {
             final JsonNode value = archiveUnitCopy.remove("#management");
             archiveUnitCopy.set("Management", value);
         }

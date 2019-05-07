@@ -878,7 +878,7 @@ public class DbRequest {
                             documentFinal.put(VitamDocument.VERSION, documentVersion.intValue() + 1);
                             documentFinal.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
                         }
-                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument);
+                        SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
                         if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                             throw new MetaDataExecutionException(
                                 "Unable to validate updated Unit " + status.getValidationMessage());
@@ -936,7 +936,7 @@ public class DbRequest {
                     true);
             updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
             SchemaValidationStatus secondstatus =
-                validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument);
+                    validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
             if (!SchemaValidationStatusEnum.VALID.equals(secondstatus.getValidationStatus())) {
                 throw new MetaDataExecutionException(
                     "Unable to validate updated Unit " + secondstatus.getValidationMessage());
