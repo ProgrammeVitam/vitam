@@ -14,9 +14,6 @@ systemLog:
 # Where and how to store data.
 storage:
   dbPath: {{ mongo_db_path }}
-  journal:
-    enabled: {% if mongo_arbiter is defined and mongo_arbiter| lower == "true" %}false{% else %}true{% endif %}
-
   directoryPerDB: true
 
 
