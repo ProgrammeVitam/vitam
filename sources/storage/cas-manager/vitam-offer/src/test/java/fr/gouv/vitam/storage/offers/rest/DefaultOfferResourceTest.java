@@ -367,11 +367,11 @@ public class DefaultOfferResourceTest {
 
         // Then
         checkWrittenFile(file, "2_object", "myfile");
-        checkOfferDatabaseExistingDocument("2_object", "myfile", 1);
+        checkOfferDatabaseExistingDocument("2_object", "myfile", 2);
     }
 
     @Test
-    public void putObjectOverrideExistingWitNewContentInNonRewritableContainer() throws Exception {
+    public void putObjectTryOverrideExistingWithNewContentInNonRewritableContainerFails() throws Exception {
         checkOfferDatabaseEmptiness();
 
         // Given
@@ -816,9 +816,10 @@ public class DefaultOfferResourceTest {
         // Then
         checkWrittenFile(testFileV1, "2_object", "file2");
         checkOfferDatabaseExistingDocument("2_object", "file1", 1);
-        checkOfferDatabaseExistingDocument("2_object", "file2", 2);
+        checkOfferDatabaseExistingDocument("2_object", "file2", 1);
         checkOfferDatabaseExistingDocument("2_object", "file3", 1);
-        checkOfferDatabaseExistingDocument("2_object", "file4", 1);
+        // Fails before
+        checkOfferDatabaseExistingDocument("2_object", "file4", 0);
     }
 
     private void bulkPutObjects(DataCategory dataCategory, List<String> ids, List<File> files, Status expectedStatus)
