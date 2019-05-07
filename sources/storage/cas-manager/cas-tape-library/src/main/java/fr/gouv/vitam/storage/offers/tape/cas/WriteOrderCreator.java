@@ -80,7 +80,7 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         // Schedule tar archive for copy on tape
         readWriteQueue.addIfAbsent(
             Arrays.asList(
-                new QueryCriteria(WriteOrder.FILE_PATH, message.getFilePath(), QueryCriteriaOperator.EQ),
+                new QueryCriteria(WriteOrder.TAR_ID, message.getTarId(), QueryCriteriaOperator.EQ),
                 new QueryCriteria(WriteOrder.MESSAGE_TYPE, QueueMessageType.WriteOrder.name(),
                     QueryCriteriaOperator.EQ)),
             message);

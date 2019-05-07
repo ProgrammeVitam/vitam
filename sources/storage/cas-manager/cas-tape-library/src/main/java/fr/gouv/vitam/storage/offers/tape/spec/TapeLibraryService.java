@@ -26,38 +26,43 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 
-public interface TapeDriveCommandService extends TapeDriveSafeCommandService {
+import java.io.File;
+
+public interface TapeLibraryService {
+
+    String TAPE_MSG = " [Tape] : ";
+    String TAPE_LABEL = "tape-Label-";
+
+    void goToPosition(TapeCatalog tape, Integer position, ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException;
+
+    void write(String parentFile, String fileName, long writtenBytes, TapeCatalog tape) throws ReadWriteException;
+
+    void read(TapeCatalog tape, Integer position, String outputPath) throws ReadWriteException;
+
+    void loadTape(TapeCatalog tape) throws ReadWriteException;
+
+    void unloadTape(TapeCatalog tape) throws ReadWriteException;
+
+    TapeDriveSpec getDriveStatus(ReadWriteErrorCode readWriteErrorCode) throws ReadWriteException;
+
+    Integer getDriveIndex();
+
+    String getLibraryIdentifier();
+
+    String getOutputDirectory();
 
     /**
-     * fsf / bsf
      *
-     * @param position
-     * @param isBackword
-     * @return TapeResponse
+     * @param tape
+     * @param forceOverrideNonEmptyCartridges
+     * @return true to inform that update tape catalog is needed, false else
+     * @throws ReadWriteException
      */
-    TapeResponse move(Integer position, boolean isBackword);
-
-    /**
-     * Go to start
-     *
-     * @return TapeResponse
-     */
-    TapeResponse rewind();
-
-    /**
-     * EOD end of data
-     *
-     * @return TapeResponse
-     */
-    TapeResponse goToEnd();
-
-    /**
-     * Rewind and eject the tape
-     *
-     * @return TapeResponse
-     */
-    TapeResponse eject();
+    boolean checkTapeLabel(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges) throws ReadWriteException;
 
 }

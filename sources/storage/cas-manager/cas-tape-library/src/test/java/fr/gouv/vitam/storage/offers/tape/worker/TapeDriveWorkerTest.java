@@ -172,7 +172,7 @@ public class TapeDriveWorkerTest {
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
         Assertions.assertThat(tapeDriveWorker.getIndex()).isEqualTo(1);
-        verify(tapeDriveConf, VerificationModeFactory.times(2)).getIndex();
+        verify(tapeDriveConf, VerificationModeFactory.times(3)).getIndex();
 
 
         tapeDriveWorker.stop();

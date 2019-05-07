@@ -43,9 +43,11 @@ import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.retry.Retry;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
+import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadWriteResult;
 import fr.gouv.vitam.storage.offers.tape.worker.tasks.ReadWriteTask;
@@ -68,6 +70,8 @@ public class TapeDriveWorker implements Runnable {
     private final TapeDriveOrderConsumer receiver;
     private final TapeRobotPool tapeRobotPool;
     private final TapeDriveService tapeDriveService;
+    private final TapeLibraryService tapeLibraryService;
+
     private final TapeCatalogService tapeCatalogService;
     private final ArchiveReferentialRepository archiveReferentialRepository;
     private final AtomicBoolean stop = new AtomicBoolean(false);
@@ -99,6 +103,8 @@ public class TapeDriveWorker implements Runnable {
         this.tapeRobotPool = tapeRobotPool;
         this.tapeDriveService = tapeDriveService;
         this.receiver = receiver;
+        tapeLibraryService = new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool);
+
         this.shutdownSignal = new CountDownLatch(1);
         this.pauseSignal = new CountDownLatch(1);
         TapeDriveWorker.sleepTime = sleepTime;

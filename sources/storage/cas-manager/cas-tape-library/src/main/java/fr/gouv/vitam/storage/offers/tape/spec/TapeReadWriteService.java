@@ -46,4 +46,6 @@ public interface TapeReadWriteService {
     ProcessExecutor getExecutor();
 
     String getOutputDirectory();
+
+    String getInputDirectory();
 }

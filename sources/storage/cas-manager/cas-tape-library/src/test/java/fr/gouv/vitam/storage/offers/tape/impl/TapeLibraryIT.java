@@ -50,6 +50,7 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
+import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
@@ -535,10 +536,10 @@ public class TapeLibraryIT {
                 Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 
             ReadTask readTask1 = new ReadTask(new ReadOrder(tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
-                tapeLibraryPool, tapeDriveService, tapeCatalogService);
+                new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService);
 
             ReadTask readTask2 = new ReadTask(new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket"), workerCurrentTape,
-                tapeLibraryPool, tapeDriveService, tapeCatalogService);
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService);
 
             ReadWriteResult result1 = readTask1.get();
             assertThat(result1).isNotNull();

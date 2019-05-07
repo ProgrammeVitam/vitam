@@ -76,14 +76,14 @@ public class QueueRepositoryImplTest {
     @Test
     public void testAddWriteOrder() throws QueueException {
 
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket").setTarId("myFilePath");
         queueRepositoryImpl.add(entity);
 
         Optional<WriteOrder> found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket");
-        assertThat(found.get().getFilePath()).isEqualTo("myFilePath");
+        assertThat(found.get().getTarId()).isEqualTo("myFilePath");
 
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isNotPresent();
@@ -107,7 +107,7 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testRemoveOk() throws QueueException {
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket").setTarId("myFilePath");
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.remove(entity.getId());
@@ -120,7 +120,7 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testcompleteOk() throws QueueException {
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket").setTarId("myFilePath");
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
@@ -132,7 +132,7 @@ public class QueueRepositoryImplTest {
 
     @Test
     public void testPutOk() throws QueueException {
-        WriteOrder entity = new WriteOrder().setBucket("mybucket").setFilePath("myFilePath");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket").setTarId("myFilePath");
         queueRepositoryImpl.add(entity);
 
         queueRepositoryImpl.complete(entity.getId());
@@ -158,12 +158,12 @@ public class QueueRepositoryImplTest {
     @Test
     public void testPeekWithPriority() throws QueueException {
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setTarId("myFilePath_1");
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
+        entity = new WriteOrder().setBucket("mybucket_2").setTarId("myFilePath_2");
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
@@ -171,26 +171,26 @@ public class QueueRepositoryImplTest {
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getFilePath()).isEqualTo("myFilePath_2");
+        assertThat(found.get().getTarId()).isEqualTo("myFilePath_2");
 
         // Given document with priority 2
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_1");
-        assertThat(found.get().getFilePath()).isEqualTo("myFilePath_1");
+        assertThat(found.get().getTarId()).isEqualTo("myFilePath_1");
     }
 
     @Test
     public void testPeekWithoutPriority() throws QueueException {
 
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setTarId("myFilePath_1");
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
+        entity = new WriteOrder().setBucket("mybucket_2").setTarId("myFilePath_2");
         queueRepositoryImpl.add(entity);
 
         // Then get the first inserted document
@@ -198,31 +198,31 @@ public class QueueRepositoryImplTest {
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_1");
-        assertThat(found.get().getFilePath()).isEqualTo("myFilePath_1");
+        assertThat(found.get().getTarId()).isEqualTo("myFilePath_1");
 
         // Then get the second inserted document
         found = queueRepositoryImpl.receive(QueueMessageType.WriteOrder, false);
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getFilePath()).isEqualTo("myFilePath_2");
+        assertThat(found.get().getTarId()).isEqualTo("myFilePath_2");
     }
 
     @Test
     public void testPeekWithQueryAndPriority() throws QueueException {
 
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setTarId("myFilePath_1");
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
+        entity = new WriteOrder().setBucket("mybucket_2").setTarId("myFilePath_2");
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_3");
+        entity = new WriteOrder().setBucket("mybucket_2").setTarId("myFilePath_3");
         queueRepositoryImpl.add(entity);
 
 
@@ -235,7 +235,7 @@ public class QueueRepositoryImplTest {
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getFilePath()).isEqualTo("myFilePath_3");
+        assertThat(found.get().getTarId()).isEqualTo("myFilePath_3");
         assertThat(found.get().getPriority()).isEqualTo(5);
 
     }
@@ -244,17 +244,17 @@ public class QueueRepositoryImplTest {
     public void testPeekWithQueryAndWithoutPriority() throws QueueException {
 
         // Given document with priority 2
-        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setFilePath("myFilePath_1");
+        WriteOrder entity = new WriteOrder().setBucket("mybucket_1").setTarId("myFilePath_1");
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_2");
+        entity = new WriteOrder().setBucket("mybucket_2").setTarId("myFilePath_2");
         entity.setPriority(2);
         queueRepositoryImpl.add(entity);
 
         // Given document with priority 1
-        entity = new WriteOrder().setBucket("mybucket_2").setFilePath("myFilePath_3");
+        entity = new WriteOrder().setBucket("mybucket_2").setTarId("myFilePath_3");
         queueRepositoryImpl.add(entity);
 
 
@@ -267,7 +267,7 @@ public class QueueRepositoryImplTest {
         assertThat(found).isPresent();
         assertThat(found.get().getState()).isEqualTo(QueueState.RUNNING);
         assertThat(found.get().getBucket()).isEqualTo("mybucket_2");
-        assertThat(found.get().getFilePath()).isEqualTo("myFilePath_2");
+        assertThat(found.get().getTarId()).isEqualTo("myFilePath_2");
         assertThat(found.get().getPriority()).isEqualTo(5);
 
     }
