@@ -760,11 +760,10 @@ public class StorageTwoOffersIT {
                 FileUtils.readFileToByteArray(files.get(i)), OFFER_ID, SECOND_OFFER_ID);
         }
 
-        // Ideally, OfferLog should be updated only for actually updated files. But it's not yet the case...
-        checkOfferLog(mongoRuleOffer1, nbFiles * 2);
-        checkOfferLog(mongoRuleOffer2, nbFiles * 2);
-        checkOfferSequence(mongoRuleOffer1, nbFiles * 2);
-        checkOfferSequence(mongoRuleOffer2, nbFiles * 2);
+        checkOfferLog(mongoRuleOffer1, nbFiles);
+        checkOfferLog(mongoRuleOffer2, nbFiles);
+        checkOfferSequence(mongoRuleOffer1, nbFiles);
+        checkOfferSequence(mongoRuleOffer2, nbFiles);
     }
 
     @Test
@@ -854,11 +853,10 @@ public class StorageTwoOffersIT {
                 FileUtils.readFileToByteArray(files1.get(i)), OFFER_ID, SECOND_OFFER_ID);
         }
 
-        // Ideally, OfferLog should be updated only for actually updated files. But it's not yet the case...
-        checkOfferLog(mongoRuleOffer1, nbFiles * 2);
-        checkOfferLog(mongoRuleOffer2, nbFiles * 2);
-        checkOfferSequence(mongoRuleOffer1, nbFiles * 2);
-        checkOfferSequence(mongoRuleOffer2, nbFiles * 2);
+        checkOfferLog(mongoRuleOffer1, nbFiles);
+        checkOfferLog(mongoRuleOffer2, nbFiles);
+        checkOfferSequence(mongoRuleOffer1, nbFiles);
+        checkOfferSequence(mongoRuleOffer2, nbFiles);
     }
 
     private void writeFilesToWorkspace(String workspaceContainer, List<String> workspaceUris,

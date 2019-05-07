@@ -36,8 +36,6 @@ import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ContentAddressableStorageAbstract;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
@@ -142,7 +140,8 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObjectTestNoContainer() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
-        offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), OBJECT_TYPE, null,
+            VitamConfiguration.getDefaultDigestType());
     }
 
     @Test
@@ -163,14 +162,13 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObjectTest() throws Exception {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
-        assertNotNull(offerService);
 
         String computedDigest;
 
         // object
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            assertNotNull(in);
-            computedDigest = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
+            computedDigest = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
         }
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -183,6 +181,97 @@ public class DefaultOfferServiceTest {
             digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
+    }
+
+    @Test
+    public void createObject_OverrideExistingUpdatableObject() throws Exception {
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
+
+        // object
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+        String computedDigestV2;
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
+            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+
+        // check
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+        assertEquals(computedDigestV2, digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService, times(2)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
+    }
+
+    @Test
+    public void createObject_OverrideExistingNonUpdatableObjectWithSameContent() throws Exception {
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
+
+        // object
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+        String computedDigestV2;
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+
+        // check
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+        assertEquals(computedDigestV2, digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService, times(2)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
+    }
+
+    @Test
+    public void createObject_TryOverrideExistingNonUpdatableObjectWithDifferentContentFails() throws Exception {
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
+
+        // Given
+        String computedDigestV1;
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            computedDigestV1 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+
+        // When / Then
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
+            assertThatThrownBy(
+                () -> offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                    VitamConfiguration.getDefaultDigestType()))
+                .isInstanceOf(NonUpdatableContentAddressableStorageException.class);
+        }
+
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+        assertEquals(computedDigestV1, digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService, times(1)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
     }
 
     @Test
@@ -191,7 +280,8 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null,
+            VitamConfiguration.getDefaultDigestType());
 
         final ObjectContent response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2);
         assertNotNull(response);
@@ -205,7 +295,8 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, null,
+            VitamConfiguration.getDefaultDigestType());
 
         // check
         final File container = new File(tempFolder.getRoot(), CONTAINER_PATH);
@@ -296,7 +387,8 @@ public class DefaultOfferServiceTest {
         final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDbAccess);
         assertNotNull(offerService);
         for (int i = 0; i < 150; i++) {
-            offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, null, VitamConfiguration.getDefaultDigestType());
+            offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
         }
         String cursorId = offerService.createCursor(CONTAINER_PATH);
         assertNotNull(cursorId);
@@ -416,11 +508,13 @@ public class DefaultOfferServiceTest {
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
         StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE, DigestType.SHA512);
+            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE,
+            DigestType.SHA512);
 
         MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file1);
         StorageBulkPutResult storageBulkPutResult2 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2, OBJECT_TYPE, DigestType.SHA512);
+            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2, OBJECT_TYPE,
+            DigestType.SHA512);
 
         // Then
         assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
@@ -444,21 +538,22 @@ public class DefaultOfferServiceTest {
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
         StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE, DigestType.SHA512);
+            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE,
+            DigestType.SHA512);
 
         // Try import again
         assertThatThrownBy(() -> {
-                MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file2);
-                offerService.bulkPutObjects(
-                    CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2,
-                    OBJECT_TYPE, DigestType.SHA512);
-            }).isInstanceOf(NonUpdatableContentAddressableStorageException.class);
+            MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file2);
+            offerService.bulkPutObjects(
+                CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2,
+                OBJECT_TYPE, DigestType.SHA512);
+        }).isInstanceOf(NonUpdatableContentAddressableStorageException.class);
 
         // Then (check non updated)
         assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
         checkFile(file1, offerService, storageBulkPutResult1.getEntries().get(0), OBJECT_ID);
 
-        verify(offerDatabaseService, times(2)).bulkSave(eq(CONTAINER_PATH),
+        verify(offerDatabaseService).bulkSave(eq(CONTAINER_PATH),
             eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE));
     }
 
