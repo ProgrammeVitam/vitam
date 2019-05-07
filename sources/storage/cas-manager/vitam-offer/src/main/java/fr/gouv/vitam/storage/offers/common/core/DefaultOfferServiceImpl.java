@@ -132,14 +132,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         ensureContainerExists(containerName);
 
-        String existingDigest = checkNonRewritableObjects(containerName, objectId, objectPart, type, digestType);
-        if (existingDigest != null) {
-            return existingDigest;
-        }
+        String digest = writeObject(containerName, objectId, objectPart, type, size, digestType);
 
+        // Write offer log even if non updatable object already existed to ensure offer log is written if not yet logged
+        // (idempotency)
         logObjectWriteInOfferLog(containerName, objectId);
 
-        return putObject(containerName, objectId, objectPart, size, digestType);
+        return digest;
     }
 
     private void ensureContainerExists(String containerName) throws ContentAddressableStorageServerException {
@@ -148,14 +147,18 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
     }
 
+    private String writeObject(String containerName, String objectId, InputStream objectPart, DataCategory type,
+        Long size, DigestType digestType) throws ContentAddressableStorageException {
+        if (!type.canUpdate() && isObjectExist(containerName, objectId)) {
+            return checkNonRewritableObjects(containerName, objectId, objectPart, digestType);
+        }
+        return putObject(containerName, objectId, objectPart, size, digestType);
+    }
+
     private String checkNonRewritableObjects(String containerName, String objectId, InputStream objectPart,
-        DataCategory type, DigestType digestType) throws ContentAddressableStorageException {
+        DigestType digestType) throws ContentAddressableStorageException {
 
         try {
-
-            if (type.canUpdate() || !isObjectExist(containerName, objectId)) {
-                return null;
-            }
 
             // Compute file digest
             Digest digest = new Digest(digestType);
