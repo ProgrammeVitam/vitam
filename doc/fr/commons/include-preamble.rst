@@ -137,6 +137,9 @@ Glossaire
    LFC
       `LiFe Cycle`, cycle de vie
 
+   LTS 
+      `Long-term support`, support à long terme : version spécifique d'un logiciel dont le support est assuré pour une période de temps plus longue que la normale.
+
    M2M
       `Machine To Machine`
 
