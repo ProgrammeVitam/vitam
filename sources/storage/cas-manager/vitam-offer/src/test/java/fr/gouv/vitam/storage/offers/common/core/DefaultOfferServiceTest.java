@@ -63,12 +63,15 @@ import java.util.List;
 import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -77,12 +80,14 @@ import static org.mockito.Mockito.when;
 public class DefaultOfferServiceTest {
     private static final String CONTAINER_PATH = "container";
     private static final DataCategory OBJECT_TYPE = DataCategory.OBJECT;
+    private static final DataCategory UNIT_TYPE = DataCategory.UNIT;
     private static final String OBJECT_ID = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_2 = GUIDFactory.newObjectGUID(0).getId();
     private static final String OBJECT_ID_DELETE = GUIDFactory.newObjectGUID(0).getId();
 
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
+    private static final String ARCHIVE_FILE2_TXT = "archivefile_v2.txt";
     private static final String OBJECT_ID_2_CONTENT = "Vitam Test Content";
     private static final String FAKE_CONTAINER = "fakeContainer";
     private static final String OBJECT = "object_";
@@ -145,7 +150,6 @@ public class DefaultOfferServiceTest {
 
         // object
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            assertNotNull(in);
             computedDigest = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
                 VitamConfiguration.getDefaultDigestType());
         }
@@ -160,6 +164,97 @@ public class DefaultOfferServiceTest {
             digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
+    }
+
+    @Test
+    public void createObject_OverrideExistingUpdatableObject() throws Exception {
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+
+        // object
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+        String computedDigestV2;
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
+            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+
+        // check
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+        assertEquals(computedDigestV2, digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService, times(2)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
+    }
+
+    @Test
+    public void createObject_OverrideExistingNonUpdatableObjectWithSameContent() throws Exception {
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+
+        // object
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+        String computedDigestV2;
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+
+        // check
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+        assertEquals(computedDigestV2, digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService, times(2)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
+    }
+
+    @Test
+    public void createObject_TryOverrideExistingNonUpdatableObjectWithDifferentContentFails() throws Exception {
+        final DefaultOfferService offerService = new DefaultOfferServiceImpl(offerDatabaseService);
+
+        // Given
+        String computedDigestV1;
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
+            computedDigestV1 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                VitamConfiguration.getDefaultDigestType());
+        }
+
+        // When / Then
+        try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
+            assertThatThrownBy(
+                () -> offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, null,
+                    VitamConfiguration.getDefaultDigestType()))
+                .isInstanceOf(NonUpdatableContentAddressableStorageException.class);
+        }
+
+        final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+
+        final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
+        assertEquals(computedDigestV1, digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString());
+
+        assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
+        verify(offerDatabaseService, times(1)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE);
     }
 
     @Test
