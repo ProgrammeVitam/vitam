@@ -9,7 +9,7 @@ Ce document décrit les procédures et informations utiles à une équipe d'expl
 Il s'adresse aux personnes suivantes :
 
 * Les architectes techniques des projets désirant intégrer la solution logicielle :term:`VITAM` ;
-* Les exploitants devant installer la solution logicielle :term:`VITAM`. 
+* Les exploitants devant installer et/ou exploiter la solution logicielle :term:`VITAM`. 
 
 .. note:: Ce document ne décrit que les chemins de montées de versions vers les versions :term:`VITAM` maintenues. Se référer au chapitre :ref:`generalites` pour plus d'informations. 
 
