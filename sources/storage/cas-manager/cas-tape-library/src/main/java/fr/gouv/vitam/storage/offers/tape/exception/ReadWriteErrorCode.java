@@ -26,17 +26,17 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.exception;
 
-import fr.gouv.vitam.common.model.StatusCode;
-
 public enum ReadWriteErrorCode {
     INTERNAL_ERROR_SERVER,
     TAPE_NOT_FOUND_IN_CATALOG,
     NO_EMPTY_SLOT_FOUND,
+    KO_TAPE_IS_OUTSIDE,
     /**
      * Previous location should not be a drive, but a slot or mailbox
      * Current location should not be null
      */
-    TAPE_LOCATION_CONFLICT,
+    TAPE_LOCATION_CONFLICT_ON_LOAD,
+    TAPE_LOCATION_CONFLICT_ON_UNLOAD,
     FILE_NOT_FOUND,
     NULL_CURRENT_TAPE,
     KO_DB_PERSIST,
@@ -66,6 +66,10 @@ public enum ReadWriteErrorCode {
     KO_ON_READ_LABEL,
     TAPE_LOCATION_UNKNOWN,
     KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT,
+    KO_ON_GO_TO_POSITION,
     KO_REWIND_BEFORE_UNLOAD_TAPE,
-    KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER
+    KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER,
+    KO_ON_WRITE_TO_FS,
+    KO_TAPE_IS_BUSY,
+    KO_TAPE_CONFLICT_STATE
 }

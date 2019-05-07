@@ -66,7 +66,7 @@ public class DdTapeLibraryService implements TapeReadWriteService {
         ParametersChecker.checkParameter("Arguments inputPath is required", inputPath);
 
         List<String> args =
-            Lists.newArrayList(IF + Paths.get(inputDirectory).resolve(inputPath).toAbsolutePath(),
+            Lists.newArrayList(IF + Paths.get(this.getInputDirectory()).resolve(inputPath).toAbsolutePath(),
                 OF + tapeDriveConf.getDevice());
 
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
@@ -85,7 +85,7 @@ public class DdTapeLibraryService implements TapeReadWriteService {
         ParametersChecker.checkParameter("Arguments outputPath is required", outputPath);
 
         List<String> args = Lists.newArrayList(IF + tapeDriveConf.getDevice(),
-            OF + Paths.get(outputDirectory).resolve(outputPath).toAbsolutePath());
+            OF + Paths.get(this.getOutputDirectory()).resolve(outputPath).toAbsolutePath());
 
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getDdPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
@@ -119,5 +119,10 @@ public class DdTapeLibraryService implements TapeReadWriteService {
     @Override
     public String getOutputDirectory() {
         return outputDirectory;
+    }
+
+    @Override
+    public String getInputDirectory() {
+        return inputDirectory;
     }
 }

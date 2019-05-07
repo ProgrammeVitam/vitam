@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.dto;
 
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 
@@ -49,7 +50,16 @@ public class TapeResponse {
         this.status = status;
     }
 
+    public TapeResponse(Object entity, ReadWriteErrorCode errorCode, StatusCode status) {
+        this.entity = entity;
+        this.errorCode = errorCode;
+        this.status = status;
+    }
+
     public <T> T getEntity(Class<T> entityType) {
+        if (!(entity instanceof String) && entityType.isAssignableFrom(String.class)) {
+            return entityType.cast(JsonHandler.unprettyPrint(entity));
+        }
         return entityType.cast(entity);
     }
 

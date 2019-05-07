@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
-import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeDriveStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
@@ -77,15 +76,10 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     }
 
     @Override
-    public TapeResponse goToPosition(Integer position) {
-        return goToPosition(position, false);
-    }
-
-    @Override
-    public TapeResponse goToPosition(Integer position, boolean isBackword) {
+    public TapeResponse move(Integer position, boolean isBackword) {
         ParametersChecker.checkParameter("Arguments position is required", position);
         if (position < 1) {
-            return new TapeResponse(ReadWriteErrorCode.KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER, StatusCode.KO);
+            throw new IllegalStateException("position sould be a positive integer");
         }
 
         List<String> args =
