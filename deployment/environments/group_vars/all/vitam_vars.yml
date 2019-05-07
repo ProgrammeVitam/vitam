@@ -242,7 +242,7 @@ vitam:
         jvm_log: false
         performance_logger: "false"
     ihm_demo:
-        vitam_component: "ihm-demo"
+        vitam_component: ihm-demo
         host: "ihm-demo.service.{{ consul_domain }}"
         port_service: 8002
         port_admin: 28002
