@@ -57,6 +57,10 @@
   run_once: true
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
   delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+  retries: 5
+  delay: 30
+  register: result
+  until: result.rc == 0
   notify:
     - restart kibana
 
