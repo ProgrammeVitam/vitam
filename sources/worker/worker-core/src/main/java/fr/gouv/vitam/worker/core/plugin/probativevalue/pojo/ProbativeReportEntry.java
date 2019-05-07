@@ -30,16 +30,16 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
+import fr.gouv.vitam.common.model.StatusCode;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.KO;
-import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.OK;
-import static fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus.WARN;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 
 public class ProbativeReportEntry {
 
@@ -51,7 +51,7 @@ public class ProbativeReportEntry {
     private final List<ProbativeCheck> checks;
     private final String evStartDateTime;
     private final String evEndDateTime;
-    private final EvidenceStatus status;
+    private final StatusCode status;
 
     @JsonCreator
     public ProbativeReportEntry(
@@ -63,7 +63,7 @@ public class ProbativeReportEntry {
         @JsonProperty("checks") List<ProbativeCheck> checks,
         @JsonProperty("evStartDateTime") String evStartDateTime,
         @JsonProperty("evEndDateTime") String evEndDateTime,
-        @JsonProperty("status") EvidenceStatus status) {
+        @JsonProperty("status") StatusCode status) {
         this.unitIds = unitIds;
         this.objectGroupId = objectGroupId;
         this.objectId = objectId;
@@ -88,7 +88,7 @@ public class ProbativeReportEntry {
     }
 
     @JsonIgnore
-    private EvidenceStatus getStatus(List<ProbativeOperation> operations, List<ProbativeCheck> checks) {
+    private StatusCode getStatus(List<ProbativeOperation> operations, List<ProbativeCheck> checks) {
         if (operations.stream().allMatch(Objects::nonNull)
             && operations.size() == 3
             && checks.stream().allMatch(Objects::nonNull)
@@ -102,13 +102,13 @@ public class ProbativeReportEntry {
             && checks.stream().allMatch(Objects::nonNull)
             && checks.stream().noneMatch(c -> KO.equals(c.getStatus()))
             && checks.size() == ChecksInformation.values().length) {
-            return WARN;
+            return WARNING;
         }
 
         return KO;
     }
 
-    public ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId, String usageVersion) {
+    private ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId, String usageVersion) {
         this.unitIds = unitIds;
         this.objectGroupId = objectGroupId;
         this.objectId = objectId;
@@ -176,7 +176,7 @@ public class ProbativeReportEntry {
     }
 
     @JsonProperty("status")
-    public EvidenceStatus getStatus() {
+    public StatusCode getStatus() {
         return status;
     }
 }
