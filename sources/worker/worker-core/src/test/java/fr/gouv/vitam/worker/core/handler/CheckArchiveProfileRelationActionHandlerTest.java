@@ -244,7 +244,7 @@ public class CheckArchiveProfileRelationActionHandlerTest {
         Set<String> profiles = new HashSet<>();
         profiles.add(PROFILE_IDENTIFIER);
         contract.setArchiveProfiles(profiles);
-        return ClientMockResultHelper.createReponse(contract);
+        return ClientMockResultHelper.createResponse(contract);
     }
 
     private static RequestResponse createIngestContract(ActivationStatus status, String profileIdentifier)
@@ -257,14 +257,14 @@ public class CheckArchiveProfileRelationActionHandlerTest {
             profiles.add(profileIdentifier);
             contract.setArchiveProfiles(profiles);
         }
-        return ClientMockResultHelper.createReponse(contract);
+        return ClientMockResultHelper.createResponse(contract);
     }
 
     private static RequestResponse createProfile(ProfileStatus status) throws InvalidParseOperationException {
         ProfileModel profil = new ProfileModel();
         profil.setIdentifier("PROFIL-00001");
         profil.setStatus(status);
-        return ClientMockResultHelper.createReponse(profil);
+        return ClientMockResultHelper.createResponse(profil);
     }
 
 }
