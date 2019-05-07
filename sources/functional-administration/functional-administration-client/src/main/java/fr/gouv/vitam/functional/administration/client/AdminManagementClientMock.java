@@ -241,7 +241,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
             .setRemained(1035126);
         model.setObjectSize(objectSize)
             .setCreationDate("2016-11-04T20:40:49.030");
-        return ClientMockResultHelper.createReponse(model);
+        return ClientMockResultHelper.createResponse(model);
     }
 
     @Override
@@ -269,7 +269,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
             .setTotalObjectsGroups(totalObjectsGroups)
             .setTotalUnits(totalUnits)
             .setObjectSize(objectSize);
-        return ClientMockResultHelper.createReponse(detailBuider);
+        return ClientMockResultHelper.createResponse(detailBuider);
     }
 
     @Override
@@ -294,7 +294,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         }
         AccessContractModel model =
             JsonHandler.getFromString(ClientMockResultHelper.ACCESS_CONTRACTS, AccessContractModel.class);
-        return ClientMockResultHelper.createReponse(model);
+        return ClientMockResultHelper.createResponse(model);
     }
 
     @Override
@@ -310,7 +310,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         LOGGER.debug("find ingest contracts request");
         IngestContractModel ingestContract =
             JsonHandler.getFromString(ClientMockResultHelper.INGEST_CONTRACTS, IngestContractModel.class);
-        return ClientMockResultHelper.createReponse(ingestContract);
+        return ClientMockResultHelper.createResponse(ingestContract);
     }
 
     @Override
@@ -394,7 +394,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException {
         ArchiveUnitProfileModel model =
             JsonHandler.getFromString(ClientMockResultHelper.ARCHIVE_UNIT_PROFILES, ArchiveUnitProfileModel.class);
-        return ClientMockResultHelper.createReponse(model).setHttpCode(200);
+        return ClientMockResultHelper.createResponse(model).setHttpCode(200);
     }
 
     @Override
@@ -422,20 +422,20 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     public RequestResponse<ContextModel> updateContext(String id, JsonNode queryDsl)
         throws InvalidParseOperationException {
         ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
-        return ClientMockResultHelper.createReponse(model);
+        return ClientMockResultHelper.createResponse(model);
     }
 
     @Override
     public RequestResponse<ContextModel> findContexts(JsonNode queryDsl) throws InvalidParseOperationException {
         ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
-        return ClientMockResultHelper.createReponse(model);
+        return ClientMockResultHelper.createResponse(model);
 
     }
 
     @Override
     public RequestResponse<ContextModel> findContextById(String id) throws InvalidParseOperationException {
         ContextModel model = JsonHandler.getFromString(ClientMockResultHelper.CONTEXTS, ContextModel.class);
-        return ClientMockResultHelper.createReponse(model);
+        return ClientMockResultHelper.createResponse(model);
 
     }
 
@@ -470,7 +470,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         LOGGER.debug("find security profiles request ");
         SecurityProfileModel model =
             JsonHandler.getFromString(ClientMockResultHelper.SECURITY_PROFILES, SecurityProfileModel.class);
-        return ClientMockResultHelper.createReponse(model);
+        return ClientMockResultHelper.createResponse(model);
     }
 
     @Override
@@ -485,7 +485,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throws InvalidParseOperationException, AdminManagementClientServerException {
         SecurityProfileModel model =
             JsonHandler.getFromString(ClientMockResultHelper.SECURITY_PROFILES, SecurityProfileModel.class);
-        return ClientMockResultHelper.createReponse(model);
+        return ClientMockResultHelper.createResponse(model);
     }
 
     @Override
@@ -493,7 +493,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
         throws InvalidParseOperationException, AdminManagementClientServerException {
         ProfileModel model =
             JsonHandler.getFromString(ClientMockResultHelper.PROFILES, ProfileModel.class);
-        return ClientMockResultHelper.createReponse(model).setHttpCode(200);
+        return ClientMockResultHelper.createResponse(model).setHttpCode(200);
     }
 
     @Override
