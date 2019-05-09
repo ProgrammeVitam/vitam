@@ -144,7 +144,7 @@
             </Arg>
         </Call>
     </New>
-        <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
+        <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory$Server">
         <Set name="KeyStorePath">{{ vitam_folder_conf }}/keystore_{{ vitam_struct.vitam_component }}.jks</Set>
         <Set name="KeyStorePassword">{{password_keystore}}</Set>
         <Set name="KeyManagerPassword">{{password_manager_keystore}}</Set>
