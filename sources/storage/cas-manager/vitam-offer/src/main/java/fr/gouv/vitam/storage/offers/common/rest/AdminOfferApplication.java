@@ -26,36 +26,33 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 
-import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Offer register resources and filters
+ * Admin application.
  */
-public class BusinessApplication extends Application {
+public class AdminOfferApplication extends ConfigurationApplication {
 
-    private final CommonBusinessApplication commonBusinessApplication;
     private Set<Object> singletons;
 
     /**
-     * Constructor
+     * Constructor adding GenericExceptionMapper and AdminStatusResource
      */
-    public BusinessApplication() {
+    public AdminOfferApplication() {
+
         singletons = new HashSet<>();
-        commonBusinessApplication = new CommonBusinessApplication();
+        singletons.add(new GenericExceptionMapper());
+        singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
 
         OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
 
-        singletons.addAll(commonBusinessApplication.getResources());
-        singletons.add(new DefaultOfferResource(offerCommonApplication.getDefaultOfferService()));
-    }
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return commonBusinessApplication.getClasses();
+        singletons.add(new OfferAdminResource(offerCommonApplication.getDefaultOfferService(), offerCommonApplication.getMongoDatabase()));
     }
 
     @Override
