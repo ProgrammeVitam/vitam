@@ -257,7 +257,7 @@ public class VitamServerTestRunner {// NOSONAR
         HttpConfiguration https = new HttpConfiguration();
         https.addCustomizer(new SecureRequestCustomizer());
 
-        SslContextFactory sslContextFactory = new SslContextFactory();
+        SslContextFactory.Server sslContextFactory = new SslContextFactory.Server();
         sslContextFactory.setKeyStorePath(configuration.getKeyStorePath());
         sslContextFactory.setKeyStorePassword(configuration.getKeyStorePassword());
         sslContextFactory.setKeyManagerPassword(configuration.getKeyStorePassword());
@@ -270,6 +270,7 @@ public class VitamServerTestRunner {// NOSONAR
         sslContextFactory.setIncludeProtocols("TLSv1.2");
         sslContextFactory.setExcludeCipherSuites(".*NULL.*", ".*RC4.*", ".*MD5.*", ".*DES.*", ".*DSS.");
         sslContextFactory.setUseCipherSuitesOrder(true);
+
         sslContextFactory.setRenegotiationAllowed(true);
 
         SslConnectionFactory sslConnectionFactory = new SslConnectionFactory(sslContextFactory, "http/1.1");
