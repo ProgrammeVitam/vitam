@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.security.internal.filter;
 
-import static org.apache.commons.httpclient.auth.AuthPolicy.BASIC;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -45,6 +44,8 @@ import fr.gouv.vitam.common.model.BasicAuthModel;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 import sun.misc.BASE64Decoder;
+
+import static org.apache.http.client.config.AuthSchemes.BASIC;
 
 /**
  * Filter used to handle the basic authentication for REST endpoints,
