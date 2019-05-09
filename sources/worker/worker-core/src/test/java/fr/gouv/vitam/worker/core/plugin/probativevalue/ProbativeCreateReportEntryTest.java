@@ -81,8 +81,8 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.LOGBOOK_TRACEABIL
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.OBJECTGROUP_LFC_TRACEABILITY;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin.MESSAGE_DIGEST;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
+import static fr.gouv.vitam.worker.core.plugin.preservation.model.BinaryEventData.MESSAGE_DIGEST;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReportEntry.NO_BINARY_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;

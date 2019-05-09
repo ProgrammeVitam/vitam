@@ -155,7 +155,7 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.OBJECT;
 import static fr.gouv.vitam.worker.core.handler.VerifyMerkleTreeActionHandler.computeMerkleTree;
 import static fr.gouv.vitam.worker.core.plugin.CheckConformityActionPlugin.CALC_CHECK;
 import static fr.gouv.vitam.worker.core.plugin.StoreObjectGroupActionPlugin.STORING_OBJECT_TASK_ID;
-import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageBinaryPlugin.MESSAGE_DIGEST;
+import static fr.gouv.vitam.worker.core.plugin.preservation.model.BinaryEventData.MESSAGE_DIGEST;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OBJECT_GROUP_DIGEST_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.EVENTS_OPERATION_DATABASE_TRACEABILITY_COMPARISON;
 import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.FILE_DIGEST_LFC_DATABASE_COMPARISON;
@@ -769,7 +769,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
             .filter(this::isDigestEvent)
             .filter(this::isOKEvent)
             .map(this::toJsonNode)
-            .map(this::getDigest)
+            .map(evDetData -> getDigest(evDetData, versionsModel.getId()))
             .filter(StringUtils::isNotBlank)
             .collect(Collectors.toSet());
     }
@@ -794,8 +794,19 @@ public class ProbativeCreateReportEntry extends ActionHandler {
         return ProbativeCheck.okFrom(information, String.join(", ", otherDigests), databaseDigest);
     }
 
-    private String getDigest(JsonNode jsonNode) {
+    private String getDigest(JsonNode evDetData, String id) {
+        boolean isDigestFromPreservationEvent = evDetData.path(MESSAGE_DIGEST).isNull() || evDetData.path(MESSAGE_DIGEST).isMissingNode();
+        return isDigestFromPreservationEvent
+            ? getDigestFromPreservation(evDetData, id)
+            : getDigestFromIngest(evDetData);
+    }
+
+    private String getDigestFromIngest(JsonNode jsonNode) {
         return jsonNode.get(MESSAGE_DIGEST).asText();
+    }
+
+    private String getDigestFromPreservation(JsonNode jsonNode, String id) {
+        return jsonNode.get(id).get(MESSAGE_DIGEST).asText();
     }
 
     private JsonNode toJsonNode(LogbookEvent event) {

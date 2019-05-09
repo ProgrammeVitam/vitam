@@ -26,9 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -38,17 +36,18 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.BinaryEventData;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
-import fr.gouv.vitam.worker.core.utils.PluginHelper;
+import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -62,11 +61,6 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubIte
 public class PreservationStorageBinaryPlugin extends ActionHandler {
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationStorageBinaryPlugin.class);
     public static final String ITEM_ID = "OBJECT_STORAGE_TASK";
-    public  static final String MESSAGE_DIGEST = "MessageDigest";
-
-    private static final String FILE_NAME = "FileName";
-    private static final String OFFERS = "Offers";
-    private static final String ALGORITHM = "Algorithm";
 
     private final BackupService backupService;
 
@@ -129,20 +123,17 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
-            return buildItemStatusSubItems(ITEM_ID, subItemIds, KO, PluginHelper.EventDetails.of(error))
+            return buildItemStatusSubItems(ITEM_ID, subItemIds, KO, EventDetails.of(error))
                 .disableLfc()
                 .setGlobalOutcomeDetailSubcode("SUBSTATUS_UNKNOWN");
         }
-        String storedInfos = outputExtras.stream()
+        Map<String, BinaryEventData> digests = outputExtras.stream()
             .filter(o -> o.getStoredInfo().isPresent())
-            .map(OutputExtra::getStoredInfo)
-            .map(Optional::get)
-            .map(JsonHandler::unprettyPrint)
-            .collect(Collectors.joining(", "));
+            .collect(Collectors.toMap(OutputExtra::getBinaryGUID, o -> BinaryEventData.from(o.getStoredInfo().get())));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
-            return buildItemStatusSubItems(ITEM_ID, subItemIds, OK, PluginHelper.EventDetails.of(storedInfos));
+            return buildItemStatusSubItems(ITEM_ID, subItemIds, OK, digests);
         }
-        return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING, PluginHelper.EventDetails.of(storedInfos, error));
+        return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING, EventDetails.of(error, String.join(", ", digests.keySet())));
     }
 
     private OutputExtra getOutputExtra(Path outputFiles, OutputExtra extra) {
@@ -151,13 +142,9 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
         try (InputStream stream = Files.newInputStream(outputPath)) {
             StoredInfoResult storedInfo = backupService.backup(stream, OBJECT, extra.getBinaryGUID());
 
-            ItemStatus itemStatus = new ItemStatus(ITEM_ID);
-            itemStatus.setEvDetailData(storedInfoToEventDetail(storedInfo));
-            itemStatus.increment(OK);
-
-            if (!storedInfo.getDigest().equalsIgnoreCase(extra.getBinaryHash().get())) {
-                logger.error("Error with stored digest {}", storedInfo.getDigest());
-                return OutputExtra.inError(String.format("Error with stored digest %s", storedInfo.getDigest()));
+            if (!extra.getBinaryHash().isPresent() || !storedInfo.getDigest().equalsIgnoreCase(extra.getBinaryHash().get())) {
+                logger.error("Error with stored digest {} and computed binary digest {}", storedInfo.getDigest(), extra.getBinaryHash());
+                return OutputExtra.inError(String.format("Error with stored digest %s and computed binary digest %s", storedInfo.getDigest(), extra.getBinaryHash()));
             }
 
             return OutputExtra.withStoredInfo(extra, storedInfo);
@@ -165,16 +152,5 @@ public class PreservationStorageBinaryPlugin extends ActionHandler {
             logger.error(e);
             return OutputExtra.inError(e.getMessage());
         }
-    }
-
-    private String storedInfoToEventDetail(StoredInfoResult storedInfo) {
-        ObjectNode objectNode = JsonHandler.createObjectNode();
-
-        objectNode.put(FILE_NAME, storedInfo.getId());
-        objectNode.put(ALGORITHM, storedInfo.getDigestType());
-        objectNode.put(MESSAGE_DIGEST, storedInfo.getDigest());
-        objectNode.put(OFFERS, storedInfo.getOfferIds() != null ? String.join(",", storedInfo.getOfferIds()) : "");
-
-        return JsonHandler.unprettyPrint(objectNode);
     }
 }
