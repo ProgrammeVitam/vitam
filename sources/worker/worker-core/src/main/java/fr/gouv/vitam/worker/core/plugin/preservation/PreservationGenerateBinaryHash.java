@@ -35,6 +35,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.BinaryEventData;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResult.OutputExtra;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.WorkflowBatchResults;
@@ -46,7 +47,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -114,15 +115,13 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, KO, EventDetails.of(error)).disableLfc();
         }
-        String hashs = outputExtras.stream()
+        Map<String, BinaryEventData> digests = outputExtras.stream()
             .filter(o -> o.getBinaryHash().isPresent())
-            .map(OutputExtra::getBinaryHash)
-            .map(Optional::get)
-            .collect(Collectors.joining(", "));
+            .collect(Collectors.toMap(OutputExtra::getBinaryGUID, o -> BinaryEventData.from(o.getBinaryHash().get())));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
-            return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, OK, EventDetails.of(hashs));
+            return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, OK, digests);
         }
-        return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, WARNING, EventDetails.of(error, hashs));
+        return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, WARNING, EventDetails.of(error, String.join(", ", digests.keySet())));
     }
 
     private OutputExtra getOutputExtra(WorkflowBatchResults results, OutputExtra extra) {
