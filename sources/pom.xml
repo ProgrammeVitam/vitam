@@ -98,7 +98,7 @@
         <resteasy.client.version>3.6.2.Final</resteasy.client.version>
         <jclouds.version>2.1.1</jclouds.version>
         <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
-        <jclouds-ceph.version>2.1.1</jclouds-ceph.version>
+        <jclouds-ceph.version>2.1.2</jclouds-ceph.version>
         <openstack4j.version>3.1.0</openstack4j.version>
         <awssdk.v1.version>1.11.488</awssdk.v1.version>
         <thaiopensource.version>20091111</thaiopensource.version>
@@ -1174,6 +1174,22 @@
                 <version>${json-sanitize.version}</version>
             </dependency>
             <dependency>
+                <groupId>xalan</groupId>
+                <artifactId>xalan</artifactId>
+                <version>2.7.2</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.xmlgraphics</groupId>
+                <artifactId>batik-css</artifactId>
+                <version>1.11</version>
+            </dependency>
+            <dependency>
+                <groupId>org.owasp.antisamy</groupId>
+                <artifactId>antisamy</artifactId>
+                <version>1.5.8</version>
+            </dependency>
+
+            <dependency>
                 <groupId>org.owasp.esapi</groupId>
                 <artifactId>esapi</artifactId>
                 <version>${esapi.version}</version>
@@ -1190,8 +1206,21 @@
                         <artifactId>commons-beanutils-core</artifactId>
                         <groupId>commons-beanutils</groupId>
                     </exclusion>
+                    <exclusion>
+                        <artifactId>xalan</artifactId>
+                        <groupId>xalan</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <artifactId>batik-css</artifactId>
+                        <groupId>org.apache.xmlgraphics</groupId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.owasp.antisamy</groupId>
+                        <artifactId>antisamy</artifactId>
+                    </exclusion>
                 </exclusions>
             </dependency>
+
             <dependency>
                 <groupId>org.apache.shiro</groupId>
                 <artifactId>shiro-core</artifactId>
