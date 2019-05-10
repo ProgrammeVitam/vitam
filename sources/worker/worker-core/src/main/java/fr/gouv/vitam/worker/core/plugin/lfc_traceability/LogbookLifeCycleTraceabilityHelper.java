@@ -184,11 +184,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public List<String> getWarnings() {
-        return null;
-    }
-
-    @Override
     public void storeAndDeleteZip(Integer tenant, File zipFile,
         String fileName, String uri, TraceabilityEvent event)
         throws TraceabilityException {

@@ -30,10 +30,12 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterBackupModel;
 import fr.gouv.vitam.functional.administration.common.CollectionBackupModel;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,7 +77,7 @@ public interface RestoreBackupService {
      * @throws VitamRuntimeException    storage error
      * @throws IllegalArgumentException input error
      */
-    List<OfferLog> getListing(String strategy, DataCategory category, Long offset, int limit, Order order);
+    Iterator<List<OfferLog>> getListing(String strategy, DataCategory category, Long offset, int limit, Order order);
 
     /**
      * Load data from storage
@@ -88,7 +90,7 @@ public interface RestoreBackupService {
      * @throws VitamRuntimeException    storage error
      * @throws IllegalArgumentException input error
      */
-    public AccessionRegisterBackupModel loadData(String strategy, FunctionalAdminCollections collection, String filename,
+    AccessionRegisterBackupModel loadData(String strategy, FunctionalAdminCollections collection, String filename,
                              long offset);
 
 }

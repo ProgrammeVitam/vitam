@@ -186,6 +186,4 @@ public interface LogbookTraceabilityHelper {
     boolean getMaxEntriesReached();
 
     TraceabilityStatistics getTraceabilityStatistics();
-
-    List<String> getWarnings();
 }
