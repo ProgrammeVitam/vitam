@@ -760,10 +760,10 @@ public class StorageTwoOffersIT {
                 FileUtils.readFileToByteArray(files.get(i)), OFFER_ID, SECOND_OFFER_ID);
         }
 
-        checkOfferLog(mongoRuleOffer1, nbFiles);
-        checkOfferLog(mongoRuleOffer2, nbFiles);
-        checkOfferSequence(mongoRuleOffer1, nbFiles);
-        checkOfferSequence(mongoRuleOffer2, nbFiles);
+        checkOfferLog(mongoRuleOffer1, nbFiles * 2);
+        checkOfferLog(mongoRuleOffer2, nbFiles * 2);
+        checkOfferSequence(mongoRuleOffer1, nbFiles * 2);
+        checkOfferSequence(mongoRuleOffer2, nbFiles * 2);
     }
 
     @Test

@@ -68,6 +68,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
@@ -86,9 +87,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
@@ -126,8 +125,6 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private String previousStartDate = null;
     private byte[] previousTimestampToken = null;
 
-    private List<String> warnings = new ArrayList<>();
-
     /**
      * @param logbookOperations used to search the operation to secure
      * @param operationID guid of the traceability operation
@@ -145,71 +142,60 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     @Override
     public void initialize() throws TraceabilityException {
         this.traceabilityEndDate = LocalDateUtil.now();
-
-        Iterator<String> lastTraceabilityZipIterator =
-            traceabilityLogbookService.getLastTraceabilityZipIterator(STRATEGY_ID);
-
-        while (lastTraceabilityZipIterator.hasNext()) {
-
-            String fileName = lastTraceabilityZipIterator.next();
-
-            Response response = null;
-            try {
-                response =
-                    traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGETRACEABILITY);
-                try (
-                    InputStream stream = response.readEntity(InputStream.class);
-                    ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
-                        .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
-
-                    ArchiveEntry entry = null;
-                    while (entry == null || !"token.tsp".equals(entry.getName())) {
-                        entry = archiveInputStream.getNextEntry();
-                        if (entry == null) {
-                            throw new TraceabilityException("Can't find token.tsp file in ZIP");
-                        }
-                    }
-
-                    LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
-                    this.lastTraceabilityData =
-                        new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
-                    this.traceabilityStartDate = lastTraceabilityData.startDate;
-
-                    // Init succeeded
-                    return;
-                }
-            } catch (StorageNotFoundException e) {
-                LOGGER.warn("Traceability ZIP file not found '" + fileName + "'. Skipping", e);
-                alertService.createAlert(VitamLogLevel.WARN, "Traceability ZIP file not found '" + fileName +
-                    "'. File may never have been written to offer OR have been DELETED?");
-                warnings.add("Traceability ZIP file not found '" + fileName + "'");
-                // Try next file...
-            } catch (IOException e) {
-                throw new TraceabilityException("Unable to read ZIP", e);
-            } catch (ArchiveException e) {
-                throw new TraceabilityException("Unable to create Archive Stream", e);
-            } catch (StorageException e) {
-                throw new TraceabilityException("Unable to get last traceability information", e);
-            } finally {
-                StreamUtils.consumeAnyEntityAndClose(response);
-            }
+        String fileName = traceabilityLogbookService.getLastTraceabilityZip(STRATEGY_ID);
+        if (fileName == null) {
+            lastTraceabilityData = null;
+            this.traceabilityStartDate = INITIAL_START_DATE;
+            return;
         }
 
-        lastTraceabilityData = null;
-        this.traceabilityStartDate = INITIAL_START_DATE;
-        return;
+        Response response = null;
+        try {
+            response = traceabilityLogbookService.getObject(STRATEGY_ID, fileName, DataCategory.STORAGETRACEABILITY);
+            try (
+                InputStream stream = response.readEntity(InputStream.class);
+                ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory()
+                    .createArchiveInputStream(CommonMediaType.ZIP_TYPE, stream)) {
+
+                ArchiveEntry entry = null;
+                while (entry == null || !"token.tsp".equals(entry.getName())) {
+                    entry = archiveInputStream.getNextEntry();
+                    if (entry == null) {
+                        throw new TraceabilityException("Can't find token.tsp file in ZIP");
+                    }
+                }
+
+                LocalDateTime date = StorageFileNameHelper.parseDateFromStorageTraceabilityFileName(fileName);
+                lastTraceabilityData =
+                    new StorageTraceabilityData(IOUtils.toByteArray(archiveInputStream), date.minusSeconds(delay));
+                this.traceabilityStartDate = lastTraceabilityData.startDate;
+            }
+        } catch (IOException e) {
+            throw new TraceabilityException("Unable to read ZIP", e);
+        } catch (ArchiveException e) {
+            throw new TraceabilityException("Unable to create Archive Stream", e);
+        } catch (StorageNotFoundException e) {
+            alertService.createAlert(VitamLogLevel.ERROR, "Traceability ZIP file not found '" + fileName +
+                "'. File may be corrupted OR have been DELETED?");
+            throw new TraceabilityException("Traceability ZIP file not found '" + fileName +
+                "'. File may be corrupted OR have been DELETED?");
+        } catch (StorageException e) {
+            throw new TraceabilityException("Unable to get last traceability information", e);
+        } finally {
+            StreamUtils.consumeAnyEntityAndClose(response);
+        }
     }
 
     @Override
     public void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file)
         throws IOException, TraceabilityException {
 
-        Iterator<String> traceabilityIterator =
+        Iterator<OfferLog> traceabilityIterator =
             traceabilityLogbookService.getLastSavedStorageLogIterator(STRATEGY_ID);
 
         file.initStoreLog();
         while (traceabilityIterator.hasNext()) {
-            String fileName = traceabilityIterator.next();
+            String fileName = traceabilityIterator.next().getFileName();
 
             if (StorageFileNameHelper.parseDateFromStorageLogFileName(fileName).isBefore(this.traceabilityStartDate)) {
                 // No more files
@@ -234,11 +220,10 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
                 fileCount++;
 
             } catch (StorageNotFoundException e) {
-                LOGGER.warn("Traceability LOG file not found '" + fileName + "'. Skipping", e);
-                alertService.createAlert(VitamLogLevel.WARN, "Traceability LOG file not found '" + fileName +
-                    "'. File may never have been written to offer OR have been DELETED?");
-                warnings.add("Traceability LOG file not found '" + fileName + "'");
-                // Skip file...
+                alertService.createAlert(VitamLogLevel.ERROR, "Traceability LOG file not found '" + fileName +
+                    "'. File may be corrupted OR have been DELETED?");
+                throw new TraceabilityException("Traceability LOG file not found '" + fileName +
+                    "'. File may be corrupted OR have been DELETED?", e);
             } catch (StorageException e) {
                 throw new TraceabilityException("Unable to get the given object " + fileName, e);
             } finally {
@@ -411,11 +396,6 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     @Override
     public TraceabilityStatistics getTraceabilityStatistics() {
         return null;
-    }
-
-    @Override
-    public List<String> getWarnings() {
-        return warnings.isEmpty() ? null : warnings;
     }
 
     @Override

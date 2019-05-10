@@ -367,11 +367,6 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public List<String> getWarnings() {
-        return null;
-    }
-
-    @Override
     public long getDataSize() throws TraceabilityException {
         if (traceabilityIterator != null) {
             return traceabilityIterator.getNumberOfLines();
