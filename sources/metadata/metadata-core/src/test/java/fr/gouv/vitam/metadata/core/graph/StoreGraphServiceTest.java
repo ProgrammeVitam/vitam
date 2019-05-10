@@ -27,7 +27,7 @@ import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.util.Lists;
+import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,6 +36,8 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+
+import static fr.gouv.vitam.metadata.core.graph.StoreGraphService.LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE;
 
 @RunWith(MockitoJUnitRunner.class)
 public class StoreGraphServiceTest {
@@ -116,9 +118,10 @@ public class StoreGraphServiceTest {
     @RunWithCustomExecutor
     public void whenNoGraphInOfferThenGetListingReturnInitialDate() throws StoreGraphException {
         // given
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenReturn(
-                Lists.newArrayList());
+        when(
+            restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
+            .thenReturn(IteratorUtils.emptyIterator());
 
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(StoreGraphService.INITIAL_START_DATE);
@@ -131,12 +134,13 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
+        when(
+            restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenReturn(
-                Lists.newArrayList(
+                IteratorUtils.singletonIterator(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
                         "write")));
-
 
         LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
@@ -148,7 +152,9 @@ public class StoreGraphServiceTest {
     @RunWithCustomExecutor
     public void whenGetListingThenExceptionOccurs() throws StoreGraphException {
         // given
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
+        when(
+            restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null, Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
             .thenThrow(new RuntimeException(""));
         storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
     }
@@ -159,11 +165,14 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenReturn(
-                Lists.newArrayList(
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null,
+            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
+            .thenReturn(IteratorUtils.singletonIterator(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        "write")));
+                    "write")));
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.OBJECTGROUP_GRAPH, null, null,
+            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
+            .thenReturn(IteratorUtils.emptyIterator());
 
         final int[] cpt = {0};
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
@@ -184,19 +193,20 @@ public class StoreGraphServiceTest {
         assertThat(stored.get(MetadataCollections.UNIT)).isEqualTo(3);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void whenStoreGraphThenNoUnitGraphInThePeriodOK() throws StoreGraphException {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, 1, Order.DESC))
-            .thenReturn(
-                Lists.newArrayList(
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.UNIT_GRAPH, null, null,
+            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
+            .thenReturn(IteratorUtils.singletonIterator(
                     new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
                         "write")));
-
+        when(restoreBackupService.getListing(DEFAULT_STRATEGY, DataCategory.OBJECTGROUP_GRAPH, null, null,
+            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
+            .thenReturn(IteratorUtils.emptyIterator());
 
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);
 

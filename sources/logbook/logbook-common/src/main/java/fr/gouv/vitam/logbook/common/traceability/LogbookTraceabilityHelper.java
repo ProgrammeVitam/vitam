@@ -3,7 +3,6 @@ package fr.gouv.vitam.logbook.common.traceability;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -182,6 +181,4 @@ public interface LogbookTraceabilityHelper {
      * @return true if max entries reached (unit & object group lifecycle traceability operation are limited in size)
      */
     boolean getMaxEntriesReached();
-
-    List<String> getWarnings();
 }

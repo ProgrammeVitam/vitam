@@ -32,14 +32,15 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.LongStream;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.VitamConfiguration;
+import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,17 +92,14 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<OfferLog> res = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC);
-
-        List<List<OfferLog>> listing = Lists.partition(res, VitamConfiguration.getRestoreBulkSize());
+        Iterator<OfferLog> res = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC,
+            VitamConfiguration.getRestoreBulkSize());
+        List<OfferLog> listing = IteratorUtils.toList(res);
 
         // then
-        assertThat(listing).isNotNull().isNotEmpty();
-        assertThat(listing.size()).isEqualTo(1);
-        assertThat(listing.get(0)).isNotNull().isNotEmpty();
-        assertThat(listing.get(0).size()).isEqualTo(2);
-        assertThat(listing.get(0).get(0).getFileName()).isEqualTo("100");
-        assertThat(listing.get(0).get(1).getFileName()).isEqualTo("101");
+        assertThat(listing.size()).isEqualTo(2);
+        assertThat(listing.get(0).getFileName()).isEqualTo("100");
+        assertThat(listing.get(1).getFileName()).isEqualTo("101");
     }
 
 
@@ -114,9 +112,10 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(0L, 1L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, null, 1, Order.DESC);
+        Iterator<OfferLog> listingIterator = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, null, 1, Order.DESC,
+            VitamConfiguration.getRestoreBulkSize());
         // then
-        assertThat(listing).isNotNull().isNotEmpty();
+        List<OfferLog> listing = IteratorUtils.toList(listingIterator);
         assertThat(listing.size()).isEqualTo(1);
         assertThat(listing.get(0)).isNotNull();
         assertThat(listing.get(0).getFileName()).isEqualTo("0");
@@ -132,19 +131,15 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<OfferLog> res =
-            restoreBackupService.getListing(STRATEGY_ID, DataCategory.OBJECTGROUP, 100L, 2, Order.ASC);
-
-        List<List<OfferLog>> listing = Lists.partition(res, VitamConfiguration.getRestoreBulkSize());
-
+        Iterator<OfferLog> listingIterator =
+            restoreBackupService.getListing(STRATEGY_ID, DataCategory.OBJECTGROUP, 100L, 2, Order.ASC,
+                VitamConfiguration.getRestoreBulkSize());
 
         // then
-        assertThat(listing).isNotNull().isNotEmpty();
-        assertThat(listing.size()).isEqualTo(1);
-        assertThat(listing.get(0)).isNotNull().isNotEmpty();
-        assertThat(listing.get(0).size()).isEqualTo(2);
-        assertThat(listing.get(0).get(0).getFileName()).isEqualTo("100");
-        assertThat(listing.get(0).get(1).getFileName()).isEqualTo("101");
+        List<OfferLog> listing = IteratorUtils.toList(listingIterator);
+        assertThat(listing).hasSize(2);
+        assertThat(listing.get(0).getFileName()).isEqualTo("100");
+        assertThat(listing.get(1).getFileName()).isEqualTo("101");
     }
 
     @RunWithCustomExecutor
@@ -156,10 +151,11 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, -1L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<OfferLog> res = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC);
-        List<List<OfferLog>> listing = Lists.partition(res, VitamConfiguration.getRestoreBulkSize());
+        Iterator<OfferLog> res = restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC,
+            VitamConfiguration.getRestoreBulkSize());
+
         // then
-        assertThat(listing).isNotNull().isEmpty();
+        assertThat(res).isNotNull().isEmpty();
     }
 
     @RunWithCustomExecutor
@@ -170,8 +166,12 @@ public class RestoreBackupServiceTest {
         when(storageClientFactory.getClient().getOfferLogs(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
             .thenReturn(new VitamError("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
+
         // when + then
-        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
+        Iterator<OfferLog> listing =
+            restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC,
+                VitamConfiguration.getRestoreBulkSize());
+        assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
@@ -184,7 +184,10 @@ public class RestoreBackupServiceTest {
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC))
+        Iterator<OfferLog> listing =
+            restoreBackupService.getListing(STRATEGY_ID, DataCategory.UNIT, 100L, 2, Order.ASC,
+                VitamConfiguration.getRestoreBulkSize());
+        assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
     }
 

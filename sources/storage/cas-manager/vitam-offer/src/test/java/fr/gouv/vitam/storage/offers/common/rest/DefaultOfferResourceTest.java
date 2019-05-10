@@ -177,6 +177,7 @@ public class DefaultOfferResourceTest {
         try {
             // restart server to reinit collection sequence
             application.stop();
+            VitamClientFactory.resetConnections();
             application.start();
         } catch (VitamApplicationServerException e) {
             throw new VitamException("could not restart server");

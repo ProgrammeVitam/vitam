@@ -36,6 +36,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -100,6 +101,7 @@ public class StoreGraphService {
     public static final String $_GTE = "$gte";
     public static final String $_LT = "$lt";
     public static final String GRAPH_LAST_PERSISTED_DATE = "_glpd";
+    static final int LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE = 1;
 
     private VitamRepositoryProvider vitamRepositoryProvider;
     private RestoreBackupService restoreBackupService;
@@ -156,14 +158,17 @@ public class StoreGraphService {
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
 
             DataCategory dataCategory = getDataCategory(metadataCollections);
-            List<OfferLog> res =
-                restoreBackupService.getListing(STRATEGY_ID, dataCategory, null, 1, Order.DESC);
-            // Case where no offer log found. Means that no timestamp zip file saved yet in the offer
-            if (res.size() == 0) {
+
+            Iterator<OfferLog> offerLogIterator = restoreBackupService.getListing(STRATEGY_ID, dataCategory, null,
+                null, Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE);
+
+            if (!offerLogIterator.hasNext()) {
+                // Case where no offer log found. Means that no timestamp zip file saved yet in the offer
                 return INITIAL_START_DATE;
             }
 
-            return LocalDateTime.from(formatter.parse(res.iterator().next().getFileName().split(UNDERSCORE, 2)[1]));
+            return LocalDateTime.from(formatter.parse(offerLogIterator.next().getFileName().split(UNDERSCORE, 2)[1]));
+
         } catch (Exception e) {
             throw new StoreGraphException(e);
         }
@@ -398,7 +403,7 @@ public class StoreGraphService {
      * Create the graph store container in the workspace if not exists
      *
      * @param containerName
-     * @param graphFolder   the graph folder name
+     * @param graphFolder the graph folder name
      * @throws StoreGraphException
      */
     private void tryCreateContainer(String containerName, String graphFolder)
@@ -415,10 +420,10 @@ public class StoreGraphService {
     }
 
     /**
-     * @param dataCategory     (Unit or GOT)
+     * @param dataCategory (Unit or GOT)
      * @param containerName
-     * @param graphFolder      the name of graph folder in the container
-     * @param graphZipName     the name if the zipFile in the container
+     * @param graphFolder the name of graph folder in the container
+     * @param graphZipName the name if the zipFile in the container
      * @param graph_store_name the name of the zip file in the offer
      * @throws StoreGraphException
      */

@@ -66,6 +66,12 @@ public class OfferLog {
     private String action;
 
     /**
+     * Format version (default version assumed = V1)
+     */
+    @JsonProperty("_FormatVersion")
+    private OfferLogFormatVersion formatVersion = OfferLogFormatVersion.V1;
+
+    /**
      * Constructor,jackson usage only
      */
     public OfferLog() {}
@@ -82,6 +88,7 @@ public class OfferLog {
         this.container = container;
         this.fileName = fileName;
         this.action = action;
+        this.formatVersion = OfferLogFormatVersion.V2;
     }
 
     public OfferLog(long sequence, LocalDateTime time, String container, String fileName,
@@ -91,6 +98,7 @@ public class OfferLog {
         this.container = container;
         this.fileName = fileName;
         this.action = action;
+        this.formatVersion = OfferLogFormatVersion.V2;
     }
 
     /**
@@ -173,4 +181,12 @@ public class OfferLog {
         this.action = action;
     }
 
+    public OfferLogFormatVersion getFormatVersion() {
+        return formatVersion;
+    }
+
+    public OfferLog setFormatVersion(OfferLogFormatVersion formatVersion) {
+        this.formatVersion = formatVersion;
+        return this;
+    }
 }

@@ -27,8 +27,7 @@
 package fr.gouv.vitam.metadata.core.reconstruction;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -36,10 +35,9 @@ import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
+import fr.gouv.vitam.storage.engine.client.OfferLogHelper;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
@@ -84,48 +82,36 @@ public class RestoreBackupService {
      *
      * @param strategy storage strategy
      * @param category collection
-     * @param offset   offset
-     * @param limit    limit
+     * @param offset offset
+     * @param limit limit
+     * @param batchSize
      * @return list of offer log by bulk
-     * @throws VitamRuntimeException    storage error
+     * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public List<OfferLog> getListing(String strategy, DataCategory category, Long offset, int limit, Order order) {
+    public Iterator<OfferLog> getListing(String strategy, DataCategory category, Long offset, Integer limit, Order order,
+        int batchSize) {
         LOGGER.info(String.format(
             "[Reconstruction]: Retrieve listing of {%s} Collection on {%s} Vitam strategy from {%s} offset with {%s} limit",
             category, strategy, offset, limit));
-        try (StorageClient storageClient = storageClientFactory.getClient()) {
 
-
-            RequestResponse<OfferLog> result = storageClient.getOfferLogs(strategy, category, offset, limit, order);
-            if (result.isOk()) {
-                if (!((RequestResponseOK<OfferLog>) result).getResults().isEmpty()) {
-                    return ((RequestResponseOK<OfferLog>) result).getResults();
-                }
-            } else {
-                throw new VitamRuntimeException(
-                    String.format("ERROR: VitamError has been returned when using storage service: {%s}",
-                        result.toString()));
-            }
-        } catch (StorageServerClientException e) {
-            throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
-        }
-        return new ArrayList<>();
+        return OfferLogHelper.getListing(
+            storageClientFactory, strategy, category, offset, order, batchSize, limit);
     }
 
     /**
      * Load data from storage
      *
-     * @param strategy   storage strategy
+     * @param strategy storage strategy
      * @param collection collection
-     * @param filename   name of file to load
-     * @param offset     offset
+     * @param filename name of file to load
+     * @param offset offset
      * @return data
-     * @throws VitamRuntimeException    storage error
+     * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
     public MetadataBackupModel loadData(String strategy, MetadataCollections collection, String filename,
-        long offset) {
+        long offset) throws StorageNotFoundException {
         LOGGER
             .info(String.format(
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
@@ -160,7 +146,9 @@ public class RestoreBackupService {
     }
 
 
-    public InputStream loadData(String strategy, DataCategory category, String filename) {
+    public InputStream loadData(String strategy, DataCategory category, String filename)
+        throws StorageNotFoundException {
+
         LOGGER
             .info(String.format(
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
@@ -170,10 +158,8 @@ public class RestoreBackupService {
 
             return new VitamAsyncInputStream(storageClient.getContainerAsync(strategy, filename, category));
 
-        } catch (StorageServerClientException | StorageNotFoundException e) {
+        } catch (StorageServerClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }
     }
-
-
 }

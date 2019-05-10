@@ -31,7 +31,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
@@ -49,6 +48,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.iterables.BulkIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -66,13 +66,13 @@ import fr.gouv.vitam.metadata.core.database.collections.VitamRepositoryProvider;
 import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.io.IOUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
@@ -88,6 +88,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -224,28 +225,30 @@ public class ReconstructionService {
 
         try {
             // get the list of data to backup.
-            List<OfferLog> listing =
-                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC);
+            Iterator<OfferLog> listing =
+                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC, VitamConfiguration.getRestoreBulkSize());
 
-            for (OfferLog offerLog : listing) {
+            while (listing.hasNext()) {
+
+                OfferLog offerLog = listing.next();
                 String guid = GUIDFactory.newGUID().getId();
 
                 Path filePath = Files.createTempFile(guid + "_", offerLog.getFileName());
-                try {
-                    // Read zip file from offer
-                    InputStream zipFileAsStream =
-                        restoreBackupService.loadData(STRATEGY_ID, dataCategory, offerLog.getFileName());
+
+                // Read zip file from offer
+                try (InputStream zipFileAsStream =
+                    restoreBackupService.loadData(STRATEGY_ID, dataCategory, offerLog.getFileName())) {
 
                     // Copy file to local tmp to prevent risk of broken stream
                     Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
 
-                    // Close the stream
-                    IOUtils.closeQuietly(zipFileAsStream);
+                } catch (StorageNotFoundException ex) {
+                    throw new ReconstructionException("Could not find graph zip file " + offerLog.getFileName(), ex);
+                }
 
-                    // Handle a reconstruction from a copied zip file
-                    try (InputStream zipInputStream = Files.newInputStream(filePath)) {
-                        reconstructGraphFromZipStream(metaDaCollection, zipInputStream);
-                    }
+                // Handle a reconstruction from a copied zip file
+                try (InputStream zipInputStream = Files.newInputStream(filePath)) {
+                    reconstructGraphFromZipStream(metaDaCollection, zipInputStream);
                 } finally {
                     // Remove file
                     Files.deleteIfExists(filePath);
@@ -312,12 +315,14 @@ public class ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
-            // get the list of data to backup.
-            List<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC);
-            List<List<OfferLog>> partition = Lists.partition(listing, VitamConfiguration.getRestoreBulkSize());
+            Iterator<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC,
+                    VitamConfiguration.getRestoreBulkSize());
 
-            for (List<OfferLog> writtenMetadata : partition) {
+            Iterator<List<OfferLog>> bulkListing = new BulkIterator<>(listing, VitamConfiguration.getRestoreBulkSize());
+
+            while (bulkListing.hasNext()) {
+
+                List<OfferLog> writtenMetadata = bulkListing.next();
 
                 processWrittenMetadata(collection, tenant, writtenMetadata);
 
@@ -398,26 +403,27 @@ public class ReconstructionService {
         // FIXME : parallel processing
         List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
         for (OfferLog offerLog : writtenMetadata) {
-            MetadataBackupModel model = restoreBackupService
-                .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
 
-            if (model == null) {
+            try {
+                MetadataBackupModel model = restoreBackupService
+                    .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
+
+                if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {
+                    throw new StorageException(String.format(
+                        "[Reconstruction]: Invalid data to reconstruct in file {%s} for the collection {%s} on the tenant {%s}",
+                        offerLog.getFileName(), collection, tenant));
+                }
+
+                dataFromOffer.add(model);
+
+            } catch (StorageNotFoundException ex) {
                 // 2 possibilities :
                 // - File have never been written to offer (atomic commit bug in offer. Should be fixed in dedicated bug)
                 // - File have been deleted meanwhile (it's ok to skip)
                 LOGGER.warn(String.format(
                     "[Reconstruction]: Could not find file {%s} for the collection {%s} on the tenant {%s}. Corrupted file (atomicity bug) OR eliminated? ",
                     offerLog.getFileName(), collection, tenant));
-                continue;
             }
-
-            if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {
-                throw new StorageException(String.format(
-                    "[Reconstruction]: Invalid data to reconstruct in file {%s} for the collection {%s} on the tenant {%s}",
-                    offerLog.getFileName(), collection, tenant));
-            }
-
-            dataFromOffer.add(model);
         }
         return dataFromOffer;
     }
