@@ -26,23 +26,6 @@
  */
 package fr.gouv.vitam.metadata.core.graph;
 
-import static com.mongodb.client.model.Projections.include;
-
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.BasicDBObject;
 import com.mongodb.client.MongoCursor;
@@ -80,6 +63,24 @@ import fr.gouv.vitam.workspace.common.CompressInformation;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.mongodb.client.model.Projections.include;
+
 /**
  * This class get units where calculated data are modified
  * Zip generated files and store the zipped file in the offer.
@@ -99,6 +100,7 @@ public class StoreGraphService {
     public static final String ZIP_PREFIX_NAME = "store_graph_";
     public static final String $_GTE = "$gte";
     public static final String $_LT = "$lt";
+    static final int LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE = 1;
 
     private VitamRepositoryProvider vitamRepositoryProvider;
     private RestoreBackupService restoreBackupService;
@@ -153,14 +155,17 @@ public class StoreGraphService {
     public LocalDateTime getLastGraphStoreDate(MetadataCollections metadataCollections) throws StoreGraphException {
         try {
             DataCategory dataCategory = getDataCategory(metadataCollections);
-            List<OfferLog> res =
-                restoreBackupService.getListing(STRATEGY_ID, dataCategory, null, 1, Order.DESC);
-            // Case where no offer log found. Means that no timestamp zip file saved yet in the offer
-            if (res.size() == 0) {
+
+            Iterator<OfferLog> offerLogIterator = restoreBackupService.getListing(STRATEGY_ID, dataCategory, null,
+                null, Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE);
+
+            if (!offerLogIterator.hasNext()) {
+                // Case where no offer log found. Means that no timestamp zip file saved yet in the offer
                 return INITIAL_START_DATE;
             }
 
-            return LocalDateTime.from(formatter.parse(res.iterator().next().getFileName().split(UNDERSCORE, 2)[1]));
+            return LocalDateTime.from(formatter.parse(offerLogIterator.next().getFileName().split(UNDERSCORE, 2)[1]));
+
         } catch (Exception e) {
             throw new StoreGraphException(e);
         }
@@ -395,7 +400,7 @@ public class StoreGraphService {
      * Create the graph store container in the workspace if not exists
      *
      * @param containerName
-     * @param graphFolder   the graph folder name
+     * @param graphFolder the graph folder name
      * @throws StoreGraphException
      */
     private void tryCreateContainer(String containerName, String graphFolder)
@@ -412,10 +417,10 @@ public class StoreGraphService {
     }
 
     /**
-     * @param dataCategory     (Unit or GOT)
+     * @param dataCategory (Unit or GOT)
      * @param containerName
-     * @param graphFolder      the name of graph folder in the container
-     * @param graphZipName     the name if the zipFile in the container
+     * @param graphFolder the name of graph folder in the container
+     * @param graphZipName the name if the zipFile in the container
      * @param graph_store_name the name of the zip file in the offer
      * @throws StoreGraphException
      */

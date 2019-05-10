@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.LongStream;
 
@@ -39,6 +40,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
 import fr.gouv.vitam.storage.engine.common.model.OfferLogAction;
+import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -91,8 +93,9 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, 2L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, 100L, 2);
+        Iterator<List<OfferLog>> listingIterator = restoreBackupService.getListing(STRATEGY_ID, 100L, 2);
         // then
+        List<List<OfferLog>> listing = IteratorUtils.toList(listingIterator);
         assertThat(listing).isNotNull().isNotEmpty();
         assertThat(listing.size()).isEqualTo(1);
         assertThat(listing.get(0)).isNotNull().isNotEmpty();
@@ -112,7 +115,7 @@ public class RestoreBackupServiceTest {
             .thenReturn(getListingOk(100L, -1L));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
-        List<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, 100L, 2);
+        Iterator<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, 100L, 2);
         // then
         assertThat(listing).isNotNull().isEmpty();
     }
@@ -128,7 +131,8 @@ public class RestoreBackupServiceTest {
             .thenReturn(new VitamError("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, 100L, 2))
+        Iterator<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, 100L, 2);
+        assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
@@ -143,7 +147,8 @@ public class RestoreBackupServiceTest {
             .thenThrow(new StorageServerClientException("storage error"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
-        assertThatCode(() -> restoreBackupService.getListing(STRATEGY_ID, 100L, 2))
+        Iterator<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, 100L, 2);
+        assertThatCode(() -> IteratorUtils.toList(listing))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
