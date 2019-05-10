@@ -1664,7 +1664,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     upNode.add(unitIdToGuid.get(parent.asText()));
                     // If all parents are already exists, then consider this unit as root
                     // If at least one parent does not exists, then consider this unit as not root
-                    if (!existingUnitGuids.contains(parent.asText())) {
+                    boolean atLeastOneParentDoesNotExists = !(existingUnitGuids.contains(parent.asText())
+                        || existingUnitGuids.contains(unitIdToGuid.get(parent.asText())));
+                    if (atLeastOneParentDoesNotExists) {
                         isUnitRoot = false;
                     }
                 }
@@ -1673,7 +1675,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         if (ingestContract != null
             && !Strings.isNullOrEmpty(ingestContract.getLinkParentId())
-            && upNode.isEmpty(null)) {
+            && isUnitRoot) {
             upNode.add(ingestContract.getLinkParentId());
         }
 

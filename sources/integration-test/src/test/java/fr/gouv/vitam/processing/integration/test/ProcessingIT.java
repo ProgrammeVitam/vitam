@@ -70,7 +70,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UpdateWorkflowConstants;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
@@ -142,7 +141,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1401,17 +1399,30 @@ public class ProcessingIT extends VitamRuleRunner {
         MongoCursor<Document> cursor = resultUnits.iterator();
         Document doc1 = null;
         Document doc2 = null;
-        if (cursor.hasNext()) {
-            doc1 = cursor.next();
+        Document doc3 = null;
+        while (cursor.hasNext()) {
+            Document document = cursor.next();
+            switch (document.getString("Title")) {
+                case "RATP 1":
+                    doc1 = document;
+                    break;
+                case "RATP 2":
+                    doc2 = document;
+                    break;
+                case "RATP 3":
+                    doc3 = document;
+                    break;
+                default:
+            }
         }
-        if (cursor.hasNext()) {
-            doc2 = cursor.next();
-        }
+
         assertNotNull(doc1);
         assertNotNull(doc2);
+        assertNotNull(doc3);
 
-        String unitRoot = doc1.getString("Title").equals("RATP 1") ? doc1.getString("_id") : doc2.getString("_id");
-        String unitChild = doc1.getString("Title").equals("RATP 2") ? doc1.getString("_id") : doc2.getString("_id");
+        String unitRoot = doc1.getString("_id");
+        String unitChild = doc2.getString("_id");
+        String unitChildOfChild = doc3.getString("_id");
 
 
         //3. Get number of events in LFC of both unit1 and unit2
@@ -1460,12 +1471,33 @@ public class ProcessingIT extends VitamRuleRunner {
         // Create SIP with unitChild
         String zipName1 = ThreadLocalRandom.current().nextInt(1, Integer.MAX_VALUE - 1) + ".zip";
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
-            unitChild);
+            unitChildOfChild);
         String zipPath1 = tmp + "/" + zipName1;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath1);
 
         // Attach to unitChild OK
-        ingest(zipPath1, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+        processWorkflow =
+            ingest(zipPath1, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+
+        operationId = processWorkflow.getOperationId();
+
+        List<Document> units =
+            Lists.newArrayList(MetadataCollections.UNIT.getCollection().find(eq(Unit.OPS, operationId)));
+
+        // Check that we auto attach by IngestContract
+        for (Document au : units) {
+            List<String> parents = au.get(Unit.UP, List.class);
+            if (au.getString("Title").equals("Shout no be attached by ingest contract")) {
+                assertThat(parents).hasSize(1);
+                assertThat(parents).doesNotContain(unitChildOfChild);
+            } else {
+                //Auto attach by ingest contract to LinkParentId
+                assertThat(parents).contains(unitChild);
+                if (au.getString("Title").equals("Shout be attached by ingest contract")) {
+                    assertThat(parents).contains(unitChildOfChild);
+                }
+            }
+        }
 
         // 6.2 ingest here should be KO, we link an incorrect id (not a child of the referenced au in the ingest contract) into the sip
         // Create SIP with unitRoot

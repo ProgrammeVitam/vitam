@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink"
- xmlns:pr="info:lc/xmlns/premis-v2"
- xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
- xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID001">
+                 xmlns:pr="info:lc/xmlns/premis-v2"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID001">
     <Comment>SIP ADD link AU : AU PARENT (EXISTING) - AU CHILD (NEW)</Comment>
     <Date>2016-06-23T09:45:51.0</Date>
     <MessageIdentifier>MessageIdentifier0</MessageIdentifier>
@@ -26,14 +26,14 @@
         <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
         <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
     </CodeListVersions>
-    
+
     <DataObjectPackage xml:id="ID007">
         <PhysicalDataObject id="ID009">
             <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
             <DataObjectVersion>PhysicalMaster</DataObjectVersion>
             <PhysicalId>1500W03</PhysicalId>
         </PhysicalDataObject>
-        
+
         <BinaryDataObject id="ID011">
             <DataObjectGroupId>ID006</DataObjectGroupId>
             <DataObjectVersion>BinaryMaster</DataObjectVersion>
@@ -45,12 +45,12 @@
             <FileInfo>
                 <Filename>manuel_utilisateur_IHM.odt</Filename>
             </FileInfo>
- <Metadata>
+            <Metadata>
                 <Document><!--  --></Document>
             </Metadata>
             <OtherMetadata><!--  --></OtherMetadata>
         </BinaryDataObject>
-        
+
         <DescriptiveMetadata>
             <ArchiveUnit id="ID015">
                 <Content>
@@ -62,25 +62,41 @@
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID006</DataObjectGroupReferenceId>
                 </DataObjectReference>
+                <ArchiveUnit id="ID6">
+                    <Content>
+                        <DescriptionLevel>Item</DescriptionLevel>
+                        <Title>Shout no be attached by ingest contract</Title>
+                    </Content>
+                </ArchiveUnit>
             </ArchiveUnit>
+
             <ArchiveUnit id="ID24">
-				<Management>
-					<UpdateOperation>
-						<SystemId>GUID_ARCHIVE_UNIT_PARENT</SystemId>
-					</UpdateOperation>
-				</Management>
-				<Content>
-					<DescriptionLevel>Item</DescriptionLevel>
-					<Title>PARENT_TO_BE_LINKED</Title>
-				</Content>
-				<ArchiveUnit id="ID4">
-					<ArchiveUnitRefId>ID015</ArchiveUnitRefId>
-				</ArchiveUnit> 
+                <Management>
+                    <UpdateOperation>
+                        <SystemId>GUID_ARCHIVE_UNIT_PARENT</SystemId>
+                    </UpdateOperation>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>PARENT_TO_BE_LINKED</Title>
+                </Content>
+                <ArchiveUnit id="ID4">
+                    <Content>
+                        <DescriptionLevel>Item</DescriptionLevel>
+                        <Title>Shout be attached by ingest contract</Title>
+                    </Content>
+                    <ArchiveUnit id="ID5">
+                        <Content>
+                            <DescriptionLevel>Item</DescriptionLevel>
+                            <Title>Shout no be attached by ingest contract</Title>
+                        </Content>
+                    </ArchiveUnit>
+                </ArchiveUnit>
             </ArchiveUnit>
         </DescriptiveMetadata>
         <ManagementMetadata xml:id="ID019">
             <OriginatingAgencyIdentifier>FRAN_NP_050313</OriginatingAgencyIdentifier>
-			<SubmissionAgencyIdentifier>Vitam</SubmissionAgencyIdentifier>
+            <SubmissionAgencyIdentifier>Vitam</SubmissionAgencyIdentifier>
         </ManagementMetadata>
     </DataObjectPackage>
 
