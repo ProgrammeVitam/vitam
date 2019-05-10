@@ -26,6 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.exception;
 
+import fr.gouv.vitam.common.model.StatusCode;
+
 public enum ReadWriteErrorCode {
     INTERNAL_ERROR_SERVER,
     TAPE_NOT_FOUND_IN_CATALOG,
@@ -63,6 +65,7 @@ public enum ReadWriteErrorCode {
     KO_REWIND_BEFORE_FORCE_OVERRIDE_NON_EMPTY_TAPE,
     KO_ON_READ_LABEL,
     TAPE_LOCATION_UNKNOWN,
-    KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT
-
+    KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT,
+    KO_REWIND_BEFORE_UNLOAD_TAPE,
+    KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER
 }

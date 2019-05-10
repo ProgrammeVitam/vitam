@@ -727,6 +727,8 @@ public class WriteTaskTest {
         when(tapeReadWriteService.writeToTape(eq(writeOrder.getFilePath())))
             .thenReturn(new TapeResponse(StatusCode.OK));
 
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+
         ReadWriteResult result = writeTask.get();
 
         // Then
@@ -812,6 +814,8 @@ public class WriteTaskTest {
         when(tapeDriveCommandService.goToPosition(anyInt()))
             .thenReturn(new TapeResponse(JsonHandler.createObjectNode(), StatusCode.KO));
 
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+
         when(tapeDriveCommandService.rewind())
             .thenReturn(new TapeResponse(StatusCode.OK));
         ReadWriteResult result = writeTask.get();
@@ -892,6 +896,8 @@ public class WriteTaskTest {
             .thenReturn(new TapeResponse(StatusCode.OK))
             .thenReturn(new TapeResponse(StatusCode.OK))
             .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeDriveCommandService.goToPosition(anyInt()))
             .thenReturn(new TapeResponse(StatusCode.OK))
@@ -980,6 +986,8 @@ public class WriteTaskTest {
         when(tapeDriveCommandService.rewind())
             .thenAnswer(o -> new TapeResponse(StatusCode.OK));
 
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
+
         when(tapeDriveCommandService.goToPosition(anyInt()))
             .thenReturn(new TapeResponse(StatusCode.OK))
             .thenReturn(new TapeResponse(StatusCode.OK))
@@ -1025,6 +1033,8 @@ public class WriteTaskTest {
             .thenThrow(new TapeCatalogException(""))
             .thenThrow(new TapeCatalogException(""))
             .thenThrow(new TapeCatalogException(""));
+
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         when(tapeLoadUnloadService.unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -1184,6 +1194,35 @@ public class WriteTaskTest {
 
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCode()).isEqualTo(ReadWriteErrorCode.KO_UNKNOWN_CURRENT_POSITION);
+    }
+
+    @Test
+    public void test_write_when_tape_is_wrong_then_eject_tape_ko()
+            throws Exception {
+        // When
+        when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
+        String file = Files.createTempFile(GUIDFactory.newGUID().getId(), ".tar").toString();
+
+        // given
+        WriteOrder writeOrder =
+                new WriteOrder().setBucket(FAKE_BUCKET).setFilePath(file).setSize(10l);
+
+        TapeCatalog tape = getTapeCatalog(true, false, TapeState.OPEN);
+        tape.setBucket("wrongBucket");
+
+        WriteTask writeTask =
+                new WriteTask(writeOrder, tape, tapeRobotPool, tapeDriveService,
+                        tapeCatalogService, tarReferentialRepository, "", false);
+
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.KO));
+
+        ReadWriteResult result = writeTask.get();
+
+        // Then
+        verify(tapeDriveCommandService, new Times(1)).eject();
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
+        assertThat(result.getOrderState()).isEqualTo(QueueState.READY);
     }
 
     private TapeCatalog getTapeCatalog(boolean withLabel, boolean isWorm, TapeState tapeState) {

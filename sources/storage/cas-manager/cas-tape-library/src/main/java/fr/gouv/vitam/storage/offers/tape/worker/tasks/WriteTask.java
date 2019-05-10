@@ -195,6 +195,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                     return get();
                 case KO_ON_GOTO_FILE_COUNT:
                 case KO_ON_REWIND_FSF_BSF_TAPE:
+                case KO_REWIND_BEFORE_UNLOAD_TAPE:
                     // Error maybe IO exception or tape corrupted or timeout
                 case TAPE_LOCATION_CONFLICT:
                 case TAPE_LOCATION_UNKNOWN:
@@ -725,7 +726,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
         if (!fsfResponse.isOK()) {
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                " Action : FSF goto position, Order: " +
+                " Action : FSF goto position Error " + fsfResponse.getErrorCode() + ", Order: " +
                 JsonHandler.unprettyPrint(writeOrder) + ", Entity: " +
                 JsonHandler.unprettyPrint(fsfResponse.getEntity()),
                 readWriteErrorCode,
@@ -921,6 +922,16 @@ public class WriteTask implements Future<ReadWriteResult> {
         }
 
         try {
+            TapeResponse ejectResponse = tapeDriveService.getDriveCommandService().eject();
+            if (!ejectResponse.isOK()) {
+                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                        " Action : Eject tape with forced rewind, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                        ", Error: Could not rewind or unload tape",
+                        ReadWriteErrorCode.KO_REWIND_BEFORE_UNLOAD_TAPE, ejectResponse);
+            }
+
+            workerCurrentTape.setCurrentPosition(0);
+
             final TapeRobotService tapeRobotService = tapeRobotPool.checkoutRobotService();
 
             try {
