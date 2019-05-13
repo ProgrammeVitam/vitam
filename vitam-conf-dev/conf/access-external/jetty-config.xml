@@ -143,7 +143,7 @@
             </Arg>
         </Call>
     </New>
-        <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
+        <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory$Server">
         <Set name="KeyStorePath">keystore_access-external.jks</Set>
         <Set name="KeyStorePassword">azerty2</Set>
         <Set name="KeyManagerPassword">azerty2</Set>
