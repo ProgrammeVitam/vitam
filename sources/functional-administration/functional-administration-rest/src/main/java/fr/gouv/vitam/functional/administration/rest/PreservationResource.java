@@ -78,15 +78,11 @@ public class PreservationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response importGriffin(List<GriffinModel> griffinModelList, @Context UriInfo uri) {
-
         try {
             RequestResponse<GriffinModel> requestResponse = griffinService.importGriffin(griffinModelList);
             return status(Status.CREATED).entity(requestResponse).build();
-        } catch (ReferentialException e) {
-            LOGGER.error(e);
-            return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (Exception e) {
-            LOGGER.error("Unexpected server error {}", e);
+            LOGGER.error(e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         }
     }
