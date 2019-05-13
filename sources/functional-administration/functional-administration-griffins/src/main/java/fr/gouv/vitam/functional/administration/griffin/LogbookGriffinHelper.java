@@ -69,8 +69,9 @@ class LogbookGriffinHelper {
         String parameterValue = stepName + "." + STARTED;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
 
-        LogbookOperationsClient client = factory.getClient();
-        client.create(logbookParameters);
+        try (LogbookOperationsClient client = factory.getClient()) {
+            client.create(logbookParameters);
+        }
     }
 
     static void createLogbookEventSuccess(LogbookOperationsClientFactory factory, GUID guid, String stepName)
@@ -86,8 +87,9 @@ class LogbookGriffinHelper {
         String parameterValue = stepName + "." + OK;
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
 
-        LogbookOperationsClient client = factory.getClient();
-        client.update(logbookParameters);
+        try (LogbookOperationsClient client = factory.getClient()) {
+            client.update(logbookParameters);
+        }
     }
 
     static void createLogbookEventWarning(LogbookOperationsClientFactory factory, GUID guid, String stepName, GriffinReport warnings)
@@ -104,8 +106,9 @@ class LogbookGriffinHelper {
         logbookParameters.putParameterValue(outcomeDetail, parameterValue);
 
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(warnings));
-        LogbookOperationsClient client = factory.getClient();
-        client.update(logbookParameters);
+        try (LogbookOperationsClient client = factory.getClient()) {
+            client.update(logbookParameters);
+        }
     }
 
     static void createLogbookEventKo(LogbookOperationsClientFactory factory, GUID guid, String stepName, String error)
@@ -126,7 +129,8 @@ class LogbookGriffinHelper {
         final String wellFormedJson = SanityChecker.sanitizeJson(object);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
 
-        LogbookOperationsClient client = factory.getClient();
-        client.update(logbookParameters);
+        try (LogbookOperationsClient client = factory.getClient()) {
+            client.update(logbookParameters);
+        }
     }
 }
