@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.model.administration.preservation;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -66,12 +67,15 @@ public class PreservationScenarioModel {
     private static final String TAG_METADATA_FILTER = "MetadataFilter";
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
+    @JsonAlias(ModelConstants.UNDERSCORE + ModelConstants.TAG_ID)
     private String id;
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    @JsonAlias(ModelConstants.UNDERSCORE + ModelConstants.TAG_TENANT)
     private Integer tenant;
 
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    @JsonAlias(ModelConstants.UNDERSCORE + ModelConstants.TAG_VERSION)
     private Integer version;
 
     @NotEmpty
