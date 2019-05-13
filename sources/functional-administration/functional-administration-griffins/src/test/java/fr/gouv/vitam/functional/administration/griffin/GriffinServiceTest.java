@@ -3,7 +3,11 @@ package fr.gouv.vitam.functional.administration.griffin;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoIterable;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -25,6 +29,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,9 +42,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import static com.google.common.collect.Lists.newArrayList;
 import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newGUID;
 import static fr.gouv.vitam.common.guid.GUIDReader.getGUID;
@@ -54,39 +60,44 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentCaptor.forClass;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class GriffinServiceTest {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef = new TypeReference<List<PreservationScenarioModel>>() {};
+    private static final TypeReference<List<GriffinModel>> griffinTypeRef = new TypeReference<List<GriffinModel>>() {};
+    private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef = new TypeReference<List<FileFormatModel>>() {};
+    private static final TypeReference<List<GriffinModel>> valueTypeRef = new TypeReference<List<GriffinModel>>() {};
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private MongoDbAccessReferential mongoDbAccess;
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Mock
+    private FunctionalBackupService functionalBackupService;
+
+    @Mock
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    private LogbookOperationsClient logbookOperationsClient;
+
+    @Mock
+    private VitamCollection preservationScenarioCollection;
+
+    @Mock
+    private MongoDbAccessReferential mongoDbAccess;
 
     private GriffinService griffinService;
-    private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef =
-        new TypeReference<List<PreservationScenarioModel>>() {
-        };
-    private static final TypeReference<List<GriffinModel>> griffinTypeRef = new TypeReference<List<GriffinModel>>() {
-    };
-    private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef =
-        new TypeReference<List<FileFormatModel>>() {
-        };
-
-    @Mock private FunctionalBackupService functionalBackupService;
-
-    @Mock private LogbookOperationsClientFactory logbookOperationsClientFactory;
-
-    @Mock private LogbookOperationsClient logbookOperationsClient;
 
     @Before
     public void setUp() {
-        griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory);
+        griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory, preservationScenarioCollection);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
 
@@ -161,28 +172,23 @@ public class GriffinServiceTest {
     @Test
     @RunWithCustomExecutor
     public void shouldFailedValidateGriffinWhenDateIsNotCorrect() throws Exception {
-
         //Given
-        List<GriffinModel> listGriffins = JsonHandler.getFromFileAsTypeRefence(
-            PropertiesUtils.getResourceFile("KO_griffin_false_date.json"),
-            new TypeReference<List<GriffinModel>>() {
-            }
-        );
-
-        // When
+        List<GriffinModel> listGriffins = JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("KO_griffin_false_date.json"), valueTypeRef);
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
-        when(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).thenReturn(allGriffinInDatabase);
+        givenPreservationScenarioCollectionReturn(Collections.singletonList(new PreservationScenarioModel()));
+        given(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).willReturn(allGriffinInDatabase);
+        given(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).willReturn(dbRequestResult);
+        given(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class)).willReturn(new ArrayList<>());
+        given(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).willReturn(dbRequestResult);
 
-        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
-        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
-            .thenReturn(new ArrayList<>());
-        when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
+        // When
+        ThrowingCallable importInError = () -> griffinService.importGriffin(listGriffins);
 
         // Then
-        assertThatThrownBy(() -> griffinService.importGriffin(listGriffins))
+        assertThatThrownBy(importInError)
             .isInstanceOf(ReferentialException.class)
             .hasMessageContaining("GRIFFIN1 Invalid CreationDate : 10 décembre 16");
     }
@@ -246,7 +252,7 @@ public class GriffinServiceTest {
 
         List<GriffinModel> listToInsert = new ArrayList<>();
         List<GriffinModel> listToUpdate = new ArrayList<>();
-        List<String> listToDelete = new ArrayList<>();
+        Set<String> listToDelete = new HashSet<>();
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
@@ -268,8 +274,6 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void givenRemovingUsedGriffinShouldFailedImport() throws Exception {
         List<GriffinModel> allGriffinInDatabase = getGriffinsModels("griffins_referentiel.json");
-        List<PreservationScenarioModel> allPreservationScenarioInDatabase =
-            getPreservationScenarioModels("preservation_scenario.json");
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
@@ -288,15 +292,14 @@ public class GriffinServiceTest {
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(griffinOperation);
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(preservationScenarioOperation);
-        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
-            .thenReturn(allPreservationScenarioInDatabase);
+        givenPreservationScenarioCollectionReturn(getPreservationScenarioModels("preservation_scenario.json"));
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
         when(dbRequestResult.getDocuments(FileFormat.class, FileFormatModel.class)).thenReturn(listFormat);
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(FORMATS))).thenReturn(dbRequestResult);
 
         List<GriffinModel> listGriffinsToImport = getGriffinsModels("griffins/KO_griffin_maj_remove_used_griffin.json");
         assertThatThrownBy(() -> griffinService.importGriffin(listGriffinsToImport))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("can not remove used griffin");
+            .isInstanceOf(ReferentialException.class).hasMessageContaining("Can not remove used griffin(s), GRI-000001.");
     }
 
     @Test
@@ -360,6 +363,16 @@ public class GriffinServiceTest {
         RequestResponse<GriffinModel> griffin = griffinService.findGriffin(getFromString("{}"));
         //Then
         assertThat(griffin).isNotNull();
+    }
+
+    private void givenPreservationScenarioCollectionReturn(List<PreservationScenarioModel> preservationScenarioModels) {
+        MongoCollection mongoCollection = mock(MongoCollection.class);
+        given(preservationScenarioCollection.getTypedCollection()).willReturn(mongoCollection);
+        FindIterable findIterable = mock(FindIterable.class);
+        given(mongoCollection.find()).willReturn(findIterable);
+        MongoIterable mongoIterable = mock(MongoIterable.class);
+        given(findIterable.map(any())).willReturn(mongoIterable);
+        given(mongoIterable.spliterator()).willReturn(preservationScenarioModels.spliterator());
     }
 
     private List<PreservationScenarioModel> getPreservationScenarioModels(String s)
