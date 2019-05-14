@@ -1698,7 +1698,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private void createUnitLifeCycle(String unitGuid, String containerId)
         throws LogbookClientNotFoundException {
 
-        if (guidToLifeCycleParameters.get(unitGuid) != null &&(!existingUnitGuids.contains(unitGuid))) {
+        if (guidToLifeCycleParameters.get(unitGuid) != null && (!existingUnitGuids.contains(unitGuid))) {
             LogbookLifeCycleUnitParameters unitLifeCycle =
                 createUnitLifeCycle(unitGuid, containerId, LogbookTypeProcess.INGEST);
 
@@ -2692,7 +2692,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
         LogbookTypeProcess typeProcess, List<String> uuids)
         throws ProcessingException {
         final Set<String> collect =
-            existingGOTs.entrySet().stream().filter(e -> e.getValue() != null).map(entry -> entry.getKey() + JSON_EXTENSION)
+            existingGOTs.entrySet().stream().filter(e -> e.getValue() != null)
+                .map(entry -> entry.getKey() + JSON_EXTENSION)
                 .collect(Collectors.toSet());
 
         File existingGotsFile = handlerIO.getNewLocalFile(handlerIO.getOutput(EXISTING_GOT_RANK).getPath());
