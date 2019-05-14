@@ -82,7 +82,7 @@ export class TraceabilityOperationDetailsComponent extends PageComponent {
   extractData(data) {
     let item = this.getEvDetData(data);
     item.evDateTime = data.evDateTime;
-    item.status = (data.events.length > 1 && data.events[1].outcome) ? data.events[1].outcome : '';
+    item.status = (data.events.length > 0 && data.events[data.events.length - 1].outcome) ? data.events[data.events.length - 1].outcome : '';
     this.traceabilityService.extractTimeStampInformation(item.timeStampToken)
       .subscribe(
         (response) => {
