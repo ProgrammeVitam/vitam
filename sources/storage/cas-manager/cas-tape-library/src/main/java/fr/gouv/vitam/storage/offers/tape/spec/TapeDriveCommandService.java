@@ -60,4 +60,11 @@ public interface TapeDriveCommandService extends TapeDriveSafeCommandService {
      */
     TapeResponse goToEnd();
 
+    /**
+     * Rewind and eject the tape
+     *
+     * @return TapeResponse
+     */
+    TapeResponse eject();
+
 }

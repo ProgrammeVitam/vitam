@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
@@ -62,12 +63,16 @@ public class ReadTaskTest {
     @Mock
     private TapeReadWriteService tapeReadWriteService;
 
+    @Mock
+    private TapeDriveCommandService tapeDriveCommandService;
+
     @Before
     public void setUp() {
 
         reset(tapeRobotPool);
         reset(tapeDriveService);
         reset(tapeCatalogService);
+        reset(tapeReadWriteService);
         reset(tapeReadWriteService);
 
         when(tapeDriveService.getReadWriteService(eq(TapeDriveService.ReadWriteCmd.DD)))
@@ -134,16 +139,18 @@ public class ReadTaskTest {
         ReadTask readTask =
             new ReadTask(readOrder, tapeCatalog, tapeRobotPool, tapeDriveService, tapeCatalogService);
 
-        when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
+        when(tapeReadWriteService.readFromTape(any()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -183,7 +190,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -200,6 +207,7 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -240,7 +248,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -261,6 +269,8 @@ public class ReadTaskTest {
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -290,7 +300,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -309,6 +319,7 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -340,7 +351,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -357,6 +368,7 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -393,7 +405,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -412,6 +424,8 @@ public class ReadTaskTest {
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -446,7 +460,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -463,6 +477,7 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -499,7 +514,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -516,6 +531,7 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.KO));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
 
@@ -552,7 +568,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -567,6 +583,7 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
                 .thenReturn(mock(TapeLoadUnloadService.class));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.FATAL));
 
@@ -603,7 +620,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -618,6 +635,7 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeRobotService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
                 .thenReturn(mock(TapeLoadUnloadService.class));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .unloadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.KO));
 
@@ -654,7 +672,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.FATAL));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -667,6 +685,7 @@ public class ReadTaskTest {
                 .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
                 .thenReturn(mock(TapeRobotService.class));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
@@ -705,7 +724,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.KO));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -718,6 +737,7 @@ public class ReadTaskTest {
                 .thenReturn(DRIVE_INDEX);
         when(tapeRobotPool.checkoutRobotService())
                 .thenReturn(mock(TapeRobotService.class));
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
@@ -750,7 +770,7 @@ public class ReadTaskTest {
         when(tapeReadWriteService.readFromTape(readOrder.getFileName()))
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService())
-                .thenReturn(mock(TapeDriveCommandService.class));
+                .thenReturn(tapeDriveCommandService);
         when(tapeDriveService.getDriveCommandService().rewind())
                 .thenReturn(new TapeResponse(StatusCode.OK));
         when(tapeDriveService.getDriveCommandService().goToPosition(anyInt(), anyBoolean()))
@@ -767,6 +787,8 @@ public class ReadTaskTest {
                 .thenReturn(mock(TapeLoadUnloadService.class));
         when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()
                 .loadTape(anyInt(), anyInt())).thenReturn(new TapeResponse(StatusCode.OK));
+
+        when(tapeDriveCommandService.eject()).thenReturn(new TapeResponse(StatusCode.OK));
 
         // Case one current t
         ReadWriteResult result = readTask.get();

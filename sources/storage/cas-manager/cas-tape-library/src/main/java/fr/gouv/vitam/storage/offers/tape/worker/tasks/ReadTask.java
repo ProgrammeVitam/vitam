@@ -44,6 +44,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
@@ -231,7 +232,7 @@ public class ReadTask implements Future<ReadWriteResult> {
             response = tapeDriveService.getDriveCommandService().goToPosition(Math.abs(offset) - 1, offset < 0);
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                    " Action : Go to position Tape, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                    " Action : Go to position Tape Error " + response.getErrorCode() + ", Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                     JsonHandler.unprettyPrint(response.getEntity()));
 
                 return response;
@@ -389,6 +390,13 @@ public class ReadTask implements Future<ReadWriteResult> {
         }
 
         try {
+            TapeResponse ejectResponse = tapeDriveService.getDriveCommandService().eject();
+            if (!ejectResponse.isOK()) {
+                LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                        " Action : Eject tape with forced rewind, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                        JsonHandler.unprettyPrint(ejectResponse.getEntity()));
+                return ejectResponse;
+            }
 
             final TapeRobotService tapeRobotService = tapeRobotPool.checkoutRobotService();
             try {
