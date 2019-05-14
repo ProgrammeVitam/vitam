@@ -1,93 +1,54 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import com.google.common.collect.Lists;
-import com.mongodb.Block;
-import com.mongodb.client.model.Filters;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
-import fr.gouv.vitam.common.mongo.MongoRule;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.junit.After;
-import org.junit.AfterClass;
+import io.reactivex.schedulers.TestScheduler;
 import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
+import static fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService.CONTRACT_POPULATE;
+import static fr.gouv.vitam.ihmrecette.appserver.populate.PopulateService.POPULATE_FILE;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
-@Ignore("Random failed to execute phase [query], all shards failed (Should force ES to merge shards to prevent this error ?!!) see https://gitlab.dev.programmevitam.fr/vitam/vitam/merge_requests/6053")
 public class PopulateServiceTest {
-
-    public static final String PREFIX = GUIDFactory.newGUID().getId();
-    @ClassRule
-    public static MongoRule mongoRule = new MongoRule(VitamCollection.getMongoClientOptions());
-
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
-    private PopulateService populateService;
     private MetadataRepository metadataRepository;
     private MasterdataRepository masterdataRepository;
     private LogbookRepository logbookRepository;
-
-    @BeforeClass
-    public static void beforeClass() {
-        for (VitamDataType vitamDataType : VitamDataType.values()) {
-            vitamDataType.setCollectionName(PREFIX + vitamDataType.getCollectionName());
-            vitamDataType.setIndexName(PREFIX + vitamDataType.getIndexName());
-            elasticsearchRule.addIndexToBePurged(vitamDataType.getIndexName());
-            mongoRule.addCollectionToBePurged(vitamDataType.getCollectionName());
-        }
-
-    }
-
-    @AfterClass
-    public static void afterClass() {
-        elasticsearchRule.deleteIndexesWithoutClose();
-        mongoRule.handleAfterClass();
-    }
+    private MetadataStorageService metadataStorageService;
+    private UnitGraph unitGraph;
 
     @Before
     public void setUp() {
-
-        StoragePopulateImpl storagePopulateService = mock(StoragePopulateImpl.class);
-        this.metadataRepository =
-            new MetadataRepository(mongoRule.getMongoDatabase(), elasticsearchRule.getClient(), storagePopulateService);
-        this.masterdataRepository =
-            new MasterdataRepository(mongoRule.getMongoDatabase(), elasticsearchRule.getClient());
-        this.logbookRepository = new LogbookRepository(mongoRule.getMongoDatabase());
-        MetadataStorageService metadataStorageService =
-            new MetadataStorageService(metadataRepository, logbookRepository, storagePopulateService);
-        UnitGraph unitGraph = new UnitGraph(metadataRepository);
-        populateService =
-            new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 2,
-                metadataStorageService);
-    }
-
-    @After
-    public void after() {
-        mongoRule.handleAfter();
-        elasticsearchRule.handleAfter();
+        metadataRepository = mock(MetadataRepository.class);
+        masterdataRepository = mock(MasterdataRepository.class);
+        logbookRepository = mock(LogbookRepository.class);
+        metadataStorageService = mock(MetadataStorageService.class);
+        unitGraph = mock(UnitGraph.class);
     }
 
     @Test
-    public void should_populate_mongo_and_es() throws Exception {
+    public void should_populate_one_element() {
         // Given
+        TestScheduler io = new TestScheduler();
+        PopulateService populateService = new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 1, metadataStorageService, io);
+
         PopulateModel populateModel = new PopulateModel();
         populateModel.setBulkSize(1000);
-        populateModel.setNumberOfUnit(10);
+        populateModel.setNumberOfUnit(1);
         populateModel.setRootId("1234");
         populateModel.setSp("vitam");
         populateModel.setTenant(0);
@@ -96,7 +57,8 @@ public class PopulateServiceTest {
         populateModel.setObjectSize(1024);
         Map<String, Integer> ruleMap = new HashMap<>();
         ruleMap.put("STR-00059", 100);
-        ruleMap.put("ACC-000111", 20);
+        String ruleName = "ACC-000111";
+        ruleMap.put(ruleName, 20);
         populateModel.setRuleTemplatePercent(ruleMap);
 
         UnitModel unitModel = new UnitModel();
@@ -108,108 +70,173 @@ public class PopulateServiceTest {
         unitModel.setDescriptiveMetadataModel(content);
         unitModel.setId("1234");
 
-        metadataRepository.store(0, Lists.newArrayList(new UnitGotModel(unitModel)), true, true);
+        UnitGotModel gotModel = new UnitGotModel(unitModel);
+
+        given(masterdataRepository.findAgency(anyInt(), anyString())).willReturn(Optional.empty());
+        given(masterdataRepository.findRule(anyInt(), anyString())).willReturn(Optional.empty());
+        given(unitGraph.createGraph(anyInt(), any())).willReturn(gotModel);
+
+        given(masterdataRepository.findAccessionRegitserSummary(anyInt(), anyString())).willReturn(Optional.empty());
 
         // When
         populateService.populateVitam(populateModel);
 
         // Then
-        int i = 0;
-        while (populateService.inProgress() && i < 100) {
-            Thread.sleep(100L);
-            i += 1;
-        }
+        io.triggerActions();
 
-        int[] idx = {0};
-        assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count()).isEqualTo(11);
-        Bson filter = Filters.eq("_mgt.StorageRule.Rules.Rule", "STR-00059");
-        assertThat(mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).count(filter)).isEqualTo(10);
-        assertThat(mongoRule.getMongoCollection(VitamDataType.AGENCIES.getCollectionName()).count()).isEqualTo(1);
-        assertThat(mongoRule.getMongoCollection(VitamDataType.ACCESS_CONTRACT.getCollectionName()).count())
-            .isEqualTo(1);
-        assertThat(mongoRule.getMongoCollection(VitamDataType.RULES.getCollectionName()).count()).isEqualTo(2);
-        mongoRule.getMongoCollection(VitamDataType.UNIT.getCollectionName()).find().skip(1).
-            forEach((Block<? super Document>) document -> {
-                assertThat(document.getString("Title").equals("Title: " + (idx[0]++)));
-                assertThat(!document.get("_up", List.class).contains("1234"));
-                assertThat(document.get("_us", List.class).size() == 1);
-                assertThat(document.get("_sps", List.class).size() == 1);
-                assertThat(document.get("_uds", Document.class).get("1", List.class)).containsExactly("1234");
-            });
-
-        int[] jdx = {0};
-        assertThat(mongoRule.getMongoCollection(VitamDataType.GOT.getCollectionName()).count()).isEqualTo(10);
-        mongoRule.getMongoCollection(VitamDataType.GOT.getCollectionName()).find().
-            forEach((Block<? super Document>) document -> {
-                assertThat(document.get("FileInfo", Document.class).
-                    getString("Filename").equals("Filename: " + (jdx[0]++)));
-                assertThat(document.get("_sps", List.class).size() == 1);
-                assertThat(!document.get("_up", List.class).isEmpty());
-            });
-
+        verify(masterdataRepository).importAccessContract(CONTRACT_POPULATE, populateModel.getTenant());
+        verify(masterdataRepository).importRule(ruleName, populateModel.getTenant());
+        verify(metadataRepository).store(populateModel.getTenant(), Collections.singletonList(gotModel), populateModel.isStoreInDb(), populateModel.isIndexInEs());
+        verify(logbookRepository).storeLogbookLifecycleUnit(populateModel.getTenant(), Collections.singletonList(gotModel));
+        verify(logbookRepository).storeLogbookLifeCycleObjectGroup(populateModel.getTenant(), Collections.singletonList(gotModel));
+        verify(metadataStorageService).storeToOffers(populateModel, Collections.singletonList(gotModel));
+        verify(masterdataRepository).createAccessionRegisterSummary(populateModel.getTenant(), populateModel.getSp(), populateModel.getNumberOfUnit(), populateModel.getNumberOfUnit() * populateModel.getObjectSize());
     }
 
-
     @Test
-    public void should_populate_logbook_collections() throws Exception {
+    public void should_populate_multiple_elements() {
         // Given
+        TestScheduler io = new TestScheduler();
+        PopulateService populateService = new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 1, metadataStorageService, io);
+        int numberOfUnit = 5;
+
         PopulateModel populateModel = new PopulateModel();
-        populateModel.setBulkSize(10);
-        populateModel.setNumberOfUnit(5);
+        populateModel.setBulkSize(1);
+        populateModel.setNumberOfUnit(numberOfUnit);
         populateModel.setRootId("1234");
         populateModel.setSp("vitam");
         populateModel.setTenant(0);
         populateModel.setWithGots(true);
         populateModel.setWithRules(true);
-        populateModel.setObjectSize(256);
-        populateModel.setWithLFCGots(true);
-        populateModel.setWithLFCUnits(true);
+        populateModel.setObjectSize(1024);
         Map<String, Integer> ruleMap = new HashMap<>();
+        ruleMap.put("STR-00059", 100);
+        String ruleName = "ACC-000111";
+        ruleMap.put(ruleName, 20);
         populateModel.setRuleTemplatePercent(ruleMap);
-        populateModel.setLFCUnitsEventsSize(10);
-        populateModel.setLFCGotsEventsSize(5);
 
         UnitModel unitModel = new UnitModel();
         unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
 
-        ObjectGroupModel got = new ObjectGroupModel();
         DescriptiveMetadataModel content = new DescriptiveMetadataModel();
         content.setTitle("1234");
+
         unitModel.setDescriptiveMetadataModel(content);
         unitModel.setId("1234");
-        UnitGotModel unitGotModel = new UnitGotModel(unitModel, got);
-        LogbookLifecycle logbookLifecycle = new LogbookLifecycle();
-        unitGotModel.setLogbookLifeCycleObjectGroup(logbookLifecycle);
-        unitGotModel.setLogbookLifecycleUnit(logbookLifecycle);
 
-        metadataRepository.store(0, Lists.newArrayList(new UnitGotModel(unitModel)), true, true);
+        UnitGotModel gotModel = new UnitGotModel(unitModel);
 
+        given(masterdataRepository.findAgency(anyInt(), anyString())).willReturn(Optional.empty());
+        given(masterdataRepository.findRule(anyInt(), anyString())).willReturn(Optional.empty());
+        given(unitGraph.createGraph(anyInt(), any())).willReturn(gotModel);
+
+        given(masterdataRepository.findAccessionRegitserSummary(anyInt(), anyString())).willReturn(Optional.empty());
+
+        // When
         populateService.populateVitam(populateModel);
 
         // Then
-        int i = 0;
-        while (populateService.inProgress() && i < 100) {
-            Thread.sleep(100L);
-            i += 1;
-        }
+        io.triggerActions();
 
-        assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).count())
-            .isEqualTo(5);
-        assertThat(mongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).count())
-            .isEqualTo(5);
-        mongoRule.getMongoCollection(VitamDataType.LFC_UNIT.getCollectionName()).find().skip(1).
-            forEach((Block<? super Document>) doc -> {
-                assertThat(doc.getInteger("_tenant").equals(0)).isTrue();
-                assertThat(doc.getString("evType").equals("LFC.LFC_CREATION")).isTrue();
-                assertThat(doc.get("events", List.class).size() == 10).isTrue();
-            });
-        mongoRule.getMongoCollection(VitamDataType.LFC_GOT.getCollectionName()).find().skip(1).
-            forEach((Block<? super Document>) doc -> {
-                assertThat(doc.getInteger("_tenant").equals(0)).isTrue();
-                assertThat(doc.getString("evType").equals("LFC.LFC_CREATION")).isTrue();
-                assertThat(doc.get("events", List.class).size() == 5).isTrue();
-            });
-
+        verify(masterdataRepository, times(1)).importAccessContract(anyString(), anyInt());
+        verify(masterdataRepository, atLeast(ruleMap.size())).importRule(anyString(), anyInt());
+        verify(metadataRepository, times(numberOfUnit)).store(anyInt(), any(), anyBoolean(), anyBoolean());
+        verify(logbookRepository, times(numberOfUnit)).storeLogbookLifecycleUnit(anyInt(), any());
+        verify(logbookRepository, times(numberOfUnit)).storeLogbookLifeCycleObjectGroup(anyInt(), any());
+        verify(metadataStorageService, times(numberOfUnit)).storeToOffers(any(), any());
+        verify(masterdataRepository, times(1)).createAccessionRegisterSummary(anyInt(), anyString(), anyInt(), anyInt());
     }
 
+    @Test
+    public void should_delete_file_in_case_of_error() {
+        // Given
+        TestScheduler io = new TestScheduler();
+        PopulateService populateService = new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 1, metadataStorageService, io);
+        int numberOfUnit = 5;
+
+        PopulateModel populateModel = new PopulateModel();
+        populateModel.setBulkSize(1);
+        populateModel.setNumberOfUnit(numberOfUnit);
+        populateModel.setRootId("1234");
+        populateModel.setSp("vitam");
+        populateModel.setTenant(0);
+        populateModel.setWithGots(true);
+        populateModel.setWithRules(true);
+        populateModel.setObjectSize(1024);
+        Map<String, Integer> ruleMap = new HashMap<>();
+        ruleMap.put("STR-00059", 100);
+        String ruleName = "ACC-000111";
+        ruleMap.put(ruleName, 20);
+        populateModel.setRuleTemplatePercent(ruleMap);
+
+        UnitModel unitModel = new UnitModel();
+        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
+
+        DescriptiveMetadataModel content = new DescriptiveMetadataModel();
+        content.setTitle("1234");
+
+        unitModel.setDescriptiveMetadataModel(content);
+        unitModel.setId("1234");
+
+
+        given(masterdataRepository.findAgency(anyInt(), anyString())).willReturn(Optional.empty());
+        given(masterdataRepository.findRule(anyInt(), anyString())).willReturn(Optional.empty());
+        given(unitGraph.createGraph(anyInt(), any())).willThrow(new IllegalStateException());
+
+        given(masterdataRepository.findAccessionRegitserSummary(anyInt(), anyString())).willReturn(Optional.empty());
+
+        // When
+        populateService.populateVitam(populateModel);
+
+        // Then
+        io.triggerActions();
+        assertThat(POPULATE_FILE).doesNotExist();
+    }
+
+    @Test
+    public void should_delete_file_at_end() {
+        // Given
+        TestScheduler io = new TestScheduler();
+        PopulateService populateService = new PopulateService(metadataRepository, masterdataRepository, logbookRepository, unitGraph, 1, metadataStorageService, io);
+        int numberOfUnit = 5;
+
+        PopulateModel populateModel = new PopulateModel();
+        populateModel.setBulkSize(1);
+        populateModel.setNumberOfUnit(numberOfUnit);
+        populateModel.setRootId("1234");
+        populateModel.setSp("vitam");
+        populateModel.setTenant(0);
+        populateModel.setWithGots(true);
+        populateModel.setWithRules(true);
+        populateModel.setObjectSize(1024);
+        Map<String, Integer> ruleMap = new HashMap<>();
+        ruleMap.put("STR-00059", 100);
+        String ruleName = "ACC-000111";
+        ruleMap.put(ruleName, 20);
+        populateModel.setRuleTemplatePercent(ruleMap);
+
+        UnitModel unitModel = new UnitModel();
+        unitModel.setStorageModel(new StorageModel(2, "default", Arrays.asList("offer1", "offer2")));
+
+        DescriptiveMetadataModel content = new DescriptiveMetadataModel();
+        content.setTitle("1234");
+
+        unitModel.setDescriptiveMetadataModel(content);
+        unitModel.setId("1234");
+
+        UnitGotModel gotModel = new UnitGotModel(unitModel);
+
+        given(masterdataRepository.findAgency(anyInt(), anyString())).willReturn(Optional.empty());
+        given(masterdataRepository.findRule(anyInt(), anyString())).willReturn(Optional.empty());
+        given(unitGraph.createGraph(anyInt(), any())).willReturn(gotModel);
+
+        given(masterdataRepository.findAccessionRegitserSummary(anyInt(), anyString())).willReturn(Optional.empty());
+
+        // When
+        populateService.populateVitam(populateModel);
+
+        // Then
+        io.triggerActions();
+        assertThat(POPULATE_FILE).doesNotExist();
+    }
 }

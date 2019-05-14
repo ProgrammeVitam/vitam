@@ -26,23 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.serverv2;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-
-import javax.net.ServerSocketFactory;
-import javax.servlet.DispatcherType;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.core.Application;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -76,6 +59,20 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher;
 
+import javax.net.ServerSocketFactory;
+import javax.servlet.DispatcherType;
+import javax.ws.rs.ApplicationPath;
+import javax.ws.rs.core.Application;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 public class VitamServerTestRunner {// NOSONAR
     public static final String LOCALHOST = "localhost";
     private final VitamServer server;
@@ -83,10 +80,8 @@ public class VitamServerTestRunner {// NOSONAR
     private final Class<? extends Application> application;
     private final Class<? extends Application> adminAapplication;
 
-
     public static final int MIN_PORT = 11112;
     private static final int MAX_PORT = 65535;
-    private static final Random random = new Random(System.currentTimeMillis());
 
     private final int businessPort;
     private final int adminPort;
@@ -467,6 +462,9 @@ public class VitamServerTestRunner {// NOSONAR
     }
 
 
+    private static final Set<Integer> usedPort = Sets.newConcurrentHashSet();
+
+
     /**
      * Copied from Spring SocketUtils
      */
@@ -475,13 +473,16 @@ public class VitamServerTestRunner {// NOSONAR
         TCP {
             @Override
             protected boolean isPortAvailable(int port) {
+                if (usedPort.contains(port)) {
+                    return false;
+                }
+
                 try {
                     ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(
                         port, 1, InetAddress.getByName("localhost"));
                     serverSocket.close();
                     return true;
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     return false;
                 }
             }
@@ -490,12 +491,15 @@ public class VitamServerTestRunner {// NOSONAR
         UDP {
             @Override
             protected boolean isPortAvailable(int port) {
+                if (usedPort.contains(port)) {
+                    return false;
+                }
+
                 try {
                     DatagramSocket socket = new DatagramSocket(port, InetAddress.getByName("localhost"));
                     socket.close();
                     return true;
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     return false;
                 }
             }
@@ -507,44 +511,31 @@ public class VitamServerTestRunner {// NOSONAR
          */
         protected abstract boolean isPortAvailable(int port);
 
-        /**
-         * Find a pseudo-random port number within the range
-         * [{@code minPort}, {@code maxPort}].
-         * @param minPort the minimum port number
-         * @param maxPort the maximum port number
-         * @return a random port number within the specified range
-         */
-        private int findRandomPort(int minPort, int maxPort) {
-            int portRange = maxPort - minPort;
-            return minPort + random.nextInt(portRange + 1);
-        }
 
-        /**
-         * Find an available port for this {@code SocketType}, randomly selected
-         * from the range [{@code minPort}, {@code maxPort}].
-         * @param minPort the minimum port number
-         * @param maxPort the maximum port number
-         * @return an available port number for this socket type
-         * @throws IllegalStateException if no available port could be found
-         */
         int findAvailablePort(int minPort, int maxPort) {
             Assert.isTrue(minPort > 0, "'minPort' must be greater than 0");
             Assert.isTrue(maxPort >= minPort, "'maxPort' must be greater than or equal to 'minPort'");
             Assert.isTrue(maxPort <= MAX_PORT, "'maxPort' must be less than or equal to " + MAX_PORT);
 
-            int portRange = maxPort - minPort;
-            int candidatePort;
-            int searchCounter = 0;
-            do {
-                if (searchCounter > portRange) {
-                    throw new IllegalStateException(String.format(
-                        "Could not find an available %s port in the range [%d, %d] after %d attempts",
-                        name(), minPort, maxPort, searchCounter));
+            Integer candidatePort = null;
+            for (int port = minPort; port <= maxPort; port++) {
+
+                if (!isPortAvailable(port)) {
+                    continue;
                 }
-                candidatePort = findRandomPort(minPort, maxPort);
-                searchCounter++;
+
+                usedPort.add(port);
+
+                candidatePort = port;
+
+                break;
             }
-            while (!isPortAvailable(candidatePort));
+
+            if (candidatePort == null) {
+                throw new IllegalStateException(String.format(
+                    "Could not find an available %s port in the range [%d, %d] after %d attempts",
+                    name(), minPort, maxPort, usedPort.size()));
+            }
 
             return candidatePort;
         }
