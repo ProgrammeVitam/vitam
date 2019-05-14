@@ -1393,7 +1393,9 @@ public class ProcessingIT extends VitamRuleRunner {
     public void test_multiple_unit_link_cases() throws Exception {
         prepareVitamSession();
         // 1. First we create an AU by sip (Tree) (RATP_1 -> RATP_2)
-        ingest(PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath(), Contexts.HOLDING_SCHEME,
+        String ingestPath = PropertiesUtils.getResourcePath(SIP_RATP).toUri().getPath();
+        // Ingest PLAN de classement
+        ingest(ingestPath, Contexts.FILING_SCHEME,
             ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
 
         // 2. Get id of both au from 1 and 2
@@ -1466,6 +1468,17 @@ public class ProcessingIT extends VitamRuleRunner {
 
         // Attach to unitChild OK
         ingest(zipPath1, Contexts.DEFAULT_WORKFLOW, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.OK);
+
+        // Try to attach HOLDING to INGEST
+        // Attach to unitChild KO Unauthorized attach HOLDING TO FILING SCHEME
+        // Ingest Arbre de positionnement
+        processWorkflow =
+            ingest(ingestPath, Contexts.HOLDING_SCHEME, ProcessAction.RESUME, ProcessState.COMPLETED, StatusCode.KO);
+
+        operationId = processWorkflow.getOperationId();
+        operation = (Document) LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        assertThat(operation).isNotNull();
+        assertTrue(operation.toString().contains("CHECK_DATAOBJECTPACKAGE.CHECK_MANIFEST.UNAUTHORIZED_ATTACHMENT.KO"));
 
         // 6.2 ingest here should be KO, we link an incorrect id (not a child of the referenced au in the ingest contract) into the sip
         // Create SIP with unitRoot

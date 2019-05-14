@@ -50,7 +50,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -73,7 +72,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
-import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
@@ -184,6 +182,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
     private Map<String, String> existingGOTGUIDToNewGotGUIDInAttachment;
     private AdminManagementClientFactory adminManagementClientFactory;
 
+    private boolean attachByIngestContractChecked = false;
+
     /**
      * @param handlerIO
      * @param archiveUnitTree
@@ -268,10 +268,13 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
 
             String elementGUID = GUIDFactory.newUnitGUID(ParameterHelper.getTenantParameter()).toString();
 
+            // Check if we can attach by ingest contract
+            checkAutoAttachmentsByIngestContract();
+
             boolean isValidAttachment = archiveUnitType.getManagement() != null
                 && archiveUnitType.getManagement().getUpdateOperation() != null
                 && (archiveUnitType.getManagement().getUpdateOperation().getSystemId() != null
-                    || archiveUnitType.getManagement().getUpdateOperation().getArchiveUnitIdentifierKey() != null);
+                || archiveUnitType.getManagement().getUpdateOperation().getArchiveUnitIdentifierKey() != null);
 
             if (isValidAttachment) {
                 elementGUID = attachArchiveUnitToExisting(archiveUnitType, sedaAchiveUnitId);
@@ -363,6 +366,80 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         }
 
         super.afterUnmarshal(target, parent);
+    }
+
+    private void checkAutoAttachmentsByIngestContract() {
+        if (attachByIngestContractChecked) {
+            return;
+        }
+
+        if (ingestContract == null) {
+            return;
+        }
+
+        if (null == ingestContract.getLinkParentId()) {
+            return;
+        }
+
+        String checkUnit = "CheckAttachment";
+        try {
+            if (Strings.isNullOrEmpty(ingestContract.getLinkParentId())) {
+                throw new ProcessingNotFoundException(
+                    "IngestContract LinParentId mustn't be null or empty",
+                    checkUnit,
+                    ingestContract.getLinkParentId(), true, ExceptionType.UNIT,
+                    SUBTASK_EMPTY_KEY_ATTACHMENT);
+            }
+
+            final SelectMultiQuery select = new SelectMultiQuery();
+            try {
+                Query qr = QueryHelper.eq(ID.exactToken(), ingestContract.getLinkParentId());
+                select.setQuery(qr);
+            } catch (InvalidCreateOperationException e) {
+                throw new ProcessingNotFoundException(
+                    "Parse error : " + e.getMessage(),
+                    checkUnit,
+                    ingestContract.getLinkParentId(),
+                    true, ExceptionType.UNIT, SUBTASK_ERROR_PARSE_ATTACHMENT);
+            }
+
+            JsonNode linkParentUnitResponse = loadExistingArchiveUnit(select);
+
+            JsonNode linkParentUnitResult =
+                (linkParentUnitResponse == null) ? null : linkParentUnitResponse.get("$results");
+
+            if (linkParentUnitResult == null || linkParentUnitResult.size() == 0) {
+                throw new ProcessingNotFoundException(
+                    "Existing IngestContract LinkParentId :" + ingestContract.getLinkParentId() + ", was not found",
+                    checkUnit,
+                    ingestContract.getLinkParentId(), true, ExceptionType.UNIT, SUBTASK_NOT_FOUND_ATTACHMENT);
+            }
+
+            if (linkParentUnitResult.size() > 1) {
+                throw new ProcessingTooManyUnitsFoundException(
+                    "Existing IngestContract LinkParentId ::" + ingestContract.getLinkParentId() +
+                        ", Multiple unit was found",
+                    checkUnit,
+                    ingestContract.getLinkParentId(), true);
+            }
+
+            JsonNode linkParentUnit = linkParentUnitResult.get(0);
+            String type = linkParentUnit.get("#unitType").asText();
+            UnitType dataUnitType = UnitType.valueOf(type);
+
+            if (dataUnitType.ordinal() < workflowUnitType.ordinal()) {
+                throw new ProcessingUnitLinkingException(
+                    "Auto-linking by ingest contract unauthorized to the ArchiveUnit (" +
+                        ingestContract.getLinkParentId() +
+                        ") type " + dataUnitType +
+                        " and current ingest type is " + workflowUnitType, checkUnit, dataUnitType,
+                    workflowUnitType);
+            }
+        } catch (ProcessingException e) {
+            throw new VitamRuntimeException(e);
+        } finally {
+            attachByIngestContractChecked = true;
+        }
     }
 
     /**
@@ -574,7 +651,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         JsonNode ascendants = unitInDB.get(ALLUNITUPS.exactToken());
         String unitId = unitInDB.get(ID.exactToken()).asText();
 
-        if(ingestContract == null
+        if (ingestContract == null
             || ingestContract.getCheckParentId() == null
             || ingestContract.getCheckParentId().isEmpty()
             || ingestContract.getCheckParentId().contains(unitId)) {
@@ -582,8 +659,8 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         }
 
 
-        for(JsonNode ascendant : ascendants) {
-            if(ingestContract.getCheckParentId().contains(ascendant.asText())) {
+        for (JsonNode ascendant : ascendants) {
+            if (ingestContract.getCheckParentId().contains(ascendant.asText())) {
                 return false;
             }
         }
@@ -1001,30 +1078,6 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
         objectMapper.registerModule(module1);
 
         return objectMapper;
-    }
-
-
-    public Query tryApplyIngestContractRestriction(IngestContractModel ingestContract, Query query)
-        throws InvalidCreateOperationException {
-        if (null != ingestContract) {
-            if (ActivationStatus.ACTIVE.equals(ingestContract.getCheckParentLink())) {
-                if (!Strings.isNullOrEmpty(ingestContract.getLinkParentId())) {
-                    query = QueryHelper.and().add(
-                        query,
-                        QueryHelper.or().add(
-                            QueryHelper.eq(BuilderToken.PROJECTIONARGS.ID.exactToken(),
-                                ingestContract.getLinkParentId()),
-                            QueryHelper.in(BuilderToken.PROJECTIONARGS.ALLUNITUPS.exactToken(),
-                                ingestContract.getLinkParentId())
-
-                        ));
-                } else {
-                    throw new IllegalStateException(
-                        "Cannot apply restriction: IngestContract activation status is active but linkedParentId is NULL");
-                }
-            }
-        }
-        return query;
     }
 
     /**
