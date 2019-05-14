@@ -33,19 +33,6 @@ A l'issue de l'exécution du `playbook`, les *timers* systemd ont été arrêté
 
 Il est également recommandé de ne lancer la procédure de migration qu'après s'être assuré que plus aucun `workflow` n'est en cours de traitement. 
 
-Montée de version MongoDB 3.4 vers 4.0
---------------------------------------
-
-La montée de version R7 vers R9 comprend une montée de version de la bases de données MongoDB de la version 3.4 à la version 4.0. 
-
-Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
-
-* Arrêt de :term:`VITAM` (`playbook` ``ansible-vitam-exploitation/stop_vitam.yml``)
-* Démarrage des différents cluster mongodb (playbook ``ansible-vitam-exploitation/start_mongodb.yml``)
-* Upgrade de mongodb en version 3.6 (`playbook` ``ansible-vitam-exploitation/migration_mongodb_36.yml``)
-* Upgrade de mongodb en version 4.0 (`playbook` ``ansible-vitam-exploitation/migration_mongodb_40.yml``)
-* Démarrage de :term:`VITAM` (`playbook` ``ansible-vitam-exploitation/start_vitam.yml``)
-
 Reprise des données de certificats
 ----------------------------------
 
@@ -58,6 +45,21 @@ Les commandes sont à lancer depuis le répertoire ``deployment`` sur les diffé
 ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 ``ansible-playbook ansible-vitam-exploitation/migration_r7_certificates.yml --ask-vault-pass``
+
+Montée de version MongoDB 3.4 vers 4.0
+--------------------------------------
+
+La montée de version R7 vers R9 comprend une montée de version de la bases de données MongoDB de la version 3.4 à la version 4.0. 
+
+Les commandes suivantes sont à lancer depuis le répertoire ``deployment`` sur les différents sites hébergeant la solution logicielle :term:`VITAM` :
+
+* Arrêt de :term:`VITAM` (`playbook` ``ansible-vitam-exploitation/stop_vitam.yml``)
+
+.. warning:: A partir de là, la solution logicielle :term:`VITAM` est arrêtée ; elle ne sera redémarrée qu'au déploiement de la nouvelle version.
+
+* Démarrage des différents cluster mongodb (playbook ``ansible-vitam-exploitation/start_mongodb.yml``)
+* Upgrade de mongodb en version 3.6 (`playbook` ``ansible-vitam-exploitation/migration_mongodb_36.yml``)
+* Upgrade de mongodb en version 4.0 (`playbook` ``ansible-vitam-exploitation/migration_mongodb_40.yml``)
 
 Montée de version
 =================
