@@ -71,6 +71,12 @@
             <outputDirectory>deployment</outputDirectory>
             <excludes>
                 <exclude>**/*.retry</exclude>
+                <exclude>deployment/pki/ca/*</exclude>
+                <exclude>deployment/pki/config/*</exclude>
+                <exclude>**/*.crt</exclude>
+                <exclude>**/*.key</exclude>
+                <exclude>**/*.p12</exclude>
+                <exclude>**/*.jks</exclude>
             </excludes>
         </fileSet>
     </fileSets>
