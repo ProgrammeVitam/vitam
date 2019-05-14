@@ -19,11 +19,12 @@ function generateHostCertificate {
     local HOSTNAME="${4}"
     local TYPE_CERTIFICAT="${5}"
     local SERVICE_HOSTNAME="${6}"
+    local SERVICE_DC_HOSTNAME="${7}"
 
     # Correctly set Subject Alternate Name (env var is read inside the openssl configuration file)
-    export OPENSSL_SAN="DNS:${SERVICE_HOSTNAME},DNS:${HOSTNAME}"
+    export OPENSSL_SAN="DNS:${SERVICE_HOSTNAME},DNS:${HOSTNAME},DNS:${SERVICE_DC_HOSTNAME}"
     # Correctly set certificate CN (env var is read inside the openssl configuration file)
-    export OPENSSL_CN="${SERVICE_HOSTNAME}"
+    export OPENSSL_CN="${SERVICE_DC_HOSTNAME}"
     # Correctly set certificate DIRECTORY (env var is read inside the openssl configuration file)
     export OPENSSL_CRT_DIR=${TYPE_CERTIFICAT}
 
@@ -136,7 +137,8 @@ function generateHostCertAndStorePassphrase {
                                 ${CA_INTERMEDIATE_PASSWORD} \
                                 ${SERVER} \
                                 "server" \
-                                "${COMPONENT}.service.${CONSUL_DOMAIN}"
+                                "${COMPONENT}.service.${CONSUL_DOMAIN}" \
+                                "${COMPONENT}.service.${VITAM_SITE_NAME}.${CONSUL_DOMAIN}"
         # Store the key to the vault
         setComponentPassphrase certs "server_${COMPONENT}_key" \
                                      "${CERT_KEY}"
@@ -214,6 +216,8 @@ fi
 
 # Get consul_domain
 CONSUL_DOMAIN=$(grep --perl-regexp "^\s*consul_domain:\s*.*" environments/group_vars/all/vitam_vars.yml |awk -F ":" '{gsub("\\s","",$2); print $2}')
+# Get vitam_site_name
+VITAM_SITE_NAME=$(grep --perl-regexp "^\s*vitam_site_name=\s*.*" ${ENVIRONNEMENT_FILE} |awk -F "=" '{gsub("\\s","",$2); print $2}')
 
 # Cleaning or creating vault file for certs
 initVault certs
