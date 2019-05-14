@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.parser.TapeDriveStatusParser;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor;
@@ -51,6 +52,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     public static final String BSF = "bsf";
     public static final String REWIND = "rewind";
     public static final String EOD = "eod";
+    public static final String OFFLINE = "offline";
     private final TapeDriveConf tapeDriveConf;
     private final ProcessExecutor processExecutor;
 
@@ -82,6 +84,9 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     @Override
     public TapeResponse goToPosition(Integer position, boolean isBackword) {
         ParametersChecker.checkParameter("Arguments position is required", position);
+        if (position < 1) {
+            return new TapeResponse(ReadWriteErrorCode.KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER, StatusCode.KO);
+        }
 
         List<String> args =
             Lists.newArrayList(F, tapeDriveConf.getDevice(), isBackword ? BSF : FSF, position.toString());
@@ -98,28 +103,29 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     @Override
     public TapeResponse rewind() {
 
-        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), REWIND);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-            tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
-        Output output =
-            getExecutor()
-                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                    args);
-        return parseCommonResponse(output);
+        return execute(REWIND);
     }
 
     @Override
     public TapeResponse goToEnd() {
 
-        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), EOD);
+        return execute(EOD);
+    }
+
+    @Override
+    public TapeResponse eject() {
+        return execute(OFFLINE);
+    }
+
+    private TapeResponse execute(String option) {
+        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), option);
         LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
-            tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+                tapeDriveConf.getTimeoutInMilliseconds(),
+                args);
         Output output =
-            getExecutor()
-                .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
-                    args);
+                getExecutor()
+                        .execute(tapeDriveConf.getMtPath(), tapeDriveConf.isUseSudo(), tapeDriveConf.getTimeoutInMilliseconds(),
+                                args);
         return parseCommonResponse(output);
     }
 
