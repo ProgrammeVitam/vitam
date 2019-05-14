@@ -155,7 +155,7 @@
         <hibernate-validator.version>6.0.0.Final</hibernate-validator.version>
         <org.glassfish.web.version>2.2.6</org.glassfish.web.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
-        <rpm.version>2.1.5</rpm.version>
+        <maven.rpm-maven-plugin.version>2.1.5</maven.rpm-maven-plugin.version>
 
         <nodeDownloadRoot/>
     </properties>
@@ -712,7 +712,7 @@
                     <!-- RPM packaging -->
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>rpm-maven-plugin</artifactId>
-                    <version>${rpm.version}</version>
+                    <version>${maven.rpm-maven-plugin.version}</version>
                     <configuration>
                         <name>vitam-${unix.name}</name>
                         <disabled>true</disabled>
