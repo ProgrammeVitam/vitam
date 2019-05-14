@@ -101,7 +101,7 @@ public class FakeDriverImpl extends AbstractDriver {
 
                 @Override
                 public FakeConnectionImpl getClient() {
-                    return new FakeConnectionImpl();
+                    return new FakeConnectionImpl(offer.getId());
                 }
 
                 @Override
@@ -170,7 +170,7 @@ public class FakeDriverImpl extends AbstractDriver {
             throw new StorageDriverException(getName(),
                 "Intentionaly thrown", false);
         }
-        return new FakeConnectionImpl();
+        return new FakeConnectionImpl(offerId);
     }
 
     @Override
@@ -199,8 +199,11 @@ public class FakeDriverImpl extends AbstractDriver {
 
     class FakeConnectionImpl extends AbstractConnection {
 
-        FakeConnectionImpl() {
+        private final String offerId;
+
+        FakeConnectionImpl(String offerId) {
             super("FakeDriverName", new TestVitamClientFactory<AbstractConnection>(1324, "/chemin/"));
+            this.offerId = offerId;
         }
 
         @Override
@@ -229,6 +232,10 @@ public class FakeDriverImpl extends AbstractDriver {
                 return new StoragePutResult(objectRequest.getTenantId(), objectRequest.getType(),
                     objectRequest.getGuid(),
                     objectRequest.getGuid(), "different_digest_hash", 0);
+            }
+
+            if(("fail-offer-" + offerId).equals(objectRequest.getGuid())) {
+                throw new StorageDriverException(getName(), "Fake offer " + offerId + " failed", false);
             }
 
             if ("conflict".equals(objectRequest.getGuid())) {
