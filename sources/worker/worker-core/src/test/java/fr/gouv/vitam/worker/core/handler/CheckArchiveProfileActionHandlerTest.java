@@ -142,6 +142,6 @@ public class CheckArchiveProfileActionHandlerTest {
         profile.setId(GUIDFactory.newProfileGUID(0).toString());
         profile.setPath("Profil20.rng");
         profile.setFormat(ProfileFormat.RNG);
-        return ClientMockResultHelper.createReponse(profile);
+        return ClientMockResultHelper.createResponse(profile);
     }
 }

@@ -121,7 +121,7 @@ public class CheckIngestContractActionHandlerTest {
         IngestContractModel contract = new IngestContractModel();
         contract.setIdentifier(CONTRACT_IDENTIFIER);
         contract.setStatus(status);
-        return ClientMockResultHelper.createReponse(contract);
+        return ClientMockResultHelper.createResponse(contract);
     }
 
     /**
