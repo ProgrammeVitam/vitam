@@ -29,6 +29,18 @@ pipeline {
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
     }
 
+    options {
+        // disableConcurrentBuilds()
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                numToKeepStr: '100'
+            )
+        )
+    }
+
+
    stages {
 
        stage("Tools configuration") {
