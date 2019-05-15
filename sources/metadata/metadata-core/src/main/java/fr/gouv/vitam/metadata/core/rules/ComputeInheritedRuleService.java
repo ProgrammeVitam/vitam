@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.rules;
 
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
@@ -55,6 +56,8 @@ import static org.apache.commons.collections4.ListUtils.union;
  * Unit inherited rules service
  */
 public class ComputeInheritedRuleService {
+
+    private static final String GLOBAL_PROPERTIES = "GlobalProperties";
 
     /**
      * Computes inherited rules given local unit rule definitions
@@ -121,6 +124,12 @@ public class ComputeInheritedRuleService {
 
             unitInheritedRules.setRuleCategory(ruleCategory, inheritedRuleCategory);
         }
+
+
+        List<InheritedPropertyResponseModel> inheritedPropertyResponseModel =
+            computeInheritedGlobalProperties(unitRuleModel, unitInheritedRulesByUnitIdMap);
+        unitInheritedRules.setGlobalProperties(inheritedPropertyResponseModel);
+
         return unitInheritedRules;
     }
 
@@ -397,4 +406,61 @@ public class ComputeInheritedRuleService {
 
         return emptyList();
     }
+
+    private List<InheritedPropertyResponseModel> computeInheritedGlobalProperties(UnitRuleModel unitRuleModel,
+        Map<String, UnitInheritedRulesResponseModel> unitInheritedRulesByUnitIdMap) {
+
+        Map<String, Object> globalProperties = new HashMap<>();
+        if (unitRuleModel.getManagementModel().isNeedAuthorization() != null) {
+            globalProperties.put(SedaConstants.TAG_RULE_NEED_AUTHORISATION, unitRuleModel.getManagementModel().isNeedAuthorization());
+        }
+        List<InheritedPropertyResponseModel> localProperties = computeLocalGlobalProperties(unitRuleModel, globalProperties);
+
+        List<InheritedPropertyResponseModel> inheritedProperties =
+            getInheritedGlobalProperties(unitRuleModel, unitInheritedRulesByUnitIdMap, globalProperties);
+        return union(localProperties, inheritedProperties);
+    }
+
+    private List<InheritedPropertyResponseModel> computeLocalGlobalProperties(UnitRuleModel unitRuleModel,
+        Map<String, Object> globalProperties) {
+
+        if (globalProperties == null) {
+            return Collections.emptyList();
+        }
+        return globalProperties.entrySet().stream()
+            .map(globalProperty -> new InheritedPropertyResponseModel(unitRuleModel.getId(),
+                unitRuleModel.getOriginatingAgency(), singletonList(singletonList(unitRuleModel.getId())),
+                globalProperty.getKey(), globalProperty.getValue()))
+            .collect(Collectors.toList());
+    }
+
+    private List<InheritedPropertyResponseModel> getInheritedGlobalProperties(UnitRuleModel unitRuleModel,
+        Map<String, UnitInheritedRulesResponseModel> unitInheritedRulesByUnitIdMap,
+        Map<String, Object> globalProperties) {
+
+
+        Set<String> filteredProperties = new HashSet<>();
+
+        // Do not inherit locally redefined properties
+        if (globalProperties != null && globalProperties.get(SedaConstants.TAG_RULE_NEED_AUTHORISATION) != null) {
+            filteredProperties.addAll(globalProperties.keySet());
+        }
+
+        List<InheritedPropertyResponseModel> inheritedPropertiesFromParents = new ArrayList<>();
+        for (String parentUnitId : unitRuleModel.getUp()) {
+
+            List<InheritedPropertyResponseModel> parentUnitInheritedGlobalProperties =
+                unitInheritedRulesByUnitIdMap.get(parentUnitId).getGlobalProperties();
+
+            parentUnitInheritedGlobalProperties.stream()
+                .filter(property -> !filteredProperties.contains(property.getPropertyName()))
+                .forEach(property -> inheritedPropertiesFromParents.add(new InheritedPropertyResponseModel(
+                    property.getUnitId(), property.getOriginatingAgency(),
+                    prependPaths(property.getPaths(), unitRuleModel.getId()),
+                    property.getPropertyName(), property.getPropertyValue())));
+        }
+
+        return mergeInheritedPropertiesFromParents(inheritedPropertiesFromParents);
+    }
+
 }

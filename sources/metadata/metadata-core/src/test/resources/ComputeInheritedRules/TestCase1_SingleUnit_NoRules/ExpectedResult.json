@@ -1,5 +1,18 @@
 {
   "guid1": {
+    "GlobalProperties": [
+      {
+        "UnitId": "guid1",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "guid1"
+          ]
+        ],
+        "PropertyName": "NeedAuthorization",
+        "PropertyValue": false
+      }
+    ],
     "StorageRule": {
       "Rules": [],
       "Properties": []

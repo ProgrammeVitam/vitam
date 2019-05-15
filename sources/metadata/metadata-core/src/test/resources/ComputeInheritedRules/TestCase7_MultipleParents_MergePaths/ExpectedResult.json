@@ -1,5 +1,18 @@
 {
   "guid1": {
+    "GlobalProperties": [
+      {
+        "UnitId": "guid1",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "guid1"
+          ]
+        ],
+        "PropertyName": "NeedAuthorization",
+        "PropertyValue": true
+      }
+    ],
     "StorageRule": {
       "Rules": [],
       "Properties": []
@@ -63,6 +76,20 @@
     }
   },
   "guid2": {
+    "GlobalProperties": [
+      {
+        "UnitId": "guid1",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "guid2",
+            "guid1"
+          ]
+        ],
+        "PropertyName": "NeedAuthorization",
+        "PropertyValue": true
+      }
+    ],
     "AccessRule": {
       "Rules": [],
       "Properties": []
@@ -129,6 +156,20 @@
     }
   },
   "guid3": {
+    "GlobalProperties": [
+      {
+        "UnitId": "guid1",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "guid3",
+            "guid1"
+          ]
+        ],
+        "PropertyName": "NeedAuthorization",
+        "PropertyValue": true
+      }
+    ],
     "AccessRule": {
       "Rules": [],
       "Properties": []
@@ -195,6 +236,30 @@
     }
   },
   "guid4": {
+    "GlobalProperties": [
+      {
+        "UnitId": "guid1",
+        "OriginatingAgency": "sp1",
+        "Paths": [
+          [
+            "guid4",
+            "guid2",
+            "guid1"
+          ],
+          [
+            "guid4",
+            "guid3",
+            "guid1"
+          ],
+          [
+            "guid4",
+            "guid1"
+          ]
+        ],
+        "PropertyName": "NeedAuthorization",
+        "PropertyValue": true
+      }
+    ],
     "AccessRule": {
       "Rules": [],
       "Properties": []

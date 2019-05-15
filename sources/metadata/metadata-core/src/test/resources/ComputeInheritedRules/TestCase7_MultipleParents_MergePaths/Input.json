@@ -4,6 +4,7 @@
     "#originating_agency": "sp1",
     "#unitups": [],
     "#management": {
+      "NeedAuthorization": true,
       "AppraisalRule": {
         "Rules": [
           {
