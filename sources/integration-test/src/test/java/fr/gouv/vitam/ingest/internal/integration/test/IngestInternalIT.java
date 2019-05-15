@@ -56,7 +56,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
@@ -71,7 +70,6 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
@@ -84,7 +82,6 @@ import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
@@ -99,6 +96,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
@@ -292,7 +290,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY =
         "integration-ingest-internal/KO_ArchivesPhysiques_EmptyPhysicalId.zip";
 
-    private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT = "integration-ingest-internal/OK_ArchivesPhysiques_With_Attachment_Contract.zip";
+    private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT =
+        "integration-ingest-internal/OK_ArchivesPhysiques_With_Attachment_Contract.zip";
     private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
 
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
@@ -803,7 +802,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             JsonNode checkManifestEvent = lfc.get(LogbookDocument.EVENTS).get(0);
             assertEquals(checkManifestEvent.get("evType").asText(), "LFC.CHECK_MANIFEST");
             assertNotNull(checkManifestEvent.get("_lastPersistedDate"));
-            assertEquals(checkManifestEvent.get("evDetData").asText(), "{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}");
+            assertEquals(checkManifestEvent.get("evDetData").asText(),
+                "{\n  \"_up\" : [ \"" + linkParentId + "\" ]\n}");
         } catch (final Exception e) {
             LOGGER.error(e);
             try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
@@ -2460,26 +2460,32 @@ public class IngestInternalIT extends VitamRuleRunner {
     @Test
     public void testExternalLogbook() throws Exception {
         final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        final GUID operationGuidForRequestId = GUIDFactory.newOperationLogbookGUID(tenantId);
         prepareVitamSession();
-        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuidForRequestId);
 
         // external logbook creation
 
         // root logbook
         final LogbookOperationParameters logbookOperationparams =
             LogbookParametersFactory.newLogbookOperationParameters(
-                operationGuid, "External_Operation", operationGuid,
-                LogbookTypeProcess.EXTERNAL, StatusCode.STARTED,
+                operationGuid, "EXT_External_Operation", operationGuid,
+                LogbookTypeProcess.EXTERNAL_LOGBOOK, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
                 operationGuid);
+        logbookOperationparams.putParameterValue(LogbookParameterName.agentIdentifierApplicationSession,
+            operationGuid.getId());
+        logbookOperationparams.putParameterValue(LogbookParameterName.agIdExt,
+            JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("extId", operationGuid.getId())));
+        logbookOperationparams.putParameterValue(LogbookParameterName.objectIdentifierIncome, operationGuid.getId());
 
         final GUID eventGuid = GUIDFactory.newEventGUID(operationGuid);
         final LogbookOperationParameters eventParameters = LogbookParametersFactory
             .newLogbookOperationParameters(
                 eventGuid,
-                "External_Operation",
+                "EXT_External_Operation",
                 operationGuid,
-                LogbookTypeProcess.EXTERNAL,
+                LogbookTypeProcess.EXTERNAL_LOGBOOK,
                 StatusCode.OK,
                 "outcomeDetailMessage",
                 operationGuid);
@@ -2490,6 +2496,12 @@ public class IngestInternalIT extends VitamRuleRunner {
         final LogbookOperationParameters logbookOperationparamsWrongType =
             LogbookParametersFactory.newLogbookOperationParameters(
                 operationGuid, "External_Operation", operationGuid,
+                LogbookTypeProcess.EXTERNAL_LOGBOOK, StatusCode.STARTED,
+                operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+                operationGuid);
+        final LogbookOperationParameters logbookOperationparamsWrongTypeProc =
+            LogbookParametersFactory.newLogbookOperationParameters(
+                operationGuid, "EXT_External_Operation", operationGuid,
                 LogbookTypeProcess.AUDIT, StatusCode.STARTED,
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
                 operationGuid);
@@ -2500,22 +2512,46 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertEquals(Status.CREATED, client.createExternalOperation(logbookOperationparams));
 
             JsonNode logbookOperation =
-                accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                accessClient
+                    .selectOperationById(operationGuidForRequestId.getId(), new SelectMultiQuery().getFinalSelect())
                     .toJsonNode();
+            // assert certain parameters in the master are overloaded
+            assertEquals(StatusCode.OK.name(), logbookOperation.get("$results").get(0)
+                .get(LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.outcome).getDbname()).asText());
+
+            // assert certain parameters in the master are not overloaded
+            assertEquals(operationGuid.getId(),
+                logbookOperation.get("$results").get(0)
+                    .get(LogbookMongoDbName
+                        .getLogbookMongoDbName(LogbookParameterName.agentIdentifierApplicationSession).getDbname())
+                    .asText());
+            assertThat(logbookOperation.get("$results").get(0)
+                .get(LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.agIdExt).getDbname()).asText()
+                .contains(operationGuid.getId()));
+            assertEquals(operationGuid.getId(),
+                logbookOperation.get("$results").get(0).get(
+                    LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.objectIdentifierIncome).getDbname())
+                    .asText());
             assertEquals(1, logbookOperation.get("$results").get(0).get("events").size());
             logbookOperation.get("$results").get(0).get("events").forEach(event -> {
                 if (event.get("evType").asText().contains("STP_UPLOAD_SIP")) {
                     assertThat(event.get(LogbookParameterName.eventTypeProcess.name()).asText())
-                        .contains(LogbookTypeProcess.EXTERNAL.name());
+                        .contains(LogbookTypeProcess.EXTERNAL_LOGBOOK.name());
                 }
             });
 
 
             try {
-                client.createExternalOperation(logbookOperationparamsWrongType);
-                fail("this should throw an exception as the audit type shouldn't be accepted");
+                client.createExternalOperation(logbookOperationparamsWrongTypeProc);
+                fail("this should throw an exception as the audit shouldn't be accepted as a type proc ");
             } catch (BadRequestException e) {
                 // do nothing as the external logbook is rejected -> wrong type
+            }
+            try {
+                client.createExternalOperation(logbookOperationparamsWrongType);
+                fail("this should throw an exception as the External_Operation shouldn't be accepted as eventType");
+            } catch (BadRequestException e) {
+                // do nothing as the external logbook is rejected -> wrong event type
             }
 
         }

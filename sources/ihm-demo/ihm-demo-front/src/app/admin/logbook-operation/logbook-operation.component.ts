@@ -35,7 +35,9 @@ export class LogbookOperationComponent extends PageComponent {
     {label: 'Réorganisation', value: 'reclassification'},
     {label: 'Sauvegarde écritures', value: 'storage_backup'},
     {label: 'Sécurisation', value: 'traceability'},
-    {label: 'Vérification', value: 'check'}
+    {label: 'Vérification', value: 'check'},
+    {label: 'Journalisation externe', value: 'external_logbook'}
+
   ];
   public logbookData = [
     FieldDefinition.createIdField('evId', 'Identifiant', 6, 8),

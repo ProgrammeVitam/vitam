@@ -119,7 +119,7 @@ public enum LogbookTypeProcess {
     /**
      * External uses only.
      */
-    EXTERNAL;
+    EXTERNAL_LOGBOOK;
 
     /**
      * Get the LogbookTypeProcess matching the given type
