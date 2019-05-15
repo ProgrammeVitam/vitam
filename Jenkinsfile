@@ -31,6 +31,18 @@ pipeline {
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
     }
 
+    options {
+        // disableConcurrentBuilds()
+        buildDiscarder(
+            logRotator(
+                artifactDaysToKeepStr: '',
+                artifactNumToKeepStr: '',
+                numToKeepStr: '100'
+            )
+        )
+    }
+
+
    stages {
 
        stage("Tools configuration") {
