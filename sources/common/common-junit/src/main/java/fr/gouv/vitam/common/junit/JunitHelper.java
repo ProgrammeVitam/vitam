@@ -26,15 +26,16 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.junit;
 
+import com.google.common.collect.Sets;
 import com.google.common.testing.GcFinalization;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import org.apache.logging.log4j.util.Strings;
 import org.apache.shiro.util.Assert;
 import org.junit.rules.ExternalResource;
 
+import javax.net.ServerSocketFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
@@ -44,10 +45,7 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashSet;
-import java.util.Random;
 import java.util.Set;
-
-import javax.net.ServerSocketFactory;
 
 
 
@@ -59,11 +57,8 @@ public class JunitHelper extends ExternalResource {
     private static final int WAIT_AFTER_FULL_GC = 100;
     public static final int MIN_PORT = 11112;
     private static final int MAX_PORT = 65535;
-    private static final Random random = new Random(System.currentTimeMillis());
 
     private static final int BUFFER_SIZE = 65536;
-    private static final String COULD_NOT_FIND_A_FREE_TCP_IP_PORT_TO_START_EMBEDDED_SERVER_ON =
-        "Could not find a free TCP/IP port to start embedded Server on";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JunitHelper.class);
 
     private final Set<Integer> portAlreadyUsed = new HashSet<>();
@@ -290,6 +285,9 @@ public class JunitHelper extends ExternalResource {
 
 
 
+    private static final Set<Integer> usedPort = Sets.newConcurrentHashSet();
+
+
     /**
      * Copied from Spring SocketUtils
      */
@@ -298,13 +296,16 @@ public class JunitHelper extends ExternalResource {
         TCP {
             @Override
             protected boolean isPortAvailable(int port) {
+                if (usedPort.contains(port)) {
+                    return false;
+                }
+
                 try {
                     ServerSocket serverSocket = ServerSocketFactory.getDefault().createServerSocket(
                         port, 1, InetAddress.getByName("localhost"));
                     serverSocket.close();
                     return true;
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     return false;
                 }
             }
@@ -313,12 +314,15 @@ public class JunitHelper extends ExternalResource {
         UDP {
             @Override
             protected boolean isPortAvailable(int port) {
+                if (usedPort.contains(port)) {
+                    return false;
+                }
+
                 try {
                     DatagramSocket socket = new DatagramSocket(port, InetAddress.getByName("localhost"));
                     socket.close();
                     return true;
-                }
-                catch (Exception ex) {
+                } catch (Exception ex) {
                     return false;
                 }
             }
@@ -330,44 +334,31 @@ public class JunitHelper extends ExternalResource {
          */
         protected abstract boolean isPortAvailable(int port);
 
-        /**
-         * Find a pseudo-random port number within the range
-         * [{@code minPort}, {@code maxPort}].
-         * @param minPort the minimum port number
-         * @param maxPort the maximum port number
-         * @return a random port number within the specified range
-         */
-        private int findRandomPort(int minPort, int maxPort) {
-            int portRange = maxPort - minPort;
-            return minPort + random.nextInt(portRange + 1);
-        }
 
-        /**
-         * Find an available port for this {@code SocketType}, randomly selected
-         * from the range [{@code minPort}, {@code maxPort}].
-         * @param minPort the minimum port number
-         * @param maxPort the maximum port number
-         * @return an available port number for this socket type
-         * @throws IllegalStateException if no available port could be found
-         */
         int findAvailablePort(int minPort, int maxPort) {
             Assert.isTrue(minPort > 0, "'minPort' must be greater than 0");
             Assert.isTrue(maxPort >= minPort, "'maxPort' must be greater than or equal to 'minPort'");
             Assert.isTrue(maxPort <= MAX_PORT, "'maxPort' must be less than or equal to " + MAX_PORT);
 
-            int portRange = maxPort - minPort;
-            int candidatePort;
-            int searchCounter = 0;
-            do {
-                if (searchCounter > portRange) {
-                    throw new IllegalStateException(String.format(
-                        "Could not find an available %s port in the range [%d, %d] after %d attempts",
-                        name(), minPort, maxPort, searchCounter));
+            Integer candidatePort = null;
+            for (int port = minPort; port <= maxPort; port++) {
+
+                if (!isPortAvailable(port)) {
+                    continue;
                 }
-                candidatePort = findRandomPort(minPort, maxPort);
-                searchCounter++;
+
+                usedPort.add(port);
+
+                candidatePort = port;
+
+                break;
             }
-            while (!isPortAvailable(candidatePort));
+
+            if (candidatePort == null) {
+                throw new IllegalStateException(String.format(
+                    "Could not find an available %s port in the range [%d, %d] after %d attempts",
+                    name(), minPort, maxPort, usedPort.size()));
+            }
 
             return candidatePort;
         }
