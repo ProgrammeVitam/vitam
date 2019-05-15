@@ -27,6 +27,20 @@
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Stopwatch;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import io.reactivex.Flowable;
+import io.reactivex.Scheduler;
+import io.reactivex.schedulers.Schedulers;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.bson.Document;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -37,42 +51,26 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.common.base.Stopwatch;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import io.reactivex.Flowable;
-import io.reactivex.schedulers.Schedulers;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.bson.Document;
-
 public class PopulateService {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PopulateService.class);
+    private static String POPULATE_FILE_DIGEST;
+
     public static final String TENANT = "_tenant";
     public static final String CONTRACT_POPULATE = "ContractPopulate";
     public static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
-    private static String POPULATE_FILE_DIGEST;
 
-    private AtomicBoolean populateInProgress = new AtomicBoolean(false);
-
+    private final AtomicBoolean populateInProgress = new AtomicBoolean(false);
+    private final Scheduler io;
     private final MetadataRepository metadataRepository;
-
     private final MasterdataRepository masterdataRepository;
-
     private final LogbookRepository logbookRepository;
-
     private final MetadataStorageService metadataStorageService;
-
-    private UnitGraph unitGraph;
-    private int nbThreads;
+    private final UnitGraph unitGraph;
     private final DigestType digestType;
+    private final int nbThreads;
 
-    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository,
-        LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService) {
+    @VisibleForTesting
+    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository, LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService, Scheduler io) {
         this.metadataRepository = metadataRepository;
         this.masterdataRepository = masterdataRepository;
         this.logbookRepository = logbookRepository;
@@ -80,13 +78,13 @@ public class PopulateService {
         this.nbThreads = nThreads;
         this.digestType = VitamConfiguration.getDefaultDigestType();
         this.metadataStorageService = metadataStorageService;
+        this.io = io;
     }
 
-    /**
-     * Populate vitam with data using populateModel
-     *
-     * @param populateModel config to use
-     */
+    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository, LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService) {
+        this(metadataRepository, masterdataRepository, logbookRepository, unitGraph, nThreads, metadataStorageService, Schedulers.io());
+    }
+
     public void populateVitam(PopulateModel populateModel) {
 
         if (populateInProgress.get()) {
@@ -144,7 +142,7 @@ public class PopulateService {
 
         }
         Flowable.range(0, populateModel.getNumberOfUnit())
-            .observeOn(Schedulers.io())
+            .observeOn(io)
             .map(index -> unitGraph
                 .createGraph(index, populateModel))
             .buffer(populateModel.getBulkSize())
@@ -154,11 +152,9 @@ public class PopulateService {
             .subscribe(t -> {
             }, t -> {
                 LOGGER.error(t);
-                populateInProgress.set(false);
                 POPULATE_FILE.delete();
+                populateInProgress.set(false);
             }, () -> {
-                populateInProgress.set(false);
-                POPULATE_FILE.delete();
                 long elapsed = stopwatch.elapsed(TimeUnit.MILLISECONDS);
                 LOGGER.info("save time: {}", elapsed);
 
@@ -171,6 +167,9 @@ public class PopulateService {
                         populateModel.getNumberOfUnit(),
                         populateModel.getNumberOfUnit() * populateModel.getObjectSize());
                 }
+
+                POPULATE_FILE.delete();
+                populateInProgress.set(false);
             });
     }
 
@@ -188,11 +187,6 @@ public class PopulateService {
         return true;
     }
 
-    /**
-     * Check if a populating task is in progress
-     *
-     * @return true if there is a populating task in progress
-     */
     public boolean inProgress() {
         return populateInProgress.get();
     }
