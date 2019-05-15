@@ -109,7 +109,7 @@
         <commons-lang3>3.8.1</commons-lang3>
         <easymock.version>4.0.2</easymock.version>
         <jackson.version>2.9.8</jackson.version>
-        <elasticsearch.version>6.7.1</elasticsearch.version>
+        <elasticsearch.version>6.7.2</elasticsearch.version>
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
         <mongo.version>3.4.3</mongo.version>
         <apache-shiro.version>1.4.0</apache-shiro.version>
