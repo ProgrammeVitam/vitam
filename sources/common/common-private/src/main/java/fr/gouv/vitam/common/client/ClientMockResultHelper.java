@@ -26,27 +26,23 @@
  */
 package fr.gouv.vitam.common.client;
 
-import java.io.ByteArrayInputStream;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ContextModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.stream.StreamUtils;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 /**
  * Results for client mock
@@ -449,11 +445,11 @@ public class ClientMockResultHelper {
     }
     
     public static RequestResponse<JsonNode> getArchiveUnitRawResult() throws InvalidParseOperationException {
-        return createReponse(UNIT_RAW);
+        return createResponse(UNIT_RAW);
     }
     
     public static RequestResponse<JsonNode> getObjectGroupRawResult() throws InvalidParseOperationException {
-        return createReponse(GOT_RAW);
+        return createResponse(GOT_RAW);
     }
 
     /**
@@ -466,14 +462,13 @@ public class ClientMockResultHelper {
     }
 
     /**
-     * @param s the original object to be included in response
+     * @param response the original object to be included in response
      * @return a default response
-     * @throws InvalidParseOperationException
      */
-    public static RequestResponse createReponse(Object s) throws InvalidParseOperationException {
-        return new RequestResponseOK()
-            .addResult(s);
+    public static <T>RequestResponse<T> createResponse(T response) {
+        return new RequestResponseOK<T>().addResult(response);
     }
+
     public static RequestResponse createEmptyReponse() {
         return new RequestResponseOK();
     }
@@ -489,7 +484,7 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse createReponse(String s) throws InvalidParseOperationException {
+    public static RequestResponse createResponse(String s) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s));
@@ -502,7 +497,7 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static <T> RequestResponse<T> createReponse(String s, Class<T> clasz) throws InvalidParseOperationException {
+    public static <T> RequestResponse<T> createResponse(String s, Class<T> clasz) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s, clasz));
@@ -515,7 +510,7 @@ public class ClientMockResultHelper {
      * @return a default response
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse createReponse(String s, int statuscode, Class clazz) throws InvalidParseOperationException {
+    public static RequestResponse createResponse(String s, int statuscode, Class clazz) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
         if (null != s)
             responseOK.addResult(JsonHandler.getFromString(s, clazz));
@@ -528,7 +523,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getAccessionRegisterSummary() throws InvalidParseOperationException {
-        return createReponse(ACCESSION_SUMMARY);
+        return createResponse(ACCESSION_SUMMARY);
     }
 
     /**
@@ -537,7 +532,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getAccessionRegisterDetail() throws InvalidParseOperationException {
-        return createReponse(ACCESSION_DETAIL);
+        return createResponse(ACCESSION_DETAIL);
     }
 
     /**
@@ -546,7 +541,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getFormat() throws InvalidParseOperationException {
-        return createReponse(FORMAT);
+        return createResponse(FORMAT);
     }
 
     /**
@@ -555,7 +550,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getRule() throws InvalidParseOperationException {
-        return createReponse(RULE);
+        return createResponse(RULE);
     }
 
     /**
@@ -563,7 +558,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getAgency() throws InvalidParseOperationException {
-        return createReponse(AGENCY);
+        return createResponse(AGENCY);
     }
 
     /**
@@ -571,7 +566,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getIngestContracts() throws InvalidParseOperationException {
-        return createReponse(INGEST_CONTRACTS, IngestContractModel.class);
+        return createResponse(INGEST_CONTRACTS, IngestContractModel.class);
     }
 
 
@@ -580,7 +575,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getAccessContracts() throws InvalidParseOperationException {
-        return createReponse(ACCESS_CONTRACTS);
+        return createResponse(ACCESS_CONTRACTS);
     }
 
 
@@ -589,11 +584,11 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getContexts(int statusCode) throws InvalidParseOperationException {
-        return createReponse(CONTEXTS, statusCode, ContextModel.class);
+        return createResponse(CONTEXTS, statusCode, ContextModel.class);
     }
 
     public static RequestResponse getProfiles(int statusCode) throws InvalidParseOperationException {
-        return createReponse(PROFILES, statusCode, ObjectNode.class);
+        return createResponse(PROFILES, statusCode, ObjectNode.class);
     }
 
     /**
@@ -602,7 +597,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getFormatList() throws InvalidParseOperationException {
-        return createReponse(FORMAT);
+        return createResponse(FORMAT);
     }
 
     /**
@@ -610,7 +605,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getAgenciesList() throws InvalidParseOperationException {
-        return createReponse(AGENCY);
+        return createResponse(AGENCY);
     }
 
     /**
@@ -645,12 +640,12 @@ public class ClientMockResultHelper {
                 rule.put("RuleId", oldRuleId);
         }
 
-        return createReponse(rule);
+        return createResponse(rule);
     }
 
     public static RequestResponse getRuleList() throws InvalidParseOperationException {
         ObjectNode rule = (ObjectNode) JsonHandler.getFromString(RULE);
-        return createReponse(rule);
+        return createResponse(rule);
     }
 
     /**
@@ -659,7 +654,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getEmptyResult() throws InvalidParseOperationException {
-        return createReponse(RESULT + "{}}");
+        return createResponse(RESULT + "{}}");
     }
 
     /**
@@ -667,7 +662,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getArchiveUnitResult() throws InvalidParseOperationException {
-        return createReponse(UNIT);
+        return createResponse(UNIT);
     }
 
     /**
@@ -697,7 +692,7 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse getOperationTraceabilityDetails()
         throws InvalidParseOperationException {
-        return createReponse(TRACEABILITY_OPERATION);
+        return createResponse(TRACEABILITY_OPERATION);
     }
 
     /**
@@ -705,7 +700,7 @@ public class ClientMockResultHelper {
      * 
      */
     public static RequestResponse checkOperationTraceability() throws InvalidParseOperationException {
-        return createReponse(TRACEABILITY_OPERATION);
+        return createResponse(TRACEABILITY_OPERATION);
     }
 
     /**
@@ -713,23 +708,23 @@ public class ClientMockResultHelper {
      * 
      */
     public static RequestResponse getTraceabilityOperationMock() throws InvalidParseOperationException {
-        return createReponse(TRACEABILITY_LOGBOOK_OPERATION);
+        return createResponse(TRACEABILITY_LOGBOOK_OPERATION);
     }
 
     public static RequestResponse getSecurityProfiles() throws InvalidParseOperationException {
-        return createReponse(SECURITY_PROFILES);
+        return createResponse(SECURITY_PROFILES);
     }
 
     public static RequestResponse getDipInfo() throws InvalidParseOperationException {
-        return createReponse(DIP_RESULTS);
+        return createResponse(DIP_RESULTS);
     }
     
     public static RequestResponse getReindexationInfo() throws InvalidParseOperationException {
-        return createReponse(REINDEXATION_INFO);
+        return createResponse(REINDEXATION_INFO);
     }
     
     public static RequestResponse getSwitchIndexesInfo() throws InvalidParseOperationException {
-        return createReponse(REINDEXATION_INFO);
+        return createResponse(REINDEXATION_INFO);
     }
 
     /**
@@ -740,7 +735,7 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getArchiveUnitProfiles(int statusCode) throws InvalidParseOperationException {
-        return createReponse(ARCHIVE_UNIT_PROFILES);
+        return createResponse(ARCHIVE_UNIT_PROFILES);
     }
 
     /**
@@ -751,6 +746,6 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse getOntologies(int statusCode) throws InvalidParseOperationException {
-        return createReponse(ONTOLOGIES, OntologyModel.class);
+        return createResponse(ONTOLOGIES, OntologyModel.class);
     }
 }
