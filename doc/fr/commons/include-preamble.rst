@@ -120,10 +120,13 @@ Glossaire
       Méthode d'évaluation des risques en informatique, permettant d'apprécier les risques Sécurité des systèmes d'information (entités et vulnérabilités, méthodes d’attaques et éléments menaçants, éléments essentiels et besoins de sécurité...), de contribuer à leur traitement en spécifiant les exigences de sécurité à mettre en place, de préparer l'ensemble du dossier de sécurité nécessaire à l'acceptation des risques et de fournir les éléments utiles à la communication relative aux risques. Elle est compatible avec les normes ISO 13335 (GMITS), ISO 15408 (critères communs) et ISO 17799
 
    ELK
-      `Elasticsearch Logstash Kibana`
+      *Elasticsearch Logstash Kibana*
 
    IHM
      Interface Homme Machine
+
+   IP 
+      *Internet Protocol*
 
    JRE
       Java Runtime Environment ; il s'agit de la machine virtuelle Java permettant d'y exécuter les programmes compilés pour.
@@ -132,10 +135,10 @@ Glossaire
       Java Virtual Machine ; Cf. :term:`JRE`
 
    LAN 
-      `Local Area Network`, réseau informatique local, qui relie des ordinateurs dans une zone limitée
+      *Local Area Network*, réseau informatique local, qui relie des ordinateurs dans une zone limitée
 
    LFC
-      `LiFe Cycle`, cycle de vie
+      *LiFe Cycle*, cycle de vie
 
    LTS 
       `Long-term support`, support à long terme : version spécifique d'un logiciel dont le support est assuré pour une période de temps plus longue que la normale.
