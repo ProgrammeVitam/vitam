@@ -995,22 +995,29 @@ documentation:
         example: !include libraries/examples/dslQuery.json
 
 /logbookoperations:
-  displayName: Journalisation externe
-  description: API permettant d'intégrer des journaux d'opération externes.
+  displayName: Beta - Journalisation externe
+  description: |
+    API permettant d'intégrer des journaux d'opération externes.
   is: [ StandardTraits.StandardOptionalHeader ]
   post:
-    description: Requête qui insère une opération externe dans le journal des opérations
+    description: Beta - Requête qui insère une opération externe dans le journal des opérations
     body:
       application/json:
         description: |
-          Requête qui insère une opération externe dans le journal des opérations
+            Requête qui insère une opération externe dans le journal des opérations. Endpoint en version Beta.
+
+            Spécificités :
+              - Le champ eventType du master doit respecter la regle "EXT_*"
+              - Le champ evTypeProc doit prendre comme valeur "EXTERNAL_LOGBOOK"
+              - Seules les valeurs "agIdExt" et "objectIdentifierIncome" seront conservées dans le master, les autres valeurs seront surchargées par Vitam.
         type: object
         example: !include libraries/examples/Logbook.json
+        required: true
     responses:
       201:
         description: L'opération a bien été créée dans VITAM
       400:
-        description: L'opération n'est pas au format exigé. Ou alors la valeur du champ eventTypeProcess est incorrecte (devrait être EXTERNAL)
+        description: L'opération n'est pas au format exigé. Ou alors la valeur des champs eventTypeProcess ou eventType est incorrecte : eventTypeProcess doit avoir pour valeur "EXTERNAL", eventType doit commencer par "EXT_".
       409:
         description: L'opération existe déjà
       500:

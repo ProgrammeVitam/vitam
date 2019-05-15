@@ -26,6 +26,9 @@
  */
 package fr.gouv.vitam.logbook.common.parameters;
 
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +36,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -51,6 +56,8 @@ public class LogbookOperationsClientHelper {
     private final Map<String, Queue<LogbookOperationParameters>> delegatedCreations = new ConcurrentHashMap<>();
     private final Map<String, Queue<LogbookOperationParameters>> delegatedUpdates = new ConcurrentHashMap<>();
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationsClientHelper.class);
+    
     /**
      * Constructor
      */
@@ -67,8 +74,18 @@ public class LogbookOperationsClientHelper {
     public static final String checkLogbookParameters(LogbookOperationParameters parameters) {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
+        if (!LogbookTypeProcess.EXTERNAL_LOGBOOK.equals(parameters.getTypeProcess())
+            || parameters.getParameterValue(LogbookParameterName.eventDateTime) == null ) {
+            parameters.putParameterValue(LogbookParameterName.eventDateTime,
+                LocalDateUtil.now().toString());
+        } else {
+            try {
+                LocalDateUtil.getDate(parameters.getParameterValue(LogbookParameterName.eventDateTime));
+                LOGGER.warn("External date : "+ parameters.getParameterValue(LogbookParameterName.eventDateTime));
+            } catch (ParseException e) {
+                throw new IllegalArgumentException("Wrong date format : "+ parameters.getParameterValue(LogbookParameterName.eventDateTime));
+            }
+        }
         ParameterHelper
             .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
         return parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);

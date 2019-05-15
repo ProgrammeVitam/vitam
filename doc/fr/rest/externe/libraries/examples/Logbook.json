@@ -1,9 +1,9 @@
 {
     "eventIdentifier": "entryId",
-    "eventType": "externalOperation",
+    "eventType": "EXT_OPERATION",
     "eventDateTime": "2015-07-14T17:32:05Z",
     "eventIdentifierProcess": "workflowId",
-    "eventTypeProcess": "EXTERNAL",
+    "eventTypeProcess": "EXTERNAL_LOGBOOK",
     "outcome" : "STARTED",
     "eventOutcomeDetail": "404_123456",
     "eventOutcomeDetailMessage": "Error message",

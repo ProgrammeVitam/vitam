@@ -55,6 +55,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
+import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 
 /**
  * Test for logbook operation client
@@ -139,6 +140,7 @@ public class LogbookOperationsClientMockTest {
     }
 
     private void fillLogbookParamaters(LogbookParameters logbookParamaters) {
+        logbookParamaters.setTypeProcess(LogbookTypeProcess.INGEST);
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
             LogbookParameterName.eventIdentifier.name());
         logbookParamaters
@@ -146,9 +148,7 @@ public class LogbookOperationsClientMockTest {
         logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
             LocalDateUtil.now().toString());
         logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            LogbookParameterName.eventIdentifierProcess.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventTypeProcess,
-            LogbookParameterName.eventTypeProcess.name());
+            LogbookParameterName.eventIdentifierProcess.name());        
         logbookParamaters.putParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
         logbookParamaters
             .putParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
