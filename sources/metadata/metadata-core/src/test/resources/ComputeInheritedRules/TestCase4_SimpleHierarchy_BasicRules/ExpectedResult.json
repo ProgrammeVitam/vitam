@@ -1,5 +1,6 @@
 {
   "guid1": {
+    "GlobalProperties": [],
     "StorageRule": {
       "Rules": [
         {
@@ -134,6 +135,7 @@
     }
   },
   "guid2": {
+    "GlobalProperties": [],
     "StorageRule": {
       "Rules": [
         {

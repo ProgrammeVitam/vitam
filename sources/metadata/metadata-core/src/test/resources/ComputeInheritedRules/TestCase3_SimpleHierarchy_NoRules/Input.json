@@ -2,7 +2,9 @@
   {
     "#id": "guid1",
     "#unitups": [],
-    "#management": {}
+    "#management": {
+      "NeedAuthorization": true
+    }
   },
   {
     "#id": "guid2",

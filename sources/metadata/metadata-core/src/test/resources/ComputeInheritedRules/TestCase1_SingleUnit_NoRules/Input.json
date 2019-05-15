@@ -3,6 +3,8 @@
     "#id": "guid1",
     "#originating_agency": "sp1",
     "#unitups": [],
-    "#management": {}
+    "#management": {
+      "NeedAuthorization": false
+    }
   }
 ]

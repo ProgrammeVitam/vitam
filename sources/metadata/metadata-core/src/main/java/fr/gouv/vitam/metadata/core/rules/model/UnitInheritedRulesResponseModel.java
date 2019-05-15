@@ -29,8 +29,10 @@ package fr.gouv.vitam.metadata.core.rules.model;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -41,6 +43,9 @@ public class UnitInheritedRulesResponseModel {
     /* Serialized via @JsonAnySetter & JsonAnyGetter  */
     @JsonIgnore
     private Map<String, InheritedRuleCategoryResponseModel> ruleCategories = new HashMap<>();
+
+    @JsonProperty("GlobalProperties")
+    private List<InheritedPropertyResponseModel> globalProperties;
 
     public UnitInheritedRulesResponseModel() {
         // Empty constructor for deserialization
@@ -55,4 +60,13 @@ public class UnitInheritedRulesResponseModel {
     public Map<String, InheritedRuleCategoryResponseModel> getRuleCategories() {
         return ruleCategories;
     }
+
+    public List<InheritedPropertyResponseModel> getGlobalProperties() {
+        return globalProperties;
+    }
+
+    public void setGlobalProperties(List<InheritedPropertyResponseModel> globalProperties) {
+        this.globalProperties = globalProperties;
+    }
+    
 }

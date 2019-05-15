@@ -1,5 +1,6 @@
 {
   "guid0": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -26,6 +27,7 @@
     }
   },
   "guid1": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -77,6 +79,7 @@
     }
   },
   "guid2": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -213,6 +216,7 @@
     }
   },
   "guid3": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -302,6 +306,7 @@
     }
   },
   "guid4": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -467,6 +472,7 @@
     }
   },
   "guid5": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -628,6 +634,7 @@
     }
   },
   "guid6": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -788,6 +795,7 @@
     }
   },
   "guid7": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -1034,6 +1042,7 @@
     }
   },
   "guid8": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
@@ -1164,6 +1173,7 @@
     }
   },
   "guid9": {
+    "GlobalProperties": [],
     "AccessRule": {
       "Properties": [],
       "Rules": []
