@@ -28,6 +28,7 @@ package fr.gouv.vitam.common.model.massupdate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -59,7 +60,7 @@ public class RuleCategoryAction {
     private Set<String> preventRulesId;
 
     public List<RuleAction> getRules() {
-        return rules;
+        return rules == null ? new ArrayList<>() : rules;
     }
 
     public void setRules(List<RuleAction> rules) {

@@ -351,10 +351,6 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry, Map<String, DurationData> bindRuleDuration, Boolean isUpdate) {
         RuleCategoryAction category = entry.getValue();
 
-        if (category.getRules() == null) {
-            return;
-        }
-
         for (RuleAction rule: category.getRules()) {
             String ruleId = rule.getRule();
 
@@ -377,12 +373,11 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                 throw new IllegalStateException("Can't get the Rule " + rule.getRule() + " in Rules Referential");
             }
             JsonNode ruleInReferential = ruleResponseInReferential.get("$results").get(0);
-            String startDateString = rule.getStartDate();
 
             final String duration = ruleInReferential.get(FileRules.RULEDURATION).asText();
             final String measurement = ruleInReferential.get(FileRules.RULEMEASUREMENT).asText();
 
-            // save duration and mesurement for usage in MongoDbInMemory if needed
+            // save duration and measurement for usage in MongoDbInMemory if needed
             final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
             if (bindRuleDuration.get(ruleId) == null && !"unlimited".equalsIgnoreCase(duration) && ruleMeasurement != null) {
                 bindRuleDuration.put(ruleId, new DurationData(Integer.parseInt(duration), (ChronoUnit) ruleMeasurement.getTemporalUnit()));
