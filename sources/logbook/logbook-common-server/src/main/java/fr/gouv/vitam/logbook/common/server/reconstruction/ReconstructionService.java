@@ -26,39 +26,38 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
-import org.bson.Document;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
+import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import org.bson.Document;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Reconstruction of Vitam Logbook Operation Collections.<br>
@@ -69,6 +68,8 @@ public class ReconstructionService {
      * Vitam Logger.
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReconstructionService.class);
+    private static final AlertService alertService = new AlertServiceImpl();
+
     private static final String RECONSTRUCTION_ITEM_MONDATORY_MSG = "the item defining reconstruction is mandatory.";
     private static final String RECONSTRUCTION_TENANT_MONDATORY_MSG = "the tenant to reconstruct is mondatory.";
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
@@ -97,7 +98,8 @@ public class ReconstructionService {
 
     /**
      * Constructor for tests
-     *  @param vitamRepositoryProvider vitamRepositoryProvider
+     *
+     * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
      * @param adminManagementClientFactory adminManagementClientFactory
      * @param logbookTransformData logbookTransformData
@@ -117,7 +119,7 @@ public class ReconstructionService {
 
     /**
      * Reconstruct logbook operation on a tenant
-     * 
+     *
      * @param reconstructionItem request for reconstruction
      * @return response of reconstruction
      * @throws DatabaseException database exception
@@ -140,7 +142,7 @@ public class ReconstructionService {
 
     /**
      * Reconstruct collection logbook operation.
-     * 
+     *
      * @param tenant tenant
      * @param limit number of data to reconstruct
      * @return response of reconstruction
@@ -172,22 +174,34 @@ public class ReconstructionService {
             // headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
-            // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
-            // get the list of data to backup.
-            List<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, offset, limit);
+            Iterator<List<OfferLog>> listing = restoreBackupService.getListing(STRATEGY_ID, offset, limit);
 
-            for (List<OfferLog> listingBulk : listing) {
+            while (listing.hasNext()) {
+
+                List<OfferLog> listingBulk = listing.next();
 
                 List<LogbookBackupModel> bulkData = new ArrayList<>();
                 for (OfferLog offerLog : listingBulk) {
-                    LogbookBackupModel model =
-                        restoreBackupService.loadData(STRATEGY_ID, offerLog.getFileName(), offerLog.getSequence());
-                    if (model != null && model.getLogbookOperation() != null && model.getOffset() != null) {
+
+                    try {
+
+                        LogbookBackupModel model =
+                            restoreBackupService.loadData(STRATEGY_ID, offerLog.getFileName(), offerLog.getSequence());
+
+                        if (model.getLogbookOperation() == null || model.getLogbookId() == null) {
+                            throw new StorageException(String.format(
+                                "[Reconstruction]: Invalid LogbookOperation in file {%s} on the tenant {%s}",
+                                offerLog.getFileName(), tenant));
+                        }
                         bulkData.add(model);
-                    } else {
-                        throw new StorageException(String.format(
+
+                    } catch (StorageNotFoundException ex) {
+                        alertService.createAlert(VitamLogLevel.ERROR, String.format(
                             "[Reconstruction]: LogbookOperation is not present in file {%s} on the tenant {%s}",
                             offerLog.getFileName(), tenant));
+                        throw new StorageException(String.format(
+                            "[Reconstruction]: LogbookOperation is not present in file {%s} on the tenant {%s}",
+                            offerLog.getFileName(), tenant), ex);
                     }
                 }
 
@@ -223,7 +237,7 @@ public class ReconstructionService {
 
     /**
      * Reconstruct logbookOperations in databases
-     * 
+     *
      * @param mongoRepository mongo access service for collection
      * @param esRepository elasticsearch access service for collection
      * @param bulk list of items to back up

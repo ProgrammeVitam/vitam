@@ -241,7 +241,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         }
 
         try {
-            response = performRequest(HttpMethod.HEAD, "/" + type.getCollectionName() + "/" + guid, headers,
+            response = performRequest(HttpMethod.HEAD, "/" + type.name() + "/" + guid, headers,
                     MediaType.APPLICATION_JSON_TYPE);
             notContentResponseToBoolean(handleNoContentResponseStatus(response));
             Map<String, Boolean> result = new HashMap<String, Boolean>();
