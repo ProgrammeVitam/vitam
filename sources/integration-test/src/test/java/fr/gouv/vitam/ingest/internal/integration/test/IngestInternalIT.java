@@ -810,7 +810,7 @@ public class IngestInternalIT {
 
             String queryUpdate =
                 "{\"$roots\":[\"" + unitId + "\"],\"$query\":[],\"$filter\":{}," +
-                    "\"$action\":[{\"$set\": {\"#management.AccessRule.Inheritance\" : {\"PreventRulesId\": [\"ACC-00004\",\"ACC-00005\"], \"PreventInheritance\": false}}}]}";
+                    "\"$action\":[{\"$set\": {\"#management.AccessRule.Inheritance\" : {\"PreventRulesId\": [], \"PreventInheritance\": false}}}]}";
             RequestResponse responsePreventInheritance = accessClient
                 .updateUnitbyId(JsonHandler.getFromString(queryUpdate), unitId);
             assertTrue(responsePreventInheritance.isOk());
@@ -819,7 +819,7 @@ public class IngestInternalIT {
             // lets find details for the unit -> AccessRule should have been set
             RequestResponseOK<JsonNode> responseUnitAfterUpdatePreventInheritance =
                 (RequestResponseOK) accessClient.selectUnitbyId(new SelectMultiQuery().getFinalSelect(), unitId);
-            assertEquals(2, responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule").get("Inheritance").get("PreventRulesId").size());
+            assertEquals(0, responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule").get("Inheritance").get("PreventRulesId").size());
             assertEquals(false, responseUnitAfterUpdatePreventInheritance.getFirstResult().get("#management").get("AccessRule").get("Inheritance").get("PreventInheritance").asBoolean());
 
             sizedInputStream = new SizedInputStream(inputStream);

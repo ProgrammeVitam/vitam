@@ -9,7 +9,7 @@
 				"Rules": [
 					{
 						"Rule": "STR001",
-						"StartDate": "2012-11-15T14:30:23"
+						"StartDate": "2012-11-15"
 					}
 				],
 				"FinalAction": "Copy"
