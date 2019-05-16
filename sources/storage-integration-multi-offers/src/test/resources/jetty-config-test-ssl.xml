@@ -95,7 +95,7 @@
 
     <!-- create https connector                                      -->
     <!-- =========================================================== -->            
-    <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory">
+    <New id="sslContextFactory" class="org.eclipse.jetty.util.ssl.SslContextFactory$Server">
         <Set name="KeyStorePath">src/test/resources/storage-test/tls/server/keystore.jks</Set>
         <Set name="KeyStorePassword">azerty3</Set>
         <Set name="KeyManagerPassword">azerty3</Set>

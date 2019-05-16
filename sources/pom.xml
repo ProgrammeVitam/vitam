@@ -113,7 +113,7 @@
         <elasticsearch.client.transport.version>${elasticsearch.version}</elasticsearch.client.transport.version>
         <mongo.version>3.4.3</mongo.version>
         <apache-shiro.version>1.4.0</apache-shiro.version>
-        <jetty.version>9.4.14.v20181114</jetty.version>
+        <jetty.version>9.4.18.v20190429</jetty.version>
         <assertj.version>3.11.1</assertj.version>
         <rest-assured.version>3.3.0</rest-assured.version>
         <junit.version>4.12</junit.version>
