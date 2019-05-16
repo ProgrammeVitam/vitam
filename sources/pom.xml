@@ -171,6 +171,7 @@
         <maven.assembly.version>2.6</maven.assembly.version>
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
         <maven.javadoc.version>2.10.4</maven.javadoc.version>
+        <xalan.version>2.7.2</xalan.version>
         <nodeDownloadRoot/>
     </properties>
 
@@ -1189,7 +1190,7 @@
             <dependency>
                 <groupId>xalan</groupId>
                 <artifactId>xalan</artifactId>
-                <version>2.7.2</version>
+                <version>${xalan.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.xmlgraphics</groupId>
