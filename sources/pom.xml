@@ -146,7 +146,7 @@
         <!-- Metrics -->
         <metrics.version>4.1.0-rc3</metrics.version>
         <metrics.jvm.version>4.1.0-rc3</metrics.jvm.version>
-        <metrics.elastic.version>2.2.0</metrics.elastic.version>
+        <metrics.elastic.version>2.3.0-VITAM</metrics.elastic.version>
         <jclouds-slf4j.version>1.6.0</jclouds-slf4j.version>
         <skipITs>false</skipITs>
         <!-- Json Validation -->
@@ -1335,11 +1335,6 @@
                 <groupId>io.dropwizard.metrics</groupId>
                 <artifactId>metrics-jvm</artifactId>
                 <version>${metrics.jvm.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.elasticsearch</groupId>
-                <artifactId>metrics-elasticsearch-reporter</artifactId>
-                <version>${metrics.elastic.version}</version>
             </dependency>
 
             <!-- ####################### Json validation ####################### -->
