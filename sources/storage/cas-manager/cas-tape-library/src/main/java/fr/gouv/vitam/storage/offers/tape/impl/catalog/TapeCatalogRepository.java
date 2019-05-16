@@ -135,7 +135,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
      */
     public List<TapeCatalog> findTapes(List<QueryCriteria> criteria) throws TapeCatalogException {
         if (criteria == null || criteria.isEmpty()) {
-            throw new IllegalArgumentException(ALL_PARAMS_REQUIRED);
+            throw new TapeCatalogException(ALL_PARAMS_REQUIRED);
         }
 
         List<Bson> filters = new ArrayList<>();
