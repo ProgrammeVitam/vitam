@@ -213,7 +213,7 @@ public class MongoDbInMemory {
             initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
             // add rules
-            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+            if (!ruleCategoryAction.getRules().isEmpty()) {
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 ruleCategoryAction.getRules().forEach(ruleAction -> {
                     if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
@@ -254,7 +254,7 @@ public class MongoDbInMemory {
             initialRuleCategory = handleClassificationProperties(initialRuleCategory, ruleCategoryAction, category);
             initialRuleCategory = handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
-            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+            if (!ruleCategoryAction.getRules().isEmpty()) {
                 Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream().collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 Iterator<JsonNode> it = initialRules.iterator();
@@ -285,7 +285,7 @@ public class MongoDbInMemory {
             initialRuleCategory = handleClassificationPropertiesDeletion(initialRuleCategory, ruleCategoryAction, category);
             initialRuleCategory = handleInheritancePropertiesDeletion(initialRuleCategory, ruleCategoryAction);
 
-            if (ruleCategoryAction.getRules() != null && !ruleCategoryAction.getRules().isEmpty()) {
+            if (!ruleCategoryAction.getRules().isEmpty()) {
                 List<String> rulesToDelete = ruleCategoryAction.getRules().stream().map(RuleAction::getRule).collect(Collectors.toList());
                 ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
                 ArrayNode filteredRules = JsonHandler.createArrayNode();
