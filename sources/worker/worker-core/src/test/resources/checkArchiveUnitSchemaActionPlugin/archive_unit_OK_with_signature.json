@@ -59,10 +59,10 @@
       "Juridictional" : [ "Aisne (D\u00E9partement)" ]
     },
     "OriginatingAgency" : {
-      "Identifier" : "Famille HERVE"
+      "Identifier": "Famille HERVE"
     },
     "SubmissionAgency" : {
-      "Identifier" : "Famille HERVE"
+      "Identifier": "Famille HERVE"
     },
     "Writer" : [ {
       "FirstName" : "Fils",
@@ -80,14 +80,14 @@
       "BirthName" : "HERVE",
       "GivenName" : "HERVE",
       "Gender" : "M",
-      "Identifier" : "ID02"
+      "Identifier": ["ID02"]
     } ],
     "Recipient" : [ {
       "FirstName" : "Maman",
       "BirthName" : "HERVE",
       "GivenName" : "HERVE",
       "Gender" : "F",
-      "Identifier" : "ID03"
+      "Identifier": ["ID03"]
     } ],
     "Source" : "Famille Herv\u00E9, CP1",
     "CreatedDate" : "2014-06-12T09:31:00",
@@ -107,7 +107,6 @@
     "Signature" :
     [
       {
-        "DateSignature" : "2017-08-24T14:56:31.000+02:00",
         "Signer" :
         [
           {
@@ -128,7 +127,8 @@
           "SignedObjectDigest" : {
             "Value" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
             "Algorithm" : "SHA-512"
-          }
+          },
+          "SignedObjectId": "ID123"
         }
       }
     ],

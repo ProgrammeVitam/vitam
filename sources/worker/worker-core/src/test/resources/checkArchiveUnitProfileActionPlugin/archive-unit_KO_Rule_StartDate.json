@@ -16,7 +16,7 @@
 				"Rules": [
 					{
 						"Rule": "APR001",
-						"StartDate": "2012-11-15T14:30:23"
+						"StartDate": "2012-11-15"
 					}
 				],
 				"Inheritance": {
@@ -30,7 +30,7 @@
 				"Rules": [
 					{
 						"Rule": "ID",
-						"StartDate": "2012-11-15T14:30:23"
+						"StartDate": "2012-11-15"
 					}
 				],
 				"Inheritance": {
@@ -43,7 +43,7 @@
 				"Rules": [
 					{
 						"Rule": "CLR001",
-						"StartDate": "2012-11-15T14:30:23",
+						"StartDate": "2012-11-15",
 						"ClassificationLevel": "Level",
 						"ClassificationOwner": "Owner",
 						"ClassificationReassessingDate": "2016-05-02",
@@ -51,7 +51,7 @@
 					},
 					{
 						"Rule": "CLR001",
-						"StartDate": "2012-11-15T14:30:23",
+						"StartDate": "2012-11-15",
 						"ClassificationLevel": "Level",
 						"ClassificationOwner": "Owner",
 						"ClassificationReassessingDate": "2016-05-02",
@@ -59,7 +59,7 @@
 					},
 					{
 						"Rule": "CLR002",
-						"StartDate": "2012-11-15T14:30:23",
+						"StartDate": "2012-11-15",
 						"ClassificationLevel": "Level",
 						"ClassificationOwner": "Owner",
 						"ClassificationReassessingDate": "2016-05-02",

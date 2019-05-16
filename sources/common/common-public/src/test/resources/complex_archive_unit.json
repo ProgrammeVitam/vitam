@@ -8,41 +8,47 @@
       "&lt;0d63ae2b-6d1d-ccd0-0ef5-c2c7f71b1781@programmevitam.fr&gt;"
       ],
     "Description" : "D\u00E9but du texte [Pour voir!\\r\\n]",
-    "Writer" : {
-      "FirstName" : "Writer1",
-      "BirthName" : "Test ProgrammeVitam",
-      "Identifier" : "test@programmevitam.fr"
-    },
-    "Writer" : {
-      "FirstName" : "Writer2",
-      "BirthName" : "Test ProgrammeVitam",
-      "Identifier" : "test2@programmevitam.fr"
-    },
-    "Recipient" : {
-      "FirstName" : "Recipient1",
-      "BirthName" : "Test ProgrammeVitam",
-      "Identifier" : "Recipient1@programmevitam.fr"
-    },
-    "Recipient" : {
-      "FirstName" : "Recipient2",
-      "BirthName" : "Test ProgrammeVitam",
-      "Identifier" : "Recipient2@programmevitam.fr"
-    },
-    "Addressee" : {
-      "FirstName" : "FirstName1",
-      "BirthName" : "BirthName1",
-      "Identifier" : "contact1@programmevitam.fr"
-    },
-    "Addressee" : {
-      "FirstName" : "FirstName2",
-      "BirthName" : "BirthName2",
-      "Identifier" : "contact2@programmevitam.fr"
-    },
-    "Addressee" : {
-      "FirstName" : "FirstName3",
-      "BirthName" : "BirthName3",
-      "Identifier" : "contact3@programmevitam.fr"
-    },
+    "Writer": [
+      {
+        "FirstName": "Writer1",
+        "BirthName": "Test ProgrammeVitam",
+        "Identifier": ["test@programmevitam.fr"]
+      },
+      {
+        "FirstName": "Writer2",
+        "BirthName": "Test ProgrammeVitam",
+        "Identifier": ["test2@programmevitam.fr"]
+      }
+    ],
+    "Recipient": [
+      {
+        "FirstName": "Recipient1",
+        "BirthName": "Test ProgrammeVitam",
+        "Identifier": ["Recipient1@programmevitam.fr"]
+      },
+      {
+        "FirstName": "Recipient2",
+        "BirthName": "Test ProgrammeVitam",
+        "Identifier": ["Recipient2@programmevitam.fr"]
+      }
+    ],
+    "Addressee": [
+      {
+        "FirstName": "FirstName1",
+        "BirthName": "BirthName1",
+        "Identifier": ["contact1@programmevitam.fr"]
+      },
+      {
+        "FirstName": "FirstName2",
+        "BirthName": "BirthName2",
+        "Identifier": ["contact2@programmevitam.fr"]
+      },
+      {
+        "FirstName": "FirstName3",
+        "BirthName": "BirthName3",
+        "Identifier": ["contact3@programmevitam.fr"]
+      }
+    ],
     "SentDate" : "2017-01-13T12:39:36.36Z",
     "ReceivedDate" : "2017-01-13T12:39:37.37Z",
     "DataObjectReference" : {
