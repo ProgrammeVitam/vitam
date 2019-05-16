@@ -245,3 +245,41 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
      :linenos:
 
 .. note:: Cette configuration est appliquée à la solution logicielle :term:`VITAM`  ; il est possible de créer un tuning par "groupe" défini dans ansible.
+
+
+Paramétrage de l'Offre Froide ( librairies de cartouches )
+==========================================================
+
+Suite à l'infroduction des offres bandes, plusieurs notions supplémentaires sont prises en compte dans ce fichier.
+De nouvelles entrées ont été ajoutées pour décrire d'une par le matériel robotique assigné à l'offre froide, et les répertoires d'échanges temporaires d'autre part. Les élements de configuration doivent être renseignés par l'exploitant.
+
+* Lecture asynchrone
+
+Un paramètre a été ajouté aux définitions de statégie.
+AsyncRead permet de déterminer si l'offre associée fonctionne en lecture asynchrone, et désactive toute possibilité de lecture directe sur l'offre.
+Une offre froide "offer-tape" doit être configurée en lecture asynchrone.
+La valeur par défaut pour ayncRead est False.
+
+* Périphériques liés à l'usage des bandes magnétiques
+
+        **Terminologie**:
+
+        * **tapeLibrary**  une librairie de bande dans son ensemble. Une "tapeLibrary" est constituée de 1 à n "robot" et de 1 à n "drives".
+        Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner.
+        L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
+
+        * **drive**  un drive est lecteur de cartouches. Il doit être identifié par un path scsi unique.
+        Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
+        N.B.: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur.
+        Les plus classiques sont par exemple /dev/st0 et /dev/nst0 pour le premier drive détecté par le système.
+        L'usage de /dev/st0 indique au système que la bande utilisée dans le lecteur associé devra être rembobinée après l'exécution de la commande appelante.
+        A contrario, /dev/nst0 indique au système que la bande utilisée dans le lecteur associé devra rester positionnée après le dernier marqueur de fichier utlisé par l'exécution de la commande appelante.
+        Pour que l'offre froide fonctionne correctement, il convient de configurer une version /dev/nstxx
+
+        .. note::
+        Il peut arriver sur certains systèmes que l'ordre des lecteurs de bandes varient après un reboot de la machine. Pour s'assurer la persistence de l'ordre des lecteurs dans la configuration VITAM, il est conseillé d'utiliser les fichiers périphériques présents dans /dev/tape/by-id/ qui s’appuient sur des références au hardware pour définier les drives.
+ 
+        * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une tapeLibrary, et de procéder à l'inventaire de ses ressources.
+        Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner.
+        L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système.
+        A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots.
