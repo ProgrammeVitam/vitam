@@ -1,0 +1,24 @@
+{
+  "$query": [
+    {
+      "$or": [
+        {
+          "$in": {
+            "#id": [
+              "aeaqaaaaaee5z5a6aarswalkj64wixyaaaaq",
+              "aeaqaaaaaee5z5a6aarswalkj64wguaaaaba",
+              "aeaqaaaaaee5z5a6aarswalkj64wizqaaaaq"
+            ]
+          }
+        },
+        {
+          "$in": {
+            "#allunitups": []
+          }
+        }
+      ]
+    }
+  ],
+  "$filter": {},
+  "$projection": {}
+}

@@ -147,3 +147,58 @@ Trois exemples :
 }
 ```
 
+# Audit de cohérence
+
+Il est possible de définir les requêtes pour lancer un audit de cohérence sur des unités archivistiques, objets, groupe d'objets ou sur une opération
+ 
+Deux exemples de requête :
+
+* Audit de cohérence d'une ou plusieurs opérations :
+
+```JSON
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        { 
+          "$in": { 
+            "#operations": [ "#id1", "#id2" ] 
+            } 
+        },
+        { 
+          "$exists" : "Title" 
+        }
+      ]
+    }],
+    "$projection": {}
+}
+```
+* Audit de cohérence des unités archivistiques:
+
+```JSON
+{
+  "$query": [
+    {
+      "$or": [
+        {
+          "$in": {
+            "#id": [
+              "aeaqaaaaaee5z5a6aarswalkj64wixyaaaaq",
+              "aeaqaaaaaee5z5a6aarswalkj64wguaaaaba",
+              "aeaqaaaaaee5z5a6aarswalkj64wizqaaaaq"
+            ]
+          }
+        },
+        {
+          "$in": {
+            "#allunitups": []
+          }
+        }
+      ]
+    }
+  ],
+  "$filter": {},
+  "$projection": {}
+}
+```
