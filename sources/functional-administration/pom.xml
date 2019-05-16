@@ -36,7 +36,7 @@
                 <plugin>
                     <!-- Run the Junit unit tests in an isolated classloader. -->
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.1</version>
+                    <version>${maven.surefire.version}</version>
                     <configuration>
                         <runOrder>alphabetical</runOrder>
                         <parallel>classes</parallel>

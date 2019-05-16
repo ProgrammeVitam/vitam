@@ -157,7 +157,20 @@
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <retrofit2.version>2.5.0</retrofit2.version>
         <maven.rpm-maven-plugin.version>2.1.5</maven.rpm-maven-plugin.version>
-
+        <org.xmlunit.version>2.6.2</org.xmlunit.version>
+        <com.github.tomakehurst.version>2.21.0</com.github.tomakehurst.version>
+        <io.reactivex.rxjava2.version>2.2.6</io.reactivex.rxjava2.version>
+        <maven.surefire.version>2.22.1</maven.surefire.version>
+        <maven.clean.version>3.0.0</maven.clean.version>
+        <maven.compiler.version>3.5.1</maven.compiler.version>
+        <maven.deploy.version>2.8.2</maven.deploy.version>
+        <maven.resources.version>3.1.0</maven.resources.version>
+        <maven.source.version>3.0.0</maven.source.version>
+        <maven.dependency.version>3.1.1</maven.dependency.version>
+        <maven.site.version>3.5.1</maven.site.version>
+        <maven.assembly.version>2.6</maven.assembly.version>
+        <maven.failsafe.version>2.19.1</maven.failsafe.version>
+        <maven.javadoc.version>2.10.4</maven.javadoc.version>
         <nodeDownloadRoot/>
     </properties>
 
@@ -284,12 +297,12 @@
                 <plugin>
                     <!-- Clean up after the build. -->
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>${maven.clean.version}</version>
                 </plugin>
                 <plugin>
                     <!-- Compiles Java sources. -->
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.5.1</version>
+                    <version>${maven.compiler.version}</version>
                     <configuration>
                         <source>${java.version}</source>
                         <target>${java.version}</target>
@@ -299,12 +312,12 @@
                 <plugin>
                     <!-- Deploy the built artifact to the remote repository. -->
                     <artifactId>maven-deploy-plugin</artifactId>
-                    <version>2.8.2</version>
+                    <version>${maven.deploy.version}</version>
                 </plugin>
                 <plugin>
                     <!-- Run the Junit integration tests in an isolated classloader. -->
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>2.19.1</version>
+                    <version>${maven.failsafe.version}</version>
                     <executions>
                         <execution>
                             <id>integration-test</id>
@@ -324,8 +337,7 @@
                     <!-- Copy the resources to the output directory for including in the
                         JAR. -->
                     <artifactId>maven-resources-plugin</artifactId>
-                    <!-- 3.0 ? -->
-                    <version>3.1.0</version>
+                    <version>${maven.resources.version}</version>
                     <configuration>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
@@ -333,7 +345,7 @@
                 <plugin>
                     <!-- Generate a site for the current project. -->
                     <artifactId>maven-site-plugin</artifactId>
-                    <version>3.5.1</version>
+                    <version>${maven.site.version}</version>
                 </plugin>
                 <plugin>
                     <!-- Code coverage agent -->
@@ -362,7 +374,7 @@
                 <plugin>
                     <!-- Run the Junit unit tests in an isolated classloader. -->
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>2.22.1</version>
+                    <version>${maven.surefire.version}</version>
                     <configuration>
                         <argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
                         <runOrder>alphabetical</runOrder>
@@ -451,7 +463,7 @@
                     <!-- The Javadoc Plugin uses the Javadoc tool to generate javadocs for
                         the specified project. -->
                     <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>2.10.4</version>
+                    <version>${maven.javadoc.version}</version>
                     <configuration>
                         <source>${java.version}</source>
                         <additionalparam>-Xdoclint:none</additionalparam>
@@ -565,12 +577,12 @@
                 <plugin>
                     <!-- Build an assembly (distribution) of sources and/or binaries. -->
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>${maven.assembly.version}</version>
                 </plugin>
                 <plugin>
                     <!-- Dependency manipulation (copy, unpack) and analysis. -->
                     <artifactId>maven-dependency-plugin</artifactId>
-                    <version>3.1.1</version>
+                    <version>${maven.dependency.version}</version>
  		            <executions>
                         <execution>
                             <id>analyze</id>
@@ -650,7 +662,7 @@
                     <!-- Build a JAR of sources for use in IDEs and distribution to the
                         repository. -->
                     <artifactId>maven-source-plugin</artifactId>
-                    <version>3.0.0</version>
+                    <version>${maven.source.version}</version>
                 </plugin>
                 <plugin>
                     <!-- Maven/Sonarqube integration -->
@@ -1325,7 +1337,7 @@
             <dependency>
                 <groupId>io.reactivex.rxjava2</groupId>
                 <artifactId>rxjava</artifactId>
-                <version>2.2.6</version>
+                <version>${io.reactivex.rxjava2.version}</version>
             </dependency>
 
             <!-- ####################### Tests ####################### -->
@@ -1447,7 +1459,7 @@
             <dependency>
                 <groupId>com.github.tomakehurst</groupId>
                 <artifactId>wiremock</artifactId>
-                <version>2.21.0</version>
+                <version>${com.github.tomakehurst.version}</version>
                 <scope>test</scope>
                 <exclusions>
                     <exclusion>
@@ -1460,13 +1472,13 @@
             <dependency>
                 <groupId>org.xmlunit</groupId>
                 <artifactId>xmlunit-core</artifactId>
-                <version>2.6.2</version>
+                <version>${org.xmlunit.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.xmlunit</groupId>
                 <artifactId>xmlunit-matchers</artifactId>
-                <version>2.6.2</version>
+                <version>${org.xmlunit.version}</version>
                 <scope>test</scope>
             </dependency>
 
