@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
 import com.mongodb.util.JSON;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -35,13 +34,13 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
+import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
@@ -64,27 +63,26 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeCatalogServiceImpl.class);
 
-    private TapeCatalogRepository repository;
+    private TapeCatalogRepository tapeCatalogRepository;
 
-    public TapeCatalogServiceImpl(MongoDbAccess mongoDbAccess) {
-        this.repository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(OfferCollections.TAPE_CATALOG.getName()));
+    public TapeCatalogServiceImpl(TapeCatalogRepository tapeCatalogRepository) {
+        this.tapeCatalogRepository = tapeCatalogRepository;
     }
 
     @Override
     public void create(TapeCatalog tapeCatalog) throws TapeCatalogException {
         tapeCatalog.setId(GUIDFactory.newGUID().toString());
-        repository.createTape(tapeCatalog);
+        tapeCatalogRepository.createTape(tapeCatalog);
     }
 
     @Override
     public boolean replace(TapeCatalog tapeCatalog) throws TapeCatalogException {
-        return repository.replaceTape(tapeCatalog);
+        return tapeCatalogRepository.replaceTape(tapeCatalog);
     }
 
     @Override
     public boolean update(String tapeId, Map<String, Object> criteria) throws TapeCatalogException {
-        return repository.updateTape(tapeId, criteria);
+        return tapeCatalogRepository.updateTape(tapeId, criteria);
     }
 
     @Override
@@ -92,7 +90,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         throws TapeCatalogException {
         QueryCriteria criteria =
             new QueryCriteria(TapeCatalog.LIBRARY, tapeLibraryIdentifier, QueryCriteriaOperator.EQ);
-        Map<String, TapeCatalog> existingTapes = repository.findTapes(Arrays.asList(criteria)).stream()
+        Map<String, TapeCatalog> existingTapes = tapeCatalogRepository.findTapes(Arrays.asList(criteria)).stream()
             .collect(Collectors.toMap(TapeCatalog::getCode, tape -> tape));
 
         Map<Integer, TapeCatalog> driveTape = new HashMap<>();
@@ -103,7 +101,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 tape.setAlternativeCode(drive.getTape().getAlternateVolumeTag());
                 tape.setLibrary(tapeLibraryIdentifier);
 
-                TapeCatalog existingTape = existingTapes.get(tape.getCode());
+                TapeCatalog existingTape = existingTapes.remove(tape.getCode());
 
                 TapeLocationType slotLocation = drive.getTape().getSlotIndex() <= libraryState.getSlotsCount() ?
                     TapeLocationType.SLOT :
@@ -130,7 +128,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 tape.setAlternativeCode(slot.getTape().getAlternateVolumeTag());
                 tape.setLibrary(tapeLibraryIdentifier);
 
-                TapeCatalog existingTape = existingTapes.get(tape.getCode());
+                TapeCatalog existingTape = existingTapes.remove(tape.getCode());
                 TapeLocation tapeLocationInit =
                     new TapeLocation(slot.getIndex(), slot.getStorageElementType().getTapeLocationType());
 
@@ -142,12 +140,27 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                         " Robot status command location: " + JsonHandler.unprettyPrint(tapeLocationInit) +
                         ". This tape may have conflict!");
                 }
-                
-                createOrUpdateTape(tape, existingTapes.get(tape.getCode()),
+
+                createOrUpdateTape(tape, existingTape,
                     tapeLocationInit,
                     tapeLocationInit);
             }
         }
+
+
+        existingTapes.values().forEach(tape -> {
+            tape.setCurrentLocation(new TapeLocation(-1, TapeLocationType.OUTSIDE));
+            // Conflict because the tape maybe altered. Audit should fix this state and update state of the tape.
+            // FIXME: 16/05/19 check state conflict when audit implemented
+            tape.setTapeState(TapeState.CONFLICT);
+
+            try {
+                tapeCatalogRepository.replaceTape(tape);
+            } catch (TapeCatalogException e) {
+                String errorMsg = String.format("Error while updating tape %s", tape.getCode());
+                throw new RuntimeException(errorMsg, e);
+            }
+        });
 
         return driveTape;
     }
@@ -158,7 +171,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
             Map<String, Object> updates = merge(tape, existingTape, previousLocation, currentLocation);
 
             if (!updates.isEmpty()) {
-                boolean isUpdated = repository.updateTape(existingTape.getId(), updates);
+                boolean isUpdated = tapeCatalogRepository.updateTape(existingTape.getId(), updates);
                 if (!isUpdated) {
                     String errorMsg = String.format("Error when updating tape %s", tape.getCode());
                     LOGGER.error(errorMsg);
@@ -175,7 +188,7 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
                 tape.setState(QueueState.RUNNING);
             }
 
-            repository.createTape(tape);
+            tapeCatalogRepository.createTape(tape);
         }
     }
 
@@ -183,6 +196,9 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
         TapeLocation currentLocation) {
         Map<String, Object> updates;
         updates = new HashMap<>();
+
+        tape.setId(existingTape.getId());
+
         if (!Objects.equals(existingTape.getAlternativeCode(), tape.getAlternativeCode())) {
             updates.put(TapeCatalog.ALTERNATIVE_CODE, tape.getAlternativeCode());
         }
@@ -239,17 +255,17 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     @Override
     public TapeCatalog findById(String tapeId) throws TapeCatalogException {
-        return repository.findTapeById(tapeId);
+        return tapeCatalogRepository.findTapeById(tapeId);
     }
 
     @Override
     public List<TapeCatalog> find(List<QueryCriteria> criteria) throws TapeCatalogException {
-        return repository.findTapes(criteria);
+        return tapeCatalogRepository.findTapes(criteria);
     }
 
     @Override
     public void add(QueueMessageEntity queue) throws QueueException {
-        repository.add(queue);
+        tapeCatalogRepository.add(queue);
     }
 
     @Override
@@ -260,22 +276,22 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     @Override
     public long remove(String queueId) throws QueueException {
-        return repository.remove(queueId);
+        return tapeCatalogRepository.remove(queueId);
     }
 
     @Override
     public long complete(String queueId) throws QueueException {
-        return repository.complete(queueId);
+        return tapeCatalogRepository.complete(queueId);
     }
 
     @Override
     public long markError(String queueMessageId) throws QueueException {
-        return repository.markError(queueMessageId);
+        return tapeCatalogRepository.markError(queueMessageId);
     }
 
     @Override
     public long markReady(String queueId) throws QueueException {
-        return repository.markReady(queueId);
+        return tapeCatalogRepository.markReady(queueId);
     }
 
     @Override
@@ -285,35 +301,35 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     @Override
     public <T> Optional<T> receive(QueueMessageType messageType) throws QueueException {
-        return repository.receive(messageType);
+        return tapeCatalogRepository.receive(messageType);
     }
 
     @Override
     public <T> Optional<T> receive(QueueMessageType messageType, boolean usePriority) throws QueueException {
-        return repository.receive(messageType, usePriority);
+        return tapeCatalogRepository.receive(messageType, usePriority);
     }
 
     @Override
     public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType) throws QueueException {
-        return repository.receive(inQuery, messageType);
+        return tapeCatalogRepository.receive(inQuery, messageType);
 
     }
 
     @Override
     public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
-        return repository.receive(inQuery, messageType, usePriority);
+        return tapeCatalogRepository.receive(inQuery, messageType, usePriority);
     }
 
     @Override
     public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType) throws QueueException {
-        return repository.receive(inQuery, inUpdate, messageType);
+        return tapeCatalogRepository.receive(inQuery, inUpdate, messageType);
     }
 
     @Override
     public <T> Optional<T> receive(Bson inQuery, Bson inUpdate, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
-        return repository.receive(inQuery, inUpdate, messageType, usePriority);
+        return tapeCatalogRepository.receive(inQuery, inUpdate, messageType, usePriority);
     }
 
     private Document toBson(Object object) {
