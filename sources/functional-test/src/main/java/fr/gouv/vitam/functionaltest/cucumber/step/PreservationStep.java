@@ -30,10 +30,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import fr.gouv.vitam.access.external.client.VitamPoolingClient;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -42,6 +45,7 @@ import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import org.assertj.core.api.Fail;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,6 +66,7 @@ import static org.assertj.core.api.Java6Assertions.fail;
  * PreservationStep class
  */
 public class PreservationStep {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationStep.class);
 
     private World world;
 
@@ -166,6 +171,23 @@ public class PreservationStep {
         world.setResults((List<JsonNode>) ((RequestResponseOK) response).getResultsAsJsonNodes());
     }
 
+    @When("^je supprimme les griffons et les scénario de préservation sur tout les tenants")
+    public void deleteAllPreservationBaseData() {
+        try {
+            for (Integer tenant : VitamConfiguration.getTenants()) {
+                VitamContext vitamContext = new VitamContext(tenant);
+                vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+
+                ByteArrayInputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
+                String filName = "empty.json";
+
+                world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, filName);
+                world.getAdminClient().importGriffin(vitamContext, emptyJson, filName);
+            }
+        } catch (Exception e) {
+            LOGGER.error(e);
+        }
+    }
 
     @When("^je lance la preservation avec le scénario (.*) et pour l'usage (.*)$")
     public void launchPreservation(String scenarioId, String usage) throws Exception {
