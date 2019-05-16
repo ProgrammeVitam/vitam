@@ -54,12 +54,15 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -67,7 +70,7 @@ import java.util.stream.Collectors;
  */
 public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitMetadataRulesUpdateCheckConsistency.class);
 
     /**
      * UNIT_METADATA_CHECK_CONSISTENCY
@@ -88,6 +91,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
     /**
      * Constructor.
+     *
      * @param adminManagementClientFactory admin management client
      */
     @VisibleForTesting
@@ -98,6 +102,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
     /**
      * Execute an action
+     *
      * @param param {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
@@ -126,7 +131,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 itemStatus.setEvDetailData(JsonHandler.unprettyPrint(errorEvDetData));
                 return new ItemStatus(UNIT_METADATA_CHECK_CONSISTENCY)
                     .setItemsStatus(UNIT_METADATA_CHECK_CONSISTENCY, itemStatus);
-            };
+            }
+            ;
         } catch (final VitamException | IllegalStateException e) {
             throw new ProcessingException(e);
         }
@@ -140,7 +146,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         RuleActions ruleActions = JsonHandler.getFromJsonNode(queryActions, RuleActions.class);
 
         Optional<JsonNode> potentialErrorInManagement = computeErrorsForManagementMetadata(ruleActions);
-        if (potentialErrorInManagement.isPresent()) { return potentialErrorInManagement.get(); }
+        if (potentialErrorInManagement.isPresent()) {
+            return potentialErrorInManagement.get();
+        }
 
         Optional<JsonNode> checkError = ruleActions.getUpdate().stream()
             .flatMap(x -> x.entrySet().stream())
@@ -148,7 +156,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .findFirst();
-        if(checkError.isPresent()) return checkError.get();
+        if (checkError.isPresent())
+            return checkError.get();
 
         checkError = ruleActions.getAdd().stream()
             .flatMap(x -> x.entrySet().stream())
@@ -156,7 +165,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             .filter(Optional::isPresent)
             .map(Optional::get)
             .findFirst();
-        if(checkError.isPresent()) return checkError.get();
+        if (checkError.isPresent())
+            return checkError.get();
 
         checkError = ruleActions.getDelete().stream()
             .flatMap(x -> x.entrySet().stream())
@@ -171,19 +181,23 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         if (ruleActions.getAddOrUpdateMetadata() != null
             && ruleActions.getAddOrUpdateMetadata().getArchiveUnitProfile() != null) {
             Optional<JsonNode> error = checkAUPId(ruleActions.getAddOrUpdateMetadata().getArchiveUnitProfile());
-            if (error != null) { return error; }
+            if (error != null) {
+                return error;
+            }
         }
         return Optional.empty();
     }
 
-    private Optional<JsonNode> checkAUPId(String aupId)  {
+    private Optional<JsonNode> checkAUPId(String aupId) {
         try {
-            RequestResponse<ArchiveUnitProfileModel> aup = adminManagementClientFactory.getClient().findArchiveUnitProfilesByID(aupId);
+            RequestResponse<ArchiveUnitProfileModel> aup =
+                adminManagementClientFactory.getClient().findArchiveUnitProfilesByID(aupId);
             if (!aup.isOk()) {
                 throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
             }
 
-            ArchiveUnitProfileModel archiveUnitProfile = ((RequestResponseOK<ArchiveUnitProfileModel>) aup).getFirstResult();
+            ArchiveUnitProfileModel archiveUnitProfile =
+                ((RequestResponseOK<ArchiveUnitProfileModel>) aup).getFirstResult();
             if (archiveUnitProfile == null) {
                 throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
             }
@@ -196,7 +210,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 return Optional.of(errorInfo);
             }
 
-            if(archiveUnitProfile.getControlSchema() == null || JsonHandler.isEmpty(archiveUnitProfile.getControlSchema())) {
+            if (archiveUnitProfile.getControlSchema() == null ||
+                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
@@ -219,7 +234,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
     private Optional<JsonNode> checkDate(String startDateAsString, String category) {
         try {
-            if(startDateAsString == null) return Optional.empty();
+            if (startDateAsString == null)
+                return Optional.empty();
             LocalDate startDate = LocalDate.parse(startDateAsString);
             if (startDate.getYear() >= 9000) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
@@ -245,12 +261,13 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             return response;
         }
 
-        for (RuleAction ruleAction: entry.getValue().getRules()) {
+        for (RuleAction ruleAction : entry.getValue().getRules()) {
             if (StringUtils.isEmpty(ruleAction.getOldRule())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Rule update should define an 'OldRule' to be updated for category " + entry.getKey());
+                errorInfo.put("Info ",
+                    "Rule update should define an 'OldRule' to be updated for category " + entry.getKey());
                 return Optional.of(errorInfo);
             }
 
@@ -261,7 +278,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Rule update should define new 'Rule', 'StartDate' or 'DeleteStartDate' for category " + entry.getKey());
+                errorInfo.put("Info ",
+                    "Rule update should define new 'Rule', 'StartDate' or 'DeleteStartDate' for category " +
+                        entry.getKey());
                 return Optional.of(errorInfo);
             }
 
@@ -280,7 +299,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             return response;
         }
 
-        for (RuleAction ruleAction: entry.getValue().getRules()) {
+        for (RuleAction ruleAction : entry.getValue().getRules()) {
             if (StringUtils.isEmpty(ruleAction.getRule())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
@@ -289,11 +308,13 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 return Optional.of(errorInfo);
             }
 
-            if (StringUtils.isNotEmpty(ruleAction.getOldRule()) || Boolean.TRUE.equals(ruleAction.isDeleteStartDate())) {
+            if (StringUtils.isNotEmpty(ruleAction.getOldRule()) ||
+                Boolean.TRUE.equals(ruleAction.isDeleteStartDate())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "New rule must not define 'OldRule' nor 'DeleteStartDate' fields for category " + entry.getKey());
+                errorInfo.put("Info ",
+                    "New rule must not define 'OldRule' nor 'DeleteStartDate' fields for category " + entry.getKey());
                 return Optional.of(errorInfo);
             }
 
@@ -308,14 +329,17 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
     private Optional<JsonNode> computeErrorsForDelete(Map.Entry<String, RuleCategoryAction> entry) {
         JsonNode rulesIDErrors = computeOnlyRulesID(entry);
-        if (rulesIDErrors != null) { return Optional.of(rulesIDErrors); }
+        if (rulesIDErrors != null) {
+            return Optional.of(rulesIDErrors);
+        }
 
-        for (RuleAction ruleAction: entry.getValue().getRules()) {
+        for (RuleAction ruleAction : entry.getValue().getRules()) {
             if (StringUtils.isEmpty(ruleAction.getRule())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Delete rule must at least define the field 'Rule' for category " + entry.getKey());
+                errorInfo
+                    .put("Info ", "Delete rule must at least define the field 'Rule' for category " + entry.getKey());
                 return Optional.of(errorInfo);
             }
 
@@ -326,7 +350,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ", "Delete rule must not define 'OldRule', 'StartDate' nor 'DeleteStartDate' fields for category " + entry.getKey());
+                errorInfo.put("Info ",
+                    "Delete rule must not define 'OldRule', 'StartDate' nor 'DeleteStartDate' fields for category " +
+                        entry.getKey());
                 return Optional.of(errorInfo);
             }
         }
@@ -336,7 +362,9 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
 
     private Optional<JsonNode> computeErrorsForCategory(Map.Entry<String, RuleCategoryAction> entry) {
         JsonNode rulesIDErrors = computeOnlyRulesID(entry);
-        if (rulesIDErrors != null) { return Optional.of(rulesIDErrors); }
+        if (rulesIDErrors != null) {
+            return Optional.of(rulesIDErrors);
+        }
 
         String categoryName = entry.getKey();
         RuleCategoryAction category = entry.getValue();
@@ -360,7 +388,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         RuleCategoryAction category = entry.getValue();
 
         Set<String> rulesToCheck = new HashSet<>();
-        if (category.getRules() != null) {
+        if (!category.getRules().isEmpty()) {
             rulesToCheck.addAll(
                 category.getRules().stream()
                     .map(RuleAction::getRule)
