@@ -161,7 +161,7 @@ public class RestoreOfferBackupServiceTest {
         RequestResponseOK<OfferLog> listing = new RequestResponseOK<>();
         listing.setHttpCode(Response.Status.OK.getStatusCode());
         LongStream.range(offset, offset + limit).forEach(i -> {
-            OfferLog offerLog = new OfferLog(container, FILE_NAME + String.valueOf(i), OfferLogAction.WRITE);
+            OfferLog offerLog = new OfferLog(container, FILE_NAME + i, OfferLogAction.WRITE);
             listing.addResult(offerLog);
         });
         return listing;

@@ -35,7 +35,8 @@ public class OfferLogIteratorTest {
     public void testEmpty() throws Exception {
 
         // Given
-        OfferLogIterator offerLogIterator = new OfferLogIterator(STRATEGY, Order.DESC, DataCategory.UNIT,
+        OfferLogIterator
+            offerLogIterator = new OfferLogIterator(STRATEGY, Order.DESC, DataCategory.UNIT,
             storageDistribution, 1000);
         doReturn(new RequestResponseOK<OfferLog>())
             .when(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, null, 1000, Order.DESC);
@@ -52,7 +53,8 @@ public class OfferLogIteratorTest {
     public void testOnePage() throws Exception {
 
         // Given
-        OfferLogIterator offerLogIterator = new OfferLogIterator(STRATEGY, Order.DESC, DataCategory.UNIT,
+        OfferLogIterator
+            offerLogIterator = new OfferLogIterator(STRATEGY, Order.DESC, DataCategory.UNIT,
             storageDistribution, 1000);
 
         doReturn(new RequestResponseOK<OfferLog>().addAllResults(Arrays.asList(
@@ -61,21 +63,46 @@ public class OfferLogIteratorTest {
             new OfferLog(300L, null, "0_unit", "file3", OfferLogAction.WRITE))))
             .when(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, null, 1000, Order.DESC);
 
-        doReturn(new RequestResponseOK<OfferLog>())
-            .when(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 299L, 1000, Order.DESC);
-
         // When / Then
         assertThat(offerLogIterator.hasNext()).isTrue();
-        assertThat(offerLogIterator.next()).isEqualTo("file1");
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file1");
         assertThat(offerLogIterator.hasNext()).isTrue();
-        assertThat(offerLogIterator.next()).isEqualTo("file2");
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file2");
         assertThat(offerLogIterator.hasNext()).isTrue();
-        assertThat(offerLogIterator.next()).isEqualTo("file3");
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file3");
         assertThat(offerLogIterator.hasNext()).isFalse();
         assertThatThrownBy(offerLogIterator::next).isInstanceOf(NoSuchElementException.class);
 
         verify(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, null, 1000, Order.DESC);
-        verify(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 299L, 1000, Order.DESC);
+        verifyNoMoreInteractions(storageDistribution);
+    }
+
+    @Test
+    public void testExactlyOnePage() throws Exception {
+
+        // Given
+        OfferLogIterator
+            offerLogIterator = new OfferLogIterator(STRATEGY, Order.DESC, DataCategory.UNIT,
+            storageDistribution, 2);
+
+        doReturn(new RequestResponseOK<OfferLog>().addAllResults(Arrays.asList(
+            new OfferLog(500L, null, "0_unit", "file1", OfferLogAction.WRITE),
+            new OfferLog(400L, null, "0_unit", "file2", OfferLogAction.WRITE))))
+            .when(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, null, 2, Order.DESC);
+
+        doReturn(new RequestResponseOK<OfferLog>())
+            .when(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 399L, 2, Order.DESC);
+
+        // When / Then
+        assertThat(offerLogIterator.hasNext()).isTrue();
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file1");
+        assertThat(offerLogIterator.hasNext()).isTrue();
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file2");
+        assertThat(offerLogIterator.hasNext()).isFalse();
+        assertThatThrownBy(offerLogIterator::next).isInstanceOf(NoSuchElementException.class);
+
+        verify(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, null, 2, Order.DESC);
+        verify(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 399L, 2, Order.DESC);
         verifyNoMoreInteractions(storageDistribution);
     }
 
@@ -83,7 +110,8 @@ public class OfferLogIteratorTest {
     public void testMultiPages() throws Exception {
 
         // Given
-        OfferLogIterator offerLogIterator = new OfferLogIterator(STRATEGY, Order.DESC, DataCategory.UNIT,
+        OfferLogIterator
+            offerLogIterator = new OfferLogIterator(STRATEGY, Order.DESC, DataCategory.UNIT,
             storageDistribution, 2);
 
         doReturn(new RequestResponseOK<OfferLog>().addAllResults(Arrays.asList(
@@ -95,22 +123,18 @@ public class OfferLogIteratorTest {
             new OfferLog(300L, null, "0_unit", "file3", OfferLogAction.WRITE))))
             .when(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 399L, 2, Order.DESC);
 
-        doReturn(new RequestResponseOK<OfferLog>())
-            .when(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 299L, 2, Order.DESC);
-
         // When / Then
         assertThat(offerLogIterator.hasNext()).isTrue();
-        assertThat(offerLogIterator.next()).isEqualTo("file1");
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file1");
         assertThat(offerLogIterator.hasNext()).isTrue();
-        assertThat(offerLogIterator.next()).isEqualTo("file2");
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file2");
         assertThat(offerLogIterator.hasNext()).isTrue();
-        assertThat(offerLogIterator.next()).isEqualTo("file3");
+        assertThat(offerLogIterator.next().getFileName()).isEqualTo("file3");
         assertThat(offerLogIterator.hasNext()).isFalse();
         assertThatThrownBy(offerLogIterator::next).isInstanceOf(NoSuchElementException.class);
 
         verify(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, null, 2, Order.DESC);
         verify(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 399L, 2, Order.DESC);
-        verify(storageDistribution).getOfferLogs(STRATEGY, DataCategory.UNIT, 299L, 2, Order.DESC);
         verifyNoMoreInteractions(storageDistribution);
     }
 }

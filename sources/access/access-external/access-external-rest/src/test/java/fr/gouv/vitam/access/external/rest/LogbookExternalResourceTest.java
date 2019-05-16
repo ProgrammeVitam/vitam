@@ -167,6 +167,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             junitHelper.releasePort(port);
         }
         VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
 

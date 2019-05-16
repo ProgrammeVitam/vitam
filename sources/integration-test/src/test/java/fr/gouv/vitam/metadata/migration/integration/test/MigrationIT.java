@@ -34,6 +34,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
@@ -60,6 +61,7 @@ import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
+import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
@@ -80,7 +82,11 @@ import retrofit2.http.POST;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Sorts.orderBy;
@@ -287,8 +293,14 @@ public class MigrationIT extends VitamRuleRunner {
         // Check storage
         VitamThreadUtils.getVitamSession().setTenantId(0);
         RestoreBackupServiceImpl restoreBackupService = new RestoreBackupServiceImpl();
+        Iterator<List<OfferLog>> listingIterator =
+            restoreBackupService.getListing("default", DataCategory.ACCESSION_REGISTER_DETAIL, 0L, 100,
+                Order.ASC);
         List<OfferLog> listing =
-            restoreBackupService.getListing("default", DataCategory.ACCESSION_REGISTER_DETAIL, 0l, 100, Order.ASC);
+            IteratorUtils.toList(listingIterator).stream()
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
         assertThat(listing).hasSize(2);
         assertThat(listing).extracting("Container", "FileName")
             .contains(

@@ -362,11 +362,11 @@ public class DefaultOfferResourceTest {
 
         // Then
         checkWrittenFile(file, "2_object", "myfile");
-        checkOfferDatabaseExistingDocument("2_object", "myfile", 1);
+        checkOfferDatabaseExistingDocument("2_object", "myfile", 2);
     }
 
     @Test
-    public void putObjectOverrideExistingWitNewContentInNonRewritableContainer() throws Exception {
+    public void putObjectTryOverrideExistingWithNewContentInNonRewritableContainerFails() throws Exception {
         checkOfferDatabaseEmptiness();
 
         // Given
