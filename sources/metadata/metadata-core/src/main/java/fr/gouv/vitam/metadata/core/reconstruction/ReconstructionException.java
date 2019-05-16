@@ -39,4 +39,8 @@ public class ReconstructionException extends VitamException {
     public ReconstructionException(String s) {
         super(s);
     }
+
+    public ReconstructionException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

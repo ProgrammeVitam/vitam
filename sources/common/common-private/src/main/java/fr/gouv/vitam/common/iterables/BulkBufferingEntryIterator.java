@@ -24,41 +24,77 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.rest;
+package fr.gouv.vitam.common.iterables;
 
-import static org.junit.Assert.fail;
+import org.apache.commons.collections4.CollectionUtils;
 
-import org.junit.Test;
-
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
- * DefaultOfferMain Test
+ * Iterator that loads data in chunks, and return single entries
  */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+public abstract class BulkBufferingEntryIterator<T> implements Iterator<T> {
+    private final int bufferSize;
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+    private List<T> buffer;
+    private int nextPos = 0;
+    private boolean endOfStream = false;
 
-    @Test
-    public final void testFictiveLaunch() {
-
-        try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final Exception e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-
-        try {
-            new DefaultOfferMain(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final Exception exc) {
-            // Result Expected
-        }
+    public BulkBufferingEntryIterator(int bufferSize) {
+        this.bufferSize = bufferSize;
     }
 
-    @Test
-    public void shouldActivateShiroFilter() {
-        new DefaultOfferMain("src/test/resources/storage-default-offer-ssl.conf");
+    @Override
+    public boolean hasNext() {
+
+        if (this.endOfStream) {
+            return false;
+        }
+
+        if (this.buffer == null) {
+            // First invocation
+            load();
+
+        } else if (this.nextPos >= this.buffer.size()) {
+            // No more items in current buffer
+
+            if (this.buffer.size() < bufferSize) {
+
+                // Current buffer is incomplete ==> no more data
+                this.endOfStream = true;
+
+            } else {
+                load();
+            }
+        }
+
+        return !this.endOfStream;
+    }
+
+    private void load() {
+        this.buffer = loadNextChunk(this.bufferSize);
+        this.nextPos = 0;
+        this.endOfStream = CollectionUtils.isEmpty(this.buffer);
+    }
+
+    /**
+     * Loads a chunk of the specified size.
+     *
+     * @return List with next entries to process. Returned list must be the size specified, unless end of data is reached.
+     */
+    protected abstract List<T> loadNextChunk(int chunkSize);
+
+    @Override
+    public T next() {
+
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+
+        T item = this.buffer.get(nextPos);
+        nextPos++;
+        return item;
     }
 }

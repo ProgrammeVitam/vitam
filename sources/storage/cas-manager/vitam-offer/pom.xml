@@ -71,6 +71,31 @@
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<!-- Run the Junit unit tests in an isolated classloader and not Parallel. -->
+					<artifactId>maven-surefire-plugin</artifactId>
+					<configuration>
+						<parallel>classes</parallel>
+						<threadCount>1</threadCount>
+						<perCoreThreadCount>false</perCoreThreadCount>
+						<forkCount>1</forkCount>
+						<reuseForks>false</reuseForks>
+						<systemPropertyVariables>
+							<log4j.configurationFile>log4j2-test.xml</log4j.configurationFile>
+							<org.owasp.esapi.opsteam>AC001</org.owasp.esapi.opsteam>
+							<org.owasp.esapi.devteam>AC001</org.owasp.esapi.devteam>
+							<org.owasp.esapi.resources>../common/common-private/src/main/resources/esapi</org.owasp.esapi.resources>
+						</systemPropertyVariables>
+						<classpathDependencyExcludes>
+							<classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j</classpathDependencyExclude>
+						</classpathDependencyExcludes>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+
 		<plugins>
 			<plugin>
 				<!-- Dependency manipulation (copy, unpack) and analysis. -->

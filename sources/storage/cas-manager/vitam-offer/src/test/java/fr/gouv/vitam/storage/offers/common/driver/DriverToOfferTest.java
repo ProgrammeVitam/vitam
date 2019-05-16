@@ -44,6 +44,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.Response;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.bson.Document;
 import org.jhades.JHades;
 import org.junit.AfterClass;
@@ -159,6 +160,7 @@ public class DriverToOfferTest {
         junitHelper.releasePort(serverPort);
 
         application.stop();
+        VitamClientFactory.resetConnections();
 
         // delete files
         final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),

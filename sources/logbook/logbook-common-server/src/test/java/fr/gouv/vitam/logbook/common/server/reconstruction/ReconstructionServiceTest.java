@@ -39,6 +39,8 @@ import java.util.List;
 import javax.ws.rs.core.Response.Status;
 
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
+import org.apache.commons.collections4.IteratorUtils;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
@@ -58,15 +60,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.exception.AccessionRegisterException;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
-import fr.gouv.vitam.functional.administration.common.exception.DatabaseConflictException;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookTransformData;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.VitamRepositoryProvider;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 
 /**
@@ -111,13 +109,12 @@ public class ReconstructionServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_return_new_offset_when_item_unit_is_ok()
-        throws DatabaseException, LogbookException, InvalidParseOperationException,
-        AccessionRegisterException, AdminManagementClientServerException, DatabaseConflictException {
+        throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
 
         when(restoreBackupService.getListing("default", 100L,
-            requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+            requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
         when(restoreBackupService.loadData("default", "101", 101L))
@@ -138,6 +135,34 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void should_fail_when_item_unit_is_missing()
+        throws Exception {
+        // given
+        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
+
+        when(restoreBackupService.getListing("default", 100L,
+            requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+        when(restoreBackupService.loadData("default", "100", 100L))
+            .thenThrow(new StorageNotFoundException(""));
+        when(restoreBackupService.loadData("default", "101", 101L))
+            .thenReturn(getLogbokBackupModel("101", 101L));
+        when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
+            .thenReturn(
+                new RequestResponseOK<AccessionRegisterDetailModel>().setHttpCode(Status.CREATED.getStatusCode()));
+
+        ReconstructionService reconstructionService =
+            new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
+                new LogbookTransformData(), offsetRepository);
+        // when
+        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+        // then
+        assertThat(realResponseItem).isNotNull();
+        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 100L);
+        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+    }
 
     @RunWithCustomExecutor
     @Test
@@ -147,7 +172,7 @@ public class ReconstructionServiceTest {
 
         requestItem.setLimit(0);
         when(restoreBackupService.getListing("default", 100L,
-            requestItem.getLimit())).thenReturn(Arrays.asList());
+            requestItem.getLimit())).thenReturn(IteratorUtils.emptyIterator());
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
@@ -201,13 +226,12 @@ public class ReconstructionServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_return_request_offset_when_mongo_exception()
-        throws DatabaseException, LogbookException, InvalidParseOperationException,
-        AccessionRegisterException, AdminManagementClientServerException, DatabaseConflictException {
+        throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
 
-        when(restoreBackupService.getListing("default", 100L,
-            requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+        when(restoreBackupService.getListing("default", 100L, requestItem.getLimit()))
+            .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
         when(restoreBackupService.loadData("default", "101", 101L))
@@ -232,19 +256,18 @@ public class ReconstructionServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_return_request_offset_when_es_exception()
-        throws DatabaseException, LogbookException, InvalidParseOperationException,
-        AccessionRegisterException, AdminManagementClientServerException, DatabaseConflictException {
+        throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
-        when(restoreBackupService.getListing("default", 100L,
-            requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+        when(restoreBackupService.getListing("default", 100L, requestItem.getLimit()))
+            .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(getLogbokBackupModel("100", 100L));
         when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
         Mockito.doThrow(new DatabaseException("mongo error")).when(esRepository).save(Mockito.any(List.class));
         when(adminManagementClient.createorUpdateAccessionRegister(Mockito.any()))
-            .thenReturn(new RequestResponseOK<AccessionRegisterDetailModel>());
+            .thenReturn(new RequestResponseOK<>());
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
@@ -262,42 +285,17 @@ public class ReconstructionServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_return_request_offset_when_logbook_null()
-        throws DatabaseException, LogbookException, InvalidParseOperationException {
+        throws Exception {
         // given
         when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
         LogbookBackupModel logbookBackupModel100 = getLogbokBackupModel("100", 100L);
         logbookBackupModel100.setLogbookOperation(null);
         when(restoreBackupService.getListing("default", 100L,
-            requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+            requestItem.getLimit())).thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData("default", "100", 100L))
             .thenReturn(logbookBackupModel100);
         when(restoreBackupService.loadData("default", "101", 101L))
             .thenReturn(getLogbokBackupModel("101", 101L));
-
-        ReconstructionService reconstructionService =
-            new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
-                new LogbookTransformData(), offsetRepository);
-        // when
-        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
-        // then
-        assertThat(realResponseItem).isNotNull();
-        verify(offsetRepository).createOrUpdateOffset(10, LOGBOOK, 100L);
-        assertThat(realResponseItem.getTenant()).isEqualTo(10);
-        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void should_return_request_offset_when_loading_data_return_null()
-        throws DatabaseException, InvalidParseOperationException {
-        // given
-        when(offsetRepository.findOffsetBy(10, LOGBOOK)).thenReturn(100L);
-
-        when(restoreBackupService.getListing("default", 100L,
-            requestItem.getLimit())).thenReturn(Arrays.asList(Arrays.asList(getOfferLog(100), getOfferLog(101))));
-        when(restoreBackupService.loadData("default", "100", 100L))
-            .thenReturn(getLogbokBackupModel("100", 100L));
-        when(restoreBackupService.loadData("default", "101", 101L)).thenReturn(null);
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, adminManagementClientFactory,
@@ -320,6 +318,7 @@ public class ReconstructionServiceTest {
                     .setIdentifier("Identifier")
                     .setOperationGroup("OP_GROUP").setId("aehaaaaaaagvm7jmaalysalbwplb56aaaaaq")
                     .setOriginatingAgency("OriginatingAgency").addOperationsId(id)));
+        model.setLogbookId(id);
         model.setOffset(offset);
         return model;
     }

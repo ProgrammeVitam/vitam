@@ -26,31 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
+import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
+import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import com.mongodb.client.MongoDatabase;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.storage.offers.common.core.DefaultOfferService;
-import fr.gouv.vitam.storage.offers.common.core.DefaultOfferServiceImpl;
-import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
-import fr.gouv.vitam.storage.offers.common.database.OfferSequenceDatabaseService;
 
 /**
  * Offer register resources and filters
@@ -61,35 +41,16 @@ public class BusinessApplication extends Application {
     private Set<Object> singletons;
 
     /**
-     * Constructor 
-     * @param servletConfig the servlet configuration
+     * Constructor
      */
-    public BusinessApplication(@Context ServletConfig servletConfig) {
+    public BusinessApplication() {
         singletons = new HashSet<>();
-        String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
         commonBusinessApplication = new CommonBusinessApplication();
 
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
+        OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
 
-            final OfferConfiguration configuration = PropertiesUtils.readYaml(yamlIS, OfferConfiguration.class);
-
-            MongoClientOptions mongoClientOptions = VitamCollection.getMongoClientOptions();
-            MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, mongoClientOptions);
-            MongoDatabase database = mongoClient.getDatabase(configuration.getDbName());
-            OfferSequenceDatabaseService offerSequenceDatabaseService = new OfferSequenceDatabaseService(database);
-
-            OfferLogDatabaseService offerDatabaseService =
-                new OfferLogDatabaseService(offerSequenceDatabaseService, database);
-
-            DefaultOfferService defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService);
-            DefaultOfferResource defaultOfferResource = new DefaultOfferResource(defaultOfferService);
-
-            singletons.addAll(commonBusinessApplication.getResources());
-            singletons.add(defaultOfferResource);
-
-        } catch (IOException | KeyManagementException | NoSuchAlgorithmException | KeyStoreException | CertificateException e) {
-            throw new RuntimeException(e);
-        }
+        singletons.addAll(commonBusinessApplication.getResources());
+        singletons.add(new DefaultOfferResource(offerCommonApplication.getDefaultOfferService()));
     }
 
     @Override

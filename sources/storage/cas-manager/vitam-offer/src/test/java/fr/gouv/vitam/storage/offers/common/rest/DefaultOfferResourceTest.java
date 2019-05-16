@@ -43,7 +43,10 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.io.Files;
 import fr.gouv.vitam.common.client.VitamClientFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import org.apache.commons.io.FileUtils;
 import org.bson.Document;
 import org.hamcrest.Matchers;
@@ -109,6 +112,7 @@ public class DefaultOfferResourceTest {
 
     private static final String DEFAULT_STORAGE_CONF = "default-storage.conf";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
+    private static final String ARCHIVE_FILE_V2_TXT = "archivefile_v2.txt";
 
     private static final ObjectMapper OBJECT_MAPPER;
     private static DefaultOfferMain application;
@@ -173,6 +177,7 @@ public class DefaultOfferResourceTest {
         try {
             // restart server to reinit collection sequence
             application.stop();
+            VitamClientFactory.resetConnections();
             application.start();
         } catch (VitamApplicationServerException e) {
             throw new VitamException("could not restart server");
@@ -313,6 +318,89 @@ public class DefaultOfferResourceTest {
         checkOfferDatabaseExistingDocument("2_unit", "id1");
 
         assertTrue(com.google.common.io.Files.equal(PropertiesUtils.findFile(ARCHIVE_FILE_TXT), object));
+    }
+
+    @Test
+    public void putObjectOverrideExistingInRewritableContainer() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        // Given
+        File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        File file2 = PropertiesUtils.findFile(ARCHIVE_FILE_V2_TXT);
+
+        // When
+        putObject(DataCategory.UNIT, "myfile", file1, Status.CREATED);
+        putObject(DataCategory.UNIT, "myfile", file2, Status.CREATED);
+
+        // Then
+        checkWrittenFile(file2, "2_unit", "myfile");
+        checkOfferDatabaseExistingDocument("2_unit", "myfile", 2);
+    }
+
+    @Test
+    public void putObjectOverrideExistingWithSameContentInNonRewritableContainer() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        // Given
+        File file = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+
+        // When
+        putObject(DataCategory.OBJECT, "myfile", file, Status.CREATED);
+        putObject(DataCategory.OBJECT, "myfile", file, Status.CREATED);
+
+        // Then
+        checkWrittenFile(file, "2_object", "myfile");
+        checkOfferDatabaseExistingDocument("2_object", "myfile", 2);
+    }
+
+    @Test
+    public void putObjectTryOverrideExistingWithNewContentInNonRewritableContainerFails() throws Exception {
+        checkOfferDatabaseEmptiness();
+
+        // Given
+        File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
+        File file2 = PropertiesUtils.findFile(ARCHIVE_FILE_V2_TXT);
+
+        // When
+        putObject(DataCategory.OBJECT, "myfile", file1, Status.CREATED);
+        putObject(DataCategory.OBJECT, "myfile", file2, Status.CONFLICT);
+
+        // Then
+        checkWrittenFile(file1, "2_object", "myfile");
+        checkOfferDatabaseExistingDocument("2_object", "myfile", 1);
+    }
+
+    private void checkWrittenFile(File file, String container, String objectId) throws IOException {
+        // check
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File object = new File(conf.getStoragePath() + "/" + container + "/" + objectId);
+        assertThat(Files.equal(file, object)).isTrue();
+    }
+
+    private void putObject(DataCategory dataCategory, String id, File file, Status expectedStatus)
+        throws IOException, InvalidParseOperationException {
+
+        com.jayway.restassured.response.Response response;
+        try (FileInputStream in = new FileInputStream(file)) {
+            response = given().header(GlobalDataRest.X_TENANT_ID, "2")
+                .header(GlobalDataRest.VITAM_CONTENT_LENGTH, file.length())
+                .header(GlobalDataRest.X_DIGEST_ALGORITHM, DigestType.SHA512.getName())
+                .contentType(MediaType.APPLICATION_OCTET_STREAM).body(in).when()
+                .put(OBJECTS_URI + OBJECT_TYPE_URI + OBJECT_ID_URI, dataCategory.name(), id)
+                .andReturn();
+        }
+
+        assertThat(response.statusCode()).isEqualTo(expectedStatus.getStatusCode());
+
+        if (expectedStatus == Status.CREATED) {
+            JsonNode content = JsonHandler.getFromInputStream(response.body().asInputStream());
+            assertThat(content.get("size").longValue()).isEqualTo(file.length());
+            Digest digest = new Digest(DigestType.SHA512);
+            digest.update(file);
+            assertThat(content.get("digest").textValue()).isEqualTo(digest.digestHex());
+
+        }
     }
 
     @Test
@@ -603,11 +691,15 @@ public class DefaultOfferResourceTest {
     }
 
     private void checkOfferDatabaseExistingDocument(String container, String filename) {
+        checkOfferDatabaseExistingDocument(container, filename, 1);
+    }
+
+    private void checkOfferDatabaseExistingDocument(String container, String filename, int count) {
         FindIterable<Document> results = mongoRule.getMongoClient().getDatabase(DATABASE_NAME)
             .getCollection(OfferLogDatabaseService.OFFER_LOG_COLLECTION_NAME)
             .find(Filters.and(Filters.eq("Container", container), Filters.eq("FileName", filename)));
 
-        assertThat(results).hasSize(1);
+        assertThat(results).hasSize(count);
     }
 
 }

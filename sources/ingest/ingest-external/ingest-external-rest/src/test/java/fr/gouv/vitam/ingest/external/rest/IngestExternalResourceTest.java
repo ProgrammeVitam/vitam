@@ -39,6 +39,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.model.LocalFile;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -120,6 +121,8 @@ public class IngestExternalResourceTest {
             application.stop();
         }
         junitHelper.releasePort(serverPort);
+        VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     @Test

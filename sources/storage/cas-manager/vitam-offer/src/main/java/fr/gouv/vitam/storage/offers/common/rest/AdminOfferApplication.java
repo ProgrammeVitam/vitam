@@ -26,39 +26,38 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.common.rest;
 
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 
-import org.junit.Test;
-
+import java.util.HashSet;
+import java.util.Set;
 
 /**
- * DefaultOfferMain Test
+ * Admin application.
  */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+public class AdminOfferApplication extends ConfigurationApplication {
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+    private Set<Object> singletons;
 
-    @Test
-    public final void testFictiveLaunch() {
+    /**
+     * Constructor adding GenericExceptionMapper and AdminStatusResource
+     */
+    public AdminOfferApplication() {
 
-        try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final Exception e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
+        singletons = new HashSet<>();
+        singletons.add(new GenericExceptionMapper());
+        singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
 
-        try {
-            new DefaultOfferMain(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final Exception exc) {
-            // Result Expected
-        }
+        OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
+
+        singletons.add(new OfferAdminResource(offerCommonApplication.getDefaultOfferService(), offerCommonApplication.getMongoDatabase()));
     }
 
-    @Test
-    public void shouldActivateShiroFilter() {
-        new DefaultOfferMain("src/test/resources/storage-default-offer-ssl.conf");
+    @Override
+    public Set<Object> getSingletons() {
+        return singletons;
     }
+
 }

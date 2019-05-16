@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
-import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 
 /**
  * DefaultOfferMain class
@@ -57,8 +56,11 @@ public class DefaultOfferMain {
     public DefaultOfferMain(String configurationFile) {
         ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
             CONF_FILE_NAME), configurationFile);
+
+        OfferCommonApplication.getInstance().initialize(configurationFile);
+
         vitamStarter = new VitamStarter(OfferConfiguration.class, configurationFile,
-            BusinessApplication.class,  AdminApplication.class);
+            BusinessApplication.class,  AdminOfferApplication.class);
     }
 
     /**

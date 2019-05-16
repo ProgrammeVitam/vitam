@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
@@ -40,6 +41,7 @@ import java.util.Iterator;
 public class TraceabilityStorageService {
 
     private static final Integer GET_LAST_BASE = 100;
+
     private final StorageDistribution distribution;
 
     public TraceabilityStorageService(StorageDistribution distribution) {
@@ -52,9 +54,12 @@ public class TraceabilityStorageService {
      * @param strategyId The storage strategy ID
      * @return list of last saved files as iterator
      */
-    public Iterator<String> getLastSavedStorageLogIterator(String strategyId) {
-        return new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
+    public Iterator<OfferLog> getLastSavedStorageLogIterator(String strategyId) {
+        Iterator<OfferLog> offerLogIterator =
+            new OfferLogIterator(
+                strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
+
+        return offerLogIterator;
     }
 
     /**
@@ -63,9 +68,14 @@ public class TraceabilityStorageService {
      * @param strategyId The storage strategy ID
      * @return the zip's fileName of the last storage traceability operation
      */
-    public Iterator<String> getLastTraceabilityZipIterator(String strategyId) {
-        return new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGETRACEABILITY, this.distribution, GET_LAST_BASE);
+    public String getLastTraceabilityZip(String strategyId) {
+        Iterator<OfferLog> offerLogIterator = new OfferLogIterator(
+            strategyId, Order.DESC, DataCategory.STORAGETRACEABILITY, this.distribution, 1);
+
+        if (!offerLogIterator.hasNext()) {
+            return null;
+        }
+        return offerLogIterator.next().getFileName();
     }
 
     /**

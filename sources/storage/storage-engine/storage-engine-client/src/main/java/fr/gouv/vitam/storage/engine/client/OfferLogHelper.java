@@ -24,41 +24,28 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.rest;
+package fr.gouv.vitam.storage.engine.client;
 
-import static org.junit.Assert.fail;
+import fr.gouv.vitam.storage.engine.common.model.DataCategory;
+import fr.gouv.vitam.storage.engine.common.model.OfferLog;
+import fr.gouv.vitam.storage.engine.common.model.Order;
+import org.apache.commons.collections4.IteratorUtils;
 
-import org.junit.Test;
+import java.util.Iterator;
 
+public final class OfferLogHelper {
 
-/**
- * DefaultOfferMain Test
- */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+    public static Iterator<OfferLog> getListing(StorageClientFactory storageClientFactory, String strategy,
+        DataCategory dataCategory, Long offset, Order order, int chunkSize, Integer limit) {
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+        int actualChunkSize = limit == null ? chunkSize : Math.min(chunkSize, limit);
+        Iterator<OfferLog> offerLogIterator = new StorageClientOfferLogIterator(
+            storageClientFactory, strategy, order, dataCategory, actualChunkSize, offset);
 
-    @Test
-    public final void testFictiveLaunch() {
-
-        try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final Exception e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
+        if (limit != null) {
+            offerLogIterator = IteratorUtils.boundedIterator(offerLogIterator, limit);
         }
 
-        try {
-            new DefaultOfferMain(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final Exception exc) {
-            // Result Expected
-        }
-    }
-
-    @Test
-    public void shouldActivateShiroFilter() {
-        new DefaultOfferMain("src/test/resources/storage-default-offer-ssl.conf");
+        return offerLogIterator;
     }
 }

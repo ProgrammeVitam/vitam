@@ -52,6 +52,7 @@ import org.jboss.resteasy.plugins.interceptors.AcceptEncodingGZIPFilter;
 import org.jboss.resteasy.plugins.interceptors.GZIPDecodingInterceptor;
 import org.jboss.resteasy.plugins.interceptors.GZIPEncodingInterceptor;
 
+import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.MockOrRestClient;
@@ -460,6 +461,17 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         if (notChunkedPoolingManager != null && notChunkedPoolingManager != POOLING_CONNECTION_MANAGER_NOT_CHUNKED) {
             allManagers.remove(notChunkedPoolingManager);
             notChunkedPoolingManager.close();
+        }
+    }
+
+    /**
+     * Closes any pending connection.
+     */
+    @VisibleForTesting
+    public static void resetConnections() {
+        for (PoolingHttpClientConnectionManager manager : allManagers) {
+            manager.closeExpiredConnections();
+            manager.closeIdleConnections(0, TimeUnit.MICROSECONDS);
         }
     }
 

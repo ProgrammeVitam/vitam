@@ -24,41 +24,45 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.common.rest;
+package fr.gouv.vitam.common.iterables;
 
-import static org.junit.Assert.fail;
-
-import org.junit.Test;
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
- * DefaultOfferMain Test
+ * Bulk iterator adapter.
+ *
+ * Not thread safe.
  */
-public class DefaultOfferApplicationTest {
-    private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
+public class BulkIterator<T> implements Iterator<List<T>> {
 
-    private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";
-    private static final String WORKSPACE_OFFER_CONF = "workspace-offer2.conf";
+    private final Iterator<T> iterator;
+    private final int bufferSize;
 
-    @Test
-    public final void testFictiveLaunch() {
-
-        try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final Exception e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-
-        try {
-            new DefaultOfferMain(WORKSPACE_OFFER_CONF);
-            fail("Should raize an IllegalStateException");
-        } catch (final Exception exc) {
-            // Result Expected
-        }
+    public BulkIterator(Iterator<T> iterator, int bufferSize) {
+        this.iterator = iterator;
+        this.bufferSize = bufferSize;
     }
 
-    @Test
-    public void shouldActivateShiroFilter() {
-        new DefaultOfferMain("src/test/resources/storage-default-offer-ssl.conf");
+    @Override
+    public boolean hasNext() {
+        return iterator.hasNext();
+    }
+
+    @Override
+    public List<T> next() {
+
+        if (!hasNext()) {
+            throw new NoSuchElementException();
+        }
+
+        List<T> nextEntries = new ArrayList<>();
+        while (iterator.hasNext() && nextEntries.size() < bufferSize) {
+            nextEntries.add(iterator.next());
+        }
+
+        return nextEntries;
     }
 }
