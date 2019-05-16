@@ -43,14 +43,12 @@ import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
 import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.archivers.ArchiveException;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 /**
  * Service used to make the generic traceability algo.
@@ -135,14 +133,13 @@ public class TraceabilityService {
                 long size = zipFile.length();
                 boolean maxEntriesReached = helper.getMaxEntriesReached();
                 TraceabilityStatistics traceabilityStatistics = helper.getTraceabilityStatistics();
-                List<String> warnings = helper.getWarnings();
 
                 event =
                     new TraceabilityEvent(helper.getTraceabilityType(), startDate, endDate, rootHash, timestampToken,
                         previousDate,
                         previousMonthDate, previousYearDate, numberOfLine, fileName, size,
                         VitamConfiguration.getDefaultDigestType(), maxEntriesReached, SECURISATION_VERSION,
-                        traceabilityStatistics, warnings);
+                        traceabilityStatistics);
 
             } else {
                 // do nothing, nothing to be handled
@@ -161,8 +158,7 @@ public class TraceabilityService {
         }
 
         helper.storeAndDeleteZip(tenantId, zipFile, fileName, uri, event);
-        StatusCode statusCode = CollectionUtils.isEmpty(event.getWarnings()) ? StatusCode.OK : StatusCode.WARNING;
-        helper.createLogbookOperationEvent(tenantId, helper.getStepName(), statusCode, event);
+        helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.OK, event);
     }
 
     private String createZipFile(Integer tenantId, LocalDateTime date) {

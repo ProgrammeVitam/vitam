@@ -67,6 +67,7 @@ import fr.gouv.vitam.functional.administration.common.api.ReconstructionService;
 import fr.gouv.vitam.functional.administration.common.api.RestoreBackupService;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
@@ -77,6 +78,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -281,25 +283,28 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            // FIXME fetch data with limit MIN(restoreBulkSize, limit) & reiterate if needed
             // get the list of data to backup.
-            List<OfferLog> listing = recoverBuckupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC);
-            List<List<OfferLog>> partition = Lists.partition(listing, VitamConfiguration.getRestoreBulkSize());
-            Set<String> originatingAgencies = new HashSet<String>();
+            Iterator<List<OfferLog>> offerLogIterator = recoverBuckupService.getListing(STRATEGY_ID, type, offset,
+                limit, Order.ASC);
 
-            for (List<OfferLog> listingBulk : partition) {
+            Set<String> originatingAgencies = new HashSet<>();
+
+            while(offerLogIterator.hasNext()) {
+
+                List<OfferLog> listingBulk = offerLogIterator.next();
 
                 List<AccessionRegisterBackupModel> dataFromOffer = new ArrayList<>();
                 for (OfferLog offerLog : listingBulk) {
+
                     AccessionRegisterBackupModel model = recoverBuckupService
-                            .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
-                    if (model != null && model.getAccessionRegister() != null && model.getOffset() != null) {
+                        .loadData(STRATEGY_ID, collection, offerLog.getFileName(), offerLog.getSequence());
+                    if (model.getAccessionRegister() != null && model.getOffset() != null) {
                         originatingAgencies.add((model.getAccessionRegister().getString("OriginatingAgency")));
                         dataFromOffer.add(model);
                     } else {
                         throw new StorageException(String.format(
-                                "[Reconstruction]: Data is not present in file {%s} for the collection {%s} on the tenant {%s}",
-                                offerLog.getFileName(), collection, tenant));
+                            "[Reconstruction]: Data is not present in file {%s} for the collection {%s} on the tenant {%s}",
+                            offerLog.getFileName(), collection, tenant));
                     }
                 }
 
@@ -315,7 +320,7 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                 newOffset = last.getOffset();
 
 
-                // log the recontruction of Vitam collection.
+                // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
                         "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
                         collection.name(), tenant, offset, LocalDateUtil.now()));

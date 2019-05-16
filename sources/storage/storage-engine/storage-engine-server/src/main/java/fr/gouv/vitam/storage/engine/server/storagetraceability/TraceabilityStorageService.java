@@ -27,9 +27,10 @@
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -38,8 +39,6 @@ import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 
 import javax.ws.rs.core.Response;
 import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
 
 /**
  * Service that allow Storage Traceability to use StorageDistribution in order to get some file and information in Offers
@@ -47,6 +46,7 @@ import java.util.NoSuchElementException;
 public class TraceabilityStorageService {
 
     private static final Integer GET_LAST_BASE = 100;
+
     private final StorageDistribution distribution;
 
     public TraceabilityStorageService(StorageDistribution distribution) {
@@ -59,9 +59,12 @@ public class TraceabilityStorageService {
      * @param strategyId The storage strategy ID
      * @return list of last saved files as iterator
      */
-    public Iterator<String> getLastSavedStorageLogIterator(String strategyId) {
-        return new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
+    public Iterator<OfferLog> getLastSavedStorageLogIterator(String strategyId) {
+        Iterator<OfferLog> offerLogIterator =
+            new OfferLogIterator(
+                strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
+
+        return offerLogIterator;
     }
 
     /**
@@ -70,9 +73,14 @@ public class TraceabilityStorageService {
      * @param strategyId The storage strategy ID
      * @return the zip's fileName of the last storage traceability operation
      */
-    public Iterator<String> getLastTraceabilityZipIterator(String strategyId) {
-        return new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGETRACEABILITY, this.distribution, GET_LAST_BASE);
+    public String getLastTraceabilityZip(String strategyId) {
+        Iterator<OfferLog> offerLogIterator = new OfferLogIterator(
+            strategyId, Order.DESC, DataCategory.STORAGETRACEABILITY, this.distribution, 1);
+
+        if (!offerLogIterator.hasNext()) {
+            return null;
+        }
+        return offerLogIterator.next().getFileName();
     }
 
     /**

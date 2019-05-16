@@ -24,50 +24,52 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.server.storagetraceability;
+package fr.gouv.vitam.storage.engine.client;
 
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.iterables.BulkBufferingEntryIterator;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
-import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 
 /**
- * Iterate over OfferLog
+ * Implementation of TraceabilityIterator for Storage.
+ *
+ * Iterate over OfferLog for the traceability
  */
-public class OfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
+public class StorageClientOfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
 
     private final String strategyId;
-    private final StorageDistribution distribution;
     private final Order order;
     private final DataCategory dataCategory;
+    private final StorageClientFactory storageClientFactory;
     private final int chunkSize;
     private Long lastOffset;
 
-    public OfferLogIterator(String strategyId, Order order, DataCategory dataCategory,
-        StorageDistribution distribution, int chunkSize) {
+    public StorageClientOfferLogIterator(StorageClientFactory storageClientFactory, String strategyId, Order order,
+        DataCategory dataCategory,
+        int chunkSize, Long startOffset) {
         super(chunkSize);
 
         this.strategyId = strategyId;
         this.order = order;
         this.dataCategory = dataCategory;
-        this.distribution = distribution;
+        this.storageClientFactory = storageClientFactory;
         this.chunkSize = chunkSize;
-        this.lastOffset = null;
+        this.lastOffset = startOffset;
     }
 
     @Override
     protected List<OfferLog> loadNextChunk(int chunkSize) {
 
-        try {
-            RequestResponse<OfferLog> response = this.distribution.getOfferLogs(this.strategyId,
+        try (StorageClient storageClient = this.storageClientFactory.getClient()) {
+            RequestResponse<OfferLog> response = storageClient.getOfferLogs(this.strategyId,
                 this.dataCategory, this.lastOffset, this.chunkSize, this.order);
 
             if (!response.isOk()) {
@@ -76,7 +78,8 @@ public class OfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
 
             List<OfferLog> buffer = ((RequestResponseOK<OfferLog>) response).getResults();
 
-            if (CollectionUtils.isNotEmpty(buffer)) {
+            if (!CollectionUtils.isEmpty(buffer)) {
+
                 switch (this.order) {
 
                     case ASC:
@@ -89,9 +92,9 @@ public class OfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
                         throw new IllegalStateException("Invalid order " + this.order);
                 }
             }
-
             return buffer;
-        } catch (StorageException e) {
+
+        } catch (StorageServerClientException e) {
             throw new VitamRuntimeException(e);
         }
     }
