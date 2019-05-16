@@ -350,7 +350,6 @@ public class TapeDriveWorker implements Runnable {
     }
 
     public boolean isRunning() {
-        System.err.println(shutdownSignal.getCount());
         return shutdownSignal.getCount() != 0;
     }
 
