@@ -26,20 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.api.impl;
 
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.DBObject;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.model.WriteModel;
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.api.VitamRepository;
+import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
+import fr.gouv.vitam.common.database.collections.VitamCollection;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.exception.DatabaseException;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.iterables.BulkIterator;
-import org.apache.commons.collections4.IteratorUtils;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
@@ -60,22 +64,15 @@ import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.sort.FieldSortBuilder;
 import org.elasticsearch.search.sort.SortOrder;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.DBObject;
-import com.mongodb.client.FindIterable;
-import com.mongodb.client.model.WriteModel;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.database.api.VitamRepository;
-import fr.gouv.vitam.common.database.api.VitamRepositoryStatus;
-import fr.gouv.vitam.common.database.collections.VitamCollection;
-import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
-import fr.gouv.vitam.common.exception.DatabaseException;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
+import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.matchAllQuery;
+import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 /**
  * Implementation for Elasticsearch
@@ -175,13 +172,15 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 .setSource(source, XContentType.JSON));
         });
 
-        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+        if (bulkRequest.numberOfActions() != 0) {
+            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 
-        BulkResponse bulkResponse = bulkRequest.get();
+            BulkResponse bulkResponse = bulkRequest.get();
 
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
-            throw new DatabaseException(bulkResponse.buildFailureMessage());
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
+                throw new DatabaseException(bulkResponse.buildFailureMessage());
+            }
         }
 
     }
@@ -195,6 +194,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
      * @throws DatabaseException if the ES insert was in error
      */
     public void saveUnit(List<Document> documents) throws DatabaseException {
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         documents.forEach(vitamDocument -> {
 
@@ -218,13 +218,15 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 .setSource(esJson, XContentType.JSON));
         });
 
-        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+        if (bulkRequest.numberOfActions() != 0) {
+            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 
-        BulkResponse bulkResponse = bulkRequest.get();
+            BulkResponse bulkResponse = bulkRequest.get();
 
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
-            throw new DatabaseException("Index Elasticsearch has errors");
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
+                throw new DatabaseException("Index Elasticsearch has errors");
+            }
         }
     }
 
@@ -237,7 +239,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
      * @throws DatabaseException if the ES insert was in error
      */
     public void saveLogbook(List<Document> documents) throws DatabaseException {
-
+        ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         documents.forEach(vitamDocument -> {
             Integer tenantId = HeaderIdHelper.getTenantId();
@@ -261,13 +263,15 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         });
 
-        bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+        if (bulkRequest.numberOfActions() != 0) {
+            bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 
-        BulkResponse bulkResponse = bulkRequest.get();
+            BulkResponse bulkResponse = bulkRequest.get();
 
-        if (bulkResponse.hasFailures()) {
-            LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
-            throw new DatabaseException("Index Elasticsearch has errors");
+            if (bulkResponse.hasFailures()) {
+                LOGGER.error(BULK_REQ_FAIL_WITH_ERROR + bulkResponse.buildFailureMessage());
+                throw new DatabaseException("Index Elasticsearch has errors");
+            }
         }
     }
 
@@ -418,7 +422,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 
-        if (bulkRequest.request().numberOfActions() != 0) {
+        if (bulkRequest.numberOfActions() != 0) {
             BulkResponse bulkResponse = bulkRequest.get();
 
             if (bulkResponse.hasFailures()) {
@@ -460,7 +464,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         bulkRequest.request().setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
 
-        if (bulkRequest.request().numberOfActions() != 0) {
+        if (bulkRequest.numberOfActions() != 0) {
             BulkResponse bulkResponse = bulkRequest.get();
 
             if (bulkResponse.hasFailures()) {
@@ -578,9 +582,10 @@ public class VitamElasticsearchRepository implements VitamRepository {
             index = index + "_" + tenant;
         }
 
-        Iterator<List<String>> idIterator = new BulkIterator<>(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
+        Iterator<List<String>> idIterator =
+            new BulkIterator<>(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
 
-        while(idIterator.hasNext()) {
+        while (idIterator.hasNext()) {
 
             BulkRequestBuilder bulkRequest = client.prepareBulk();
             for (String id : idIterator.next()) {
@@ -592,11 +597,13 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 WriteRequest.RefreshPolicy.NONE :
                 WriteRequest.RefreshPolicy.IMMEDIATE;
 
-            final BulkResponse bulkResponse =
-                bulkRequest.setRefreshPolicy(refreshPolicy).execute().actionGet();
+            if (bulkRequest.numberOfActions() != 0) {
+                final BulkResponse bulkResponse =
+                    bulkRequest.setRefreshPolicy(refreshPolicy).execute().actionGet();
 
-            if (bulkResponse.hasFailures()) {
-                throw new DatabaseException("ES delete in error: " + bulkResponse.buildFailureMessage());
+                if (bulkResponse.hasFailures()) {
+                    throw new DatabaseException("ES delete in error: " + bulkResponse.buildFailureMessage());
+                }
             }
         }
     }

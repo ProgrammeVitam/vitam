@@ -96,6 +96,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
@@ -327,6 +328,16 @@ public class MetadataManagementIT extends VitamRuleRunner {
         assertThat(response.body().get(1).getStatus()).isEqualTo(StatusCode.KO);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, MetadataCollections.UNIT.getName())).isEqualTo(2L);
         assertThat(offsetRepository.findOffsetBy(TENANT_0, DataCategory.MANIFEST.name())).isEqualTo(0L);
+
+        // Purge reconstructed documents with only graph data and older than a configured delay
+        Call<Void> purge = metadataManagementResource.purgeReconstructedDocumentsWithGraphOnlyDataUNIT();
+        assertThat(purge.execute().isSuccessful()).isTrue();
+
+        purge = metadataManagementResource.purgeReconstructedDocumentsWithGraphOnlyDataOBJECTGROUP();
+        assertThat(purge.execute().isSuccessful()).isTrue();
+
+        purge = metadataManagementResource.purgeReconstructedDocumentsWithGraphOnlyDataUNITOBJECTGROUP();
+        assertThat(purge.execute().isSuccessful()).isTrue();
     }
 
     @Test
@@ -371,7 +382,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         storeFileToOffer(container, unit_with_graph_2_guid, JSON_EXTENTION, unit_with_graph_2_v2, DataCategory.UNIT);
 
         deleteFileFromOffer(got_with_graph_1_guid, JSON_EXTENTION, DataCategory.OBJECTGROUP);
-        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2_v2, DataCategory.OBJECTGROUP);
+        storeFileToOffer(container, got_with_graph_2_guid, JSON_EXTENTION, got_with_graph_2_v2,
+            DataCategory.OBJECTGROUP);
 
         checkOfferLogSize(DataCategory.UNIT, 6);
         checkOfferLogSize(DataCategory.OBJECTGROUP, 6);
@@ -507,6 +519,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         ok = metadataManagementResource.tryStoreGraph().execute().body();
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(0);
+
     }
 
     @Test
@@ -1139,7 +1152,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             // 3. Start initial Reclassification en mode continue
             VitamThreadUtils.getVitamSession().setRequestId(operation);
             ProcessingManagementClientFactory.getInstance().getClient()
-                .executeOperationProcess(operation,  Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
+                .executeOperationProcess(operation, Contexts.RECLASSIFICATION.name(), ProcessAction.RESUME.getValue());
 
             wait(operation);
 
@@ -1481,6 +1494,27 @@ public class MetadataManagementIT extends VitamRuleRunner {
             "Content-Type: application/json"
         })
         Call<Map<MetadataCollections, Integer>> tryStoreGraph();
+
+        @DELETE("/metadata/v1/purgeGraphOnlyDocuments/UNIT")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> purgeReconstructedDocumentsWithGraphOnlyDataUNIT();
+
+        @DELETE("/metadata/v1/purgeGraphOnlyDocuments/OBJECTGROUP")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> purgeReconstructedDocumentsWithGraphOnlyDataOBJECTGROUP();
+
+        @DELETE("/metadata/v1/purgeGraphOnlyDocuments/UNIT_OBJECTGROUP")
+        @Headers({
+            "Accept: application/json",
+            "Content-Type: application/json"
+        })
+        Call<Void> purgeReconstructedDocumentsWithGraphOnlyDataUNITOBJECTGROUP();
     }
 
 }
