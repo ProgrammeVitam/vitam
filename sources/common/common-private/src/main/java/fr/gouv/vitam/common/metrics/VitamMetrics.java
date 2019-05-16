@@ -27,27 +27,20 @@
 
 package fr.gouv.vitam.common.metrics;
 
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-
-
 import com.codahale.metrics.ScheduledReporter;
-import com.codahale.metrics.jvm.BufferPoolMetricSet;
-import com.codahale.metrics.jvm.CachedThreadStatesGaugeSet;
-import com.codahale.metrics.jvm.ClassLoadingGaugeSet;
-import com.codahale.metrics.jvm.FileDescriptorRatioGauge;
-import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
-
+import com.codahale.metrics.jvm.*;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.application.configuration.VitamMetricsConfiguration;
+import org.elasticsearch.metrics.ElasticsearchReporter;
+
+import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A basic class that acts as a container between a {@link VitamMetricRegistry} and a {@link ScheduledReporter}. This
@@ -139,7 +132,7 @@ public class VitamMetrics {
             additionalFields.put("hostname", ServerIdentity.getInstance().getName());
             additionalFields.put("role", ServerIdentity.getInstance().getRole());
             try {
-                reporter = VitamElasticsearchReporter.forRegistry(registry)
+                reporter = ElasticsearchReporter.forRegistry(registry)
                     .hosts(configuration.getMetricReporterHosts())
                     .index(type.getElasticsearchIndex())
                     .indexDateFormat(ELASTICSEARCH_DATE_FORMAT)
