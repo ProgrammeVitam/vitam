@@ -174,16 +174,18 @@ public class PreservationStep {
     @When("^je supprimme les griffons et les scénario de préservation sur tout les tenants")
     public void deleteAllPreservationBaseData() {
         try {
+            ByteArrayInputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
+            String filName = "empty.json";
+
             for (Integer tenant : VitamConfiguration.getTenants()) {
                 VitamContext vitamContext = new VitamContext(tenant);
                 vitamContext.setApplicationSessionId(world.getApplicationSessionId());
 
-                ByteArrayInputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
-                String filName = "empty.json";
-
                 world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, filName);
-                world.getAdminClient().importGriffin(vitamContext, emptyJson, filName);
             }
+            VitamContext vitamContext = new VitamContext(1);
+            vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+            world.getAdminClient().importGriffin(vitamContext, emptyJson, filName);
         } catch (Exception e) {
             LOGGER.error(e);
         }
