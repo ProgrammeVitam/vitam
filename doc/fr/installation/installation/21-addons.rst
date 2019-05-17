@@ -258,7 +258,7 @@ De nouvelles entrées ont été ajoutées pour décrire d'une par le matériel r
 Un paramètre a été ajouté aux définitions de statégie.
 AsyncRead permet de déterminer si l'offre associée fonctionne en lecture asynchrone, et désactive toute possibilité de lecture directe sur l'offre.
 Une offre froide "offer-tape" doit être configurée en lecture asynchrone.
-La valeur par défaut pour ayncRead est False.
+La valeur par défaut pour asyncRead est False.
 
 Exemple::
 
@@ -281,7 +281,7 @@ Exemple::
         N.B.: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur.
         Les plus classiques sont par exemple ``/dev/st0`` et ``/dev/nst0`` pour le premier drive détecté par le système.
         L'usage de ``/dev/st0`` indique au système que la bande utilisée dans le lecteur associé devra être rembobinée après l'exécution de la commande appelante.
-        A contrario, ``/dev/nst0`` indique au système que la bande utilisée dans le lecteur associé devra rester positionnée après le dernier marqueur de fichier utlisé par l'exécution de la commande appelante.
+        A contrario, ``/dev/nst0`` indique au système que la bande utilisée dans le lecteur associé devra rester positionnée après le dernier marqueur de fichier utilisé par l'exécution de la commande appelante.
         
         .. important:: Pour que l'offre froide fonctionne correctement, il convient de configurer une version /dev/nstxx
  
@@ -292,9 +292,6 @@ Exemple::
 **Définition d'une offre froide:**
 
         Une offre froide (OF) doit être définie dans la rubrique "vitam_offers" avec un provider de type "tape-library"
-
-        Exemple::test
-
 
 Exemple::
 
@@ -318,7 +315,7 @@ Exemple::
         .. note:: **N.B.**: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
       
 
-exemple::
+Exemple::
 
         inputFileStorageFolder: "/vitam/data/offer/offer/inputFiles"
         inputTarStorageFolder: "/vitam/data/offer/offer/inputTars"
@@ -351,7 +348,7 @@ Exemple::
 
 .
 
-        Enfin, la définition des équipements robotiques proprement dire doit être réalisée dans le paragraphe "tapeLibraries".
+        Enfin, la définition des équipements robotiques proprement dite doit être réalisée dans le paragraphe "tapeLibraries".
 
 **robots:**      Définition du bras robotique de la librairie.
 
