@@ -52,6 +52,7 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeDriveManager;
 import fr.gouv.vitam.storage.offers.tape.impl.TapeRobotManager;
+import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.impl.queue.QueueRepositoryImpl;
 import fr.gouv.vitam.storage.offers.tape.pool.TapeLibraryPoolImpl;
@@ -94,7 +95,10 @@ public class TapeLibraryFactory {
 
         Map<String, TapeLibraryConf> libraries = configuration.getTapeLibraries();
 
-        TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
+        TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
+            .getCollection(OfferCollections.TAPE_CATALOG.getName()));
+
+        TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
 
         BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
 

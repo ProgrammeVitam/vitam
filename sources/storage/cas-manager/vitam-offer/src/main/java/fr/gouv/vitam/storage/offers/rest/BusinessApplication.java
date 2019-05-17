@@ -34,10 +34,12 @@ import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferService;
 import fr.gouv.vitam.storage.offers.core.DefaultOfferServiceImpl;
 import fr.gouv.vitam.storage.offers.database.OfferLogDatabaseService;
 import fr.gouv.vitam.storage.offers.database.OfferSequenceDatabaseService;
+import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -91,8 +93,9 @@ public class BusinessApplication extends Application {
             DefaultOfferService defaultOfferService = new DefaultOfferServiceImpl(offerDatabaseService, mongoDBAccess);
             DefaultOfferResource defaultOfferResource = new DefaultOfferResource(defaultOfferService);
 
-            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(
-                mongoDBAccess);
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDBAccess.getMongoDatabase()
+                .getCollection(OfferCollections.TAPE_CATALOG.getName()));
+            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
 
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(defaultOfferResource);
