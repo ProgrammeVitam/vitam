@@ -250,7 +250,7 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 Paramétrage de l'Offre Froide ( librairies de cartouches )
 ==========================================================
 
-Suite à l'infroduction des offres bandes, plusieurs notions supplémentaires sont prises en compte dans ce fichier.
+Suite à l'introduction des offres bandes, plusieurs notions supplémentaires sont prises en compte dans ce fichier.
 De nouvelles entrées ont été ajoutées pour décrire d'une par le matériel robotique assigné à l'offre froide, et les répertoires d'échanges temporaires d'autre part. Les élements de configuration doivent être renseignés par l'exploitant.
 
 * Lecture asynchrone
@@ -285,13 +285,13 @@ Exemple::
         
         .. important:: Pour que l'offre froide fonctionne correctement, il convient de configurer une version /dev/nstxx
  
-        .. note:: Il peut arriver sur certains systèmes que l'ordre des lecteurs de bandes varient après un reboot de la machine. Pour s'assurer la persistence de l'ordre des lecteurs dans la configuration VITAM, il est conseillé d'utiliser les fichiers périphériques présents dans ``/dev/tape/by-id/`` qui s’appuient sur des références au hardware pour définier les drives.
+        .. note:: Il peut arriver sur certains systèmes que l'ordre des lecteurs de bandes varient après un reboot de la machine. Pour s'assurer la persistence de l'ordre des lecteurs dans la configuration VITAM, il est conseillé d'utiliser les fichiers périphériques présents dans ``/dev/tape/by-id/`` qui s’appuient sur des références au hardware pour définir les drives.
  
         * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une tapeLibrary, et de procéder à l'inventaire de ses ressources. Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner. L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système. A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots. 
 
 **Définition d'une offre froide:**
 
-        Une offre froide (OF) doit être est définie dans la rubrique "vitam_offers" avec un provider de type "tape-library"
+        Une offre froide (OF) doit être définie dans la rubrique "vitam_offers" avec un provider de type "tape-library"
 
         Exemple::test
 
