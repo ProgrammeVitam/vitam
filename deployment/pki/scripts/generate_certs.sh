@@ -215,9 +215,9 @@ if [ ! -f "${ENVIRONNEMENT_FILE}" ]; then
 fi
 
 # Get consul_domain
-CONSUL_DOMAIN=$(grep --perl-regexp "^\s*consul_domain:\s*.*" environments/group_vars/all/vitam_vars.yml |awk -F ":" '{gsub("\\s","",$2); print $2}')
+CONSUL_DOMAIN=$(read_ansible_var "consul_domain" "hosts-processing[0]")
 # Get vitam_site_name
-VITAM_SITE_NAME=$(grep --perl-regexp "^\s*vitam_site_name=\s*.*" ${ENVIRONNEMENT_FILE} |awk -F "=" '{gsub("\\s","",$2); print $2}')
+VITAM_SITE_NAME=$(read_ansible_var "vitam_site_name" "hosts-processing[0]")
 
 # Cleaning or creating vault file for certs
 initVault certs
