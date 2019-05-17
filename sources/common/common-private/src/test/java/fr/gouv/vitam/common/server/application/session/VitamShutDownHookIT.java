@@ -32,6 +32,7 @@ import static org.junit.Assert.fail;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response.Status;
 
+import fr.gouv.vitam.common.client.VitamClientFactory;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -71,17 +72,18 @@ public class VitamShutDownHookIT {
         }
         JunitHelper.getInstance().releasePort(serverPort1);
         // Stop server 1
-         server1ClientFactory.shutdown();
+        server1ClientFactory.shutdown();
+        VitamClientFactory.resetConnections();
     }
-    
+
     @Test
     public void testLifeCycleShutdown() throws Exception {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         try (LocalhostClientFactory.LocalhostClient client = server1ClientFactory.getClient()) {
             headers.add(GlobalDataRest.X_REQUEST_ID, "header-1");
-            Assert.assertEquals(Status.OK.getStatusCode(), 
+            Assert.assertEquals(Status.OK.getStatusCode(),
                 client.doRequestAndGetStatus("testReturnImmediately", headers));
-            
+
             Thread thread = VitamThreadFactory.getInstance().newThread(() -> {
                 try {
                     headers.putSingle(GlobalDataRest.X_REQUEST_ID, "header-2");
@@ -89,20 +91,24 @@ public class VitamShutDownHookIT {
                     Assert.assertEquals(Status.OK.getStatusCode(), response);
                 } catch (Exception e) {
                     fail("should not fail");
-                } 
+                }
             });
             Thread thread2 = VitamThreadFactory.getInstance().newThread(() -> {
                 try {
                     application1.stop();
                 } catch (Exception e) {
                     fail("should not fail");
-                } 
+                }
             });
             thread.start();
             Thread.sleep(500);
             thread2.start();
-            Assert.assertEquals(Status.GONE.getStatusCode(), 
+            // Hack over hack
+            Thread.sleep(500);
+            Assert.assertEquals(Status.GONE.getStatusCode(),
                 client.doRequestAndGetStatus("testReturnImmediately", headers));
+            thread.join();
+            thread2.join();
         }
     }
 

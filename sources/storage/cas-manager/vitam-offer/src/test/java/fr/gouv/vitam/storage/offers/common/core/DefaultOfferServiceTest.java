@@ -41,7 +41,9 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,13 +51,13 @@ import java.util.stream.LongStream;
 import javax.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.junit.FakeInputStream;
+import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
@@ -64,11 +66,11 @@ import fr.gouv.vitam.storage.offers.common.database.OfferLogDatabaseService;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.NullInputStream;
-import org.junit.Before;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -77,6 +79,7 @@ import org.mockito.junit.MockitoRule;
  * Default offer service test implementation
  */
 public class DefaultOfferServiceTest {
+
     private static final String CONTAINER_PATH = "container";
     private static final DataCategory OBJECT_TYPE = DataCategory.OBJECT;
     private static final DataCategory UNIT_TYPE = DataCategory.UNIT;
@@ -95,18 +98,23 @@ public class DefaultOfferServiceTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private OfferLogDatabaseService offerDatabaseService;
 
-    @Before
-    public void init() throws Exception {
-        File confFile = PropertiesUtils.findFile(DEFAULT_STORAGE_CONF);
-        final ObjectNode conf = PropertiesUtils.readYaml(confFile, ObjectNode.class);
-        conf.put("storagePath", tempFolder.getRoot().getAbsolutePath());
-        PropertiesUtils.writeYaml(confFile, conf);
+    @After
+    public void deleteFiles() throws Exception {
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        cleanQuietly(conf, CONTAINER_PATH);
+        cleanQuietly(conf, FAKE_CONTAINER);
+    }
+
+    private void cleanQuietly(StorageConfiguration conf, String container) throws IOException {
+        File directory = Paths.get(conf.getStoragePath(), container).toFile();
+        if(directory.exists()) {
+            FileUtils.cleanDirectory(directory);
+        }
     }
 
     @Test
@@ -128,7 +136,9 @@ public class DefaultOfferServiceTest {
         offerService.createObject(CONTAINER_PATH, OBJECT_ID, new NullInputStream(0), DataCategory.AGENCIES, 0L, DigestType.SHA512);
 
         // check
-        final File container = new File(tempFolder.getRoot(), CONTAINER_PATH);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
     }
@@ -146,13 +156,15 @@ public class DefaultOfferServiceTest {
         }
 
         // check
-        final File container = new File(tempFolder.getRoot(), CONTAINER_PATH);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        final File offerFile = new File(CONTAINER_PATH + "/" + OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
@@ -181,8 +193,10 @@ public class DefaultOfferServiceTest {
 
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
-        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
-        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File offerFile = new File(container, OBJECT_ID);        assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigestV2, digest.toString());
@@ -210,7 +224,10 @@ public class DefaultOfferServiceTest {
 
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File offerFile = new File(container, OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
@@ -242,7 +259,10 @@ public class DefaultOfferServiceTest {
         }
 
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
-        final File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + OBJECT_ID);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
+        final File offerFile = new File(container, OBJECT_ID);
         assertTrue(com.google.common.io.Files.equal(testFile, offerFile));
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
@@ -272,7 +292,9 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
         offerService.createObject(CONTAINER_PATH, OBJECT_ID, new NullInputStream(0), DataCategory.AGENCIES, 0L, DigestType.SHA512);
         // check
-        final File container = new File(tempFolder.getRoot(), CONTAINER_PATH);
+        final StorageConfiguration conf = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class);
+        final File container = new File(conf.getStoragePath() + CONTAINER_PATH);
         assertTrue(container.exists());
         assertTrue(container.isDirectory());
 
