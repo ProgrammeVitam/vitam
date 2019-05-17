@@ -48,6 +48,7 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeResponse;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeSlot;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
+import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogRepository;
 import fr.gouv.vitam.storage.offers.tape.impl.catalog.TapeCatalogServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.process.Output;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
@@ -526,7 +527,9 @@ public class TapeLibraryIT {
             Assertions.assertThat(response.isOK()).isTrue();
 
             // read file from tape with given position
-            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(mongoDbAccess);
+            TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
+                .getCollection(OfferCollections.TAPE_CATALOG.getName()));
+            TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
             String tapeCode = state.getSlots().get(SLOT_INDEX - 1).getTape().getVolumeTag();
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
                 Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);

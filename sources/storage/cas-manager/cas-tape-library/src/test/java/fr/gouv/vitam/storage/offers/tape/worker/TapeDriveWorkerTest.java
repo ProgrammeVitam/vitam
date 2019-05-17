@@ -140,19 +140,20 @@ public class TapeDriveWorkerTest {
     public void stop_no_wait() throws QueueException, InterruptedException {
         TapeDriveWorker tapeDriveWorker =
             new TapeDriveWorker(tapeRobotPool, tapeDriveService, tapeCatalogService, tapeDriveOrderConsumer,
-                tarReferentialRepository, null, null, 1000, false);
+                tarReferentialRepository, null, null, 100, false);
 
         when(tapeDriveOrderConsumer.consume(any())).thenAnswer(o -> {
-            Thread.sleep(5);
+            Thread.sleep(20);
             return Optional.empty();
         });
         Thread thread1 = new Thread(tapeDriveWorker);
         thread1.start();
+        Thread.sleep(5);
 
         tapeDriveWorker.stop(1, TimeUnit.MICROSECONDS);
         Assertions.assertThat(tapeDriveWorker.isRunning()).isTrue();
 
-        Thread.sleep(1010);
+        Thread.sleep(150);
 
         Assertions.assertThat(tapeDriveWorker.isRunning()).isFalse();
     }
