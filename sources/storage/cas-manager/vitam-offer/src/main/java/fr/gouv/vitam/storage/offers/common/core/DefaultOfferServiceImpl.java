@@ -132,7 +132,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         try {
             return defaultStorage.getObject(containerName, objectId);
         } finally {
-            PerformanceLogger.getInstance().log("OfferType_" + configuration.getProvider(), containerName, "GET_OBJECT",
+            PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName, "GET_OBJECT",
                 times.elapsed(TimeUnit.MILLISECONDS));
 
         }
