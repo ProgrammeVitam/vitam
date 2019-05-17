@@ -100,3 +100,11 @@ Concernant l'espace disque, à l'heure actuelle, aucun pré-requis n'a été dé
 * cluster elasticsearch des données :term:`VITAM`
 
 L'arborescence associée sur les partitions associées est : ``/vitam/data/<composant>``
+
+Librairie de cartouches pour Offre Froide
+=========================================
+
+Des prérequis sont à réunir pour utiliser l'offre froide de stockage "tape-library" définie dans le :term:`DAT`.
+
+* La librairie doit être opérationnelle et chargée en cartouche.
+* La librairie et les lecteurs doivent déjà être disponibles sur la machine devant supporter une instance de ce composant. La commande ``lsscsi -g`` peut permettre de vérifier si des périphériques sont détectés.

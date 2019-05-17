@@ -245,3 +245,171 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
      :linenos:
 
 .. note:: Cette configuration est appliquée à la solution logicielle :term:`VITAM`  ; il est possible de créer un tuning par "groupe" défini dans ansible.
+
+
+Paramétrage de l'Offre Froide ( librairies de cartouches )
+==========================================================
+
+Suite à l'introduction des offres bandes, plusieurs notions supplémentaires sont prises en compte dans ce fichier.
+De nouvelles entrées ont été ajoutées pour décrire d'une par le matériel robotique assigné à l'offre froide, et les répertoires d'échanges temporaires d'autre part. Les élements de configuration doivent être renseignés par l'exploitant.
+
+* Lecture asynchrone
+
+Un paramètre a été ajouté aux définitions de statégie.
+AsyncRead permet de déterminer si l'offre associée fonctionne en lecture asynchrone, et désactive toute possibilité de lecture directe sur l'offre.
+Une offre froide "offer-tape" doit être configurée en lecture asynchrone.
+La valeur par défaut pour asyncRead est False.
+
+Exemple::
+
+        vitam_strategy:
+          - name: offer-tape-1
+            referent: false
+            asyncRead: **true**
+          - name: offer-fs-2
+            referent: true
+            asyncRead: false
+
+* Périphériques liés à l'usage des bandes magnétiques
+
+**Terminologie**:
+
+        * **tapeLibrary**  une librairie de bande dans son ensemble. Une "tapeLibrary" est constituée de 1 à n "robot" et de 1 à n "drives". Une offre froide nécessite la déclaration d'au moins une librairie pour fonctionner. L'exploitant doit déclarer un identifiant pour chaque librairie. Ex: TAPE_LIB_1
+
+        * **drive**  un drive est lecteur de cartouches. Il doit être identifié par un path scsi unique. Une offre froide nécessite la déclaration d'au moins un lecteur pour fonctionner.
+        
+        N.B.: il existe plusieurs fichiers périphériques sur Linux pour un même lecteur.
+        Les plus classiques sont par exemple ``/dev/st0`` et ``/dev/nst0`` pour le premier drive détecté par le système.
+        L'usage de ``/dev/st0`` indique au système que la bande utilisée dans le lecteur associé devra être rembobinée après l'exécution de la commande appelante.
+        A contrario, ``/dev/nst0`` indique au système que la bande utilisée dans le lecteur associé devra rester positionnée après le dernier marqueur de fichier utilisé par l'exécution de la commande appelante.
+        
+        .. important:: Pour que l'offre froide fonctionne correctement, il convient de configurer une version /dev/nstxx
+ 
+        .. note:: Il peut arriver sur certains systèmes que l'ordre des lecteurs de bandes varient après un reboot de la machine. Pour s'assurer la persistence de l'ordre des lecteurs dans la configuration VITAM, il est conseillé d'utiliser les fichiers périphériques présents dans ``/dev/tape/by-id/`` qui s’appuient sur des références au hardware pour définir les drives.
+ 
+        * **robot**  un robot est le composant chargé de procéder au déplacement des cartouches dans une tapeLibrary, et de procéder à l'inventaire de ses ressources. Une offre froide nécessite la déclaration d'au moins un robot pour fonctionner. L'exploitant doit déclarer un fichier de périphérique scsi générique ( ex: /dev/sg4 ) associé à la robotique sur son système. A l'instar de la configuration des drives, il est recommandé d'utiliser le device présent dans /dev/tape/by-id pour déclarer les robots. 
+
+**Définition d'une offre froide:**
+
+        Une offre froide (OF) doit être définie dans la rubrique "vitam_offers" avec un provider de type "tape-library"
+
+Exemple::
+
+        vitam_offers:
+          offer-tape-1:
+            provider: tape-library
+            tapeLibraryConfiguration:
+
+.
+
+        La description "tapeLibraryConfiguration" débute par la définition des répertoires de sockage ainsi que le paramétrage des tar.
+
+        **inputFileStorageFolder**	Répertoire où seront stockés les objets à intégrer à l'OF
+        **inputTarStorageFolder** 	Répertoire où seront générés et stockés les tars avant transfère sur bandes
+        **outputTarStorageFolder** Répertoire où seront rapatriés les tars depuis les bandes.
+        **MaxTarEntrySize**	Taille maximale au-delà de la laquelle les fichiers entrant seront découpés en segment, en octets
+        **maxTarFileSize**		Taille maximale des tars à constituer, en octets.
+        **forceOverrideNonEmptyCartridge**  Permet de passer outre le contrôle vérifiant que les bandes nouvellement introduites sont vides. Par défaut à False
+        **useSudo**		Réservé à un usage futur – laisser à false.
+
+        .. note:: **N.B.**: MaxTarEntrySize doit être strictement inférieur à maxTarFileSize
+      
+
+Exemple::
+
+        inputFileStorageFolder: "/vitam/data/offer/offer/inputFiles"
+        inputTarStorageFolder: "/vitam/data/offer/offer/inputTars"
+        outputTarStorageFolder: "/vitam/data/offer/offer/outputTars"
+        maxTarEntrySize: 10000000
+        maxTarFileSize: 10000000000
+	ForceOverrideNonEmptyCartridge: False
+        useSudo: false
+
+.        
+
+        Par la suite, un paragraphe "topology" décrivant la topologie de l'offre doit être renseigné. L'objectif de cet élément est de pouvoir définir une segmentation de l'usage des bandes pour répondre à un besoin fonctionnel. Il convient ainsi de définir des buckets, qu'on peut voir comme un ensemble logique de bandes, et de les associers à un ou plusieurs tenants.
+
+        **tenants**				tableau de 1 à n identifiants de tenants au format [1,...,n]
+        **tarBufferingTimeoutInMinutes** 	Valeur en minutes durant laquelle un tar peut rester ouvert 
+
+Exemple::
+
+        topology:
+          buckets:
+            test:
+              tenants: [0]
+              tarBufferingTimeoutInMinutes: 60
+            admin:
+              tenants: [1]
+              tarBufferingTimeoutInMinutes: 60
+            prod:
+              tenants: [2,3,4,5,6,7,8,9]
+              tarBufferingTimeoutInMinutes: 60
+
+.
+
+        Enfin, la définition des équipements robotiques proprement dite doit être réalisée dans le paragraphe "tapeLibraries".
+
+**robots:**      Définition du bras robotique de la librairie.
+
+        **device:** 		Chemin du fichier de périphérique scsi générique associé au bras.
+
+        **mtxPath:**	Chemin vers la commande Linux de manipulation du bras.
+        
+        **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du bras.
+
+**drives:**      Définition du ou des lecteurs de cartouches de la librairie.
+
+        **index:** 		Numéro de lecteur, valeur débutant à 0
+
+        **device:** 		Chemin du fichier de périphérique scsi SANS REMBOBINAGE associé au lecteur.
+
+        **mtPath:**		Chemin vers la commande Linux de manipulation des lecteurs.
+
+        **ddPath:**		Chemin vers la commande Linux de copie de bloc de données.
+
+        **tarPath:**		Chemin vers la commande Linux de création d'archives tar.
+
+        **timeoutInMilliseconds:** timeout en millisecondes à appliquer aux ordres du lecteur.
+
+Exemple::
+
+        tapeLibraries:
+          TAPE_LIB_1:
+            robots:
+              -
+                device: /dev/tape/by-id/scsiQUANTUM_10F73224E6664C84A1D00000
+                mtxPath: "/usr/sbin/mtx"
+                timeoutInMilliseconds: 3600000
+            drives:
+              -
+                index: 0
+                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_1235308739-nst
+                mtPath: "/bin/mt"
+                ddPath: "/bin/dd"
+                tarPath: "/bin/tar"
+                timeoutInMilliseconds: 3600000
+              -
+                index: 1
+                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0951859786-nst
+                mtPath: "/bin/mt"
+                ddPath: "/bin/dd"
+                tarPath: "/bin/tar"
+                timeoutInMilliseconds: 3600000
+              -
+                index: 2
+                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0269493808-nst
+                mtPath: "/bin/mt"
+                ddPath: "/bin/dd"
+                tarPath: "/bin/tar"
+                timeoutInMilliseconds: 3600000
+              -
+                index: 3
+                device: /dev/tape/by-id/scsi-1IBM_ULT3580-TD6_0566471858-nst
+                mtPath: "/bin/mt"
+                ddPath: "/bin/dd"
+                tarPath: "/bin/tar"
+                timeoutInMilliseconds: 3600000
+
+.
+
