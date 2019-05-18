@@ -75,6 +75,8 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
 import fr.gouv.vitam.worker.core.utils.GroupByObjectIterator;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -90,11 +92,13 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
@@ -105,6 +109,7 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromStringAsTypeRefence;
+import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.PreservationVersion.FIRST;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.administration.preservation.GriffinModel.TAG_IDENTIFIER;
@@ -121,18 +126,20 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
     private final AdminManagementClientFactory adminManagementClientFactory;
 
+    private final WorkspaceClientFactory workspaceClientFactory;
+
     private final MetaDataClientFactory metaDataClientFactory;
 
     public PreservationPreparationPlugin() {
-        this(AdminManagementClientFactory.getInstance(), MetaDataClientFactory.getInstance());
+        this(AdminManagementClientFactory.getInstance(), MetaDataClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
     }
 
     @VisibleForTesting
     PreservationPreparationPlugin(AdminManagementClientFactory adminManagementClientFactory,
-        MetaDataClientFactory metaDataClientFactory) {
+        MetaDataClientFactory metaDataClientFactory, WorkspaceClientFactory workspaceClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
-
+        this.workspaceClientFactory = workspaceClientFactory;
     }
 
     @Override
@@ -141,7 +148,7 @@ public class PreservationPreparationPlugin extends ActionHandler {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             PreservationRequest preservationRequest = loadPreservationRequest(handler);
-            computePreparation(handler, metaDataClient, preservationRequest);
+            computePreparation(handler, metaDataClient, preservationRequest, param.getRequestId());
             return buildItemStatus(PRESERVATION_PREPARATION, StatusCode.OK,
                 createObjectNode().put("query", preservationRequest.getDslQuery().toString()));
 
@@ -165,16 +172,24 @@ public class PreservationPreparationPlugin extends ActionHandler {
         );
     }
 
-    private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient, PreservationRequest preservationRequest)
+    private void computePreparation(HandlerIO handler, MetaDataClient metaDataClient, PreservationRequest preservationRequest,
+        String requestId)
         throws VitamException {
 
         PreservationScenarioModel scenarioModel;
         Map<String, GriffinModel> griffinModelListForScenario;
 
-        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
+        try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+
+
 
             scenarioModel = getScenarioModel(adminManagementClient, preservationRequest.getScenarioIdentifier());
             griffinModelListForScenario = getListOfGriffinGivenScenario(adminManagementClient, scenarioModel);
+            Set<GriffinModel> griffins = new HashSet<>(griffinModelListForScenario.values());
+            workspaceClient.putObject(requestId, "preservationScenarioModel", writeToInpustream(scenarioModel));
+            workspaceClient.putObject(requestId, "griffinModel", writeToInpustream(griffins));
 
         } catch (Exception e) {
             throw new ProcessingException(String.format("Preconditions Failed :  %s", e.getMessage()), e);

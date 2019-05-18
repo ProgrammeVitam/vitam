@@ -30,18 +30,26 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.AbstractMockClient;
+import fr.gouv.vitam.common.client.AbstractMockClient.FakeInboundResponse;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
+import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
+import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ContextPreservationReport;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -63,9 +71,22 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class PreservationFinalizationPluginTest {
 
@@ -122,8 +143,7 @@ public class PreservationFinalizationPluginTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
-        plugin = new PreservationFinalizationPlugin(
-            preservationReportService, logbookOperationsClient);
+        plugin = new PreservationFinalizationPlugin(preservationReportService, logbookOperationsClient);
 
     }
 
@@ -134,8 +154,10 @@ public class PreservationFinalizationPluginTest {
         File newLocalFile = tempFolder.newFile();
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setNewLocalFile(newLocalFile);
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/preservation/preservationRequest")) {
-            handlerIO.setInputStreamFromWorkspace(resourceAsStream);
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/preservation/preservationRequest");
+            InputStream scenarioInputStream = getClass().getResourceAsStream("/preservation/preservationDocument")) {
+            populateTestHandlerIo(handlerIO, resourceAsStream, scenarioInputStream);
+
             JsonNode logbookOperationJson =
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationOk.json"));
             given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);
@@ -156,9 +178,11 @@ public class PreservationFinalizationPluginTest {
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setNewLocalFile(newLocalFile);
         try (InputStream resourceAsStream = getClass().getResourceAsStream("/preservation/preservationRequest");
-            InputStream inputRequest = getClass().getResourceAsStream("/preservation/preservationRequest")) {
-            handlerIO.setInputStreamFromWorkspace(resourceAsStream);
-            PreservationRequest expectedRequest = JsonHandler.getFromInputStream(inputRequest, PreservationRequest.class);
+            InputStream expectedInputStream = getClass().getResourceAsStream("/preservation/expectedReport.json");
+            InputStream scenarioInputStream = getClass().getResourceAsStream("/preservation/preservationDocument")) {
+            populateTestHandlerIo(handlerIO, resourceAsStream, scenarioInputStream);
+
+            ContextPreservationReport expectedReport = JsonHandler.getFromInputStream(expectedInputStream, ContextPreservationReport.class);
             JsonNode logbookOperationJson =
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationOk.json"));
             given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);
@@ -173,9 +197,15 @@ public class PreservationFinalizationPluginTest {
                 PRESERVATION, StatusCode.OK));
             assertThat(report.getOperationSummary().getOutcome()).isEqualTo("OK");
             assertThat(report.getOperationSummary().getEvDetData()).isEqualTo(null);
-            assertThat(report.getContext()).isEqualTo(expectedRequest.getDslQuery());
+            ContextPreservationReport contextPreservationReport =
+                JsonHandler.getFromJsonNode(report.getContext(), ContextPreservationReport.class);
             assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
             assertThat(itemStatus.getItemId()).isEqualTo("PRESERVATION_FINALIZATION");
+            assertThat(contextPreservationReport.getDslQuery()).isEqualTo(expectedReport.getDslQuery());
+            assertThat(JsonHandler.unprettyPrint(contextPreservationReport.getGriffinModel()))
+                .isEqualTo(JsonHandler.unprettyPrint(expectedReport.getGriffinModel()));
+            assertThat(JsonHandler.unprettyPrint(contextPreservationReport.getPreservationScenarioModel()))
+                .isEqualTo(JsonHandler.unprettyPrint(expectedReport.getPreservationScenarioModel()));
         }
     }
 
@@ -186,9 +216,9 @@ public class PreservationFinalizationPluginTest {
         File newLocalFile = tempFolder.newFile();
         TestHandlerIO handlerIO = new TestHandlerIO();
         handlerIO.setNewLocalFile(newLocalFile);
-        try (InputStream resourceAsStream = getClass().getResourceAsStream("/preservation/preservationRequest")) {
-            handlerIO.setInputStreamFromWorkspace(resourceAsStream);
-
+        try (InputStream resourceAsStream = getClass().getResourceAsStream("/preservation/preservationRequest");
+            InputStream scenarioInputStream = getClass().getResourceAsStream("/preservation/preservationDocument")) {
+            populateTestHandlerIo(handlerIO, resourceAsStream, scenarioInputStream);
             JsonNode logbookOperationJson =
                 JsonHandler.getFromInputStream(getClass().getResourceAsStream("/preservation/logbookOperationKo.json"));
             given(logbookOperationsClient.selectOperationById(anyString())).willReturn(logbookOperationJson);
@@ -206,5 +236,14 @@ public class PreservationFinalizationPluginTest {
             assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
             assertThat(itemStatus.getItemId()).isEqualTo("PRESERVATION_FINALIZATION");
         }
+    }
+
+    private void populateTestHandlerIo(TestHandlerIO handlerIO, InputStream resourceAsStream, InputStream scenarioInputStream)
+        throws URISyntaxException, ProcessingException {
+        URL griffinUrl = getClass().getResource("/preservation/griffinModel");
+        File file = new File(griffinUrl.toURI());
+        handlerIO.transferFileToWorkspace("griffinModel", file, false, false);
+        handlerIO.setMapOfInputStreamFromWorkspace("preservationRequest", resourceAsStream);
+        handlerIO.setMapOfInputStreamFromWorkspace("preservationScenarioModel", scenarioInputStream);
     }
 }
