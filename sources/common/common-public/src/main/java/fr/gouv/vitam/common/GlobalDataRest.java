@@ -156,7 +156,12 @@ public class GlobalDataRest {
     public static final String X_RECURSIVE = "X-Recursive";
 
     /**
-     * Header use to have the body (object) size even if Content-Type is chunkec
+     * Header use to have the body (object) CHUNK size
+     */
+    public static final String X_CHUNK_LENGTH = "X-Chunk-Length";
+
+    /**
+     * Header use to have the body (object) size even if Content-Type is chunked
      */
     public static final String X_CONTENT_LENGTH = "X-Content-Length";
     /**
@@ -240,6 +245,16 @@ public class GlobalDataRest {
      * The X_DATA_CATEGORY header, used in requests to give data category
      */
     public static final String X_DATA_CATEGORY = "X-Data-Category";
+
+    /**
+     * Offset of file to retrieve
+     */
+    public static final String X_CHUNK_OFFSET = "X-Vitam-Chunk-Offset";
+
+    /**
+     * Max size to retrieve
+     */
+    public static final String X_CHUNK_MAX_SIZE = "X-Vitam-Chunk-Max-Size";
 
     private GlobalDataRest() {
         // empty

@@ -78,7 +78,7 @@ public class VitamApplicationInitializr {
             workerManager = new WorkerManager();
             workerManager.initialize();
 
-            processDistributor = new ProcessDistributorImpl(workerManager);
+            processDistributor = new ProcessDistributorImpl(workerManager, configuration);
 
             ProcessManagementResource processManagementResource =
                 new ProcessManagementResource(configuration, processDistributor);

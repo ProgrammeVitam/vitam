@@ -552,8 +552,10 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObject(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(OBJECT_NAME) String objectName) {
-        return getObjectResponse(containerName, objectName);
+        @PathParam(OBJECT_NAME) String objectName,
+        @HeaderParam(GlobalDataRest.X_CHUNK_OFFSET) Long chunkOffset,
+        @HeaderParam(GlobalDataRest.X_CHUNK_MAX_SIZE) Long maxChunkSize) {
+        return getObjectResponse(containerName, objectName, chunkOffset, maxChunkSize);
     }
 
     /**
@@ -597,7 +599,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
 
                     Response objResponse = null;
                     try {
-                        objResponse = workspace.getObject(containerName, objectURI);
+                        objResponse = workspace.getObject(containerName, objectURI, null, null);
 
                         long size =
                             Long.parseLong(objResponse.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
@@ -717,17 +719,20 @@ public class WorkspaceResource extends ApplicationStatusResource {
         }
     }
 
-    private Response getObjectResponse(String containerName, String objectName) {
+    private Response getObjectResponse(String containerName, String objectName, Long chunkOffset,
+        Long maxChunkSize) {
         try {
             ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
                 containerName, objectName);
 
-            Response response = workspace.getObject(containerName, objectName);
+            Response response = workspace.getObject(containerName, objectName, chunkOffset, maxChunkSize);
 
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
                 response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+            headers.put(VitamHttpHeader.X_CHUNK_LENGTH.getName(),
+                response.getHeaderString(VitamHttpHeader.X_CHUNK_LENGTH.getName()));
             return new VitamAsyncInputStreamResponse(response,
                 Status.OK, headers);
         } catch (final IllegalArgumentException e) {
@@ -740,7 +745,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
-
     }
 
 }

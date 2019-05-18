@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channel;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
@@ -302,6 +303,14 @@ public class StreamUtils {
                     SysErrLogger.FAKE_LOGGER.ignoreLog(e);
                 }
             }
+        }
+    }
+
+    public static void closeSilently(Channel channel) {
+        try {
+            channel.close();
+        } catch (Exception ex2) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(ex2);
         }
     }
 }
