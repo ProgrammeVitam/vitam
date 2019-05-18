@@ -125,8 +125,9 @@ public class ProcessManagementImplTest {
         WorkerClient workerClient = mock(WorkerClient.class);
         when(workerClientFactory.getClient()).thenReturn(workerClient);
         workerManager = new WorkerManager(workerClientFactory);
+        ServerConfiguration configuration = new ServerConfiguration();
         processDistributor =
-            new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement, workspaceClientFactory, workerClientFactory);
+            new ProcessDistributorImpl(workerManager, configuration, processDataAccess, processDataManagement, workspaceClientFactory, workerClientFactory);
     }
 
     @Test(expected = ProcessingException.class)

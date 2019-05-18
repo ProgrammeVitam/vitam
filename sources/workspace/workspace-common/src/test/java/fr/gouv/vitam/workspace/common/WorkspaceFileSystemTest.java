@@ -39,6 +39,8 @@ import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,6 +58,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
 
 public class WorkspaceFileSystemTest {
@@ -194,8 +197,87 @@ public class WorkspaceFileSystemTest {
         storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
         storage.deleteContainer(CONTAINER_NAME, true);
 
-        storage.getObject(CONTAINER_NAME, OBJECT_NAME);
+        storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null);
+    }
 
+    @Test
+    public void givenFileNotFoundWhenGetObjectThenRaiseAnException() throws Exception {
+        storage.createContainer(CONTAINER_NAME);
+
+        assertThatThrownBy( () -> storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null))
+            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+    }
+
+    @Test
+    public void givenExistingFileWhenGetObjectThenOK() throws Exception {
+
+        storage.createContainer(CONTAINER_NAME);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
+
+        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, null, null).getEntity();
+
+        assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
+    }
+
+    @Test
+    public void givenExistingFileWhenGetObjectWithZeroOffsetAndNoSizeThenOK() throws Exception {
+
+        storage.createContainer(CONTAINER_NAME);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
+
+        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, 0L, null).getEntity();
+
+        assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
+    }
+
+    @Test
+    public void givenExistingFileWhenGetObjectWithZeroOffsetAndMaxSizeThenOK() throws Exception {
+
+        storage.createContainer(CONTAINER_NAME);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
+
+        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, 0L, 1_000_000_000L).getEntity();
+
+        assertThat(is).hasSameContentAs(getInputStream("file1.pdf"));
+    }
+
+    @Test
+    public void givenExistingFileWhenGetObjectWithOffsetAndSizeThenOK() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
+
+        // When
+        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, 100L, 200L).getEntity();
+
+        // Then
+
+        // Skip first 100 bytes & limit to 200 bytes
+        InputStream expectedInputStream = getInputStream("file1.pdf");
+        IOUtils.readFully(expectedInputStream, 100);
+        expectedInputStream = new BoundedInputStream(expectedInputStream, 200L);
+
+        assertThat(is).hasSameContentAs(expectedInputStream);
+    }
+
+    @Test
+    public void givenExistingFileWhenGetObjectWithOffsetAndNoMaxSizeThenOK() throws Exception {
+
+        // Given
+        storage.createContainer(CONTAINER_NAME);
+        storage.putObject(CONTAINER_NAME, OBJECT_NAME, getInputStream("file1.pdf"));
+
+        // When
+        InputStream is = (InputStream) storage.getObject(CONTAINER_NAME, OBJECT_NAME, 100L, null).getEntity();
+
+        // Then
+
+        // Skip first 100 bytes
+        InputStream expectedInputStream = getInputStream("file1.pdf");
+        IOUtils.readFully(expectedInputStream, 100);
+
+        assertThat(is).hasSameContentAs(expectedInputStream);
     }
 
     // Uri List of Digital Object from Content folder
@@ -312,7 +394,7 @@ public class WorkspaceFileSystemTest {
 
     @Test
     public void givenZipSIPAndArchiveTypeWhenManifestFileNamePersonalizedThenRenamedToManifestDotXmlOK()
-            throws Exception {
+        throws Exception {
         storage.createContainer(CONTAINER_NAME);
         storage.uncompressObject(CONTAINER_NAME, SIP_FOLDER, CommonMediaType.ZIP, getInputStream("personalized_manifest_file_name.zip"));
         Assert.assertTrue(storage.isExistingObject(CONTAINER_NAME, SIP_FOLDER + File.separator + MANIFEST));

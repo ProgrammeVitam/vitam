@@ -43,6 +43,9 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
 
     private Integer processingCleanerPeriod;
 
+    private Integer maxDistributionInMemoryBufferSize = 100_000;
+    private Integer maxDistributionOnDiskBufferSize = 100_000_000;
+
     /**
      * @return the urlMetadata
      */
@@ -116,5 +119,23 @@ public class ServerConfiguration extends DefaultVitamApplicationConfiguration {
      */
     public void setProcessingCleanerPeriod(Integer processingCleanerPeriod) {
         this.processingCleanerPeriod = processingCleanerPeriod;
+    }
+
+    public Integer getMaxDistributionInMemoryBufferSize() {
+        return maxDistributionInMemoryBufferSize;
+    }
+
+    public ServerConfiguration setMaxDistributionInMemoryBufferSize(Integer maxDistributionInMemoryBufferSize) {
+        this.maxDistributionInMemoryBufferSize = maxDistributionInMemoryBufferSize;
+        return this;
+    }
+
+    public Integer getMaxDistributionOnDiskBufferSize() {
+        return maxDistributionOnDiskBufferSize;
+    }
+
+    public ServerConfiguration setMaxDistributionOnDiskBufferSize(Integer maxDistributionOnDiskBufferSize) {
+        this.maxDistributionOnDiskBufferSize = maxDistributionOnDiskBufferSize;
+        return this;
     }
 }
