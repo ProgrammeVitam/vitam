@@ -69,8 +69,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum.NOT_AU_JSON_VALID;
-import static fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum.RULE_DATE_FORMAT;
+import static fr.gouv.vitam.common.json.SchemaValidationStatus.SchemaValidationStatusEnum.*;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,18 +99,18 @@ public class CheckArchiveUnitProfileActionPluginTest {
     private static final String ARCHIVE_UNIT_FINAL = "checkArchiveUnitProfileActionPlugin/archive-unit_OK_final.json";
 
     private static final String ARCHIVE_UNIT_SCHEMA =
-        "checkArchiveUnitProfileActionPlugin/archive-unit-schema.json";
-    private static final String ARCHIVE_UNIT_SCHEMA_DESCRIPTION =
-        "checkArchiveUnitProfileActionPlugin/archive-unit-schema-with-mandatory-description.json";
+        "json-schema/archive-unit-schema.json"; // from common-public
+    private static final String ARCHIVE_UNIT_SCHEMA_CONVERAGE =
+            "checkArchiveUnitProfileActionPlugin/archive-unit-profile-with-mandatory-coverage.json";
     private static final String ARCHIVE_UNIT_SCHEMA_CUSTOM_DESCRIPTION_LEVEL =
-        "checkArchiveUnitProfileActionPlugin/archive-unit-schema-description-level.json";
+        "checkArchiveUnitProfileActionPlugin/archive-unit-profile-description-level.json";
     private static final String ARCHIVE_UNIT_SCHEMA_CUSTOM_START_DATE =
-        "checkArchiveUnitProfileActionPlugin/archive-unit-schema-startdate-format.json";
+        "checkArchiveUnitProfileActionPlugin/archive-unit-profile-startdate-format.json";
     private static final String GUID_MAP_JSON = "GUID_TO_ARCHIVE_ID_MAP.json";
     private static final String ARCHIVE_UNIT_UP = "checkArchiveUnitProfileActionPlugin/archive-unit_with_up.json";
     private static final String ARCHIVE_UNIT_WO_UP = "checkArchiveUnitProfileActionPlugin/archive-unit_without_up.json";
-    private static final String ARCHIVE_UNIT_SCHEMA_REQUIRING_UP = "checkArchiveUnitProfileActionPlugin/archive-unit-schema-requiring-up.json";
-    private static final String ARCHIVE_UNIT_SCHEMA_NOT_REQUIRING_UP = "checkArchiveUnitProfileActionPlugin/archive-unit-schema-not-requiring-up.json";
+    private static final String ARCHIVE_UNIT_SCHEMA_REQUIRING_UP = "checkArchiveUnitProfileActionPlugin/archive-unit-profile-requiring-up.json";
+    private static final String ARCHIVE_UNIT_SCHEMA_NOT_REQUIRING_UP = "checkArchiveUnitProfileActionPlugin/archive-unit-profile-not-requiring-up.json";
 
 
     private final InputStream archiveUnit;
@@ -123,7 +122,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
     private final InputStream archiveUnitInvalidDescription;
     private final InputStream archiveUnitInvalidXml;
     private final InputStream archiveUnitSchema;
-    private final InputStream archiveUnitSchemaWithDescription;
+    private final InputStream archiveUnitSchemaWithCoverage;
     private final InputStream archiveUnitSchemaCustomDescriptionLevel;
     private final InputStream archiveUnitSchemaCustomStartDate;
     private final InputStream archiveUnitSchemaRequiringUp;
@@ -154,7 +153,7 @@ public class CheckArchiveUnitProfileActionPluginTest {
         archiveUnitInvalidRuleStartDate = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_RULE_START_DATE);
         archiveUnitInvalidDescription = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_INVALID_DESCRIPTION);
         archiveUnitSchema = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA);
-        archiveUnitSchemaWithDescription = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_DESCRIPTION);
+        archiveUnitSchemaWithCoverage = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_CONVERAGE);
         archiveUnitSchemaCustomDescriptionLevel =
             PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_CUSTOM_DESCRIPTION_LEVEL);
         archiveUnitSchemaCustomStartDate = PropertiesUtils.getResourceAsStream(ARCHIVE_UNIT_SCHEMA_CUSTOM_START_DATE);
@@ -281,16 +280,16 @@ public class CheckArchiveUnitProfileActionPluginTest {
     }
 
     @Test
-    public void givenNoDescriptionArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
-        // archive unit has no description when schema requires one
+    public void givenNoCoverageArchiveUnitJsonWhenExecuteThenReturnResponseKO() throws Exception {
+        // archive unit has no Coverage when schema requires one
         when(workspaceClient.getObject(any(), eq("Units/archiveUnit.json")))
             .thenReturn(Response.status(Status.OK).entity(archiveUnit).build());
         when(adminManagementClient.findArchiveUnitProfiles(any()))
-            .thenReturn(createArchiveUnitProfile(archiveUnitSchemaWithDescription));
+            .thenReturn(createArchiveUnitProfile(archiveUnitSchemaWithCoverage));
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), KO);
-        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(NOT_AU_JSON_VALID.name());
+        assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo(EMPTY_REQUIRED_FIELD.name());
     }
 
     @Test
