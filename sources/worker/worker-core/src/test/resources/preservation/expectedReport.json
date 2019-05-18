@@ -1,0 +1,89 @@
+{
+  "dslQuery": {
+    "$roots": [],
+    "$query": [
+      {
+        "$or": [
+          {
+            "$in": {
+              "#id": [
+                "aeaqaaaaaahlt7y7aa5mualkn4xs5qqaaaaq"
+              ]
+            }
+          },
+          {
+            "$in": {
+              "#allunitups": []
+            }
+          }
+        ],
+        "$depth": 1000
+      }
+    ],
+    "$filter": {
+      "$limit": 10000
+    },
+    "$projection": {},
+    "$facets": []
+  },
+  "preservationScenarioModel": {
+    "#id": "aeaaaaaaaahyso7rabeqmalkxojcrhiaaaaq",
+    "#tenant": 0,
+    "#version": 0,
+    "Name": "Tranformation en PNG",
+    "Identifier": "PSC-000003",
+    "Description": "Ce scenario transforme une image JPEG en WEBP",
+    "CreationDate": "2018-11-16T15:55:30.721",
+    "LastUpdate": "2019-05-15T12:57:59.104",
+    "ActionList": [
+      "GENERATE"
+    ],
+    "GriffinByFormat": [
+      {
+        "FormatList": [
+          "fmt/43"
+        ],
+        "GriffinIdentifier": "GRI-000004",
+        "Timeout": 20,
+        "MaxSize": 10000000,
+        "Debug": true,
+        "ActionDetail": [
+          {
+            "Type": "GENERATE",
+            "Values": {
+              "Extension": "PNG",
+              "Args": []
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "griffinModel": [
+    {
+      "#id": "aeaaaaaaaahyso7rabeqmalkxoi43paaaaaq",
+      "#tenant": 1,
+      "#version": 0,
+      "Name": "Griffon ImageMagick",
+      "Identifier": "GRI-000004",
+      "Description": "A griffin for griff the griffins",
+      "CreationDate": "2018-11-16T15:55:30.721",
+      "LastUpdate": "2019-05-15T12:57:35.926",
+      "ExecutableName": "imagemagick-griffin",
+      "ExecutableVersion": "V1.0.0"
+    },
+    {
+      "#id": "aeaaaaaaaahyso7rabeqmalkxoi43paaaaaq",
+      "#tenant": 1,
+      "#version": 0,
+      "Name": "Griffon ImageMagick",
+      "Identifier": "GRI-000004",
+      "Description": "A griffin for griff the griffins",
+      "CreationDate": "2018-11-16T15:55:30.721",
+      "LastUpdate": "2019-05-15T12:57:35.926",
+      "ExecutableName": "imagemagick-griffin",
+      "ExecutableVersion": "V1.0.0"
+    }
+  ]
+
+}

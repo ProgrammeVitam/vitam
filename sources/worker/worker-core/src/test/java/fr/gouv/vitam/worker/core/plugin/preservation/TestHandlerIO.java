@@ -58,7 +58,8 @@ public class TestHandlerIO implements HandlerIO {
     private String currentObjectId;
     private File newLocalFile;
     private InputStream inputStreamFromWorkspace;
-    private Map<String, File > transferedFileToWorkspaceMap = new HashMap<>();
+    private Map<String, InputStream> inputStreamMap = new HashMap<>();
+    private Map<String, File> transferedFileToWorkspaceMap = new HashMap<>();
 
     @Override
     public void addInIOParameters(List<IOParameter> list) {
@@ -162,7 +163,11 @@ public class TestHandlerIO implements HandlerIO {
     @Override
     public InputStream getInputStreamFromWorkspace(String objectName)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        return this.inputStreamFromWorkspace;
+        if (!inputStreamMap.isEmpty() && inputStreamMap.keySet().contains(objectName)) {
+            return inputStreamMap.get(objectName);
+        } else {
+            return this.inputStreamFromWorkspace;
+        }
     }
 
     @Override
@@ -250,6 +255,10 @@ public class TestHandlerIO implements HandlerIO {
 
     public void setInputStreamFromWorkspace(InputStream inputStreamFromWorkspace) {
         this.inputStreamFromWorkspace = inputStreamFromWorkspace;
+    }
+
+    public void setMapOfInputStreamFromWorkspace(String objectName, InputStream inputStreamFromWorkspaces) {
+        this.inputStreamMap.put(objectName, inputStreamFromWorkspaces);
     }
 
     public File getTransferedFileToWorkspace(String name) {

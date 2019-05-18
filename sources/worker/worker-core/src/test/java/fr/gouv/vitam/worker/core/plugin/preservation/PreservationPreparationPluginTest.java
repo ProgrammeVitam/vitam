@@ -16,7 +16,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +23,6 @@ import java.util.Map;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
@@ -37,10 +35,10 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -63,16 +61,22 @@ public class PreservationPreparationPluginTest {
 
     @Mock private MetaDataClient metaDataClient;
 
+    @Mock private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock private WorkspaceClient workspaceClient;
+
     private PreservationPreparationPlugin preservationPreparationPlugin;
 
     @Before
     public void setUp() throws Exception {
 
-        preservationPreparationPlugin =
-            new PreservationPreparationPlugin(adminManagementClientFactory, metaDataClientFactory);
-
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+
+        preservationPreparationPlugin =
+            new PreservationPreparationPlugin(adminManagementClientFactory, metaDataClientFactory, workspaceClientFactory);
+
 
         List<GriffinModel> list = getFromStringAsTypeRefence(griffinIds,
             new TypeReference<List<GriffinModel>>() {

@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -43,6 +44,8 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
+import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
 import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -52,13 +55,19 @@ import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.preservation.model.ContextPreservationReport;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.ReportOutput;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.StatusOutcome;
 import fr.gouv.vitam.worker.core.plugin.preservation.service.PreservationReportService;
 import fr.gouv.vitam.worker.core.utils.PluginHelper.EventDetails;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,8 +102,15 @@ public class PreservationFinalizationPlugin extends ActionHandler {
 
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
         String evId = param.getRequestId();
-        try (InputStream inputRequest = handler.getInputStreamFromWorkspace("preservationRequest")) {
+        try (InputStream inputRequest = handler.getInputStreamFromWorkspace("preservationRequest");
+            InputStream scenarioModelInputStream = handler.getInputStreamFromWorkspace("preservationScenarioModel")) {
+
+
             PreservationRequest preservationRequest = JsonHandler.getFromInputStream(inputRequest, PreservationRequest.class);
+            File griffinModelFile = handler.getFileFromWorkspace("griffinModel");
+            List<GriffinModel> griffinModel =
+                JsonHandler.getFromFileAsTypeRefence(griffinModelFile, new TypeReference<List<GriffinModel>>() {});
+            PreservationScenarioModel scenarioModel = JsonHandler.getFromInputStream(scenarioModelInputStream, PreservationScenarioModel.class);
 
             JsonNode result = logbookOperationsClient.selectOperationById(param.getContainerName());
             RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(result);
@@ -123,10 +139,13 @@ public class PreservationFinalizationPlugin extends ActionHandler {
             ReportResults vitamResults = new ReportResults();
             JsonNode extendedInfo = JsonHandler.createObjectNode();
             ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
-            JsonNode context = preservationRequest.getDslQuery();
+            ContextPreservationReport contextPreservationReport =
+                new ContextPreservationReport(preservationRequest.getDslQuery(), scenarioModel, griffinModel);
+            JsonNode context = JsonHandler.toJsonNode(contextPreservationReport);
             Report reportInfo = new Report(operationSummary, reportSummary, context);
             preservationReportService.storeReport(reportInfo, param.getRequestId());
         } catch (Exception e) {
+
             LOGGER.error("Error on finalization", e);
             ObjectNode eventDetails = JsonHandler.createObjectNode();
             eventDetails.put("error", e.getMessage());
