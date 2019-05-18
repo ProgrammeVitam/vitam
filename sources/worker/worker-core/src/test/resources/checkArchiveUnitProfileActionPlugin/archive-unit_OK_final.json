@@ -1,5 +1,6 @@
 {
   "ArchiveUnit": {
+    "dev-note": "This test pseudo-AU is not required to match the general Json Schema for AU",
     "_id": "aeaqaaaaaacsux3labni6ak3ikmeioiaaaaq",
     "DescriptionLevel": "RecordGrp",
     "Title": "Versement des synth\u00e8ses du plan national de formation au\n                        SIAM et des livrables des ateliers du groupe de travail minist\u00e9riel sur\n                        l'archivage \u00e9lectronique.",
@@ -29,9 +30,9 @@
       "Adso"
     ],
     "Coverage": {
-      "Spatial": "Valeur de Spatial",
-      "Temporal": "Valeur de temporal",
-      "Juridictional": "Valeur de juridictional"
+      "Spatial": ["Valeur de Spatial"],
+      "Temporal": ["Valeur de temporal"],
+      "Juridictional": ["Valeur de juridictional"]
     },
     "OriginatingAgency": {
       "Identifier": "Identifiant de l'OriginatingAgency"
