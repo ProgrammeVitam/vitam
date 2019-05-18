@@ -29,9 +29,9 @@
       "Adso"
     ],
     "Coverage": {
-      "Spatial": "Valeur de Spatial",
-      "Temporal": "Valeur de temporal",
-      "Juridictional": "Valeur de juridictional"
+      "Spatial": ["Valeur de Spatial"],
+      "Temporal": ["Valeur de temporal"],
+      "Juridictional": ["Valeur de juridictional"]
     },
     "OriginatingAgency": {
       "Identifier": "Identifiant de l'OriginatingAgency"

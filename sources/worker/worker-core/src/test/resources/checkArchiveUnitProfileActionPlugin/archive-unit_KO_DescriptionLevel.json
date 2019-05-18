@@ -1,5 +1,6 @@
 {
 	"ArchiveUnit": {
+		"dev-note": "This test pseudo-AU is not required to match the general Json Schema for AU",
 		"_id": "aeaqaaaaaaaaaaabab4roakztdjqziaaaaaq",
 		"_tenant": 0,
 		"ArchiveUnitProfile": "AUP_0001",
