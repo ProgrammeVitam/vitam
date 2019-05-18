@@ -23,23 +23,23 @@
 	},
 	"Signature" :
 	{
-			"DateSignature" : "2017-08-24T14:56:31.000+02:00",
-			"Signer" :
-			{
-					"Corpname" : "Service d'archives 2",
-					"SigningTime" : "2017-11-13T19:28:40"
-			},
-			"Validator" : {
-				"FirstName" : "Laurent",
-				"BirthName" : "Dupois",
-				"ValidationTime" : "2016-10-12T16:28:40"
-			},
-			"ReferencedObject" : {
-				"SignedObjectDigest" : {
-					"Value" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
-					"Algorithm" : "SHA-512"
-				}
+		"DateSignature" : "2017-08-24T14:56:31.000+02:00",
+		"Signer" :
+		{
+			"Corpname" : "Service d'archives 2",
+			"SigningTime" : "2017-11-13T19:28:40"
+		},
+		"Validator" : {
+			"FirstName" : "Laurent",
+			"BirthName" : "Dupois",
+			"ValidationTime" : "2016-10-12T16:28:40"
+		},
+		"ReferencedObject" : {
+			"SignedObjectDigest" : {
+				"Value" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+				"Algorithm" : "SHA-512"
 			}
+		}
 	},
 	"_storage": {
 		"_nbc": 2,

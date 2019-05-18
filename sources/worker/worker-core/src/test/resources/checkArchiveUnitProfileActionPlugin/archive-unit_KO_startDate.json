@@ -1,5 +1,6 @@
 {
   "ArchiveUnit": {
+    "dev-note": "This test pseudo-AU is not required to match the general Json Schema for AU",
     "_id": "aeaqaaaaaacsux3labni6ak3ikmeioiaaaaq",
     "ArchiveUnitProfile": "AUP_0001",
     "DescriptionLevel": "RecordGrp",
@@ -30,9 +31,9 @@
       "Adso"
     ],
     "Coverage": {
-      "Spatial": "Valeur de Spatial",
-      "Temporal": "Valeur de temporal",
-      "Juridictional": "Valeur de juridictional"
+      "Spatial": ["Valeur de Spatial"],
+      "Temporal": ["Valeur de temporal"],
+      "Juridictional": ["Valeur de juridictional"]
     },
     "OriginatingAgency": {
       "Identifier": "Identifiant de l'OriginatingAgency"

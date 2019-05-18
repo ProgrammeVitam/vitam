@@ -91,12 +91,13 @@
 		},
 		"AnyOtherField": "AnyOtherValue",
 		"DescriptionLevel": "Item",
-		"AuthorizedAgent":
+		"AuthorizedAgent":  [
 			{
 				"FirstName": "Ludovic",
 				"GivenName": "BLANCHET",
 				"BirthName": "1990-10-01",
 				"BirthPlace": "Lagny sur Marne"
 			}
+		]
 	}
 }

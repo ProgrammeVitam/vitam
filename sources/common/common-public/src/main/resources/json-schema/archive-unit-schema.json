@@ -25,31 +25,31 @@
         "type": "string"
       }
     },
-    "string-or-string-array": {
-      "type": [
-        "string",
-        "array"
-      ],
-      "items": {
-        "type": "string"
-      }
-    },
     "token": {
       "type": "string"
     },
     "id": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[\\w_\u00C0-\uFFFF][\\w\\d_\\.\\-\u00C0-\uFFFF]*$"
     },
-    "non-empty-tokens": {
+    "lang": {
+      "type": "string",
+      "pattern": "^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$"
+    },
+    "non-empty-token": {
       "type": [
-        "array",
         "string"
+      ],
+      "minLength": 1
+    },
+    "non-empty-token-array": {
+      "type": [
+        "array"
       ],
       "items": {
         "type": "string",
         "minLength": 1
-      },
-      "minLength": 1
+      }
     },
     "agent-type": {
       "$ref": "#/definitions/agent-type+signature+validation",
@@ -245,20 +245,20 @@
           "required": [
             "PreventInheritance"
           ],
-          "not" : {            
+          "not" : {
             "required": [
               "PreventRulesId"
-            ]              
+            ]
           }
         },
         {
           "required": [
             "PreventRulesId"
           ],
-          "not" : {            
+          "not" : {
             "required": [
               "PreventInheritance"
-            ]              
+            ]
           }
         },
         {
@@ -342,13 +342,13 @@
       "type": "object",
       "properties": {
         "EventIdentifier": {
-          "$ref": "#/definitions/non-empty-tokens"
+          "$ref": "#/definitions/non-empty-token"
         },
         "EventTypeCode": {
-          "$ref": "#/definitions/non-empty-tokens"
+          "$ref": "#/definitions/non-empty-token"
         },
         "EventType": {
-          "$ref": "#/definitions/non-empty-tokens"
+          "$ref": "#/definitions/non-empty-token"
         },
         "EventDateTime": {
           "$ref": "#/definitions/date-time-opt"
@@ -357,19 +357,16 @@
           "type": "string"
         },
         "Outcome": {
-          "$ref": "#/definitions/non-empty-tokens"
+          "$ref": "#/definitions/non-empty-token"
         },
         "OutcomeDetail": {
-          "$ref": "#/definitions/non-empty-tokens"
+          "$ref": "#/definitions/non-empty-token"
         },
         "OutcomeDetailMessage": {
-          "$ref": "#/definitions/non-empty-tokens"
+          "$ref": "#/definitions/non-empty-token"
         },
         "EventDetailData": {
-          "$ref": "#/definitions/non-empty-tokens"
-        },
-        "EventAbstract": {
-          "type": "array"
+          "$ref": "#/definitions/non-empty-token"
         }
       },
       "required": [
@@ -640,38 +637,41 @@
       "minLength": 1
     },
     "Title_": {
+      "type": "object",
+      "additionalProperties": false,
       "patternProperties": {
-        ".*": {
+        "^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$": {
           "type": "string",
           "minLength": 1
         }
       }
     },
     "FilePlanPosition": {
-      "$ref": "#/definitions/string-array"
+      "$ref": "#/definitions/non-empty-token-array"
     },
     "SystemId": {
-      "$ref": "#/definitions/string-array"
+      "$ref": "#/definitions/non-empty-token-array"
     },
     "OriginatingSystemId": {
-      "$ref": "#/definitions/non-empty-tokens"
+      "$ref": "#/definitions/non-empty-token-array"
     },
     "ArchivalAgencyArchiveUnitIdentifier": {
-      "$ref": "#/definitions/non-empty-tokens"
+      "$ref": "#/definitions/non-empty-token-array"
     },
     "OriginatingAgencyArchiveUnitIdentifier": {
-      "$ref": "#/definitions/non-empty-tokens"
+      "$ref": "#/definitions/non-empty-token-array"
     },
     "TransferringAgencyArchiveUnitIdentifier": {
-      "$ref": "#/definitions/non-empty-tokens"
+      "$ref": "#/definitions/non-empty-token-array"
     },
     "Description": {
       "type": "string",
       "minLength": 1
     },
     "Description_": {
+      "type": "object",
       "patternProperties": {
-        ".*": {
+        "^[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*$": {
           "type": "string",
           "minLength": 1
         }
@@ -720,10 +720,13 @@
       "type": "string"
     },
     "Language": {
-      "$ref": "#/definitions/string-array"
+      "$ref": "#/definitions/string-array",
+      "items": {
+        "$ref": "#/definitions/lang"
+      }
     },
     "DescriptionLanguage": {
-      "type": "string"
+      "$ref": "#/definitions/lang"
     },
     "Status": {
       "type": "string"
@@ -770,13 +773,13 @@
       "additionalProperties": false,
       "properties": {
         "Spatial": {
-          "$ref": "#/definitions/string-or-string-array"
+          "$ref": "#/definitions/string-array"
         },
         "Temporal": {
-          "$ref": "#/definitions/string-or-string-array"
+          "$ref": "#/definitions/string-array"
         },
         "Juridictional": {
-          "$ref": "#/definitions/string-or-string-array"
+          "$ref": "#/definitions/string-array"
         }
       }
     },
@@ -995,6 +998,7 @@
     },
     "Gps": {
       "type": "object",
+      "additionalProperties": false,
       "properties": {
         "GpsVersionID": {
           "type": "string"
