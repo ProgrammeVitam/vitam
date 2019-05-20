@@ -7,5 +7,5 @@
 	"LastUpdate":"2018-03-29",
 	"ActivationDate":"2018-03-02",
 	"DeactivationDate":"2018-03-02",
-	"ControlSchema":"{\"$schema\": \"http:\/\/vitam-json-schema.org\/draft-04\/schema#\",\"id\": \"http:\/\/example.com\/root.json\",\"type\": \"object\",\"additionalProperties\": true}"
+	"ControlSchema":"{\"$schema\": \"http://json-schema.org/draft-04/schema#\",\"id\": \"http://example.com/root.json\",\"type\": \"object\",\"additionalProperties\": true}"
 }
