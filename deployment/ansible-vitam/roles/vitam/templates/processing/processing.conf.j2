@@ -3,3 +3,5 @@ urlWorkspace: {{ vitam.workspace | client_url }}
 jettyConfig: jetty-config.xml
 workflowRefreshPeriod: 1
 processingCleanerPeriod: 1
+maxDistributionInMemoryBufferSize: {{vitam.processing.maxDistributionInMemoryBufferSize | default(100000) }}
+maxDistributionOnDiskBufferSize: {{vitam.processing.maxDistributionOnDiskBufferSize | default(100000000) }}
