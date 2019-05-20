@@ -1,5 +1,6 @@
 {
 	"ArchiveUnit": {
+		"dev-note": "This test pseudo-AU is not required to match the general Json Schema for AU",
 		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
 		"ArchiveUnitProfile": "AUP_0001",
 		"Management": {
@@ -49,7 +50,7 @@
 		"AnyOtherField": "AnyOtherValue",
 		"DescriptionLevel": "Item",
 		"Title": "My title",
-		"AuthorizedAgent":
+		"AuthorizedAgent": [
 			{
 				"FirstName": "Ludovic",
 				"GivenName": "BLANCHET",
@@ -58,5 +59,6 @@
 					"City":"Lagny sur Marne"
 				}
 			}
+		]
 	}
 }

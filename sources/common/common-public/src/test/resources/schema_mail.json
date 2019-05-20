@@ -1,5 +1,5 @@
 {
-  "$schema": "http://vitam-json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
   "id": "http://example.com/root.json",
   "type": "object",
   "additionalProperties": false,
