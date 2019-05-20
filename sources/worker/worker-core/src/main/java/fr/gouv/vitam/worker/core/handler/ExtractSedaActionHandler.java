@@ -111,6 +111,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupEveryDataObjectVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyVersionsByUsageException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
@@ -212,6 +213,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         "MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED";
 
     private static final String SUBTASK_MALFORMED = "CHECK_MANIFEST_MALFORMED_DATA";
+    private static final String AU_REFRENCES_MULTIPLE_GOT = "ARCHIVEUNIT_REFERENCES_MULTIPLE_OBJECTGROUP";
     private static final String EXISTING_OG_NOT_DECLARED = "EXISTING_OG_NOT_DECLARED";
     private static final String MASTER_MANDATORY_REQUIRED = "MASTER_MANDATORY_REQUIRED";
     private static final String ATTACHMENT_OBJECTGROUP = "ATTACHMENT_OBJECTGROUP";
@@ -527,6 +529,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
             ObjectNode error = JsonHandler.createObjectNode();
             error.put("error", e.getMessage());
             updateDetailItemStatus(globalCompositeItemStatus, JsonHandler.unprettyPrint(error), SUBTASK_MALFORMED);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingObjectReferenceException e) {
+            LOGGER.error("ProcessingObjectReferenceException: archive unit references more than one got");
+            ObjectNode error = JsonHandler.createObjectNode();
+            error.put("error", e.getMessage());
+            updateDetailItemStatus(globalCompositeItemStatus, JsonHandler.unprettyPrint(error), AU_REFRENCES_MULTIPLE_GOT);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingManifestReferenceException e) {
             LOGGER.debug("ProcessingException : reference incorrect in Manifest", e);

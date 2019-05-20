@@ -103,6 +103,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataExceptio
 import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -328,7 +329,7 @@ public class ArchiveUnitListener extends Unmarshaller.Listener {
             ArchiveUnitRoot archiveUnitRoot;
             try {
                 archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId);
-            } catch (ProcessingMalformedDataException e) {
+            } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException e) {
                 throw new VitamRuntimeException(e);
             }
 
