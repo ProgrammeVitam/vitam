@@ -18,7 +18,7 @@
   tags:
     - init_pronom
 
-- name: copy temporary PEM certificate 
+- name: copy temporary PEM certificate
   copy:
     src: "{{inventory_dir}}/keystores/client-external/keystore_vitam-admin-int.pem"
     dest: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
@@ -29,15 +29,15 @@
   tags:
     - init_pronom
 
-- name: Ensure service is started 
+- name: Ensure service is started
   service:
     name: "vitam-access-external"
     state: started
 
 - name: wait for service to be up'n'running on business port
-  wait_for: 
-    host: "{{ ip_service }}" 
-    port: "{{ vitam.accessexternal.port_service }}" 
+  wait_for:
+    host: "{{ ip_service }}"
+    port: "{{ vitam.accessexternal.port_service }}"
     timeout: "{{ vitam_defaults.services.start_timeout }}"
   run_once: true
 
@@ -52,8 +52,6 @@
       X-Tenant-Id: "{{ vitam_tenant_admin }}"
       Content-Type: "application/octet-stream"
       Host: "{{ vitam_struct.host }}"
-      # FIXME beurk : Transfer-Encoding badly handled
-      Transfer-Encoding: "anotherthanchunk"
     body: "{{ lookup('file', '{{inventory_dir}}/DROID_SignatureFile_V88.xml') }}"
     body_format: "raw"
     validate_certs: false
@@ -67,7 +65,7 @@
   tags:
     - init_pronom
 
-- name: remove temporary PEM certificate 
+- name: remove temporary PEM certificate
   file:
     path: "{{ vitam_defaults.folder.root_path }}/tmp/access-external/keystore_vitam-admin-int.pem"
     state: absent
