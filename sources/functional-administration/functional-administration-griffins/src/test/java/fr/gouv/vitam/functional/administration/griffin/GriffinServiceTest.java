@@ -306,11 +306,7 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void shouldImportGriffin() throws Exception {
         //Given
-        List<GriffinModel> listToImport = JsonHandler.getFromFileAsTypeRefence(
-            PropertiesUtils.getResourceFile("griffins.json"),
-            new TypeReference<List<GriffinModel>>() {
-            }
-        );
+        List<GriffinModel> listToImport = JsonHandler.getFromFileAsTypeRefence(PropertiesUtils.getResourceFile("griffins.json"), valueTypeRef);
 
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
 

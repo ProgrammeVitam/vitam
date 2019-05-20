@@ -26,13 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.Scenario;
 import cucumber.api.java.After;
@@ -66,6 +59,13 @@ import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class World {
 
@@ -170,6 +170,8 @@ public class World {
     public void init() throws IOException {
         configuration();
         VitamConfiguration.setSecret(tnrClientConfiguration.getVitamSecret());
+        VitamConfiguration.setTenants(tnrClientConfiguration.getTenants());
+        VitamConfiguration.setAdminTenant(tnrClientConfiguration.getAdminTenant());
         ingestClient = IngestExternalClientFactory.getInstance().getClient();
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
