@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.preservation.DefaultGriffin;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinByFormat;
 import fr.gouv.vitam.common.model.administration.preservation.GriffinModel;
 import fr.gouv.vitam.common.model.administration.preservation.PreservationScenarioModel;
@@ -82,6 +83,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateForMongo;
@@ -334,8 +336,7 @@ public class GriffinService {
             .spliterator();
 
         return StreamSupport.stream(preservationModels, false)
-            .flatMap(preservationScenarioModel -> preservationScenarioModel.getGriffinByFormat().stream())
-            .map(GriffinByFormat::getGriffinIdentifier)
+            .flatMap(model -> Stream.concat(model.getGriffinByFormat().stream().map(GriffinByFormat::getGriffinIdentifier), Stream.of(model.getDefaultGriffin()).map(DefaultGriffin::getGriffinIdentifier)))
             .filter(griffinIds::contains)
             .collect(Collectors.toSet());
     }
