@@ -48,11 +48,10 @@ import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
-import fr.gouv.vitam.common.model.unit.RuleModel;
 import fr.gouv.vitam.processing.common.exception.ProcessingMalformedDataException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 
 import javax.xml.bind.JAXBElement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,7 +78,7 @@ public class ArchiveUnitMapper {
      * @return ArchiveUnitRoot
      */
     public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId)
-        throws ProcessingMalformedDataException {
+        throws ProcessingMalformedDataException, ProcessingObjectReferenceException {
 
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
         ArchiveUnitModel archiveUnit = archiveUnitRoot.getArchiveUnit();
@@ -107,7 +106,8 @@ public class ArchiveUnitMapper {
         return archiveUnitRoot;
     }
 
-    public DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType) {
+    public DataObjectReference mapDataObjectReference(ArchiveUnitType archiveUnitType)
+        throws ProcessingObjectReferenceException {
         List<DataObjectReference> objectReferences =
             archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()
                 .filter(item -> item instanceof JAXBElement)
@@ -123,10 +123,16 @@ public class ArchiveUnitMapper {
                 })
                 .collect(Collectors.toList());
 
+        if (objectReferences.size() > 1) {
+            throw new ProcessingObjectReferenceException("archive unit '" + archiveUnitType.getId() +
+                "' references more than one technical object group");
+        }
+
         return Iterables.getOnlyElement(objectReferences, null);
     }
 
-    private void fillManagement(ManagementType managementType, ManagementModel managementModel) throws ProcessingMalformedDataException {
+    private void fillManagement(ManagementType managementType, ManagementModel managementModel)
+        throws ProcessingMalformedDataException {
         if (managementType != null) {
             managementModel.setUpdateOperationType(managementType.getUpdateOperation());
             managementModel.setNeedAuthorization(managementType.isNeedAuthorization());
@@ -180,7 +186,7 @@ public class ArchiveUnitMapper {
 
         if (classificationRule != null) {
 
-            if (classificationRuleCategory == null ) {
+            if (classificationRuleCategory == null) {
                 classificationRuleCategory = new RuleCategoryModel();
             }
 
@@ -202,7 +208,8 @@ public class ArchiveUnitMapper {
             }
 
             if (classificationRule.isNeedReassessingAuthorization() != null) {
-                classificationRuleCategory.setNeedReassessingAuthorization(classificationRule.isNeedReassessingAuthorization());
+                classificationRuleCategory
+                    .setNeedReassessingAuthorization(classificationRule.isNeedReassessingAuthorization());
             }
 
         }
@@ -260,8 +267,9 @@ public class ArchiveUnitMapper {
         }
     }
 
-    private void fillHistory(List<ManagementHistoryType> managementHistoryType, List<ArchiveUnitHistoryModel> archiveUnitHistoryModel)
-            throws ProcessingMalformedDataException {
+    private void fillHistory(List<ManagementHistoryType> managementHistoryType,
+        List<ArchiveUnitHistoryModel> archiveUnitHistoryModel)
+        throws ProcessingMalformedDataException {
         if (managementHistoryType == null) {
             return;
         }
