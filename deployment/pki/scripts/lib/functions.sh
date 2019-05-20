@@ -19,8 +19,8 @@ fi
 function read_ansible_var {
     local ANSIBLE_VAR="${1}"
     local ANSIBLE_HOST="${2}"
-    local ANSIBLE_CONFIG="${REPERTOIRE_ROOT}/pki/scripts/lib/ansible.cfg"
 
+    ANSIBLE_CONFIG="${REPERTOIRE_ROOT}/pki/scripts/lib/ansible.cfg" \
     ansible ${ANSIBLE_HOST} -i ${ENVIRONNEMENT_FILE} ${ANSIBLE_VAULT_PASSWD} -m debug -a "var=${ANSIBLE_VAR}" \
     | grep "${ANSIBLE_VAR}" | awk -F ":" '{gsub("\\s","",$2); print $2}'
 }
