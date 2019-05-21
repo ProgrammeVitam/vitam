@@ -59,6 +59,10 @@
     validate_certs: false
     timeout: "{{ vitam_defaults.services.api_call_timeout }}"
     status_code: 201
+  register: pronom_result
+  until: pronom_result.status != -1
+  retries: 5
+  delay: 10
   run_once: true # Limit as this upload is not related to tenants
   tags:
     - init_pronom
