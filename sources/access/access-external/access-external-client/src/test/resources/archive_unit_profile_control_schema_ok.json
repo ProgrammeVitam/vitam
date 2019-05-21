@@ -8,7 +8,7 @@
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016",
-		"ControlSchema": "{\"$schema\": \"http:\/\/vitam-json-schema.org\/draft-04\/schema#\",\"id\": \"http:\/\/example.com\/root.json\",\"type\": \"object\",\"additionalProperties\": true}"
+		"ControlSchema": "{\"$schema\": \"http://json-schema.org/draft-04/schema#\",\"id\": \"http://example.com/root.json\",\"type\": \"object\",\"additionalProperties\": true}"
 	},
 	{
 		"Identifier":"aIdentifier2",
@@ -19,6 +19,6 @@
 		"CreationDate":"10/12/2016",
 		"ActivationDate":"10/12/2016",
 		"DeactivationDate":"10/12/2016",
-		"ControlSchema": "{\"$schema\": \"http:\/\/vitam-json-schema.org\/draft-04\/schema#\",\"id\": \"http:\/\/example.com\/root.json\",\"type\": \"object\",\"additionalProperties\": true,\"properties\": {    \"_id\": {      \"type\": \"string\"    },    \"_og\": {      \"type\": \"string\"    }}}"
+		"ControlSchema": "{\"$schema\": \"http://json-schema.org/draft-04/schema##\",\"id\": \"http://example.com/root.json\",\"type\": \"object\",\"additionalProperties\": true,\"properties\": {    \"_id\": {      \"type\": \"string\"    },    \"_og\": {      \"type\": \"string\"    }}}"
 	}
 ]

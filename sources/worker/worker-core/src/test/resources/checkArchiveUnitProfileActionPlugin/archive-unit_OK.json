@@ -1,5 +1,6 @@
 {
 	"ArchiveUnit": {
+		"dev-note": "This test pseudo-AU is not required to match the general Json Schema for AU",
 		"_id": "aeaqaaaaaahfrfvaaahrgak25v5fttiaaaaq",
 		"ArchiveUnitProfile": "AUP_0001",
 		"Management": {
@@ -43,36 +44,24 @@
 				"Rules": [
 					{
 						"Rule": "CLR001",
-						"StartDate": "2012-11-15",
-						"ClassificationLevel": "Level",
-						"ClassificationOwner": "Owner",
-						"ClassificationReassessingDate": "2016-05-02",
-						"NeedReassessingAuthorization": false
+						"StartDate": "2012-11-15"
 					},
 					{
 						"Rule": "CLR001",
-						"StartDate": "2012-11-15",
-						"ClassificationLevel": "Level",
-						"ClassificationOwner": "Owner",
-						"ClassificationReassessingDate": "2016-05-02",
-						"NeedReassessingAuthorization": true
+						"StartDate": "2012-11-15"
 					},
 					{
 						"Rule": "CLR002",
-						"StartDate": "2012-11-15",
-						"ClassificationLevel": "Level",
-						"ClassificationOwner": "Owner",
-						"ClassificationReassessingDate": "2016-05-02",
-						"NeedReassessingAuthorization": false
+						"StartDate": "2012-11-15"
 					}
 				],
 				"Inheritance": {
-					"PreventRulesId": [
-						"ID1",
-						"ID2"
-					],
-					"PreventInheritance": "ID"
-				}
+					"PreventInheritance": false
+				},
+				"ClassificationLevel": "Level",
+				"ClassificationOwner": "Owner",
+				"ClassificationReassessingDate": "2016-05-02",
+				"NeedReassessingAuthorization": false
 			},
 			"NeedAuthorization": true,
 			"AnyOtherField": "AnyOtherValue",
@@ -93,7 +82,7 @@
 		"AnyOtherField": "AnyOtherValue",
 		"DescriptionLevel": "Item",
 		"Title": "My title",
-		"AuthorizedAgent":
+		"AuthorizedAgent": [
 			{
 				"FirstName": "Ludovic",
 				"GivenName": "BLANCHET",
@@ -102,5 +91,6 @@
 					"City":"Lagny sur Marne"
 				}
 			}
+		]
 	}
 }
