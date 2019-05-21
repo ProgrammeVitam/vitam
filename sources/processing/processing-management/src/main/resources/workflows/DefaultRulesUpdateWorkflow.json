@@ -12,7 +12,7 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
-        "element": "PROCESSING\/updatedRules.json"
+        "element": "PROCESSING/updatedRules.json"
       },
       "actions": [
         {
@@ -22,7 +22,7 @@
             "out": [
               {
                 "name": "runningingests.file",
-                "uri": "WORKSPACE:PROCESSING\/runningIngests.json"
+                "uri": "WORKSPACE:PROCESSING/runningIngests.json"
               }
             ]
           }
@@ -34,7 +34,7 @@
             "out": [
               {
                 "name": "updatedarchiveunits.file",
-                "uri": "WORKSPACE:PROCESSING\/auToBeUpdated.json"
+                "uri": "WORKSPACE:PROCESSING/auToBeUpdated.json"
               }
             ]
           }
@@ -70,7 +70,7 @@
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF",
-        "element": "PROCESSING\/updatedRules.json"
+        "element": "PROCESSING/updatedRules.json"
       },
       "actions": [
         {
@@ -80,7 +80,7 @@
             "in": [
               {
                 "name": "runningingests.file",
-                "uri": "WORKSPACE:PROCESSING\/runningIngests.json"
+                "uri": "WORKSPACE:PROCESSING/runningIngests.json"
               }
             ]
           }
