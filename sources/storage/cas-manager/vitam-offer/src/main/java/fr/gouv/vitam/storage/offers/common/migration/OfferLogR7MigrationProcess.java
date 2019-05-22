@@ -113,7 +113,7 @@ public class OfferLogR7MigrationProcess {
             List<Document> offerLogList = bulkIterator.next();
             if (!offerLogList.isEmpty()) {
                 migrateBulk(executorService, offerLogList);
-                long lastOffset = ((Number)offerLogList.get(offerLogList.size() - 1).get("Sequence")).longValue();
+                long lastOffset = ((Number) offerLogList.get(offerLogList.size() - 1).get("Sequence")).longValue();
                 LOGGER.warn("OfferLog migration offset snapshot: " + lastOffset);
                 this.offerMigrationStatus.setCurrentOffset(lastOffset);
             }
@@ -123,7 +123,11 @@ public class OfferLogR7MigrationProcess {
     private Iterator<List<Document>> listOfferLogs(Long startOffset) {
         Bson sequenceSort = Sorts.orderBy(Sorts.ascending(SEQUENCE));
 
-        Bson offsetQuery = Filters.eq("_FormatVersion", OfferLogFormatVersion.V1.name());
+        Bson offsetQuery = Filters.or(
+            Filters.eq("_FormatVersion", OfferLogFormatVersion.V1.name()),
+            // Defaults to V1
+            Filters.exists("_FormatVersion", false)
+        );
         if (startOffset != null) {
             offsetQuery = and(offsetQuery, gte(SEQUENCE, startOffset));
         }
