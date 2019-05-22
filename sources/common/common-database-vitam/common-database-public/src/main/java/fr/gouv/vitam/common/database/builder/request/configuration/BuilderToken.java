@@ -825,12 +825,12 @@ public abstract class BuilderToken {
      *   { $inc : { clef : valeur, clef : valeur, ... } } incrémente la valeur
      *   { $rename : { clef : nouvelleclef, ... } } renomme une clef
      *   { $push : { clef : valeur, ... } : ajoute une valeur à une clef de liste (si la liste maliste est [ a, b, c], $push : { maliste : b } donnera maliste = [ a, b, c, b])
-     *     { $push : { clef : { $each : [valeur, valeur, ... ] } } } idem mais plusieurs éléments en une fois ($push : { maliste : { $each : [ b, d, e, a] } } donnera  maliste = [ a, b, c, b, d, e, a] )
+     *     { $push : { clef : [valeur, valeur, ... ] } } idem mais plusieurs éléments en une fois ($push : { maliste : [ b, d, e, a] } donnera  maliste = [ a, b, c, b, d, e, a] )
      *   { $add : { clef : valeur, ... } : ajoute une valeur à une clef de liste mais si celle-ci n'y est pas déjà (si la liste maliste est [ a, b, c], $add : { maliste : b } ne changera pas la liste, tandis que $add : { maliste : d } donnera maliste = [ a, b, c, d] )
-     *     Si valeur est multiple (une liste) et que chacune des valeurs doit être intégrées : $add : { maliste : { $each : [ b, d, e, a] } } donnera maliste = [ a, b, c, d, e]
+     *     Si valeur est multiple (une liste) et que chacune des valeurs doit être intégrées : $add : { maliste : [ b, d, e, a] } donnera maliste = [ a, b, c, d, e]
      *   { $pop : { clef : 1 ou -1 } } retire le dernier (1) ou le premier (-1) élément de la liste
      *   { $pull : { clef : valeur } } retire l'élément valeur de la liste
-     *     { $pull : { clef : { $each : [valeur, valeur, ... ] } } } idem mais plusieurs éléments en une fois
+     *     { $pull : { clef : [valeur, valeur, ... ] } } idem mais plusieurs éléments en une fois
      *   { $sort : { clef : 1 ou -1 } } pour trier une liste selon un ordre ascendant (1) ou descendant (-1)
      * 3 parties : critères de sélection (expression depuis root) + filtres (multi) + action
      * retourne : la requête + des info générales (nb de résultats) + les n premiers résultats (noeuds mis à jour) selon le format souhaité
@@ -872,18 +872,18 @@ public abstract class BuilderToken {
          */
         RENAME("rename"),
         /**
-         * Add one element at the end of a list value, or each element of a list if $each parameter is used <br>
-         * $push : { name : { $each : [ value, value, ... ] } }
+         * Add one element at the end of a list value, or each element of a list<br>
+         * $push : { name : [ value, value, ... ] }
          */
         PUSH("push"),
         /**
-         * Remove one specific element from a list or each element of a list if $each parameter is used <br>
-         * $pull : { name : { $each : [ value, value, ... ] } }
+         * Remove one specific element from a list or each element of a list<br>
+         * $pull : { name : [ value, value, ... ] }
          */
         PULL("pull"),
         /**
          * Add one element (or each element of a list) if not already in the list <br>
-         * $add : { name : { $each : [ value, value, ... ] } }
+         * $add : { name : [ value, value, ... ] }
          */
         ADD("add"),
         /**
@@ -902,32 +902,6 @@ public abstract class BuilderToken {
          * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
          */
         private UPDATEACTION(String realName) {
-            exactToken = DEFAULT_PREFIX + realName;
-        }
-
-        /**
-         * @return the exact token
-         */
-        public final String exactToken() {
-            return exactToken;
-        }
-    }
-
-
-    /**
-     * Update Args model
-     */
-    public static enum UPDATEACTIONARGS {
-        /**
-         * Update argument
-         */
-        EACH("each");
-        private final String exactToken;
-
-        /**
-         * Constructor Add DEFAULT_PREFIX before the exactToken ($+exactToken)
-         */
-        private UPDATEACTIONARGS(String realName) {
             exactToken = DEFAULT_PREFIX + realName;
         }
 
