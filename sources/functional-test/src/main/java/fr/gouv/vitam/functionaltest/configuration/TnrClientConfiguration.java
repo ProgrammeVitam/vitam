@@ -36,7 +36,7 @@ import java.util.List;
 public class TnrClientConfiguration {
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     private List<Integer> tenants;
-    private Integer adminTenants;
+    private Integer adminTenant;
 
     /**
      * Empty ClientConfiguration constructor for YAMLFactory
@@ -107,7 +107,7 @@ public class TnrClientConfiguration {
     }
 
     public Integer getAdminTenant() {
-        return adminTenants;
+        return adminTenant;
     }
 
     public void setTenants(List<Integer> tenants) {
@@ -115,8 +115,8 @@ public class TnrClientConfiguration {
         this.tenants = tenants;
     }
 
-    public void setAdminTenants(Integer adminTenants) {
-        ParametersChecker.checkParameter("Mandatory", adminTenants);
-        this.adminTenants = adminTenants;
+    public void setAdminTenant(Integer adminTenant) {
+        ParametersChecker.checkParameter("Mandatory", adminTenant);
+        this.adminTenant = adminTenant;
     }
 }
