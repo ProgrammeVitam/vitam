@@ -27,7 +27,6 @@
 package fr.gouv.vitam.functionaltest.configuration;
 
 import fr.gouv.vitam.common.ParametersChecker;
-import fr.gouv.vitam.common.server.application.configuration.VitamApplicationConfiguration;
 
 import java.util.List;
 
@@ -36,6 +35,8 @@ import java.util.List;
  */
 public class TnrClientConfiguration {
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
+    private List<Integer> tenants;
+    private Integer adminTenant;
 
     /**
      * Empty ClientConfiguration constructor for YAMLFactory
@@ -57,7 +58,7 @@ public class TnrClientConfiguration {
     public void setUrlWorkspace(String urlWorkspace) {
         this.urlWorkspace = urlWorkspace;
     }
-    
+
     /**
      * @return vitamSecret
      */
@@ -85,7 +86,7 @@ public class TnrClientConfiguration {
      *vitam secret
      */
     protected String vitamSecret;
-    
+
     /**
      * TNR tenants List
      * @return The list
@@ -99,5 +100,23 @@ public class TnrClientConfiguration {
     public void setTenantsTest(List<Integer> tenants) {
         ParametersChecker.checkParameter("Tenant id" + IS_A_MANDATORY_PARAMETER, tenants);
         this.tenantsTest = tenants;
+    }
+
+    public List<Integer> getTenants() {
+        return tenants;
+    }
+
+    public Integer getAdminTenant() {
+        return adminTenant;
+    }
+
+    public void setTenants(List<Integer> tenants) {
+        ParametersChecker.checkParameter("Mandatory", tenants);
+        this.tenants = tenants;
+    }
+
+    public void setAdminTenant(Integer adminTenant) {
+        ParametersChecker.checkParameter("Mandatory", adminTenant);
+        this.adminTenant = adminTenant;
     }
 }
