@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Pull Action: $pull : { name : { $each : [ value, value, ... ] } }
+ * Pull Action: $pull : { name : [ value, value, ... ] }
  *
  */
 public class PullAction extends Action {
@@ -57,7 +57,8 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final String... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PULL, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PULL, variableName);
+
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
                 try {
@@ -82,7 +83,7 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final long... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PULL, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PULL, variableName);
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -100,7 +101,7 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PULL, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PULL, variableName);
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -118,7 +119,7 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final double... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PULL, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PULL, variableName);
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -136,7 +137,7 @@ public class PullAction extends Action {
     public PullAction(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PULL, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PULL, variableName);
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));
         }
