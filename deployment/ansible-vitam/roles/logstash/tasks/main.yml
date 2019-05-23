@@ -57,6 +57,7 @@
     - log
     - conf
     - lib
+    - tmp
   notify:
     - restart logstash
 

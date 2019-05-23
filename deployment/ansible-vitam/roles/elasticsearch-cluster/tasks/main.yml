@@ -145,6 +145,7 @@
     - data
     - log
     - lib
+    - tmp
   notify:
     - restart elasticsearch
 
