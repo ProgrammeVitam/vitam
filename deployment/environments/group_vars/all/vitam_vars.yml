@@ -330,6 +330,8 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        maxDistributionInMemoryBufferSize: 100000
+        maxDistributionOnDiskBufferSize: 100000000
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"

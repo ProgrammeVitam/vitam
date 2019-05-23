@@ -198,7 +198,8 @@ public interface WorkspaceContentAddressableStorage {
      * @throws ContentAddressableStorageAlreadyExistException
      *             Thrown when object creating exists
      */
-    Response getObject(String containerName, String objectName) throws ContentAddressableStorageException;
+    Response getObject(String containerName, String objectName, Long chunkOffset, Long maxChunkSize)
+        throws ContentAddressableStorageException;
 
     /**
      * Deletes a object representing the data at location
