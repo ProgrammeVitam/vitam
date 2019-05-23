@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -63,11 +62,7 @@ public class Action {
         ready = false;
     }
 
-    protected final void createActionArray(final UPDATEACTION action) {
-        currentObject = ((ObjectNode) currentObject).putArray(action.exactToken());
-    }
-
-    protected final void createActionVariableEach(final UPDATEACTION action,
+    protected final void createActionValueArrayVariable(final UPDATEACTION action,
         final String variableName)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
@@ -80,23 +75,7 @@ public class Action {
             throw new InvalidCreateOperationException(e);
         }
         currentObject = ((ObjectNode) currentObject).putObject(action.exactToken())
-            .putObject(variableName.trim())
-            .putArray(UPDATEACTIONARGS.EACH.exactToken());
-    }
-
-    protected final void createActionVariable(final UPDATEACTION action,
-        final String variableName)
-        throws InvalidCreateOperationException {
-        if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
-        }
-        try {
-            GlobalDatas.sanityParameterCheck(variableName);
-        } catch (final InvalidParseOperationException e) {
-            throw new InvalidCreateOperationException(e);
-        }
-        ((ObjectNode) currentObject).put(action.exactToken(), variableName.trim());
+            .putArray(variableName.trim());
     }
 
     protected final void createActionVariables(final UPDATEACTION action,

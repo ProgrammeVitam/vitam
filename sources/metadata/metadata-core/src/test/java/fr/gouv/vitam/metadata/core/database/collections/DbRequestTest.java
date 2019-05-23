@@ -220,7 +220,7 @@ public class DbRequestTest {
             "'],$query:[],$filter:{},$action:[{$set:{'date':'09/09/2015'}},{$set:{'Title':'ArchiveDoubleTest'}}]}";
     private static final String REQUEST_UPDATE_COMPUTED_FIELD =
         "{$roots:['" + UUID1 +
-            "'],$query:[],$filter:{},$action:[{$push:{'_elimination': {$each: [{'OperationId':'my_guid'}] }}}, {'$set': {'_glpd':'2018-01-01T01-34-59'}}]}";
+            "'],$query:[],$filter:{},$action:[{$push:{'_elimination': [{'OperationId':'my_guid'}] }}, {'$set': {'_glpd':'2018-01-01T01-34-59'}}]}";
     private static final String REQUEST_SELECT_TEST_ES_UPDATE =
         "{$query: { $eq : { '#id' : '" + UUID1 + "' } }}";
     private static final String REQUEST_INSERT_TEST_ES_UPDATE = "REQUEST_INSERT_TEST_ES_UPDATE.json";
