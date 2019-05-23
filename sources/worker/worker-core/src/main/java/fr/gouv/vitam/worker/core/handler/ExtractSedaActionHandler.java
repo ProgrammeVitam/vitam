@@ -293,7 +293,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private String originatingAgency = null;
     private String submissionAgencyIdentifier = null;
-    private String needAuthorization = null;
+    String needAuthorization = null;
     private String transferringAgency = null;
     private String archivalAgency = null;
     private IngestContractModel ingestContract = null;
@@ -351,6 +351,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         return unitIdToSetOfRuleId;
     }
 
+    @VisibleForTesting
+    Map<String, String> getUnitIdToGuid() {
+        return unitIdToGuid;
+    }
 
     @VisibleForTesting
     ExtractSedaActionHandler(MetaDataClientFactory metaDataClientFactory,
@@ -1560,7 +1564,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
         if (isRootArchive && archiveUnitManagementModel != null && needAuthorization != null) {
-            archiveUnitManagementModel.setNeedAuthorization(Boolean.valueOf(needAuthorization));
+            if (archiveUnitManagementModel.isNeedAuthorization() == null) {
+                archiveUnitManagementModel.setNeedAuthorization(Boolean.valueOf(needAuthorization));
+            }
         }
         ObjectNode archiveUnitMgtNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitManagementModel);
         if (archiveUnitMgtNode != null) {

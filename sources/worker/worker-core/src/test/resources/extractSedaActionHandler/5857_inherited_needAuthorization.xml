@@ -1,0 +1,153 @@
+<?xml version="1.0" ?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 ../../Bureau/BA/Sch%D0%92mas/seda-2.1-main.xsd"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:pr="info:lc/xmlns/premis-v2"
+                 xmlns:xlink="http://www.w3.org/1999/xlink" xml:id="ID1">
+    <Comment>SIP possédant des règles de PreventInheritance pour la story 1066</Comment>
+
+    <!--
+    DESCRIPTION DU SIP ET DU CAS TESTÉ
+
+    AU1 [R1, acc1] -> AU2 -> AU3 [R3] -> AU4 [R4]-> AU5
+    AU4 -> AU6
+    Donc avec AU4 ayant 2 enfants.
+
+    AU1 possédant la règle de gestion StorageRule d'identifiant "R1" et une règle d'accès AccessRule ACC-00001
+    Et AU3 possédant une règle de gestion "R3"
+    Et AU4 possédant une règle de gestion "R4"
+
+    PRINCIPE GENERAL DE CE SIP ET D'AUTRES CONCERNANT LES REGLES DE GESTION
+
+    Par défaut,
+    AUn a pour title et id "AUn", peut posséder une règle de gestion d'identifiant "Rn", et peut posséder une startDate qui commence le 01/n/2017
+    Exemple :
+    AU1 a pour title et id "AU1", peut posséder une règle de gestion d'identifiant "R1", et peut posséder une startDate qui commence le 01/01/2017
+    AU12 a pour title et id "AU12", peut posséder une règle de gestion d'identifiant "R12", et peut posséder une startDate qui commence le 01/12/2017
+
+    Des exceptions s'appliquent au cas par cas selon les cas testés (AU5 peut avoir une règle R3 avec une startade le 10/06/2015, si le test l'exige)
+
+    -->
+
+    <Date>2016-10-18T14:52:27</Date>
+    <MessageIdentifier>SIP possédant des règles de PreventInheritance pour la story 1066</MessageIdentifier>
+    <ArchivalAgreement>ArchivalAgreement0</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage xml:id="ID2">
+        <BinaryDataObject id="ID7">
+            <DataObjectGroupId>ID6</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster</DataObjectVersion>
+            <Uri>Content/DttzvaBjmOJlnNHhwjRWBRqvyqWtbx.pdf</Uri>
+            <MessageDigest algorithm="SHA-512"
+            >942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7
+            </MessageDigest>
+            <Size>29403</Size>
+            <FormatIdentification>
+                <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                <MimeType>application/pdf</MimeType>
+                <FormatId>fmt/18</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>DttzvaBjmOJlnNHhwjRWBRqvyqWtbx.pdf</Filename>
+                <LastModified>2016-06-03T15:28:00.000+02:00</LastModified>
+            </FileInfo>
+        </BinaryDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="AU1">
+                <Management>
+                    <NeedAuthorization>false</NeedAuthorization>
+                    <StorageRule>
+                        <Rule>R1</Rule>
+                        <StartDate>2017-01-01</StartDate>
+                        <FinalAction>RestrictAccess</FinalAction>
+                    </StorageRule>
+                    <AccessRule>
+                        <Rule>ACC-00001</Rule>
+                        <StartDate>2017-01-01</StartDate>
+                    </AccessRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>RecordGrp</DescriptionLevel>
+                    <Title>AU1</Title>
+                    <StartDate>2016-06-03T15:28:00</StartDate>
+                    <EndDate>2016-06-03T15:28:00</EndDate>
+                </Content>
+                <ArchiveUnit id="AU2">
+                    <Management>
+                        <StorageRule>
+                            <PreventInheritance>true</PreventInheritance>
+                            <FinalAction>Copy</FinalAction>
+                        </StorageRule>
+                    </Management>
+                    <Content>
+                        <DescriptionLevel>RecordGrp</DescriptionLevel>
+                        <Title>AU2</Title>
+                    </Content>
+                    <ArchiveUnit id="AU3">
+                        <Management>
+                            <StorageRule>
+                                <Rule>R3</Rule>
+                                <StartDate>2017-03-01</StartDate>
+                                <FinalAction>RestrictAccess</FinalAction>
+                            </StorageRule>
+                        </Management>
+                        <Content>
+                            <DescriptionLevel>RecordGrp</DescriptionLevel>
+                            <Title>AU3</Title>
+                        </Content>
+                        <ArchiveUnit id="AU4">
+                            <Management>
+                                <StorageRule>
+                                    <Rule>R4</Rule>
+                                    <StartDate>2017-04-01</StartDate>
+                                    <FinalAction>RestrictAccess</FinalAction>
+                                </StorageRule>
+                            </Management>
+                            <Content>
+                                <DescriptionLevel>RecordGrp</DescriptionLevel>
+                                <Title>AU4</Title>
+                            </Content>
+                            <!--<ArchiveUnit id="ref6">-->
+                                <!--<ArchiveUnitRefId>AU6</ArchiveUnitRefId>-->
+                            <!--</ArchiveUnit>-->
+                            <ArchiveUnit id="AU5">
+                                <Content>
+                                    <DescriptionLevel>Item</DescriptionLevel>
+                                    <Title>AU5</Title>
+                                </Content>
+                                <DataObjectReference>
+                                    <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>
+                                </DataObjectReference>
+                            </ArchiveUnit>
+                        </ArchiveUnit>
+                    </ArchiveUnit>
+                </ArchiveUnit>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>FRAN_NP_009913</OriginatingAgencyIdentifier>
+            <NeedAuthorization>true</NeedAuthorization>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>Identifier4</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>Identifier5</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

@@ -32,6 +32,7 @@ import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -57,12 +58,14 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -418,8 +421,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             final JsonNode unit = result.get(0);
             assertNotNull(unit);
             final String og = unit.get("#object").asText();
-            boolean needAuthorization = unit.get("#management").get("NeedAuthorization").asBoolean();
-            assertTrue(needAuthorization);
+            assertThat(unit.get("#management").get("NeedAuthorization").asBoolean()).isFalse();
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
