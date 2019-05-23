@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
 import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
@@ -53,8 +52,6 @@ public class PullAction extends fr.gouv.vitam.common.database.builder.query.acti
         currentUPDATEACTION = action;
         final ObjectNode node = ((ObjectNode) currentObject).putObject(action.exactToken());
         adapter.setVarsValue(node, request);
-        currentObject = currentObject.findParent(UPDATEACTIONARGS.EACH.exactToken())
-            .get(UPDATEACTIONARGS.EACH.exactToken());
         setReady(true);
     }
 }

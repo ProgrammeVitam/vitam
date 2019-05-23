@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Push Action: $push : { name : { $each : [ value, value, ... ] } }
+ * Push Action: $push : { name : [ value, value, ... ] }
  */
 public class PushAction extends Action {
     private static final String CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_PUSH_ACTION =
@@ -56,7 +56,7 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final String... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PUSH, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PUSH, variableName);
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
                 try {
@@ -81,7 +81,7 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final long... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PUSH, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PUSH, variableName);
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -99,7 +99,7 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PUSH, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PUSH, variableName);
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -117,7 +117,7 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final double... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PUSH, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PUSH, variableName);
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -135,7 +135,7 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PUSH, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PUSH, variableName);
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));
         }
@@ -154,7 +154,7 @@ public class PushAction extends Action {
     public PushAction(final String variableName, final JsonNode value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.PUSH, variableName);
+        createActionValueArrayVariable(UPDATEACTION.PUSH, variableName);
         ((ArrayNode) currentObject).add(value);
         currentUPDATEACTION = UPDATEACTION.PUSH;
         setReady(true);

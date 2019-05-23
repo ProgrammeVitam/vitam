@@ -30,17 +30,17 @@ public class MongoDbInMemoryTest {
     private static AbstractParser<?> parser = new UpdateParserSingle(new SingleVarNameAdapter());
     private final static AbstractParser<?> emptyParser = new UpdateParserSingle(new SingleVarNameAdapter());
 
-    private static String requestAdd = "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val3\"]} } }]}";
+    private static String requestAdd = "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": [\"val3\"] } }]}";
     private static String requestAddMultiple =
-        "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val3\", \"val4\"]} } }]}";
+        "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": [\"val3\", \"val4\"] } }]}";
     private static String requestAddSubField =
-        "{\"$action\": [{ \"$add\": {\"subItem.subArray\": { \"$each\": [\"val3\"]} } }]}";
+        "{\"$action\": [{ \"$add\": {\"subItem.subArray\": [\"val3\"] } }]}";
     private static String requestAddWrongField =
-        "{\"$action\": [{ \"$add\": {\"numberAsString\": { \"$each\": [\"val3\"]} } }]}";
+        "{\"$action\": [{ \"$add\": {\"numberAsString\": [\"val3\"] } }]}";
     private static String requestAddDuplicate =
-        "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": { \"$each\": [\"val2\"]} } }]}";
+        "{\"$action\": [{ \"$add\": {\"ArrayToAdd\": [\"val2\"] } }]}";
     private static String requestAddOnNull =
-        "{\"$action\": [{ \"$add\": {\"nullField\": { \"$each\": [\"val2\"]} } }]}";
+        "{\"$action\": [{ \"$add\": {\"nullField\": [\"val2\"] } }]}";
 
     private static String requestInc = "{\"$action\": [{ \"$inc\": {\"numberTen\": 2 } }]}";
     private static String requestIncSubField = "{\"$action\": [{ \"$inc\": {\"subItem.subInt\": 2 } }]}";
@@ -71,27 +71,27 @@ public class MongoDbInMemoryTest {
     private static String requestPopOnNull = "{\"$action\": [{ \"$pop\": {\"nullField\": 1 } }]}";
 
     private static String requestPullSubField =
-        "{\"$action\": [{ \"$pull\": {\"subItem.subArray\": { \"$each\": [\"subValue\"]} } }] }";
+        "{\"$action\": [{ \"$pull\": {\"subItem.subArray\": [\"subValue\"] } }] }";
     private static String requestPullFirst =
-        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v1\"]} } }] }";
+        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": [\"v1\"] } }] }";
     private static String requestPullMultiple =
-        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v1\", \"v3\"]} } }]}";
+        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": [\"v1\", \"v3\"] } }]}";
     private static String requestPullUnknow =
-        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": { \"$each\": [\"v6\"]} } }] }";
+        "{\"$action\": [{ \"$pull\": {\"arrayToPull\": [\"v6\"] } }] }";
     private static String requestPullWrongField = "{\"$action\": [{ \"$pull\": {\"numberAsString\": \"2\"} }]}";
     private static String requestPullOnNull =
-        "{\"$action\": [{ \"$pull\": {\"nullField\": { \"$each\": [\"v1\"]} } }] }";
+        "{\"$action\": [{ \"$pull\": {\"nullField\": [\"v1\"] } }] }";
 
     private static String requestPush =
-        "{\"$action\": [{ \"$push\": {\"ArrayToPush\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
+        "{\"$action\": [{ \"$push\": {\"ArrayToPush\": [\"v3\", \"v4\"]}}]}";
     private static String requestPushSubField =
-        "{\"$action\": [{ \"$push\": {\"subItem.subArray\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
+        "{\"$action\": [{ \"$push\": {\"subItem.subArray\": [\"v3\", \"v4\"]}}]}";
     private static String requestPushDuplicate =
-        "{\"$action\": [{ \"$push\": {\"ArrayToPush\": {\"$each\": [\"v1\", \"v1\"]}}}]}";
+        "{\"$action\": [{ \"$push\": {\"ArrayToPush\": [\"v1\", \"v1\"]}}]}";
     private static String requestPushWrongField =
-        "{\"$action\": [{ \"$push\": {\"numberAsString\": {\"$each\": [\"v1\"]}}}]}";
+        "{\"$action\": [{ \"$push\": {\"numberAsString\": [\"v1\"]}}]}";
     private static String requestPushOnNull =
-        "{\"$action\": [{ \"$push\": {\"nullField\": {\"$each\": [\"v3\", \"v4\"]}}}]}";
+        "{\"$action\": [{ \"$push\": {\"nullField\": [\"v3\", \"v4\"]}}]}";
 
     private static String requestRename = "{\"$action\": [{ \"$rename\": {\"oldField\": \"renamedField\" } }]}";
     private static String requestRenameSubField =

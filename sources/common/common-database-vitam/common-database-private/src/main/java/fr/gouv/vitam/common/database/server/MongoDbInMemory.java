@@ -736,7 +736,11 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
-        final ArrayNode array = (ArrayNode) element.getValue().get(BuilderToken.UPDATEACTIONARGS.EACH.exactToken());
+        if(!(element.getValue() instanceof ArrayNode)) {
+            throw new InvalidParseOperationException("[" + "PUSH" + "]Action argument (" + element.getValue() +
+                ") expected value array for field " + fieldName);
+        }
+        final ArrayNode array = (ArrayNode) element.getValue();
         ArrayNode node = (ArrayNode) getArrayValue(req.name(), fieldName);
         final Iterator<JsonNode> iterator = array.elements();
         while (iterator.hasNext()) {
@@ -749,7 +753,11 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
-        final ArrayNode array = (ArrayNode) element.getValue().get(BuilderToken.UPDATEACTIONARGS.EACH.exactToken());
+        if(!(element.getValue() instanceof ArrayNode)) {
+            throw new InvalidParseOperationException("[" + "PULL" + "]Action argument (" + element.getValue() +
+                ") expected value array for field " + fieldName);
+        }
+        final ArrayNode array = (ArrayNode) element.getValue();
         ArrayNode node = (ArrayNode) getArrayValue(req.name(), fieldName);
         final List<Integer> indexesToRemove = new ArrayList<>();
         final Iterator<JsonNode> iterator = array.elements();
@@ -778,7 +786,11 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         final Map.Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
-        final ArrayNode array = (ArrayNode) element.getValue().get(BuilderToken.UPDATEACTIONARGS.EACH.exactToken());
+        if(!(element.getValue() instanceof ArrayNode)) {
+            throw new InvalidParseOperationException("[" + "ADD" + "]Action argument (" + element.getValue() +
+                ") expected value array for field " + fieldName);
+        }
+        final ArrayNode array = (ArrayNode) element.getValue();
 
         ArrayNode node = (ArrayNode) getArrayValue(req.name(), fieldName);
         final Iterator<JsonNode> iterator = array.elements();

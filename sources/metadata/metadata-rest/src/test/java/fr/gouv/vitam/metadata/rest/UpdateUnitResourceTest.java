@@ -101,7 +101,7 @@ public class UpdateUnitResourceTest {
         "{\"$query\": [{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaa22\"}], \"$action\": [{\"$set\": {\"data\": \"data3\"}}], \"$filter\": {}}";
 
     private static final String REAL_UPDATE_BODY_TEST =
-        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": {\"$each\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}}], \"$filter\": {}}";
+        "{\"$query\": [], \"$action\": [{\"$set\": {\"data\": \"data4\"}}, {\"$push\": {\"#operations\": [\"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaac\"]}}], \"$filter\": {}}";
     private static JunitHelper junitHelper;
     private static int serverPort;
     @ClassRule

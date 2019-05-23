@@ -36,7 +36,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 
 /**
- * Add Action: $add : { name : { $each : [ value, value, ... ] } }
+ * Add Action: $add : { name : [ value, value, ... ] }
  *
  */
 public class AddAction extends Action {
@@ -57,7 +57,7 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final String... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.ADD, variableName);
+        createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final String val : value) {
             if (val != null && !val.trim().isEmpty()) {
                 try {
@@ -82,7 +82,7 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final long... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.ADD, variableName);
+        createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final long val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -100,7 +100,7 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final boolean... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.ADD, variableName);
+        createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final boolean val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -118,7 +118,7 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final double... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.ADD, variableName);
+        createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final double val : value) {
             ((ArrayNode) currentObject).add(val);
         }
@@ -136,7 +136,7 @@ public class AddAction extends Action {
     public AddAction(final String variableName, final Date... value)
         throws InvalidCreateOperationException {
         super();
-        createActionVariableEach(UPDATEACTION.ADD, variableName);
+        createActionValueArrayVariable(UPDATEACTION.ADD, variableName);
         for (final Date val : value) {
             ((ArrayNode) currentObject).add(GlobalDatas.getDate(val));
         }
