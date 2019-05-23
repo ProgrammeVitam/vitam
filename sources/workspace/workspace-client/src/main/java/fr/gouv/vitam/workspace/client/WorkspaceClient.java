@@ -26,22 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.workspace.client;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -51,11 +36,9 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.storage.ContainerInformation;
-import fr.gouv.vitam.common.storage.cas.container.api.MetadatasStorageObject;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -64,6 +47,19 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageZipException;
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.common.CompressInformation;
+
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.InputStream;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 
 
 /**
@@ -88,7 +84,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Create container
-     * 
+     *
      * @param containerName the container name
      * @throws ContentAddressableStorageAlreadyExistException in case the container already exists
      * @throws ContentAddressableStorageServerException in case of any other error
@@ -123,7 +119,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Delete container
-     * 
+     *
      * @param containerName the container name
      * @param recursive true if should be deleted recursively
      * @throws ContentAddressableStorageNotFoundException if the container could not be found
@@ -159,7 +155,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Check if container exists
-     * 
+     *
      * @param containerName the container name
      * @return true if it exists, false if not
      * @throws ContentAddressableStorageServerException in case of any error
@@ -182,7 +178,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Count the number of object in a container
-     * 
+     *
      * @param containerName the container name
      * @return the number of objects
      * @throws ContentAddressableStorageNotFoundException in case the container could not be found
@@ -216,7 +212,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Create a folder
-     * 
+     *
      * @param containerName the container name
      * @param folderName the folder name
      * @throws ContentAddressableStorageAlreadyExistException in case the folder already exists
@@ -250,7 +246,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Delete folder
-     * 
+     *
      * @param containerName the container name
      * @param folderName the folder name
      * @throws ContentAddressableStorageNotFoundException if the folder does not exist
@@ -285,7 +281,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Check if folder exists
-     * 
+     *
      * @param containerName the container name
      * @param folderName the folder name
      * @return true if it exists, false if not
@@ -310,7 +306,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Put object
-     * 
+     *
      * @param containerName the container name
      * @param objectName the object name
      * @param stream the input stream to be put
@@ -344,7 +340,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Get Object
-     * 
+     *
      * @param containerName the container name
      * @param objectName the object name
      * @return the original Response
@@ -362,7 +358,51 @@ public class WorkspaceClient extends DefaultClient {
             if (Response.Status.OK.getStatusCode() == response.getStatus()) {
                 return response;
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+                throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
+            } else {
+                LOGGER.error(response.getStatusInfo().getReasonPhrase());
+                throw new ContentAddressableStorageServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+        } catch (final VitamClientInternalException e) {
+            LOGGER.error(INTERNAL_SERVER_ERROR2, e);
+            throw new ContentAddressableStorageServerException(e);
+
+        } finally {
+            if (response != null && response.getStatus() != Status.OK.getStatusCode()) {
+                consumeAnyEntityAndClose(response);
+            }
+        }
+    }
+
+    /**
+     * Get Object at a specific offset and max specific size
+     *
+     * @param containerName the container name
+     * @param objectName the object name
+     * @param offset the start offset
+     * @param maxChunkSize max chunk size to retrieve
+     * @return the original Response
+     * @throws ContentAddressableStorageNotFoundException in case the object couldnt be found
+     * @throws ContentAddressableStorageServerException in case of any other error
+     */
+    public Response getObject(String containerName, String objectName, long offset, Long maxChunkSize)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName, objectName);
+        Response response = null;
+        try {
+
+            MultivaluedMap<String, Object> header = new MultivaluedHashMap<>();
+            header.add(GlobalDataRest.X_CHUNK_OFFSET, offset);
+            if (maxChunkSize != null) {
+                header.add(GlobalDataRest.X_CHUNK_MAX_SIZE, maxChunkSize);
+            }
+
+            response = performRequest(HttpMethod.GET, CONTAINERS + containerName + OBJECTS + objectName, header,
+                MediaType.APPLICATION_OCTET_STREAM_TYPE);
+            if (Response.Status.OK.getStatusCode() == response.getStatus()) {
+                return response;
+            } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
             } else {
                 LOGGER.error(response.getStatusInfo().getReasonPhrase());
@@ -381,7 +421,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Delete object
-     * 
+     *
      * @param containerName the name of the container
      * @param objectName the name of object
      * @throws ContentAddressableStorageNotFoundException in case the object could not be found
@@ -401,7 +441,6 @@ public class WorkspaceClient extends DefaultClient {
             if (Response.Status.NO_CONTENT.getStatusCode() == response.getStatus()) {
                 LOGGER.debug(containerName + "/" + objectName + ": " + Response.Status.NO_CONTENT.getReasonPhrase());
             } else if (Response.Status.NOT_FOUND.getStatusCode() == response.getStatus()) {
-                LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.OBJECT_NOT_FOUND.getMessage());
             } else {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
@@ -417,7 +456,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Check if obejct is existing
-     * 
+     *
      * @param containerName the container name
      * @param objectName the object name
      * @return true if it exist, false if not
@@ -442,7 +481,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Get List of digital object
-     * 
+     *
      * @param containerName the container name
      * @param folderName the folder name
      * @return a list of URI
@@ -477,7 +516,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Compress
-     * 
+     *
      * @param containerName the container name
      * @param compressInformation information on compression
      * @throws ContentAddressableStorageServerException
@@ -503,7 +542,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Uncompress object
-     * 
+     *
      * @param containerName the name of the container
      * @param folderName the folder name
      * @param archiveType the archive type
@@ -579,7 +618,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Compute digest for an object
-     * 
+     *
      * @param containerName the container name
      * @param objectName the object name
      * @param algo the digest type
@@ -618,7 +657,6 @@ public class WorkspaceClient extends DefaultClient {
     }
 
     /**
-     * 
      * @param containerName the container name
      * @return information on the container
      * @throws ContentAddressableStorageNotFoundException in case the container could not be found
@@ -649,7 +687,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Get Object Information
-     * 
+     *
      * @param containerName the container name
      * @param objectName the object name
      * @return object information
@@ -685,7 +723,7 @@ public class WorkspaceClient extends DefaultClient {
 
     /**
      * Check object
-     * 
+     *
      * @param containerName the name of the container
      * @param objectId the object id
      * @param digest the digest

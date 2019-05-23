@@ -39,6 +39,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.HandlerNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException;
@@ -64,11 +65,13 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import fr.gouv.vitam.workspace.client.WorkspaceBufferingInputStream;
 import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -133,29 +136,32 @@ public class ProcessDistributorImpl implements ProcessDistributor {
     private final Map<String, Step> currentSteps = new HashMap<>();
     private final WorkspaceClientFactory workspaceClientFactory;
     private final WorkerClientFactory workerClientFactory;
+    private final ServerConfiguration serverConfiguration;
 
     /**
      * Empty constructor
      *
      * @param workerManager
+     * @param serverConfiguration
      */
-    public ProcessDistributorImpl(IWorkerManager workerManager) {
-        this(workerManager, ProcessDataAccessImpl.getInstance(), WorkspaceProcessDataManagement.getInstance(),
-            WorkspaceClientFactory.getInstance(), null);
+    public ProcessDistributorImpl(IWorkerManager workerManager, ServerConfiguration serverConfiguration) {
+        this(workerManager, serverConfiguration, ProcessDataAccessImpl.getInstance(),
+            WorkspaceProcessDataManagement.getInstance(), WorkspaceClientFactory.getInstance(), null);
     }
 
     @VisibleForTesting
-    public ProcessDistributorImpl(IWorkerManager workerManager, ProcessDataAccess processDataAccess,
-        ProcessDataManagement processDataManagement, WorkspaceClientFactory workspaceClientFactory,
-        WorkerClientFactory workerClientFactory) {
+    public ProcessDistributorImpl(IWorkerManager workerManager, ServerConfiguration serverConfiguration,
+        ProcessDataAccess processDataAccess, ProcessDataManagement processDataManagement,
+        WorkspaceClientFactory workspaceClientFactory, WorkerClientFactory workerClientFactory) {
         this.workerManager = workerManager;
+        this.serverConfiguration = serverConfiguration;
         this.processDataAccess = processDataAccess;
         this.processDataManagement = processDataManagement;
         this.workspaceClientFactory = workspaceClientFactory;
         this.workerClientFactory = workerClientFactory;
         ParametersChecker
-            .checkParameter("Parameters are required.", workerManager, processDataAccess, processDataManagement,
-                workspaceClientFactory);
+            .checkParameter("Parameters are required.", workerManager, serverConfiguration, processDataAccess,
+                processDataManagement, workspaceClientFactory);
     }
 
     @Override
@@ -319,21 +325,19 @@ public class ProcessDistributorImpl implements ProcessDistributor {
             } else if (step.getDistribution().getKind().equals(DistributionKind.LIST_IN_JSONL_FILE)) {
 
                 // distribute on stream
-                try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-                    Response response = null;
-                    try {
-                        response = workspaceClient
-                            .getObject(workParams.getContainerName(), step.getDistribution().getElement());
-                        try (BufferedReader br = new BufferedReader(
-                            new InputStreamReader((InputStream) response.getEntity(), StandardCharsets.UTF_8))) {
 
-                            distributeOnStream(workParams, step, br,
-                                useDistributorIndex, tenantId);
-                        }
-                    } finally {
-                        StreamUtils.consumeAnyEntityAndClose(response);
-                    }
+                File tmpDirectory = new File(VitamConfiguration.getVitamTmpFolder());
+
+                try (InputStream inputStream = new WorkspaceBufferingInputStream(workspaceClientFactory,
+                    workParams.getContainerName(), step.getDistribution().getElement(),
+                    serverConfiguration.getMaxDistributionOnDiskBufferSize(),
+                    serverConfiguration.getMaxDistributionInMemoryBufferSize(), tmpDirectory);
+                    BufferedReader br = new BufferedReader(
+                        new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
+
+                    distributeOnStream(workParams, step, br, useDistributorIndex, tenantId);
                 }
+
             } else {
                 // update the number of element to process
                 if (step.getDistribution().getElement() == null ||
