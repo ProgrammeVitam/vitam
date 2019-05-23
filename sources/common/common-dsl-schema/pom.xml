@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>common</artifactId>
-        <version>1.4.17-SNAPSHOT</version>
+        <version>1.4.17</version>
     </parent>
     <artifactId>common-dsl-schema</artifactId>
     <name>common-dsl-schema</name>

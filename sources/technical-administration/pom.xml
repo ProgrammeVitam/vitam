@@ -5,7 +5,7 @@
     <parent>
         <groupId>fr.gouv.vitam</groupId>
         <artifactId>parent</artifactId>
-        <version>1.4.17-SNAPSHOT</version>
+        <version>1.4.17</version>
     </parent>
 
     <artifactId>technical-administration</artifactId>
