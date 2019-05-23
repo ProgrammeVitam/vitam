@@ -26,26 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.elimination;
 
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
-import static io.restassured.RestAssured.get;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -56,7 +36,6 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
-import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.rest.BatchReportMain;
@@ -133,36 +112,34 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.stream.StreamUtils.consumeAnyEntityAndClose;
+import static io.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 /**
  * Ingest Internal integration test
  */
 public class EndToEndEliminationIT extends VitamRuleRunner {
     private static final String DEFAULT_STRATEGY = "default";
-
-    @ClassRule
-    public static VitamServerRunner runner =
-            new VitamServerRunner(EndToEndEliminationIT.class, mongoRule.getMongoDatabase().getName(),
-                    elasticsearchRule.getClusterName(),
-                    Sets.newHashSet(
-                            MetadataMain.class,
-                            WorkerMain.class,
-                            AdminManagementMain.class,
-                            LogbookMain.class,
-                            WorkspaceMain.class,
-                            ProcessManagementMain.class,
-                            AccessInternalMain.class,
-                            IngestInternalMain.class,
-                            StorageMain.class,
-                            DefaultOfferMain.class,
-                            BatchReportMain.class
-                    ));
-
     private static final Integer tenantId = 0;
-
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000; // equivalent to 16 minute
-
-
     private static final String METADATA_PATH = "/metadata/v1";
     private static final String PROCESSING_PATH = "/processing/v1";
     private static final String WORKER_PATH = "/worker/v1";
@@ -175,8 +152,6 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private static final String BATCH_REPORT_PATH = "/batchreport/v1";
     private static final String WORKFLOW_ID = "DEFAULT_WORKFLOW";
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
-    private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
-
     private static final String SAINT_DENIS_UNIVERSITÉ_LIGNE_13 = "1_Saint Denis Université (ligne 13)";
     private static final String SAINT_DENIS_BASILIQUE = "Saint Denis Basilique";
     private static final String CARREFOUR_PLEYEL = "Carrefour Pleyel";
@@ -184,27 +159,37 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private static final String MARX_DORMOY = "Marx Dormoy";
     private static final String MONTPARNASSE = "Montparnasse.txt";
     private static final String ORIGINATING_AGENCY = "RATP";
-
-
+    @ClassRule
+    public static VitamServerRunner runner =
+        new VitamServerRunner(EndToEndEliminationIT.class, mongoRule.getMongoDatabase().getName(),
+            elasticsearchRule.getClusterName(),
+            Sets.newHashSet(
+                MetadataMain.class,
+                WorkerMain.class,
+                AdminManagementMain.class,
+                LogbookMain.class,
+                WorkspaceMain.class,
+                ProcessManagementMain.class,
+                AccessInternalMain.class,
+                IngestInternalMain.class,
+                StorageMain.class,
+                DefaultOfferMain.class,
+                BatchReportMain.class
+            ));
     private static String CONFIG_SIEGFRIED_PATH = "";
-
     private static String TEST_ELIMINATION_SIP =
-            "elimination/TEST_ELIMINATION.zip";
-
-
+        "elimination/TEST_ELIMINATION.zip";
     private static String ACCESSION_REGISTER_DETAIL =
-            "elimination/accession_regoister_detail.json";
-
+        "elimination/accession_regoister_detail.json";
     private static String ACCESSION_REGISTER_SUMMARY =
-            "elimination/accession_regoister_summary.json";
-
-
+        "elimination/accession_regoister_summary.json";
+    private WorkFlow workflow = WorkFlow.of(WORKFLOW_ID, WORKFLOW_IDENTIFIER, "INGEST");
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
         CONFIG_SIEGFRIED_PATH =
-                PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
@@ -220,6 +205,12 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         VitamClientFactory.resetConnections();
     }
 
+    public static void prepareVitamSession() {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        VitamThreadUtils.getVitamSession().setContractId("aName3");
+        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
+    }
+
     @Before
     public void setUpBefore() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
@@ -228,7 +219,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     private void wait(String operationId) {
         int nbTry = 0;
         ProcessingManagementClient processingClient =
-                ProcessingManagementClientFactory.getInstance().getClient();
+            ProcessingManagementClientFactory.getInstance().getClient();
         while (!processingClient.isOperationCompleted(operationId)) {
             try {
                 Thread.sleep(SLEEP_TIME);
@@ -239,13 +230,6 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
                 break;
             nbTry++;
         }
-    }
-
-
-    public static void prepareVitamSession() {
-        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-        VitamThreadUtils.getVitamSession().setContractId("aName3");
-        VitamThreadUtils.getVitamSession().setContextId("Context_IT");
     }
 
     @RunWithCustomExecutor
@@ -300,14 +284,14 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
         // workspace client unzip SIP in workspace
         final InputStream zipInputStreamSipObject =
-                PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP);
+            PropertiesUtils.getResourceAsStream(TEST_ELIMINATION_SIP);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
         final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
-                ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
-                LogbookTypeProcess.INGEST, StatusCode.STARTED,
-                ingestOperationGuid.toString(), ingestOperationGuid);
+            ingestOperationGuid, "Process_SIP_unitary", ingestOperationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            ingestOperationGuid.toString(), ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -339,13 +323,13 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
         SelectMultiQuery analysisDslRequest = new SelectMultiQuery();
         analysisDslRequest
-                .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
+            .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-                "2018-01-01", analysisDslRequest.getFinalSelect());
+            "2018-01-01", analysisDslRequest.getFinalSelect());
 
         final RequestResponse<JsonNode> actionResult =
-                accessInternalClient.startEliminationAction(eliminationRequestBody);
+            accessInternalClient.startEliminationAction(eliminationRequestBody);
 
         assertThat(actionResult.isOk()).isTrue();
 
@@ -363,14 +347,14 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
         // Check Accession Register Detail
         List<String> excludeFields = Lists
-                .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
+            .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals(ACCESSION_REGISTER_DETAIL, JsonHandler.toJsonNode(
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()), excludeFields);
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()), excludeFields);
 
         // Check Accession Register Summary
         assertJsonEquals(ACCESSION_REGISTER_SUMMARY,
-                JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()),
-                excludeFields);
+            JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()),
+            excludeFields);
 
         // Check remaining units / gots & objects ids (low level)
 
@@ -378,9 +362,9 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
 
         Set<String> expectedRemainingUnitIds = new HashSet<>(Arrays.asList(
-                getId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13)),
-                getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE)),
-                getId(ingestedUnitsByTitle.get(CARREFOUR_PLEYEL))
+            getId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13)),
+            getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE)),
+            getId(ingestedUnitsByTitle.get(CARREFOUR_PLEYEL))
         ));
         Set<String> expectedDeletedUnitIds = SetUtils.difference(ingestedUnitIds, expectedRemainingUnitIds);
 
@@ -394,8 +378,8 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
         Set<String> ingestedGotIds = getIds(ingestedGots);
         Set<String> expectedRemainingGotIds = new HashSet<>(Arrays.asList(
-                getObjectGroupId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13)),
-                getObjectGroupId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE))
+            getObjectGroupId(ingestedUnitsByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13)),
+            getObjectGroupId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE))
         ));
         Set<String> expectedDeletedGotIds = SetUtils.difference(ingestedGotIds, expectedRemainingGotIds);
 
@@ -409,9 +393,9 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
 
         Set<String> expectedRemainingObjectIds = ingestedGots.getResults().stream()
-                .filter(got -> expectedRemainingGotIds.contains(getId(got)))
-                .flatMap(got -> getObjectIds(got).stream())
-                .collect(Collectors.toSet());
+            .filter(got -> expectedRemainingGotIds.contains(getId(got)))
+            .flatMap(got -> getObjectIds(got).stream())
+            .collect(Collectors.toSet());
         Set<String> expectedDeletedObjectIds = SetUtils.difference(ingestedObjectIds, expectedRemainingObjectIds);
 
 
@@ -438,7 +422,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.allunitups())).hasSize(2);
 
         assertThat(detachedGotAfterElimination.get(VitamFieldsHelper.unitups()).get(0).asText()).isEqualTo(
-                getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE)));
+            getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE)));
 
         // Check report
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
@@ -447,8 +431,8 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
             try {
                 reportResponse = storageClient.getContainerAsync(DEFAULT_STRATEGY,
-                        eliminationActionOperationGuid.toString() + ".jsonl", DataCategory.REPORT,
-                        AccessLogUtils.getNoLogAccessLog());
+                    eliminationActionOperationGuid.toString() + ".jsonl", DataCategory.REPORT,
+                    AccessLogUtils.getNoLogAccessLog());
 
                 assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
 
@@ -470,37 +454,37 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
             assertThat(report.units).hasSize(6);
 
             Map<String, EliminationActionUnitReportEntry> unitReportByTitle = report.units.stream()
-                    .collect(Collectors.toMap(
-                            entry -> ingestedUnits.getResults().stream()
-                                    .filter(unit -> unit.get(VitamFieldsHelper.id()).asText().equals(entry.getUnitId()))
-                                    .map(this::getTitle)
-                                    .findFirst().get()
-                            , entry -> entry));
+                .collect(Collectors.toMap(
+                    entry -> ingestedUnits.getResults().stream()
+                        .filter(unit -> unit.get(VitamFieldsHelper.id()).asText().equals(entry.getUnitId()))
+                        .map(this::getTitle)
+                        .findFirst().get()
+                    , entry -> entry));
 
             assertThat(unitReportByTitle.get(CARREFOUR_PLEYEL).getStatus()).isEqualTo(
-                    EliminationActionUnitStatus.GLOBAL_STATUS_KEEP);
+                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP);
             assertThat(unitReportByTitle.get(SAINT_DENIS_BASILIQUE).getStatus()).isEqualTo(
-                    EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
+                EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
             assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITÉ_LIGNE_13).getStatus()).isEqualTo(
-                    EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
+                EliminationActionUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS);
             assertThat(unitReportByTitle.get(SAINT_LAZARE).getStatus()).isEqualTo(
-                    EliminationActionUnitStatus.DELETED);
+                EliminationActionUnitStatus.DELETED);
             assertThat(unitReportByTitle.get(MARX_DORMOY).getStatus()).isEqualTo(
-                    EliminationActionUnitStatus.DELETED);
+                EliminationActionUnitStatus.DELETED);
             assertThat(unitReportByTitle.get(MONTPARNASSE).getStatus()).isEqualTo(
-                    EliminationActionUnitStatus.DELETED);
+                EliminationActionUnitStatus.DELETED);
 
             for (EliminationActionUnitReportEntry unitReport : report.units) {
 
                 JsonNode unit = ingestedUnits.getResults().stream()
-                        .filter(ingestedUnit -> getId(ingestedUnit)
-                                .equals(unitReport.getUnitId()))
-                        .findFirst().get();
+                    .filter(ingestedUnit -> getId(ingestedUnit)
+                        .equals(unitReport.getUnitId()))
+                    .findFirst().get();
 
                 assertThat(unitReport.getInitialOperation()).isEqualTo(ingestOperationGuid.toString());
                 assertThat(unitReport.getOriginatingAgency()).isEqualTo(ORIGINATING_AGENCY);
                 assertThat(unitReport.getObjectGroupId())
-                        .isEqualTo(getObjectGroupId(unit));
+                    .isEqualTo(getObjectGroupId(unit));
             }
 
             //Check report gots
@@ -508,32 +492,32 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
             String deletedGotId = getObjectGroupId(ingestedUnitsByTitle.get(MARX_DORMOY));
             EliminationActionObjectGroupReportEntry deletedGotReport = report.objectGroups.stream()
-                    .filter(got -> got.getObjectGroupId().equals(deletedGotId))
-                    .findFirst().get();
+                .filter(got -> got.getObjectGroupId().equals(deletedGotId))
+                .findFirst().get();
             assertThat(deletedGotReport.getStatus()).isEqualTo(EliminationActionObjectGroupStatus.DELETED);
             assertThat(deletedGotReport.getInitialOperation()).isEqualTo(ingestOperationGuid.toString());
             assertThat(deletedGotReport.getOriginatingAgency()).isEqualTo(ORIGINATING_AGENCY);
             assertThat(deletedGotReport.getObjectIds()).containsExactlyInAnyOrderElementsOf(
-                    getObjectIds(ingestedGots.getResults().stream()
-                            .filter(got -> getId(got).equals(deletedGotId))
-                            .findFirst().get()));
+                getObjectIds(ingestedGots.getResults().stream()
+                    .filter(got -> getId(got).equals(deletedGotId))
+                    .findFirst().get()));
             assertThat(deletedGotReport.getDeletedParentUnitIds()).isNullOrEmpty();
 
             EliminationActionObjectGroupReportEntry detachedGotReport = report.objectGroups.stream()
-                    .filter(got -> got.getObjectGroupId().equals(detachedGotId))
-                    .findFirst().get();
+                .filter(got -> got.getObjectGroupId().equals(detachedGotId))
+                .findFirst().get();
             assertThat(detachedGotReport.getStatus())
-                    .isEqualTo(EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT);
+                .isEqualTo(EliminationActionObjectGroupStatus.PARTIAL_DETACHMENT);
             assertThat(detachedGotReport.getInitialOperation()).isEqualTo(ingestOperationGuid.toString());
             assertThat(detachedGotReport.getOriginatingAgency()).isEqualTo(ORIGINATING_AGENCY);
             assertThat(detachedGotReport.getObjectIds()).isNullOrEmpty();
             assertThat(detachedGotReport.getDeletedParentUnitIds()).containsExactlyInAnyOrder(
-                    getId(ingestedUnitsByTitle.get(MONTPARNASSE)));
+                getId(ingestedUnitsByTitle.get(MONTPARNASSE)));
         }
     }
 
     private void assertJsonEquals(String resourcesFile, JsonNode actual, List<String> excludeFields)
-            throws FileNotFoundException, InvalidParseOperationException {
+        throws FileNotFoundException, InvalidParseOperationException {
         JsonNode expected = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile));
         if (excludeFields != null) {
             expected.forEach(e -> {
@@ -554,7 +538,7 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         }
 
         JsonAssert
-                .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[]{})));
+            .assertJsonEquals(expected, actual, JsonAssert.whenIgnoringPaths(excludeFields.toArray(new String[] {})));
     }
 
     private String getId(JsonNode unit) {
@@ -569,41 +553,33 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         return unit.get("Title").asText();
     }
 
-    private static class ReportModel {
-        @JsonProperty("units")
-        private List<EliminationActionUnitReportEntry> units;
-
-        @JsonProperty("objectGroups")
-        private List<EliminationActionObjectGroupReportEntry> objectGroups;
-    }
-
     private JsonNode getById(RequestResponseOK<JsonNode> ingestedGots, String id) {
         return ingestedGots.getResults().stream()
-                .filter(got -> id.equals(got.get(VitamFieldsHelper.id()).asText()))
-                .findFirst().get();
+            .filter(got -> id.equals(got.get(VitamFieldsHelper.id()).asText()))
+            .findFirst().get();
     }
 
     private void checkUnitExistence(String unitId, boolean shouldExist)
-            throws StorageNotFoundClientException, StorageServerClientException {
+        throws StorageNotFoundClientException, StorageServerClientException {
         checkDocumentExistence(MetadataCollections.UNIT.getVitamCollection(), unitId, shouldExist);
         checkDocumentExistence(LogbookCollections.LIFECYCLE_UNIT.getVitamCollection(), unitId, shouldExist);
         checkFileInStorage(DataCategory.UNIT, unitId + ".json", shouldExist);
     }
 
     private void checkObjectGroupExistence(String gotId, boolean shouldExist)
-            throws StorageNotFoundClientException, StorageServerClientException {
+        throws StorageNotFoundClientException, StorageServerClientException {
         checkDocumentExistence(MetadataCollections.OBJECTGROUP.getVitamCollection(), gotId, shouldExist);
         checkDocumentExistence(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection(), gotId, shouldExist);
         checkFileInStorage(DataCategory.OBJECTGROUP, gotId + ".json", shouldExist);
     }
 
     private void checkObjectExistence(String objectId, boolean shouldExist)
-            throws StorageNotFoundClientException, StorageServerClientException {
+        throws StorageNotFoundClientException, StorageServerClientException {
         checkFileInStorage(DataCategory.OBJECT, objectId, shouldExist);
     }
 
     private void checkFileInStorage(DataCategory dataCategory, String filename, boolean shouldExist)
-            throws StorageNotFoundClientException, StorageServerClientException {
+        throws StorageNotFoundClientException, StorageServerClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             List<String> offers = storageClient.getOffers(DEFAULT_STRATEGY);
@@ -614,24 +590,24 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
     }
 
     private void checkDocumentExistence(VitamCollection collection, String documentId,
-                                        boolean shouldExist) {
+        boolean shouldExist) {
 
         int expectedHits = shouldExist ? 1 : 0;
 
         // Logbook LFCs are not persisted in ES
         if (collection.getEsClient() != null) {
             long totalHits = collection.getEsClient().getClient()
-                    .prepareSearch(getAliasName(collection, VitamThreadUtils.getVitamSession().getTenantId()))
-                    .setTypes(VitamCollection.getTypeunique())
-                    .setQuery(QueryBuilders.termQuery(VitamDocument.ID, documentId))
-                    .get()
-                    .getHits()
-                    .getTotalHits();
+                .prepareSearch(getAliasName(collection, VitamThreadUtils.getVitamSession().getTenantId()))
+                .setTypes(VitamCollection.getTypeunique())
+                .setQuery(QueryBuilders.termQuery(VitamDocument.ID, documentId))
+                .get()
+                .getHits()
+                .getTotalHits();
             assertThat(totalHits).isEqualTo(expectedHits);
         }
 
         assertThat(collection.getCollection().find(Filters.eq(VitamDocument.ID, documentId))
-                .iterator()).hasSize(expectedHits);
+            .iterator()).hasSize(expectedHits);
     }
 
     private Set<String> getObjectIds(RequestResponseOK<JsonNode> gots) {
@@ -671,32 +647,32 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
 
     private Map<String, JsonNode> mapByField(RequestResponseOK<JsonNode> requestResponseOK, String title) {
         return requestResponseOK.getResults()
-                .stream()
-                .collect(Collectors.toMap(node -> node.get(title).asText(), node -> node));
+            .stream()
+            .collect(Collectors.toMap(node -> node.get(title).asText(), node -> node));
     }
 
     private RequestResponseOK<JsonNode> selectGotsByOpi(GUID ingestOperationGuid,
-                                                        AccessInternalClient accessInternalClient)
-            throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+        AccessInternalClient accessInternalClient)
+        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException {
         SelectMultiQuery checkEliminationGotDslRequest = new SelectMultiQuery();
         checkEliminationGotDslRequest.addQueries(
-                QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
+            QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
 
         return (RequestResponseOK<JsonNode>) accessInternalClient
-                .selectObjects(checkEliminationGotDslRequest.getFinalSelect());
+            .selectObjects(checkEliminationGotDslRequest.getFinalSelect());
     }
 
     private RequestResponseOK<JsonNode> selectUnitsByOpi(GUID ingestOperationGuid,
-                                                         AccessInternalClient accessInternalClient)
-            throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
-            AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException {
+        AccessInternalClient accessInternalClient)
+        throws InvalidCreateOperationException, InvalidParseOperationException, AccessInternalClientServerException,
+        AccessInternalClientNotFoundException, AccessUnauthorizedException, BadRequestException, VitamDBException {
         SelectMultiQuery checkEliminationDslRequest = new SelectMultiQuery();
         checkEliminationDslRequest.addQueries(
-                QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
+            QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid.toString()));
 
         return (RequestResponseOK<JsonNode>) accessInternalClient
-                .selectUnits(checkEliminationDslRequest.getFinalSelect());
+            .selectUnits(checkEliminationDslRequest.getFinalSelect());
     }
 
     private void awaitForWorkflowTerminationWithStatus(GUID operationGuid, StatusCode ok) {
@@ -704,11 +680,20 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         wait(operationGuid.toString());
 
         ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
+            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(operationGuid.toString(), tenantId);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(ok, processWorkflow.getStatus());
+    }
+
+
+    private static class ReportModel {
+        @JsonProperty("units")
+        private List<EliminationActionUnitReportEntry> units;
+
+        @JsonProperty("objectGroups")
+        private List<EliminationActionObjectGroupReportEntry> objectGroups;
     }
 
 }

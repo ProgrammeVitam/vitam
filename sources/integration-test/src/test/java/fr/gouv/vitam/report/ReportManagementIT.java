@@ -173,7 +173,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         RequestResponse<JsonNode> requestResponse = batchReportClient.appendReportEntries(reportBody);
         assertThat(requestResponse.getStatus()).isEqualTo(Response.Status.CREATED.getStatusCode());
     }
-    
+
     @Test
     @RunWithCustomExecutor
     public void should_append_audit_report() throws Exception {
@@ -272,7 +272,7 @@ public class ReportManagementIT extends VitamRuleRunner {
         // Then
         assertThat(storeResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
     }
-    
+
 
     @Test
     @RunWithCustomExecutor

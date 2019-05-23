@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -27,6 +27,8 @@
 package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
@@ -36,8 +38,6 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.common.model.processing.ProcessingUri;
-import fr.gouv.vitam.common.model.processing.UriPrefix;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -49,6 +49,8 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -74,17 +76,12 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
-import static fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateUnitsProcess.DISTRIBUTION_LOCAL_REPORTS_RANK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-/**
- * MassUpdateUnitsProcess tests
- */
 public class MassUpdateUnitsProcessTest {
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaop";
     private static final String UNIT1_GUID = "aeaqaaaaaaag3r7cabf4aak2izdloiiaaaa1";
@@ -94,44 +91,6 @@ public class MassUpdateUnitsProcessTest {
     private static final String UNIT = "MassUpdateUnitsProcess/unitMd.json";
     private static final String METDATA_UNIT_RESPONSE_JSON = "MassUpdateUnitsProcess/unit.json";
     private static final String LFC_UNIT_RESPONSE_JSON = "MassUpdateUnitsProcess/lfc.json";
-    private static final String METADATA_BULK_UPDATE_RESPONSE = "{\n" +
-        "  \"$context\": {\n" +
-        "    \"$action\": [\n" +
-        "      {\n" +
-        "        \"$set\": {\n" +
-        "          \"Title\": \"monSIP 6\"\n" +
-        "        }\n" +
-        "      }\n" +
-        "    ],\n" +
-        "    \"$filter\": {},\n" +
-        "    \"$query\": [],\n" +
-        "    \"$roots\": [\n" +
-        "      \"aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq\",\n" +
-        "      \"aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq\"\n" +
-        "    ],\n" +
-        "    \"$threshold\": 1000\n" +
-        "  },\n" +
-        "  \"$facetResults\": [],\n" +
-        "  \"$hits\": {\n" +
-        "    \"limit\": 10000,\n" +
-        "    \"offset\": 0,\n" +
-        "    \"size\": 2,\n" +
-        "    \"total\": 2\n" +
-        "  },\n" +
-        "  \"$results\": [\n" +
-        "      {\n" +
-        "        \"#diff\": \"-    Title : monSIP 5\\n+    Title : monSIP 6\\n-    #version : 3\\n+    #version : 4\",\n" +
-        "        \"#id\": \"aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq\",\n" +
-        "        \"#status\": \"OK\"\n" +
-        "      },\n" +
-        "      {\n" +
-        "        \"#diff\": \"-    Title : monSIP 5\\n+    Title : monSIP 6\\n-    #version : 3\\n+    #version : 4\",\n" +
-        "        \"#id\": \"aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq\",\n" +
-        "        \"#status\": \"OK\"\n" +
-        "      }\n" +
-        "  ],\n" +
-        "  \"httpCode\": 200\n" +
-        "}";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -161,6 +120,9 @@ public class MassUpdateUnitsProcessTest {
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
 
+    @Mock
+    private BatchReportClientFactory batchReportClientFactory;
+
     @InjectMocks
     private MassUpdateUnitsProcess massUpdateUnitsProcess;
 
@@ -169,6 +131,8 @@ public class MassUpdateUnitsProcessTest {
     private StorageClient storageClient;
     private WorkspaceClient workspaceClient;
     private AdminManagementClient adminManagementClient;
+    private BatchReportClient batchReportClient;
+
 
     private InputStream unit;
     private RequestResponse<JsonNode> unitResponse;
@@ -178,6 +142,8 @@ public class MassUpdateUnitsProcessTest {
     public void setUp() throws Exception {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
+        batchReportClient = mock(BatchReportClient.class);
+        given(batchReportClientFactory.getClient()).willReturn(batchReportClient);
         workspaceClient = mock(WorkspaceClient.class);
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         metadataClient = mock(MetaDataClient.class);
@@ -213,23 +179,21 @@ public class MassUpdateUnitsProcessTest {
             JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
         String workerId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
+        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
+        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
 
         given(handlerIO.getWorkerId()).willReturn(workerId);
-        given(metadataClient.updateUnitBulk(any())).willReturn(JsonHandler.getFromString(METADATA_BULK_UPDATE_RESPONSE,
-            RequestResponseOK.class, JsonNode.class));
+        given(metadataClient.updateUnitBulk(any())).willReturn(responseOK);
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
         when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
             .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
         when(storageClient.storeFileFromWorkspace(any(), any(), any(), any()))
             .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper
-            .getOntologies(Response.Status.OK.getStatusCode()));
-        // TODO: Mock adminClient.findOntologies
+        when(adminManagementClient.findOntologies(any())).thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
 
         File reportFile = tempFolder.newFile();
-        given(handlerIO.getOutput(DISTRIBUTION_LOCAL_REPORTS_RANK))
-            .willReturn(new ProcessingUri(UriPrefix.WORKSPACE, reportFile.getPath()));
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
 
         List<ItemStatus> itemStatuses = massUpdateUnitsProcess.executeList(params, handlerIO);

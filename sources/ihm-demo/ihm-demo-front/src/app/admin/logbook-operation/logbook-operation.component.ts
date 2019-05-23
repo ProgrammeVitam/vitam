@@ -233,12 +233,12 @@ export class LogbookOperationComponent extends PageComponent {
         }
         break;
       case 'DATA_MIGRATION':
+        logbookService.downloadReport(item.evIdProc);
+        break;
       case 'ELIMINATION':
       case 'PRESERVATION':
-        logbookService.downloadBatchReport(item.evIdProc);
-        break;
       case 'MASS_UPDATE':
-        logbookService.downloadMassUpdateReport(item.evIdProc);
+        logbookService.downloadBatchReport(item.evIdProc);
         break;
       case 'INGEST':
         logbookService.downloadObject(item.evIdProc);
@@ -249,28 +249,24 @@ export class LogbookOperationComponent extends PageComponent {
       case 'MASTERDATA':
         if (item.evType.toUpperCase() === 'STP_IMPORT_RULES' || item.evType.toUpperCase() === 'IMPORT_AGENCIES' || item.evType.toUpperCase() === 'IMPORT_ONTOLOGY') {
           logbookService.downloadReport(item.evIdProc);
-          break;
         } else if (item.evType.toUpperCase() === 'HOLDINGSCHEME') {
           logbookService.downloadObject(item.evIdProc);
-          break;
         } else if (item.evType === 'STP_REFERENTIAL_FORMAT_IMPORT') {
           logbookService.downloadReport(item.evIdProc);
-          break;
         } else if (item.evType === 'IMPORT_GRIFFIN') {
-            logbookService.downloadReport(item.evIdProc);
-            break;
-        } else if (item.evType === 'STP_IMPORT_GRIFFIN') {
-            logbookService.downloadReport(item.evIdProc);
-            break;
+          logbookService.downloadReport(item.evIdProc);
         } else if (item.evType === 'IMPORT_PRESERVATION_SCENARIO') {
-            logbookService.downloadReport(item.evIdProc);
-            break;
+          logbookService.downloadReport(item.evIdProc);
         } else if (item.evType === 'STP_IMPORT_ACCESS_CONTRACT') {
           logbookService.downloadReport(item.evIdProc);
-          break;
+        }
+        break;
+      default:
+        // Do not download anything
+        break;
     }
   }
-  }
+
   static isOperationInProgress(item): boolean {
     const status = LogbookOperationComponent.getOperationStatus(item);
     switch (status) {

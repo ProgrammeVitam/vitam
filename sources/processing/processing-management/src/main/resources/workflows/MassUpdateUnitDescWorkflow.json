@@ -80,13 +80,7 @@
         {
           "action": {
             "actionKey": "MASS_UPDATE_UNITS",
-            "behavior": "BLOCKING",
-            "out": [
-              {
-                "name": "update_units_report",
-                "uri": "WORKSPACE:reports"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         }
       ]
@@ -102,13 +96,7 @@
         {
           "action": {
             "actionKey": "MASS_UPDATE_FINALIZE",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "update_units_report_container",
-                "uri": "VALUE:reports"
-              }
-            ]
+            "behavior": "BLOCKING"
           }
         }
       ]

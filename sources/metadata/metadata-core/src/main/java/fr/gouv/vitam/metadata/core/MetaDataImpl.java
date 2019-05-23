@@ -27,6 +27,7 @@
 package fr.gouv.vitam.metadata.core;
 
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -57,6 +58,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultipl
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
 import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
@@ -79,6 +81,7 @@ import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
@@ -101,6 +104,8 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
+import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import fr.gouv.vitam.metadata.core.utils.OriginatingAgencyBucketResult;
@@ -122,7 +127,7 @@ import org.elasticsearch.search.aggregations.metrics.cardinality.Cardinality;
 import org.elasticsearch.search.aggregations.metrics.sum.Sum;
 import org.elasticsearch.search.aggregations.metrics.valuecount.ValueCount;
 
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -142,8 +147,16 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.UNIT;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.CHECK_UNIT_SEDA;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE_CHECK_DT;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_UNKNOWN_OR_FORBIDDEN;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;
 
@@ -152,18 +165,19 @@ import static java.util.Collections.singletonList;
  */
 public class MetaDataImpl implements MetaData {
 
+    public static final String SP = "sp";
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     private static final String RESULTS = "$results";
-    public static final String SP = "sp";
+    private static final String HISTORY_FILE_NAME_TRIGGERS_CONFIG = "history-triggers.json";
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
     private final AdminManagementClientFactory adminManagementClientFactory;
     private final DbRequestFactory dbRequestFactory;
 
-    private static final String HISTORY_FILE_NAME_TRIGGERS_CONFIG = "history-triggers.json";
+    private static final TypeReference<List<String>> LIST_OF_STRING_TYPE = new TypeReference<List<String>>() {};
 
 
     /**
@@ -185,13 +199,6 @@ public class MetaDataImpl implements MetaData {
     }
 
     /**
-     * @return the MongoDbAccessMetadataImpl
-     */
-    public MongoDbAccessMetadataImpl getMongoDbAccess() {
-        return mongoDbAccess;
-    }
-
-    /**
      * Get a new MetaDataImpl instance
      *
      * @param mongoDbAccessMetadata
@@ -199,6 +206,25 @@ public class MetaDataImpl implements MetaData {
      */
     public static MetaData newMetadata(MongoDbAccessMetadataImpl mongoDbAccessMetadata) {
         return new MetaDataImpl(mongoDbAccessMetadata);
+    }
+
+    private static boolean isControlSchemaEmpty(ArchiveUnitProfileModel archiveUnitProfile)
+        throws ArchiveUnitProfileEmptyControlSchemaException {
+
+        try {
+            return archiveUnitProfile.getControlSchema() == null ||
+                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
+        } catch (InvalidParseOperationException e) {
+            throw new ArchiveUnitProfileEmptyControlSchemaException(
+                "Archive unit profile controlSchema is invalid");
+        }
+    }
+
+    /**
+     * @return the MongoDbAccessMetadataImpl
+     */
+    public MongoDbAccessMetadataImpl getMongoDbAccess() {
+        return mongoDbAccess;
     }
 
     @Override
@@ -503,8 +529,7 @@ public class MetaDataImpl implements MetaData {
     }
 
     @Override
-    public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(Integer tenant,
-        String operationId) {
+    public List<ObjectGroupPerOriginatingAgency> selectOwnAccessionRegisterOnObjectGroupByOperationId(Integer tenant, String operationId) {
         AggregationBuilder originatingAgencyAgg = aggregationForObjectGroupAccessionRegisterByOperationId(
             operationId);
 
@@ -605,7 +630,6 @@ public class MetaDataImpl implements MetaData {
             singletonList(BuilderToken.FILTERARGS.OBJECTGROUPS));
     }
 
-
     private RequestResponseOK<JsonNode> selectMetadataObject(JsonNode selectQuery, String unitOrObjectGroupId,
         List<BuilderToken.FILTERARGS> filters)
         throws MetaDataExecutionException, InvalidParseOperationException,
@@ -681,7 +705,6 @@ public class MetaDataImpl implements MetaData {
             .addAllResults(res).addAllFacetResults(facetResults).setHits(hits);
     }
 
-    // TODO : handle version
     @Override
     public void updateObjectGroupId(JsonNode updateQuery, String objectId)
         throws InvalidParseOperationException, MetaDataExecutionException, VitamDBException {
@@ -723,104 +746,107 @@ public class MetaDataImpl implements MetaData {
         final RequestMultiple request = updateRequest.getRequest();
         unitIds = request.getRoots();
 
-        List<JsonNode> collect = unitIds.stream().map(unit -> {
-            try {
-
-                checkArchiveUnitProfileQuery(updateRequest, unit);
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    updateUnitbyId(updateRequest.getRequest().getFinalUpdate(), unit);
-                List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
-
-                if (results != null && results.size() > 0) {
-                    ObjectNode result = (ObjectNode) results.get(0);
-                    result.put("#status", "OK");
-                    return result;
-                } else {
-                    return objectNodeResultForUpdateError(unit, "KO");
-                }
-
-            } catch (SchemaValidationException | ArchiveUnitProfileInactiveException
-                | ArchiveUnitProfileNotFoundException | ArchiveUnitProfileEmptyControlSchemaException e) {
-                LOGGER.warn("error while updating management metadata for unit " + unit + "; cant validate schema", e);
-                return objectNodeResultForUpdateError(unit, "WARNING");
-            } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException
-                | VitamDBException | MetaDataExecutionException | ArchiveUnitOntologyValidationException e) {
-                LOGGER.error(e);
-                return objectNodeResultForUpdateError(unit, "KO");
-            }
-
-        }).collect(Collectors.toList());
+        List<JsonNode> updatedUnits = unitIds.stream()
+            .map(unitId -> updateAndTransformUnit(updateRequest, unitId))
+            .collect(Collectors.toList());
 
         return new RequestResponseOK<JsonNode>(updateQuery)
-            .addAllResults(collect)
-            .setTotal(collect.size());
+            .addAllResults(updatedUnits)
+            .setTotal(updatedUnits.size());
+    }
+
+    private JsonNode updateAndTransformUnit(UpdateParserMultiple updateRequest, String unitId) {
+        try {
+            checkArchiveUnitProfileQuery(updateRequest, unitId);
+        } catch (Exception e) {
+            LOGGER.debug(e);
+            return error(unitId, FATAL, UNIT_METADATA_UPDATE_CHECK_DT, e.getMessage());
+        }
+
+        try {
+            RequestResponse<JsonNode> requestResponse = updateUnitById(updateRequest.getRequest().getFinalUpdate(), unitId);
+            if (!requestResponse.isOk()) {
+                return error(unitId, KO, UpdateUnitKey.valueOf(((VitamError)requestResponse).getCode()), "Response is not OK.");
+            }
+
+            JsonNode unit = RequestResponseOK.getFromJsonNode(requestResponse.toJsonNode()).getFirstResult();
+            List<String> diffs = JsonHandler.getFromJsonNode(unit.get("#diff"), LIST_OF_STRING_TYPE);
+            if (diffs.isEmpty()) {
+                return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
+            }
+
+            return unitWithStatus(unit);
+        } catch (ArchiveUnitOntologyValidationException e) {
+            LOGGER.debug(e);
+            return error(unitId, KO, CHECK_UNIT_SCHEMA, e.getMessage());
+        } catch (VitamDBException e) {
+            LOGGER.debug(e);
+            return error(unitId, FATAL, UNIT_METADATA_UPDATE, e.getMessage());
+        } catch (Exception e) {
+            LOGGER.debug(e);
+            return error(unitId, KO, UNIT_METADATA_UPDATE, e.getMessage());
+        }
+    }
+
+    private JsonNode unitWithStatus(JsonNode unit) {
+        ObjectNode unitAsNode = (ObjectNode) unit;
+        unitAsNode.put("#status", StatusCode.OK.name());
+        unitAsNode.put("#key", UNIT_METADATA_UPDATE.name());
+        unitAsNode.put("#message", "Update unit rules OK.");
+        return unitAsNode;
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery,
-        Map<String, DurationData> bindRuleToDuration)
-        throws InvalidParseOperationException {
-        Set<String> unitIds;
-        final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
+    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery, Map<String, DurationData> bindRuleToDuration) throws InvalidParseOperationException {
+        RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
         updateRequest.parse(updateQuery.get("query"));
-        final RequestMultiple request = updateRequest.getRequest();
-        unitIds = request.getRoots();
 
-        List<JsonNode> collect = unitIds.stream().map(unitId -> {
-            try {
-                RequestResponse<JsonNode> jsonNodeRequestResponse =
-                    updateUnitRulesbyId(updateQuery.get("actions"), unitId, bindRuleToDuration);
-                List<JsonNode> results = ((RequestResponseOK<JsonNode>) jsonNodeRequestResponse).getResults();
-
-                if (results != null && results.size() > 0) {
-                    ObjectNode result = (ObjectNode) results.get(0);
-                    result.put("#status", "OK");
-                    return result;
-                } else {
-                    return objectNodeResultForUpdateError(unitId, "KO");
-                }
-            } catch (SchemaValidationException e) {
-                LOGGER
-                    .warn("error while updating management metadata for unit " + unitId + "; cant validate schema", e);
-                return objectNodeResultForUpdateError(unitId, "WARNING");
-            } catch (ArchiveUnitOntologyValidationException e) {
-                LOGGER
-                    .warn("error while updating management metadata for unit " + unitId + "; cant validate ontologies",
-                        e);
-                return objectNodeResultForUpdateError(unitId, "WARNING");
-            } catch (MetaDataNotFoundException | InvalidParseOperationException | MetaDataDocumentSizeException | MetaDataExecutionException | VitamDBException e) {
-                LOGGER.error(e);
-                return objectNodeResultForUpdateError(unitId, "KO");
-            }
-
-        }).collect(Collectors.toList());
+        Set<String> unitIds = updateRequest.getRequest().getRoots();
+        List<JsonNode> unitRules = unitIds.stream()
+            .map(unitId -> updateAndTransformUnitRules(updateQuery, bindRuleToDuration, unitId))
+            .collect(Collectors.toList());
 
         return new RequestResponseOK<JsonNode>(updateQuery)
-            .addAllResults(collect)
-            .setTotal(collect.size());
+            .addAllResults(unitRules)
+            .setTotal(unitRules.size());
     }
 
-    private ObjectNode objectNodeResultForUpdateError(String unitId, String status) {
-        final ObjectNode diffNode = JsonHandler.createObjectNode();
-        diffNode.put("#id", unitId);
-        diffNode.putNull("#diff");
-        diffNode.put("#status", status);
-        return diffNode;
+    private JsonNode updateAndTransformUnitRules(JsonNode updateQuery, Map<String, DurationData> bindRuleToDuration, String unitId) {
+        try {
+            RequestResponse<JsonNode> requestResponse = updateUnitRulesById(updateQuery.get("actions"), unitId, bindRuleToDuration);
+            if (!requestResponse.isOk()) {
+                return error(unitId, KO, UpdateUnitKey.valueOf(((VitamError)requestResponse).getCode()), "Response is not OK.");
+            }
+
+            JsonNode unit = RequestResponseOK.getFromJsonNode(requestResponse.toJsonNode()).getFirstResult();
+            List<String> diffs = JsonHandler.getFromJsonNode(unit.get("#diff"), LIST_OF_STRING_TYPE);
+            if (diffs.isEmpty()) {
+                return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
+            }
+
+            return unitWithStatus(unit);
+        } catch (SchemaValidationException | ArchiveUnitOntologyValidationException e) {
+            return error(unitId, KO, CHECK_UNIT_SEDA, e.getMessage());
+        } catch (Exception e) {
+            return error(unitId, KO, UNIT_METADATA_UPDATE, e.getMessage());
+        }
     }
 
-    // TODO : in order to deal with selection (update from the root) in the query, the code should be modified
+    private JsonNode error(String unitId, StatusCode status, UpdateUnitKey key, String message) {
+        try {
+            return JsonHandler.toJsonNode(new UpdateUnit(unitId, status, key, message, "no diff"));
+        } catch (InvalidParseOperationException e) {
+            throw new VitamRuntimeException(e);
+        }
+    }
+
     @Override
-    public RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
+    public RequestResponse<JsonNode> updateUnitById(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, VitamDBException, ArchiveUnitOntologyValidationException,
-        SchemaValidationException {
-        Result result;
-        ArrayNode arrayNodeResponse;
+        MetaDataDocumentSizeException, VitamDBException, ArchiveUnitOntologyValidationException {
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
-        JsonNode queryCopy = updateQuery.deepCopy();
-
         try {
             // parse Update request
             final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
@@ -835,69 +861,58 @@ public class MetaDataImpl implements MetaData {
                 }
             }
 
-            final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
+            RequestResponse responseUnitBeforeUpdate = getUnitById(unitId);
+            if (!responseUnitBeforeUpdate.isOk()) {
+                return new VitamError(UNIT_UNKNOWN_OR_FORBIDDEN.name());
+            }
+            JsonNode firstResult = RequestResponseOK.getFromJsonNode(responseUnitBeforeUpdate.toJsonNode()).getFirstResult();
+            if (firstResult == null || firstResult.isMissingNode() || firstResult.isNull()) {
+                return new VitamError(UNIT_UNKNOWN_OR_FORBIDDEN.name());
+            }
+            Result result = dbRequestFactory.create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
+            String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
-            // Execute DSL request
-            result =
-                dbRequestFactory.create(HISTORY_FILE_NAME_TRIGGERS_CONFIG).execRequest(updateRequest);
+            if (result.isError()) {
+                return new VitamError(UNIT_METADATA_UPDATE.name());
+            }
 
-            final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
-
-            final Map<String, List<String>> diffs = new HashMap<>();
-            diffs.put(unitId,
-                VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
-
-            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
-        } catch (final InvalidParseOperationException | MetaDataNotFoundException e) {
-            throw e;
-        } catch (final BadRequestException | ChangesTriggerConfigFileException | MetaDataExecutionException e) {
+            return toResponseOk(updateQuery, unitId, JsonHandler.prettyPrint(responseUnitBeforeUpdate), unitAfterUpdate);
+        } catch (BadRequestException | ChangesTriggerConfigFileException e) {
             throw new MetaDataExecutionException(e);
         }
-
-        List res = toArrayList(arrayNodeResponse);
-        Long total = result != null ? result.getTotal() : res.size();
-        return new RequestResponseOK<JsonNode>(queryCopy)
-            .addAllResults(toArrayList(arrayNodeResponse))
-            .setTotal(total)
-            .setHttpCode(Response.Status.OK.getStatusCode());
     }
 
-    private RequestResponse<JsonNode> updateUnitRulesbyId(JsonNode updateActions, String unitId,
-        Map<String, DurationData> bindRuleToDuration)
+    private RequestResponse<JsonNode> updateUnitRulesById(JsonNode updateActions, String unitId, Map<String, DurationData> bindRuleToDuration)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, VitamDBException, SchemaValidationException,
         ArchiveUnitOntologyValidationException {
-        Result result;
-        ArrayNode arrayNodeResponse;
         if (updateActions.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
-        JsonNode queryCopy = updateActions.deepCopy();
-
         try {
             RuleActions ruleActions = JsonHandler.getFromJsonNode(updateActions, RuleActions.class);
-            final String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
-            // Execute DSL request
-            result =
-                dbRequestFactory.create().execRuleRequest(unitId, ruleActions, bindRuleToDuration);
+            String unitBeforeUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
+            Result result = dbRequestFactory.create().execRuleRequest(unitId, ruleActions, bindRuleToDuration);
+            String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
 
-            final String unitAfterUpdate = JsonHandler.prettyPrint(getUnitById(unitId));
+            if (result.isError()) {
+                return new VitamError(String.format("Error with update rules query %s on unit %s.", ruleActions, unitId));
+            }
 
-            final Map<String, List<String>> diffs = new HashMap<>();
-            diffs.put(unitId,
-                VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate)));
-
-            arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, diffs);
+            return toResponseOk(updateActions, unitId, unitBeforeUpdate, unitAfterUpdate);
         } catch (final BadRequestException | InvalidCreateOperationException e) {
             throw new MetaDataExecutionException(e);
         }
-        List res = toArrayList(arrayNodeResponse);
-        Long total = result != null ? result.getTotal() : res.size();
-        return new RequestResponseOK<JsonNode>(queryCopy)
-            .addAllResults(res)
-            .setTotal(total)
-            .setHttpCode(Response.Status.OK.getStatusCode());
+    }
+
+    private RequestResponse<JsonNode> toResponseOk(JsonNode updateActions, String unitId, String unitBeforeUpdate, String unitAfterUpdate) {
+        JsonNode resultNode = JsonHandler.createObjectNode()
+            .put("#id", unitId)
+            .put("#diff", String.join("\n", VitamDocument.getConcernedDiffLines(VitamDocument.getUnifiedDiff(unitBeforeUpdate, unitAfterUpdate))));
+        return new RequestResponseOK<JsonNode>(updateActions)
+            .addResult(resultNode)
+            .setHttpCode(Status.OK.getStatusCode());
     }
 
     private RequestResponse getUnitById(String id)
@@ -1000,17 +1015,14 @@ public class MetaDataImpl implements MetaData {
         }
     }
 
-    private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String unitId)
-        throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
-        MetaDataExecutionException, InvalidParseOperationException,
-        ArchiveUnitProfileEmptyControlSchemaException {
+    private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String unitId) throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException, MetaDataExecutionException, InvalidParseOperationException, ArchiveUnitProfileEmptyControlSchemaException {
         boolean updateAupValue = false;
         String originalAupIdentifier = null;
         // first get aup information for the unit
         JsonNode aupInfo = getUnitArchiveUnitProfile(unitId);
         if (aupInfo != null) {
-            originalAupIdentifier = aupInfo.isArray() ?
-                (aupInfo.get(0) != null ? aupInfo.get(0).asText() : null)
+            originalAupIdentifier = aupInfo.isArray()
+                ? (aupInfo.get(0) != null ? aupInfo.get(0).asText() : null)
                 : aupInfo.asText();
         }
 
@@ -1100,7 +1112,7 @@ public class MetaDataImpl implements MetaData {
                 throw new ArchiveUnitProfileInactiveException("Archive unit profile is inactive");
             }
 
-            if (controlSchemaIsEmpty(archiveUnitProfile)) {
+            if (isControlSchemaEmpty(archiveUnitProfile)) {
                 throw new ArchiveUnitProfileEmptyControlSchemaException(
                     "Archive unit profile does not have a controlSchema");
             }
@@ -1111,18 +1123,6 @@ public class MetaDataImpl implements MetaData {
             request.addActions(action);
         } catch (InvalidCreateOperationException | AdminManagementClientServerException e) {
             throw new MetaDataExecutionException("Unable to make request for ArchiveUnitProfile", e);
-        }
-    }
-
-    private static boolean controlSchemaIsEmpty(ArchiveUnitProfileModel archiveUnitProfile)
-        throws ArchiveUnitProfileEmptyControlSchemaException {
-
-        try {
-            return archiveUnitProfile.getControlSchema() == null ||
-                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
-        } catch (InvalidParseOperationException e) {
-            throw new ArchiveUnitProfileEmptyControlSchemaException(
-                "Archive unit profile controlSchema is invalid");
         }
     }
 }

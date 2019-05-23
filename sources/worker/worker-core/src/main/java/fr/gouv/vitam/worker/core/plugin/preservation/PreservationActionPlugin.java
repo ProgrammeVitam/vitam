@@ -270,6 +270,7 @@ public class PreservationActionPlugin extends ActionHandler {
         return new PreservationReportEntry(
             requestId,
             requestId,
+            requestId,
             tenant,
             now.toString(),
             value.getOutput().getStatus(),
@@ -281,7 +282,8 @@ public class PreservationActionPlugin extends ActionHandler {
             value.getBinaryGUID(),
             "Outcome - TO BE DEFINED", // FIXME: Put outcome here !
             model.getGriffinIdentifier(),
-            model.getScenarioId());
+            model.getScenarioId()
+        );
     }
-    
+
 }

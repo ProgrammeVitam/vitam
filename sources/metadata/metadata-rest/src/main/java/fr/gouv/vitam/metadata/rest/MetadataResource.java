@@ -564,7 +564,7 @@ public class MetadataResource extends ApplicationStatusResource {
         try {
             RequestResponse<JsonNode> result;
             try {
-                result = metaData.updateUnitbyId(updateRequest, unitId);
+                result = metaData.updateUnitById(updateRequest, unitId);
             } catch (final VitamDBException ve) {
                 LOGGER.error(ve);
                 status = Status.INTERNAL_SERVER_ERROR;

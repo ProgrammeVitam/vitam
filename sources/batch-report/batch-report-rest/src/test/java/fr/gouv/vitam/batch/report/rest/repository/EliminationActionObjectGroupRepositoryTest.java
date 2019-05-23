@@ -102,7 +102,7 @@ public class EliminationActionObjectGroupRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"opi\":\"opi0\",\"id\":\"id2\",\"originatingAgency\":\"sp1\",\"status\":\"DELETED\",\"objectIds\":[\"parent\",\"parent2\"],\"objectVersions\":[{\"opi\":\"opi0\",\"size\":3},{\"opi\":\"opi0add\",\"size\":6}]}");
+            "{\"opi\":\"opi0\",\"detailType\":\"objectGroup\",\"id\":\"id2\",\"originatingAgency\":\"sp1\",\"status\":\"DELETED\",\"objectIds\":[\"parent\",\"parent2\"],\"objectVersions\":[{\"opi\":\"opi0\",\"size\":3},{\"opi\":\"opi0add\",\"size\":6}]}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
     }
 

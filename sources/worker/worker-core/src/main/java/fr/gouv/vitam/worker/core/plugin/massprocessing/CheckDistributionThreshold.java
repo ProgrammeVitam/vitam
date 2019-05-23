@@ -58,9 +58,6 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-/**
- * Check distribution threshold.
- */
 public class CheckDistributionThreshold extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
@@ -117,11 +114,8 @@ public class CheckDistributionThreshold extends ActionHandler {
             }
 
             if (total > defaultThreshold) {
-
                 ObjectNode eventDetails = JsonHandler.createObjectNode();
-                String errorMessage = "Unit count exceeds default threshold. Default threshold=" + defaultThreshold
-                    + ", found=" + total;
-
+                String errorMessage = String.format("Unit count exceeds default threshold. Default threshold=%d, found=%d", defaultThreshold, total);
                 eventDetails.put("warning", errorMessage);
 
                 return buildItemStatus(CHECK_DISTRIBUTION_THRESHOLD, StatusCode.WARNING, eventDetails);

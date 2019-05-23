@@ -26,21 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.rest.resource;
 
-import java.io.IOException;
-
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.batch.report.exception.BatchReportException;
 import fr.gouv.vitam.batch.report.model.Report;
 import fr.gouv.vitam.batch.report.model.ReportBody;
@@ -50,7 +37,7 @@ import fr.gouv.vitam.batch.report.model.entry.AuditObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.EliminationActionUnitReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
-import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
+import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.batch.report.rest.service.BatchReportServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -64,15 +51,31 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.io.IOException;
+
 /**
  * public resource to mass-report
  */
 @Path("/batchreport/v1")
 public class BatchReportResource extends ApplicationStatusResource {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchReportResource.class);
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EliminationActionUnitRepository.class);
-    private static final String BATCH_REPORT = "batchReportModule";
-    private static final String CODE_VITAM = "code_vitam";
+    private final static TypeReference<ReportBody<AuditObjectGroupReportEntry>> reportAuditType = new TypeReference<ReportBody<AuditObjectGroupReportEntry>>() {};
+    private final static TypeReference<ReportBody<EliminationActionUnitReportEntry>> reportEliminationActionUnitType = new TypeReference<ReportBody<EliminationActionUnitReportEntry>>() {};
+    private final static TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>> reportEliminationActionObjectGroupType = new TypeReference<ReportBody<EliminationActionObjectGroupReportEntry>>() {};
+    private final static TypeReference<ReportBody<PreservationReportEntry>> reportPreservationType = new TypeReference<ReportBody<PreservationReportEntry>>() {};
+    private final static TypeReference<ReportBody<UpdateUnitMetadataReportEntry>> reportMassUpdateType = new TypeReference<ReportBody<UpdateUnitMetadataReportEntry>>() {};
+
     private BatchReportServiceImpl batchReportServiceImpl;
 
 
@@ -84,48 +87,42 @@ public class BatchReportResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response appendReport(JsonNode body,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId) {
-
+    public Response appendReport(JsonNode body, @HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId) {
         try {
             String type = body.get("reportType").asText();
             ReportType reportType = ReportType.valueOf(type);
             switch (reportType) {
                 case ELIMINATION_ACTION_UNIT:
-                    ReportBody<EliminationActionUnitReportEntry> eliminationUnitReportBody =
-                        JsonHandler.getFromJsonNode(body, ReportBody.class, EliminationActionUnitReportEntry.class);
-                    batchReportServiceImpl
-                        .appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(),
-                            eliminationUnitReportBody.getEntries(), tenantId);
+                    ReportBody<EliminationActionUnitReportEntry> eliminationUnitReportBody = JsonHandler.getFromJsonNode(body, reportEliminationActionUnitType);
+                    batchReportServiceImpl.appendEliminationActionUnitReport(eliminationUnitReportBody.getProcessId(), eliminationUnitReportBody.getEntries(), tenantId);
                     break;
                 case ELIMINATION_ACTION_OBJECTGROUP:
-                    ReportBody<EliminationActionObjectGroupReportEntry> eliminationObjectGroupReportBody =
-                        JsonHandler.getFromJsonNode(body, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
-                    batchReportServiceImpl
-                        .appendEliminationActionObjectGroupReport(eliminationObjectGroupReportBody.getProcessId(),
-                            eliminationObjectGroupReportBody.getEntries(), tenantId);
+                    ReportBody<EliminationActionObjectGroupReportEntry> eliminationObjectGroupReportBody = JsonHandler.getFromJsonNode(body, reportEliminationActionObjectGroupType);
+                    batchReportServiceImpl.appendEliminationActionObjectGroupReport(eliminationObjectGroupReportBody.getProcessId(), eliminationObjectGroupReportBody.getEntries(), tenantId);
                     break;
                 case PRESERVATION:
-                        ReportBody<PreservationReportEntry> preservationReportBody =
-                            JsonHandler.getFromJsonNode(body, ReportBody.class, PreservationReportEntry.class);
-                        batchReportServiceImpl
-                            .appendPreservationReport(preservationReportBody.getProcessId(), preservationReportBody.getEntries(), tenantId);
+                    ReportBody<PreservationReportEntry> preservationReportBody = JsonHandler.getFromJsonNode(body, reportPreservationType);
+                    batchReportServiceImpl.appendPreservationReport(preservationReportBody.getProcessId(), preservationReportBody.getEntries(), tenantId);
                     break;
                 case AUDIT:
-                    ReportBody<AuditObjectGroupReportEntry> auditReportBody = JsonHandler.getFromJsonNode(body,
-                            ReportBody.class, AuditObjectGroupReportEntry.class);
-                    batchReportServiceImpl.appendAuditReport(auditReportBody.getProcessId(), auditReportBody.getEntries(),
-                            tenantId);
+                    ReportBody<AuditObjectGroupReportEntry> auditReportBody = JsonHandler.getFromJsonNode(body, reportAuditType);
+                    batchReportServiceImpl.appendAuditReport(auditReportBody.getProcessId(), auditReportBody.getEntries(), tenantId);
+                    break;
+                case UPDATE_UNIT:
+                    ReportBody<UpdateUnitMetadataReportEntry> unitReportBody = JsonHandler.getFromJsonNode(body, reportMassUpdateType);
+                    batchReportServiceImpl.appendUnitReport(unitReportBody.getEntries());
                     break;
                 default:
                     throw new IllegalStateException("Unsupported report type " + reportType);
             }
+            return Response.status(Response.Status.CREATED).build();
         } catch (InvalidParseOperationException e) {
-            Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
+            LOGGER.error(e);
+            return Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).build();
         } catch (BatchReportException e) {
-            Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
+            LOGGER.error(e);
+            return Response.status(Response.Status.PRECONDITION_FAILED).entity(e.getMessage()).build();
         }
-        return Response.status(Response.Status.CREATED).build();
     }
 
     @Path("/store")
@@ -192,7 +189,7 @@ public class BatchReportResource extends ApplicationStatusResource {
             throw new BadRequestException(e);
         }
     }
-    
+
     @Path("/elimination_action/accession_register_export/{processId}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -249,6 +246,9 @@ public class BatchReportResource extends ApplicationStatusResource {
                     break;
                 case AUDIT:
                     batchReportServiceImpl.deleteAuditByIdAndTenant(processId, tenantId);
+                    break;
+                case UPDATE_UNIT:
+                    batchReportServiceImpl.deleteUpdateUnitByIdAndTenant(processId, tenantId);
                     break;
                 default:
                     Response.Status status = Response.Status.BAD_REQUEST;

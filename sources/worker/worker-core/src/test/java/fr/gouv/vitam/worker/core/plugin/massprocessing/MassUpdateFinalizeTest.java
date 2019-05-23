@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -26,247 +26,213 @@
  */
 package fr.gouv.vitam.worker.core.plugin.massprocessing;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.model.Report;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEventOperation;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.processing.common.exception.ProcessingException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
+import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
-import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.worker.common.HandlerIO;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
-import org.assertj.core.util.Lists;
+import fr.gouv.vitam.worker.core.plugin.preservation.TestHandlerIO;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
+import static fr.gouv.vitam.batch.report.model.ReportType.UPDATE_UNIT;
+import static fr.gouv.vitam.common.model.StatusCode.FATAL;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.processing.engine.core.ProcessEngineImpl.DETAILS;
+import static fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
+import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * MassUpdateFinalize tests
- */
 public class MassUpdateFinalizeTest {
-
-    private static final String MASS_UPDATE_FINALIZE = "MASS_UPDATE_FINALIZE";
-    private static final int DISTRIBUTION_LOCAL_REPORTS_RANK = 0;
-    private static final String REPORTS = "reports";
-    private static final int TENANT_ID = 0;
-    private static final String MASS_UPDATE_FINALIZE_OP_00_REPORT_SUCCESS_JSON =
-        "massUpdateFinalize/op_00_report_success.json";
-    private static final String MASS_UPDATE_FINALIZE_OP_01_REPORT_SUCCESS_JSON =
-        "massUpdateFinalize/op_01_report_success.json";
-    private static final String MASS_UPDATE_FINALIZE_OP_02_REPORT_SUCCESS_JSON =
-        "massUpdateFinalize/op_02_report_success.json";
-    private static final String OP_00_SUCCESS_JSON = "op_00_report_success.json";
-    private static final String OP_01_SUCCESS_JSON = "op_01_report_success.json";
-    private static final String OP_02_SUCCESS_JSON = "op_02_report_success.json";
-    private static final String OP_00_REPORT_ERROR_JSON = "op_00_report_error.json";
-    private static final String OP_01_REPORT_ERROR_JSON = "op_01_report_error.json";
-    private static final String SEPARATOR = "/";
-    public static final String MASS_UPDATE_FINALIZE_OP_00_REPORT_ERROR_JSON =
-        "massUpdateFinalize/op_00_report_error.json";
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @Rule
-    public TemporaryFolder tempFolder = new TemporaryFolder();
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock
-    private StorageClientFactory storageClientFactory;
+    private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
+    private LogbookOperationsClient logbookOperationsClient;
 
     @Mock
-    private StorageClient storageClient;
+    private BatchReportClientFactory batchReportClientFactory;
 
     @Mock
-    private WorkspaceClient workspaceClient;
-
-    @Mock
-    private HandlerIO handler;
+    private BatchReportClient batchReportClient;
 
     @InjectMocks
     private MassUpdateFinalize massUpdateFinalize;
 
-    private WorkerParameters parameters;
-    private String operationId;
-
     @Before
     public void setup() {
-        when(storageClientFactory.getClient()).thenReturn(storageClient);
-        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
-        when(handler.getInput(DISTRIBUTION_LOCAL_REPORTS_RANK)).thenReturn(REPORTS);
-        operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        parameters =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8080")
-                .setUrlMetadata("http://localhost:8080").setObjectNameList(Lists.newArrayList("objectName"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName(operationId)
-                .setProcessId(operationId);
+        given(batchReportClientFactory.getClient()).willReturn(batchReportClient);
+        given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void shouldReturnOKWhenUpdateFinalizeTest()
-        throws ContentAddressableStorageServerException, URISyntaxException, ProcessingException, IOException,
-        ContentAddressableStorageNotFoundException, StorageNotFoundClientException, StorageServerClientException,
-        StorageAlreadyExistsClientException, StorageNotFoundException {
-
+    public void should_generate_report_OK() throws Exception {
         // Given
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(operationId);
-        List<URI> uris = Arrays.asList(
-            new URI(OP_00_SUCCESS_JSON),
-            new URI(OP_01_SUCCESS_JSON),
-            new URI(OP_02_SUCCESS_JSON),
-            new URI(OP_00_REPORT_ERROR_JSON),
-            new URI(OP_01_REPORT_ERROR_JSON)
-        );
-        when(workspaceClient.getListUriDigitalObjectFromFolder(parameters.getContainerName(), REPORTS))
-            .thenReturn(new RequestResponseOK().addResult(uris));
-        File pathFile = tempFolder.newFile();
-        given(handler.getNewLocalFile(any())).willReturn(pathFile);
-        when(handler.getWorkerId()).thenReturn(operationId);
+        String operationId = "MY_OPERATION_ID";
 
-        File report = PropertiesUtils.getResourceFile(
-            MASS_UPDATE_FINALIZE_OP_00_REPORT_SUCCESS_JSON);
-        Response response =
-            Response.ok(Files.newInputStream(report.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, REPORTS + SEPARATOR + OP_00_SUCCESS_JSON)).thenReturn(response);
-        File report_01 = PropertiesUtils.getResourceFile(
-            MASS_UPDATE_FINALIZE_OP_01_REPORT_SUCCESS_JSON);
-        Response response1 =
-            Response.ok(Files.newInputStream(report_01.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, REPORTS + SEPARATOR + OP_01_SUCCESS_JSON))
-            .thenReturn(response1);
-        File report_02 = PropertiesUtils.getResourceFile(
-            MASS_UPDATE_FINALIZE_OP_02_REPORT_SUCCESS_JSON);
-        Response response2 =
-            Response.ok(Files.newInputStream(report_02.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, REPORTS + SEPARATOR + OP_02_SUCCESS_JSON))
-            .thenReturn(response2);
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
 
-        File reportKo = PropertiesUtils.getResourceFile(
-            MASS_UPDATE_FINALIZE_OP_00_REPORT_ERROR_JSON);
-        Response responseKo =
-            Response.ok(Files.newInputStream(reportKo.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, REPORTS + SEPARATOR + OP_00_REPORT_ERROR_JSON))
-            .thenReturn(responseKo);
-        File reportKo1 = PropertiesUtils.getResourceFile(
-            MASS_UPDATE_FINALIZE_OP_00_REPORT_ERROR_JSON);
-        Response responseKo1 =
-            Response.ok(Files.newInputStream(reportKo1.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, REPORTS + SEPARATOR + OP_01_REPORT_ERROR_JSON))
-            .thenReturn(responseKo1);
+        when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK());
 
         // When
-        ItemStatus itemStatus = massUpdateFinalize.execute(parameters, handler);
+        ItemStatus itemStatus = massUpdateFinalize.execute(workerParameter, handlerIO);
 
         // Then
-        // reportOK & reportKO
-        verify(workspaceClient, times(2)).putObject(any(), any(), any());
-        verify(storageClient, times(2)).storeFileFromWorkspace(any(), any(), any(), any());
-
-        assertThat(itemStatus).isNotNull();
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(itemStatus.getItemsStatus().size()).isEqualTo(1);
-        assertThat(itemStatus.getItemsStatus().get(MASS_UPDATE_FINALIZE)).isNotNull();
-        assertThat(itemStatus.getItemsStatus().get(MASS_UPDATE_FINALIZE).getGlobalStatus())
-            .isEqualTo(StatusCode.OK);
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void shouldReturnKOWhenEmptyUriReportsUpdateFinalizeTest()
-        throws ContentAddressableStorageServerException, URISyntaxException, ProcessingException, IOException,
-        ContentAddressableStorageNotFoundException {
-
+    public void should_create_report_with_number_of_OK_from_logbook() throws Exception {
         // Given
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(operationId);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(parameters.getContainerName(), REPORTS))
-            .thenReturn(new RequestResponseOK().addResult(Collections.<URI>emptyList()));
-        when(handler.getWorkerId()).thenReturn(operationId);
+        String operationId = "MY_OPERATION_ID";
+
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+
+        int numberOfOK = 54;
+        int numberOfKO = 42;
+
+        ArgumentCaptor<Report> reportCaptor = ArgumentCaptor.forClass(Report.class);
+
+        when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK(numberOfOK, numberOfKO));
+        when(batchReportClient.storeReport(reportCaptor.capture())).thenReturn(null);
 
         // When
-        ItemStatus itemStatus = massUpdateFinalize.execute(parameters, handler);
+        massUpdateFinalize.execute(workerParameter, handlerIO);
 
         // Then
-        assertThat(itemStatus).isNotNull();
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
-        assertThat(itemStatus.getItemsStatus().size()).isEqualTo(1);
-        assertThat(itemStatus.getItemsStatus().get(MASS_UPDATE_FINALIZE)).isNotNull();
-        assertThat(itemStatus.getItemsStatus().get(MASS_UPDATE_FINALIZE).getGlobalStatus())
-            .isEqualTo(StatusCode.KO);
+        assertThat(reportCaptor.getValue().getReportSummary().getVitamResults().getNbOk()).isEqualTo(numberOfOK);
+        assertThat(reportCaptor.getValue().getReportSummary().getVitamResults().getNbKo()).isEqualTo(numberOfKO);
     }
 
     @Test
     @RunWithCustomExecutor
-    public void shouldReturnFatalWhenWorkspaceExceptionUpdateFinalizeTest()
-        throws ContentAddressableStorageServerException, URISyntaxException, ProcessingException, IOException,
-        ContentAddressableStorageNotFoundException, StorageNotFoundClientException, StorageServerClientException,
-        StorageAlreadyExistsClientException {
-
+    public void should_store_report_when_OK() throws Exception {
         // Given
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        VitamThreadUtils.getVitamSession().setRequestId(operationId);
-        when(workspaceClient.getListUriDigitalObjectFromFolder(parameters.getContainerName(), REPORTS))
-            .thenReturn(new RequestResponseOK().addResult(Arrays.asList(new URI(OP_00_SUCCESS_JSON))));
-        when(handler.getWorkerId()).thenReturn(operationId);
-        File pathFile = tempFolder.newFile();
-        given(handler.getNewLocalFile(any())).willReturn(pathFile);
-        when(workspaceClient.getObject(any(), any()))
-            .thenThrow(new ContentAddressableStorageNotFoundException("Not found exception"));
+        String operationId = "MY_OPERATION_ID";
+
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+
+        when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK());
 
         // When
-        ItemStatus itemStatus = massUpdateFinalize.execute(parameters, handler);
+        massUpdateFinalize.execute(workerParameter, handlerIO);
 
         // Then
-        assertThat(itemStatus).isNotNull();
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        assertThat(itemStatus.getItemsStatus().size()).isEqualTo(1);
-        assertThat(itemStatus.getItemsStatus().get(MASS_UPDATE_FINALIZE)).isNotNull();
-        assertThat(itemStatus.getItemsStatus().get(MASS_UPDATE_FINALIZE).getGlobalStatus())
-            .isEqualTo(StatusCode.FATAL);
+        verify(batchReportClient).storeReport(any());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_generate_report_FATAL() throws Exception {
+        // Given
+        String operationId = "MY_OPERATION_ID";
+
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+
+        when(logbookOperationsClient.selectOperationById(operationId)).thenThrow(new LogbookClientException("Client error cause FATAL."));
+
+        // When
+        ItemStatus itemStatus = massUpdateFinalize.execute(workerParameter, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(FATAL);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_generate_report_KO() throws Exception {
+        // Given
+        String operationId = "MY_OPERATION_ID";
+
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+
+        when(logbookOperationsClient.selectOperationById(operationId)).thenThrow(new InvalidParseOperationException("Any error cause KO."));
+
+        // When
+        ItemStatus itemStatus = massUpdateFinalize.execute(workerParameter, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_cleanup_reports_at_end() throws Exception {
+        // Given
+        String operationId = "MY_OPERATION_ID";
+
+        WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+
+        when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK());
+
+        // When
+        massUpdateFinalize.execute(workerParameter, handlerIO);
+
+        // Then
+        verify(batchReportClient).cleanupReport(operationId, UPDATE_UNIT);
+    }
+
+    private JsonNode getLogbookOperationRequestResponseOK() throws InvalidParseOperationException {
+        return getLogbookOperationRequestResponseOK(1, 2);
+    }
+
+    private JsonNode getLogbookOperationRequestResponseOK(int numberOfOK, int numberOfKO) throws InvalidParseOperationException {
+        RequestResponseOK<LogbookOperation> logbookOperationResult = new RequestResponseOK<>();
+        LogbookOperation operation = new LogbookOperation();
+        LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
+        logbookEventOperation.setEvDetData(JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("data", "data")));
+        logbookEventOperation.setEvType(MASS_UPDATE_UNITS);
+        logbookEventOperation.setOutMessg("My awesome message" + DETAILS + "OK:" + numberOfOK + " KO:" + numberOfKO);
+        LogbookEventOperation logbookEventOperation1 = new LogbookEventOperation();
+        logbookEventOperation1.setEvType("EVENT_TYPE");
+        operation.setEvents(Arrays.asList(logbookEventOperation1, logbookEventOperation, logbookEventOperation1));
+        operation.setRightsStatementIdentifier(JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("identifier", "identifier")));
+        logbookOperationResult.addResult(operation);
+        return JsonHandler.toJsonNode(logbookOperationResult);
     }
 }
