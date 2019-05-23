@@ -6,11 +6,9 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=/vitam/app/cerebro
-
 User=vitam
 Group=vitam
-
-
+EnvironmentFile=-/vitam/conf/cerebro/sysconfig/cerebro
 ExecStart=/vitam/app/cerebro/bin/cerebro -Dconfig.file=/vitam/conf/cerebro/application.conf
 
 StandardOutput=journal
