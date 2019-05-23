@@ -72,12 +72,12 @@ public class PreservationReportRepositoryTest {
         repository = new PreservationReportRepository(mongoDbAccess, PRESERVATION_REPORT);
         preservationReportCollection = mongoRule.getMongoCollection(PRESERVATION_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
-        preservationReportEntry = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
+        preservationReportEntry = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", "preservationReportId", processId,
             TENANT_ID, "2018-11-15T11:13:20.986",
             PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
             "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",
             "preservationScenarioId");
-        preservationReportEntry2 = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq", processId,
+        preservationReportEntry2 = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq", "preservationReportId", processId,
             TENANT_ID, "2018-11-15T11:13:20.986",
             PreservationStatus.OK, "unitId2", "objectGroupId", ANALYSE, "VALID_ALL",
             "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",

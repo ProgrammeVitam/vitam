@@ -24,47 +24,9 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.batch.report.rest.service; 
-
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
-import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_ID;
-import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
-import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.OUTCOME;
-import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
-import org.bson.Document;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+package fr.gouv.vitam.batch.report.rest.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.batch.report.model.AuditFullStatusCount;
 import fr.gouv.vitam.batch.report.model.AuditStatsModel;
 import fr.gouv.vitam.batch.report.model.OperationSummary;
@@ -83,6 +45,7 @@ import fr.gouv.vitam.batch.report.rest.repository.AuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.EliminationActionUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
+import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -93,6 +56,42 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
+import org.bson.Document;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_ID;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.OUTCOME;
+import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.ANALYSE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 public class BatchReportServiceImplTest {
 
@@ -110,7 +109,7 @@ public class BatchReportServiceImplTest {
 
     @Mock
     private AuditReportRepository auditReportRepository;
-    
+
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
 
@@ -122,6 +121,9 @@ public class BatchReportServiceImplTest {
 
     @Mock
     private StorageClient storageClient;
+
+    @Mock
+    public UpdateUnitReportRepository updateUnitMetadataReportEntry;
 
     @Mock
     private BackupService backupService;
@@ -142,7 +144,7 @@ public class BatchReportServiceImplTest {
         backupService = new BackupService(workspaceClientFactory, storageClientFactory);
 
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
-            eliminationActionObjectGroupRepository, backupService, workspaceClientFactory,
+            eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService, workspaceClientFactory,
             preservationReportRepository, auditReportRepository);
     }
 
@@ -186,6 +188,37 @@ public class BatchReportServiceImplTest {
     }
 
     @Test
+    public void should_export_preservation_report() throws Exception {
+        // Given
+        String processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        when(workspaceClient.isExistingContainer(processId)).thenReturn(true);
+        String filename = String.format("preservation-Report-%s.jsonl", processId);
+        Path report = initialisePathWithFileName(filename);
+        initialiseMockWhenPutObjectInWorkspace(report);
+
+        PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>(), 0);
+        PreservationReportEntry preservationReportEntry =
+            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
+                TENANT_ID, "2018-11-15T11:13:20.986",
+                PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
+                "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId", "preservationScenarioId");
+        Document preservationData = getPreservationDocument(processId);
+        FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(preservationData));
+        when(preservationReportRepository.findCollectionByProcessIdTenant(processId, TENANT_ID))
+            .thenReturn(fakeMongoCursor);
+        when(preservationReportRepository.stats(processId, TENANT_ID)).thenReturn(preservationStatus);
+
+        // When
+        batchReportServiceImpl.exportPreservationReport(processId, filename, TENANT_ID);
+
+        // Then
+        String accumulatorExpected = JsonHandler.unprettyPrint(preservationStatus) +"\n"+ JsonHandler.unprettyPrint(
+            preservationReportEntry)+"\n";
+        assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
+    }
+
+    @Test
     public void should_append_audit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/auditObjectGroupReport.json");
@@ -196,6 +229,35 @@ public class BatchReportServiceImplTest {
 
         // Then
         assertThatCode(append).doesNotThrowAnyException();
+    }
+
+    @Test
+    public void should_export_objectgroup_report() throws Exception {
+        // Given
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        Document document = getObjectGroupDocument();
+        File folder = this.folder.newFolder();
+        Path report = Paths.get(folder.getAbsolutePath(), "objectGroupReport.json");
+        initialiseMockWhenPutObjectInWorkspace(report);
+        when(emptyMongoCursor.next()).thenReturn(document);
+        when(emptyMongoCursor.next()).thenReturn(document);
+        when(emptyMongoCursor.hasNext()).thenReturn(true).thenReturn(false);
+        when(eliminationActionObjectGroupRepository
+            .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
+            .thenReturn(emptyMongoCursor);
+        when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
+        // When
+        batchReportServiceImpl
+            .exportEliminationActionObjectGroupReport(PROCESS_ID, "objectGroupReport.json", TENANT_ID);
+        // Then
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
+            while (reader.ready()) {
+                String line = reader.readLine();
+                assertThat(line).isNotNull();
+                assertThat(line).contains(
+                    "{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaap\",\"params\":{\"id\":\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"opi\":\"test\",\"objectGroupId\":\"12345687\",\"status\":\"DELETED\",\"deletedParentUnitIds\":[\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaaq\",\"aeaaaaaaaafr5hk6abgeualfvd6jsniaaaar\"]}}");
+            }
+        }
     }
 
     @Test
@@ -238,7 +300,11 @@ public class BatchReportServiceImplTest {
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
-    
+
+    private Path initialisePathWithFileName(String filename) throws IOException {
+        File folder = this.folder.newFolder();
+        return Paths.get(folder.getAbsolutePath(), filename);
+    }
 
     @Test
     public void should_store_audit_report() throws Exception {
@@ -280,12 +346,6 @@ public class BatchReportServiceImplTest {
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
-
-    private Path initialisePathWithFileName(String filename) throws IOException {
-        File folder = this.folder.newFolder();
-        return Paths.get(folder.getAbsolutePath(), filename);
-    }
-
 
     @Test
     public void should_store_elimination_report() throws Exception {
@@ -393,12 +453,15 @@ public class BatchReportServiceImplTest {
         document.put(DETAIL_TYPE, "preservation");
         document.put(DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
         document.put(ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
+        document.put(PRESERVATION_REPORT_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq");
         document.put(PreservationReportEntry.PROCESS_ID, processId);
         document.put(TENANT, TENANT_ID);
         document.put(CREATION_DATE_TIME, "2018-11-15T11:13:20.986");
         document.put(STATUS, PreservationStatus.OK);
         document.put(UNIT_ID, "unitId");
         document.put(OBJECT_GROUP_ID, "objectGroupId");
+        document.put(GRIFFIN_ID, "griffinId");
+        document.put(SCENARIO_ID, "preservationScenarioId");
         document.put(ACTION, ANALYSE);
         document.put(ANALYSE_RESULT, "VALID_ALL");
         document.put(INPUT_OBJECT_ID, "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq");

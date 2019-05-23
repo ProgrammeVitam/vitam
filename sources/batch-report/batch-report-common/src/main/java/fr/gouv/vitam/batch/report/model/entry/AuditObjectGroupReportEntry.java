@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,85 +23,68 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.batch.report.model.entry;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.batch.report.model.ReportStatus;
 
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import fr.gouv.vitam.batch.report.model.ReportStatus;
-
-/**
- * AuditObjectGroupReportEntry
- *
- */
 public class AuditObjectGroupReportEntry extends ReportEntry {
 
-    @JsonProperty("parentUnitIds")
-    private List<String> parentUnitIds;
-    @JsonProperty("originatingAgency")
-    private String originatingAgency;
-    @JsonProperty("opi")
-    private String opi;
-    @JsonProperty("objectVersions")
-    private List<AuditObjectVersion> objectVersions;
-    @JsonProperty("status")
-    private ReportStatus status;
+    private final static String PARENT_UNIT_IDS = "parentUnitIds";
+    private final static String ORIGINATING_AGENCY = "originatingAgency";
+    private final static String OPI = "opi";
+    private final static String OBJECT_VERSIONS = "objectVersions";
+    private final static String STATUS = "status";
 
-    public AuditObjectGroupReportEntry() {
+    private final List<String> parentUnitIds;
+    private final String originatingAgency;
+    private final String opi;
+    private final List<AuditObjectVersion> objectVersions;
+    private final ReportStatus status;
 
-    }
-
-    public AuditObjectGroupReportEntry(String objectGroupId, List<String> parentUnitIds, String originatingAgency,
-            String opi, List<AuditObjectVersion> objectVersions, ReportStatus status, String outcome) {
+    @JsonCreator
+    public AuditObjectGroupReportEntry(
+        @JsonProperty(DETAIL_ID) String objectGroupId,
+        @JsonProperty(PARENT_UNIT_IDS) List<String> parentUnitIds,
+        @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
+        @JsonProperty(OPI) String opi,
+        @JsonProperty(OBJECT_VERSIONS) List<AuditObjectVersion> objectVersions,
+        @JsonProperty(STATUS) ReportStatus status,
+        @JsonProperty(OUTCOME) String outcome) {
         super(outcome, "objectGroup", objectGroupId);
         this.parentUnitIds = parentUnitIds;
         this.originatingAgency = originatingAgency;
         this.opi = opi;
         this.status = status;
         this.objectVersions = objectVersions;
-
     }
 
+    @JsonProperty(PARENT_UNIT_IDS)
     public List<String> getParentUnitIds() {
         return parentUnitIds;
     }
 
-    public void setParentUnitIds(List<String> parentUnitIds) {
-        this.parentUnitIds = parentUnitIds;
-    }
-
+    @JsonProperty(ORIGINATING_AGENCY)
     public String getOriginatingAgency() {
         return originatingAgency;
     }
 
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
-    }
-
+    @JsonProperty(OPI)
     public String getOpi() {
         return opi;
     }
 
-    public void setOpi(String opi) {
-        this.opi = opi;
-    }
-
+    @JsonProperty(OBJECT_VERSIONS)
     public List<AuditObjectVersion> getObjectVersions() {
         return objectVersions;
     }
 
-    public void setObjectVersions(List<AuditObjectVersion> objectVersions) {
-        this.objectVersions = objectVersions;
-    }
-
+    @JsonProperty(STATUS)
     public ReportStatus getStatus() {
         return status;
     }
-
-    public void setStatus(ReportStatus status) {
-        this.status = status;
-    }
-
 }

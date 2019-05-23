@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  * <p>
  * contact.vitam@culture.gouv.fr
@@ -29,11 +29,17 @@ package fr.gouv.vitam.worker.core.plugin.massprocessing;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.batch.report.client.BatchReportClient;
+import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
+import fr.gouv.vitam.batch.report.model.ReportBody;
+import fr.gouv.vitam.batch.report.model.ReportType;
+import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
@@ -50,10 +56,12 @@ import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.model.massupdate.RuleAction;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.model.massupdate.RuleCategoryAction;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
@@ -85,94 +93,52 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.StoreMetadataObjectActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.api.exception.WorkspaceClientServerException;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
+import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
 
-/**
- * Mass updating of archive units.
- */
 public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandler {
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ActionHandler.class);
 
-    /**
-     * MASS_UPDATE_UNITS_RULES
-     */
     private static final String MASS_UPDATE_UNITS_RULES = "MASS_UPDATE_UNITS_RULES";
-    //FIXME ?? rename this ???
     private static final String UNIT_METADATA_UPDATE = "UNIT_METADATA_UPDATE";
-
-    /**
-     * DISTRIBUTION_LOCAL_REPORTS_RANK
-     */
-    private static final int DISTRIBUTION_LOCAL_REPORTS_RANK = 0;
-
     private static final String JSON = ".json";
-    private static final String EXTENSION = "json";
-    private static final String REPORT = "report";
-    private static final String SUCCESS = "success";
-    private static final String WARNING = "warning";
-    private static final String ERRORS = "errors";
     private static final String ID = "#id";
-    private static final String STATUS = "#status";
-    private static final String DIFF = "#diff";
-    private static final String CAUSE = "Cause";
-    private static final String SEPARTOR = ",";
 
-    /**
-     * metaDataClientFactory
-     */
     private MetaDataClientFactory metaDataClientFactory;
-
-    /**
-     * lfcClientFactory
-     */
     private LogbookLifeCyclesClientFactory lfcClientFactory;
-
-    /**
-     * storageClientFactory
-     */
     private StorageClientFactory storageClientFactory;
-
-    /**
-     * adminManagementClientFactory
-     */
     private AdminManagementClientFactory adminManagementClientFactory;
+    private BatchReportClientFactory batchReportClientFactory;
 
-    /**
-     * Constructor.
-     */
     public MassUpdateUnitsRulesProcess() {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
+            StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance(), BatchReportClientFactory.getInstance());
     }
 
-    /**
-     * Constructor.
-     * @param metaDataClientFactory
-     */
     @VisibleForTesting
     public MassUpdateUnitsRulesProcess(MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory lfcClientFactory, StorageClientFactory storageClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory, BatchReportClientFactory batchReportClientFactory) {
         super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
         this.lfcClientFactory = lfcClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.batchReportClientFactory = batchReportClientFactory;
     }
 
     /**
@@ -183,7 +149,8 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
      * @throws ProcessingException if an error is encountered when executing the action
      * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
      */
-    @Override public ItemStatus execute(WorkerParameters param, HandlerIO handler)
+    @Override
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
         throws ProcessingException, ContentAddressableStorageServerException {
         throw new IllegalStateException("UnsupporedOperation");
     }
@@ -194,17 +161,18 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
      * @param handler
      * @return
      * @throws ProcessingException
-     * @throws ContentAddressableStorageServerException
      */
-    @Override public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
-        throws ProcessingException, ContentAddressableStorageServerException {
+    @Override
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
 
         final List<ItemStatus> itemStatuses = new ArrayList<>();
 
         // Bulk update units && local reports generation
         try (MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
-            StorageClient storageClient = storageClientFactory.getClient()) {
+            StorageClient storageClient = storageClientFactory.getClient();
+             BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
             // FIXME: Use in/out in order to transfer json from a step to another ?
             JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
@@ -221,27 +189,25 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
             // set the units to update
             List<String> units = workerParameters.getObjectNameList();
-            multiQuery.resetRoots().addRoots(units.stream().toArray(String[]::new));
+            multiQuery.resetRoots().addRoots(units.toArray(new String[0]));
 
             Map<String, DurationData> bindRulesToDuration = checkAndComputeRuleDurationData(actionNode);
 
             // call update BULK service
             RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(multiQuery.getFinalUpdate(), actionNode, bindRulesToDuration);
 
-            List<DistributionReportModel> reportModelOK = new ArrayList<>();
-            List<DistributionReportModel> reportModelWARN = new ArrayList<>();
-            List<DistributionReportModel> reportModelKO = new ArrayList<>();
+            List<UpdateUnitMetadataReportEntry> entries = new ArrayList<>();
             if (requestResponse != null && requestResponse.isOk()) {
                 RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
-                requestResponseOK.getResults().stream().forEach(result -> {
+                requestResponseOK.getResults().forEach(result -> {
                     final ItemStatus itemStatus = new ItemStatus(MASS_UPDATE_UNITS_RULES);
                     String unitId = result.get(ID).asText();
-                    DistributionStatus status = DistributionStatus.valueOf(result.get(STATUS).asText());
+                    StatusCode status = StatusCode.valueOf(result.get(STATUS).asText());
                     String diff = result.get(DIFF).asText();
-                    // TODO : if diff empty => update alerady executed => do not update LFC (and set status warning ??)
-                    // FIXME: This test should be done before update, else there is an _v increment even if there is no update of metadata
+                    String message = result.get(MESSAGE).asText();
+                    String resultKey = result.get(KEY).asText();
 
-                    if (!"null".equals(diff) && (status.equals(DistributionStatus.OK) || status.equals(DistributionStatus.WARNING))) {
+                    if ((!"null".equals(diff) || !StringUtils.isBlank(diff)) && (status.equals(OK) || status.equals(WARNING))) {
                         // write LFC
                         try {
                             writeLfcForUpdateUnit(lfcClient, workerParameters, unitId, diff);
@@ -258,7 +224,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                         try {
                             saveUnitWithLfc(mdClient, lfcClient, storageClient, handler, workerParameters, unitId,
                                 unitId + JSON);
-                            itemStatus.increment(StatusCode.OK);
+                            itemStatus.increment(OK);
                         } catch (VitamException e) {
                             LOGGER.error("Error while storing UNIT with LFC ", e);
 
@@ -280,45 +246,34 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                         }
                     }
 
-                    // prepare report part
-                    if ("null".equals(diff) && status.equals(DistributionStatus.WARNING)) {
-                        itemStatus.increment(StatusCode.WARNING);
-                        reportModelWARN
-                            .add(new DistributionReportModel(unitId, DistributionStatus.WARNING));
-                    } else if (itemStatus.getGlobalStatus().equals(StatusCode.OK) ||
-                        itemStatus.getGlobalStatus().equals(StatusCode.WARNING)) {
-                        reportModelOK
-                            .add(new DistributionReportModel(unitId, DistributionStatus.OK));
-                    } else {
-                        reportModelKO
-                            .add(new DistributionReportModel(unitId, DistributionStatus.KO));
+                    if (!OK.equals(status)) {
+                        VitamSession vitamSession = VitamThreadUtils.getVitamSession();
+                        UpdateUnitMetadataReportEntry entry = new UpdateUnitMetadataReportEntry(
+                            vitamSession.getTenantId(),
+                            workerParameters.getContainerName(),
+                            unitId,
+                            resultKey,
+                            status,
+                            String.format("%s.%s", MASS_UPDATE_UNITS_RULES, status),
+                            message);
+                        entries.add(entry);
                     }
 
-                    // populate itemStatuses
                     itemStatuses.add(new ItemStatus(MASS_UPDATE_UNITS_RULES).setItemsStatus(MASS_UPDATE_UNITS_RULES, itemStatus));
                 });
             } else {
                 throw new ProcessingException("Error when trying to update units.");
             }
 
-            // generate local reports
-            final String distribReportsName = handler.getOutput(DISTRIBUTION_LOCAL_REPORTS_RANK).getPath();
-            if (CollectionUtils.isNotEmpty(reportModelOK)) {
-                storeFileToWorkspace(handler, workerParameters.getProcessId(), reportModelOK, distribReportsName,
-                    SUCCESS);
-            }
-            if (CollectionUtils.isNotEmpty(reportModelWARN)) {
-                storeFileToWorkspace(handler, workerParameters.getProcessId(), reportModelWARN, distribReportsName,
-                    WARNING);
-            }
-            if (CollectionUtils.isNotEmpty(reportModelKO)) {
-                storeFileToWorkspace(handler, workerParameters.getProcessId(), reportModelKO, distribReportsName,
-                    ERRORS);
-            }
+            // append report data
+            ReportBody<UpdateUnitMetadataReportEntry> reportBody = new ReportBody<>();
+            reportBody.setProcessId(workerParameters.getProcessId());
+            reportBody.setReportType(ReportType.UPDATE_UNIT);
+            reportBody.setEntries(entries);
+            batchReportClient.appendReportEntries(reportBody);
+
         } catch (InvalidParseOperationException | MetaDataNotFoundException | MetaDataDocumentSizeException |
-            MetaDataClientServerException | MetaDataExecutionException | IllegalStateException e) {
-            // unable to process update for the entire bulk => FATAL
-            LOGGER.error(e);
+            MetaDataClientServerException | MetaDataExecutionException | IllegalStateException | VitamClientException e) {
             throw new ProcessingException(e);
         }
 
@@ -408,9 +363,9 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
                 VitamLogbookMessages.getEventTypeLfc(UNIT_METADATA_UPDATE),
                 GUIDReader.getGUID(param.getContainerName()),
                 param.getLogbookTypeProcess(),
-                StatusCode.OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(UNIT_METADATA_UPDATE, StatusCode.OK),
-                VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, StatusCode.OK),
+                OK,
+                VitamLogbookMessages.getOutcomeDetailLfc(UNIT_METADATA_UPDATE, OK),
+                VitamLogbookMessages.getCodeLfc(UNIT_METADATA_UPDATE, OK),
                 GUIDReader.getGUID(unitId));
         logbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData, getEvDetDataForDiff(diff));
 
@@ -480,58 +435,5 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
             description.getObjectName(),
             description);
-    }
-
-    /**
-     * Store local reports in workspace
-     *
-     * @param handler
-     * @param processId
-     * @param reportModel
-     * @param containerName
-     * @param reportType
-     * @throws ProcessingException
-     */
-    private void storeFileToWorkspace(HandlerIO handler, final String processId,
-        List<DistributionReportModel> reportModel, String containerName, String reportType)
-        throws ProcessingException {
-        if (reportModel.isEmpty()) {
-            return;
-        }
-        String reportFileName =
-            String.format("%s/%s_%s_%s_%s.%s", containerName, processId, handler.getWorkerId(), REPORT,
-                reportType,
-                EXTENSION);
-        final File reportFile = handler.getNewLocalFile(reportFileName);
-        try (BufferedWriter bufferedOutput = new BufferedWriter(new FileWriter(reportFile))) {
-            bufferedOutput.write(getJsonLineForItem(reportModel.get(0)));
-            reportModel.stream().skip(1).forEach(l -> {
-                try {
-                    bufferedOutput.write(SEPARTOR + getJsonLineForItem(l));
-                } catch (IOException e) {
-                    LOGGER.error(e);
-                }
-            });
-        } catch (IOException e) {
-            throw new ProcessingException("An exception has been thrown when trying to write file on the workspace",
-                e);
-        } finally {
-            handler.transferFileToWorkspace(reportFileName, reportFile, true, false);
-        }
-    }
-
-
-
-    /**
-     * getJsonLineForItem
-     *
-     * @param item
-     * @return
-     */
-    private String getJsonLineForItem(DistributionReportModel item) {
-        ObjectNode itemUnit = createObjectNode();
-        itemUnit.put("id", item.getId());
-        itemUnit.put("status", String.valueOf(item.getStatus()));
-        return JsonHandler.unprettyPrint(itemUnit);
     }
 }

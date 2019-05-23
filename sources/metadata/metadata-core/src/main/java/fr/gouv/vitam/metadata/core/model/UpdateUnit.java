@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,63 +23,59 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.batch.report.model.entry;
+ */
+package fr.gouv.vitam.metadata.core.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.StatusCode;
 
-public class EliminationActionUnitReportEntry extends ReportEntry {
-    private final static String UNIT_ID = "unitId";
-    private final static String ORIGINATING_AGENCY = "originatingAgency";
-    private final static String OPI = "opi";
-    private final static String OBJECT_GROUP = "objectGroupId";
-    private final static String STATUS = "status";
+import java.util.Objects;
+
+public class UpdateUnit {
+    public static final String ID = "#id";
+    public static final String STATUS = "#status";
+    public static final String KEY = "#key";
+    public static final String MESSAGE = "#message";
+    public static final String DIFF = "#diff";
 
     private final String unitId;
-    private final String originatingAgency;
-    private final String initialOperation;
-    private final String objectGroupId;
-    private final String status;
+    private final StatusCode status;
+    private final UpdateUnitKey key;
+    private final String message;
+    private final String diff;
 
     @JsonCreator
-    public EliminationActionUnitReportEntry(
-        @JsonProperty(UNIT_ID) String unitId,
-        @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
-        @JsonProperty(OPI) String initialOperation,
-        @JsonProperty(OBJECT_GROUP) String objectGroupId,
-        @JsonProperty(STATUS) String status,
-        @JsonProperty(OUTCOME) String outcome) {
-        super(outcome, "unit", unitId);
-        this.unitId = unitId;
-        this.originatingAgency = originatingAgency;
-        this.initialOperation = initialOperation;
-        this.objectGroupId = objectGroupId;
-        this.status = status;
+    public UpdateUnit(@JsonProperty(ID) String unitId, @JsonProperty(STATUS) StatusCode status, @JsonProperty(KEY) UpdateUnitKey key, @JsonProperty(MESSAGE) String message, @JsonProperty(DIFF) String diff) {
+        this.unitId = Objects.requireNonNull(unitId);
+        this.status = Objects.requireNonNull(status);
+        this.key = Objects.requireNonNull(key);
+        this.message = Objects.requireNonNull(message);
+        this.diff = Objects.requireNonNull(diff);
     }
 
-    @JsonProperty(UNIT_ID)
+    @JsonProperty(ID)
     public String getUnitId() {
         return unitId;
     }
 
-    @JsonProperty(ORIGINATING_AGENCY)
-    public String getOriginatingAgency() {
-        return originatingAgency;
-    }
-
-    @JsonProperty(OPI)
-    public String getInitialOperation() {
-        return initialOperation;
-    }
-
-    @JsonProperty(OBJECT_GROUP)
-    public String getObjectGroupId() {
-        return objectGroupId;
-    }
-
     @JsonProperty(STATUS)
-    public String getStatus() {
+    public StatusCode getStatus() {
         return status;
+    }
+
+    @JsonProperty(KEY)
+    public UpdateUnitKey getKey() {
+        return key;
+    }
+
+    @JsonProperty(MESSAGE)
+    public String getMessage() {
+        return message;
+    }
+
+    @JsonProperty(DIFF)
+    public String getDiff() {
+        return diff;
     }
 }

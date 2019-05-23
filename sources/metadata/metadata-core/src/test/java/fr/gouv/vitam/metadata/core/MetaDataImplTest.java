@@ -222,7 +222,7 @@ public class MetaDataImplTest {
     @Test
     public void given_filled_query_When_UpdateUnitById_() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @RunWithCustomExecutor
@@ -251,7 +251,7 @@ public class MetaDataImplTest {
 
     @Test(expected = InvalidParseOperationException.class)
     public void given_empty_query_When_updateUnitById_ThenThrow_MetaDataExecutionException() throws Exception {
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(""), "unitId");
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(""), "unitId");
     }
 
     @RunWithCustomExecutor
@@ -259,7 +259,7 @@ public class MetaDataImplTest {
     public void given_updateUnits_ThenThrow_MetaDataExecutionException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(any())).thenThrow(new MetaDataExecutionException(""));
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -267,7 +267,7 @@ public class MetaDataImplTest {
         final int oldValue = GlobalDatasParser.limitRequest;
         try {
             GlobalDatasParser.limitRequest = 1000;
-            metaDataImpl.updateUnitbyId(JsonHandler.getFromString(createLongString(1001)), "unitId");
+            metaDataImpl.updateUnitById(JsonHandler.getFromString(createLongString(1001)), "unitId");
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
         }
@@ -278,7 +278,7 @@ public class MetaDataImplTest {
     public void given_updateUnitbyId_When_search_units_Then_Throw_InvalidParseOperationException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(request.execRequest(any())).thenThrow(new InvalidParseOperationException(""));
-        metaDataImpl.updateUnitbyId(JsonHandler.getFromString(QUERY), "unitId");
+        metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
     }
 
     @RunWithCustomExecutor
@@ -356,7 +356,7 @@ public class MetaDataImplTest {
         when(request.execRequest(isA(UpdateParserMultiple.class))).thenReturn(updateResult);
         when(request.execRequest(isA(SelectParserMultiple.class))).thenReturn(firstSelectResult,
             secondSelectResult);
-        RequestResponse<JsonNode> requestResponse = metaDataImpl.updateUnitbyId(updateRequest, "unitId");
+        RequestResponse<JsonNode> requestResponse = metaDataImpl.updateUnitById(updateRequest, "unitId");
         assertTrue(requestResponse.isOk());
         List<JsonNode> ret = ((RequestResponseOK<JsonNode>) requestResponse).getResults();
 

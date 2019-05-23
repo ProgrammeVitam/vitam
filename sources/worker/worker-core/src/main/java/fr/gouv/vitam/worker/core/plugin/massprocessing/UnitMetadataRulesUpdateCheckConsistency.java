@@ -207,6 +207,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " is not ACTIVE");
+                errorInfo.put("Code", "CHECK_UNIT_PROFILE_INACTIVE");
                 return Optional.of(errorInfo);
             }
 
@@ -216,6 +217,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " havn't a valid Control Schema");
+                errorInfo.put("Code", "CHECK_UNIT_PROFILE_CONSISTENCY");
                 return Optional.of(errorInfo);
             }
 
@@ -224,6 +226,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             errorInfo.put("Error", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.name());
             errorInfo.put("Message", VitamCode.UPDATE_UNIT_MANAGEMENT_METADATA_CONSISTENCY.getMessage());
             errorInfo.put("Info ", "ArchiveUnitProfile " + aupId + " is not in database");
+            errorInfo.put("Code", "CHECK_UNIT_PROFILE_UNKNOWN");
             return Optional.of(errorInfo);
         } catch (InvalidParseOperationException | AdminManagementClientServerException e) {
             throw new IllegalStateException("Error while get the ArchiveUnitProfile in Referential");
@@ -242,6 +245,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", "'StartDate' must be prior than year 9000 for category " + category);
+                errorInfo.put("Code", "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_UNAUTHORIZED");
                 return Optional.of(errorInfo);
             }
         } catch (DateTimeParseException e) {
@@ -249,6 +253,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
             errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
             errorInfo.put("Info ", "'StartDate' must follow 'AAAA-MM-DD' format " + category);
+            errorInfo.put("Code", "UNIT_METADATA_UPDATE_CHECK_RULES_DATE_WRONG_FORMAT");
             return Optional.of(errorInfo);
         }
         return Optional.empty();
@@ -261,13 +266,17 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
             return response;
         }
 
+        if (entry.getValue().getRules() == null) {
+            return Optional.empty();
+        }
+
         for (RuleAction ruleAction : entry.getValue().getRules()) {
             if (StringUtils.isEmpty(ruleAction.getOldRule())) {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ",
-                    "Rule update should define an 'OldRule' to be updated for category " + entry.getKey());
+                errorInfo.put("Info ", "Rule update should define an 'OldRule' to be updated for category " + entry.getKey());
+                errorInfo.put("Code", "UNIT_RULES_MISSING_MANDATORY_FIELD");
                 return Optional.of(errorInfo);
             }
 
@@ -278,9 +287,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ",
-                    "Rule update should define new 'Rule', 'StartDate' or 'DeleteStartDate' for category " +
-                        entry.getKey());
+                errorInfo.put("Info ", "Rule update should define new 'Rule', 'StartDate' or 'DeleteStartDate' for category " + entry.getKey());
+                errorInfo.put("Code", "UNIT_RULES_NOT_EXPECTED_FIELD");
                 return Optional.of(errorInfo);
             }
 
@@ -305,6 +313,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", "New rule must at least define the field 'Rule' for category " + entry.getKey());
+                errorInfo.put("Code", "UNIT_RULES_MISSING_MANDATORY_FIELD");
                 return Optional.of(errorInfo);
             }
 
@@ -313,8 +322,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ",
-                    "New rule must not define 'OldRule' nor 'DeleteStartDate' fields for category " + entry.getKey());
+                errorInfo.put("Info ", "New rule must not define 'OldRule' nor 'DeleteStartDate' fields for category " + entry.getKey());
+                errorInfo.put("Code", "UNIT_RULES_NOT_EXPECTED_FIELD");
                 return Optional.of(errorInfo);
             }
 
@@ -338,8 +347,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo
-                    .put("Info ", "Delete rule must at least define the field 'Rule' for category " + entry.getKey());
+                errorInfo.put("Info ", "Delete rule must at least define the field 'Rule' for category " + entry.getKey());
+                errorInfo.put("Code", "UNIT_RULES_MISSING_MANDATORY_FIELD");
                 return Optional.of(errorInfo);
             }
 
@@ -350,9 +359,8 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 ObjectNode errorInfo = JsonHandler.createObjectNode();
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_QUERY_CONSISTENCY.getMessage());
-                errorInfo.put("Info ",
-                    "Delete rule must not define 'OldRule', 'StartDate' nor 'DeleteStartDate' fields for category " +
-                        entry.getKey());
+                errorInfo.put("Info ", "Delete rule must not define 'OldRule', 'StartDate' nor 'DeleteStartDate' fields for category " + entry.getKey());
+                errorInfo.put("Code", "UNIT_RULES_NOT_EXPECTED_FIELD");
                 return Optional.of(errorInfo);
             }
         }
@@ -376,6 +384,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_PROPERTY_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", classificationLevel + " is not a valid value for ClassificationLevel");
+                errorInfo.put("Code", "CHECK_CLASSIFICATION_LEVEL");
                 return Optional.of(errorInfo);
             }
         }
@@ -416,6 +425,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Error", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.name());
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", "Rule " + ruleID + " is not in database");
+                errorInfo.put("Code", "UNITS_RULES_UNKNOWN");
                 return errorInfo;
             } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
                 throw new IllegalStateException("Error while get the rule in Referential");
@@ -428,6 +438,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
                 errorInfo.put("Message", VitamCode.UPDATE_UNIT_RULES_CONSISTENCY.getMessage());
                 errorInfo.put("Info ", "Rule " + ruleID + " is not in category " + categoryName + " but " +
                     ruleInReferential.get("RuleType").asText());
+                errorInfo.put("Code", "UNITS_RULES_INCONSISTENCY");
                 return errorInfo;
             }
         }

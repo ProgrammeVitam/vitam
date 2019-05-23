@@ -60,6 +60,7 @@ public class TestHandlerIO implements HandlerIO {
     private InputStream inputStreamFromWorkspace;
     private Map<String, InputStream> inputStreamMap = new HashMap<>();
     private Map<String, File> transferedFileToWorkspaceMap = new HashMap<>();
+    private JsonNode jsonFromWorkspace;
 
     @Override
     public void addInIOParameters(List<IOParameter> list) {
@@ -183,7 +184,7 @@ public class TestHandlerIO implements HandlerIO {
 
     @Override
     public JsonNode getJsonFromWorkspace(String jsonFilePath) throws ProcessingException {
-        throw new RuntimeException("Not implemented");
+        return jsonFromWorkspace;
     }
 
     @Override
@@ -263,5 +264,9 @@ public class TestHandlerIO implements HandlerIO {
 
     public File getTransferedFileToWorkspace(String name) {
         return transferedFileToWorkspaceMap.get(name);
+    }
+
+    public void setJsonFromWorkspace(JsonNode jsonFromWorkspace) {
+        this.jsonFromWorkspace = jsonFromWorkspace;
     }
 }

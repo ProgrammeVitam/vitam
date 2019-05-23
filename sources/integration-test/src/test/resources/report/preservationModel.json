@@ -9,8 +9,9 @@
       "status": "OK",
       "action": "IDENTIFY",
       "analyseResult": "SoCool",
-      "inputName": "input",
-      "outputName": "output"
+      "inputObjectId": "input",
+      "outputObjectId": "output",
+      "griffinId": "griffinId"
     }
   ]
 }

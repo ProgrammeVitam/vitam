@@ -177,7 +177,7 @@ public interface MetaData {
      * $result array of units(can be empty)
      * @throws InvalidParseOperationException Thrown when json format is not correct
      */
-    public RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
+    RequestResponse<JsonNode> updateUnits(JsonNode updateQuery)
         throws InvalidParseOperationException;
 
     /**
@@ -193,7 +193,7 @@ public interface MetaData {
      * $result array of units(can be empty)
      * @throws InvalidParseOperationException Thrown when json format is not correct
      */
-    public RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery, Map<String, DurationData> bindRuleToDuration)
+    RequestResponse<JsonNode> updateUnitsRules(JsonNode updateQuery, Map<String, DurationData> bindRuleToDuration)
             throws InvalidParseOperationException;
 
     /**
@@ -214,7 +214,7 @@ public interface MetaData {
      * @throws MetaDataNotFoundException Throw if unit does not exist
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
-    RequestResponse<JsonNode> updateUnitbyId(JsonNode updateQuery, String unitId)
+    RequestResponse<JsonNode> updateUnitById(JsonNode updateQuery, String unitId)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataExecutionException,
         MetaDataDocumentSizeException, VitamDBException, SchemaValidationException, ArchiveUnitOntologyValidationException;
 

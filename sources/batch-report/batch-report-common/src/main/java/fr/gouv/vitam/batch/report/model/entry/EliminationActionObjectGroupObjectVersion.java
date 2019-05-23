@@ -26,38 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.model.entry;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class EliminationActionObjectGroupObjectVersion {
+    private final String opi;
+    private final Long size;
 
-    @JsonProperty("opi")
-    private String opi;
-
-    @JsonProperty("size")
-    private Long size;
-
-    public EliminationActionObjectGroupObjectVersion() {
-        // Empty constructor for deserialization
-    }
-
-    public EliminationActionObjectGroupObjectVersion(String opi, Long size) {
+    @JsonCreator
+    public EliminationActionObjectGroupObjectVersion(@JsonProperty("opi") String opi, @JsonProperty("size") Long size) {
         this.opi = opi;
         this.size = size;
     }
 
+    @JsonProperty("opi")
     public String getOpi() {
         return opi;
     }
 
-    public void setOpi(String opi) {
-        this.opi = opi;
-    }
-
+    @JsonProperty("size")
     public Long getSize() {
         return size;
-    }
-
-    public void setSize(Long size) {
-        this.size = size;
     }
 }

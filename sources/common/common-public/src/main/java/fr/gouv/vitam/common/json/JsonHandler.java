@@ -26,18 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -60,13 +48,24 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * JSON handler using Json format
@@ -476,7 +475,8 @@ public final class JsonHandler {
     public static <T> T getFromJsonNode(JsonNode jsonNode, TypeReference<T> clazz) throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
-            return OBJECT_MAPPER.readValue(OBJECT_MAPPER.treeAsTokens(jsonNode), clazz);
+            ObjectReader objectReader = OBJECT_MAPPER.readerFor(clazz);
+            return objectReader.readValue(jsonNode);
         } catch (IOException e) {
             throw new InvalidParseOperationException(e);
         }

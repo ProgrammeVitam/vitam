@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.integration.test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import fr.gouv.vitam.batch.report.rest.BatchReportMain;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -156,11 +157,14 @@ public class MassUpdateIT extends VitamRuleRunner {
                 WorkspaceMain.class,
                 ProcessManagementMain.class,
                 StorageMain.class,
-                DefaultOfferMain.class
+                DefaultOfferMain.class,
+                BatchReportMain.class
             ));
 
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
+    public final TypeReference<List<AccessContractModel>> valueTypeRef = new TypeReference<List<AccessContractModel>>() {
+    };
 
     private WorkspaceClient workspaceClient;
     private ProcessingManagementClient processingClient;
@@ -263,8 +267,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             File accessContracts = PropertiesUtils
                 .getResourceFile(INTEGRATION_PROCESSING_MASS_UPDATE_CONTRACT_PERMISSION_RESTRICTED_DESC_JSON);
             List<AccessContractModel> accessContractList =
-                JsonHandler.getFromFileAsTypeRefence(accessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(accessContracts, valueTypeRef);
             functionalClient.importAccessContracts(accessContractList);
 
             JsonNode query =
@@ -317,9 +320,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File accessContracts = PropertiesUtils
                 .getResourceFile(INTEGRATION_PROCESSING_MASS_UPDATE_CONTRACT_PERMISSION_RESTRICTED_DESC_JSON);
-            List<AccessContractModel> accessContractList =
-                JsonHandler.getFromFileAsTypeRefence(accessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+            List<AccessContractModel> accessContractList = JsonHandler.getFromFileAsTypeRefence(accessContracts, valueTypeRef);
             functionalClient.importAccessContracts(accessContractList);
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -411,8 +412,7 @@ public class MassUpdateIT extends VitamRuleRunner {
             File accessContracts = PropertiesUtils
                 .getResourceFile(INTEGRATION_PROCESSING_MASS_UPDATE_CONTRACT_PERMISSION_RESTRICTED_DESC_JSON);
             List<AccessContractModel> accessContractList =
-                JsonHandler.getFromFileAsTypeRefence(accessContracts, new TypeReference<List<AccessContractModel>>() {
-                });
+                JsonHandler.getFromFileAsTypeRefence(accessContracts, valueTypeRef);
             functionalClient.importAccessContracts(accessContractList);
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);

@@ -26,36 +26,31 @@
  *******************************************************************************/
 package fr.gouv.vitam.batch.report.model.entry;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Set;
 
 public class EliminationActionObjectGroupReportEntry extends ReportEntry {
+    private final String objectGroupId;
+    private final String originatingAgency;
+    private final String initialOperation;
+    private final Set<String> deletedParentUnitIds;
+    private final Set<String> objectIds;
+    private final List<EliminationActionObjectGroupObjectVersion> objectVersions;
+    private final String status;
 
-    @JsonProperty("objectGroupId")
-    private String objectGroupId;
-    @JsonProperty("originatingAgency")
-    private String originatingAgency;
-    @JsonProperty("opi")
-    private String initialOperation;
-    @JsonProperty("deletedParentUnitIds")
-    private Set<String> deletedParentUnitIds;
-    @JsonProperty("objectIds")
-    private Set<String> objectIds;
-    @JsonProperty("objectVersions")
-    private List<EliminationActionObjectGroupObjectVersion> objectVersions;
-    @JsonProperty("status")
-    private String status;
-
-    public EliminationActionObjectGroupReportEntry() {
-        // Empty constructor for deserialization
-    }
-
-    public EliminationActionObjectGroupReportEntry(String objectGroupId, String originatingAgency,
-        String initialOperation, Set<String> deletedParentUnitIds,
-        Set<String> objectIds, String status,
-        List<EliminationActionObjectGroupObjectVersion> objectVersions, String outcome) {
+    @JsonCreator
+    public EliminationActionObjectGroupReportEntry(
+        @JsonProperty("objectGroupId") String objectGroupId,
+        @JsonProperty("originatingAgency") String originatingAgency,
+        @JsonProperty("opi") String initialOperation,
+        @JsonProperty("deletedParentUnitIds") Set<String> deletedParentUnitIds,
+        @JsonProperty("objectIds") Set<String> objectIds,
+        @JsonProperty("status") String status,
+        @JsonProperty("objectVersions") List<EliminationActionObjectGroupObjectVersion> objectVersions,
+        @JsonProperty(OUTCOME) String outcome) {
         super(outcome, "objectGroup", objectGroupId);
         this.objectGroupId = objectGroupId;
         this.originatingAgency = originatingAgency;
@@ -66,60 +61,38 @@ public class EliminationActionObjectGroupReportEntry extends ReportEntry {
         this.objectVersions = objectVersions;
     }
 
+    @JsonProperty("objectGroupId")
     public String getObjectGroupId() {
         return objectGroupId;
     }
 
-    public void setObjectGroupId(String objectGroupId) {
-        this.objectGroupId = objectGroupId;
-    }
-
+    @JsonProperty("originatingAgency")
     public String getOriginatingAgency() {
         return originatingAgency;
     }
 
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
-    }
-
+    @JsonProperty("opi")
     public String getInitialOperation() {
         return initialOperation;
     }
 
-    public void setInitialOperation(String initialOperation) {
-        this.initialOperation = initialOperation;
-    }
-
+    @JsonProperty("deletedParentUnitIds")
     public Set<String> getDeletedParentUnitIds() {
         return deletedParentUnitIds;
     }
 
-    public void setDeletedParentUnitIds(Set<String> deletedParentUnitIds) {
-        this.deletedParentUnitIds = deletedParentUnitIds;
-    }
-
+    @JsonProperty("objectIds")
     public Set<String> getObjectIds() {
         return objectIds;
     }
 
-    public void setObjectIds(Set<String> objectIds) {
-        this.objectIds = objectIds;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
+    @JsonProperty("objectVersions")
     public List<EliminationActionObjectGroupObjectVersion> getObjectVersions() {
         return objectVersions;
     }
 
-    public void setObjectVersions(
-        List<EliminationActionObjectGroupObjectVersion> objectVersions) {
-        this.objectVersions = objectVersions;
+    @JsonProperty("status")
+    public String getStatus() {
+        return status;
     }
 }

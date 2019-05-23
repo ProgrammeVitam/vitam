@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,9 +23,10 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.batch.report.model.entry;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.batch.report.model.PreservationStatus;
@@ -51,60 +52,41 @@ public class PreservationReportEntry extends ReportEntry {
     public static final String INPUT_OBJECT_ID = "inputObjectId";
     public static final String OUTPUT_OBJECT_ID = "outputObjectId";
 
-    @JsonProperty(ID)
-    private String preservationId;
+    private final String preservationId;
+    private final String preservationReportId;
+    private final String processId;
+    private final int tenant;
+    private final String creationDateTime;
+    private final PreservationStatus status;
+    private final String unitId;
+    private final String objectGroupId;
+    private final ActionTypePreservation action;
+    private final String analyseResult;
+    private final String inputObjectId;
+    private final String outputObjectId;
+    private final String griffinId;
+    private final String preservationScenarioId;
 
-    @JsonProperty(PRESERVATION_REPORT_ID)
-    private String preservationReportId;
-
-    @JsonProperty(PROCESS_ID)
-    private String processId;
-
-    @JsonProperty(TENANT)
-    private int tenant;
-
-    @JsonProperty(CREATION_DATE_TIME)
-    private String creationDateTime;
-
-    @JsonProperty(STATUS)
-    private PreservationStatus status;
-
-    @JsonProperty(UNIT_ID)
-    private String unitId;
-
-    @JsonProperty(OBJECT_GROUP_ID)
-    private String objectGroupId;
-
-    @JsonProperty(ACTION)
-    private ActionTypePreservation action;
-
-    @JsonProperty(ANALYSE_RESULT)
-    private String analyseResult;
-
-    @JsonProperty(INPUT_OBJECT_ID)
-    private String inputObjectId;
-
-    @JsonProperty(OUTPUT_OBJECT_ID)
-    private String outputObjectId;
-
-    @JsonProperty(GRIFFIN_ID)
-    private String griffinId;
-
-    @JsonProperty(SCENARIO_ID)
-    private String preservationScenarioId;
-
-
-
-    public PreservationReportEntry() {
-        // Empty constructor for deserialization
-    }
-
-    public PreservationReportEntry(String preservationId, String processId, int tenant, String creationDateTime, PreservationStatus status,
-        String unitId, String objectGroupId, ActionTypePreservation action, String analyseResult, String inputObjectId, String outputObjectId,
-        String outcome, String griffinId, String preservationScenarioId) {
+    @JsonCreator
+    public PreservationReportEntry(
+        @JsonProperty(ID) String preservationId,
+        @JsonProperty(PRESERVATION_REPORT_ID) String preservationReportId,
+        @JsonProperty(PROCESS_ID) String processId,
+        @JsonProperty(TENANT) int tenant,
+        @JsonProperty(CREATION_DATE_TIME) String creationDateTime,
+        @JsonProperty(STATUS) PreservationStatus status,
+        @JsonProperty(UNIT_ID) String unitId,
+        @JsonProperty(OBJECT_GROUP_ID) String objectGroupId,
+        @JsonProperty(ACTION) ActionTypePreservation action,
+        @JsonProperty(ANALYSE_RESULT) String analyseResult,
+        @JsonProperty(INPUT_OBJECT_ID) String inputObjectId,
+        @JsonProperty(OUTPUT_OBJECT_ID) String outputObjectId,
+        @JsonProperty(OUTCOME) String outcome,
+        @JsonProperty(GRIFFIN_ID) String griffinId,
+        @JsonProperty(SCENARIO_ID) String preservationScenarioId) {
         super(outcome, "preservation", preservationId);
         this.preservationId = preservationId;
-        this.preservationReportId = preservationId;
+        this.preservationReportId = preservationReportId;
         this.processId = processId;
         this.tenant = tenant;
         this.creationDateTime = creationDateTime;
@@ -119,114 +101,72 @@ public class PreservationReportEntry extends ReportEntry {
         this.preservationScenarioId = preservationScenarioId;
     }
 
+    @JsonProperty(ID)
     public String getPreservationId() {
         return preservationId;
     }
 
-    public void setPreservationId(String preservationId) {
-        this.preservationId = preservationId;
-    }
-
+    @JsonProperty(PROCESS_ID)
     public String getProcessId() {
         return processId;
     }
 
-    public void setProcessId(String processId) {
-        this.processId = processId;
-    }
-
+    @JsonProperty(TENANT)
     public int getTenant() {
         return tenant;
     }
 
-    public void setTenant(int tenant) {
-        this.tenant = tenant;
-    }
-
+    @JsonProperty(CREATION_DATE_TIME)
     public String getCreationDateTime() {
         return creationDateTime;
     }
 
-    public void setCreationDateTime(String creationDateTime) {
-        this.creationDateTime = creationDateTime;
-    }
-
+    @JsonProperty(STATUS)
     public PreservationStatus getStatus() {
         return status;
     }
 
-    public void setStatus(PreservationStatus status) {
-        this.status = status;
-    }
-
+    @JsonProperty(UNIT_ID)
     public String getUnitId() {
         return unitId;
     }
 
-    public void setUnitId(String unitId) {
-        this.unitId = unitId;
-    }
-
+    @JsonProperty(OBJECT_GROUP_ID)
     public String getObjectGroupId() {
         return objectGroupId;
     }
 
-    public void setObjectGroupId(String objectGroupId) {
-        this.objectGroupId = objectGroupId;
-    }
-
-    public String getInputObjectId() {
-        return inputObjectId;
-    }
-
-    public void setInputObjectId(String inputObjectId) {
-        this.inputObjectId = inputObjectId;
-    }
-
-    public String getOutputObjectId() {
-        return outputObjectId;
-    }
-
-    public void setOutputObjectId(String outputObjectId) {
-        this.outputObjectId = outputObjectId;
-    }
-
+    @JsonProperty(ACTION)
     public ActionTypePreservation getAction() {
         return action;
     }
 
-    public void setAction(ActionTypePreservation action) {
-        this.action = action;
-    }
-
+    @JsonProperty(ANALYSE_RESULT)
     public String getAnalyseResult() {
         return analyseResult;
     }
 
-    public void setAnalyseResult(String analyseResult) {
-        this.analyseResult = analyseResult;
+    @JsonProperty(INPUT_OBJECT_ID)
+    public String getInputObjectId() {
+        return inputObjectId;
     }
 
+    @JsonProperty(OUTPUT_OBJECT_ID)
+    public String getOutputObjectId() {
+        return outputObjectId;
+    }
+
+    @JsonProperty(GRIFFIN_ID)
     public String getGriffinId() {
         return griffinId;
     }
 
-    public void setGriffinId(String griffinId) {
-        this.griffinId = griffinId;
-    }
-
-    public void setPreservationScenarioId(String preservationScenarioId) {
-        this.preservationScenarioId = preservationScenarioId;
-    }
-
+    @JsonProperty(SCENARIO_ID)
     public String getPreservationScenarioId() {
         return preservationScenarioId;
     }
 
-    public void setPreservationReportId(String preservationReportId) {
-        this.preservationReportId = preservationReportId;
-    }
-
+    @JsonProperty(PRESERVATION_REPORT_ID)
     public String getPreservationReportId() {
         return preservationReportId;
     }
