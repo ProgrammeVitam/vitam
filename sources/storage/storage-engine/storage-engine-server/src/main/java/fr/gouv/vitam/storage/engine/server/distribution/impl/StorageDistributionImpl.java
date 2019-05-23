@@ -722,9 +722,6 @@ public class StorageDistributionImpl implements StorageDistribution {
             case BACKUP_OPERATION:
                 description.append("Backup Operation ");
                 break;
-            case CHECKLOGBOOKREPORTS:
-                description.append("CHECKLOGBOOKREPORTS ");
-                break;
             case UNIT_GRAPH:
                 description.append("UNIT_GRAPH ");
                 break;

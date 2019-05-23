@@ -1,25 +1,21 @@
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import cucumber.api.DataTable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-
-import javax.ws.rs.core.Response;
-
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * Logbook check consistency step.
@@ -30,7 +26,7 @@ public class LogbookCheckConsistencyStep {
     public static final String INTERNAL_SERVER_ERROR = "Internal Server Error";
 
     private final World world;
-    private VitamRequestIterator<JsonNode> result;
+    private LogbookCheckResult result;
 
     /**
      * constructor.
@@ -48,9 +44,7 @@ public class LogbookCheckConsistencyStep {
             try {
                 // call checkLogbookCoherence service.
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-                Response repResponse = world.getLogbookOperationsClient().checkLogbookCoherence();
-                LOGGER.debug("response -> ", repResponse.getStatus());
-                repResponse.close();
+                 result = world.getLogbookOperationsClient().checkLogbookCoherence();
             } catch (VitamException e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR);
                 fail(INTERNAL_SERVER_ERROR);
@@ -58,21 +52,14 @@ public class LogbookCheckConsistencyStep {
         });
     }
 
-    @Then("^je verifie que la strategie contient le rapport de cohérence")
-    public void the_logbook_consistency_check_report_list_srategy(DataTable dataTable)
-        throws StorageException, StorageServerClientException {
-        List<List<String>> raws = dataTable.raw();
-        result = null;
-        String strategy = raws.get(0).get(1);
-        runInVitamThread(() -> {
-            try {
-                VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-                result = world.storageClient.listContainer(strategy, DataCategory.CHECKLOGBOOKREPORTS);
-            } catch (StorageServerClientException e) {
-                throw new RuntimeException(e);
-            }
-        });
-        assertThat(result).isNotNull();
+    @Then("^je verifie que le rapport du test de cohérence des journaux ne contient pas d'erreur")
+    public void the_logbook_consistency_check_report_does_not_contain_errors()
+        throws StorageException, StorageServerClientException, InvalidParseOperationException {
+        assertThat(result).as("Le rapport du test de cohérence des journaux n'est pas disponible").isNotNull();
+        String resultAsString = JsonHandler.prettyPrint(JsonHandler.toJsonNode(result));
+        assertThat(result.getCheckErrors()).as(
+                "Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
+                .isNullOrEmpty();
     }
 
     /**

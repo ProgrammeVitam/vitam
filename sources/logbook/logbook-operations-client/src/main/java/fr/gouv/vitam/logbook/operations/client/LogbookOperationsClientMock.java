@@ -31,6 +31,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 
+import javax.ws.rs.core.Response;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.client.AbstractMockClient;
@@ -51,11 +53,10 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
-
-import javax.ws.rs.core.Response;
 
 /**
  * Mock client implementation for logbook operation
@@ -210,8 +211,9 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
         LOGGER.info("audit traceability");
     }
 
-    @Override public Response checkLogbookCoherence() throws VitamException {
-        return Response.ok().build();
+    @Override 
+    public LogbookCheckResult checkLogbookCoherence() {
+        return new LogbookCheckResult();
     }
 
     @Override

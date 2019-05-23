@@ -37,10 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.core.Response;
-
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
@@ -50,8 +47,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
-import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.client.VitamRequestIterator;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -92,19 +87,13 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import fr.gouv.vitam.processing.engine.core.monitoring.ProcessMonitoringImpl;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
-import fr.gouv.vitam.storage.engine.client.StorageClient;
-import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
-import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
-import fr.gouv.vitam.workspace.client.WorkspaceClient;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -136,10 +125,6 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
                 AccessInternalMain.class,
                 StorageMain.class
             ));
-    private static final String STRATEGY_ID = "default";
-    private static final String OBJECT_ID = "objectId";
-
-
     private static final String CONTEXT_ID = "DEFAULT_WORKFLOW";
     private static final String WORKFLOW_IDENTIFIER = "PROCESS_SIP_UNITARY";
     private WorkFlow workflow = WorkFlow.of(CONTEXT_ID, WORKFLOW_IDENTIFIER, "INGEST");
@@ -162,19 +147,13 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final long SLEEP_TIME = 20l;
     private static final long NB_TRY = 18000;
 
-    private static WorkspaceClient workspaceClient;
-    private static StorageClient storageClient;
-
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
         handleBeforeClass(0, 1);
-        FormatIdentifierFactory.getInstance().changeConfigurationFile(runner.FORMAT_IDENTIFIERS_CONF);
+        FormatIdentifierFactory.getInstance().changeConfigurationFile(VitamServerRunner.FORMAT_IDENTIFIERS_CONF);
 
-        ProcessingManagementClientFactory.changeConfigurationUrl(runner.PROCESSING_URL);
-
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        storageClient = StorageClientFactory.getInstance().getClient();
+        ProcessingManagementClientFactory.changeConfigurationUrl(VitamServerRunner.PROCESSING_URL);
 
         VitamConfiguration.setPurgeTemporaryLFC(false);
 
@@ -184,13 +163,6 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     @AfterClass
     public static void afterClass() throws Exception {
         handleAfterClass(0, 1);
-        if (workspaceClient != null) {
-            workspaceClient.close();
-        }
-
-        if (storageClient != null) {
-            storageClient.close();
-        }
         VitamConfiguration.setPurgeTemporaryLFC(true);
         VitamClientFactory.resetConnections();
     }
@@ -227,7 +199,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         }
 
         // logbook configuration
-        final File logbookConfig = PropertiesUtils.findFile(runner.LOGBOOK_CONF);
+        final File logbookConfig = PropertiesUtils.findFile(VitamServerRunner.LOGBOOK_CONF);
         final LogbookConfiguration configuration = PropertiesUtils.readYaml(logbookConfig, LogbookConfiguration.class);
 
         // get vitamRepository instance.
@@ -235,27 +207,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
         // call the logbook coherence check service
         coherenceCheckService = new LogbookCheckConsistencyServiceImpl(configuration, vitamRepository);
-        coherenceCheckService.logbookCoherenceCheckByTenant(TENANT_0);
-
-        // verify offer check logbook report content
-        VitamRequestIterator<JsonNode> result =
-            storageClient.listContainer(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS);
-
-        Assert.assertTrue(result.hasNext());
-        JsonNode node = result.next();
-        Assert.assertNotNull(node.get(OBJECT_ID));
-
-        Response response =
-            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
-                DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog());
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-
-        final InputStream inputStream =
-            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
-            DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog())
-                .readEntity(InputStream.class);
-
-        LogbookCheckResult logbookCheckResult = JsonHandler.getFromInputStream(inputStream, LogbookCheckResult.class);
+        LogbookCheckResult logbookCheckResult = coherenceCheckService.logbookCoherenceCheckByTenant(TENANT_0);
         assertNotNull(logbookCheckResult);
 
         Set<LogbookCheckEvent> logbookCheckedEvents = logbookCheckResult.getCheckedEvents();
@@ -292,7 +244,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         LOGGER.error(initParameters.toString());
 
         // call ingest
-        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        IngestInternalClientFactory.getInstance().changeServerPort(VitamServerRunner.PORT_SERVICE_INGEST_INTERNAL);
         final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         client.uploadInitialLogbook(params);
 
@@ -308,7 +260,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
 
         // logbook configuration
-        final File logbookConfig = PropertiesUtils.findFile(runner.LOGBOOK_CONF);
+        final File logbookConfig = PropertiesUtils.findFile(VitamServerRunner.LOGBOOK_CONF);
         final LogbookConfiguration configuration = PropertiesUtils.readYaml(logbookConfig, LogbookConfiguration.class);
 
         // get vitamRepository instance.
@@ -316,27 +268,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
         // call the logbook coherence check service
         coherenceCheckService = new LogbookCheckConsistencyServiceImpl(configuration, vitamRepository);
-        coherenceCheckService.logbookCoherenceCheckByTenant(TENANT_0);
-
-        // verify generated logbook check consistency stored report
-        VitamRequestIterator<JsonNode> result =
-            storageClient.listContainer(STRATEGY_ID, DataCategory.CHECKLOGBOOKREPORTS);
-
-        Assert.assertTrue(result.hasNext());
-        JsonNode node = result.next();
-        Assert.assertNotNull(node.get(OBJECT_ID));
-
-        Response response =
-            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(),
-                DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog());
-        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-
-        final InputStream inputStream =
-            storageClient.getContainerAsync(STRATEGY_ID, node.get(OBJECT_ID).asText(), DataCategory.CHECKLOGBOOKREPORTS, AccessLogUtils.getNoLogAccessLog())
-                .readEntity(InputStream.class);
-
-        ObjectMapper mapper = new ObjectMapper();
-        LogbookCheckResult logbookCheckResult = JsonHandler.getFromInputStream(inputStream, LogbookCheckResult.class);
+        LogbookCheckResult logbookCheckResult = coherenceCheckService.logbookCoherenceCheckByTenant(TENANT_0);
         assertNotNull(logbookCheckResult);
 
         Set<LogbookCheckEvent> logbookCheckedEvents = logbookCheckResult.getCheckedEvents();
@@ -347,6 +279,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         assertNotNull(logbookCheckErrors);
         assertFalse(logbookCheckErrors.isEmpty());
 
+        ObjectMapper mapper = new ObjectMapper();
         Set<LogbookCheckError> expectedResults = mapper.readValue(
             PropertiesUtils.getResourceAsStream(EXPECTED_RESULTS_JSON),
             new TypeReference<Set<LogbookCheckError>>() {
