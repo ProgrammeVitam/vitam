@@ -26,41 +26,18 @@
  */
 package fr.gouv.vitam.functional.administration.agencies.api;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
-import static fr.gouv.vitam.functional.administration.common.Agencies.DESCRIPTION;
-import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER;
-import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
-
-import javax.ws.rs.core.Response;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
+import fr.gouv.vitam.common.database.builder.request.single.Delete;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.builder.request.single.Update;
 import fr.gouv.vitam.common.database.parser.request.adapter.SingleVarNameAdapter;
@@ -68,13 +45,16 @@ import fr.gouv.vitam.common.database.parser.request.adapter.VarNameAdapter;
 import fr.gouv.vitam.common.database.parser.request.single.SelectParserSingle;
 import fr.gouv.vitam.common.database.parser.request.single.UpdateParserSingle;
 import fr.gouv.vitam.common.database.server.DbRequestResult;
+import fr.gouv.vitam.common.database.server.DbRequestSingle;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
+import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -95,6 +75,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.ContractsFinder;
 import fr.gouv.vitam.functional.administration.common.AccessContract;
+import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.Agencies;
 import fr.gouv.vitam.functional.administration.common.AgenciesParser;
 import fr.gouv.vitam.functional.administration.common.ErrorReportAgencies;
@@ -122,6 +103,31 @@ import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.in;
+import static fr.gouv.vitam.functional.administration.common.Agencies.DESCRIPTION;
+import static fr.gouv.vitam.functional.administration.common.Agencies.IDENTIFIER;
+import static fr.gouv.vitam.functional.administration.common.Agencies.NAME;
+import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.AGENCIES;
+
 /**
  * AgenciesService class allowing multiple operation on AgenciesService collection
  */
@@ -143,13 +149,10 @@ public class AgenciesService implements VitamAutoCloseable {
      * IMPORT_AGENCIES_BACKUP_CSV
      */
     public static final String IMPORT_AGENCIES_BACKUP_CSV = "IMPORT_AGENCIES_BACKUP_CSV";
-
+    public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesService.class);
     private static final String AGENCIES_IMPORT_DELETION_ERROR = "DELETION";
     private static final String AGENCIES_IMPORT_AU_USAGE = AGENCIES_IMPORT_EVENT + ".USED_AU";
     private static final String AGENCIES_IMPORT_CONTRACT_USAGE = AGENCIES_IMPORT_EVENT + ".USED_CONTRACT";
-
-    public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesService.class);
-
     private static final String CSV = "csv";
 
     private static final String INVALID_CSV_FILE = "Invalid CSV File";
@@ -162,17 +165,17 @@ public class AgenciesService implements VitamAutoCloseable {
     private final LogbookOperationsClient logBookclient;
     private final VitamCounterService vitamCounterService;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-
+    private final FunctionalBackupService backupService;
     private AgenciesManager manager;
     private Map<Integer, List<ErrorReportAgencies>> errorsMap;
     private List<AgenciesModel> usedAgenciesByContracts;
     private List<AgenciesModel> usedAgenciesByAU;
+    private List<AgenciesModel> unusedAgenciesToDelete;
     private List<AgenciesModel> agenciesToInsert;
     private List<AgenciesModel> agenciesToUpdate;
     private List<AgenciesModel> agenciesToDelete;
     private List<AgenciesModel> agenciesToImport = new ArrayList<>();
     private List<AgenciesModel> agenciesInDb;
-    private final FunctionalBackupService backupService;
     private GUID eip;
     private ContractsFinder finder;
 
@@ -194,6 +197,7 @@ public class AgenciesService implements VitamAutoCloseable {
         errorsMap = new HashMap<>();
         usedAgenciesByContracts = new ArrayList<>();
         usedAgenciesByAU = new ArrayList<>();
+        unusedAgenciesToDelete = new ArrayList<>();
         agenciesToInsert = new ArrayList<>();
         agenciesToUpdate = new ArrayList<>();
         agenciesToDelete = new ArrayList<>();
@@ -234,7 +238,8 @@ public class AgenciesService implements VitamAutoCloseable {
         List<AgenciesModel> agenciesToInsert,
         List<AgenciesModel> agenciesToUpdate,
         List<AgenciesModel> usedAgenciesByAU,
-        List<AgenciesModel> usedAgenciesByContracts) {
+        List<AgenciesModel> usedAgenciesByContracts,
+        List <AgenciesModel> unusedAgenciesToDelete ) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.backupService = backupService;
@@ -249,7 +254,7 @@ public class AgenciesService implements VitamAutoCloseable {
         this.usedAgenciesByContracts = usedAgenciesByContracts;
         finder = new ContractsFinder(mongoAccess, vitamCounterService);
         this.manager = manager;
-
+        this.unusedAgenciesToDelete = unusedAgenciesToDelete;
     }
 
     /**
@@ -495,7 +500,7 @@ public class AgenciesService implements VitamAutoCloseable {
                 throw new ReferentialException(INVALID_CSV_FILE);
             }
         } finally {
-        	IOUtils.closeQuietly(csvFileInputStream);
+            IOUtils.closeQuietly(csvFileInputStream);
             if (csvFileReader != null) {
                 if (!csvFileReader.delete()) {
                     LOGGER.warn("Failed to delete file");
@@ -526,11 +531,12 @@ public class AgenciesService implements VitamAutoCloseable {
         for (AgenciesModel agencyToImport : agenciesToImport) {
             for (AgenciesModel agencyInDb : agenciesInDb) {
 
-                boolean descriptionChanged = !Objects.equals(agencyInDb.getDescription(), agencyToImport.getDescription());
+                boolean descriptionChanged =
+                    !Objects.equals(agencyInDb.getDescription(), agencyToImport.getDescription());
                 boolean nameChanged = !Objects.equals(agencyInDb.getName(), agencyToImport.getName());
 
                 if (agencyInDb.getIdentifier().equals(agencyToImport.getIdentifier())
-                        && (nameChanged || descriptionChanged)) {
+                    && (nameChanged || descriptionChanged)) {
 
                     agenciesToUpdate.add(agencyToImport);
                 }
@@ -655,7 +661,7 @@ public class AgenciesService implements VitamAutoCloseable {
             errorStream.close();
             return generateVitamError(MESSAGE_ERROR + e.getMessage(), null);
         } finally {
-        	IOUtils.closeQuietly(csvFileInputStream);
+            IOUtils.closeQuietly(csvFileInputStream);
             if (file != null) {
                 if (!file.delete()) {
                     LOGGER.warn("Failed to delete file");
@@ -667,10 +673,47 @@ public class AgenciesService implements VitamAutoCloseable {
 
     }
 
-    private void checkAgenciesDeletion() throws AgencyImportDeletionException {
-        if (agenciesToDelete.size() > 0) {
-            throw new AgencyImportDeletionException("used Agencies want to be deleted");
+    private void checkAgenciesDeletion() throws VitamException, InvalidCreateOperationException {
+
+        if (agenciesToDelete.isEmpty()) {
+            manager.logEventSuccess(AGENCIES_IMPORT_CONTRACT_USAGE);
+            return;
         }
+
+        for (AgenciesModel agency : agenciesToDelete) {
+
+            final Select select = new Select();
+            select.setQuery(in(AccessContract.ORIGINATINGAGENCIES, agency.getIdentifier()));
+            final JsonNode queryDsl = select.getFinalSelect();
+
+            RequestResponseOK<AccessContractModel> result = finder.findAccessContrats(queryDsl);
+
+            if (result != null && result.getResults().isEmpty()) {
+                unusedAgenciesToDelete.add(agency);
+            }
+        }
+
+        for (AgenciesModel agency : agenciesToDelete) {
+                Select select = new Select();
+                select.setQuery(
+                    QueryHelper.and().add(QueryHelper.eq(AccessionRegisterDetail.ORIGINATING_AGENCY, agency.getIdentifier()) ));
+                final JsonNode queryDsl = select.getFinalSelect();
+                DbRequestResult result = mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY);
+                RequestResponseOK<AccessionRegisterDetail> response = result.getRequestResponseOK(queryDsl, AccessionRegisterDetail.class);
+
+                if(response != null && !response.getResults().isEmpty()){
+                    throw new AgencyImportDeletionException("used Agencies want to be deleted");
+                }
+        }
+
+        // not used anywhere , then will be deleted
+        unusedAgenciesToDelete =  unusedAgenciesToDelete.stream().distinct().collect(Collectors.toList());
+        if (!unusedAgenciesToDelete.isEmpty()) {
+            return;
+        }
+
+        manager.logError(AGENCIES_IMPORT_AU_USAGE, "used Agencies want to be deleted");
+        throw new AgencyImportDeletionException("used Agencies want to be deleted");
     }
 
     private VitamError getVitamError(String vitamCode, String error, StatusCode statusCode) {
@@ -732,6 +775,8 @@ public class AgenciesService implements VitamAutoCloseable {
             updateAgency(agency, sequence);
         }
 
+        unusedAgenciesToDelete.stream().forEach(agency -> deleteAgency(agency, AGENCIES));
+
         if (!agenciesToInsert.isEmpty()) {
             insertDocuments(agenciesToInsert, sequence);
         }
@@ -768,6 +813,26 @@ public class AgenciesService implements VitamAutoCloseable {
         updateParser.parse(updateFileAgencies.getFinalUpdate());
 
         mongoAccess.updateData(updateParser.getRequest().getFinalUpdate(), AGENCIES, sequence);
+    }
+
+    /**
+     * Delete agency by id in case it's not used somewhere
+     *
+     * @param fileAgenciesModel fileAgenciesModel to delete
+     * @param collection the given FunctionalAdminCollections
+     */
+    private void deleteAgency(AgenciesModel fileAgenciesModel, FunctionalAdminCollections collection) {
+        final Delete delete = new Delete();
+        DbRequestResult result = null;
+        DbRequestSingle dbRequest = new DbRequestSingle(collection.getVitamCollection());
+        try {
+            delete.setQuery(eq(AgenciesModel.TAG_IDENTIFIER, fileAgenciesModel.getIdentifier()));
+            result = dbRequest.execute(delete);
+            result.close();
+        } catch (InvalidParseOperationException | BadRequestException | InvalidCreateOperationException |
+            DatabaseException | VitamDBException | SchemaValidationException e) {
+            LOGGER.error(e);
+        }
     }
 
     /**
