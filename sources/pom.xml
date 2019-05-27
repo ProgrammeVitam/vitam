@@ -168,7 +168,7 @@
         <maven.source.version>3.0.0</maven.source.version>
         <maven.dependency.version>3.1.1</maven.dependency.version>
         <maven.site.version>3.5.1</maven.site.version>
-        <maven.assembly.version>2.6</maven.assembly.version>
+        <maven.assembly.version>3.1.1</maven.assembly.version>
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
         <maven.javadoc.version>2.10.4</maven.javadoc.version>
         <xalan.version>2.7.2</xalan.version>
@@ -286,6 +286,11 @@
                     <configuration>
                         <offline>true</offline>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-assembly-plugin</artifactId>
+                    <version>${maven.assembly.version}</version>
                 </plugin>
                 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
                 <!-- Main Maven plugins, see http://maven.apache.org/plugins/index.html -->
@@ -575,11 +580,6 @@
                 <!-- Tools : These are miscellaneous tools available through Maven by
                     default. -->
                 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
-                <plugin>
-                    <!-- Build an assembly (distribution) of sources and/or binaries. -->
-                    <artifactId>maven-assembly-plugin</artifactId>
-                    <version>${maven.assembly.version}</version>
-                </plugin>
                 <plugin>
                     <!-- Dependency manipulation (copy, unpack) and analysis. -->
                     <artifactId>maven-dependency-plugin</artifactId>
