@@ -23,4 +23,4 @@ La release R7 est la version :term:`LTS` de la version majeure V1 :term:`VITAM`.
 
 Les releases R9 et R10 sont des *releases* de la version majeure V2 de la solution logicielle :term:`VITAM`. 
 
-Pour plus d'informations, se repporter au chapitre « Maintenance » du document de `Présentation de la solution logicielle VITAM <http://www.programmevitam.fr/ressources/DocCourante/autres/fonctionnel/VITAM_Presentation_solution_logicielle.pdf>`_. 
+Pour plus d'informations, se reporter au chapitre « Maintenance » du document de `Présentation de la solution logicielle VITAM <http://www.programmevitam.fr/ressources/DocCourante/autres/fonctionnel/VITAM_Presentation_solution_logicielle.pdf>`_. 
