@@ -9,6 +9,10 @@
     package:
       name: "{{ item }}"
       state: absent
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
     with_items:
     - docker
 
@@ -27,6 +31,10 @@
     package:
       name: curl
       state: present
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   - name: add GPG docker repo key
     shell: "curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -"
@@ -38,6 +46,10 @@
     package:
       name: apt-transport-https
       state: present
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   - name: check docker repo are present
     apt_repository:
@@ -49,11 +61,19 @@
   - name: run apt-update
     apt:
       update_cache: yes
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   - name: installer docker & pip
     apt:
       name: "{{ item }}"
       state: latest
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
     with_items:
       - docker-ce
       - python-pip
@@ -83,6 +103,10 @@
     package:
       name: "{{ item }}"
       state: latest
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
     with_items:
     - docker
     - docker-python

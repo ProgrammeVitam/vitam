@@ -40,6 +40,10 @@ vitam_defaults:
 classificationList: ["Non protégé","Secret Défense", "Confidentiel Défense"]
 # Used in ingest, unitary update, mass-update
 classificationLevelOptional: true
+# Packages install retries
+packages_install_retries_number: 1
+packages_install_retries_delay: 10
+
 
 vitam_timers:
 # systemd nomenclature

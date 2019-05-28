@@ -62,6 +62,10 @@
     name: "{{ java_package }}"
     state: latest
     default_release: "{{ ansible_distribution_release }}-backports"
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == false
@@ -70,6 +74,10 @@
   apt:
     name: "{{ java_package }}"
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == true
@@ -78,12 +86,20 @@
   package:
     name: "{{ java_package }}"
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "RedHat"
 
 - name: install vitam-{{composant.cluster_name}} package
   package:
     name: vitam-{{composant.cluster_name}}
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   notify:
     - restart elasticsearch
 

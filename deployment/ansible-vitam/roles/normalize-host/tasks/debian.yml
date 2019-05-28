@@ -13,6 +13,10 @@
 - name: run apt-update
   apt:
     update_cache: yes
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   tags:
     - update_package_vitam
 
@@ -20,3 +24,7 @@
   package:
     name: acl
     state: present
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
