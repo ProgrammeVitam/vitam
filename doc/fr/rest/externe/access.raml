@@ -18,6 +18,27 @@ types:
   _reserved:
     type: string
 
+annotationTypes:
+  deprecated:
+    properties:
+      replaceWith:
+        type: string
+        description: |
+          Describe the alternative resource/method that can be used as a substitute.
+          Décrit la ressource/méthode alternative qui remplacera cette ressource/méthode.
+        required: true
+      since:
+        type: string
+        pattern: (0[1-9]|10|11|12)/20[0-9]{2}
+        required: true
+        description: Signal depuis quand la ressource/méthode est dépréciée dans le format (mm/AAAA)
+    allowedTargets: [Resource, Method]
+    displayName: Deprecated
+    description: |
+      Une ressource ou méthode déprecated n'est pas recommandé pour les nouveaux intégrations.
+      La ressource ou méthode sera retiré dans une version future de l'API.
+      La ressource ou méthode est toujours supportée dans la version actuelle.
+    
 documentation:
   - title: Avertissements
     content: !include docs-fr/avertissement.md
@@ -117,6 +138,9 @@ documentation:
         X-Http-Method-Override:
           required: true
     put:
+      (deprecated):
+        replaceWith: La modification d'une unité d'archive se fait désormais par la mise à jour en masse des unités d'archive. (POST /units)
+        since: 04/2019
       description: |
         Requête qui modifie une Unité d'archive.
         La requête utilise le langage de requête DSL de type **modification unitaire (UPDATE BY ID)** de Vitam en entrée et retourne le statut de la mise à jour en résultat selon le DSL Vitam en cas de succès.
