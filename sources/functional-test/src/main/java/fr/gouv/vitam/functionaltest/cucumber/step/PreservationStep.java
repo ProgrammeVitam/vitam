@@ -172,23 +172,19 @@ public class PreservationStep {
     }
 
     @When("^je supprime les griffons et les scénarios de préservation sur tous les tenants")
-    public void deleteAllPreservationBaseData() {
-        try {
-            ByteArrayInputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
-            String filName = "empty.json";
-
-            for (Integer tenant : VitamConfiguration.getTenants()) {
-                VitamContext vitamContext = new VitamContext(tenant);
-                vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-
-                world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, filName);
-            }
-            VitamContext vitamContext = new VitamContext(VitamConfiguration.getAdminTenant());
+    public void deleteAllPreservationBaseData() throws Exception {
+        String filName = "empty.json";
+        for (Integer tenant : VitamConfiguration.getTenants()) {
+            InputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
+            VitamContext vitamContext = new VitamContext(tenant);
             vitamContext.setApplicationSessionId(world.getApplicationSessionId());
-            world.getAdminClient().importGriffin(vitamContext, emptyJson, filName);
-        } catch (Exception e) {
-            LOGGER.error(e);
+
+            world.getAdminClient().importPreservationScenario(vitamContext, emptyJson, filName);
         }
+        VitamContext vitamContext = new VitamContext(VitamConfiguration.getAdminTenant());
+        vitamContext.setApplicationSessionId(world.getApplicationSessionId());
+        InputStream emptyJson = new ByteArrayInputStream("[]".getBytes());
+        world.getAdminClient().importGriffin(vitamContext, emptyJson, filName);
     }
 
     @When("^je lance la preservation avec le scénario (.*) et pour l'usage (.*)$")
