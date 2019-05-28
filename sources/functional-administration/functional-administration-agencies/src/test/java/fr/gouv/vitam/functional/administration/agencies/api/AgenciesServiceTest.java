@@ -17,28 +17,6 @@
  */
 package fr.gouv.vitam.functional.administration.agencies.api;
 
-import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
-import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.endsWith;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -79,55 +57,87 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static fr.gouv.vitam.common.PropertiesUtils.getResourceFile;
+import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromFile;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 public class AgenciesServiceTest {
 
     public static final String AGENCIES_REPORT = "AGENCIES_REPORT";
-    private static VitamCounterService vitamCounterService;
     public static final String PREFIX = GUIDFactory.newGUID().getId();
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-            VitamThreadPoolExecutor.getDefaultExecutor());
-
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
-
+    private static final Integer TENANT_ID = 1;
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-
-
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)),
-                    PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
-
+        new MongoRule(getMongoClientOptions(Lists.newArrayList(Agencies.class, AccessContract.class)),
+            PREFIX + Agencies.class.getSimpleName(), PREFIX + AccessContract.class.getSimpleName());
     @ClassRule
     public static ElasticsearchRule elasticsearchRule =
-            new ElasticsearchRule(PREFIX + Agencies.class.getSimpleName().toLowerCase(), PREFIX + AccessContract.class.getSimpleName().toLowerCase());
-
-
-    private static final Integer TENANT_ID = 1;
-
+        new ElasticsearchRule(PREFIX + Agencies.class.getSimpleName().toLowerCase(),
+            PREFIX + AccessContract.class.getSimpleName().toLowerCase());
+    static String _id = GUIDFactory.newGUID().toString();
+    static String contract = "{ \"_tenant\": 1,\n" +
+        "    \"_id\": \"" + _id + "\", \n " +
+        "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
+        "    \"Identifier\": \"AC-000018\",\n" +
+        "    \"Description\": \"aDescription of the contract\",\n" +
+        "    \"Status\": \"ACTIVE\",\n" +
+        "    \"CreationDate\": \"2016-12-10T00:00:00.000\",\n" +
+        "    \"LastUpdate\": \"2017-10-06T01:53:22.544\",\n" +
+        "    \"ActivationDate\": \"2016-12-10T00:00:00.000\",\n" +
+        "    \"DeactivationDate\": \"2016-12-10T00:00:00.000\",\n" +
+        "    \"DataObjectVersion\": [],\n" +
+        "    \"OriginatingAgencies\": [\n" +
+        "        \"FRAN_NP_005568\",\n" +
+        "        \"AG-000001\"\n" +
+        "    ],\n" +
+        "    \"WritingPermission\": true,\n" +
+        "    \"EveryOriginatingAgency\": true,\n" +
+        "    \"EveryDataObjectVersion\": false,\n" +
+        "     \"AccessLog\": \"ACTIVE\", \n" +
+        "    \"_v\": 0\n" +
+        "}";
+    private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
-
     private static List<AgenciesModel> usedAgenciesByContracts;
     private static List<AgenciesModel> usedAgenciesByAU;
     private static List<AgenciesModel> agenciesToInsert;
     private static List<AgenciesModel> agenciesToUpdate;
     private static List<AgenciesModel> agenciesToDelete;
     private static List<AgenciesModel> agenciesInDb;
-
-
+    private static List<AgenciesModel> unusedAgenciesToDelete;
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
     @Mock
     private FunctionalBackupService functionalBackupService;
     @Mock
     private AgenciesManager manager;
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
-
     private AgenciesService agencyService;
-
 
     @RunWithCustomExecutor
     @BeforeClass
@@ -136,11 +146,17 @@ public class AgenciesServiceTest {
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
 
         dbImpl =
-                MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
+            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()));
 
         final List<Integer> tenants = new ArrayList<>();
         tenants.add(TENANT_ID);
         vitamCounterService = new VitamCounterService(dbImpl, tenants, new HashMap<>());
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        elasticsearchRule.deleteIndexes();
+        mongoRule.handleAfterClass();
     }
 
     @Before
@@ -151,13 +167,8 @@ public class AgenciesServiceTest {
         agenciesToUpdate = new ArrayList<>();
         usedAgenciesByAU = new ArrayList<>();
         usedAgenciesByContracts = new ArrayList<>();
+        unusedAgenciesToDelete = new ArrayList<>();
         instantiateAgencyService();
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() {
-        elasticsearchRule.deleteIndexes();
-        mongoRule.handleAfterClass();
     }
 
     @After
@@ -196,7 +207,7 @@ public class AgenciesServiceTest {
 
         // When
         RequestResponse<AgenciesModel> response =
-                agencyService.importAgencies(new FileInputStream(fileAgencies1), null);
+            agencyService.importAgencies(new FileInputStream(fileAgencies1), null);
 
         // Then
         assertThat(response.isOk()).isTrue();
@@ -204,13 +215,21 @@ public class AgenciesServiceTest {
         assertThat(report.get("Operation")).isNotNull();
         reportPath.toFile().delete();
 
-        // import 2
+        File fileAgencies_delete_unused_ag = getResourceFile("agencies_delete_unused.csv");
+        response =
+            agencyService.importAgencies(new FileInputStream(fileAgencies_delete_unused_ag), null);
+        report = getFromFile(reportPath.toFile());
+        assertThat(report.get("Operation")).isNotNull();
+        assertThat(response.isOk()).isTrue();
+        reportPath.toFile().delete();
+
+        // import 2 & error update unchanged document
         File fileAgencies2 = getResourceFile("agencies2.csv");
 
         response = agencyService.importAgencies(new FileInputStream(fileAgencies2), null);
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("Operation")).isNotNull();
-        assertThat(response.isOk()).isTrue();
+        assertThat(response.isOk()).isFalse();
         reportPath.toFile().delete();
 
         // import 3 error invalid
@@ -224,7 +243,7 @@ public class AgenciesServiceTest {
         assertThat(response.isOk()).isFalse();
         assertThat(report.get("Operation")).isNotNull();
         String error =
-                "{\"line 4\":[{\"Code\":\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\",\"Message\":\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\",\"Information additionnelle\":\"Name\"}]}";
+            "{\"line 4\":[{\"Code\":\"STP_IMPORT_AGENCIES_MISSING_INFORMATIONS.KO\",\"Message\":\"Au moins une valeur obligatoire est manquante. Valeurs obligatoires : Identifier, Name, Description\",\"Information additionnelle\":\"Name\"}]}";
         assertThat(report.get("error").toString()).isEqualTo(error);
         reportPath.toFile().delete();
 
@@ -238,7 +257,7 @@ public class AgenciesServiceTest {
         assertThat(response.isOk()).isFalse();
         assertThat(report.get("Operation")).isNotNull();
         error =
-                "{\"line 3\":[{\"Code\":\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\",\"Message\":\"Le fichier importé n'est pas au format CSV\"}]}";
+            "{\"line 3\":[{\"Code\":\"STP_IMPORT_AGENCIES_NOT_CSV_FORMAT.KO\",\"Message\":\"Le fichier importé n'est pas au format CSV\"}]}";
         assertThat(report.get("error").toString()).isEqualTo(error);
         reportPath.toFile().delete();
 
@@ -255,7 +274,7 @@ public class AgenciesServiceTest {
         report = getFromFile(reportPath.toFile());
         assertThat(report.get("Operation")).isNotNull();
         assertThat((report.get("UsedAgencies to Delete")).get(0).textValue())
-                .startsWith("AG-00000");
+            .startsWith("AG-00000");
 
     }
 
@@ -298,70 +317,47 @@ public class AgenciesServiceTest {
         agencyService.checkFile(new FileInputStream(file));
     }
 
-    static String _id = GUIDFactory.newGUID().toString();
-    static String contract = "{ \"_tenant\": 1,\n" +
-            "    \"_id\": \""+_id+"\", \n "+
-            "    \"Name\": \"contract_with_field_EveryDataObjectVersion\",\n" +
-            "    \"Identifier\": \"AC-000018\",\n" +
-            "    \"Description\": \"aDescription of the contract\",\n" +
-            "    \"Status\": \"ACTIVE\",\n" +
-            "    \"CreationDate\": \"2016-12-10T00:00:00.000\",\n" +
-            "    \"LastUpdate\": \"2017-10-06T01:53:22.544\",\n" +
-            "    \"ActivationDate\": \"2016-12-10T00:00:00.000\",\n" +
-            "    \"DeactivationDate\": \"2016-12-10T00:00:00.000\",\n" +
-            "    \"DataObjectVersion\": [],\n" +
-            "    \"OriginatingAgencies\": [\n" +
-            "        \"FRAN_NP_005568\",\n" +
-            "        \"AG-000001\"\n" +
-            "    ],\n" +
-            "    \"WritingPermission\": true,\n" +
-            "    \"EveryOriginatingAgency\": true,\n" +
-            "    \"EveryDataObjectVersion\": false,\n" +
-            "     \"AccessLog\": \"ACTIVE\", \n" +
-            "    \"_v\": 0\n" +
-            "}";
-
     private JsonNode getJsonResult(String outcome, int tenantId) throws Exception {
         return JsonHandler.getFromString(String.format("{\n" +
-                "     \"httpCode\": 200,\n" +
-                "     \"$hits\": {\n" +
-                "          \"total\": 1,\n" +
-                "          \"offset\": 0,\n" +
-                "          \"limit\": 1,\n" +
-                "          \"size\": 1\n" +
-                "     },\n" +
-                "     \"$results\": [\n" +
-                "          {\n" +
-                "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
-                "               \"events\": [\n" +
-                "                    {\n" +
-                "                         \"outcome\": \"%s\"\n" +
-                "                    }\n" +
-                "               ],\n" +
-                "               \"_v\": 0,\n" +
-                "               \"_tenant\": %d\n" +
-                "          }\n" +
-                "     ],\n" +
-                "     \"$context\": {\n" +
-                "          \"$query\": {\n" +
-                "               \"$eq\": {\n" +
-                "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
-                "               }\n" +
-                "          },\n" +
-                "          \"$filter\": {\n" +
-                "               \"$limit\": 1,\n" +
-                "               \"$orderby\": {\n" +
-                "                    \"evDateTime\": -1\n" +
-                "               }\n" +
-                "          },\n" +
-                "          \"$projection\": {\n" +
-                "               \"$fields\": {\n" +
-                "                    \"#id\": 1,\n" +
-                "                    \"events.outcome\": 1\n" +
-                "               }\n" +
-                "          }\n" +
-                "     }\n" +
-                "}", outcome, tenantId));
+            "     \"httpCode\": 200,\n" +
+            "     \"$hits\": {\n" +
+            "          \"total\": 1,\n" +
+            "          \"offset\": 0,\n" +
+            "          \"limit\": 1,\n" +
+            "          \"size\": 1\n" +
+            "     },\n" +
+            "     \"$results\": [\n" +
+            "          {\n" +
+            "               \"_id\": \"aecaaaaaacgbcaacaa76eak44s3of6iaaaaq\",\n" +
+            "               \"events\": [\n" +
+            "                    {\n" +
+            "                         \"outcome\": \"%s\"\n" +
+            "                    }\n" +
+            "               ],\n" +
+            "               \"_v\": 0,\n" +
+            "               \"_tenant\": %d\n" +
+            "          }\n" +
+            "     ],\n" +
+            "     \"$context\": {\n" +
+            "          \"$query\": {\n" +
+            "               \"$eq\": {\n" +
+            "                    \"events.evType\": \"STP_IMPORT_AGENCIES\"\n" +
+            "               }\n" +
+            "          },\n" +
+            "          \"$filter\": {\n" +
+            "               \"$limit\": 1,\n" +
+            "               \"$orderby\": {\n" +
+            "                    \"evDateTime\": -1\n" +
+            "               }\n" +
+            "          },\n" +
+            "          \"$projection\": {\n" +
+            "               \"$fields\": {\n" +
+            "                    \"#id\": 1,\n" +
+            "                    \"events.outcome\": 1\n" +
+            "               }\n" +
+            "          }\n" +
+            "     }\n" +
+            "}", outcome, tenantId));
     }
 
 
@@ -376,16 +372,17 @@ public class AgenciesServiceTest {
 
     private void instantiateAgencyService() {
         agencyService =
-                new AgenciesService(dbImpl,
-                        vitamCounterService,
-                        functionalBackupService,
-                        logbookOperationsClientFactory,
-                        manager,
-                        agenciesInDb,
-                        agenciesToDelete,
-                        agenciesToInsert,
-                        agenciesToUpdate,
-                        usedAgenciesByAU,
-                        usedAgenciesByContracts);
+            new AgenciesService(dbImpl,
+                vitamCounterService,
+                functionalBackupService,
+                logbookOperationsClientFactory,
+                manager,
+                agenciesInDb,
+                agenciesToDelete,
+                agenciesToInsert,
+                agenciesToUpdate,
+                usedAgenciesByAU,
+                usedAgenciesByContracts,
+                unusedAgenciesToDelete);
     }
 }
