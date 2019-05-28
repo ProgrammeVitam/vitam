@@ -109,6 +109,21 @@ Les opérations de migration réalisées portent, entre autres, sur les élémen
 
 .. note:: Se reporter à la documentation du nouveau modèle de données de la release R9.
 
+Procédure de réindexation des registres de fonds 
+-------------------------------------------------
+
+Sous ``deployment``, exécuter la commande suivante :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --vault-password-file vault_pass.txt --tags accessionregisterdetail``
+
+ou, si ``vault_pass.txt`` n'a pas été renseigné :
+
+``ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass --tags accessionregisterdetail``
+
+Les changement apportés touchent le mapping Elasticsearch de la collection ``AccessionRegisterDetail``. 
+
+.. note:: Ce `playbook` ne supprime pas les anciens indexes pour laisser à l'exploitant le soin de verifier que la procedure de migration s'est correctement déroulée. A l'issue, la suppression des index devenus inutiles devra être realisée manuellement.
+
 Procédure de réindexation des ObjectGroup 
 -----------------------------------------
 
