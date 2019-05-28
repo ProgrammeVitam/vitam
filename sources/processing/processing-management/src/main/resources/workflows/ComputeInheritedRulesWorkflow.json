@@ -1,0 +1,210 @@
+{
+  "id": "COMPUTE_INHERITED_RULES",
+  "name": "inherited rules action workflow",
+  "identifier": "COMPUTE_INHERITED_RULES",
+  "typeProc": "COMPUTE_INHERITED_RULES",
+  "comment": "Default compute inherited rules action workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_COMPUTE_INHERITED_RULES_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_CONCURRENT_WORKFLOW_LOCK",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "workflowIds",
+                "uri": "VALUE:RECLASSIFICATION,ELIMINATION_ACTION"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMPUTE_INHERITED_RULES_PREPARATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_DELETE_UNIT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "units_to_delete.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "ELIMINATION_ACTION_DELETE_UNIT",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ACTION_OBJECT_GROUP_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_DELETE_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "object_groups_to_delete.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "ELIMINATION_ACTION_DELETE_OBJECT_GROUP",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_DETACH_OBJECT_GROUP",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "object_groups_to_detach.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "OK"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "ELIMINATION_ACTION_DETACH_OBJECT_GROUP",
+            "lifecycleLog": "DISABLED"
+          }
+        },
+        {
+          "action": {
+            "actionKey": "OG_METADATA_STORAGE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        },
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "OBJECT_GROUP_GRAPH_COMPUTE",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "accession_register.jsonl"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_REPORT_GENERATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ACTION_REPORT_GENERATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_ELIMINATION_ACTION_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "ELIMINATION_ACTION_FINALIZATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

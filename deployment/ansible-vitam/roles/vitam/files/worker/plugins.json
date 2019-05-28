@@ -246,5 +246,8 @@
     "className": "fr.vitam.plugin.custom.HelloWorldPlugin",
     "propertiesFile": "hello_world_plugin.properties",
     "jarName": "hello-world-plugin-1.14.0-SNAPSHOT.jar"
+  },
+  "COMPUTE_INHERITED_RULES_PREPARATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.preservation.PreservationStorageMetadataAndLfc"
   }
 }

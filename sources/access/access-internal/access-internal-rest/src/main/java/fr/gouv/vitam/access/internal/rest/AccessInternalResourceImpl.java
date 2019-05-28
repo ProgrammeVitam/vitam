@@ -141,6 +141,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
+import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 
@@ -1360,4 +1361,59 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         }
     }
+
+    @Path("/computeInheritedRules")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response startPreservation(JsonNode dslQuery) {
+
+        try {
+            ParametersChecker.checkParameter("Missing request", dslQuery);
+            String operationId = getVitamSession().getRequestId();
+
+            AccessContractModel contract = getVitamSession().getContract();
+            JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery, contract);
+
+            try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+                LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient();
+                WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+                String message = VitamLogbookMessages.getLabelOp(COMPUTE_INHERITED_RULES.getEventType() + ".STARTED") + " : " +
+                    GUIDReader.getGUID(operationId);
+
+                LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+                    GUIDReader.getGUID(operationId),
+                    COMPUTE_INHERITED_RULES.getEventType(),
+                    GUIDReader.getGUID(operationId),
+                    LogbookTypeProcess.COMPUTE_INHERITED_RULES,
+                    STARTED,
+                    message,
+                    GUIDReader.getGUID(operationId)
+                );
+                addRightsStatementIdentifier(initParameters);
+                logbookOperationsClient.create(initParameters);
+
+                workspaceClient.createContainer(operationId);
+
+                //for CheckThresholdHandler
+                workspaceClient.putObject(operationId, "query.json", writeToInpustream(restrictedQuery));
+
+                processingClient.initVitamProcess(new ProcessingEntry(operationId, PRESERVATION.name()));
+
+                return processingClient
+                    .executeOperationProcess(operationId, PRESERVATION.name(), RESUME.getValue())
+                    .toResponse();
+            }
+        } catch (BadRequestException e) {
+            return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
+        } catch (Exception e) {
+            LOGGER.error("Error on preservation request", e);
+            return Response.status(INTERNAL_SERVER_ERROR)
+                .entity(getErrorEntity(INTERNAL_SERVER_ERROR,
+                    String.format("An error occurred during %s workflow", PRESERVATION.getEventType())))
+                .build();
+        }
+    }
+
 }

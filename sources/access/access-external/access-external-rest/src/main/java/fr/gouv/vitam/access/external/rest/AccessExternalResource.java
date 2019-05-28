@@ -1039,4 +1039,25 @@ public class AccessExternalResource extends ApplicationStatusResource {
         }
     }
 
+    @Path("/computeInheritedRules")
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = "computeInheritedRules:action", description = "Lancer le processus de calcul des règles hérité pour la recherche")
+    public Response startComputeInheritedRules(JsonNode dslQuery) {
+        Status status;
+        try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
+            RequestResponse<JsonNode> requestResponse = client.startComputeInheritedRules(dslQuery);
+            int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
+            return Response.status(st).entity(requestResponse).build();
+        } catch (AccessInternalClientServerException e) {
+            LOGGER.error("Error on preservation request", e);
+            status = Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(status.getStatusCode()))
+                .build();
+        }
+    }
+
 }

@@ -119,7 +119,11 @@ public enum LogbookTypeProcess {
     /**
      * External uses only.
      */
-    EXTERNAL_LOGBOOK;
+    EXTERNAL_LOGBOOK,
+    /**
+     * Compute inherited rules process
+     */
+    COMPUTE_INHERITED_RULES;
 
     /**
      * Get the LogbookTypeProcess matching the given type
