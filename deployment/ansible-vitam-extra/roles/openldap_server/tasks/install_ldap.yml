@@ -7,21 +7,29 @@
   yum:
     name: "{{ item }}"
     state: present
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   with_items: "{{ openldap_server_pkgs }}"
   when: ansible_os_family == 'RedHat'
 
 
 - name: Install the OpenLDAP and required packages for Debian/Ubuntu
-  apt: 
-    name: "{{ item }}" 
+  apt:
+    name: "{{ item }}"
     state: installed
     update_cache: yes
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   with_items: "{{ openldap_server_pkgs }}"
   environment: env
   when: ansible_os_family == 'Debian'
 
 - name: Delete the configuration directory
-  file: 
+  file:
     path: "{{ openldap_server_app_path }}/slapd.d"
     state: absent
 
@@ -30,15 +38,15 @@
   register: root_password
 
 - name: Copy the slapd.conf configuration file for Red Hat/CentOS
-  template: 
-    src: slapd.conf.j2 
+  template:
+    src: slapd.conf.j2
     dest: "{{ openldap_server_app_path }}/slapd.conf"
   when: ansible_os_family == "RedHat"
   notify:
    - restart slapd
 
 - name: Copy the slapd.conf configuration file
-  template: 
+  template:
     src: slapd.conf_ubuntu.j2
     dest: "{{ openldap_server_app_path }}/slapd.conf"
   when: ansible_os_family == "Debian"
@@ -46,8 +54,8 @@
    - restart slapd
 
 - name: Copy the ldap.conf configuration file
-  template: 
+  template:
     src: ldap.conf.j2
     dest: "{{ openldap_server_app_path }}/ldap.conf"
   notify:
-   - restart slapd  
+   - restart slapd

@@ -6,6 +6,10 @@
   package:
     name: mongodb-org
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
 
 - name: Disable mongodb default service
   service:
