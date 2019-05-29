@@ -50,7 +50,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -62,7 +61,6 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.plugin.computeInheritedRules.exception.ComputedInheritedRulesException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
-import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -74,25 +72,20 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PREPARATION";
 
-    private final AdminManagementClientFactory adminManagementClientFactory;
-
-    private final WorkspaceClientFactory workspaceClientFactory;
-
     private final MetaDataClientFactory metaDataClientFactory;
 
-    private static final String UNITS_JSONL_FILE = "units.jsonl";
+    static final String UNITS_JSONL_FILE = "units.jsonl";
 
 
     public ComputeInheritedRulesPreparationPlugin() {
-        this(AdminManagementClientFactory.getInstance(), MetaDataClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
+        this(MetaDataClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public ComputeInheritedRulesPreparationPlugin(AdminManagementClientFactory adminManagementClientFactory,
-        MetaDataClientFactory metaDataClientFactory, WorkspaceClientFactory workspaceClientFactory) {
-        this.adminManagementClientFactory = adminManagementClientFactory;
+    public ComputeInheritedRulesPreparationPlugin(MetaDataClientFactory metaDataClientFactory) {
+
         this.metaDataClientFactory = metaDataClientFactory;
-        this.workspaceClientFactory = workspaceClientFactory;
+
     }
 
     @Override
@@ -123,8 +116,9 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
                     JsonLineModel entry = new JsonLineModel(unitId, null, null);
                     unitWriter.addEntry(entry);
                 }
-                handler.transferFileToWorkspace(UNITS_JSONL_FILE, unitDistributionFile, true, false);
             }
+            handler.transferFileToWorkspace(UNITS_JSONL_FILE, unitDistributionFile, true, false);
+
         } catch (IOException | InvalidParseOperationException | ProcessingException e) {
             throw new ComputedInheritedRulesException(StatusCode.FATAL,
                 "Could not generate unit and/or object group distributions", e);
