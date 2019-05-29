@@ -293,7 +293,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private String originatingAgency = null;
     private String submissionAgencyIdentifier = null;
-    String needAuthorization = null;
+    private String globalNeedAuthorization = null;
     private String transferringAgency = null;
     private String archivalAgency = null;
     private IngestContractModel ingestContract = null;
@@ -923,7 +923,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 if (event.isStartElement() && event.asStartElement().getName().getLocalPart()
                     .equals(SedaConstants.TAG_RULE_NEED_AUTHORISATION)) {
-                    needAuthorization = reader.getElementText();
+                    globalNeedAuthorization = reader.getElementText();
                     globalMetadata = false;
                 }
 
@@ -1563,9 +1563,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 }
             }
         }
-        if (isRootArchive && archiveUnitManagementModel != null && needAuthorization != null) {
+        if (isRootArchive && archiveUnitManagementModel != null && globalNeedAuthorization != null) {
             if (archiveUnitManagementModel.isNeedAuthorization() == null) {
-                archiveUnitManagementModel.setNeedAuthorization(Boolean.valueOf(needAuthorization));
+                archiveUnitManagementModel.setNeedAuthorization(Boolean.valueOf(globalNeedAuthorization));
             }
         }
         ObjectNode archiveUnitMgtNode = (ObjectNode) JsonHandler.toJsonNode(archiveUnitManagementModel);

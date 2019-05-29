@@ -123,7 +123,6 @@ public class ExtractSedaActionHandlerTest {
     private static final String SIP_RULES = "extractSedaActionHandler/rules-test.xml";
     private static final String SIP_ARBO_RULES_MD = "extractSedaActionHandler/OK_arbo_RG_MD_complexe.xml";
     private static final String SIP_RULES_INHERITANCE = "extractSedaActionHandler/1066_SIP_RULES_INHERITENCE.xml";
-    private static final String SIP_NEED_AUTHORIZATION_INHERITANCE = "extractSedaActionHandler/5857_inherited_needAuthorization.xml";
     private static final String SIP_REFID_RULES_INHERITANCE =
         "extractSedaActionHandler/1069_SIP_REFID_RULES_INHERITENCE.xml";
     private static final String SIP_RULES_COMPLEXE =
