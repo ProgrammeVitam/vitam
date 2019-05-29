@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.administration.core.api.LogbookCheckConsistencyService;
 import fr.gouv.vitam.logbook.administration.core.impl.LogbookCheckConsistencyServiceImpl;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.server.LogbookConfiguration;
 
 /**
@@ -75,7 +76,6 @@ public class LogbookAdminResource {
     /**
      * API to access and lanch the Check logbook coherence service.<br/>
      * 
-     * @param uri uri
      * @return OK or error
      */
     @Path(CHECK_LOGBOOK_COHERENCE_URI)
@@ -83,11 +83,11 @@ public class LogbookAdminResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response checkLogbookCoherence(@Context UriInfo uri) {
+    public Response checkLogbookCoherence() {
         LOGGER.debug("Starting Check logbook coherence service :");
         try {
-            checkLogbookService.logbookCoherenceCheckByTenant(VitamThreadUtils.getVitamSession().getTenantId());
-            return Response.ok().build();
+            LogbookCheckResult response = checkLogbookService.logbookCoherenceCheckByTenant(VitamThreadUtils.getVitamSession().getTenantId());
+            return Response.ok().entity(response).build();
 
         } catch (VitamException exc) {
             Response.Status status = Response.Status.INTERNAL_SERVER_ERROR;

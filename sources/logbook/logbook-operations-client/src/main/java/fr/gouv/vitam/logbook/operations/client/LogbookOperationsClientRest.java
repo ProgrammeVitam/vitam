@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.logbook.operations.client;
 
+import java.util.List;
 import java.util.Queue;
 
 import javax.ws.rs.HttpMethod;
@@ -59,6 +60,7 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.AuditLogbookOptions;
 import fr.gouv.vitam.logbook.common.model.LifecycleTraceabilityStatus;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationsClientHelper;
 
@@ -456,14 +458,28 @@ class LogbookOperationsClientRest extends DefaultClient implements LogbookOperat
     }
 
     @Override
-    public Response checkLogbookCoherence() throws VitamException {
+    public LogbookCheckResult checkLogbookCoherence() throws LogbookClientServerException {
+        Response response = null;
         try {
-            return performRequest(HttpMethod.POST, CHECK_LOGBOOK_COHERENCE_URI,  null, null,
+            response =  performRequest(HttpMethod.POST, CHECK_LOGBOOK_COHERENCE_URI,  null, null,
                 MediaType.APPLICATION_JSON_TYPE, MediaType.APPLICATION_JSON_TYPE);
-
+            final Status status = Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case OK:
+                    LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                    break;
+                default:
+                    LOGGER.debug(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage() + ':' + status.getReasonPhrase());
+                    throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage());
+            }
+            
+            JsonNode jsonNode = response.readEntity(JsonNode.class);
+            return JsonHandler.getFromJsonNode(jsonNode , LogbookCheckResult.class);
         } catch (VitamException e) {
             LOGGER.debug("Internal Server Error", e);
             throw new LogbookClientServerException("Internal Server Error", e);
+        } finally {
+            consumeAnyEntityAndClose(response);
         }
     }
 

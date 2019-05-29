@@ -1724,67 +1724,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Post a new ckeck logbook report file
-     *
-     * @param httpServletRequest http servlet request to get requester
-     * @param headers http header
-     * @param logbookreportfile the id of the object
-     * @param createObjectDescription the object description
-     * @return Response
-     */
-    @Path("/checklogbookreports/{logbookreportfile}")
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createlogbookreportFile(@Context HttpServletRequest httpServletRequest,
-        @Context HttpHeaders headers,
-        @PathParam("logbookreportfile") String logbookreportfile, ObjectDescription createObjectDescription) {
-        // If the POST is a creation request
-        if (createObjectDescription != null) {
-            return createObjectByType(headers, logbookreportfile, createObjectDescription,
-                DataCategory.CHECKLOGBOOKREPORTS,
-                httpServletRequest.getRemoteAddr());
-        } else {
-            return getObjectInformationWithPost(headers, logbookreportfile);
-        }
-    }
-
-    /**
-     * Get colection data.
-     *
-     * @param headers
-     * @param logbookreportfile
-     * @return
-     * @throws IOException
-     */
-    @Path("/checklogbookreports/{logbookreportfile}")
-    @GET
-    @Produces({MediaType.APPLICATION_OCTET_STREAM})
-    public Response getlogbookreportFile(@Context HttpHeaders headers,
-        @PathParam("logbookreportfile") String logbookreportfile)
-        throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
-        if (vitamCode != null) {
-            return buildErrorResponse(vitamCode);
-        }
-        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-
-        try {
-            return new VitamAsyncInputStreamResponse(
-                getByCategory(logbookreportfile, DataCategory.CHECKLOGBOOKREPORTS, strategyId, vitamCode, null),
-                Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
-        } catch (final StorageNotFoundException exc) {
-            LOGGER.error(exc);
-            vitamCode = VitamCode.STORAGE_NOT_FOUND;
-        } catch (final StorageException exc) {
-            LOGGER.error(exc);
-            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-        }
-        return buildErrorResponse(vitamCode);
-    }
-
-
-    /**
      * Create a new graph zip file
      *
      * @param httpServletRequest http servlet request to get requester

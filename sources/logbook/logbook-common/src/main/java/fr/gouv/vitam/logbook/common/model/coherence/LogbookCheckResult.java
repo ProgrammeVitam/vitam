@@ -26,17 +26,22 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.model.coherence;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serializable;
 import java.util.Set;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Description of LogbookCheckResult model. <br/>
  */
 public class LogbookCheckResult implements Serializable {
 
+    /**
+     * Tenant
+     */
+    @JsonProperty("tenant")
+    private Integer tenant;
+    
     /**
      * Checked events
      */
@@ -52,11 +57,20 @@ public class LogbookCheckResult implements Serializable {
     public LogbookCheckResult() {
     }
 
-    public LogbookCheckResult(Set<LogbookCheckEvent> checkedEvents, Set<LogbookCheckError> checkErrors) {
+    public LogbookCheckResult(Integer tenant, Set<LogbookCheckEvent> checkedEvents, Set<LogbookCheckError> checkErrors) {
+        this.tenant = tenant;
         this.checkedEvents = checkedEvents;
         this.checkErrors = checkErrors;
     }
 
+    public Integer getTenant() {
+        return tenant;
+    }
+    
+    public void setTenant(Integer tenant) {
+        this.tenant = tenant;
+    }
+    
     public Set<LogbookCheckEvent> getCheckedEvents() {
         return checkedEvents;
     }

@@ -26,9 +26,8 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.administration.core.api;
 
-import java.util.List;
-
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
 
 /**
  * Check consistency logbook service.<br>
@@ -39,14 +38,9 @@ public interface LogbookCheckConsistencyService {
      * Logbook coherence check by tenant.
      *
      * @param tenant the tenant id
+     * @return result
      * @throws VitamException if an error is encountered
      */
-    void logbookCoherenceCheckByTenant(final Integer tenant) throws VitamException;
+    LogbookCheckResult logbookCoherenceCheckByTenant(final Integer tenant) throws VitamException;
 
-    /**
-     * Logbook coherence check on all Vitam tenants.
-     *
-     * @throws VitamException if an error is encountered
-     */
-    void logbookCoherenceCheck() throws VitamException;
 }

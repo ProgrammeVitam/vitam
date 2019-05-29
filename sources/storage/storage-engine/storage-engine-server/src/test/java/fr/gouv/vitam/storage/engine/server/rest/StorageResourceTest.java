@@ -146,8 +146,6 @@ public class StorageResourceTest {
     private static final String MANIFEST_ID_URI = "/{id_manifest}";
     private static final String STORAGE_BACKUP = "/backup";
     private static final String STORAGE_BACKUP_ID_URI = "/{backupfile}";
-    private static final String CHECKLOGBOOKREPORTS = "/checklogbookreports";
-    private static final String CHECKLOGBOOKREPORTS_URI = "/{logbookreportfile}";
 
     private static final String STORAGE_BACKUP_OPERATION = "/backupoperations";
     private static final String STORAGE_BACKUP_OPERATION_ID_URI = "/{operationId}";
@@ -484,12 +482,6 @@ public class StorageResourceTest {
         testBAckup(STORAGE_BACKUP, STORAGE_BACKUP_ID_URI);
     }
 
-    @Test
-    public final void testCheckLogbookReportsStorage() {
-
-        testBAckup(CHECKLOGBOOKREPORTS, CHECKLOGBOOKREPORTS_URI);
-    }
-
     private void testBAckup(String storageBackup, String storageBackupIdUri) {
         final ObjectDescription createObjectDescription = new ObjectDescription();
         createObjectDescription.setWorkspaceObjectURI("bb");
@@ -822,32 +814,6 @@ public class StorageResourceTest {
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().get(OBJECT_GROUPS_URI).then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
-
-
-    @Test
-    public void testGetCheckLogbookReportsStorageOk() throws Exception {
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID, VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID)
-            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then()
-            .statusCode(Status.OK.getStatusCode());
-        given().accept(MediaType.APPLICATION_OCTET_STREAM).when()
-            .get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0)
-            .then()
-            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_E, VitamHttpHeader.STRATEGY_ID.getName(),
-                STRATEGY_ID)
-            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then()
-            .statusCode(Status.NOT_FOUND.getStatusCode());
-
-        given().accept(MediaType.APPLICATION_OCTET_STREAM)
-            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E, VitamHttpHeader.STRATEGY_ID.getName(),
-                STRATEGY_ID)
-            .when().get(CHECKLOGBOOKREPORTS + CHECKLOGBOOKREPORTS_URI, ID_0).then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
 
     @Test
     public void getContainerInformationOk() {

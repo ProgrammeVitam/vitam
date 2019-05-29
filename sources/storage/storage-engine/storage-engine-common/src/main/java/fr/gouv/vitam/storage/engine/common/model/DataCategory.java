@@ -120,11 +120,6 @@ public enum DataCategory {
     BACKUP_OPERATION("backupoperations", "backup_operation", true, false),
 
     /**
-     * checklogbook_reports files
-     */
-    CHECKLOGBOOKREPORTS("checklogbookreports", "check_logbookreports", false, false),
-
-    /**
      * Unit graph
      */
     UNIT_GRAPH("unitgraph", "unitgraph", false, true),
