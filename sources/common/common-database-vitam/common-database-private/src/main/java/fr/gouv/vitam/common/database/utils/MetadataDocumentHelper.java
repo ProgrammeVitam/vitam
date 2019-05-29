@@ -67,6 +67,7 @@ public class MetadataDocumentHelper {
     private enum TemporaryUnitFields {
 
         ELIMINATION("_elimination"),
+        COMPUTEDINHERITEDRULES("_computedInheritedRules"),
         ATOMIC_VERSION("_av");
 
         private final String fieldName;

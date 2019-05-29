@@ -743,7 +743,12 @@ public abstract class BuilderToken {
         /**
          * Current Vitam Version
          */
-        IMPLEMENTATIONVERSION("implementationVersion");
+        IMPLEMENTATIONVERSION("implementationVersion"),
+        /**
+         * computedInheritedRules
+         */
+        COMPUTED_INHERITED_RULES("computedInheritedRules");
+
 
         private final String exactToken;
 

@@ -219,6 +219,12 @@ public class ParserTokens extends BuilderToken {
         "_elimination.ExtendedInfo.ExtendedInfoDetails.ParentUnitId",
         "_elimination.ExtendedInfo.ExtendedInfoDetails.DestroyableOriginatingAgencies",
         "_elimination.ExtendedInfo.ExtendedInfoDetails.NonDestroyableOriginatingAgencies",
+        "_computedInheritedRules.StorageRule",
+        "_computedInheritedRules.AppraisalRule",
+        "_computedInheritedRules.DisseminationRule",
+        "_computedInheritedRules.AccessRule",
+        "_computedInheritedRules.ReuseRule",
+        "_computedInheritedRules.ClassificationRule",
         "_glpd",
         "_graph",
         "_max",
@@ -521,8 +527,7 @@ public class ParserTokens extends BuilderToken {
         "_history.data._mgt.ClassificationRule.NeedReassessingAuthorization",
         "_history.data._v",
         "_implementationVersion",
-        "_sedaVersion")
-    );
+        "_sedaVersion"));
 
     private static AdminManagementOntologiesClientFactory ONTOLOGY_MGT_FACTORY =
         AdminManagementOntologiesClientFactory.getInstance();
@@ -739,7 +744,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * Vitam Implementation Version
          */
-        IMPLEMENTATIONVERSION("implementationVersion");
+        IMPLEMENTATIONVERSION("implementationVersion"),
+        /**
+         * Vitam computedInheritedRules field
+         */
+        COMPUTEDINHERITEDRULES("computedInheritedRules");
 
 
         private static final String NOT_FOUND = "Not found";
@@ -869,6 +878,8 @@ public class ParserTokens extends BuilderToken {
                         return GRAPH;
                     case "_elimination":
                         return ELIMINATION;
+                    case "_computedInheritedRules":
+                        return COMPUTEDINHERITEDRULES;
                     case "_glpd":
                         return GRAPH_LAST_PERISTED_DATE;
                     case "_history":
@@ -955,6 +966,7 @@ public class ParserTokens extends BuilderToken {
                     case LAST_PERSISTED_DATE:
                     case UDS:
                     case PARENT_ORIGINATING_AGENCIES:
+                    case COMPUTEDINHERITEDRULES:
                         return false;
                     case ELIMINATION:
                         return true;
@@ -1023,6 +1035,7 @@ public class ParserTokens extends BuilderToken {
                         case SEDAVERSION:
                         case IMPLEMENTATIONVERSION:
                         case STORAGE:
+                        case COMPUTEDINHERITEDRULES:
                             return true;
                         default:
                     }

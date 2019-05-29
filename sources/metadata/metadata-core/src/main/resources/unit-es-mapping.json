@@ -1453,6 +1453,124 @@
           }
         }
       },
+      "_computedInheritedRules": {
+        "properties": {
+          "AccessRule": {
+            "properties": {
+              "Rules": {
+                "properties": {
+                  "MaxEndDate": {
+                    "type": "date",
+                    "format": "strict_date_optional_time"
+                  },
+                  "Id": {
+                    "type": "keyword"
+                  }
+                }
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "AppraisalRule": {
+            "properties": {
+              "Rules": {
+                "properties": {
+                  "MaxEndDate": {
+                    "type": "date",
+                    "format": "strict_date_optional_time"
+                  },
+                  "Id": {
+                    "type": "keyword"
+                  }
+                }
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "DisseminationRule": {
+            "properties": {
+              "Rules": {
+                "properties": {
+                  "MaxEndDate": {
+                    "type": "date",
+                    "format": "strict_date_optional_time"
+                  },
+                  "Id": {
+                    "type": "keyword"
+                  }
+                }
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "ReuseRule": {
+            "properties": {
+              "Rules": {
+                "properties": {
+                  "MaxEndDate": {
+                    "type": "date",
+                    "format": "strict_date_optional_time"
+                  },
+                  "Id": {
+                    "type": "keyword"
+                  }
+                }
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "StorageRule": {
+            "properties": {
+              "Rules": {
+                "properties": {
+                  "MaxEndDate": {
+                    "type": "date",
+                    "format": "strict_date_optional_time"
+                  },
+                  "Id": {
+                    "type": "keyword"
+                  }
+                }
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "ClassificationRule": {
+            "properties": {
+              "Rules": {
+                "properties": {
+                  "MaxEndDate": {
+                    "type": "date",
+                    "format": "strict_date_optional_time"
+                  },
+                  "Id": {
+                    "type": "keyword"
+                  }
+                }
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          }
+        }
+      },
       "_sedaVersion": {
         "type": "keyword"
       },
