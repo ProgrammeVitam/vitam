@@ -35,12 +35,11 @@ import fr.gouv.vitam.common.model.administration.ActionTypePreservation;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
-import static java.util.Optional.empty;
+import java.util.stream.Collectors;
 
 /**
  * PreservationScenarioModel class
@@ -78,11 +77,11 @@ public class PreservationScenarioModel {
     @JsonAlias(ModelConstants.UNDERSCORE + ModelConstants.TAG_VERSION)
     private Integer version;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_NAME)
     private String name;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
@@ -95,7 +94,7 @@ public class PreservationScenarioModel {
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_ACTION_LIST)
     private List<ActionTypePreservation> actionList;
 
@@ -103,7 +102,6 @@ public class PreservationScenarioModel {
     private List<String> metadataFilter;
 
     @Valid
-    @NotEmpty
     @JsonProperty(TAG_GRIFFIN_BY_FORMAT)
     private List<GriffinByFormat> griffinByFormat;
 
@@ -209,6 +207,9 @@ public class PreservationScenarioModel {
     }
 
     public List<GriffinByFormat> getGriffinByFormat() {
+        if (griffinByFormat == null) {
+            return Collections.emptyList();
+        }
         return griffinByFormat;
     }
 
@@ -224,6 +225,7 @@ public class PreservationScenarioModel {
         this.defaultGriffin = defaultGriffin;
     }
 
+    @JsonIgnore
     public Optional<String> getGriffinIdentifierByFormat(String format) {
         Optional<GriffinByFormat> griffin = getGriffinByFormat(format);
 
@@ -234,47 +236,31 @@ public class PreservationScenarioModel {
     @JsonIgnore
     public Optional<GriffinByFormat> getGriffinByFormat(String format) {
 
-        boolean emptyGriffinList = griffinByFormat == null || griffinByFormat.isEmpty();
+        GriffinByFormat griffinByFormat = getGriffinByFormat().stream()
+            .filter(element -> element.getFormatList().contains(format))
+            .findFirst()
+            .orElse(defaultGriffin == null ? null : new GriffinByFormat(defaultGriffin));
 
-        if (emptyGriffinList) {
-            if(defaultGriffin != null) {
-                return Optional.of(new GriffinByFormat(defaultGriffin));
-            }
-            return empty();
-        }
-
-        for (GriffinByFormat element : griffinByFormat) {
-            if (element.getFormatList().contains(format)) {
-                return Optional.of(element);
-            }
-        }
-
-        if(defaultGriffin != null) {
-            return Optional.of(new GriffinByFormat(defaultGriffin));
-        }
-
-        return empty();
+        return Optional.ofNullable(griffinByFormat);
     }
 
 
     @JsonIgnore
     public Set<String> getAllGriffinIdentifiers() {
 
-        Set<String> identifierSet = new HashSet<>();
+        Set<String> identifiers = getGriffinByFormat().stream()
+            .map(GriffinByFormat::getGriffinIdentifier)
+            .collect(Collectors.toSet());
 
-        if (griffinByFormat == null || griffinByFormat.isEmpty()) {
-            return identifierSet;
+        if (defaultGriffin != null) {
+            identifiers.add(defaultGriffin.getGriffinIdentifier());
         }
 
-        griffinByFormat.forEach(g -> identifierSet.add(g.getGriffinIdentifier()));
-
-        if (defaultGriffin != null)
-            identifierSet.add(defaultGriffin.getGriffinIdentifier());
-
-        return identifierSet;
+        return identifiers;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "PreservationScenarioModel{" +
             "id='" + id + '\'' +
             ", tenant=" + tenant +
