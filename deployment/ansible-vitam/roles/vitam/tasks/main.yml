@@ -6,6 +6,10 @@
     name: openjdk-8-jre-headless
     state: latest
     default_release: "{{ ansible_distribution_release }}-backports"
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == false
@@ -14,6 +18,10 @@
   apt:
     name: openjdk-8-jre-headless
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == true
@@ -25,6 +33,10 @@
   package:
     name: "{{ package_name }}"
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   tags:
     - update_package_vitam
   notify:
@@ -50,6 +62,10 @@
         allow_downgrade : yes
         name: "{{ package_name }}-{{ force_vitam_version }}"
         state: present
+      register: result
+      retries: "{{ packages_install_retries_number }}"
+      until: result | succeeded
+      delay: "{{ packages_install_retries_delay }}"
       tags:
         - update_package_vitam
       notify:

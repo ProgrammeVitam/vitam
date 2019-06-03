@@ -10,6 +10,10 @@
   yum:
     name: java-1.8.0
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "RedHat"
 
 - name: "install openjdk from {{ ansible_distribution_release }}-backports only when Debian"
@@ -17,6 +21,10 @@
     name: openjdk-8-jre-headless
     state: latest
     default_release: "{{ ansible_distribution_release }}-backports"
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == false
@@ -25,6 +33,10 @@
   apt:
     name: openjdk-8-jre-headless
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
     - disable_internet_repositories_install == true
@@ -33,6 +45,10 @@
   package:
     name: logstash
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   notify:
     - restart logstash
 

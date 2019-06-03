@@ -4,6 +4,10 @@
   package:
     name: vitam-ihm-demo-front-v2
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   tags:
     - update_package_vitam
   when:  vitam_struct.vitam_component == "ihm-demo"
