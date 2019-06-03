@@ -28,6 +28,7 @@ package fr.gouv.vitam.processing.integration.test;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -38,6 +39,7 @@ import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamMongoRepository;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
@@ -67,6 +69,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
+import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
@@ -366,8 +369,14 @@ public class MassUpdateIT extends VitamRuleRunner {
                 "MASS_UPDATE_UNIT_DESC.OK");
 
             LogbookLifeCyclesClient logbookLifeCyclesClient = LogbookLifeCyclesClientFactory.getInstance().getClient();
+
+            String id = updatedUnit.get().get("_id", String.class);
+            Select finalSelectById = new Select();
+            finalSelectById.setQuery(QueryHelper.eq(LogbookMongoDbName.objectIdentifier.getDbname(), id));
+
+
             JsonNode unitLfc = logbookLifeCyclesClient
-                .selectUnitLifeCycleById(updatedUnit.get().get("_id", String.class), new Select().getFinalSelectById());
+                .selectUnitLifeCycleById(id, finalSelectById.getFinalSelect());
 
             JsonNode lfcEvents = unitLfc.get("$results").get(0).get("events");
             final JsonNode lastEvent = lfcEvents.get(lfcEvents.size() - 1);
