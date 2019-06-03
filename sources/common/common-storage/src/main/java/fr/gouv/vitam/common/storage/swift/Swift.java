@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadatasObject;
+import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -297,9 +298,13 @@ public class Swift extends ContentAddressableStorageAbstract {
     }
 
     @Override
-    public void asyncGetObject(String containerName, String objectName)
-            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException {
-        throw new UnsupportedOperationException("Operation not supporter");
+    public TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds) {
+        throw new UnsupportedOperationException("Operation not supported");
+    }
+
+    @Override
+    public boolean isReadOrderCompleted(String readRequestID) {
+        throw new UnsupportedOperationException("Operation not supported");
     }
 
     @Override

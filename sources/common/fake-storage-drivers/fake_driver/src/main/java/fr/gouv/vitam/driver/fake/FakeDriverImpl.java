@@ -229,8 +229,13 @@ public class FakeDriverImpl extends AbstractDriver {
         }
 
         @Override
-        public StorageGetResult getAsyncObject(StorageObjectRequest request) throws StorageDriverException {
+        public StorageGetResult createReadOrder(StorageObjectRequest request) throws StorageDriverException {
             return null;
+        }
+
+        @Override
+        public boolean isReadOrderCompleted(String exportId, int tenant) throws StorageDriverException {
+            return false;
         }
 
         @Override

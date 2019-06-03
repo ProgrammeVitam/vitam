@@ -27,9 +27,6 @@
 
 package fr.gouv.vitam.storage.engine.server.distribution.impl;
 
-import javax.ws.rs.core.Response;
-import java.util.concurrent.Callable;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -44,20 +41,21 @@ import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFacto
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 
+import javax.ws.rs.core.Response;
+import java.util.concurrent.Callable;
+
 /**
  * Thread Future used to send stream to one offer
  */
-public class ExportThread implements Callable<ThreadResponseData> {
-    public static final String TIMEOUT_TEST = "timeoutTest";
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExportThread.class);
+public class ReadOrderThread implements Callable<ThreadResponseData> {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadOrderThread.class);
 
     private static final StorageOfferProvider OFFER_PROVIDER = StorageOfferProviderFactory.getDefaultProvider();
 
     private final Driver driver;
     private final OfferReference offerReference;
     private final StorageObjectRequest request;
-
-    private static boolean IS_JUNIT_MODE = false;
+    private final ReadOrderAction readOrderAction;
 
     /**
      * Default constructor
@@ -65,34 +63,23 @@ public class ExportThread implements Callable<ThreadResponseData> {
      * @param driver         thre diver
      * @param offerReference the offer reference to put object
      * @param request        the request to put object
-     * @param globalDigest   the globalDigest associated with the stream
+     * @param readOrderAction   create or check export
      */
-    public ExportThread(Driver driver, OfferReference offerReference, StorageObjectRequest request) {
+    public ReadOrderThread(Driver driver, OfferReference offerReference, StorageObjectRequest request, ReadOrderAction readOrderAction) {
         ParametersChecker.checkParameter("Driver cannot be null", driver);
         ParametersChecker.checkParameter("OfferReference cannot be null", offerReference);
         ParametersChecker.checkParameter("PutObjectRequest cannot be null", request);
+        ParametersChecker.checkParameter("ReadOrderAction cannot be null", readOrderAction);
         this.driver = driver;
         this.offerReference = offerReference;
         this.request = request;
-    }
-
-    /**
-     * Allow to check timeout in Junit
-     *
-     * @param mode if true allow to implement timeout using GUID to "timeoutTest"
-     */
-    public static void setJunitMode(boolean mode) {
-        IS_JUNIT_MODE = mode;
+        this.readOrderAction = readOrderAction;
     }
 
     @Override
     public ThreadResponseData call()
         throws StorageException, StorageDriverException, InterruptedException {
-        if (IS_JUNIT_MODE && request.getGuid().equals(TIMEOUT_TEST) && request.getTenantId() == 0) {
-            LOGGER.info("Sleep for Junit test");
-            Thread.sleep(100);
-            return null;
-        }
+
         LOGGER.debug(request.toString());
         final StorageOffer offer = OFFER_PROVIDER.getStorageOffer(offerReference.getId());
         ThreadResponseData response;
@@ -101,19 +88,25 @@ public class ExportThread implements Callable<ThreadResponseData> {
                 throw new InterruptedException();
             }
 
-            // FIXME: 03/04/19 manage exceptions
-            StorageObjectRequest getObjectRequest = new StorageObjectRequest(request.getTenantId(), request.getType(),
-                request.getGuid());
+            if (readOrderAction.equals(ReadOrderAction.CREATE)) {
+                // FIXME: 03/04/19 manage exceptions
+                StorageObjectRequest getObjectRequest = new StorageObjectRequest(request.getTenantId(), request.getType(),
+                        request.getGuid());
 
-            StorageGetResult getObjectResult = connection.getAsyncObject(getObjectRequest);
-            LOGGER.debug(getObjectResult.toString());
-            if (Thread.currentThread().isInterrupted()) {
-                throw new InterruptedException();
+                StorageGetResult getObjectResult = connection.createReadOrder(getObjectRequest);
+                LOGGER.debug(getObjectResult.toString());
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new InterruptedException();
+                }
+
+                response = new ThreadResponseData(
+                        getObjectResult,
+                        Response.Status.ACCEPTED, request.getGuid());
+
+            } else {
+                boolean isExportCompleted = connection.isReadOrderCompleted(request.getGuid(), request.getTenantId());
+                response = new ThreadResponseData(isExportCompleted ? Response.Status.FOUND : Response.Status.NOT_FOUND, request.getGuid());
             }
-
-            response = new ThreadResponseData(
-                getObjectResult,
-                Response.Status.ACCEPTED, request.getGuid());
         }
         return response;
     }

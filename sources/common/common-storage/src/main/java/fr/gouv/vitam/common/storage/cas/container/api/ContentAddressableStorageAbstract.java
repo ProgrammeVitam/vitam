@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.api.exception.UnavailableFileException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,7 +80,7 @@ public abstract class ContentAddressableStorageAbstract implements ContentAddres
             final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
-        } catch (final IOException e) {
+        } catch (final IOException | UnavailableFileException e) {
             throw new ContentAddressableStorageException(e);
         } finally {
             PerformanceLogger.getInstance().log("STP_Offer_" + configuration.getProvider(), containerName,

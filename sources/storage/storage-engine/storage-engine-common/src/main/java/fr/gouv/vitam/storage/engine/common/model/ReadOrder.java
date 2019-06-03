@@ -32,17 +32,24 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 
 public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
+    public static final String READ_REQUEST_ID = "ReadRequestId";
     public static final String TAPE_CODE = "tapeCode";
     public static final String FILE_POSITION = "filePosition";
     public static final String FILE_NAME = "fileName";
     public static final String BUCKET = "bucket";
 
+    @JsonProperty(READ_REQUEST_ID)
+    private String readRequestId;
+
     @JsonProperty(TAPE_CODE)
     private String tapeCode;
+
     @JsonProperty(BUCKET)
     private String bucket;
+
     @JsonProperty(FILE_POSITION)
     private Integer filePosition;
+
     @JsonProperty(FILE_NAME)
     private String fileName;
 
@@ -50,13 +57,18 @@ public class ReadOrder extends QueueMessageEntity implements ReadWriteOrder {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.ReadOrder);
     }
 
-    public ReadOrder(String tapeCode, Integer filePosition, String fileName, String bucket) {
+    public ReadOrder(String readRequestId, String tapeCode, Integer filePosition, String fileName, String bucket) {
         this();
-        ParametersChecker.checkParameter("All params are required", tapeCode, filePosition);
+        ParametersChecker.checkParameter("All params are required", readRequestId, tapeCode, filePosition);
+        this.readRequestId = readRequestId;
         this.tapeCode = tapeCode;
         this.filePosition = filePosition;
         this.fileName = fileName;
         this.bucket = bucket;
+    }
+
+    public String getReadRequestId() {
+        return readRequestId;
     }
 
     public String getTapeCode() {

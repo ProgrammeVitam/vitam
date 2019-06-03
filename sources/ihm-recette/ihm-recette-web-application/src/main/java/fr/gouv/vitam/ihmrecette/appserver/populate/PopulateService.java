@@ -37,7 +37,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import io.reactivex.Flowable;
 import io.reactivex.Scheduler;
@@ -60,9 +59,9 @@ public class PopulateService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PopulateService.class);
     private static String populateFileDigest;
 
-    static final String TENANT = "_tenant";
-    static final String CONTRACT_POPULATE = "ContractPopulate";
-    static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
+    public static final String TENANT = "_tenant";
+    public static final String CONTRACT_POPULATE = "ContractPopulate";
+    public static final File POPULATE_FILE = PropertiesUtils.fileFromTmpFolder("PopulateFile");
 
     private final AtomicBoolean populateInProgress = new AtomicBoolean(false);
     private final Scheduler io;
@@ -75,7 +74,9 @@ public class PopulateService {
     private final int nbThreads;
 
     @VisibleForTesting
-    PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository, LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService, Scheduler io) {
+    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository,
+        LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads,
+        MetadataStorageService metadataStorageService, Scheduler io) {
         this.metadataRepository = metadataRepository;
         this.masterdataRepository = masterdataRepository;
         this.logbookRepository = logbookRepository;
@@ -86,11 +87,14 @@ public class PopulateService {
         this.io = io;
     }
 
-    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository, LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads, MetadataStorageService metadataStorageService) {
-        this(metadataRepository, masterdataRepository, logbookRepository, unitGraph, nThreads, metadataStorageService, Schedulers.io());
+    public PopulateService(MetadataRepository metadataRepository, MasterdataRepository masterdataRepository,
+        LogbookRepository logbookRepository, UnitGraph unitGraph, int nThreads,
+        MetadataStorageService metadataStorageService) {
+        this(metadataRepository, masterdataRepository, logbookRepository, unitGraph, nThreads, metadataStorageService,
+            Schedulers.io());
     }
 
-    void populateVitam(PopulateModel populateModel) {
+    public void populateVitam(PopulateModel populateModel) {
 
         if (populateInProgress.get()) {
             return;
@@ -176,14 +180,14 @@ public class PopulateService {
             });
     }
 
-    public void exportDataFromOffer(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
-        metadataStorageService.exportData(tenant, strategyId, objectId, dataCategory);
+    public String createReadOrder(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
+        return metadataStorageService.createReadOrder(tenant, strategyId, objectId, dataCategory);
     }
 
-    public StorageOffer getOffer(String offerId) throws StorageException {
-        return metadataStorageService.getOffer(offerId);
+    public boolean isReadOrderCompleted(Integer tenant, String strategyId, String readOrderId) {
+        return metadataStorageService.isReadOrderCompleted(tenant, strategyId, readOrderId);
     }
-    
+
     public Collection<StorageStrategy> getStrategies() throws StorageException {
         return metadataStorageService.getStrategies();
     }
@@ -202,7 +206,7 @@ public class PopulateService {
         return true;
     }
 
-    boolean inProgress() {
+    public boolean inProgress() {
         return populateInProgress.get();
     }
 

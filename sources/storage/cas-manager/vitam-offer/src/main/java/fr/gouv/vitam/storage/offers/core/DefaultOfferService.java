@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.offers.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.cas.container.api.ObjectContent;
 import fr.gouv.vitam.common.stream.MultiplexedStreamReader;
@@ -76,18 +77,24 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageException         thrown when a server error occurs
      */
     ObjectContent getObject(String containerName, String objectId)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Asynchronous Get object on offer as an inputStream
+     * create read order (asynchronous read from tape to local FS) for the given @containerName and objects list.
+     * Return read order ID
      *
      * @param containerName the container containing the object
-     * @param objectId      the object id
+     * @param objectsIds      the objects ids
+     * @return readOrder entity
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
      * @throws ContentAddressableStorageException         thrown when a server error occurs
      */
-    void asyncGetObject(String containerName, String objectId)
+    TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+
+    boolean isReadOrderCompleted(String readRequestID)
+            throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
 
     /**
      * Create object on container with objectId Receive object part of object. Actually these parts <b>HAVE TO</b> be

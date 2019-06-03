@@ -244,6 +244,11 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             FileUtils.deleteQuietly(file);
 
+            // TODO: 12/07/19 to activate when retention policy is implemented
+            // Move file to output directory for later reading
+            //  Path targetPath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(file.getName()).toAbsolutePath();
+            //  Files.move(file.toPath(), targetPath, StandardCopyOption.ATOMIC_MOVE);
+
         } catch (ArchiveReferentialException e) {
             throw new ReadWriteException(
                 MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() + ", Error: while update archive referential", e,
@@ -285,7 +290,7 @@ public class WriteTask implements Future<ReadWriteResult> {
      * @throws ReadWriteException
      */
     private File getWriteOrderFile() throws ReadWriteException {
-    File file = Paths.get(inputTarPath, writeOrder.getFilePath()).resolve(writeOrder.getArchiveId()).toFile();
+        File file = new File(inputTarPath, writeOrder.getFilePath());
 
         if (!file.exists()) {
             throw new ReadWriteException(
@@ -423,7 +428,7 @@ public class WriteTask implements Future<ReadWriteResult> {
 
             JsonHandler.writeAsFile(objLabel, labelFile);
 
-            doWriteFileToTape(LocalFileUtils.INPUT_TAR_TMP_FOLDER, fileName, labelFile.length());
+            doWriteFileToTape(LocalFileUtils.INPUT_TAR_TMP_FOLDER + "/" + fileName, labelFile.length());
 
             workerCurrentTape.setLabel(objLabel);
 
@@ -439,9 +444,9 @@ public class WriteTask implements Future<ReadWriteResult> {
         }
     }
 
-    private void doWriteFileToTape(String parentFile, String fileName, long writtenBytes) throws ReadWriteException {
+    private void doWriteFileToTape(String filePath, long writtenBytes) throws ReadWriteException {
         try {
-            tapeLibraryService.write(parentFile, fileName, writtenBytes, workerCurrentTape);
+            tapeLibraryService.write(filePath, writtenBytes, workerCurrentTape);
 
         } catch (ReadWriteException e) {
             if (e.getReadWriteErrorCode() == ReadWriteErrorCode.KO_ON_WRITE_TO_TAPE) {
@@ -532,7 +537,7 @@ public class WriteTask implements Future<ReadWriteResult> {
         }
 
         // doWrite(TAR)
-        doWriteFileToTape(writeOrder.getFilePath(), writeOrder.getArchiveId(), file.length());
+        doWriteFileToTape(writeOrder.getFilePath(), file.length());
 
         withRetryDoUpdateTapeCatalog(workerCurrentTape);
     }

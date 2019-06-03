@@ -26,18 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ihmrecette.appserver.populate;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -51,6 +39,18 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * Handles metadata backup for populate service
@@ -78,6 +78,7 @@ public class MetadataStorageService {
 
     /**
      * Stores LFC / GOT + LFC into offers
+     *
      * @param populateModel
      * @param unitGotList
      * @return
@@ -87,10 +88,12 @@ public class MetadataStorageService {
         if (populateModel.isStoreMetadataAndLfcInOffers()) {
 
             List<String> unitIds = unitGotList.stream().map(i -> i.getUnit().getId()).collect(Collectors.toList());
-            persistMetadataAndLfcToOffers(populateModel, unitIds, VitamDataType.UNIT, VitamDataType.LFC_UNIT, DataCategory.UNIT);
+            persistMetadataAndLfcToOffers(populateModel, unitIds, VitamDataType.UNIT, VitamDataType.LFC_UNIT,
+                DataCategory.UNIT);
 
             List<String> gotIds = unitGotList.stream().map(i -> i.getGot().getId()).collect(Collectors.toList());
-            persistMetadataAndLfcToOffers(populateModel, gotIds, VitamDataType.GOT, VitamDataType.LFC_GOT, DataCategory.OBJECTGROUP);
+            persistMetadataAndLfcToOffers(populateModel, gotIds, VitamDataType.GOT, VitamDataType.LFC_GOT,
+                DataCategory.OBJECTGROUP);
         }
 
         return true;
@@ -156,14 +159,30 @@ public class MetadataStorageService {
         }
     }
 
-    public void exportData(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
+    public String createReadOrder(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
 
+        String readRequestID = null;
         try {
-            storagePopulateService.exportData(strategyId, objectId, dataCategory, tenant);
+            readRequestID = storagePopulateService.createReadOrder(tenant, strategyId, objectId, dataCategory);
 
         } catch (IOException | StorageException e) {
             LOGGER.error("Could not export data from offer", e);
         }
+
+        return readRequestID;
+    }
+
+    public boolean isReadOrderCompleted(Integer tenant, String strategyId, String readOrderId) {
+
+        boolean isExportCompleted = false;
+        try {
+            isExportCompleted = storagePopulateService.isReadOrderCompleted(tenant, strategyId, readOrderId);
+
+        } catch (IOException | StorageException e) {
+            LOGGER.error("Could not check export status", e);
+        }
+
+        return isExportCompleted;
     }
 
     public StorageOffer getOffer(String offerId) throws StorageException {

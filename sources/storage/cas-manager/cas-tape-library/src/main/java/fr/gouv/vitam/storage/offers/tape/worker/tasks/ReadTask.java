@@ -40,7 +40,9 @@ import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
+import fr.gouv.vitam.storage.offers.tape.exception.ReadRequestReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
@@ -75,10 +77,11 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 public class ReadTask implements Future<ReadWriteResult> {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReadTask.class);
     public static final String TAPE_MSG = " [Tape] : ";
-    private static final String TEMP_EXT = ".TMP";
+    public static final String TEMP_EXT = ".TMP";
 
     private final TapeLibraryService tapeLibraryService;
     private final TapeCatalogService tapeCatalogService;
+    private final ReadRequestReferentialRepository readRequestReferentialRepository;
     private final ReadOrder readOrder;
     private final String MSG_PREFIX;
 
@@ -86,14 +89,17 @@ public class ReadTask implements Future<ReadWriteResult> {
 
     protected AtomicBoolean done = new AtomicBoolean(false);
 
-    public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService, TapeCatalogService tapeCatalogService) {
+    public ReadTask(ReadOrder readOrder, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService, 
+                    TapeCatalogService tapeCatalogService, ReadRequestReferentialRepository readRequestReferentialRepository) {
         ParametersChecker.checkParameter("WriteOrder param is required.", readOrder);
         ParametersChecker.checkParameter("TapeLibraryService param is required.", tapeLibraryService);
         ParametersChecker.checkParameter("TapeCatalogService param is required.", tapeCatalogService);
+        ParametersChecker.checkParameter("ReadRequestReferentialRepository param is required.", readRequestReferentialRepository);
         this.readOrder = readOrder;
         this.workerCurrentTape = workerCurrentTape;
         this.tapeLibraryService = tapeLibraryService;
         this.tapeCatalogService = tapeCatalogService;
+        this.readRequestReferentialRepository = readRequestReferentialRepository;
         this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeLibraryService.getLibraryIdentifier(),
             tapeLibraryService.getDriveIndex());
     }
@@ -149,6 +155,7 @@ public class ReadTask implements Future<ReadWriteResult> {
 
                 // Drive UP, Order Ready
                 case KO_ON_WRITE_TO_FS:
+                case KO_ON_UPDATE_READ_REQUEST_REPOSITORY:
                 case KO_TAPE_IS_BUSY:
                     return new ReadWriteResult(KO, QueueState.READY, workerCurrentTape);
 
@@ -193,20 +200,34 @@ public class ReadTask implements Future<ReadWriteResult> {
     }
 
     private void readFromTape() throws ReadWriteException {
-        tapeLibraryService.read(workerCurrentTape, readOrder.getFilePosition(),readOrder.getFileName() + TEMP_EXT);
-
-        Path sourcePath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT).toAbsolutePath();
-        Path targetPath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
-
-        // Mark file as done (remove .tmp extension)
         try {
-            Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
+            Path sourcePath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName() + TEMP_EXT).toAbsolutePath();
+            Path targetPath = Paths.get(tapeLibraryService.getOutputDirectory()).resolve(readOrder.getFileName()).toAbsolutePath();
+
+            if (targetPath.toFile().exists()) {
+                // TODO: 17/06/19 augmenter la durée de rétention du fichier ?
+            }
+
+            if (!targetPath.toFile().exists()) {
+                Files.deleteIfExists(sourcePath);
+                tapeLibraryService.read(workerCurrentTape, readOrder.getFilePosition(),readOrder.getFileName() + TEMP_EXT);
+                // Mark file as done (remove .tmp extension)
+                Files.move(sourcePath, targetPath, StandardCopyOption.ATOMIC_MOVE);
+            }
+
+            readRequestReferentialRepository.updateReadRequestInProgress(readOrder.getReadRequestId());
         } catch (IOException e) {
             LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                 " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
                 e);
             throw  new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
                     " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : Error when writing TAR on file system ", e, ReadWriteErrorCode.KO_ON_WRITE_TO_FS);
+        } catch (ReadRequestReferentialException e) {
+            LOGGER.error(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + ", Entity: " +
+                    e);
+            throw  new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
+                    " Action : Read, Order: " + JsonHandler.unprettyPrint(readOrder) + " : Error when updating read request in repository ", e, ReadWriteErrorCode.KO_ON_UPDATE_READ_REQUEST_REPOSITORY);
         }
     }
 

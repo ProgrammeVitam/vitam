@@ -26,37 +26,64 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.common.digest.DigestType;
-import fr.gouv.vitam.common.model.tape.TarEntryDescription;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.output.NullOutputStream;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.assertj.core.api.Assertions.assertThat;
+public class TarsOutputRetention implements Runnable {
 
-public final class TarTestHelper {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TarsOutputRetention.class);
 
-    public static void checkEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription)
-            throws IOException {
+    private final Path tarsOutputPath;
 
-        Digest digest = new Digest(DigestType.SHA512);
-        OutputStream digestOutputStream = digest.getDigestOutputStream(new NullOutputStream());
-        readEntryAtPos(tarFilePath, entryDescription, digestOutputStream);
-        String tarEntryDigest = digest.digestHex();
-        assertThat(tarEntryDigest).isEqualTo(entryDescription.getDigestValue());
+    // Max retention duration = 7 days
+    private final static long MAX_RETENTION_DURATION_IN_MILISECONDS = 604800000;
+
+    public TarsOutputRetention(String tarsOutputPath) {
+        this.tarsOutputPath = Paths.get(tarsOutputPath);
     }
 
-    // FIXME : usefull?
-    public static void readEntryAtPos(Path tarFilePath, TarEntryDescription entryDescription, OutputStream outputStream)
-            throws IOException {
 
-        try (InputStream is = TarHelper.readEntryAtPos(tarFilePath, entryDescription)) {
-            IOUtils.copy(is, outputStream);
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                List<Path> filesToDelete = Files.list(tarsOutputPath)
+                    .filter(path -> fileEligibleToDelete(path)).collect(Collectors.toList());
+
+                filesToDelete.forEach(file -> {
+                    try {
+                        Files.deleteIfExists(file);
+                    } catch (IOException e) {
+                        LOGGER.error("Error when deleting file " + file);
+                    }
+                });
+            } catch (IOException e) {
+                LOGGER.error("Error when deleting Tars from output folder", e);
+            }
+
+            // wait 5 minutes before the next check
+            try {
+                Thread.sleep(18000);
+            } catch (InterruptedException e) {
+
+            }
+        }
+    }
+
+    private boolean fileEligibleToDelete(Path path) {
+        try {
+            return Files.readAttributes(path, BasicFileAttributes.class).creationTime().toMillis() <= MAX_RETENTION_DURATION_IN_MILISECONDS;
+        } catch (IOException e) {
+            LOGGER.error("Error when reading attributes of file " + path);
+            return false;
         }
     }
 }
