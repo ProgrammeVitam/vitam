@@ -27,10 +27,6 @@
 package fr.gouv.vitam.metadata.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.collect.Lists;
-import com.mongodb.MongoWriteException;
-import com.mongodb.ServerAddress;
-import com.mongodb.WriteError;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.index.model.IndexationResult;
@@ -56,18 +52,19 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.database.collections.MongoDbMetadataRepository;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import org.bson.BsonDocument;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -325,12 +322,13 @@ public class MetaDataImplTest {
     @Test
     public void testDiffResultOnUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        final List<JsonNode> wanted = JsonHandler.getFromString("[{\"#id\":\"unitId\",\"#diff\":\"-    title : title" +
-            "\\n-    description : description\\n+    title : MODIFIED title" +
-            "\\n+    description : MODIFIED description\"}]", List.class, JsonNode.class);
 
-        final String wantedDiff = "\"-    title : title\\n-    description : description\\n+    " +
-            "title : MODIFIED title\\n+    description : MODIFIED description\"";
+        InputStream is = new FileInputStream(PropertiesUtils.findFile("wantedResult.json"));
+        final List<JsonNode> wanted = JsonHandler.getFromInputStream(is, List.class, JsonNode.class);
+
+        is = new FileInputStream(PropertiesUtils.findFile("wantedDiff.json"));
+
+        final JsonNode wantedDiff = JsonHandler.getFromInputStream(is);
 
         final Result updateResult = new ResultDefault(FILTERARGS.UNITS);
         updateResult.addId("unitId", (float) 1);
@@ -348,11 +346,12 @@ public class MetaDataImplTest {
         final Unit secondUnit = new Unit();
         secondUnit.put("_id", "unitId");
         secondUnit.put("title", "MODIFIED title");
-        secondUnit.put("description", "MODIFIED description");
+        secondUnit.put("description", "MODIFIED \"description");
         secondSelectResult.addFinal(secondUnit);
 
-        final JsonNode updateRequest = JsonHandler.getFromString("{\"$roots\":[\"#id\"],\"$query\":[],\"$filter\":{}," +
-            "\"$action\":[{\"$set\":{\"title\":\"MODIFIED TITLE\", \"description\":\"MODIFIED DESCRIPTION\"}}]}");
+        is = new FileInputStream(PropertiesUtils.findFile("updateQuery.json"));
+
+        final JsonNode updateRequest = JsonHandler.getFromInputStream(is);
 
         when(request.execRequest(isA(UpdateParserMultiple.class))).thenReturn(updateResult);
         when(request.execRequest(isA(SelectParserMultiple.class))).thenReturn(firstSelectResult,
@@ -361,25 +360,9 @@ public class MetaDataImplTest {
         assertTrue(requestResponse.isOk());
         List<JsonNode> ret = ((RequestResponseOK<JsonNode>) requestResponse).getResults();
 
-        assertEquals(wanted, ret);
+        JsonAssert.assertJsonEquals(wanted, ret);
 
-        assertEquals(wantedDiff, getDiffMessageFor(requestResponse.toJsonNode(), "unitId"));
-    }
-
-    private String getDiffMessageFor(JsonNode diff, String unitId) throws InvalidParseOperationException {
-        if (diff == null) {
-            return "";
-        }
-        final JsonNode arrayNode = diff.has("$diff") ? diff.get("$diff") : diff.get("$results");
-        if (arrayNode == null) {
-            return "";
-        }
-        for (final JsonNode diffNode : arrayNode) {
-            if (diffNode.get("#id") != null && unitId.equals(diffNode.get("#id").textValue())) {
-                return JsonHandler.writeAsString(diffNode.get("#diff"));
-            }
-        }
-        return "";
+        assertEquals(wantedDiff.get("#diff").asText(), ret.get(0).get("#diff").asText());
     }
 
     @Test
@@ -391,7 +374,8 @@ public class MetaDataImplTest {
         parameters.setTenants(tenants);
 
         metaDataImpl =
-            new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, IndexationHelper.getInstance(), dbRequestFactory);
+            new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, IndexationHelper.getInstance(),
+                dbRequestFactory);
         IndexationResult result = metaDataImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());
