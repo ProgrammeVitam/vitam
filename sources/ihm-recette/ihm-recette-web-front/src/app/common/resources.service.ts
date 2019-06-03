@@ -29,6 +29,21 @@ export class ResourcesService {
     return this.http.get(`${BASE_URL}${url}`, options);
   }
 
+  head(url, header?: HttpHeaders, responsetype?: any): Observable<any> {
+    const options: any = {};
+    header = this.setDefaultHeader(header);
+    options.headers = header;
+
+    if (responsetype && responsetype !== 'json') {
+      options.responseType = responsetype;
+      options.observe = 'response';
+    } else {
+      options.responseType = 'json';
+    }
+
+    return this.http.head(`${BASE_URL}${url}`, options);
+  }
+
   post(url, header?: HttpHeaders, body?: any, responsetype?: any): Observable<any> {
     const options: any = {};
     header = this.setDefaultHeader(header);

@@ -2,7 +2,7 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.digest.Digest;
-import fr.gouv.vitam.storage.engine.common.model.TarEntryDescription;
+import fr.gouv.vitam.common.model.tape.TarEntryDescription;
 import org.apache.commons.io.input.NullInputStream;
 import org.junit.Rule;
 import org.junit.Test;

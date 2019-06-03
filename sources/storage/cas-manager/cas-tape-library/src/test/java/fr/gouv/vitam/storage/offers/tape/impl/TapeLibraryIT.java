@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeDriveConf;
@@ -42,6 +43,7 @@ import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDrive;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
@@ -528,6 +530,10 @@ public class TapeLibraryIT {
             Assertions.assertThat(response.isOK()).isTrue();
 
             // read file from tape with given position
+            ReadRequestReferentialRepository readRequestReferentialRepository = new ReadRequestReferentialRepository(
+                    mongoDbAccess.getMongoDatabase()
+                            .getCollection(OfferCollections.TAPE_READ_REQUEST_REFERENTIAL.getName())
+            );
             TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
                 .getCollection(OfferCollections.TAPE_CATALOG.getName()));
             TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
@@ -535,11 +541,13 @@ public class TapeLibraryIT {
             TapeCatalog workerCurrentTape = tapeCatalogService.find(
                 Arrays.asList(new QueryCriteria(TapeCatalog.CODE, tapeCode, QueryCriteriaOperator.EQ))).get(0);
 
-            ReadTask readTask1 = new ReadTask(new ReadOrder(tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService);
+            String readRequestId = GUIDFactory.newGUID().getId();
 
-            ReadTask readTask2 = new ReadTask(new ReadOrder(tapeCode, 1, "testtar_2.tar", "bucket"), workerCurrentTape,
-                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService);
+            ReadTask readTask1 = new ReadTask(new ReadOrder(readRequestId, tapeCode, 0, "testtar.tar", "bucket"), workerCurrentTape,
+                new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService, readRequestReferentialRepository);
+
+            ReadTask readTask2 = new ReadTask(new ReadOrder(readRequestId, tapeCode, 1, "testtar_2.tar", "bucket"), workerCurrentTape,
+                    new TapeLibraryServiceImpl(tapeDriveService, tapeLibraryPool), tapeCatalogService, readRequestReferentialRepository);
 
             ReadWriteResult result1 = readTask1.get();
             assertThat(result1).isNotNull();

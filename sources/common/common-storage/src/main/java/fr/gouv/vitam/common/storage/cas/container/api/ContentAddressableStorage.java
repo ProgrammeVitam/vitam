@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.storage.cas.container.api;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.model.MetadatasObject;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
+import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageException;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 /**
  * The ContentAddressableStorage interface.
@@ -89,20 +91,33 @@ public interface ContentAddressableStorage extends VitamAutoCloseable {
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
     ObjectContent getObject(String containerName, String objectName)
-        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+            throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**
-     * Asynchronous Retrieves an object representing the data at location containerName/objectName
+     * Create read order (asynchronous read from tape to local FS) for the given objects representing the data at location containerName/objectId.
+     * Return read order entity
      * <p>
      *
      * @param containerName container where this exists.
-     * @param objectName fully qualified name relative to the container.
+     * @param objectsIds list of the fully qualified name relative to the container.
+     * @return TapeReadRequestReferentialEntity
      * @throws ContentAddressableStorageNotFoundException Thrown when the container cannot be located.
      * @throws ContentAddressableStorageException Thrown when get action failed due some other failure
      * @throws ContentAddressableStorageAlreadyExistException Thrown when object creating exists
      */
-    void asyncGetObject(String containerName, String objectName)
+    TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds)
             throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
+
+    /**
+     * Check if the read order for the readRequestID is completed.
+     * Return true if the read request is completed. else false
+     * <p>
+     *
+     * @param readRequestID the read request ID.
+     * @return true if the read request is completed. else false
+     */
+    boolean isReadOrderCompleted(String readRequestID)
+            throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName

@@ -41,7 +41,7 @@ public class WriteOrderCreatorTest {
         WriteOrder message = new WriteOrder()
             .setArchiveId("tarId")
             .setBucket("bucket")
-            .setFileBucket("file_bucket")
+            .setFilePath("file_bucket")
             .setSize(1000L)
             .setDigest("digest");
 

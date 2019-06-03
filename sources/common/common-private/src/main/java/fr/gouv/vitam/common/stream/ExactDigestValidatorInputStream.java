@@ -24,53 +24,43 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.offers.tape.exception;
+package fr.gouv.vitam.common.stream;
 
-public enum ReadWriteErrorCode {
-    INTERNAL_ERROR_SERVER,
-    TAPE_NOT_FOUND_IN_CATALOG,
-    NO_EMPTY_SLOT_FOUND,
-    KO_TAPE_IS_OUTSIDE,
-    /**
-     * Previous location should not be a drive, but a slot or mailbox
-     * Current location should not be null
-     */
-    TAPE_LOCATION_CONFLICT_ON_LOAD,
-    TAPE_LOCATION_CONFLICT_ON_UNLOAD,
-    FILE_NOT_FOUND,
-    NULL_CURRENT_TAPE,
-    KO_DB_PERSIST,
-    KO_ON_LOAD_TAPE,
-    KO_ON_UNLOAD_TAPE,
-    KO_ON_WRITE_TO_TAPE, // TODO CloseIncident Tape
-    KO_ON_REWIND_TAPE,
-    KO_ON_REWIND_FSF_BSF_TAPE,
-    /**
-     * Tape is full
-     */
-    KO_ON_END_OF_TAPE,
+import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.digest.DigestType;
+import org.apache.commons.io.input.ProxyInputStream;
 
-    /**
-     * Ko on move to end of data according to file count of tape catalog
-     */
-    KO_ON_GOTO_FILE_COUNT,
+import java.io.IOException;
+import java.io.InputStream;
 
-    KO_ON_STATUS,
-    KO_ON_LOAD_THEN_STATUS,
-    KO_ON_UNLOAD_THEN_STATUS,
-    KO_UNKNOWN_CURRENT_POSITION,
-    KO_ON_READ_FROM_TAPE,
-    KO_LABEL_DISCORDING_NOT_EMPTY_TAPE,
-    KO_LABEL_DISCORDING,
-    KO_REWIND_BEFORE_FORCE_OVERRIDE_NON_EMPTY_TAPE,
-    KO_ON_READ_LABEL,
-    TAPE_LOCATION_UNKNOWN,
-    KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT,
-    KO_ON_GO_TO_POSITION,
-    KO_REWIND_BEFORE_UNLOAD_TAPE,
-    KO_TARGET_POSITION_MUST_BE_POSITIVE_INTEGER,
-    KO_ON_WRITE_TO_FS,
-    KO_TAPE_IS_BUSY,
-    KO_TAPE_CONFLICT_STATE,
-    KO_ON_UPDATE_READ_REQUEST_REPOSITORY
+import static org.apache.commons.io.IOUtils.EOF;
+
+/**
+ * Input stream that checks input stream digest
+ */
+public class ExactDigestValidatorInputStream extends ProxyInputStream {
+
+    private final String expectedDigest;
+    private final Digest digest;
+
+    public ExactDigestValidatorInputStream(final InputStream in, DigestType digestType, String expectedDigest) {
+        super(null);
+
+        this.digest = new Digest(digestType);
+        super.in = this.digest.getDigestInputStream(in);
+        this.expectedDigest = expectedDigest;
+    }
+
+    @Override
+    protected void afterRead(int n) throws IOException {
+
+        if (n == EOF) {
+            String digestHex = this.digest.digestHex();
+            if (!digestHex.equals(expectedDigest)) {
+                throw new IOException("Invalid stream digest. Expected=" + expectedDigest + ", actual=" + digestHex);
+            }
+        }
+
+        super.afterRead(n);
+    }
 }

@@ -79,7 +79,7 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
     public TapeResponse move(Integer position, boolean isBackword) {
         ParametersChecker.checkParameter("Arguments position is required", position);
         if (position < 1) {
-            throw new IllegalStateException("position sould be a positive integer");
+            return new TapeResponse("position sould be a positive integer", StatusCode.KO);
         }
 
         List<String> args =

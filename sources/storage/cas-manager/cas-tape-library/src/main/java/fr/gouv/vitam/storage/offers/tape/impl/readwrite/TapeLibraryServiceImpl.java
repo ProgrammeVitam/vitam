@@ -96,16 +96,16 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         TapeResponse response = tapeDriveService.getDriveCommandService().rewind();
         if (!response.isOK()) {
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                    " Action : Rewind Tape, Entity: " +
-                    JsonHandler.unprettyPrint(response.getEntity()), ReadWriteErrorCode.KO_ON_REWIND_TAPE,
-                    response);
+                " Action : Rewind Tape, Entity: " +
+                JsonHandler.unprettyPrint(response.getEntity()), ReadWriteErrorCode.KO_ON_REWIND_TAPE,
+                response);
         }
 
         tape.setCurrentPosition(0);
     }
 
     @Override
-    public void write(String parentFile, String fileName, long writtenBytes, TapeCatalog tape)
+    public void write(String filePath, long writtenBytes, TapeCatalog tape)
         throws ReadWriteException {
         if (tape == null) {
             throw new ReadWriteException(
@@ -118,14 +118,12 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                 ReadWriteErrorCode.KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT);
         }
 
-        goToPosition(tape, tape.getFileCount(), ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
-
         try {
-            //inputTarStorageFolder + "/" + file-bucket + "/" + filename
-            String relativeFilePath = LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(parentFile, fileName);
+            goToPosition(tape, tape.getFileCount(), ReadWriteErrorCode.KO_ON_GOTO_FILE_COUNT);
+
 
             TapeResponse response = tapeDriveService.getReadWriteService(TapeDriveService.ReadWriteCmd.DD)
-                .writeToTape(relativeFilePath);
+                .writeToTape(filePath);
 
             if (!response.isOK()) {
                 LOGGER.error(MSG_PREFIX + TAPE_MSG + tape.getCode() +
@@ -288,11 +286,10 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                     throw new IllegalArgumentException(
                         MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Error: location type not implemented");
             }
-        } else {
-            // TODO: 28/03/19   slotIndex = findEmptySlot();
         }
 
         if (null == slotIndex) {
+            // slotIndex = findEmptySlot() ?
             throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
                 ", Error : no empty slot found => cannot unload tape", ReadWriteErrorCode.NO_EMPTY_SLOT_FOUND);
         }
@@ -332,7 +329,6 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                     }
                 }
 
-                // FIXME: 09/05/19 : gérer le cas où on remet la bande dans un autre slot => tape.setCurrentLocation(new TapeLocation(slotIndex, TapeLocationType.SLOT));
                 tape.setCurrentLocation(tape.getPreviousLocation());
 
             } finally {

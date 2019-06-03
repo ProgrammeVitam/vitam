@@ -65,6 +65,7 @@ import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -78,7 +79,7 @@ public class ConnectionImpl extends AbstractConnection {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ConnectionImpl.class);
 
     private static final String OBJECTS_PATH = "/objects";
-    private static final String ASYNC_OBJECTS_PATH = "/async/objects";
+    private static final String READ_ORDER_PATH = "/readorder";
     private static final String LOGS_PATH = "/logs";
     private static final String METADATAS = "/metadatas";
 
@@ -92,6 +93,7 @@ public class ConnectionImpl extends AbstractConnection {
     private static final String TYPE_IS_NOT_VALID = "Type is not valid";
     private static final String FOLDER_IS_A_MANDATORY_PARAMETER = "Folder is a mandatory parameter";
     private static final String FOLDER_IS_NOT_VALID = "Folder is not valid";
+    private static final String EXPORT_ID_IS_A_MANDATORY_PARAMETER = "Export id is a mandatory parameter";
 
     @SuppressWarnings("unused")
     private final Properties parameters;
@@ -193,7 +195,7 @@ public class ConnectionImpl extends AbstractConnection {
     }
 
     @Override
-    public StorageGetResult getAsyncObject(StorageObjectRequest request) throws StorageDriverException {
+    public StorageGetResult createReadOrder(StorageObjectRequest request) throws StorageDriverException {
         ParametersChecker.checkParameter(REQUEST_IS_A_MANDATORY_PARAMETER, request);
         ParametersChecker.checkParameter(GUID_IS_A_MANDATORY_PARAMETER, request.getGuid());
         ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, request.getTenantId());
@@ -201,9 +203,11 @@ public class ConnectionImpl extends AbstractConnection {
         ParametersChecker.checkParameter(FOLDER_IS_NOT_VALID, DataCategory.getByFolder(request.getType()));
         Response response = null;
         try {
-            response = performRequest(HttpMethod.GET,
-                    ASYNC_OBJECTS_PATH + "/" + DataCategory.getByFolder(request.getType()) + "/" + request.getGuid(),
+            response = performRequest(HttpMethod.POST,
+                READ_ORDER_PATH + "/" + DataCategory.getByFolder(request.getType()),
                     getDefaultHeaders(request.getTenantId(), null, null, null, null),
+                    Arrays.asList(request.getGuid()),
+                    MediaType.APPLICATION_JSON_TYPE,
                     MediaType.APPLICATION_JSON_TYPE);
 
             final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
@@ -231,6 +235,37 @@ public class ConnectionImpl extends AbstractConnection {
             }
         }
     }
+
+
+    @Override
+    public boolean isReadOrderCompleted(String exportId, int tenant) throws StorageDriverException {
+        ParametersChecker.checkParameter(EXPORT_ID_IS_A_MANDATORY_PARAMETER, exportId);
+        ParametersChecker.checkParameter(TENANT_IS_A_MANDATORY_PARAMETER, tenant);
+        Response response = null;
+        try {
+            response = performRequest(HttpMethod.HEAD,
+                    READ_ORDER_PATH + "/" + exportId,
+                    getDefaultHeaders(tenant, null, null, null, null),
+                    MediaType.APPLICATION_JSON_TYPE);
+
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            switch (status) {
+                case FOUND:
+                    return true;
+                case NOT_FOUND:
+                    return false;
+                default:
+                    LOGGER.error(INTERNAL_SERVER_ERROR + " : " + status.getReasonPhrase());
+                    throw new StorageDriverException(getDriverName(), INTERNAL_SERVER_ERROR, true);
+            }
+        } catch (final VitamClientInternalException e1) {
+            LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR), e1);
+            throw new StorageDriverException(getDriverName(), true, e1);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 
     @Override
     public StoragePutResult putObject(StoragePutRequest request) throws StorageDriverException {

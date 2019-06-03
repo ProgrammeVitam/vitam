@@ -26,46 +26,10 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.lang3.StringUtils;
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.apache.shiro.subject.Subject;
-import org.apache.shiro.util.ThreadContext;
-
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
-
 import fr.gouv.vitam.access.external.api.AdminCollections;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
@@ -126,9 +90,42 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
 
 /**
  * Web Application Resource class
@@ -222,7 +219,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("uid") String uid, @PathParam("dataType") String dataType, 
+        @PathParam("uid") String uid, @PathParam("dataType") String dataType,
         @PathParam("strategyId") String strategyId, @PathParam("offerId") String offerId, @PathParam("size") Long size,
         InputStream input) {
 
@@ -261,6 +258,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
+
     /**
      * @param xTenantId xtenant
      * @param uid uid
@@ -271,7 +269,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/deleteObject/{dataType}/{strategyId}/{offerId}/{uid}")
     @Produces(MediaType.APPLICATION_JSON)
     public Response deleteObject(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("uid") String uid, @PathParam("dataType") String dataType, 
+        @PathParam("uid") String uid, @PathParam("dataType") String dataType,
         @PathParam("strategyId") String strategyId, @PathParam("offerId") String offerId) {
 
         try {
@@ -309,7 +307,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response launchAudit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
         @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId,
         @PathParam("operationId") String operationId) {
-        
+
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
             VitamContext context = new VitamContext(Integer.parseInt(xTenantId));
             context.setAccessContract(xAccessContratId).setApplicationSessionId(getAppSessionId());
@@ -339,24 +337,54 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Path("/download/{strategyId}/{offerId}/{dataType}/{uid}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObjectAsInputStreamAsync(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-        @PathParam("uid") String uid, @PathParam("dataType") String dataType, 
-        @PathParam("strategyId") String strategyId, @PathParam("offerId") String offerId) {
+        @PathParam("uid") String uid,
+        @PathParam("dataType") String dataType,
+        @PathParam("strategyId") String strategyId,
+        @PathParam("offerId") String offerId) {
+
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+        return asyncDowloadObject(DataCategory.valueOf(dataType), strategyId, uid);
+    }
+
+    /**
+     * Create read order (read object from tape to local FS) for the given offerId, dataType and uid.
+     */
+    @POST
+    @Path("/readorder/{offerId}/{dataType}/{uid}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createReadOrder(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("uid") String uid,
+        @PathParam("dataType") String dataType,
+        @PathParam("strategyId") String strategyId,
+        @PathParam("offerId") String offerId) {
         VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
 
-        Response response = null;
-        try {
-            StorageOffer offer = populateService.getOffer(offerId);
-            if (offer.isAsyncRead()) {
-                populateService.exportDataFromOffer(Integer.parseInt(xTenantId), strategyId, uid, DataCategory.valueOf(dataType));
-                response = Response.status(Status.ACCEPTED).build();
-            } else {
-                response = asyncDowloadObject(DataCategory.valueOf(dataType), strategyId, uid);
-            }
-        } catch (StorageException e) {
-            response = Response.status(Status.INTERNAL_SERVER_ERROR).build();
-        }
 
-        return response;
+        String readRequestID = populateService
+            .createReadOrder(Integer.parseInt(xTenantId), strategyId, uid, DataCategory.valueOf(dataType));
+        ObjectNode readOrderIdJson = JsonHandler.createObjectNode();
+        readOrderIdJson.put("ReadOrderId", readRequestID);
+        return Response.status(Status.CREATED)
+            .entity(readOrderIdJson)
+            .build();
+    }
+
+    /**
+     * Check if the read order @readOrder is completed.
+     */
+    @HEAD
+    @Path("/readorder/{readOrderId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response isReadOrderCompleted(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @PathParam("readOrderId") String readOrderId, @PathParam("strategyId") String strategyId) {
+        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
+
+        if (populateService.isReadOrderCompleted(Integer.parseInt(xTenantId), strategyId, readOrderId)) {
+            return Response.status(Status.OK).build();
+        } else {
+            return Response.status(Status.NOT_FOUND).build();
+        }
     }
 
     private InputStream getErrorStream(Status badRequest, String message, VitamError vitamError) {
@@ -840,7 +868,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
             String fileName = traceabilityEvent.get("FileName").textValue();
             DataCategory documentType = DataCategory.LOGBOOK;
             response =
-                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, documentType, AccessLogUtils.getNoLogAccessLog());
+                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName, documentType,
+                    AccessLogUtils.getNoLogAccessLog());
             final AsyncInputStreamHelper helper = new AsyncInputStreamHelper(asyncResponse, response);
             if (response.getStatus() == Status.OK.getStatusCode()) {
                 helper.writeResponse(Response

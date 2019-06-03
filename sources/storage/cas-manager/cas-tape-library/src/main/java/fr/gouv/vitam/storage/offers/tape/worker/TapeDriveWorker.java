@@ -42,6 +42,7 @@ import fr.gouv.vitam.storage.engine.common.model.QueueState;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.impl.readwrite.TapeLibraryServiceImpl;
 import fr.gouv.vitam.storage.offers.tape.retry.Retry;
@@ -74,6 +75,7 @@ public class TapeDriveWorker implements Runnable {
 
     private final TapeCatalogService tapeCatalogService;
     private final ArchiveReferentialRepository archiveReferentialRepository;
+    private final ReadRequestReferentialRepository readRequestReferentialRepository;
     private final AtomicBoolean stop = new AtomicBoolean(false);
     private final AtomicBoolean pause = new AtomicBoolean(false);
     private final boolean forceOverrideNonEmptyCartridges;
@@ -83,21 +85,23 @@ public class TapeDriveWorker implements Runnable {
     private String inputTarPath;
 
     @VisibleForTesting
-    TapeDriveWorker(
+    public TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
         TapeDriveOrderConsumer receiver,
         ArchiveReferentialRepository archiveReferentialRepository,
+        ReadRequestReferentialRepository readRequestReferentialRepository,
         TapeCatalog currentTape,
         String inputTarPath, long sleepTime, boolean forceOverrideNonEmptyCartridges) {
         this.forceOverrideNonEmptyCartridges = forceOverrideNonEmptyCartridges;
         ParametersChecker
             .checkParameter("All params is required required", tapeRobotPool, tapeDriveService,
-                archiveReferentialRepository, tapeCatalogService,
+                archiveReferentialRepository, readRequestReferentialRepository, tapeCatalogService,
                 receiver);
 
         this.archiveReferentialRepository = archiveReferentialRepository;
+        this.readRequestReferentialRepository = readRequestReferentialRepository;
         this.tapeCatalogService = tapeCatalogService;
         this.inputTarPath = inputTarPath;
         this.tapeRobotPool = tapeRobotPool;
@@ -119,15 +123,17 @@ public class TapeDriveWorker implements Runnable {
 
     }
 
-    TapeDriveWorker(
+    public TapeDriveWorker(
         TapeRobotPool tapeRobotPool,
         TapeDriveService tapeDriveService,
         TapeCatalogService tapeCatalogService,
         TapeDriveOrderConsumer receiver,
         ArchiveReferentialRepository archiveReferentialRepository,
+        ReadRequestReferentialRepository readRequestReferentialRepository,
         TapeCatalog currentTape,
         String inputTarPath, boolean forceOverrideNonEmptyCartridges) {
-        this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, archiveReferentialRepository, currentTape,
+        this(tapeRobotPool, tapeDriveService, tapeCatalogService, receiver, archiveReferentialRepository,
+            readRequestReferentialRepository, currentTape,
             inputTarPath, sleepTime, forceOverrideNonEmptyCartridges);
     }
 
@@ -184,8 +190,10 @@ public class TapeDriveWorker implements Runnable {
                         (readWriteResult != null) ? readWriteResult.getCurrentTape() : null;
 
                     ReadWriteTask readWriteTask =
-                        new ReadWriteTask(readWriteOrder, currentTape, tapeRobotPool, tapeDriveService,
-                            tapeCatalogService, archiveReferentialRepository, inputTarPath, forceOverrideNonEmptyCartridges);
+                        new ReadWriteTask(readWriteOrder, currentTape, tapeLibraryService,
+                            tapeCatalogService, archiveReferentialRepository, readRequestReferentialRepository,
+                            inputTarPath,
+                            forceOverrideNonEmptyCartridges);
                     readWriteResult = readWriteTask.get();
 
                     currentTape = readWriteResult.getCurrentTape();
@@ -312,11 +320,9 @@ public class TapeDriveWorker implements Runnable {
 
         } else {
             LOGGER.warn(String.format(
-                "[Library] : %s, [Drive] : %s, [Tape]: %s, already started",
+                "[Library] : %s, [Drive] : %s, already started",
                 tapeRobotPool.getLibraryIdentifier(),
-                tapeDriveService.getTapeDriveConf().getIndex(),
-                ""  // FIXME missing tape informations
-                ));
+                tapeDriveService.getTapeDriveConf().getIndex()));
         }
 
     }

@@ -24,81 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.storage.engine.common.model;
+package fr.gouv.vitam.workspace.api.exception;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+public class UnavailableFileException extends RuntimeException {
 
-public class TarEntryDescription {
-
-    @JsonProperty("tarFileId")
-    private String tarFileId;
-
-    @JsonProperty("entryName")
-    private String entryName;
-
-    @JsonProperty("startPos")
-    private long startPos;
-
-    @JsonProperty("size")
-    private long size;
-
-    @JsonProperty("digest")
-    private String digestValue;
-
-    public TarEntryDescription() {
-        // Empty constructor for deserialization
+    public UnavailableFileException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public TarEntryDescription(String tarFileId, String entryName, long startPos, long size, String digestValue) {
-        this.tarFileId = tarFileId;
-        this.entryName = entryName;
-        this.startPos = startPos;
-        this.size = size;
-        this.digestValue = digestValue;
+    public UnavailableFileException(Throwable cause) {
+        super(cause);
     }
 
-    public String getTarFileId() {
-        return tarFileId;
-    }
-
-    public TarEntryDescription setTarFileId(String tarFileId) {
-        this.tarFileId = tarFileId;
-        return this;
-    }
-
-    public String getEntryName() {
-        return entryName;
-    }
-
-    public TarEntryDescription setEntryName(String entryName) {
-        this.entryName = entryName;
-        return this;
-    }
-
-    public long getStartPos() {
-        return startPos;
-    }
-
-    public TarEntryDescription setStartPos(long startPos) {
-        this.startPos = startPos;
-        return this;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public TarEntryDescription setSize(long size) {
-        this.size = size;
-        return this;
-    }
-
-    public String getDigestValue() {
-        return digestValue;
-    }
-
-    public TarEntryDescription setDigestValue(String digestValue) {
-        this.digestValue = digestValue;
-        return this;
+    public UnavailableFileException(String message) {
+        super(message);
     }
 }

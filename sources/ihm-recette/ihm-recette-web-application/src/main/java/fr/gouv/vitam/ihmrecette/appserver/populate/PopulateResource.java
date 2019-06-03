@@ -52,14 +52,6 @@ public class PopulateResource {
         populateService.populateVitam(populateModel);
     }
 
-    @Path("/objects/export")
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    public void exportData(Integer tenant, String strategyId, String objectId, DataCategory dataCategory) {
-
-        populateService.exportDataFromOffer(tenant, strategyId, objectId, dataCategory);
-    }
-
     /**
      * @return 202 if test are in progress, 200 if the previous test are done
      */

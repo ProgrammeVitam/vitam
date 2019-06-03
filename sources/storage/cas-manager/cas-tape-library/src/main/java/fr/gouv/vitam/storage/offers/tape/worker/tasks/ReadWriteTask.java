@@ -26,25 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.worker.tasks;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import fr.gouv.vitam.storage.engine.common.model.ReadOrder;
 import fr.gouv.vitam.storage.engine.common.model.ReadWriteOrder;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.cas.ArchiveReferentialRepository;
+import fr.gouv.vitam.storage.offers.tape.cas.ReadRequestReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLibraryService;
-
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public class ReadWriteTask implements Future<ReadWriteResult> {
 
     private final Future<ReadWriteResult> readWriteTask;
 
     public ReadWriteTask(ReadWriteOrder order, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService, TapeCatalogService tapeCatalogService,
-                         ArchiveReferentialRepository archiveReferentialRepository, String inputTarPath,
+                         ArchiveReferentialRepository archiveReferentialRepository, ReadRequestReferentialRepository readRequestReferentialRepository, String inputTarPath,
                          boolean forceOverrideNonEmptyCartridges) {
 
         if (order.isWriteOrder()) {
@@ -53,7 +54,7 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
             );
         } else {
             readWriteTask =
-                new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService);
+                new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService, readRequestReferentialRepository);
         }
     }
 

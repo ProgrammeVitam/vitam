@@ -28,7 +28,6 @@
 package fr.gouv.vitam.storage.driver;
 
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverException;
 import fr.gouv.vitam.storage.driver.exception.StorageDriverNotFoundException;
@@ -37,11 +36,11 @@ import fr.gouv.vitam.storage.driver.model.StorageBulkPutRequest;
 import fr.gouv.vitam.storage.driver.model.StorageBulkPutResult;
 import fr.gouv.vitam.storage.driver.model.StorageCapacityResult;
 import fr.gouv.vitam.storage.driver.model.StorageGetMetadataRequest;
-import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StorageGetResult;
 import fr.gouv.vitam.storage.driver.model.StorageListRequest;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.driver.model.StorageObjectRequest;
+import fr.gouv.vitam.storage.driver.model.StorageOfferLogRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutRequest;
 import fr.gouv.vitam.storage.driver.model.StoragePutResult;
 import fr.gouv.vitam.storage.driver.model.StorageRemoveRequest;
@@ -93,7 +92,9 @@ public interface Connection extends AutoCloseable {
      * @throws StorageDriverException if any problem occurs during request
      * @throws IllegalArgumentException if request is wrong
      */
-    StorageGetResult getAsyncObject(StorageObjectRequest request) throws StorageDriverException;
+    StorageGetResult createReadOrder(StorageObjectRequest request) throws StorageDriverException;
+
+    boolean isReadOrderCompleted(String exportId, int tenant) throws StorageDriverException;
 
     /**
      * Put the object file into the storage offer based on criterias defined in request argument and underlaying

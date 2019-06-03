@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogLevel;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.tape.TapeReadRequestReferentialEntity;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.storage.ContainerInformation;
 import fr.gouv.vitam.common.storage.StorageConfiguration;
@@ -132,7 +133,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
     @Override
     public ObjectContent getObject(String containerName, String objectId)
-        throws ContentAddressableStorageException {
+            throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             return defaultStorage.getObject(containerName, objectId);
@@ -144,15 +145,29 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public void asyncGetObject(String containerName, String objectId)
+    public TapeReadRequestReferentialEntity createReadOrder(String containerName, List<String> objectsIds)
         throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
-            defaultStorage.asyncGetObject(containerName, objectId);
+            return defaultStorage.createReadOrder(containerName, objectsIds);
         } finally {
             PerformanceLogger.getInstance()
                 .log("STP_Offer_" + configuration.getProvider(), containerName, "ASYNC_GET_OBJECT",
                     times.elapsed(TimeUnit.MILLISECONDS));
+
+        }
+    }
+
+    @Override
+    public boolean isReadOrderCompleted(String readRequestID)
+            throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
+        Stopwatch times = Stopwatch.createStarted();
+        try {
+            return defaultStorage.isReadOrderCompleted(readRequestID);
+        } finally {
+            PerformanceLogger.getInstance()
+                    .log("STP_Offer_" + configuration.getProvider(), readRequestID, "CHECK_READ_REQUEST_ORDER",
+                            times.elapsed(TimeUnit.MILLISECONDS));
 
         }
     }
