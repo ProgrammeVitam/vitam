@@ -49,6 +49,7 @@ import io.restassured.config.EncoderConfig;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -388,6 +389,8 @@ public class WorkspaceResourceTest {
 
     @Test
     public void givenObjectAlreadyExistsWhenGetObjectThenReturnOk() throws IOException {
+
+        // Given
         try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
 
             with().then()
@@ -397,12 +400,118 @@ public class WorkspaceResourceTest {
                 .contentType(ContentType.BINARY).body(stream)
                 .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
                 .then().statusCode(Status.CREATED.getStatusCode());
-
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).then()
-                .statusCode(Status.OK.getStatusCode()).when()
-                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME);
         }
 
+        // When
+        InputStream inputStream =
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM).then()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .asInputStream();
+
+        // Then
+        try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+            assertThat(inputStream).hasSameContentAs(expectedInputStream);
+        }
+    }
+
+    @Test
+    public void givenObjectAlreadyExistsWhenGetObjectWithZeroOffsetAndChunkSizeThenReturnOk() throws IOException {
+
+        // Given
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+
+            with().then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+            with()
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
+        }
+
+        // When
+        InputStream inputStream =
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+                .header(GlobalDataRest.X_CHUNK_OFFSET, 0L)
+                .header(GlobalDataRest.X_CHUNK_MAX_SIZE, 1_000_000_000L)
+                .then()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .asInputStream();
+
+        // Then
+        try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+            assertThat(inputStream).hasSameContentAs(expectedInputStream);
+        }
+    }
+
+    @Test
+    public void givenObjectAlreadyExistsWhenGetObjectWithOffsetAndChunkSizeThenReturnOk() throws IOException {
+
+        // Given
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+
+            with().then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+            with()
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
+        }
+
+        // When
+        InputStream inputStream =
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+                .header(GlobalDataRest.X_CHUNK_OFFSET, 100L)
+                .header(GlobalDataRest.X_CHUNK_MAX_SIZE, 200L)
+                .then()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .asInputStream();
+
+        // Then
+        try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+
+            IOUtils.readFully(expectedInputStream, 100);
+            InputStream expectedInputStream2 = new BoundedInputStream(expectedInputStream, 200L);
+
+            assertThat(inputStream).hasSameContentAs(expectedInputStream2);
+        }
+    }
+
+    @Test
+    public void givenObjectAlreadyExistsWhenGetObjectWithOffsetAndNoSizeThenReturnOk() throws IOException {
+
+        // Given
+        try (InputStream stream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+
+            with().then()
+                .statusCode(Status.CREATED.getStatusCode()).when().post("/containers/" + CONTAINER_NAME);
+
+            with()
+                .contentType(ContentType.BINARY).body(stream)
+                .when().post("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .then().statusCode(Status.CREATED.getStatusCode());
+        }
+
+        // When
+        InputStream inputStream =
+            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+                .header(GlobalDataRest.X_CHUNK_OFFSET, 100L)
+                .then()
+                .statusCode(Status.OK.getStatusCode()).when()
+                .get("/containers/" + CONTAINER_NAME + "/objects/" + OBJECT_NAME)
+                .asInputStream();
+
+        // Then
+        try (InputStream expectedInputStream = PropertiesUtils.getResourceAsStream("file1.pdf")) {
+
+            IOUtils.readFully(expectedInputStream, 100);
+
+            assertThat(inputStream).hasSameContentAs(expectedInputStream);
+        }
     }
 
     // get object information
@@ -611,7 +720,7 @@ public class WorkspaceResourceTest {
             .get("/containers/" + CONTAINER_NAME + "/objects")
             .andReturn();
 
-        try(MultiplexedStreamReader reader = new MultiplexedStreamReader(response.asInputStream())) {
+        try (MultiplexedStreamReader reader = new MultiplexedStreamReader(response.asInputStream())) {
             assertThat(reader.readNextEntry().get()).hasSameContentAs(new ByteArrayInputStream(file1));
             assertThat(reader.readNextEntry().get()).hasSameContentAs(new ByteArrayInputStream(file2));
             assertThat(reader.readNextEntry()).isEmpty();

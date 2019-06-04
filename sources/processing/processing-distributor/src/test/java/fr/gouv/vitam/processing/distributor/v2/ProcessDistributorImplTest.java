@@ -20,6 +20,7 @@ package fr.gouv.vitam.processing.distributor.v2;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadFactory;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.processing.common.config.ServerConfiguration;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
 import fr.gouv.vitam.processing.common.exception.WorkerAlreadyExistsException;
 import fr.gouv.vitam.processing.common.model.DistributorIndex;
@@ -61,6 +63,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.input.BoundedInputStream;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -68,11 +71,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.channels.Channels;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
@@ -80,6 +86,8 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static fr.gouv.vitam.common.GlobalDataRest.X_CHUNK_LENGTH;
+import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
 import static fr.gouv.vitam.processing.distributor.api.ProcessDistributor.OBJECTS_LIST_EMPTY;
 import static junit.framework.Assert.assertTrue;
 import static junit.framework.TestCase.assertFalse;
@@ -87,6 +95,8 @@ import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.fail;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -122,6 +132,7 @@ public class ProcessDistributorImplTest {
     private WorkspaceClient workspaceClient;
     private static IWorkerManager workerManager;
     private ProcessDistributorImpl processDistributor;
+    private ServerConfiguration serverConfiguration;
 
 
     private static final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
@@ -150,8 +161,12 @@ public class ProcessDistributorImplTest {
         when(workerClient.submitStep(any()))
             .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
 
-        processDistributor = new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
-            workspaceClientFactory, workerClientFactory);
+        serverConfiguration = new ServerConfiguration()
+            .setMaxDistributionInMemoryBufferSize(100_000)
+            .setMaxDistributionOnDiskBufferSize(100_000_000);
+
+        processDistributor = new ProcessDistributorImpl(workerManager, serverConfiguration,
+            processDataAccess, processDataManagement, workspaceClientFactory, workerClientFactory);
 
         if (Thread.currentThread() instanceof VitamThreadFactory.VitamThread) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT);
@@ -194,42 +209,55 @@ public class ProcessDistributorImplTest {
     @Test
     public void testConstructor() {
 
-        new ProcessDistributorImpl(mock(IWorkerManager.class));
+        ServerConfiguration configuration = new ServerConfiguration()
+            .setMaxDistributionInMemoryBufferSize(100_000)
+            .setMaxDistributionOnDiskBufferSize(100_000_000);
+
+        new ProcessDistributorImpl(mock(IWorkerManager.class), configuration);
 
         try {
-            new ProcessDistributorImpl(null);
+            new ProcessDistributorImpl(null, configuration);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(null, processDataAccess, processDataManagement, workspaceClientFactory,
-                workerClientFactory);
+            new ProcessDistributorImpl(null, configuration, processDataAccess, processDataManagement,
+                workspaceClientFactory, workerClientFactory);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(mock(IWorkerManager.class), null, processDataManagement, workspaceClientFactory,
-                workerClientFactory);
+            new ProcessDistributorImpl(mock(IWorkerManager.class), null, processDataAccess, processDataManagement,
+                workspaceClientFactory, workerClientFactory);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(mock(IWorkerManager.class), processDataAccess, null, workspaceClientFactory,
-                workerClientFactory);
+            new ProcessDistributorImpl(mock(IWorkerManager.class), configuration, null, processDataManagement,
+                workspaceClientFactory, workerClientFactory);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(mock(IWorkerManager.class), processDataAccess, processDataManagement, null,
-                workerClientFactory);
+            new ProcessDistributorImpl(mock(IWorkerManager.class), configuration, processDataAccess, null,
+                workspaceClientFactory, workerClientFactory);
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new ProcessDistributorImpl(mock(IWorkerManager.class), configuration, processDataAccess,
+                processDataManagement,
+                null, workerClientFactory);
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -273,7 +301,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final ProcessDistributor processDistributor =
-            new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
+            new ProcessDistributorImpl(workerManager, serverConfiguration, processDataAccess, processDataManagement,
                 workspaceClientFactory, workerClientFactory);
 
         try {
@@ -324,7 +352,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         final ProcessDistributor processDistributor =
-            new ProcessDistributorImpl(workerManager, processDataAccess, processDataManagement,
+            new ProcessDistributorImpl(workerManager, serverConfiguration, processDataAccess, processDataManagement,
                 workspaceClientFactory, workerClientFactory);
 
         ItemStatus itemStatus = processDistributor
@@ -363,9 +391,7 @@ public class ProcessDistributorImplTest {
         int numberOfObjectIningestLevelStack = 170;
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
-        Response response =
-            Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
@@ -393,9 +419,7 @@ public class ProcessDistributorImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
-        Response response =
-            Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgument(0);
@@ -429,9 +453,7 @@ public class ProcessDistributorImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
-        Response response =
-            Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             DescriptionStep descriptionStep = invocation.getArgument(0);
@@ -467,9 +489,7 @@ public class ProcessDistributorImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
-        Response response =
-            Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
         when(workerClient.submitStep(any())).thenThrow(new RuntimeException("WorkerException"));
 
@@ -489,9 +509,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File file = PropertiesUtils.getResourceFile(FILE_WITH_GUIDS);
-        Response response =
-            Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, FILE_WITH_GUIDS)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(file, operationId, FILE_WITH_GUIDS);
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
@@ -512,11 +530,7 @@ public class ProcessDistributorImplTest {
 
 
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
-        Response response =
-            Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build();
-
-
-        when(workspaceClient.getObject("FakeOperationId", FILE_FULL_GUIDS)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", FILE_FULL_GUIDS);
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         ItemStatus itemStatus = processDistributor
@@ -543,10 +557,7 @@ public class ProcessDistributorImplTest {
 
         File file = createRandomDataSetInfo();
 
-        Response response =
-            Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build();
-
-        when(workspaceClient.getObject("FakeOperationId", file.getAbsolutePath())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", file.getAbsolutePath());
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
 
@@ -635,9 +646,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
-        Response response =
-            Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, FILE_FULL_GUIDS)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(file, operationId, FILE_FULL_GUIDS);
 
         Step step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS);
         step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
@@ -659,6 +668,32 @@ public class ProcessDistributorImplTest {
         assertFalse(imap.isEmpty());
     }
 
+    private void givenWorkspaceClientReturnsFileContent(File file, String containerName, String objectId)
+        throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        when(workspaceClient.getObject(containerName, objectId)).thenAnswer(
+            (args) -> Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build());
+        when(workspaceClient.getObject(eq(containerName), eq(objectId), anyLong(), anyLong())).thenAnswer(
+            (args) -> {
+                long startOffset = args.getArgument(2);
+                Long maxSize = args.getArgument(3);
+                long actualMaxSize = maxSize == null ? Long.MAX_VALUE : maxSize;
+
+                BoundedInputStream inputStream = new BoundedInputStream(
+                    Channels.newInputStream(
+                        Files.newByteChannel(file.toPath())
+                            .position(startOffset))
+                    , actualMaxSize);
+
+                long actualSize = Math.min(file.length() - startOffset, actualMaxSize);
+
+                MultivaluedHashMap headers = new MultivaluedHashMap();
+                headers.add(X_CHUNK_LENGTH, actualSize);
+                headers.add(X_CONTENT_LENGTH, file.length());
+                return new AbstractMockClient.FakeInboundResponse(Response.Status.OK,
+                    new BufferedInputStream(inputStream), null, headers);
+            });
+    }
+
     @Test
     @RunWithCustomExecutor
     public void whenDistributeKindLargeFileFATAL() throws
@@ -667,9 +702,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File invalidJsonLFile = PropertiesUtils.getResourceFile(FILE_GUIDS_INVALID);
-        Response response =
-            Response.ok(Files.newInputStream(invalidJsonLFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, FILE_GUIDS_INVALID)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(invalidJsonLFile, operationId, FILE_GUIDS_INVALID);
 
         ItemStatus itemStatus = processDistributor.distribute(workerParameters,
             getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_GUIDS_INVALID), operationId,
@@ -687,9 +720,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File file = PropertiesUtils.getResourceFile(FILE_EMPTY_GUIDS);
-        Response response =
-            Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, FILE_EMPTY_GUIDS)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(file, operationId, FILE_EMPTY_GUIDS);
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_EMPTY_GUIDS), operationId,
@@ -710,9 +741,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_02_JSON);
-        Response response =
-            Response.ok(Files.newInputStream(chainedFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, CHAINED_FILE_02_JSON)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(chainedFile, operationId, CHAINED_FILE_02_JSON);
 
         ItemStatus itemStatus = processDistributor
             .distribute(workerParameters,
@@ -734,9 +763,8 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_00_JSON);
-        Response response =
-            Response.ok(Files.newInputStream(chainedFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, CHAINED_FILE_00_JSON)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(chainedFile, operationId, CHAINED_FILE_00_JSON);
+        Response response;
 
         chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_01_JSON);
         response =
@@ -770,9 +798,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File chainedFile = PropertiesUtils.getResourceFile(CHAINED_FILE_02_JSON);
-        Response response =
-            Response.ok(Files.newInputStream(chainedFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, CHAINED_FILE_02_JSON)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(chainedFile, operationId, CHAINED_FILE_02_JSON);
 
         when(workerClient.submitStep(any())).thenThrow(new RuntimeException("WorkerException"));
 
@@ -797,9 +823,7 @@ public class ProcessDistributorImplTest {
         when(processWorkflow.getStatus()).thenReturn(StatusCode.STARTED);
 
         File chainedFile = PropertiesUtils.getResourceFile(list_elements);
-        Response response =
-            Response.ok(Files.newInputStream(chainedFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(operationId, list_elements)).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(chainedFile, operationId, list_elements);
 
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(2);
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {
@@ -855,9 +879,7 @@ public class ProcessDistributorImplTest {
 
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
-        Response response =
-            Response.ok(Files.newInputStream(fileContracts.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {
             System.out.println("submit step");
@@ -918,9 +940,7 @@ public class ProcessDistributorImplTest {
 
         final File resourceFile = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
-        Response response =
-            Response.ok(Files.newInputStream(resourceFile.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(resourceFile, any(), any());
 
         final CountDownLatch countDownLatchException = new CountDownLatch(1);
 
@@ -987,9 +1007,7 @@ public class ProcessDistributorImplTest {
 
         final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
-        Response response =
-            Response.ok(Files.newInputStream(ingestLevelStack.toPath())).status(Response.Status.OK).build();
-        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        givenWorkspaceClientReturnsFileContent(ingestLevelStack, any(), any());
 
         final CountDownLatch countDownLatchSubmit = new CountDownLatch(9);
         when(workerClient.submitStep(any())).thenAnswer(invocation -> {

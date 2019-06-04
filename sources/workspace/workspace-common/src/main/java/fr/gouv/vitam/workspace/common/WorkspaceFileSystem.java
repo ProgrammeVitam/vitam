@@ -48,6 +48,7 @@ import fr.gouv.vitam.common.storage.StorageConfiguration;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.storage.constants.ErrorMessage;
+import fr.gouv.vitam.common.stream.ExactSizeInputStream;
 import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageAlreadyExistException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageCompressedFileException;
@@ -63,6 +64,7 @@ import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.zip.Zip64Mode;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.utils.BoundedInputStream;
 import org.apache.commons.compress.utils.IOUtils;
 
 import javax.ws.rs.core.MediaType;
@@ -76,6 +78,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.nio.channels.Channels;
+import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileVisitOption;
 import java.nio.file.FileVisitResult;
@@ -87,9 +92,12 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
+
+import static fr.gouv.vitam.common.stream.StreamUtils.closeSilently;
 
 /**
  * Workspace Filesystem implementation
@@ -114,7 +122,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         ParametersChecker.checkParameter("Workspace configuration cannot be null", configuration);
         ParametersChecker.checkParameter("Storage path configuration have to be define",
             configuration.getStoragePath());
-        root = Paths.get(new File (configuration.getStoragePath()).getCanonicalPath());
+        root = Paths.get(new File(configuration.getStoragePath()).getCanonicalPath());
         if (!Files.exists(root)) {
             Files.createDirectories(root);
         }
@@ -162,7 +170,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
             containerName);
-        Path containerPath =  null;
+        Path containerPath = null;
         try {
             containerPath = getContainerPath(containerName, true);
             if (!Files.exists(containerPath)) {
@@ -171,8 +179,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             }
             if (recursive) {
-                try (Stream<Path> streams = Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS))
-                {
+                try (Stream<Path> streams = Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS)) {
                     streams.sorted(Comparator.reverseOrder())
                         .map(Path::toFile).forEach(File::delete);
                 }
@@ -349,7 +356,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             LOGGER.info(ErrorMessage.OBJECT_ALREADY_EXIST.getMessage() + objectName);
             existingObject = true;
         }
-        Path filePath= null;
+        Path filePath = null;
         try {
 
             filePath = getObjectPath(containerName, objectName, false);
@@ -376,9 +383,16 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     }
 
     @Override
-    public Response getObject(String containerName, String objectName) throws ContentAddressableStorageException {
+    public Response getObject(String containerName, String objectName, Long chunkOffset,
+        Long maxChunkSize)
+        throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
             containerName, objectName);
+
+        if (chunkOffset == null && maxChunkSize != null) {
+            throw new IllegalArgumentException("Max chunk size without chunk offset");
+        }
+
         if (!isExistingContainer(containerName)) {
             LOGGER.error(ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName);
             throw new ContentAddressableStorageNotFoundException(
@@ -390,15 +404,55 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
             throw new ContentAddressableStorageNotFoundException(
                 ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName);
         }
+
         try {
             Path objectPath = getObjectPath(containerName, objectName, false);
 
-            InputStream inputStream = Files.newInputStream(objectPath, StandardOpenOption.READ);
-            long size = Files.size(objectPath);
-            return new AbstractMockClient.FakeInboundResponse(Response.Status.OK, inputStream,
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(size));
+            InputStream inputStream = openFile(objectPath, chunkOffset, maxChunkSize);
+            long totalSize = Files.size(objectPath);
+
+            long chunkSize;
+            if(chunkOffset == null) {
+                chunkSize = totalSize;
+            } else if(maxChunkSize == null) {
+                chunkSize = totalSize - chunkOffset;
+            } else {
+                chunkSize = Math.min(maxChunkSize, totalSize - chunkOffset);
+            }
+            return new AbstractMockClient.FakeInboundResponse(Response.Status.OK,
+                new ExactSizeInputStream(inputStream, chunkSize),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE, getXContentLengthHeader(totalSize, chunkSize));
         } catch (IOException ex) {
             throw new ContentAddressableStorageException(ex);
+        }
+    }
+
+    private InputStream openFile(Path objectPath, Long chunkOffset, Long maxChunkSize) throws IOException {
+
+        if (chunkOffset != null) {
+
+            SeekableByteChannel seekableByteChannel = null;
+            try {
+                seekableByteChannel = Files.newByteChannel(objectPath, StandardOpenOption.READ);
+                seekableByteChannel.position(chunkOffset);
+
+                BufferedInputStream inputStream = new BufferedInputStream(
+                    Channels.newInputStream(seekableByteChannel));
+
+                if (maxChunkSize == null) {
+                    return inputStream;
+                } else {
+                    return new BoundedInputStream(inputStream, maxChunkSize);
+                }
+
+            } catch (Exception ex) {
+                closeSilently(seekableByteChannel);
+                throw ex;
+            }
+
+        } else {
+            return new BufferedInputStream(
+                Files.newInputStream(objectPath, StandardOpenOption.READ));
         }
     }
 
@@ -439,7 +493,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(ErrorMessage.ALGO_IS_A_MANDATORY_PARAMETER.getMessage(), algo);
-        try (final InputStream stream = (InputStream) getObject(containerName, objectName).getEntity()) {
+        try (final InputStream stream = (InputStream) getObject(containerName, objectName, null, null).getEntity()) {
             final Digest digest = new Digest(algo);
             digest.update(stream);
             return digest.toString();
@@ -507,7 +561,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         }
         try {
             Path containerPath = getContainerPath(containerName, false);
-            try (Stream<Path> streams =  Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS)) {
+            try (Stream<Path> streams = Files.walk(containerPath, FileVisitOption.FOLLOW_LINKS)) {
                 return streams.filter(path -> !containerPath.equals(path))
                     .count();
             }
@@ -523,13 +577,15 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         return Paths.get(root.toString(), containerName);
     }
 
-    private Path getFolderPath(String containerName, String folder, boolean wouldCheckTraversalAttack) throws IOException {
-        return getObjectPath( containerName, folder, wouldCheckTraversalAttack);
+    private Path getFolderPath(String containerName, String folder, boolean wouldCheckTraversalAttack)
+        throws IOException {
+        return getObjectPath(containerName, folder, wouldCheckTraversalAttack);
     }
 
     // Same as getFolderPath but...
-    private Path getObjectPath(String containerName, String objectName, boolean wouldCheckTraversalAttack) throws IOException {
-        if(wouldCheckTraversalAttack && !isPathTraversalAlreadyChecked){
+    private Path getObjectPath(String containerName, String objectName, boolean wouldCheckTraversalAttack)
+        throws IOException {
+        if (wouldCheckTraversalAttack && !isPathTraversalAlreadyChecked) {
             SafeFileChecker.checkSafeFilePath(root.toString(), containerName, objectName);
         }
         return Paths.get(root.toString(), containerName, objectName);
@@ -538,12 +594,12 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
     /**
      * Extract compressed SIP and push the objects on the SIP folder
      *
-     * @param containerName     GUID
-     * @param folderName        folder Name
-     * @param archiverType      archive type zip, tar tar.gz
+     * @param containerName GUID
+     * @param folderName folder Name
+     * @param archiverType archive type zip, tar tar.gz
      * @param inputStreamObject :compressed SIP stream
      * @throws ContentAddressableStorageCompressedFileException if the file is not a zip or an empty zip
-     * @throws ContentAddressableStorageException               if an IOException occurs when extracting the file
+     * @throws ContentAddressableStorageException if an IOException occurs when extracting the file
      */
     private void extractArchiveInputStreamOnContainer(final String containerName, final String folderName,
         final MediaType archiverType, final InputStream inputStreamObject)
@@ -580,7 +636,7 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
                     }
                     if (!entry.isDirectory()) {
                         Files.copy(entryInputStream, target, StandardCopyOption.REPLACE_EXISTING);
-                        if(!manifestFileFounded && isManifestFileName(entry.getName())) {
+                        if (!manifestFileFounded && isManifestFileName(entry.getName())) {
                             Files.move(target, target.resolveSibling(IngestWorkflowConstants.SEDA_FILE));
                             manifestFileFounded = true;
                         }
@@ -598,18 +654,17 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
         }
     }
 
-    private MultivaluedHashMap<String, Object> getXContentLengthHeader(long size) {
+    private MultivaluedHashMap<String, Object> getXContentLengthHeader(long totalSize, long chunkSize) {
         MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-        List<Object> headersList = new ArrayList<>();
-        headersList.add(size);
-        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), headersList);
+        headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(), Collections.singletonList(totalSize));
+        headers.put(VitamHttpHeader.X_CHUNK_LENGTH.getName(), Collections.singletonList(chunkSize));
         return headers;
     }
 
     /**
      * @param containerName name of the container
-     * @param folderNames   list of file or directory to archive
-     * @param zipName       name of the archive file
+     * @param folderNames list of file or directory to archive
+     * @param zipName name of the archive file
      * @throws IOException
      * @throws ArchiveException
      */
@@ -638,8 +693,9 @@ public class WorkspaceFileSystem implements WorkspaceContentAddressableStorage {
 
                             zipArchiveOutputStream.putArchiveEntry(entry);
 
-                            try (BufferedInputStream input = new BufferedInputStream(new FileInputStream(file.toFile()))) {
-                            	IOUtils.copy(input, zipArchiveOutputStream);
+                            try (BufferedInputStream input = new BufferedInputStream(
+                                new FileInputStream(file.toFile()))) {
+                                IOUtils.copy(input, zipArchiveOutputStream);
                             }
                             zipArchiveOutputStream.closeArchiveEntry();
                         }
