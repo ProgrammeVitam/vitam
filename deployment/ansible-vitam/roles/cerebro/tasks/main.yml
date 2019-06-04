@@ -42,7 +42,25 @@
     dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/application.conf"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+  notify:
+    - restart cerebro
+
+- name: ensure sysconfig subdir is present
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.folder_permission }}"
+
+- name: aply custom configuration
+  template:
+    src: cerebro.j2
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig/cerebro"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - restart cerebro
 

@@ -18,6 +18,7 @@ Requires:      vitam-user-vitam
 %global cerebro_folder vitam/app/cerebro
 %global cerebro_conffolder vitam/conf/cerebro
 %global cerebro_datafolder vitam/data/cerebro
+%global cerebro_tmpfolder vitam/tmp/cerebro
 
 %description
 Cerebro is an open source(MIT License) elasticsearch web admin tool built using Scala, Play Framework, AngularJS and Bootstrap.
@@ -32,6 +33,7 @@ Cerebro is an open source(MIT License) elasticsearch web admin tool built using 
 mkdir -p %{buildroot}/%{cerebro_folder}
 mkdir -p %{buildroot}/%{cerebro_conffolder}
 mkdir -p %{buildroot}/%{cerebro_datafolder}
+mkdir -p %{buildroot}/%{cerebro_tmpfolder}
 
 mkdir -p %{buildroot}/usr/lib/systemd/system
 # On pousse les fichiers
@@ -63,6 +65,8 @@ rm -rf %{buildroot}
 %config(noreplace)  /%{cerebro_conffolder}/application.conf
 %dir /%{cerebro_datafolder}
 %attr(750, vitam, vitam) /%{cerebro_datafolder}
+%dir /%{cerebro_tmpfolder}
+%attr(750, vitam, vitam) /%{cerebro_tmpfolder}
 %defattr(-,root,root,-)
 /usr/lib/systemd/system/vitam-elasticsearch-cerebro.service
 
