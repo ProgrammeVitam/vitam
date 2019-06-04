@@ -171,6 +171,8 @@
         <maven.assembly.version>2.6</maven.assembly.version>
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
         <maven.javadoc.version>2.10.4</maven.javadoc.version>
+        <maven.assembly.version>3.0.0</maven.assembly.version>
+        <maven.exec.version>1.6.0</maven.exec.version>
         <nodeDownloadRoot/>
     </properties>
 
