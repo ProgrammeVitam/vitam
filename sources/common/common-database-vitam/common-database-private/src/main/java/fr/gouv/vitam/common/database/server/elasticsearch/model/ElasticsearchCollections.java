@@ -29,8 +29,6 @@ package fr.gouv.vitam.common.database.server.elasticsearch.model;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-
 /**
  * Elasticsearch Collections
  */
@@ -114,7 +112,9 @@ public enum ElasticsearchCollections {
     /**
      * preservationscenario collection
      */
-    PRESERVATION_SCENARIO("/preservationscenario-es-mapping.json", "preservationscenario");
+    PRESERVATION_SCENARIO("/preservationscenario-es-mapping.json", "preservationscenario"),
+
+    GRIFFIN("/griffin-es-mapping.json", "griffin");
 
     ElasticsearchCollections(String mapping, String indexName) {
         this.mapping = mapping;
