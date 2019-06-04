@@ -2,7 +2,7 @@
   "title": "Storage Offre average time",
   "hits": 0,
   "description": "",
-  "panelsJSON": "[{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"1\",\"w\":24,\"x\":0,\"y\":0},\"id\":\"956052b0-e69a-11e8-a525-37dae8f00a37\",\"panelIndex\":\"1\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"2\",\"w\":24,\"x\":24,\"y\":0},\"id\":\"e7ca4de0-e699-11e8-a525-37dae8f00a37\",\"panelIndex\":\"2\",\"type\":\"visualization\",\"version\":\"6.4.3\"}]",
+  "panelsJSON": "[{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"1\",\"w\":24,\"x\":0,\"y\":0},\"id\":\"StorageOfferFsPerf\",\"panelIndex\":\"1\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"2\",\"w\":24,\"x\":24,\"y\":0},\"id\":\"StorageOfferSwiftPerf\",\"panelIndex\":\"2\",\"type\":\"visualization\",\"version\":\"6.4.3\"}]",
   "optionsJSON": "{\"darkTheme\":false,\"hidePanelTitles\":false,\"useMargins\":true}",
   "version": 1,
   "timeRestore": false,
