@@ -433,11 +433,11 @@ public class IngestExternalImpl implements IngestExternal {
                     try {
                         // check manifest file name by regex
                         inputStreamTmp = (InputStream) workspaceFileSystem
-                            .getObject(containerName.getId(), objectName.getId()).getEntity();
+                            .getObject(containerName.getId(), objectName.getId(), null, null).getEntity();
                         manifestFileName = checkManifestFileName(inputStreamTmp, mimeType);
                         if (manifestFileName.isManifestFile()) {
                             inputStream = (InputStream) workspaceFileSystem
-                                .getObject(containerName.getId(), objectName.getId()).getEntity();
+                                .getObject(containerName.getId(), objectName.getId(), null, null).getEntity();
                         } else {
                             LOGGER.error("Nom du fichier manifest n'est pas conforme");
 

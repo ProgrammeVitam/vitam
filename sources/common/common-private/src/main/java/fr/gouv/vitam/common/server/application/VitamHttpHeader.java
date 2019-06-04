@@ -75,6 +75,10 @@ public enum VitamHttpHeader {
     /**
      * The X-Content-Length used to have object size (for storage)
      */
+    X_CHUNK_LENGTH(GlobalDataRest.X_CHUNK_LENGTH, "[0-9]+"),
+    /**
+     * The X-Content-Length used to have object size (for storage)
+     */
     X_CONTENT_LENGTH(GlobalDataRest.X_CONTENT_LENGTH, "[0-9]+"),
     
     /**
