@@ -9,7 +9,16 @@
   fail: msg="selinux detected and looks like to be set to enforcing mode, please set selinux to permissive or disabled."
   when: (selinux.stdout == "Enforcing" )
 
-# FIXME : put it in group_vars (root/root/555)
+- name: check whether VITAM parent dir already exists
+  stat:
+    path: "{{vitam_defaults.folder.root_path}}"
+  register: root_dir
+
+- name: fail if this VITAM parent dir is a symlink
+  fail:
+    msg: "Whoops! VITAM parent dir should not be a symlink !"
+  when: root_dir.stat.islnk is defined and root_dir.stat.islnk == "true"
+
 - name: Ensure parent dir is OK ith correct permissions
   file:
     path: "{{vitam_defaults.folder.root_path}}"
