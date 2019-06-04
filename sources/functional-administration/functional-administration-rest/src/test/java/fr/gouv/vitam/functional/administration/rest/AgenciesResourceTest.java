@@ -1,20 +1,5 @@
 package fr.gouv.vitam.functional.administration.rest;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.ws.rs.core.Response.Status;
-
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit.WireMockClassRule;
 import com.google.common.collect.Lists;
@@ -58,6 +43,20 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * As agencies Resource call AgencyService
@@ -266,7 +265,7 @@ public class AgenciesResourceTest {
             .get(AgenciesResource.AGENCIES)
             .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
         names = body.get("$results.Identifier");
-        assertThat(names.size()).isGreaterThan(1);
+        assertThat(names.size()).isEqualTo(5);
 
         fileAgencies = PropertiesUtils.getResourceFile("agencies_remove.csv");
         given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
@@ -274,7 +273,18 @@ public class AgenciesResourceTest {
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
 
             .when().post(AGENCIES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .then().statusCode(Status.CREATED.getStatusCode());
+
+        JsonPath agenciesAfterDelete = given().contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .body(new Select().getFinalSelect())
+            .when()
+            .get(AgenciesResource.AGENCIES)
+            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+        names = agenciesAfterDelete.get("$results.Identifier");
+        assertThat(names.size()).isEqualTo(4);
+
     }
 
 }
