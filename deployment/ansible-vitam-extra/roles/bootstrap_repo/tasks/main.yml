@@ -14,6 +14,10 @@
     yum:
       name: coreutils
       update_cache: yes
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   when: ansible_os_family == "RedHat"
 
@@ -31,5 +35,9 @@
   - name: Update apt cache
     apt:
       update_cache: yes
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   when: ansible_os_family == "Debian"

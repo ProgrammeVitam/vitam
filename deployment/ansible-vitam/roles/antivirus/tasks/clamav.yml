@@ -4,12 +4,20 @@
   package:
     name: clamav,clamav-update,clamav-server,clamav-data,clamav-filesystem,clamav-scanner-systemd,clamav-devel,clamav-lib,clamav-server-systemd
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "RedHat"
 
 - name: install ClamAV packages
   package:
     name: clamav,clamav-freshclam,clamav-base,clamav-daemon,clamav-unofficial-sigs
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "Debian"
 
 - name: Adding {{ vitam_defaults.users.group }}  group to clamav so it can scan {{ vitam_defaults.users.group }}-based files
