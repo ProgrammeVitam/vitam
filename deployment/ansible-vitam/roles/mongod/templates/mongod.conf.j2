@@ -28,6 +28,10 @@ net:
   port: {{ mongodb.mongod_port }}
   bindIp: {{ ip_service }}{% if groups['hosts-dev-tools'] | length > 0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
 
+  unixDomainSocket:
+    enabled: true
+    pathPrefix: {{ mongo_tmp_path }}
+    filePermissions: 0700
 
 # operationProfiling:
 replication:

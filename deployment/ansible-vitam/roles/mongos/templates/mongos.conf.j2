@@ -15,6 +15,11 @@ net:
   port: {{ mongodb.mongos_port }}
   bindIp: {{ ip_service }}{% if groups['hosts-dev-tools'] | length > 0 and ip_service != ip_admin %},{{ ip_admin }}{% endif %}
 
+  unixDomainSocket:
+    enabled: true
+    pathPrefix: {{ mongo_tmp_path }}
+    filePermissions: 0700
+
 sharding:
   configDB: configsvr/{% for item in mongoc_list %}{{ hostvars[item]['ip_service'] }}:{{ mongodb.mongoc_port }}{% if not loop.last %},{% endif %}{% endfor %}
 

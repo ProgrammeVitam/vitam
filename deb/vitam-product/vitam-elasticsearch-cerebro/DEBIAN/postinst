@@ -2,7 +2,7 @@
 SERVICE_NAME=cerebro
 SERVICE_USER=vitam
 SERVCIE_GROUP=vitam
-for i in conf data log app
+for i in conf data log app tmp
 do
 	mkdir -p /vitam/${i}/${SERVICE_NAME}
 	chown ${SERVICE_USER}:${SERVCIE_GROUP} /vitam/${i}/${SERVICE_NAME}
