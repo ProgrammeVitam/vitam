@@ -9,6 +9,10 @@
   package:
     name: "{{ item }}"
     state: absent
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when:
     - item is match("vitam-\S*-griffin")
     - item not in vitam_griffins
@@ -20,4 +24,8 @@
   package:
     name: "{{ vitam_griffins }}"
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   tags: griffins

@@ -5,6 +5,10 @@
     name: "yum"
     state: present
     update_cache: yes
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   tags:
     - enable_vitam_repo
     - update_package_vitam
@@ -17,5 +21,9 @@
   tags:
     - enable_vitam_repo
     - update_package_vitam
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "Debian"
 
