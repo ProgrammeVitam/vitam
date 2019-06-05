@@ -29,8 +29,6 @@ package fr.gouv.vitam.common.database.server.elasticsearch.model;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-
 /**
  * Elasticsearch Collections
  */
@@ -104,7 +102,13 @@ public enum ElasticsearchCollections {
     /**
      * Ontology collection
      */
-    ONTOLOGY("/ontology-es-mapping.json", "ontology");
+    ONTOLOGY("/ontology-es-mapping.json", "ontology"),
+
+    ACCESSION_REGISTER_SYMBOLIC("/accessionregistersymbolic-es-mapping.json", "accessionregistersymbolic"),
+
+    PRESERVATION_SCENARIO("/preservationscenario-es-mapping.json", "preservationscenario"),
+
+    GRIFFIN("/griffin-es-mapping.json", "griffin");
 
     ElasticsearchCollections(String mapping, String indexName) {
         this.mapping = mapping;
