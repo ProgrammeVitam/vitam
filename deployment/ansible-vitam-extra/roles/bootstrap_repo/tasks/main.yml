@@ -9,15 +9,8 @@
       owner: root
       group: root
       mode: 0644
-
-  - name: Update yum cache
-    yum:
-      name: coreutils
-      update_cache: yes
-    register: result
-    retries: "{{ packages_install_retries_number }}"
-    until: result | succeeded
-    delay: "{{ packages_install_retries_delay }}"
+    notify:
+      - purge yum cache
 
   when: ansible_os_family == "RedHat"
 
