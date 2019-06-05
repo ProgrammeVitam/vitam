@@ -100,8 +100,8 @@ public class RequestToMongodbTest {
                 "{ $unset : [ 'mavar5', 'mavar6' ] }," + "{ $inc : { mavar7 : 2 } }," + "{ $min : { mavar8 : 3 } }," +
                 "{ $min : { mavar16 : 12 } }," + "{ $max : { mavar9 : 3 } }," +
                 "{ $rename : { mavar10 : 'mavar11' } }," +
-                "{ $push : { mavar12 : { $each : [ 1, 2 ] } } }," + "{ $add : { mavar13 : { $each : [ 1, 2 ] } } }," +
-                "{ $pop : { mavar14 : -1 } }," + "{ $pull : { mavar15 : { $each : [ 1, 2 ] } } } ]");
+                "{ $push : { mavar12 : [ 1, 2 ] } }," + "{ $add : { mavar13 : [ 1, 2 ] } }," +
+                "{ $pop : { mavar14 : -1 } }," + "{ $pull : { mavar15 : [ 1, 2 ] } } ]");
 
         exampleUpdateMd =
             JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +

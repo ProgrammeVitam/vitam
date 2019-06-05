@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.RANGEARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.SELECTFILTER;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTION;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.UPDATEACTIONARGS;
 
 public class BuilderTokenTest {
 
@@ -50,7 +49,6 @@ public class BuilderTokenTest {
         assertEquals(PROJECTION.FIELDS.exactToken(), "$fields");
         assertEquals(FILTERARGS.CACHE.exactToken(), "cache");
         assertEquals(UPDATEACTION.SET.exactToken(), "$set");
-        assertEquals(UPDATEACTIONARGS.EACH.exactToken(), "$each");
         assertEquals(MULTIFILTER.MULT.exactToken(), "$mult");
         assertEquals(QUERY.AND.exactToken(), "$and");
         assertEquals(SELECTFILTER.LIMIT.exactToken(), "$limit");
