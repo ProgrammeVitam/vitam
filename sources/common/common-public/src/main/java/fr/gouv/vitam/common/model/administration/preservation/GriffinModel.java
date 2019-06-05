@@ -61,11 +61,11 @@ public class GriffinModel {
     @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
     private Integer version;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_NAME)
     private String name;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_IDENTIFIER)
     private String identifier;
 
@@ -78,11 +78,11 @@ public class GriffinModel {
     @JsonProperty(TAG_LAST_UPDATE)
     private String lastUpdate;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_EXECUTABLE_NAME)
     private String executableName;
 
-    @NotEmpty
+    @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty(TAG_EXECUTABLE_VERSION)
     private String executableVersion;
 

@@ -291,9 +291,9 @@ public class PreservationScenarioService {
     }
 
     private String getConstraintsStrings(Set<ConstraintViolation<PreservationScenarioModel>> constraints) {
-        List<String> result = new ArrayList<>();
-        for (ConstraintViolation<PreservationScenarioModel> constraintViolation : constraints) {
-            result.add("'" + constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
+        List<String> result = new ArrayList<>() ;
+        for (ConstraintViolation<PreservationScenarioModel> constraintViolation :constraints){
+            result.add( "'"+ constraintViolation.getPropertyPath() + "' : " + constraintViolation.getMessage());
         }
         return result.toString();
     }
@@ -464,14 +464,15 @@ public class PreservationScenarioService {
     }
 
     private void updateScenarios(@NotNull List<PreservationScenarioModel> listToImport, Set<String> identifierToUpdate)
-        throws InvalidParseOperationException, DatabaseException {
+        throws InvalidParseOperationException, DatabaseException, ReferentialException {
 
         for (PreservationScenarioModel preservationScenarioModel : listToImport) {
 
             if (identifierToUpdate.contains(preservationScenarioModel.getIdentifier())) {
                 preservationScenarioModel.setLastUpdate(getFormattedDateForMongo(now()));
-                preservationScenarioModel
-                    .setCreationDate(getFormattedDateForMongo(preservationScenarioModel.getCreationDate()));
+
+                formatDateForMongo(preservationScenarioModel);
+
                 preservationScenarioModel.setTenant(getVitamSession().getTenantId());
                 ObjectNode scenario = (ObjectNode) toJsonNode(preservationScenarioModel);
 
