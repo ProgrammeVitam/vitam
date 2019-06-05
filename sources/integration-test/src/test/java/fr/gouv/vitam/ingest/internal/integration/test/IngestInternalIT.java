@@ -26,57 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.integration.test;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
-import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
-import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
-import static io.restassured.RestAssured.get;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-
-import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
-import org.bson.Document;
-import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.search.SearchHit;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
-
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
@@ -179,6 +133,46 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import io.restassured.RestAssured;
+import org.apache.commons.io.FileUtils;
+import org.bson.Document;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.search.SearchHit;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
+
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
+import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
+import static io.restassured.RestAssured.get;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Ingest Internal integration test
@@ -301,6 +295,9 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     private static String OK_RULES_COMPLEX_COMPLETE_SIP =
         "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
+
+    private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
+        "integration-ingest-internal/SIP-ingest-internal-ok.zip";
 
     private static LogbookElasticsearchAccess esClient;
 
@@ -1983,7 +1980,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // UniqueTitleChild : aeaqaaaaaahmtusqabktwaldc34sm5iaaabq
         final List<Document> unitList =
             JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
-                .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
+                    .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
                 new TypeReference<List<Unit>>() {});
 
         // Save units in Mongo
@@ -2562,5 +2559,41 @@ public class IngestInternalIT extends VitamRuleRunner {
 
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestAndFillLogbookObIdInWithManifestMessageIdentifier() throws Exception {
+        prepareVitamSession();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(OK_OBIDIN_MESSAGE_IDENTIFIER);
 
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+        LOGGER.error(initParameters.toString());
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+        final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode logbookOperation =
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
+        boolean checkServiceLevel = false;
+        final JsonNode element = logbookOperation.get("$results").get(0);
+
+        assertEquals(element.get("obIdIn").asText(),"vitam");
+    }
 }
