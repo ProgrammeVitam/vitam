@@ -20,13 +20,29 @@ elasticsearch:
         baseuri: "elasticsearch-log"
         cluster_name: "elasticsearch-log"
         https_enabled: false
-        index_search_slowlog_rolling_level: "warn"
-        index_indexing_slowlog_level: "warn"
         # default index template
         index_templates:
             default:
                 shards: 1
                 replica: 1
+        log_appenders:
+            root:
+                log_level: "info"
+            rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "5GB"
+            deprecation_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                log_level: "warn"
+            index_search_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                log_level: "warn"
+            index_indexing_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                log_level: "warn"
     data:
         host: "elasticsearch-data.service.{{ consul_domain }}"
         # default is 0.1 (10%) and should be quite enough in most cases
@@ -37,13 +53,29 @@ elasticsearch:
         baseuri: "elasticsearch-data"
         cluster_name: "elasticsearch-data"
         https_enabled: false
-        index_search_slowlog_rolling_level: "warn"
-        index_indexing_slowlog_level: "warn"
         # default index template
         index_templates:
             default:
                 shards: 10
                 replica: 2
+        log_appenders:
+            root:
+                log_level: "info"
+            rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "5GB"
+            deprecation_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                log_level: "warn"
+            index_search_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                log_level: "warn"
+            index_indexing_slowlog_rolling:
+                max_log_file_size: "100MB"
+                max_total_log_size: "1GB"
+                log_level: "warn"
 
 mongodb:
     mongos_port: 27017
@@ -60,6 +92,13 @@ logstash:
     # logstash xms & xmx in Megabytes
     # jvm_xms: 2048
     # jvm_xmx: 2048
+    log_appenders:
+        rolling:
+            max_log_file_size: "100MB"
+            max_total_log_size: "5GB"
+        json_rolling:
+            max_log_file_size: "100MB"
+            max_total_log_size: "5GB"
 
 # Curator units: days
 curator:
