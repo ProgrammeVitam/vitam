@@ -1,0 +1,7 @@
+---
+
+# handlers file for dev-tools
+- name: purge yum cache
+  command: yum clean all
+  args:
+    warn: no
