@@ -91,7 +91,6 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookOperationTraceabilityHelper.class);
 
-    private static final String STRATEGY_ID = "default";
     private static final String OP_SECURISATION_STORAGE = "OP_SECURISATION_STORAGE";
     private static final String STP_OP_SECURISATION = "STP_OP_SECURISATION";
     private static final String TIMESTAMP = "OP_SECURISATION_TIMESTAMP";
@@ -286,7 +285,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
+    public void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName, String uri, TraceabilityEvent event)
         throws TraceabilityException {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile));
             final WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient()) {
@@ -309,7 +308,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                    STRATEGY_ID, DataCategory.LOGBOOK, fileName, description);
+                        strategyId, DataCategory.LOGBOOK, fileName, description);
                 workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, OP_SECURISATION_STORAGE, OK, event);

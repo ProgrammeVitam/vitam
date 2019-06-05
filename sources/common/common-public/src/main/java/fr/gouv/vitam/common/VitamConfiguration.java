@@ -138,6 +138,11 @@ public class VitamConfiguration {
      */
     private final static long MAX_SHUTDOWN_TIMEOUT = 2 * 60 * 1000;
 
+    /**
+     * Default strategy id
+     */
+    private final static String DEFAULT_STRATEGY = "default";
+
 
     /**
      * OTHERS ATTRIBUTES
@@ -1067,6 +1072,13 @@ public class VitamConfiguration {
      */
     public static long getShutdownTimeout() {
         return MAX_SHUTDOWN_TIMEOUT;
+    }
+
+    /**
+     * @return the default strategy
+     */
+    public static String getDefaultStrategy() {
+        return DEFAULT_STRATEGY;
     }
 
     /**

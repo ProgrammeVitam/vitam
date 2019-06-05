@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -101,6 +102,6 @@ public abstract class FinalizeLifecycleTraceabilityActionPlugin extends ActionHa
         TraceabilityService traceabilityService =
             new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
 
-        traceabilityService.secureData();
+        traceabilityService.secureData(VitamConfiguration.getDefaultStrategy());
     }
 }

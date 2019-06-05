@@ -31,6 +31,7 @@ import java.io.File;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -102,6 +103,6 @@ public class LogbookAdministration {
         TraceabilityService generator =
             new TraceabilityService(timestampGenerator, helper, tenantId, tmpFolder);
 
-        generator.secureData();
+        generator.secureData(VitamConfiguration.getDefaultStrategy());
     }
 }

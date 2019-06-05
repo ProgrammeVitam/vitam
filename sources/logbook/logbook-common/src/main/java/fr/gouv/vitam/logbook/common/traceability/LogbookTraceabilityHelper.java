@@ -66,13 +66,14 @@ public interface LogbookTraceabilityHelper {
      * Store the temporary zip in the final destination (on a specific offer for example) and delete tmp file.
      * 
      * @param tenant tenant used for the operation
+     * @param strategyId strategy used for the storage 
      * @param zipFile file containing multiple information about the traceability operation (data, merkle, computingData, ...)
      * @param fileName name of the file on the destination
      * @param uri uri of the tmp file
      * @param event traceability event that should be updated by this operation
      * @throws TraceabilityException if any error occurs
      */
-    void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
+    void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName, String uri, TraceabilityEvent event)
         throws TraceabilityException;
 
     /**

@@ -319,7 +319,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, File zipFile, String fileName, String uri, TraceabilityEvent event)
+    public void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName, String uri, TraceabilityEvent event)
         throws TraceabilityException {
         try (InputStream inputStream = new BufferedInputStream(new FileInputStream(zipFile))) {
 
@@ -341,7 +341,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                    STRATEGY_ID, DataCategory.STORAGETRACEABILITY, fileName, description);
+                        strategyId, DataCategory.STORAGETRACEABILITY, fileName, description);
                 workspaceClient.deleteContainer(containerName, true);
 
                 createLogbookOperationEvent(tenant, STORAGE_SECURISATION_STORAGE, OK, event);

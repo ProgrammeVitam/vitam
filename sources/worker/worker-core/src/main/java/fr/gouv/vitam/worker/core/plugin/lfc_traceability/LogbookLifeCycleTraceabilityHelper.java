@@ -57,7 +57,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private static final VitamLogger LOGGER =
         VitamLoggerFactory.getInstance(LogbookLifeCycleTraceabilityHelper.class);
 
-    private static final String DEFAULT_STRATEGY = "default";
+    //private static final String DEFAULT_STRATEGY = "default";
     private static final String LOGBOOK = "logbook";
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
@@ -184,7 +184,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, File zipFile,
+    public void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile,
         String fileName, String uri, TraceabilityEvent event)
         throws TraceabilityException {
 
@@ -215,7 +215,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             try (final StorageClient storageClient = storageClientFactory.getClient()) {
 
                 storageClient.storeFileFromWorkspace(
-                    DEFAULT_STRATEGY, DataCategory.LOGBOOK, fileName, description);
+                        strategyId, DataCategory.LOGBOOK, fileName, description);
                 workspaceClient.deleteContainer(containerName, true);
                 subItemStatusSecurisationStorage.setEvDetailData(JsonHandler.unprettyPrint(event));
                 itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE,

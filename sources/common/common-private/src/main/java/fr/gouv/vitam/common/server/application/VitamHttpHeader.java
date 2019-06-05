@@ -63,7 +63,7 @@ public enum VitamHttpHeader {
     /**
      * The X-Http-Method-Override header, used in requests to handle unsupported Http methods with body
      */
-    METHOD_OVERRIDE(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "get|patch|delete"),
+    METHOD_OVERRIDE(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "get|put|delete"),
     /**
      * The X-Qualifier header, used to get an object
      */
@@ -112,7 +112,19 @@ public enum VitamHttpHeader {
      * The X_Destination destination (offerId )
      *
      */
-    X_CONTENT_DESTINATION(GlobalDataRest.X_CONTENT_DESTINATION, ".+")
+    X_CONTENT_DESTINATION(GlobalDataRest.X_CONTENT_DESTINATION, ".+"),
+    
+    /**
+     * The X-Cursor 
+     *
+     */
+    X_CURSOR(GlobalDataRest.X_CURSOR, "true|false"),
+    
+    /**
+     * The X-Cursor-Id
+     *
+     */
+    X_CURSOR_ID(GlobalDataRest.X_CURSOR_ID, ".+")
     ;
 
 

@@ -646,7 +646,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     }
 
     @Override
-    public RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream,
+    public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
         Long inputStreamSize,
         List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException {
@@ -655,6 +655,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
         try {
             final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            headers.add(GlobalDataRest.X_STRATEGY_ID, strategyId);
             for (String offerId : offerIds) {
                 headers.add(GlobalDataRest.X_OFFER_IDS, offerId);
             }

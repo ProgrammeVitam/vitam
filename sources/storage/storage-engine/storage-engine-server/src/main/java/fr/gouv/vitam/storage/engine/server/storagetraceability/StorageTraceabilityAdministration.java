@@ -91,10 +91,13 @@ public class StorageTraceabilityAdministration {
     /**
      * secure the logbook operation since last traceability
      * 
+     * @param requestId request GUID
+     * @param strategyId strategy ID
+     * 
      * @return the traceability operation GUID
      * @throws TraceabilityException for any trouble in the traceability process
      */
-    public void generateTraceabilityStorageLogbook(GUID requestId)
+    public void generateTraceabilityStorageLogbook(GUID requestId, String strategyId)
         throws TraceabilityException {
 
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -105,7 +108,7 @@ public class StorageTraceabilityAdministration {
 
         TraceabilityService service = new TraceabilityService(timestampGenerator, traceabilityHelper, tenantId, tmpFolder);
 
-        service.secureData();
+        service.secureData(strategyId);
     }
 
 }

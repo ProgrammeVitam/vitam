@@ -31,17 +31,11 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
 
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
-import fr.gouv.vitam.storage.engine.server.storagelog.StorageLogFactory;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;

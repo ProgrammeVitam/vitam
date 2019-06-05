@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.server.storagelog.traceability;
 
 import fr.gouv.vitam.common.BaseXx;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -174,7 +175,7 @@ public class StorageTraceabilityAdministrationTest {
 
         // When
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        storageAdministration.generateTraceabilityStorageLogbook(guid);
+        storageAdministration.generateTraceabilityStorageLogbook(guid, VitamConfiguration.getDefaultStrategy());
 
         // Then
         LogbookOperationParameters log = getMasterLogbookOperations().get(0);
@@ -225,7 +226,7 @@ public class StorageTraceabilityAdministrationTest {
 
         // insert initial event
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        storageAdministration.generateTraceabilityStorageLogbook(guid);
+        storageAdministration.generateTraceabilityStorageLogbook(guid, VitamConfiguration.getDefaultStrategy());
 
         TraceabilityEvent lastEvent = extractLastTimestampToken();
 
@@ -244,7 +245,7 @@ public class StorageTraceabilityAdministrationTest {
 
         // When
         GUID guid2 = GUIDFactory.newOperationLogbookGUID(tenantId);
-        storageAdministration.generateTraceabilityStorageLogbook(guid2);
+        storageAdministration.generateTraceabilityStorageLogbook(guid2, VitamConfiguration.getDefaultStrategy());
 
         // Then
         assertThat(archive2).
@@ -324,7 +325,7 @@ public class StorageTraceabilityAdministrationTest {
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         // When / Then
-        assertThatThrownBy(() -> storageAdministration.generateTraceabilityStorageLogbook(guid))
+        assertThatThrownBy(() -> storageAdministration.generateTraceabilityStorageLogbook(guid, VitamConfiguration.getDefaultStrategy()))
             .isInstanceOf(TraceabilityException.class);
     }
 
@@ -366,7 +367,7 @@ public class StorageTraceabilityAdministrationTest {
 
         // insert initial event
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
-        storageAdministration.generateTraceabilityStorageLogbook(guid);
+        storageAdministration.generateTraceabilityStorageLogbook(guid, VitamConfiguration.getDefaultStrategy());
 
         TraceabilityEvent lastEvent = extractLastTimestampToken();
         assertThat(lastEvent).isNotNull();
@@ -405,7 +406,7 @@ public class StorageTraceabilityAdministrationTest {
 
         GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
         // When / Then
-        assertThatThrownBy(() -> storageAdministration.generateTraceabilityStorageLogbook(guid))
+        assertThatThrownBy(() -> storageAdministration.generateTraceabilityStorageLogbook(guid, VitamConfiguration.getDefaultStrategy()))
             .isInstanceOf(TraceabilityException.class);
     }
 

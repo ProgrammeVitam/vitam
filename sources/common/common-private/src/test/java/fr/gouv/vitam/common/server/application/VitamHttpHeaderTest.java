@@ -56,7 +56,7 @@ public class VitamHttpHeaderTest {
 
         final String regExp = VitamHttpHeader.METHOD_OVERRIDE.getRegExp();
         assertNotNull(regExp);
-        assertEquals("get|patch|delete", regExp);
+        assertEquals("get|put|delete", regExp);
     }
 
     @Test

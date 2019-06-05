@@ -255,7 +255,7 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
         throw new  UnsupportedOperationException("Not Implemented");
     }
 
-    @Override public RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream,
+    @Override public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
         Long inputStreamSize, List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException {
         throw new  UnsupportedOperationException("Not Implemented");
