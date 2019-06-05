@@ -4,6 +4,10 @@
   package:
     name: vitam-siegfried
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
   notify:
     - restart siegfried
 
