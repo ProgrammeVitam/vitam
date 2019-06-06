@@ -822,8 +822,16 @@ public class DslQueryHelper {
                 }
             }
 
+            if (searchKeys.equalsIgnoreCase("fieldArchiveUnit") || searchKeys.equalsIgnoreCase("valueArchiveUnit")) {
+                continue;
+            }
+
             // By default add equals query
             booleanQueries.add(match(searchKeys, (String) searchValue));
+        }
+
+        if (searchCriteriaMap.get("fieldArchiveUnit") != null) {
+            andQuery.add(eq(((String) searchCriteriaMap.get("fieldArchiveUnit")), ((String) searchCriteriaMap.get("valueArchiveUnit"))));
         }
 
         // US 509:start AND end date must be filled.
