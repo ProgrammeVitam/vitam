@@ -78,7 +78,7 @@ import fr.gouv.vitam.security.internal.exception.VitamSecurityException;
  * Then get vitam context attached to this certificate.
  */
 @PreMatching
-@Priority(Priorities.HEADER_DECORATOR + 30) // must go after UriConnegFilter (if present)
+@Priority(Priorities.HEADER_DECORATOR + 30) // must go after UriConnectionFilter (if present)
 public class InternalSecurityFilter implements ContainerRequestFilter {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InternalSecurityFilter.class);

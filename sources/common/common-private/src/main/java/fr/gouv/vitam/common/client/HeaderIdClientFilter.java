@@ -26,52 +26,27 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.client;
 
-import java.io.IOException;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 import javax.ws.rs.client.ClientRequestContext;
 import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.ClientResponseContext;
-import javax.ws.rs.client.ClientResponseFilter;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 /**
  * Manage the headers from the client-side perspective.
  */
-public class HeaderIdClientFilter implements ClientRequestFilter, ClientResponseFilter {
+public class HeaderIdClientFilter implements ClientRequestFilter {
 
     /**
      * Extracts the ids from the headers to save it in the VitamSession
      *
      * @see ContainerRequestFilter#filter(ContainerRequestContext)
      * @param requestContext {@link ContainerRequestFilter#filter(ContainerRequestContext)}
-     * @throws IOException {@see ContainerRequestFilter#filter(ContainerRequestContext)}
      */
     @Override
-    public void filter(ClientRequestContext requestContext) throws IOException {
+    public void filter(ClientRequestContext requestContext) {
         HeaderIdHelper.putVitamIdFromSessionInHeader(requestContext.getHeaders(),
             HeaderIdHelper.Context.REQUEST, 0);
-    }
-
-    /**
-     * Retrieves the vitam ids from the VitamSession and add a X-TENANT-ID header to the request
-     *
-     * @see ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext)
-     * @param requestContext Cf.
-     *        {@link ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext) }
-     * @param responseContext Cf.
-     *        {@link ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext) }
-     * @throws IOException Cf.
-     *         {@link ContainerResponseFilter#filter(ContainerRequestContext, ContainerResponseContext) }
-     */
-    @Override
-    public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext)
-        throws IOException {
-        HeaderIdHelper.putVitamIdFromHeaderInSession(responseContext.getHeaders(),
-            HeaderIdHelper.Context.RESPONSE);
     }
 }

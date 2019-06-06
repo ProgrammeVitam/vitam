@@ -27,37 +27,43 @@
 package fr.gouv.vitam.access.internal.serve.filter;
 
 import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContractIdException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.server.HeaderIdHelper;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 
+import javax.annotation.Priority;
+import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.PreMatching;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.IOException;
 
 /**
- * Manage the X_ACCESS_CONTRAT_ID header from the server-side perspective.
+ * Manage the X_ACCESS_CONTRACT_ID header from the server-side perspective.
  */
+@PreMatching
+@Priority(Priorities.AUTHORIZATION)
 public class AccessContractIdContainerFilter implements ContainerRequestFilter {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContractIdContainerFilter.class);
 
     @Override
-    public void filter(ContainerRequestContext requestContext) throws IOException {
+    public void filter(ContainerRequestContext requestContext) {
         if (requestContext.getUriInfo().getPath().contains("/status")
             || requestContext.getUriInfo().getPath().contains("/operations")) {
             return;
         }
         try {
-            HeaderIdHelper.putVitamIdFromHeaderInSession(requestContext.getHeaders(), HeaderIdHelper.Context.REQUEST);
-            AccessContratIdHeaderHelper
-                .manageAccessContratFromHeader(requestContext.getHeaders(), AdminManagementClientFactory
+            AccessContractIdHeaderHelper
+                .manageAccessContractFromHeader(requestContext.getHeaders(), AdminManagementClientFactory
                     .getInstance());
         } catch (MissingAccessContractIdException e) {
-            LOGGER.warn(e);
-            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED).build());
+            LOGGER.error(e);
+
+            requestContext.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+                .entity(JsonHandler.createObjectNode().put("Error", e.getMessage())).type(MediaType.APPLICATION_JSON_TYPE).build());
         }
     }
 
