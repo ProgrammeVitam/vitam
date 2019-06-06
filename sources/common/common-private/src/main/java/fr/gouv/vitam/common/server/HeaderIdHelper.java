@@ -26,16 +26,24 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.server;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response.Status;
-
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.VitamSession;
+import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response.Status;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * HeaderId Helper, check and put header values
@@ -54,6 +62,7 @@ public class HeaderIdHelper {
         }
     }
 
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(HeaderIdHelper.class);
 
     /**
@@ -61,6 +70,18 @@ public class HeaderIdHelper {
      */
     private HeaderIdHelper() {
         throw new UnsupportedOperationException("Helper class");
+    }
+
+    public static void writeMessageToResponse(ServletRequest request, ServletResponse servletResponse, JsonNode message)
+        throws IOException {
+        servletResponse.setContentType(MediaType.APPLICATION_JSON);
+        try {
+            PrintWriter writer = servletResponse.getWriter();
+            writer.write(JsonHandler.unprettyPrint(message));
+            writer.close();
+        } finally {
+            StreamUtils.closeSilently(request.getInputStream());
+        }
     }
 
     /**
@@ -139,9 +160,9 @@ public class HeaderIdHelper {
         final VitamSession vitamSession = VitamThreadUtils.getVitamSession();
         if (vitamSession.getContractId() != null && !vitamSession.getContractId().equals(contractId)) {
             LOGGER.info(
-                "Note : the contratId stored in session was not empty and different from the received " +
-                    "contratId before {} handling ! Some cleanup must have failed... " +
-                    "Old contratId will be discarded in session.",
+                "Note : the contractId stored in session was not empty and different from the received " +
+                    "contractId before {} handling ! Some cleanup must have failed... " +
+                    "Old contractId will be discarded in session.",
                 ctx);
         }
 

@@ -38,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.Response.Status;
+import java.io.PrintWriter;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.Vector;
@@ -84,6 +85,7 @@ public class AuthorizationFilterTest {
             .thenReturn(headersMap.get(GlobalDataRest.X_PLATFORM_ID));
         when(httpServletRequest.getRequestURI()).thenReturn("/containers/continerid");
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
 
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
 
@@ -97,6 +99,7 @@ public class AuthorizationFilterTest {
         when(httpServletRequest.getHeaderNames()).thenReturn(httpServletRequestHeaders);
         when(httpServletRequest.getRequestURI()).thenReturn(VitamConfiguration.STATUS_URL);
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
 
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
 
@@ -109,6 +112,7 @@ public class AuthorizationFilterTest {
         when(httpServletRequest.getHeaderNames()).thenReturn(httpServletRequestHeaders);
         when(httpServletRequest.getRequestURI()).thenReturn(VitamConfiguration.ADMIN_PATH);
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
 
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
 
@@ -119,6 +123,8 @@ public class AuthorizationFilterTest {
     public void testDoFilterNotAcceptableNoHeaders() throws Exception {
         when(httpServletRequest.getHeaderNames()).thenReturn(null);
         when(httpServletRequest.getRequestURI()).thenReturn("/containers/continerid");
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
+
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
 
         verify(httpServletResponse).setStatus(Status.UNAUTHORIZED.getStatusCode());
