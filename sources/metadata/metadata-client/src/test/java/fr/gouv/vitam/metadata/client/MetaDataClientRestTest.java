@@ -46,7 +46,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 import org.junit.AfterClass;
@@ -458,28 +457,28 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     @Test
     public void given_blankQuery_whenUpdateUnitById_ThenReturn_MetadataInvalidParseException() {
         when(mock.put()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.updateUnitbyId(JsonHandler.getFromString(""), ""))
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(""), ""))
             .isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
     public void given_QueryAndBlankUnitId_whenUpdateUnitById_ThenReturn_Exception() {
         when(mock.put()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        assertThatThrownBy(() -> client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), ""))
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), ""))
             .isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
     public void given_EntityTooLargeRequest_When_updateUnitById_ThenReturn_RequestEntityTooLarge() {
         when(mock.put()).thenReturn(Response.status(Status.REQUEST_ENTITY_TOO_LARGE).build());
-        assertThatThrownBy(() -> client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"))
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"))
             .isInstanceOf(MetaDataDocumentSizeException.class);
     }
 
     @Test
     public void given_InvalidRequest_When_UpdateBYiD_ThenReturn_BadRequest() {
         when(mock.put()).thenReturn(Response.status(Status.BAD_REQUEST).entity(JsonHandler.createObjectNode()).build());
-        assertThatThrownBy(() -> client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"))
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"))
             .isInstanceOf(InvalidParseOperationException.class);
     }
 
@@ -487,14 +486,14 @@ public class MetaDataClientRestTest extends ResteasyTestApplication {
     public void updateUnitByIdTest()
         throws MetaDataDocumentSizeException, MetaDataExecutionException, InvalidParseOperationException,
         MetaDataClientServerException, MetaDataNotFoundException {
-        when(mock.put()).thenReturn(Response.status(Status.FOUND).entity("true").build());
-        client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "id");
+        when(mock.put()).thenReturn(Response.status(Status.OK).entity("true").build());
+        client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "id");
     }
 
     @Test
     public void given_UnexistingUnit_When_UpdateByiD_ThenReturn_NotFound() {
         when(mock.put()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        assertThatThrownBy(() -> client.updateUnitbyId(JsonHandler.getFromString(VALID_QUERY), "unitId"))
+        assertThatThrownBy(() -> client.updateUnitById(JsonHandler.getFromString(VALID_QUERY), "unitId"))
             .isInstanceOf(MetaDataNotFoundException.class);
     }
 

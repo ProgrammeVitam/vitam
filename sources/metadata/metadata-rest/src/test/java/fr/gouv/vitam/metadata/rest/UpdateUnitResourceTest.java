@@ -61,6 +61,7 @@ import org.junit.rules.TemporaryFolder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static io.restassured.RestAssured.given;
@@ -72,12 +73,8 @@ public class UpdateUnitResourceTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private static final Integer TENANT_ID_0 = new Integer(0);
-    static final List tenantList = new ArrayList() {
-        {
-            add(TENANT_ID_0);
-        }
-    };
+    private static final Integer TENANT_ID_0 = 0;
+    private static final List tenantList = Collections.singletonList(TENANT_ID_0);
     private static final String DATA =
         "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", \"#tenant\": 0, " + "\"data\": \"data2\" }";
     private static final String DATA2 =
@@ -142,7 +139,7 @@ public class UpdateUnitResourceTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    public static void tearDownAfterClass() {
         try {
             MetadataCollections.afterTestClass(true, 0);
             application.stop();
@@ -170,12 +167,10 @@ public class UpdateUnitResourceTest {
     }
 
     private static String createJsonStringWithDepth(int depth) {
-        final StringBuilder obj = new StringBuilder();
         if (depth == 0) {
             return " \"b\" ";
         }
-        obj.append("{ \"a\": ").append(createJsonStringWithDepth(depth - 1)).append("}");
-        return obj.toString();
+        return "{ \"a\": " + createJsonStringWithDepth(depth - 1) + "}";
     }
 
     // Unit by ID (request and uri)
@@ -188,6 +183,7 @@ public class UpdateUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
             .body(buildDSLWithOptions(DATA2)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
@@ -195,6 +191,7 @@ public class UpdateUnitResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID_0)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
             .body(buildDSLWithOptionsRoot(DATA, ID_UNIT)).when()
             .post("/units").then()
             .statusCode(Status.CREATED.getStatusCode());
@@ -203,18 +200,20 @@ public class UpdateUnitResourceTest {
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.FOUND.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
         esClient.refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         given()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(REAL_UPDATE_BODY_TEST)).when()
             .put("/units/" + ID_UNIT).then()
-            .statusCode(Status.FOUND.getStatusCode());
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -236,6 +235,7 @@ public class UpdateUnitResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, GUIDFactory.newRequestIdGUID(TENANT_ID).toString())
             .body(JsonHandler.getFromString(BODY_TEST_BAD_REQUEST))
             .when()
             .put("/units/" + ID_UNIT)

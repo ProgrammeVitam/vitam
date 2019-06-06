@@ -162,7 +162,7 @@ public class RunningIngestsUpdateActionPluginTest {
             .thenReturn(new ItemStatus().setGlobalState(ProcessState.COMPLETED));
 
         when(metaDataClient.selectUnits(any())).thenReturn(archiveUnitToBeUpdated);
-        when(metaDataClient.updateUnitbyId(any(), any())).thenReturn(archiveUnitUpdated);
+        when(metaDataClient.updateUnitById(any(), any())).thenReturn(archiveUnitUpdated);
 
         doNothing()
             .when(storeMetaDataUnitActionPlugin).storeDocumentsWithLfc(any(), any(), anyList());

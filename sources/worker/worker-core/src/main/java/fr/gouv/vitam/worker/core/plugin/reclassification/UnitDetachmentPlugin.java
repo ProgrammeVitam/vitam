@@ -143,7 +143,7 @@ public class UnitDetachmentPlugin extends ActionHandler {
                 pull(VitamFieldsHelper.unitups(), parentUnitsToAdd.toArray(new String[0])),
                 add(VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId())
             );
-            metaDataClient.updateUnitbyId(updateMultiQuery.getFinalUpdate(), unitId);
+            metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdate(), unitId);
 
         } catch (MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataExecutionException | MetaDataNotFoundException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ReclassificationException(StatusCode.FATAL, "An error occurred during unit detachment", e);

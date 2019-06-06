@@ -51,17 +51,16 @@ import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.*;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
@@ -288,7 +287,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode updateQuery, String unitId)
+    public JsonNode updateUnitById(JsonNode updateQuery, String unitId)
         throws MetaDataExecutionException,
         MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException,
         MetaDataNotFoundException {
@@ -304,8 +303,8 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
         try {
             response = performRequest(HttpMethod.PUT, "/units/" + unitId, null, updateQuery,
                 APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
-            if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
-                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
+            if(response.getStatus() == Status.OK.getStatusCode()) {
+                return response.readEntity(JsonNode.class);
             } else if (response.getStatus() == Response.Status.REQUEST_ENTITY_TOO_LARGE.getStatusCode()) {
                 throw new MetaDataDocumentSizeException(ErrorMessage.SIZE_TOO_LARGE.getMessage());
             } else if (response.getStatus() == Response.Status.BAD_REQUEST.getStatusCode()) {
@@ -321,8 +320,9 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage());
             } else if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 throw new MetaDataNotFoundException(ErrorMessage.NOT_FOUND.getMessage());
+            } else {
+                throw new MetaDataExecutionException(INTERNAL_SERVER_ERROR);
             }
-            return response.readEntity(JsonNode.class);
         } catch (final VitamClientInternalException e) {
             throw new MetaDataClientServerException(INTERNAL_SERVER_ERROR, e);
         } finally {
@@ -798,20 +798,17 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     }
 
     @Override
-    public RequestResponse<JsonNode> updateUnitsRulesBulk(JsonNode query, JsonNode actions, Map<String, DurationData> rulesToDurationData)
+    public RequestResponse<JsonNode> updateUnitsRulesBulk(List<String> unitsIds, RuleActions actions, Map<String, DurationData> rulesToDurationData)
             throws InvalidParseOperationException, MetaDataExecutionException, MetaDataNotFoundException,
             MetaDataDocumentSizeException, MetaDataClientServerException {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), query);
+            ParametersChecker.checkParameter(ErrorMessage.INSERT_UNITS_QUERY_NULL.getMessage(), unitsIds);
         } catch (final IllegalArgumentException e) {
             throw new InvalidParseOperationException(e);
         }
         Response response = null;
         try {
-            ObjectNode requestContent = JsonHandler.createObjectNode();
-            requestContent.set("query", query);
-            requestContent.set("actions", actions);
-            BatchRulesUpdateInfo requestContext = new BatchRulesUpdateInfo(requestContent, rulesToDurationData);
+            BatchRulesUpdateInfo requestContext = new BatchRulesUpdateInfo(unitsIds, actions, rulesToDurationData);
             response = performRequest(HttpMethod.POST, "/units/updaterulesbulk", null,
                 JsonHandler.toJsonNode(requestContext), APPLICATION_JSON_TYPE, APPLICATION_JSON_TYPE);
             if (response.getStatus() == Response.Status.INTERNAL_SERVER_ERROR.getStatusCode()) {

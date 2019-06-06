@@ -124,23 +124,21 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
     private MetaDataClientFactory metaDataClientFactory;
     private LogbookLifeCyclesClientFactory lfcClientFactory;
     private StorageClientFactory storageClientFactory;
-    private AdminManagementClientFactory adminManagementClientFactory;
     private BatchReportClientFactory batchReportClientFactory;
 
     public MassUpdateUnitsProcess() {
         this(MetaDataClientFactory.getInstance(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance(), AdminManagementClientFactory.getInstance(),
+            StorageClientFactory.getInstance(),
                 BatchReportClientFactory.getInstance());
     }
 
     @VisibleForTesting
     public MassUpdateUnitsProcess(MetaDataClientFactory metaDataClientFactory, LogbookLifeCyclesClientFactory lfcClientFactory,
-        StorageClientFactory storageClientFactory, AdminManagementClientFactory adminManagementClientFactory, BatchReportClientFactory batchReportClientFactory) {
+        StorageClientFactory storageClientFactory, BatchReportClientFactory batchReportClientFactory) {
         super(storageClientFactory);
         this.metaDataClientFactory = metaDataClientFactory;
         this.lfcClientFactory = lfcClientFactory;
         this.storageClientFactory = storageClientFactory;
-        this.adminManagementClientFactory = adminManagementClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
     }
 
@@ -174,12 +172,6 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
             // Add operationID to #operations
             parser.getRequest().addActions(UpdateActionHelper.push(
                 VitamFieldsHelper.operations(), VitamThreadUtils.getVitamSession().getRequestId()));
-
-            try {
-                addOntologyFieldsToBeUpdated(parser);
-            } catch (AdminManagementClientServerException | InvalidCreateOperationException | InvalidParseOperationException e) {
-                throw new ProcessingException("Error while adding ontology information", e);
-            }
 
             UpdateMultiQuery multiQuery = parser.getRequest();
 
@@ -333,40 +325,5 @@ public class MassUpdateUnitsProcess extends StoreMetadataObjectActionHandler {
         storageClient.storeFileFromWorkspace(DEFAULT_STRATEGY, description.getType(),
             description.getObjectName(),
             description);
-    }
-
-    private void addOntologyFieldsToBeUpdated(UpdateParserMultiple updateParser)
-        throws InvalidCreateOperationException, AdminManagementClientServerException,
-        InvalidParseOperationException {
-        UpdateMultiQuery request = updateParser.getRequest();
-        Select selectOntologies = new Select();
-        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-            selectOntologies.setQuery(
-                QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName())
-            );
-
-            Map<String, Integer> projection = new HashMap<>();
-            projection.put(OntologyModel.TAG_IDENTIFIER, 1);
-            projection.put(OntologyModel.TAG_TYPE, 1);
-            QueryProjection queryProjection = new QueryProjection();
-            queryProjection.setFields(projection);
-            selectOntologies
-                .setProjection(JsonHandler.toJsonNode(queryProjection));
-            RequestResponse<OntologyModel> responseOntologies =
-                adminClient.findOntologies(selectOntologies.getFinalSelect());
-            if (!responseOntologies.isOk() ||
-                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() == 0) {
-                // no external ontology, nothing to do
-                return;
-            }
-
-            List<OntologyModel> ontologyModelList =
-                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
-
-            Action action =
-                new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS,
-                    JsonHandler.unprettyPrint(ontologyModelList));
-            request.addActions(action);
-        }
     }
 }

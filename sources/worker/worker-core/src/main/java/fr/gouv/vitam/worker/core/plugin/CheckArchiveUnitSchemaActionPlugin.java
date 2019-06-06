@@ -26,6 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin;
 
+import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -72,8 +73,6 @@ import java.util.stream.Collectors;
 public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
     private static final String WORKSPACE_SERVER_ERROR = "Workspace Server Error";
 
-    private static final String SCHEMA_ERROR = "Json validation couldn't be done";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckArchiveUnitSchemaActionPlugin.class);
 
     private static final String CHECK_UNIT_SCHEMA_TASK_ID = "CHECK_UNIT_SCHEMA";
@@ -87,10 +86,7 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
     private static final String UNKNOWN_TECHNICAL_EXCEPTION = "Unknown technical exception";
 
-    private boolean isUpdateJsonMandatory = false;
-    private boolean asyncIO = false;
-
-    private  SchemaValidationFactory schemaValidatorFactory;
+    private SchemaValidationFactory schemaValidatorFactory;
 
 
     public CheckArchiveUnitSchemaActionPlugin() {
@@ -175,73 +171,76 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         return new ItemStatus(CHECK_UNIT_SCHEMA_TASK_ID).setItemsStatus(itemStatus.getItemId(), itemStatus);
     }
 
-
-
     private SchemaValidationStatus checkAUJsonAgainstSchema(HandlerIO handlerIO, WorkerParameters params,
         ItemStatus itemStatus)
         throws ProcessingException, ArchiveUnitOntologyValidationException {
         final String objectName = params.getObjectName();
 
+        // Load data
+        JsonNode archiveUnit;
         try (InputStream archiveUnitToJson =
             handlerIO.getInputStreamFromWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER +
                 File.separator + objectName)) {
-            SchemaValidationUtils validator = schemaValidatorFactory.createSchemaValidator();
 
-            JsonNode archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
+            archiveUnit = JsonHandler.getFromInputStream(archiveUnitToJson);
 
-            // sanityChecker
-            try {
-                SanityChecker.checkJsonAll(archiveUnit);
-            } catch (InvalidParseOperationException e) {
-                itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.INVALID_UNIT.toString());
-                final String err = "Sanity Checker failed for Archive Unit: " + e.getMessage();
-                LOGGER.error(err);
-                throw new ArchiveUnitContainSpecialCharactersException(err);
-            }
-            Stopwatch ontologyTime = Stopwatch.createStarted();
-            checkFieldLengthAndForceFieldTypingUsingOntologies(handlerIO, archiveUnit, itemStatus, validator);
-            PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationOntology",
-                ontologyTime.elapsed(TimeUnit.MILLISECONDS));
-
-            handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
-            if (isUpdateJsonMandatory) {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, objectName, archiveUnit,
-                    false, asyncIO);
-            }
-
-            Stopwatch validationJson = Stopwatch.createStarted();
-            SchemaValidationStatus schemaValidationStatus =
-                validator.validateUnit(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT));
-            PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationJson",
-                validationJson.elapsed(TimeUnit.MILLISECONDS));
-
-            return schemaValidationStatus;
         } catch (final InvalidParseOperationException e) {
-            LOGGER.error("File couldnt be converted into json", e);
+            LOGGER.error("File couldn't be converted into json", e);
             return new SchemaValidationStatus("File is not a valid json file",
                 SchemaValidationStatusEnum.NOT_JSON_FILE);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
             IOException e) {
-            LOGGER.error(WORKSPACE_SERVER_ERROR);
-            throw new ProcessingException(e);
+            throw new ProcessingException(WORKSPACE_SERVER_ERROR, e);
         }
+
+        // sanityChecker
+        try {
+            SanityChecker.checkJsonAll(archiveUnit);
+        } catch (InvalidParseOperationException e) {
+            itemStatus.setGlobalOutcomeDetailSubcode(CheckUnitSchemaStatus.INVALID_UNIT.toString());
+            final String err = "Sanity Checker failed for Archive Unit: " + e.getMessage();
+            throw new ArchiveUnitContainSpecialCharactersException(err, e);
+        }
+
+        SchemaValidationUtils validator = schemaValidatorFactory.createSchemaValidator();
+
+        // Ontology verification and format conversion in needed
+        Stopwatch ontologyTime = Stopwatch.createStarted();
+        boolean isUpdateJsonMandatory = checkFieldLengthAndForceFieldTypingUsingOntologies(handlerIO, archiveUnit, itemStatus, validator);
+        PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationOntology",
+            ontologyTime.elapsed(TimeUnit.MILLISECONDS));
+
+        handlerIO.addOutputResult(UNIT_OUT_RANK, archiveUnit, true, false);
+        if (isUpdateJsonMandatory) {
+            handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER, objectName, archiveUnit,
+                false, false);
+        }
+
+        // Schema validation
+        Stopwatch validationJson = Stopwatch.createStarted();
+        SchemaValidationStatus schemaValidationStatus =
+            validator.validateUnit(archiveUnit.get(SedaConstants.TAG_ARCHIVE_UNIT));
+        PerformanceLogger.getInstance().log("STP_UNIT_CHECK_AND_PROCESS", "CHECK_UNIT_SCHEMA", "validationJson",
+            validationJson.elapsed(TimeUnit.MILLISECONDS));
+
+        return schemaValidationStatus;
     }
 
-
-    private void checkFieldLengthAndForceFieldTypingUsingOntologies(HandlerIO handlerIO, JsonNode archiveUnit,
+    private boolean checkFieldLengthAndForceFieldTypingUsingOntologies(HandlerIO handlerIO, JsonNode archiveUnit,
         ItemStatus itemStatus,
         SchemaValidationUtils validator) throws ProcessingException, ArchiveUnitOntologyValidationException {
         JsonNode originalArchiveUnit = archiveUnit.deepCopy();
 
         JsonNode archiveUnitData = archiveUnit.path("ArchiveUnit");
         if (archiveUnitData.isMissingNode()) {
-            return;
+            return false;
         }
 
         try {
             final File ontologyFile = (File) handlerIO.getInput(ONTOLOGY_IN_RANK);
             if (ontologyFile == null) {
-                return;
+                // FIXME : read use case? or exception?
+                return false;
             }
             List<OntologyModel> ontologies =
                 JsonHandler.getFromFileAsTypeRefence(ontologyFile, new TypeReference<List<OntologyModel>>() {
@@ -255,22 +254,15 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
 
             if (!errors.isEmpty()) {
                 String error = "Archive unit contains fields declared in ontology with a wrong format : " +
-                    String.join(",", errors.toString());
-                LOGGER.error(error);
+                    CollectionUtils.join(errors, ",");
                 throw new ArchiveUnitOntologyValidationException(error);
             }
         } catch (InvalidParseOperationException e) {
-            LOGGER.error(UNKNOWN_TECHNICAL_EXCEPTION, e);
             itemStatus.increment(StatusCode.FATAL);
-            throw new ProcessingException(e);
+            throw new ProcessingException(UNKNOWN_TECHNICAL_EXCEPTION, e);
         }
 
-        final String unitBeforeUpdate = JsonHandler.prettyPrint(originalArchiveUnit);
-        final String unitAfterUpdate = JsonHandler.prettyPrint(archiveUnitData);
-        List<String> diff = VitamDocument.getUnifiedDiff(unitAfterUpdate, unitBeforeUpdate);
-        if (diff.size() > 0) {
-            isUpdateJsonMandatory = true;
-        }
+        return !originalArchiveUnit.equals(archiveUnitData);
     }
 
 
@@ -293,6 +285,6 @@ public class CheckArchiveUnitSchemaActionPlugin extends ActionHandler {
         /**
          * StartDate is after EndDate
          */
-        CONSISTENCY;
+        CONSISTENCY
     }
 }

@@ -91,7 +91,7 @@ public class EliminationAnalysisUnitIndexationPluginTest {
         // Then
         ArgumentCaptor<JsonNode> updateDsl = ArgumentCaptor.forClass(JsonNode.class);
 
-        verify(metaDataClient).updateUnitbyId(updateDsl.capture(), eq("unit1"));
+        verify(metaDataClient).updateUnitById(updateDsl.capture(), eq("unit1"));
         String update = JsonHandler.unprettyPrint(updateDsl.getValue());
         assertThat(update).contains("{\"$push\":{\"#elimination\"");
         assertThat(update).contains("\"OperationId\":\"opId\"");
@@ -102,7 +102,7 @@ public class EliminationAnalysisUnitIndexationPluginTest {
     public void testIndexUnitOnMetadataExceptionThenFatal() throws Exception {
 
         // Given
-        doThrow(MetaDataExecutionException.class).when(metaDataClient).updateUnitbyId(any(), any());
+        doThrow(MetaDataExecutionException.class).when(metaDataClient).updateUnitById(any(), any());
 
         // When / Then
         ItemStatus itemStatus = instance.execute(parameters, handlerIO);

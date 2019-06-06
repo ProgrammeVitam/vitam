@@ -41,6 +41,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private String workspaceUrl;
     private String clusterName;
     private List<ElasticsearchNode> elasticsearchNodes;
+    private int ontologyCacheMaxEntries = 100;
+    private int ontologyCacheTimeoutInSeconds = 300;
 
     /**
      * MetaDataConfiguration constructor
@@ -126,5 +128,21 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public MetaDataConfiguration setWorkspaceUrl(String workspaceUrl) {
         this.workspaceUrl = workspaceUrl;
         return this;
+    }
+
+    public int getOntologyCacheMaxEntries() {
+        return ontologyCacheMaxEntries;
+    }
+
+    public void setOntologyCacheMaxEntries(int ontologyCacheMaxEntries) {
+        this.ontologyCacheMaxEntries = ontologyCacheMaxEntries;
+    }
+
+    public int getOntologyCacheTimeoutInSeconds() {
+        return ontologyCacheTimeoutInSeconds;
+    }
+
+    public void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
+        this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
     }
 }

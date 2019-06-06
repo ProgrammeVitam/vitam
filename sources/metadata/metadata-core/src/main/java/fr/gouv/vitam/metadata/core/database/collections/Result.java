@@ -320,12 +320,13 @@ public abstract class Result<T> {
      *
      * @param document of type MetaDataDocument adding to result
      */
-    public void addFinal(T document) {
+    public Result addFinal(T document) {
         if (finalResult == null) {
             finalResult = new ArrayList<>();
         }
         finalResult.add(document);
         nbResult = finalResult.size();
+        return this;
     }
 
     private boolean isScoreIncluded(Bson projection) {

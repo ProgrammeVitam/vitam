@@ -34,8 +34,6 @@ import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
 import fr.gouv.vitam.batch.report.model.ReportType;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -174,27 +172,15 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
             StorageClient storageClient = storageClientFactory.getClient();
              BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
-            // FIXME: Use in/out in order to transfer json from a step to another ?
-            JsonNode queryNode = handler.getJsonFromWorkspace("query.json");
-            JsonNode actionNode = handler.getJsonFromWorkspace("actions.json");
+            RuleActions ruleActions = JsonHandler.getFromJsonNode(
+                handler.getJsonFromWorkspace("actions.json"), RuleActions.class);
 
-            // parse multi query
-            UpdateParserMultiple parser = new UpdateParserMultiple();
-            parser.parse(queryNode);
-            UpdateMultiQuery multiQuery = parser.getRequest();
-
-            // remove search and actions part (useless)
-            multiQuery.resetQueries();
-            multiQuery.resetActions();
-
-            // set the units to update
             List<String> units = workerParameters.getObjectNameList();
-            multiQuery.resetRoots().addRoots(units.toArray(new String[0]));
 
-            Map<String, DurationData> bindRulesToDuration = checkAndComputeRuleDurationData(actionNode);
+            Map<String, DurationData> bindRulesToDuration = checkAndComputeRuleDurationData(ruleActions);
 
             // call update BULK service
-            RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(multiQuery.getFinalUpdate(), actionNode, bindRulesToDuration);
+            RequestResponse<JsonNode> requestResponse = mdClient.updateUnitsRulesBulk(units, ruleActions, bindRulesToDuration);
 
             List<UpdateUnitMetadataReportEntry> entries = new ArrayList<>();
             if (requestResponse != null && requestResponse.isOk()) {
@@ -280,12 +266,11 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         return itemStatuses;
     }
 
-    private Map<String, DurationData> checkAndComputeRuleDurationData(JsonNode actionNode)
-        throws InvalidParseOperationException, IllegalStateException {
+    private Map<String, DurationData> checkAndComputeRuleDurationData(RuleActions ruleActions)
+        throws IllegalStateException {
 
         Map<String, DurationData> bindRulesToDuration = new HashMap<>();
 
-        RuleActions ruleActions = JsonHandler.getFromJsonNode(actionNode, RuleActions.class);
         List<Map<String, RuleCategoryAction>> ruleAddition = ruleActions.getAdd();
         if (ruleAddition != null) {
             ruleAddition.stream()
@@ -403,6 +388,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         StorageClient storageClient,
         HandlerIO handler, WorkerParameters params, String guid, String fileName) throws VitamException {
         // FIXME : Duplicated code, should be merged in a service or other ?
+        // A : Absolutely
 
         //// get metadata
         JsonNode unit = selectMetadataDocumentRawById(guid, DataCategory.UNIT, mdClient);

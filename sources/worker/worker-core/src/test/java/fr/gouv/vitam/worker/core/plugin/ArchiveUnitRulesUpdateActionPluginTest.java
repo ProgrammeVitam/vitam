@@ -165,7 +165,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
             when(workspaceClient.getObject(any(),
                 eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
-            when(metadataClient.updateUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitUpdated);
+            when(metadataClient.updateUnitById(any(), eq(guidAu))).thenReturn(archiveUnitUpdated);
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
             final ItemStatus response = plugin.execute(params, action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -198,7 +198,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
             when(workspaceClient.getObject(any(),
                 eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
-            when(metadataClient.updateUnitbyId(any(), eq(guidAu))).thenReturn(archiveUnitUpdated);
+            when(metadataClient.updateUnitById(any(), eq(guidAu))).thenReturn(archiveUnitUpdated);
             params.setProcessId(GUIDFactory.newOperationLogbookGUID(0).toString());
             final ItemStatus response = plugin.execute(params, action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -280,7 +280,7 @@ public class ArchiveUnitRulesUpdateActionPluginTest {
                 eq(UpdateWorkflowConstants.UNITS_FOLDER + "/" + guidAu + ".json")))
                 .thenReturn(Response.status(Status.OK).entity(archiveUnitRules).build());
 
-            when(metadataClient.updateUnitbyId(any(), eq(guidAu)))
+            when(metadataClient.updateUnitById(any(), eq(guidAu)))
                 .thenThrow(new InvalidParseOperationException("Bad Request"));
 
             final ItemStatus response2 = plugin.execute(params, action);
