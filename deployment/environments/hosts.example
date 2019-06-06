@@ -354,7 +354,7 @@ primary_site=true
 #environnement=
 
 ### vitam-itest repository ###
-vitam_tests_branch=master
+vitam_tests_branch=master_2.1.x
 vitam_tests_gitrepo_protocol=
 vitam_tests_gitrepo_baseurl=
 vitam_tests_gitrepo_url=
