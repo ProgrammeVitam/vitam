@@ -20,10 +20,19 @@
   package:
     name: vitam-user-vitam
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
+
 - name: install apache web server
   package:
     name: "{{ apache_service }}"
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
 
 
 # TODO : idéalement, Apache ne devrait écouter que sur l'IP d'admin
