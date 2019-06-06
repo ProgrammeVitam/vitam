@@ -24,97 +24,77 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.probativevalue;
+package fr.gouv.vitam.batch.report.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.model.logbook.LogbookEvent;
-import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+public class ReportSummary {
 
+    @JsonProperty("evStartDateTime")
+    private String evStartDateTime;
 
-/**
- * Probative value Parameters
- */
-public class ProbativeParameter {
+    @JsonProperty("evEndDateTime")
+    private String evEndDateTime;
 
-    private String id;
-    private Map<String, ProbativeUsageParameter> usageParameters;
+    @JsonProperty("reportType")
+    private ReportType reportType;
 
-    private List<ProbativeCheckReport> reports;
+    @JsonProperty("vitamResults")
+    private ReportResults vitamResults;
 
-    private String message;
+    @JsonProperty("extendedInfo")
+    private JsonNode extendedInfo;
 
-    private EvidenceStatus evidenceStatus;
-
-    private String evIdAppSession;
-
-    private String agIdApp;
-
-    public String getId() {
-        return id;
+    public ReportSummary() {
+        // Empty constructor for deserialization
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public ReportSummary(String startDate, String endDate, ReportType reportType, ReportResults vitamResults, JsonNode extendedInfo) {
+        this.evStartDateTime = startDate;
+        this.evEndDateTime = endDate;
+        this.reportType = reportType;
+        this.vitamResults = vitamResults;
+        this.extendedInfo = extendedInfo;
     }
 
-    ProbativeParameter( ) {
-        reports = new ArrayList<>();
-        usageParameters = new HashMap<>();
+    public String getEvStartDateTime() {
+        return evStartDateTime;
     }
 
-    public String getMessage() {
-        return message;
+    public void setEvStartDateTime(String evStartDateTime) {
+        this.evStartDateTime = evStartDateTime;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public String getEvEndDateTime() {
+        return evEndDateTime;
     }
 
-    public EvidenceStatus getEvidenceStatus() {
-        return evidenceStatus;
+    public void setEvEndDateTime(String evEndDateTime) {
+        this.evEndDateTime = evEndDateTime;
     }
 
-    public void setEvidenceStatus(EvidenceStatus evidenceStatus) {
-        this.evidenceStatus = evidenceStatus;
+    public ReportType getReportType() {
+        return reportType;
     }
 
-
-    public List<ProbativeCheckReport> getReports() {
-        return reports;
+    public void setReportType(ReportType reportType) {
+        this.reportType = reportType;
     }
 
-    public void setReports(List<ProbativeCheckReport> reports) {
-        this.reports = reports;
+    public ReportResults getVitamResults() {
+        return vitamResults;
     }
 
-    public String getEvIdAppSession() {
-        return evIdAppSession;
+    public void setVitamResults(ReportResults vitamResults) {
+        this.vitamResults = vitamResults;
     }
 
-    public void setEvIdAppSession(String evIdAppSession) {
-        this.evIdAppSession = evIdAppSession;
+    public JsonNode getExtendedInfo() {
+        return extendedInfo;
     }
 
-    public String getAgIdApp() {
-        return agIdApp;
-    }
-
-    public void setAgIdApp(String agIdApp) {
-        this.agIdApp = agIdApp;
-    }
-
-    public Map<String, ProbativeUsageParameter> getUsageParameters() {
-        return usageParameters;
-    }
-
-    public void setUsageParameters(
-        Map<String, ProbativeUsageParameter> usageParameters) {
-        this.usageParameters = usageParameters;
+    public void setExtendedInfo(JsonNode extendedInfo) {
+        this.extendedInfo = extendedInfo;
     }
 }

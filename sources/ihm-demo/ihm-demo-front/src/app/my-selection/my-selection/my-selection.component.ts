@@ -435,7 +435,7 @@ export class MySelectionComponent extends PageComponent {
         }
         break;
       case 'PROBATIVE_VALUE':
-        this.archiveUnitService.probativeValue(query).subscribe(
+        this.archiveUnitService.probativeValue({dslQuery: query, usage: this.form.probativeSelectSource, version: this.form.probativeSelectVersion}).subscribe(
           () => {
             this.displayActionEnded(this.selectedOption, true);
           }, () => {
@@ -454,7 +454,9 @@ export class MySelectionComponent extends PageComponent {
       case 'EXPORT':
       case 'AUDIT':
       case 'DELETE':
+        return;
       case 'PROBATIVE_VALUE':
+        this.form.sourceUsage = ReferentialHelper.preservationLists.DataObjectVersion;
         return;
       case 'ELIMINATION':
         this.form.eliminationMode = false;
@@ -504,8 +506,9 @@ export class MySelectionComponent extends PageComponent {
       case 'EXPORT':
       case 'AUDIT':
       case 'DELETE':
-      case 'PROBATIVE_VALUE':
         return true;
+      case 'PROBATIVE_VALUE':
+        return this.form.probativeSelectSource && this.form.probativeSelectVersion;
       case 'ELIMINATION':
         return this.form.eliminationDate != null;
       case 'MASS_UPDATE':

@@ -171,26 +171,14 @@
     "className": "fr.gouv.vitam.worker.core.plugin.elimination.EliminationActionAccessionRegisterUpdatePlugin",
     "propertiesFile": "elimination_action_update_accession_register.properties"
   },
-  "PROBATIVE_VALUE_LIST_OBJECT": {
-    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValuePrepare"
+  "PROBATIVE_VALUE_CREATE_REPORT": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReport"
   },
-  "PROBATIVE_VALUE_CHECK_OBJECT_GROUP": {
-    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueObjectGroupCheck"
+  "PROBATIVE_VALUE_CREATE_DISTRIBUTION_FILE": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateDistributionFile"
   },
-  "PROBATIVE_VALUE_LIST_SECURED_FILES_TO_DOWNLOAD": {
-    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueListSecuredFiles"
-  },
-  "PROBATIVE_VALUE_EXTRACT_ZIP_FILE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueExtractFromZip"
-  },
-  "PROBATIVE_VALUE_CHECK_MERKLE_TREE": {
-    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueVerifyMerkleTree"
-  },
-  "PROBATIVE_VALUE_PREPARE_GENERATE_REPORTS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueGenerateReports"
-  },
-  "PROBATIVE_VALUE_REPORTS": {
-    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeValueReport"
+  "PROBATIVE_VALUE_CREATE_PROBATIVE_REPORT_ENTRY": {
+    "className": "fr.gouv.vitam.worker.core.plugin.probativevalue.ProbativeCreateReportEntry"
   },
   "PREPARE_UNIT_LFC_TRACEABILITY": {
     "className": "fr.gouv.vitam.worker.core.plugin.lfc_traceability.PrepareUnitLfcTraceabilityActionPlugin",

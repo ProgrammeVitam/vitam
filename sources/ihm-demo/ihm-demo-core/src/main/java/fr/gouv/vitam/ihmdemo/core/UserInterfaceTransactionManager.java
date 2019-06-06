@@ -77,7 +77,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Collections;
 import java.util.Map;
 
 import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
@@ -87,21 +86,15 @@ import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CE
  */
 public class UserInterfaceTransactionManager {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UserInterfaceTransactionManager.class);
-
+    private static final UserInterfaceTransactionManager instance = new UserInterfaceTransactionManager();
     private final AccessExternalClientFactory accessExternalClientFactory;
     private final AdminExternalClientFactory adminExternalClientFactory;
     private final AccessExternalClientV2Factory accessExternalClientV2Factory;
     private final DslQueryHelper dslQueryHelper;
 
-    private static final UserInterfaceTransactionManager instance = new UserInterfaceTransactionManager();
-
     public UserInterfaceTransactionManager() {
         this(AccessExternalClientFactory.getInstance(), AdminExternalClientFactory.getInstance(),
             AccessExternalClientV2Factory.getInstance(), DslQueryHelper.getInstance());
-    }
-
-    public static UserInterfaceTransactionManager getInstance() {
-        return instance;
     }
 
     @VisibleForTesting
@@ -116,11 +109,15 @@ public class UserInterfaceTransactionManager {
         this.dslQueryHelper = dslQueryHelper;
     }
 
+    public static UserInterfaceTransactionManager getInstance() {
+        return instance;
+    }
+
     /**
      * Gets search units result
      *
      * @param parameters search criteria as DSL query
-     * @param context Vitamcontext
+     * @param context    Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
@@ -135,7 +132,7 @@ public class UserInterfaceTransactionManager {
      * Gets search objects result
      *
      * @param parameters search criteria as DSL query
-     * @param context Vitamcontext
+     * @param context    Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
@@ -150,8 +147,8 @@ public class UserInterfaceTransactionManager {
      * Gets archive unit details
      *
      * @param preparedDslQuery search criteria as DSL query
-     * @param unitId archive unit id to find
-     * @param context Vitamcontext
+     * @param unitId           archive unit id to find
+     * @param context          Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
@@ -170,7 +167,7 @@ public class UserInterfaceTransactionManager {
      * Gets archive unit details with inheritedRules
      *
      * @param preparedDslQuery search criteria as DSL query
-     * @param context Vitamcontext
+     * @param context          Vitamcontext
      * @return result
      * @throws VitamClientException access client exception
      */
@@ -186,7 +183,7 @@ public class UserInterfaceTransactionManager {
      * Start elimination analysis
      *
      * @param parameters input for elimination workflow
-     * @param context Vitamcontext
+     * @param context    Vitamcontext
      * @return result    HTTP response
      * @throws VitamClientException VitamClientException
      */
@@ -202,7 +199,7 @@ public class UserInterfaceTransactionManager {
      * Start elimination action
      *
      * @param parameters input for elimination workflow
-     * @param context Vitamcontext
+     * @param context    Vitamcontext
      * @return result    HTTP response
      * @throws VitamClientException
      */
@@ -218,7 +215,7 @@ public class UserInterfaceTransactionManager {
      * Massive AU update
      *
      * @param parameters search criteria as DSL query
-     * @param context Vitamcontext
+     * @param context    Vitamcontext
      * @return result
      * @throws VitamClientException
      */
@@ -233,7 +230,7 @@ public class UserInterfaceTransactionManager {
      * Massive Rules update
      *
      * @param parameters search criteria as DSL query
-     * @param context Vitamcontext
+     * @param context    Vitamcontext
      * @return result
      * @throws VitamClientException
      */
@@ -248,8 +245,8 @@ public class UserInterfaceTransactionManager {
      * Update units result
      *
      * @param parameters search criteria as DSL query
-     * @param unitId unitIdentifier
-     * @param context Vitamcontext
+     * @param unitId     unitIdentifier
+     * @param context    Vitamcontext
      * @return result
      * @throws VitamClientException
      */
@@ -264,8 +261,8 @@ public class UserInterfaceTransactionManager {
      * Retrieve an ObjectGroup as Json data based on the provided ObjectGroup id
      *
      * @param preparedDslQuery the query to be executed
-     * @param objectId the Id of the ObjectGroup
-     * @param context Vitamcontext
+     * @param objectId         the Id of the ObjectGroup
+     * @param context          Vitamcontext
      * @return JsonNode object including DSL queries, context and results
      * @throws VitamClientException if the client encountered an exception
      */
@@ -284,14 +281,14 @@ public class UserInterfaceTransactionManager {
      * Retrieve an Object data as an input stream
      *
      * @param asyncResponse the asynchronous response to be used
-     * @param unitId the Id of the ObjectGroup
-     * @param usage the requested usage
-     * @param version the requested version of the usage
-     * @param filename the name od the file
-     * @param context Vitamcontext
+     * @param unitId        the Id of the ObjectGroup
+     * @param usage         the requested usage
+     * @param version       the requested version of the usage
+     * @param filename      the name od the file
+     * @param context       Vitamcontext
      * @return boolean for test purpose (solve mock issue)
      * @throws UnsupportedEncodingException if unsupported encoding error for input file content
-     * @throws VitamClientException if the client encountered an exception
+     * @throws VitamClientException         if the client encountered an exception
      */
     // TODO: review this return (should theoretically be a void) because we got mock issue with this class on
     // web application resource
@@ -332,10 +329,10 @@ public class UserInterfaceTransactionManager {
 
     /**
      * @param unitLifeCycleId the unit lifecycle id to select
-     * @param context Vitamcontext
+     * @param context         Vitamcontext
      * @return JsonNode result
      * @throws InvalidParseOperationException if json data not well-formed
-     * @throws LogbookClientException if the request with illegal parameter
+     * @throws LogbookClientException         if the request with illegal parameter
      * @throws AccessUnauthorizedException
      */
 
@@ -351,7 +348,7 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param query the select query
+     * @param query   the select query
      * @param context Vitamcontext
      * @return logbook operation result
      * @throws VitamClientException access client exception
@@ -365,7 +362,7 @@ public class UserInterfaceTransactionManager {
 
     /**
      * @param operationId the operation id
-     * @param context Vitamcontext
+     * @param context     Vitamcontext
      * @return logbook operation result
      * @throws VitamClientException
      */
@@ -399,8 +396,8 @@ public class UserInterfaceTransactionManager {
      * @param options for creating query
      * @param context Vitamcontext
      * @return AccessionRegisterSummaryModel result
-     * @throws VitamClientException if the request with illegal parameter
-     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws VitamClientException            if the request with illegal parameter
+     * @throws InvalidParseOperationException  if json data not well-formed
      * @throws InvalidCreateOperationException if error when create query
      */
     public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterSummary(String options,
@@ -419,8 +416,8 @@ public class UserInterfaceTransactionManager {
      * @param options for creating query
      * @param context Vitamcontext
      * @return AccessionRegisterSummaryModel result
-     * @throws VitamClientException if the request with illegal parameter
-     * @throws InvalidParseOperationException if json data not well-formed
+     * @throws VitamClientException            if the request with illegal parameter
+     * @throws InvalidParseOperationException  if json data not well-formed
      * @throws InvalidCreateOperationException if error when create query
      */
     public RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(String options,
@@ -438,14 +435,14 @@ public class UserInterfaceTransactionManager {
     }
 
     /**
-     * @param id the id of accession register
+     * @param id      the id of accession register
      * @param options for creating query
      * @param context Vitamcontext
      * @return JsonNode result
-     * @throws InvalidParseOperationException if json data not well-formed
-     * @throws AccessExternalClientServerException if access internal server error
+     * @throws InvalidParseOperationException        if json data not well-formed
+     * @throws AccessExternalClientServerException   if access internal server error
      * @throws AccessExternalClientNotFoundException if access external resource not found
-     * @throws InvalidCreateOperationException if error when create query
+     * @throws InvalidCreateOperationException       if error when create query
      */
     public RequestResponse<JsonNode> findAccessionRegisterDetail(String id, String options, VitamContext context)
         throws InvalidParseOperationException, AccessExternalClientServerException,
@@ -465,7 +462,7 @@ public class UserInterfaceTransactionManager {
     /**
      * Starts a Verification process based on a given DSLQuery
      *
-     * @param query DSLQuery to execute
+     * @param query   DSLQuery to execute
      * @param context Vitamcontext
      * @return A RequestResponse contains the created logbookOperation for verification process
      * @throws AccessExternalClientServerException
@@ -513,7 +510,7 @@ public class UserInterfaceTransactionManager {
     /**
      * launch Evidance Audit on selected AU
      *
-     * @param query search criteria as DSL query to select AU
+     * @param query   search criteria as DSL query to select AU
      * @param context VitamContext
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
@@ -528,18 +525,14 @@ public class UserInterfaceTransactionManager {
     /**
      * Launch an probative value export for the request
      *
-     * @param query search criteria as DSL query to select AU
+     * @param request probative value request
      * @param context VitamContext
      * @return a JsonNode for dip results
      * @throws VitamClientException access client exception
      */
-    public RequestResponse exportProbativeValue(JsonNode query, VitamContext context)
-        throws VitamClientException {
-
+    public RequestResponse exportProbativeValue(ProbativeValueRequest request, VitamContext context) throws VitamClientException {
         try (AdminExternalClient client = adminExternalClientFactory.getClient()) {
-            ProbativeValueRequest probativeValueRequest =
-                new ProbativeValueRequest(query, Collections.singletonList("BinaryMaster"));
-            return client.exportProbativeValue(context, probativeValueRequest);
+            return client.exportProbativeValue(context, request);
         }
     }
 
@@ -549,10 +542,10 @@ public class UserInterfaceTransactionManager {
      * generate a DIP to be exported
      *
      * @param dipExportRequest search criteria as DSL query
-     * @param context VitamContext
+     * @param context          VitamContext
      * @return a JsonNode for dip results
      * @throws InvalidParseOperationException unable to parse query
-     * @throws VitamClientException access client exception
+     * @throws VitamClientException           access client exception
      */
     public RequestResponse<JsonNode> exportDIP(DipExportRequest dipExportRequest, VitamContext context)
         throws VitamClientException {
@@ -563,8 +556,8 @@ public class UserInterfaceTransactionManager {
 
     /**
      * @param asyncResponse AsyncResponse
-     * @param dipId dip id
-     * @param context vitam context
+     * @param dipId         dip id
+     * @param context       vitam context
      * @return
      * @throws UnsupportedEncodingException
      * @throws VitamClientException

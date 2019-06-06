@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,45 +23,64 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.probativevalue;
-
-import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
-
-/**
- * ProbativeCheckReport class
  */
-class ProbativeCheckReport {
+package fr.gouv.vitam.worker.core.plugin.probativevalue.pojo;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-    String name;
-    String details;
-    EvidenceStatus status;
-    public ProbativeCheckReport() {
+public class ProbativeOperation {
+
+    private final String id;
+    private final String evType;
+    private final String evIdAppSession;
+    private final String rightsStatementIdentifier;
+    private final String agIdApp;
+    private final String evDateTime;
+
+    @JsonCreator
+    public ProbativeOperation(
+        @JsonProperty("id") String id,
+        @JsonProperty("evTypeProc") String evType,
+        @JsonProperty("evIdAppSession") String evIdAppSession,
+        @JsonProperty("rightsStatementIdentifier") String rightsStatementIdentifier,
+        @JsonProperty("agIdApp") String agIdApp,
+        @JsonProperty("evDateTime") String evDateTime) {
+        this.id = id;
+        this.evType = evType;
+        this.evIdAppSession = evIdAppSession;
+        this.rightsStatementIdentifier = rightsStatementIdentifier;
+        this.agIdApp = agIdApp;
+        this.evDateTime = evDateTime;
     }
 
-    public ProbativeCheckReport(EvidenceStatus status, String name, String details) {
-        this.status = status;
-        this.name = name;
-        this.details = details;
+    @JsonProperty("id")
+    public String getId() {
+        return id;
     }
 
-    public ProbativeCheckReport(EvidenceStatus status, String name) {
-        this.status = status;
-        this.name = name;
+    @JsonProperty("evTypeProc")
+    public String getEvType() {
+        return evType;
     }
 
-    public String getName() {
-        return name;
+    @JsonProperty("evIdAppSession")
+    public String getEvIdAppSession() {
+        return evIdAppSession;
     }
 
-    public EvidenceStatus getStatus() {
-        return status;
+    @JsonProperty("rightsStatementIdentifier")
+    public String getRightsStatementIdentifier() {
+        return rightsStatementIdentifier;
     }
 
-    public String getDetails() {
-        return details;
+    @JsonProperty("agIdApp")
+    public String getAgIdApp() {
+        return agIdApp;
     }
 
-
+    @JsonProperty("evDateTime")
+    public String getEvDateTime() {
+        return evDateTime;
+    }
 }

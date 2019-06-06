@@ -1,0 +1,79 @@
+{
+  "id": "EXPORT_PROBATIVE_VALUE",
+  "name": "export probative value",
+  "identifier": "EXPORT_PROBATIVE_VALUE",
+  "typeProc": "AUDIT",
+  "comment": "probative value export",
+  "lifecycleLog": "DISABLED",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PROBATIVE_VALUE_PREPARE",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "PROBATIVE_VALUE_CREATE_DISTRIBUTION_FILE",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PROBATIVE_VALUE_ACTION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "distributionFile.jsonl",
+        "type": "ObjectGroup",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PROBATIVE_VALUE_CREATE_PROBATIVE_REPORT_ENTRY",
+            "behavior": "NOBLOCKING"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_PROBATIVE_VALUE_GENERATE_REPORT",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF",
+        "element": ""
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "PROBATIVE_VALUE_CREATE_REPORT",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

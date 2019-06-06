@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,46 +23,38 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.util.List;
+import java.util.Objects;
 
-/**
- * ProbativeValueRequest class
- */
 public class ProbativeValueRequest {
+    private final JsonNode dslQuery;
+    private final String usage;
+    private final String version;
 
-    @JsonProperty("dslQuery")
-    private JsonNode dslQuery;
-
-    @JsonProperty("usage")
-    private List<String> usages;
-
-    /**
-     * for now hardcoded always Last but could be a number as string
-     */
-    @JsonProperty("version")
-    private String version = "LAST";
-
-    public ProbativeValueRequest(JsonNode dslQuery, List<String> usages) {
-        this.dslQuery = dslQuery;
-        this.usages = usages;
+    @JsonCreator
+    public ProbativeValueRequest(@JsonProperty("dslQuery") JsonNode dslQuery, @JsonProperty("usage") String usage, @JsonProperty("version") String version) {
+        this.dslQuery = Objects.requireNonNull(dslQuery);
+        this.usage = Objects.requireNonNull(usage);
+        this.version = Objects.requireNonNull(version);
     }
 
-    public ProbativeValueRequest() {   }
-
+    @JsonProperty("dslQuery")
     public JsonNode getDslQuery() {
         return dslQuery;
     }
 
-    public List<String> getUsages() {
-        return usages;
+    @JsonProperty("usage")
+    public String getUsage() {
+        return usage;
     }
 
+    @JsonProperty("version")
     public String getVersion() {
         return version;
     }

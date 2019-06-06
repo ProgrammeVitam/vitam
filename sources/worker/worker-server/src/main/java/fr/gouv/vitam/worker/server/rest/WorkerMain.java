@@ -42,10 +42,12 @@ import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.worker.server.registration.WorkerRegistrationListener;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import javax.servlet.ServletContextListener;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,6 +92,12 @@ public class WorkerMain {
                 throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
                         CONF_FILE_NAME));
             }
+
+            if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+                BouncyCastleProvider provider = new BouncyCastleProvider();
+                Security.addProvider(provider);
+            }
+
             WorkerMain main = new WorkerMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(args[0])) {

@@ -215,6 +215,10 @@ public class TraceabilityEvent {
         return timeStampToken;
     }
 
+    public void setTimeStampToken(byte[] timeStampToken) {
+        this.timeStampToken = timeStampToken;
+    }
+
     /**
      * @return log type
      */

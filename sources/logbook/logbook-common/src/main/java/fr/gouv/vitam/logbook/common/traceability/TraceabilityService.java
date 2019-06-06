@@ -27,18 +27,9 @@
 
 package fr.gouv.vitam.logbook.common.traceability;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
-import org.apache.commons.compress.archivers.ArchiveException;
-
 import fr.gouv.vitam.common.BaseXx;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.TimeStampException;
@@ -51,6 +42,13 @@ import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.logbook.common.exception.TraceabilityException;
 import fr.gouv.vitam.logbook.common.model.TraceabilityEvent;
 import fr.gouv.vitam.logbook.common.model.TraceabilityFile;
+import fr.gouv.vitam.logbook.common.model.TraceabilityStatistics;
+import org.apache.commons.compress.archivers.ArchiveException;
+
+import java.io.File;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * Service used to make the generic traceability algo.
@@ -198,22 +196,10 @@ public class TraceabilityService {
 
     private byte[] generateTimeStampToken(byte[] rootHash, byte[] hash1, byte[] hash2, byte[] hash3)
         throws TraceabilityException {
-
         try {
-            final DigestType digestType = VitamConfiguration.getDefaultTimestampDigestType();
-
-            final Digest digest = new Digest(digestType);
-            digest.update(rootHash);
-            if (hash1 != null) {
-                digest.update(hash1);
-            }
-            if (hash2 != null) {
-                digest.update(hash2);
-            }
-            if (hash3 != null) {
-                digest.update(hash3);
-            }
-            final byte[] hashDigest = digest.digest();
+            TimeStampService timeStampService = new TimeStampService();
+            byte[] hashDigest = timeStampService.getDigestFrom(rootHash, hash1, hash2, hash3);
+            DigestType digestType = timeStampService.getDigestType();
 
             // TODO maybe nonce could be different than null ? If so, think about changing VerifyTimeStampActionHandler
             final byte[] timeStampToken = timestampGenerator.generateToken(hashDigest, digestType, null);

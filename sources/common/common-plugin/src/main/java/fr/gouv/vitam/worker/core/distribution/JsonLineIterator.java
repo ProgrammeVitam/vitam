@@ -37,6 +37,11 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+/**
+ *
+ * @deprecated Use JsonLineGenericIterator instead.
+ */
+@Deprecated
 public class JsonLineIterator implements CloseableIterator<JsonLineModel> {
 
     private final BufferedReader bufferedReader;

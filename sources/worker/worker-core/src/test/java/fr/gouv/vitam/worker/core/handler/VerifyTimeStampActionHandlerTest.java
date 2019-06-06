@@ -51,6 +51,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -65,9 +66,13 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.InputStream;
+import java.security.Security;
 import java.util.ArrayList;
 import java.util.List;
 
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_COMPUTING_INFORMATION;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_MERKLE_TREE;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.OperationTraceabilityFiles.TRACEABILITY_TOKEN;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,6 +85,8 @@ public class VerifyTimeStampActionHandlerTest {
     private static final String DETAIL_EVENT_TRACEABILITY = "VerifyTimeStamp/EVENT_DETAIL_DATA.json";
 
     private static final String TOKEN = "VerifyTimeStamp/token.tsp";
+    private static final String COMPUTING_FILE = "VerifyTimeStamp/computing_information.txt";
+    private static final String MERKLE_FILE = "VerifyTimeStamp/merkleTree.json";
 
     private static final String TOKEN_FAKE = "VerifyTimeStamp/token_fake.tsp";
 
@@ -117,6 +124,11 @@ public class VerifyTimeStampActionHandlerTest {
     @Before
     public void setUp() throws Exception {
 
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            BouncyCastleProvider provider = new BouncyCastleProvider();
+            Security.addProvider(provider);
+        }
+
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
@@ -133,6 +145,7 @@ public class VerifyTimeStampActionHandlerTest {
         handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
             Lists.newArrayList(objectId));
         handlerIO.setCurrentObjectId(objectId);
+
     }
 
     @After
@@ -156,11 +169,12 @@ public class VerifyTimeStampActionHandlerTest {
         verifyTimeStampActionHandler = new VerifyTimeStampActionHandler();
 
         final InputStream tokenFile = PropertiesUtils.getResourceAsStream(TOKEN);
+        final InputStream computingInformationFile = PropertiesUtils.getResourceAsStream(COMPUTING_FILE);
+        final InputStream merkleFile = PropertiesUtils.getResourceAsStream(MERKLE_FILE);
 
-
-        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" +
-            "token.tsp")))
-            .thenReturn(Response.status(Status.OK).entity(tokenFile).build());
+        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_TOKEN))).thenReturn(Response.status(Status.OK).entity(tokenFile).build());
+        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_COMPUTING_INFORMATION))).thenReturn(Response.status(Status.OK).entity(computingInformationFile).build());
+        when(workspaceClient.getObject(any(), eq(SedaConstants.TRACEABILITY_OPERATION_DIRECTORY + "/" + TRACEABILITY_MERKLE_TREE))).thenReturn(Response.status(Status.OK).entity(merkleFile).build());
 
         final ItemStatus response = verifyTimeStampActionHandler.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());

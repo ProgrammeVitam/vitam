@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,24 +23,23 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.logbook;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Objects;
 
 /**
  * Logbook operation event model
  */
 public class LogbookEventOperation extends LogbookEvent {
 
-
     @JsonProperty("evIdReq")
     private String evIdReq;
 
     @JsonProperty("agIdExt")
     private String agIdExt;
-
-
 
     @JsonProperty("obIdReq")
     private String obIdReq;
@@ -113,6 +112,21 @@ public class LogbookEventOperation extends LogbookEvent {
         this.obIdIn = obIdIn;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        LogbookEventOperation that = (LogbookEventOperation) o;
+        return Objects.equals(evIdReq, that.evIdReq) &&
+            Objects.equals(agIdExt, that.agIdExt) &&
+            Objects.equals(obIdReq, that.obIdReq) &&
+            Objects.equals(obIdIn, that.obIdIn);
+    }
 
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(evIdReq, agIdExt, obIdReq, obIdIn);
+    }
 }
