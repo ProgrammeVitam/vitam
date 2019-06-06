@@ -7,7 +7,7 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.metadata.api.MetaData;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -34,7 +34,7 @@ public class MetadataRuleServiceTest {
     public void selectUnitsWithInheritedRules_invalidProjectionV1() throws Exception {
 
         ComputeInheritedRuleService computeInheritedRuleService = mock(ComputeInheritedRuleService.class);
-        MetaData metadata = mock(MetaData.class);
+        MetaDataImpl metadata = mock(MetaDataImpl.class);
 
         MetadataRuleService instance = new MetadataRuleService(computeInheritedRuleService, metadata);
 
@@ -52,7 +52,7 @@ public class MetadataRuleServiceTest {
 
         // Given
         ComputeInheritedRuleService computeInheritedRuleService = mock(ComputeInheritedRuleService.class);
-        MetaData metadata = mock(MetaData.class);
+        MetaDataImpl metadata = mock(MetaDataImpl.class);
 
         when(metadata.selectUnitsByQuery((any()))).thenReturn(
             responseFromResource("MetadataRuleService/responseSelectUnits.json"),

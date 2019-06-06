@@ -1,5 +1,10 @@
 workspaceUrl: {{vitam.workspace | client_url}}
 
+
+# Ontology cache settings
+ontologyCacheMaxEntries: {{ vitam.metadata.ontologyCacheMaxEntries | default(100) }}
+ontologyCacheTimeoutInSeconds: {{ vitam.metadata.ontologyCacheTimeoutInSeconds | default(300) }}
+
 # Configuration MongoDB
 mongoDbNodes:
 {% for server in groups['hosts-mongos-data'] %}

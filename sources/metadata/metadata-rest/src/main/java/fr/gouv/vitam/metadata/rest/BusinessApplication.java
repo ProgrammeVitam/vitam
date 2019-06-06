@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.security.waf.SanityCheckerCommonFilter;
 import fr.gouv.vitam.common.security.waf.SanityDynamicFeature;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
@@ -80,7 +79,9 @@ public class BusinessApplication extends Application {
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
-            MetaData metadata = MetaDataImpl.newMetadata(mongoAccessMetadata);
+            MetaDataImpl metadata = MetaDataImpl.newMetadata(mongoAccessMetadata,
+                metaDataConfiguration.getOntologyCacheMaxEntries(),
+                metaDataConfiguration.getOntologyCacheTimeoutInSeconds());
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 

@@ -26,7 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.impl.VitamElasticsearchRepository;
@@ -223,7 +222,7 @@ public class MongoDbAccessMetadataImplTest {
                 esClient, tenantList);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300);
 
         final String operationId = "1234";
         ArrayList<Document> units = Lists.newArrayList(
@@ -293,7 +292,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300);
         initGotsForAccessionRegisterTest("/got_1_sp1.json", "/got_2_sp1.json", "/got_3_sp2.json",
                 "/got_4_sp1_sp2.json");
 
@@ -325,7 +324,7 @@ public class MongoDbAccessMetadataImplTest {
                 mongoRule.getMongoDatabase().getName(), false, esClient, tenantList);
 
         // Given
-        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess);
+        final MetaDataImpl metaData = new MetaDataImpl(mongoDbAccess, 100, 300);
         final String operationId = "aedqaaaaacgbcaacaar3kak4tr2o3wqaaaaq";
         initGotsForAccessionRegisterTest("/object_sp1_1.json", "/object_sp1_sp2_2.json", "/object_sp2.json", "/object_sp2_4.json", "/object_other_operation_id.json"); 
         
@@ -383,7 +382,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300
         );
 
         // When
@@ -416,7 +415,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300
         );
 
         // When
@@ -464,7 +463,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300
         );
 
         // When
@@ -511,7 +510,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300
         );
 
         // When
@@ -559,7 +558,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300
         );
 
         // When
@@ -600,7 +599,7 @@ public class MongoDbAccessMetadataImplTest {
                 true,
                 client,
                 tenantList
-            )
+            ), 100, 300
         );
 
         // When

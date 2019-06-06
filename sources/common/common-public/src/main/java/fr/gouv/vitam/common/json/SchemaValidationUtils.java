@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.model.administration.OntologyModel;
 import org.apache.commons.lang3.BooleanUtils;
 
 import java.io.FileNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -150,11 +151,6 @@ public class SchemaValidationUtils {
      * schemaValidation
      */
     public static final String TAG_SCHEMA_VALIDATION = "schemaValidation";
-
-    /**
-     * schemaValidation
-     */
-    public static final String TAG_ONTOLOGY_FIELDS = "ontologyFields";
     /**
      * ontology.schema
      */
@@ -512,13 +508,13 @@ public class SchemaValidationUtils {
         List<String> errors) {
         Iterator<Entry<String, JsonNode>> iterator = node.fields();
         while (iterator.hasNext()) {
-            verifyLine(node, ontologyModelMap, errors, iterator);
+            Entry<String, JsonNode> entry = iterator.next();
+            verifyLine(node, ontologyModelMap, errors, entry);
         }
     }
 
     private void verifyLine(JsonNode node, Map<String, OntologyModel> ontologyModelMap, List<String> errors,
-        Iterator<Entry<String, JsonNode>> iterator) {
-        final Entry<String, JsonNode> entry = iterator.next();
+        Entry<String, JsonNode> entry) {
         String fieldName = entry.getKey();
 
         OntologyModel ontology = ontologyModelMap.get(fieldName);
@@ -593,20 +589,19 @@ public class SchemaValidationUtils {
         // In case where no ontology is provided
         if (null == ontologyModel) {
             return validateValueLength(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
-                "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length 32766");
-
+                "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length " + VitamConfiguration.getTextMaxLength());
         }
 
         switch (ontologyModel.getType()) {
             case TEXT:
                 return validateValueLength(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
-                    "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length 32766");
+                    "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length " + VitamConfiguration.getTextMaxLength());
             case GEO_POINT:
             case ENUM:
             case KEYWORD:
                 return validateValueLength(fieldName, fieldValueNode,
                     VitamConfiguration.getKeywordMaxLength(),
-                    "Not accepted value for the Keyword field (%s) whose UTF8 encoding is longer than the max length 32766");
+                    "Not accepted value for the Keyword field (%s) whose UTF8 encoding is longer than the max length " + VitamConfiguration.getTextMaxLength());
 
             case DOUBLE:
                 return new DoubleNode(Double.parseDouble(fieldValueNode.asText()));
@@ -615,12 +610,10 @@ public class SchemaValidationUtils {
             case LONG:
                 return new LongNode(Long.parseLong(fieldValueNode.asText()));
             case BOOLEAN:
-                return BooleanNode
-                    .valueOf(
-                        BooleanUtils.toBoolean(fieldValueNode.asText().toLowerCase(), TRUE.asText(), FALSE.asText()));
+                return BooleanNode.valueOf(
+                        BooleanUtils.toBoolean(fieldValueNode.asText().toLowerCase(), "true", "false"));
             default:
-                LOGGER.warn(String.format("Not implemented for type %s", fieldValueNode.asText()));
-                throw new IllegalArgumentException(
+                throw new IllegalStateException(
                     String.format("Not implemented for type %s", fieldValueNode.asText()));
         }
     }

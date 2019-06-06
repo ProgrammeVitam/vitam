@@ -118,7 +118,7 @@ public class UnitMetadataRulesUpdateCheckConsistency extends ActionHandler {
         // FIXME: Use in/out in order to transfer json from a step to another ?
         JsonNode queryActions = handler.getJsonFromWorkspace("actions.json");
         if (JsonHandler.isNullOrEmpty(queryActions)) {
-            itemStatus.increment(StatusCode.OK);
+            itemStatus.increment(StatusCode.KO);
             return new ItemStatus(UNIT_METADATA_CHECK_CONSISTENCY)
                 .setItemsStatus(UNIT_METADATA_CHECK_CONSISTENCY, itemStatus);
         }

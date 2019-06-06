@@ -63,71 +63,80 @@ public class RuleCategoryAction {
         return rules == null ? new ArrayList<>() : rules;
     }
 
-    public void setRules(List<RuleAction> rules) {
+    public RuleCategoryAction setRules(List<RuleAction> rules) {
         this.rules = rules;
+        return this;
     }
 
     public String getFinalAction() {
         return finalAction;
     }
 
-    public void setFinalAction(String finalAction) {
+    public RuleCategoryAction setFinalAction(String finalAction) {
         this.finalAction = finalAction;
+        return this;
     }
 
     public Boolean getPreventInheritance() {
         return preventInheritance;
     }
 
-    public void setPreventInheritance(Boolean preventInheritance) {
+    public RuleCategoryAction setPreventInheritance(Boolean preventInheritance) {
         this.preventInheritance = preventInheritance;
+        return this;
     }
 
     public Set<String> getPreventRulesId() {
         return preventRulesId;
     }
 
-    public void setPreventRulesId(Set<String> preventRulesId) {
+    public RuleCategoryAction setPreventRulesId(Set<String> preventRulesId) {
         this.preventRulesId = preventRulesId;
+        return this;
     }
 
     public String getClassificationLevel() {
         return classificationLevel;
     }
 
-    public void setClassificationLevel(String classificationLevel) {
+    public RuleCategoryAction setClassificationLevel(String classificationLevel) {
         this.classificationLevel = classificationLevel;
+        return this;
     }
 
     public String getClassificationOwner() {
         return classificationOwner;
     }
 
-    public void setClassificationOwner(String classificationOwner) {
+    public RuleCategoryAction setClassificationOwner(String classificationOwner) {
         this.classificationOwner = classificationOwner;
+        return this;
     }
 
     public String getClassificationAudience() {
         return classificationAudience;
     }
 
-    public void setClassificationAudience(String classificationAudience) {
+    public RuleCategoryAction setClassificationAudience(String classificationAudience) {
         this.classificationAudience = classificationAudience;
+        return this;
     }
 
     public String getClassificationReassessingDate() {
         return classificationReassessingDate;
     }
 
-    public void setClassificationReassessingDate(String classificationReassessingDate) {
+    public RuleCategoryAction setClassificationReassessingDate(String classificationReassessingDate) {
         this.classificationReassessingDate = classificationReassessingDate;
+        return this;
     }
 
     public Boolean getNeedReassessingAuthorization() {
         return needReassessingAuthorization;
     }
 
-    public void setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
+    public RuleCategoryAction setNeedReassessingAuthorization(Boolean needReassessingAuthorization) {
         this.needReassessingAuthorization = needReassessingAuthorization;
+        return this;
     }
 }

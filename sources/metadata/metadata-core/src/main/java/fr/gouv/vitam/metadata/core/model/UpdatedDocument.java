@@ -1,4 +1,4 @@
-/**
+/*******************************************************************************
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,70 +23,57 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- */
-package fr.gouv.vitam.common.model.massupdate;
+ *******************************************************************************/
+package fr.gouv.vitam.metadata.core.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.json.JsonHandler;
 
-public class RuleAction {
+public class UpdatedDocument {
 
-    @JsonProperty("OldRule")
-    private String oldRule;
-    
-    @JsonProperty("Rule")
-    private String rule;
+    private String documentId;
+    private JsonNode beforeUpdate;
+    private JsonNode afterUpdate;
 
-    @JsonProperty("StartDate")
-    private String startDate;
-
-    @JsonProperty("EndDate")
-    private String endDate;
-
-    @JsonProperty("DeleteStartDate")
-    private Boolean deleteStartDate;
-
-    public String getOldRule() {
-        return oldRule;
+    public UpdatedDocument() {
+        // Empty constructor for deserialization
     }
 
-    public RuleAction setOldRule(String oldRule) {
-        this.oldRule = oldRule;
+    public UpdatedDocument(String documentId, JsonNode beforeUpdate, JsonNode afterUpdate) {
+        this.documentId = documentId;
+        this.beforeUpdate = beforeUpdate;
+        this.afterUpdate = afterUpdate;
+    }
+
+    public String getDocumentId() {
+        return documentId;
+    }
+
+    public UpdatedDocument setDocumentId(String documentId) {
+        this.documentId = documentId;
         return this;
     }
 
-    public String getRule() {
-        return rule;
+    public JsonNode getBeforeUpdate() {
+        return beforeUpdate;
     }
 
-    public RuleAction setRule(String rule) {
-        this.rule = rule;
+    public UpdatedDocument setBeforeUpdate(JsonNode beforeUpdate) {
+        this.beforeUpdate = beforeUpdate;
         return this;
     }
 
-    public String getStartDate() {
-        return startDate;
+    public JsonNode getAfterUpdate() {
+        return afterUpdate;
     }
 
-    public RuleAction setStartDate(String startDate) {
-        this.startDate = startDate;
+    public UpdatedDocument setAfterUpdate(JsonNode afterUpdate) {
+        this.afterUpdate = afterUpdate;
         return this;
     }
 
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public RuleAction setEndDate(String endDate) {
-        this.endDate = endDate;
-        return this;
-    }
-
-    public Boolean isDeleteStartDate() {
-        return deleteStartDate;
-    }
-
-    public RuleAction setDeleteStartDate(Boolean deleteStartDate) {
-        this.deleteStartDate = deleteStartDate;
-        return this;
+    @Override
+    public String toString() {
+        return JsonHandler.prettyPrint(this);
     }
 }

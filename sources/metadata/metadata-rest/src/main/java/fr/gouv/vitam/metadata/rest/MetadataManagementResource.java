@@ -41,8 +41,8 @@ import fr.gouv.vitam.common.model.GraphComputeResponse.GraphComputeAction;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.security.rest.VitamAuthentication;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.metadata.api.MetaData;
 import fr.gouv.vitam.metadata.api.model.ReclassificationChildNodeExportRequest;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.GraphComputeServiceImpl;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
@@ -116,7 +116,7 @@ public class MetadataManagementResource {
      * @param offsetRepository
      */
     public MetadataManagementResource(VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository, MetaData metadata) {
+        OffsetRepository offsetRepository, MetaDataImpl metadata) {
         this(new ReconstructionService(vitamRepositoryProvider, offsetRepository),
             new StoreGraphService(vitamRepositoryProvider),
             GraphComputeServiceImpl.initialize(vitamRepositoryProvider, metadata),

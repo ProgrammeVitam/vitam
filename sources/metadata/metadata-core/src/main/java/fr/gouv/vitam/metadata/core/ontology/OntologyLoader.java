@@ -24,55 +24,63 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.access.internal.core;
+package fr.gouv.vitam.metadata.core.ontology;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
-import fr.gouv.vitam.common.database.builder.query.action.Action;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 
-public class OntologyUtils {
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyUtils.class);
+public class OntologyLoader {
 
+    private final AdminManagementClientFactory adminManagementClientFactory;
+    private final LoadingCache<String, List<OntologyModel>> ongologyCache;
 
-    /**
-     * Add ontology's fields to be checked when executing the update.
-     * This is done by adding a transient Action to the update query that contains the list of ontologies.
-     * The transient action is removed by the executor of the Action (DBRequest)
-     *
-     * @param updateParser The parser containing the update Query
-     * @throws InvalidCreateOperationException
-     * @throws AdminManagementClientServerException
-     * @throws InvalidParseOperationException
-     */
-    public static void addOntologyFieldsToBeUpdated(UpdateParserMultiple updateParser)
-        throws InvalidCreateOperationException, AdminManagementClientServerException,
-        InvalidParseOperationException {
-        UpdateMultiQuery request = updateParser.getRequest();
-        Select selectOntologies = new Select();
-        List<OntologyModel> ontologyModelList;
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+    public OntologyLoader(
+        AdminManagementClientFactory adminManagementClientFactory, int maxEntriesInCache, int cacheTimeoutInSeconds) {
+
+        this.adminManagementClientFactory = adminManagementClientFactory;
+        CacheBuilder<Object, Object> objectObjectCacheBuilder = CacheBuilder.newBuilder();
+        objectObjectCacheBuilder.maximumSize(maxEntriesInCache);
+        objectObjectCacheBuilder.expireAfterAccess(cacheTimeoutInSeconds, TimeUnit.SECONDS);
+        objectObjectCacheBuilder.weakValues();// Max entries in cache
+        // Access timeout
+        this.ongologyCache = objectObjectCacheBuilder // Okay to GC
+            .build(new CacheLoader<String, List<OntologyModel>>() {
+                @Override
+                public List<OntologyModel> load(String key) {
+                    return loadOntologiesFromAdminManagement();
+                }
+            });
+    }
+
+    public List<OntologyModel> loadOntologies() {
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+        return this.ongologyCache.getUnchecked(requestId);
+    }
+
+    private List<OntologyModel> loadOntologiesFromAdminManagement() {
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
+            Select selectOntologies = new Select();
             selectOntologies.setQuery(
                 QueryHelper.in(OntologyModel.TAG_COLLECTIONS, MetadataType.UNIT.getName())
             );
@@ -86,19 +94,14 @@ public class OntologyUtils {
                 .setProjection(JsonHandler.toJsonNode(queryProjection));
             RequestResponse<OntologyModel> responseOntologies =
                 adminClient.findOntologies(selectOntologies.getFinalSelect());
-            if (responseOntologies.isOk() &&
-                ((RequestResponseOK<OntologyModel>) responseOntologies).getResults().size() > 0) {
-                ontologyModelList =
-                    ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
-            } else {
-                // no external ontology, nothing to do
-                return;
+            if (!responseOntologies.isOk()) {
+                throw new VitamRuntimeException("Could not load ontologies");
             }
 
-            Action action =
-                new SetAction(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS,
-                    JsonHandler.unprettyPrint(ontologyModelList));
-            request.addActions(action);
+            return ((RequestResponseOK<OntologyModel>) responseOntologies).getResults();
+        } catch (InvalidParseOperationException | AdminManagementClientServerException | InvalidCreateOperationException e) {
+            throw new VitamRuntimeException("Could not load ontologies", e);
         }
     }
+
 }

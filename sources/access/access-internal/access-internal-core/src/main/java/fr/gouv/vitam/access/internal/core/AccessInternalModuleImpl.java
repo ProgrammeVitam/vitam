@@ -589,7 +589,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     }
 
     @Override
-    public JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
+    public JsonNode updateUnitById(JsonNode queryJson, String idUnit, String requestId)
         throws MetaDataNotFoundException, IllegalArgumentException, InvalidParseOperationException,
         AccessInternalExecutionException, UpdatePermissionException, AccessInternalRuleExecutionException {
         LogbookOperationParameters logbookOpStpParamStart;
@@ -663,14 +663,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
 
             try {
-                OntologyUtils.addOntologyFieldsToBeUpdated((UpdateParserMultiple) parser);
-            } catch (AdminManagementClientServerException | InvalidCreateOperationException |
-                InvalidParseOperationException e) {
-                LOGGER.error(e);
-                throw new AccessInternalExecutionException("Error while adding ontology information", e);
-            }
-
-            try {
                 queryJson = ((UpdateParserMultiple) parser).getRequest()
                     .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
                     .getFinalUpdate();
@@ -683,7 +675,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             /** Update: Indexation task **/
             stepMetadataUpdate = false;
             // call update
-            jsonNode = metaDataClient.updateUnitbyId(queryJson, idUnit);
+            jsonNode = metaDataClient.updateUnitById(queryJson, idUnit);
 
 
             // update logbook TASK INDEXATION
@@ -1796,7 +1788,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         }
 
         UpdateMultiQuery request = updateParser.getRequest();
-        List<Action> actions = new ArrayList<Action>(request.getActions());
+        List<Action> actions = new ArrayList<>(request.getActions());
         Iterator<Action> iterator = actions.iterator();
         while (iterator.hasNext()) {
             Action action = iterator.next();
@@ -1810,7 +1802,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                         String archiveUnitProfileIdentifier =
                             object.get(field).isArray() ? object.get(field).get(0).asText()
                                 : object.get(field).asText();
-                        object.get(field);
                         if (archiveUnitProfileIdentifier != null && !archiveUnitProfileIdentifier.isEmpty()) {
                             addActionAUProfileSchema(archiveUnitProfileIdentifier, request);
                         }
@@ -1854,11 +1845,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             } else {
                 throw new ArchiveUnitProfileNotFoundException(DT_NO_EXTISTING);
             }
-        } catch (AdminManagementClientServerException | InvalidParseOperationException |
-            InvalidCreateOperationException e) {
-            // AUP select could not be executed
-            LOGGER.error(e);
-            throw e;
         }
     }
 

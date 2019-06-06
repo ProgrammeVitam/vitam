@@ -81,7 +81,7 @@ public interface AccessInternalModule {
      * @throws IllegalArgumentException Throw if error occurs when checking argument
      * @throws MetaDataNotFoundException Throw if unit is not found
      */
-    JsonNode updateUnitbyId(JsonNode queryJson, String idUnit, String requestId)
+    JsonNode updateUnitById(JsonNode queryJson, String idUnit, String requestId)
         throws MetaDataNotFoundException, InvalidParseOperationException, AccessInternalExecutionException,
         IllegalArgumentException, UpdatePermissionException, AccessInternalRuleExecutionException;
 

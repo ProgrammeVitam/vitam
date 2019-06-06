@@ -29,6 +29,7 @@
  */
 package fr.gouv.vitam.metadata.core.database.collections;
 
+import com.amazonaws.util.CollectionUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
@@ -72,7 +73,6 @@ import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.database.translators.mongodb.QueryToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
-import fr.gouv.vitam.common.database.translators.mongodb.UpdateToMongodb;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.BadRequestException;
@@ -102,9 +102,9 @@ import fr.gouv.vitam.functional.administration.common.exception.AdminManagementC
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.exception.MetadataInvalidUpdateException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
+import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
 import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
 import org.apache.commons.lang.StringUtils;
@@ -119,7 +119,6 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -165,16 +164,18 @@ public class DbRequest {
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
-
-    private MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
+    private final MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
+    private final AdminManagementClientFactory adminManagementClientFactory;
 
     private ChangesTrigger changesTrigger = null;
 
     @VisibleForTesting
     DbRequest(MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
-        MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository) {
+        MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository,
+        AdminManagementClientFactory adminManagementClientFactory) {
         this.mongoDbUnitRepository = mongoDbUnitRepository;
         this.mongoDbObjectGroupRepository = mongoDbObjectGroupRepository;
+        this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     /**
@@ -184,7 +185,8 @@ public class DbRequest {
     public DbRequest() {
         this(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()));
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            AdminManagementClientFactory.getInstance());
     }
 
     /**
@@ -192,7 +194,8 @@ public class DbRequest {
      */
     public DbRequest(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
         this(new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()));
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            AdminManagementClientFactory.getInstance());
         this.changesTrigger = new ChangesTrigger(fileNameTriggersConfig);
     }
 
@@ -201,17 +204,17 @@ public class DbRequest {
      *
      * @param documentId the unitId
      * @param ruleActions the list of ruleAction (by category)
-     * @return the result
+     * @param ontologyModels
      */
-    public Result execRuleRequest(final String documentId, final RuleActions ruleActions,
-        Map<String, DurationData> bindRuleToDuration)
+    public UpdatedDocument execRuleRequest(final String documentId, final RuleActions ruleActions,
+        Map<String, DurationData> bindRuleToDuration,
+        List<OntologyModel> ontologyModels)
         throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException,
         ArchiveUnitOntologyValidationException,
-        InvalidCreateOperationException {
+        InvalidCreateOperationException, MetaDataNotFoundException {
 
         final Integer tenantId = ParameterHelper.getTenantParameter();
 
-        MongoCollection<MetadataDocument<?>> collection = MetadataCollections.UNIT.getCollection();
 
         SchemaValidationUtils validator;
         try {
@@ -225,10 +228,13 @@ public class DbRequest {
 
         while (tries < 3) {
 
-            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, Collections.singletonList(documentId));
-            MetadataDocument<?> document = collection.find(roots).first();
+            MongoCollection<MetadataDocument<?>> collection = MetadataCollections.UNIT.getCollection();
+            MetadataDocument<?> document = collection.find(and(
+                eq(MetadataDocument.ID, documentId),
+                eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            )).first();
             if (document == null) {
-                throw new MetaDataExecutionException("Document not found by id " + documentId);
+                throw new MetaDataNotFoundException("Document not found by id " + documentId);
             }
 
             final JsonNode jsonDocument = JsonHandler.toJsonNode(document);
@@ -250,22 +256,21 @@ public class DbRequest {
             // Update rules
             final ObjectNode updatedJsonDocument =
                 (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
-            Unit updatedDocument = new Unit(updatedJsonDocument);
 
             Integer documentVersion = document.getVersion();
             int newDocumentVersion = documentVersion + 1;
             Integer atomicVersion = document.getAtomicVersion();
             int newAtomicVersion = atomicVersion == null ? newDocumentVersion : atomicVersion + 1;
 
-            updatedDocument.put(VitamDocument.VERSION, newDocumentVersion);
+            updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);
             updatedJsonDocument.put(MetadataDocument.ATOMIC_VERSION, newAtomicVersion);
+
+            Unit updatedDocument = new Unit(updatedJsonDocument);
 
             JsonNode aupSchemaIdNode =
                 updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-            JsonNode ontologyFields =
-                updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
-            if (ontologyFields != null && ontologyFields.size() > 0) {
-                validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
+            if (!ontologyModels.isEmpty()) {
+                validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
             }
             SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
 
@@ -289,23 +294,22 @@ public class DbRequest {
             // Make Update
             final Bson condition;
             if (atomicVersion == null) {
-                condition = and(eq(MetadataDocument.ID, documentId),
+                condition = and(
+                    eq(MetadataDocument.ID, documentId),
+                    eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
                     exists(MetadataDocument.ATOMIC_VERSION, false));
             } else {
-                condition = and(eq(MetadataDocument.ID, documentId),
+                condition = and(
+                    eq(MetadataDocument.ID, documentId),
+                    eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
                     eq(MetadataDocument.ATOMIC_VERSION, atomicVersion));
             }
 
             LOGGER.debug("DEBUG update {}", updatedJsonDocument);
             UpdateResult result = collection.replaceOne(condition, updatedDocument);
             if (result.getModifiedCount() == 1) {
-
                 indexFieldsUpdated(updatedDocument, tenantId);
-
-                Result<MetadataDocument<?>> last =
-                    new ResultDefault(FILTERARGS.UNITS, Collections.singletonList(documentId));
-                last.setTotal(last.getNbResult());
-                return last;
+                return new UpdatedDocument(documentId, jsonDocument, JsonHandler.toJsonNode(updatedDocument));
             }
             tries++;
         }
@@ -316,7 +320,7 @@ public class DbRequest {
     private JsonNode extractAUPSchema(String archiveUnitProfileIdentifier)
         throws MetaDataExecutionException {
 
-        try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
+        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
             RequestResponse<ArchiveUnitProfileModel> response =
@@ -351,7 +355,7 @@ public class DbRequest {
      * @throws BadRequestException
      */
     public Result execRequest(final RequestParserMultiple requestParser)
-        throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
+        throws MetaDataExecutionException,
         InvalidParseOperationException, BadRequestException,
         VitamDBException {
         final RequestMultiple request = requestParser.getRequest();
@@ -428,13 +432,7 @@ public class DbRequest {
                 .addError(WHERE_PREVIOUS_RESULT_WAS + result);
             return result;
         }
-        if (request instanceof UpdateMultiQuery) {
-            final Result<MetadataDocument<?>> newResult =
-                lastUpdateFilterProjection((UpdateToMongodb) requestToMongodb, result, requestParser);
-            if (newResult != null) {
-                result = newResult;
-            }
-        } else if (request instanceof DeleteMultiQuery) {
+        if (request instanceof DeleteMultiQuery) {
             final Result<MetadataDocument<?>> newResult =
                 lastDeleteFilterProjection((DeleteToMongodb) requestToMongodb, result);
             if (newResult != null) {
@@ -457,6 +455,18 @@ public class DbRequest {
         return result;
     }
 
+    public UpdatedDocument execUpdateRequest(final RequestParserMultiple requestParser, String documentId,
+        List<OntologyModel> ontologyModels, MetadataCollections metadataCollection)
+        throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
+        InvalidParseOperationException, MetaDataNotFoundException {
+
+        final UpdatedDocument result =
+            updateDocumentWithRetries(documentId, requestParser, ontologyModels, metadataCollection);
+        if (GlobalDatasDb.PRINT_REQUEST) {
+            LOGGER.debug("Results: {}", result);
+        }
+        return result;
+    }
 
     /**
      * Check Unit at startup against Roots
@@ -465,7 +475,7 @@ public class DbRequest {
      *
      * @return the valid root ids
      */
-    protected Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request) {
+    private Result<MetadataDocument<?>> checkUnitStartupRoots(final RequestParserMultiple request) {
         final Set<String> roots = request.getRequest().getRoots();
         if (roots.isEmpty()) {
             return MongoDbMetadataHelper.createOneResult(FILTERARGS.UNITS);
@@ -480,7 +490,7 @@ public class DbRequest {
      *
      * @return the valid root ids
      */
-    protected Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
+    private Result<MetadataDocument<?>> checkObjectGroupStartupRoots(final RequestParserMultiple request) {
         // TODO P1 add unit tests
         final Set<String> roots = request.getRequest().getRoots();
         return MongoDbMetadataHelper.createOneResult(FILTERARGS.OBJECTGROUPS, roots);
@@ -494,7 +504,7 @@ public class DbRequest {
      *
      * @return the valid root ids set
      */
-    protected Set<String> checkUnitAgainstRoots(final Set<String> current,
+    private Set<String> checkUnitAgainstRoots(final Set<String> current,
         final Result<MetadataDocument<?>> defaultStartSet) {
         // roots
         if (defaultStartSet == null || defaultStartSet.getCurrentIds().isEmpty()) {
@@ -909,11 +919,11 @@ public class DbRequest {
                 if (unit != null) {
                     if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
                         requestToMongodb.isScoreIncluded()) {
-                        Float score = Float.valueOf(1);
+                        Float score = 1F;
                         try {
                             score = last.scores.get(i);
                             if (score.isNaN()) {
-                                score = Float.valueOf(1);
+                                score = 1F;
                             }
                         } catch (IndexOutOfBoundsException e) {
                             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -956,18 +966,17 @@ public class DbRequest {
                 obMap.put(og.getId(), og);
             }
         }
-        int nbScore = last.scores == null ? -1 : last.scores.size();
         for (int i = 0; i < last.getCurrentIds().size(); i++) {
             final String id = last.getCurrentIds().get(i);
             ObjectGroup og = obMap.get(id);
             if (og != null) {
                 if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
                     requestToMongodb.isScoreIncluded()) {
-                    Float score = Float.valueOf(1);
+                    Float score = 1F;
                     try {
                         score = last.scores.get(i);
                         if (score.isNaN()) {
-                            score = Float.valueOf(1);
+                            score = 1F;
                         }
                     } catch (IndexOutOfBoundsException e) {
                         SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -997,39 +1006,11 @@ public class DbRequest {
         return last;
     }
 
-    /**
-     * Finalize the queries with last True Update
-     *
-     * @param requestToMongodb
-     * @param last
-     * @param requestParser
-     *
-     * @return the final Result
-     *
-     * @throws InvalidParseOperationException
-     * @throws MetaDataExecutionException
-     * @throws MetadataInvalidUpdateException
-     */
-    protected Result<MetadataDocument<?>> lastUpdateFilterProjection(UpdateToMongodb requestToMongodb,
-        Result<MetadataDocument<?>> last,
-        RequestParserMultiple requestParser)
-        throws InvalidParseOperationException, MetaDataExecutionException, ArchiveUnitOntologyValidationException {
+    private UpdatedDocument updateDocumentWithRetries(String documentId,
+        RequestParserMultiple requestParser, List<OntologyModel> ontologyModels, MetadataCollections metadataCollection)
+        throws InvalidParseOperationException, MetaDataExecutionException, ArchiveUnitOntologyValidationException,
+        MetaDataNotFoundException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
-        final FILTERARGS model = requestToMongodb.model();
-
-        MongoCollection<MetadataDocument<?>> collection;
-        if (model == FILTERARGS.UNITS) {
-            collection = MetadataCollections.UNIT.getCollection();
-        } else {
-            collection = MetadataCollections.OBJECTGROUP.getCollection();
-        }
-
-        if (!requestToMongodb.isMultiple() && last.getNbResult() > 1) {
-            throw new MetadataInvalidUpdateException(
-                "Update Request is not multiple but found multiples entities to update");
-        }
-
-        String documentId = last.getCurrentIds().get(0);
 
         SchemaValidationUtils validator;
         try {
@@ -1041,10 +1022,15 @@ public class DbRequest {
         int tries = 0;
         while (tries < 3) {
 
-            final Bson roots = QueryToMongodb.getRoots(MetadataDocument.ID, Collections.singletonList(documentId));
-            MetadataDocument document = collection.find(roots).first();
+            MongoCollection<MetadataDocument<?>> collection = metadataCollection.getCollection();
+
+            MetadataDocument<?> document = collection.find(and(
+                eq(MetadataDocument.ID, documentId),
+                eq(MetadataDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            )).first();
+
             if (document == null) {
-                throw new MetaDataExecutionException("Document not found by id " + documentId);
+                throw new MetaDataNotFoundException("Document not found by id " + documentId);
             }
 
             final Integer documentVersion = document.getVersion();
@@ -1053,24 +1039,22 @@ public class DbRequest {
             final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
             final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 
-            if (model == FILTERARGS.UNITS && changesTrigger != null) {
+            if (metadataCollection == MetadataCollections.UNIT && changesTrigger != null) {
                 changesTrigger.trigger(jsonDocument, updatedJsonDocument);
             }
 
-            int newDocumentVersion = incrementDocumentVersionIfRequired(model, mongoInMemory, documentVersion);
+            int newDocumentVersion = incrementDocumentVersionIfRequired(metadataCollection, mongoInMemory, documentVersion);
             updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);
 
             Integer atomicVersion = document.getAtomicVersion();
             int newAtomicVersion = atomicVersion == null ? newDocumentVersion : atomicVersion + 1;
             updatedJsonDocument.put(MetadataDocument.ATOMIC_VERSION, newAtomicVersion);
 
-            if (model == FILTERARGS.UNITS) {
+            if (metadataCollection == MetadataCollections.UNIT) {
                 JsonNode externalSchema =
                     updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                JsonNode ontologyFields =
-                    updatedJsonDocument.remove(SchemaValidationUtils.TAG_ONTOLOGY_FIELDS);
-                if (ontologyFields != null && ontologyFields.size() > 0) {
-                    validateAndUpdateOntology(updatedJsonDocument, ontologyFields, validator);
+                if (!ontologyModels.isEmpty()) {
+                    validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
                 }
                 SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
                 if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
@@ -1101,16 +1085,13 @@ public class DbRequest {
             UpdateResult result = collection.replaceOne(condition, finalDocument);
             if (result.getModifiedCount() == 1) {
 
-                if (model == FILTERARGS.UNITS) {
+                if (metadataCollection == MetadataCollections.UNIT) {
                     indexFieldsUpdated(finalDocument, tenantId);
                 } else {
                     indexFieldsOGUpdated(finalDocument, tenantId);
                 }
 
-                last.clear();
-                last.addId(documentId, (float) 1);
-                last.setTotal(last.getNbResult());
-                return last;
+                return new UpdatedDocument(documentId, jsonDocument, updatedJsonDocument);
 
             }
             tries++;
@@ -1119,14 +1100,16 @@ public class DbRequest {
         throw new MetaDataExecutionException("Can not modify document " + documentId);
     }
 
-    private int incrementDocumentVersionIfRequired(FILTERARGS model, MongoDbInMemory mongoInMemory,
+    private int incrementDocumentVersionIfRequired(MetadataCollections metadataCollection, MongoDbInMemory mongoInMemory,
         int documentVersion) {
 
-        // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted" and always increment document version (DbRequest, and any other document update like graph computation, indexation, reconstruction...)
+        // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted"
+        //  and always increment document version (DbRequest, and any other document update like graph computation,
+        //  indexation, reconstruction...)
 
         Set<String> updatedFields = mongoInMemory.getUpdatedFields();
 
-        Set<String> computedFields = (model == FILTERARGS.UNITS) ?
+        Set<String> computedFields = (metadataCollection == MetadataCollections.UNIT) ?
             MetadataDocumentHelper.getComputedUnitFields() :
             MetadataDocumentHelper.getComputedObjectGroupFields();
 
@@ -1160,20 +1143,17 @@ public class DbRequest {
         }
     }
 
-    private void validateAndUpdateOntology(ObjectNode updatedJsonDocument, JsonNode ontologyList,
-        SchemaValidationUtils validator)
-        throws ArchiveUnitOntologyValidationException, MetaDataExecutionException {
-        String finalOntologyAsString = ontologyList.isArray() ? ontologyList.get(0).asText() : ontologyList.asText();
+    private void validateAndUpdateOntology(ObjectNode updatedJsonDocument,
+        SchemaValidationUtils validator,
+        List<OntologyModel> ontologies)
+        throws ArchiveUnitOntologyValidationException {
+
+
         Map<String, OntologyModel> ontologiesByIdentifier;
-        try {
-            List<OntologyModel> ontologies =
-                JsonHandler.getFromString(finalOntologyAsString, List.class, OntologyModel.class);
+
             ontologiesByIdentifier =
                 ontologies.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
 
-        } catch (InvalidParseOperationException e) {
-            throw new MetaDataExecutionException("Could not parse ontologies", e);
-        }
         List<String> errors = new ArrayList<>();
         // that means a transformation could be done so we need to process the full json
         validator.verifyAndReplaceFields(updatedJsonDocument, ontologiesByIdentifier, errors);
@@ -1182,7 +1162,7 @@ public class DbRequest {
             // archive unit could not be transformed, so the error would be thrown later by the schema
             // validation verification
             String error = "Archive unit contains fields declared in ontology with a wrong format : " +
-                String.join(",", errors.toString());
+                CollectionUtils.join(errors, ",");
             throw new ArchiveUnitOntologyValidationException(error);
         }
     }

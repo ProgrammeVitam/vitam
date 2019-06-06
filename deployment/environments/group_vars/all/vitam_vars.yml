@@ -343,6 +343,11 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+
+        # Ontology cache settings
+        ontologyCacheMaxEntries: 100
+        ontologyCacheTimeoutInSeconds: 300
+
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"

@@ -1,41 +1,58 @@
 package fr.gouv.vitam.common.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.massupdate.RuleActions;
 
+import java.util.List;
 import java.util.Map;
 
 public class BatchRulesUpdateInfo {
-    @JsonProperty("QueryAction")
-    private JsonNode queryAction;
+
+    @JsonProperty("UnitIds")
+    private List<String> unitIds;
+
+    @JsonProperty("RuleActions")
+    private RuleActions ruleActions;
 
     @JsonProperty("RulesToDurationData")
     private Map<String, DurationData> rulesToDurationData;
-
-    public BatchRulesUpdateInfo(JsonNode queryAction,
-        Map<String, DurationData> rulesToDurationData) {
-        this.queryAction = queryAction;
-        this.rulesToDurationData = rulesToDurationData;
-    }
 
     public BatchRulesUpdateInfo() {
         // Empty constructor for Jackson
     }
 
-    public JsonNode getQueryAction() {
-        return queryAction;
+    public BatchRulesUpdateInfo(List<String> unitIds, RuleActions ruleActions,
+        Map<String, DurationData> rulesToDurationData) {
+        this.unitIds = unitIds;
+        this.ruleActions = ruleActions;
+        this.rulesToDurationData = rulesToDurationData;
+    }
+
+    public List<String> getUnitIds() {
+        return unitIds;
+    }
+
+    public BatchRulesUpdateInfo setUnitIds(List<String> unitIds) {
+        this.unitIds = unitIds;
+        return this;
+    }
+
+    public RuleActions getRuleActions() {
+        return ruleActions;
+    }
+
+    public BatchRulesUpdateInfo setRuleActions(RuleActions ruleActions) {
+        this.ruleActions = ruleActions;
+        return this;
     }
 
     public Map<String, DurationData> getRulesToDurationData() {
         return rulesToDurationData;
     }
 
-    public void setQueryAction(JsonNode queryAction) {
-        this.queryAction = queryAction;
-    }
-
-    public void setRulesToDurationData(
+    public BatchRulesUpdateInfo setRulesToDurationData(
         Map<String, DurationData> rulesToDurationData) {
         this.rulesToDurationData = rulesToDurationData;
+        return this;
     }
 }
