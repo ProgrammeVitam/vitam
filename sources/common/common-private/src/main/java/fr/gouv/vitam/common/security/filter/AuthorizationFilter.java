@@ -26,7 +26,10 @@
  */
 package fr.gouv.vitam.common.security.filter;
 
-import java.io.IOException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -37,10 +40,7 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
-
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import java.io.IOException;
 
 /**
  * Authorization Filter
@@ -57,11 +57,13 @@ public class AuthorizationFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
         throws IOException, ServletException {
         final AuthorizationWrapper authorizationWrapper = new AuthorizationWrapper((HttpServletRequest) request);
-        if (!authorizationWrapper.checkAutorizationHeaders()) {
-            LOGGER.error("Unautorized access");
-            final HttpServletResponse newResponse = (HttpServletResponse) response;            
-            newResponse.setStatus(Status.UNAUTHORIZED.getStatusCode());
-            StreamUtils.closeSilently(request.getInputStream());
+        if (!authorizationWrapper.checkAuthorizationHeaders()) {
+            LOGGER.error("Authorization headers check failed!");
+
+            final HttpServletResponse httpServletResponse = (HttpServletResponse) response;
+            httpServletResponse.setStatus(Status.UNAUTHORIZED.getStatusCode());
+            HeaderIdHelper.writeMessageToResponse(request, httpServletResponse,
+                JsonHandler.createObjectNode().put("Error", "Authorization headers check failed!"));
         } else {
             chain.doFilter(request, response);
         }

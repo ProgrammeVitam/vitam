@@ -26,8 +26,14 @@
  */
 package fr.gouv.vitam.common.tenant.filter;
 
-import java.io.IOException;
-import java.util.Enumeration;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.server.HeaderIdHelper;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -38,16 +44,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response.Status;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import fr.gouv.vitam.common.GlobalDataRest;
-import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.stream.StreamUtils;
+import java.io.IOException;
+import java.util.Enumeration;
 
 /**
  * Tenant Filter
@@ -73,10 +71,13 @@ public class TenantFilter implements Filter {
 
         if (Status.PRECONDITION_FAILED.getStatusCode() == status.getStatusCode() ||
             Status.UNAUTHORIZED.getStatusCode() == status.getStatusCode()) {
-            LOGGER.error("TenantId check failed");
+            LOGGER.error(GlobalDataRest.X_TENANT_ID + " check failed!");
             final HttpServletResponse newResponse = (HttpServletResponse) response;
             newResponse.setStatus(status.getStatusCode());
-            StreamUtils.closeSilently(request.getInputStream());
+
+            HeaderIdHelper.writeMessageToResponse(request, newResponse,
+                JsonHandler.createObjectNode().put("Error", GlobalDataRest.X_TENANT_ID + " check failed!"));
+
         } else {
             chain.doFilter(request, response);
         }
@@ -101,11 +102,11 @@ public class TenantFilter implements Filter {
         final Enumeration<String> headerNames = request.getHeaderNames();
         if (headerNames != null) {
             try {
-                int itenant  = Integer.parseInt(request.getHeader(GlobalDataRest.X_TENANT_ID));
+                int idTenant = Integer.parseInt(request.getHeader(GlobalDataRest.X_TENANT_ID));
                 try {
                     JsonNode tenants = JsonHandler.getFromString(tenantsAsString);
                     for (JsonNode tenant : tenants) {
-                        if (itenant == tenant.asInt()) {
+                        if (idTenant == tenant.asInt()) {
                             return Status.OK;
                         }
                     }
