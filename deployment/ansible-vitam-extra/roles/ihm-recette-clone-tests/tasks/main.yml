@@ -17,6 +17,10 @@
     package:
       name: curl
       state: latest
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   - name: get repo for git lfs for Debian
     copy:
@@ -30,6 +34,10 @@
     package:
       name: apt-transport-https
       state: latest
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result | succeeded
+    delay: "{{ packages_install_retries_delay }}"
 
   - name: add GPG key
     shell: "export https_proxy={{ http_proxy_environnement }} && curl -L 'https://packagecloud.io/github/git-lfs/gpgkey' 2> /dev/null | apt-key add -"
@@ -48,6 +56,10 @@
   package:
     name: git-lfs
     state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result | succeeded
+  delay: "{{ packages_install_retries_delay }}"
 
 - name: ensure subdir exist
   file:
