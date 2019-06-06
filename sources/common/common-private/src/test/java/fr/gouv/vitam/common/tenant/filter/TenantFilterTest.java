@@ -31,6 +31,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -117,6 +118,7 @@ public class TenantFilterTest {
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID))
             .thenReturn(headersMap.get("FakeTenantId"));
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
         verify(httpServletResponse).setStatus(Status.UNAUTHORIZED.getStatusCode());
     }
@@ -133,6 +135,7 @@ public class TenantFilterTest {
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID))
             .thenReturn(headersMap.get("FakeTenantId"));
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
         verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -177,6 +180,7 @@ public class TenantFilterTest {
     public void testTenantFilterEmptyHeadersPreconditionFailed() throws Exception {
         when(httpServletRequest.getHeaderNames()).thenReturn(null);
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
         verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -187,6 +191,7 @@ public class TenantFilterTest {
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID))
             .thenReturn(null);
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
         verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -197,6 +202,7 @@ public class TenantFilterTest {
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID))
             .thenReturn("thisIsAString");
         when(httpServletRequest.getRequestURI()).thenReturn(NOT_STATUS_ADMIN_URI);
+        when(httpServletResponse.getWriter()).thenReturn(mock(PrintWriter.class));
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
         verify(httpServletResponse).setStatus(Status.PRECONDITION_FAILED.getStatusCode());
     }
