@@ -26,22 +26,16 @@
  */
 package fr.gouv.vitam.access.internal.serve.filter;
 
-import java.util.List;
-
-import javax.ws.rs.core.MultivaluedMap;
-
 import com.fasterxml.jackson.databind.JsonNode;
-
 import fr.gouv.vitam.access.internal.serve.exception.MissingAccessContractIdException;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
-import fr.gouv.vitam.common.logging.VitamLogger;
-import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
@@ -51,63 +45,69 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.functional.administration.common.AccessContract;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 
+import javax.ws.rs.core.MultivaluedMap;
+import java.util.List;
+
 /**
  * Helper class to manage the X_ACCESS_CONTRAT_ID and VitamSession links
  */
-public class AccessContratIdHeaderHelper {
-    
+public class AccessContractIdHeaderHelper {
+
     private static final String ACTIVE_STATUS = "ACTIVE";
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessContratIdHeaderHelper.class);
-
-    /**
-     * Helper class, so not instanciable.
-     */
-    private AccessContratIdHeaderHelper() {
+    private AccessContractIdHeaderHelper() {
         throw new UnsupportedOperationException("Helper class");
     }
 
     /**
-     * Extracts the X_ACCESS_CONTRAT_ID from the headers to save it through the VitamSession
+     * Extracts the X_ACCESS_CONTRACT_ID from the headers to save it through the VitamSession
      *
      * @param requestHeaders Complete list of HTTP message headers ; will not be changed.
      * @throws MissingAccessContractIdException
      */
-    public static void manageAccessContratFromHeader(MultivaluedMap<String, String> requestHeaders, AdminManagementClientFactory adminManagementClientFactory) throws
+    public static void manageAccessContractFromHeader(MultivaluedMap<String, String> requestHeaders,
+        AdminManagementClientFactory adminManagementClientFactory) throws
         MissingAccessContractIdException {
-        try(final AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            String headerAccessContratId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
+        try (final AdminManagementClient client = adminManagementClientFactory.getClient()) {
+            String headerAccessContractId = requestHeaders.getFirst(GlobalDataRest.X_ACCESS_CONTRAT_ID);
 
-            if (headerAccessContratId== null){
-                throw new MissingAccessContractIdException("Missing access contract header " + GlobalDataRest.X_ACCESS_CONTRAT_ID);
+            if (headerAccessContractId == null) {
+                throw new MissingAccessContractIdException(
+                    "Missing access contract header " + GlobalDataRest.X_ACCESS_CONTRAT_ID);
             }
 
-            JsonNode queryDsl = getQueryDsl(headerAccessContratId);            
+            JsonNode queryDsl = getQueryDsl(headerAccessContractId);
             RequestResponse<AccessContractModel> response = client.findAccessContracts(queryDsl);
 
-            if (!response.isOk() || ((RequestResponseOK<AccessContractModel>)response).getResults().size() == 0){
-                throw new MissingAccessContractIdException(headerAccessContratId);
+            if (!response.isOk()) {
+                VitamError vitamError = (VitamError) response;
+                throw new MissingAccessContractIdException(
+                    vitamError.getMessage() + " : " + vitamError.getDescription());
             }
 
-            List<AccessContractModel> contracts = ((RequestResponseOK<AccessContractModel>)response).getResults(); 
+            if (((RequestResponseOK<AccessContractModel>) response).getResults().size() == 0) {
+                throw new MissingAccessContractIdException(headerAccessContractId + " not found in the system");
+            }
+
+            List<AccessContractModel> contracts = ((RequestResponseOK<AccessContractModel>) response).getResults();
             VitamThreadUtils.getVitamSession().setContract(contracts.get(0));
         } catch (final VitamThreadAccessException | AdminManagementClientServerException |
             InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.warn(
-                "Got an exception while trying to check the access contrat in the current session ; exception was : {}",
-                requestHeaders, e);
+            throw new MissingAccessContractIdException(
+                "Got an exception while trying to check the access contract in the current session ; exception was : {}",
+                e);
         }
     }
-    
-    private static JsonNode getQueryDsl(String headerAccessContratId) 
-        throws InvalidParseOperationException, InvalidCreateOperationException{
 
-        Select select = new Select();        
-        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.IDENTIFIER, headerAccessContratId),
+    private static JsonNode getQueryDsl(String headerAccessContractId)
+        throws InvalidCreateOperationException {
+
+        Select select = new Select();
+        Query query = QueryHelper.and().add(QueryHelper.eq(AccessContract.IDENTIFIER, headerAccessContractId),
             QueryHelper.eq(AccessContract.STATUS, ACTIVE_STATUS));
-        select.setQuery(query);        
+        select.setQuery(query);
         JsonNode queryDsl = select.getFinalSelect();
-        
+
         return queryDsl;
     }
 }
