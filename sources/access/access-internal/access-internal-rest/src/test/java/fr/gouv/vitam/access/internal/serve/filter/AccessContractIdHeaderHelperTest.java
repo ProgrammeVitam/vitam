@@ -59,7 +59,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 
-public class AccessContratIdHeaderHelperTest {
+public class AccessContractIdHeaderHelperTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
@@ -96,7 +96,7 @@ public class AccessContratIdHeaderHelperTest {
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID);
 
         try {
-            AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
+            AccessContractIdHeaderHelper.manageAccessContractFromHeader(requestHeaders, adminManagementClientFactory);
             fail("No exception was thrown");
         } catch (MissingAccessContractIdException e) {
             // Must throw an exception: Technical error
@@ -120,7 +120,7 @@ public class AccessContratIdHeaderHelperTest {
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID);
 
         try {
-            AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
+            AccessContractIdHeaderHelper.manageAccessContractFromHeader(requestHeaders, adminManagementClientFactory);
             fail("No exception was thrown");
         } catch (MissingAccessContractIdException e) {
             // Must throw an exception: No matching contracts
@@ -151,7 +151,7 @@ public class AccessContratIdHeaderHelperTest {
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_ID);
 
-        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
+        AccessContractIdHeaderHelper.manageAccessContractFromHeader(requestHeaders, adminManagementClientFactory);
 
         // Expect responses
         assertFalse(VitamThreadUtils.getVitamSession().getContract().getEveryOriginatingAgency());
@@ -189,7 +189,7 @@ public class AccessContratIdHeaderHelperTest {
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
         requestHeaders.putSingle(GlobalDataRest.X_ACCESS_CONTRAT_ID, CONTRACT_IDENTIFIER);
 
-        AccessContratIdHeaderHelper.manageAccessContratFromHeader(requestHeaders, adminManagementClientFactory);
+        AccessContractIdHeaderHelper.manageAccessContractFromHeader(requestHeaders, adminManagementClientFactory);
 
         // Expect responses
         assertTrue(VitamThreadUtils.getVitamSession().getContract().getEveryOriginatingAgency());

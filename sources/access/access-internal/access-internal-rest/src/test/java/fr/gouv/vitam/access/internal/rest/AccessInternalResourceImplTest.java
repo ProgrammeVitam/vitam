@@ -285,6 +285,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.XML)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
             .when().get(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -322,6 +323,15 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .statusCode(Status.FORBIDDEN.getStatusCode());
     }
 
+    @Test
+    public void testMissingAccessContract() throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
+            .get(ACCESS_UNITS_URI).then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
+    }
+
     /**
      * @param data
      * @return query DSL with Options
@@ -353,6 +363,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.XML)
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
             .when().get(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -653,6 +664,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void getObjectStreamPostMethodNotAllowed() throws InvalidParseOperationException {
         given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").when()
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
             .post(OBJECTS_URI + OBJECT_ID)
             .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
@@ -775,6 +787,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.XML)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
             .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
             .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }

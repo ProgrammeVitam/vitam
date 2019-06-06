@@ -66,7 +66,7 @@ public class AuthorizationWrapper extends HttpServletRequestWrapper {
      *
      * @return boolean
      */
-    public boolean checkAutorizationHeaders() {
+    public boolean checkAuthorizationHeaders() {
         if (getRequestURI().startsWith(VitamConfiguration.ADMIN_PATH) ||
             getRequestURI().endsWith(VitamConfiguration.STATUS_URL)) {
             return true;
