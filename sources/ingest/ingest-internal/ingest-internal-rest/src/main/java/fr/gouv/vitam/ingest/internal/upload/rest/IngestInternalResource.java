@@ -26,27 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.ingest.internal.upload.rest;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Optional;
-import java.util.Queue;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -111,6 +90,26 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 import fr.gouv.vitam.workspace.api.exception.ZipFilesNameNotAllowedException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Optional;
+import java.util.Queue;
 
 /**
  * IngestInternalResource
@@ -572,26 +571,37 @@ public class IngestInternalResource extends ApplicationStatusResource {
     private Response downloadObjectAsync(String objectId, String type) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             DataCategory documentType = DataCategory.getByCollectionName(type);
-            if (documentType == DataCategory.MANIFEST || documentType == DataCategory.REPORT) {
-                objectId += XML;
-            } else if (documentType == DataCategory.DISTRIBUTIONREPORTS) {
-                objectId += DISTRIBUTIONREPORT_SUFFIX;
-            } else if (documentType == DataCategory.PRESERVATION) {
-                // #2940 Ugly hack for use the same point of API for all report
-                objectId = "preservationReport-" + objectId + JSONL;
-                documentType = DataCategory.REPORT;
-            } else if (documentType == DataCategory.RULES) {
-                // #2940 Ugly hack for use the same point of API for all report
-                objectId += JSON;
-                documentType = DataCategory.REPORT;
-            } else if (documentType == DataCategory.REFERENTIAL_RULES_CSV) {
-                objectId += CSV;
-                documentType = DataCategory.RULES;
-            } else if (documentType == DataCategory.REFERENTIAL_AGENCIES_CSV) {
-                objectId += CSV;
-                documentType = DataCategory.REPORT;
-            } else {
-                return Response.status(Status.METHOD_NOT_ALLOWED).build();
+
+            switch(documentType) {
+                case MANIFEST:
+                case REPORT:
+                    objectId += XML;
+                    break;
+                case DISTRIBUTIONREPORTS:
+                    objectId += DISTRIBUTIONREPORT_SUFFIX;
+                    break;
+                case BATCH_REPORT:
+                    // #5621 Ugly hack for use same container for BATCH_REPORT files (jsonl reports)
+                    objectId += JSONL;
+                    documentType = DataCategory.REPORT;
+                    break;
+                case RULES:
+                    // #2940 Ugly hack for use the same point of API for all json report
+                    objectId += JSON;
+                    documentType = DataCategory.REPORT;
+                    break;
+                case REFERENTIAL_RULES_CSV:
+                    // #5621 Ugly hack for share IngestCollection with DataCategory
+                    objectId += CSV;
+                    documentType = DataCategory.RULES;
+                    break;
+                case REFERENTIAL_AGENCIES_CSV:
+                    // #5621 Ugly hack for share IngestCollection with DataCategory
+                    objectId += CSV;
+                    documentType = DataCategory.REPORT;
+                    break;
+                default:
+                    return Response.status(Status.METHOD_NOT_ALLOWED).build();
             }
             final Response response = storageClient.getContainerAsync(DEFAULT_STRATEGY,
                 objectId, documentType, AccessLogUtils.getNoLogAccessLog());

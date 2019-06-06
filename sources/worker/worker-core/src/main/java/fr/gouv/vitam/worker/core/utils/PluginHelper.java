@@ -93,6 +93,14 @@ public class PluginHelper {
         return new ItemStatus(action).setItemsStatus(action, itemStatus);
     }
 
+    public static <TEventDetails> ItemStatus buildItemStatusWithMasterData(String action, StatusCode statusCode, TEventDetails eventDetails, Object masterDataValue) {
+        final ItemStatus itemStatus = new ItemStatus(action);
+        itemStatus.increment(statusCode);
+        setEvDetData(itemStatus, eventDetails);
+        itemStatus.setMasterData(LogbookParameterName.eventDetailData.name(), masterDataValue);
+        return new ItemStatus(action).setItemsStatus(action, itemStatus);
+    }
+
     public static <T> ItemStatus buildItemStatusSubItems(String itemId, Stream<String> subItemIds, StatusCode statusCode, T eventDetails) {
         final ItemStatus itemStatus = new ItemStatus(itemId);
         itemStatus.increment(statusCode);

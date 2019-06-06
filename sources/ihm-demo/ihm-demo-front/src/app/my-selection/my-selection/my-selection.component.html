@@ -100,8 +100,19 @@
             <div class="ui-g-4" style="height: 45px;">Scénario</div>
             <p-dropdown class="ui-g-3" [options]="form.scearioResults" [(ngModel)]="form.selectedScenario"></p-dropdown>
         </div>
+    </div>
 
+    <!-- Specific probative value form -->
+    <div class="ui-g" *ngIf="selectedOption === 'PROBATIVE_VALUE'">
+        <div class="ui-g-12" style="height: 60px;">
+            <div class="ui-g-4" style="height: 45px;">Usage</div>
+            <p-dropdown class="ui-g-3" [options]="form.sourceUsage" [(ngModel)]="form.probativeSelectSource"></p-dropdown>
+        </div>
 
+        <div class="ui-g-12" style="height: 60px;">
+            <div class="ui-g-4" style="height: 45px;">Version</div>
+            <p-spinner class="ui-g-3" [min]="1" [(ngModel)]="form.probativeSelectVersion"></p-spinner>
+        </div>
     </div>
 
     <!-- Specific Update form -->

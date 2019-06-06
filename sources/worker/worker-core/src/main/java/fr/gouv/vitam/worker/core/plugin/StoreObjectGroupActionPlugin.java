@@ -52,10 +52,8 @@ import java.util.Map;
  * StoreObjectGroupAction Plugin.<br>
  */
 public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
-
+    public static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreObjectGroupActionPlugin.class);
-
-    private static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
     private static final String SIP = "SIP/";
     private static final int OG_OUT_RANK = 0;
     private HandlerIO handlerIO;
@@ -115,7 +113,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
                     LOGGER.debug("Final OBJ: {}", mapOfObjects.objectJsonMap.get(objectGuid.getKey()));
                 }
 
-                // increment itemStatus with subtask 
+                // increment itemStatus with subtask
                 itemStatus.setSubTaskStatus(objectGuid.getKey(), subTaskItemStatus)
                     .increment(subTaskItemStatus.getGlobalStatus());
 
@@ -145,12 +143,6 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             itemStatus.increment(StatusCode.OK);
         }
         return new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus);
-    }
-
-    private static class MapOfObjects {
-        private JsonNode jsonOG;
-        private Map<String, JsonNode> objectJsonMap;
-        private Map<String, String> binaryObjectsToStore;
     }
 
     /**
@@ -211,6 +203,13 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO P0 Add objectGroup.json add input and check it
+    }
+
+
+    private static class MapOfObjects {
+        private JsonNode jsonOG;
+        private Map<String, JsonNode> objectJsonMap;
+        private Map<String, String> binaryObjectsToStore;
     }
 
 }

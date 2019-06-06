@@ -69,6 +69,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.ProbativeValueRequest;
 import fr.gouv.vitam.common.model.ProcessQuery;
 import fr.gouv.vitam.common.model.ProcessState;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -3510,9 +3511,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     public Response exportProbativeValue(@Context HttpServletRequest request, String criteria) {
         ParametersChecker.checkParameter(SEARCH_CRITERIA_MANDATORY_MSG, criteria);
         try {
-            JsonNode queryDSL = JsonHandler.getFromString(criteria);
-            final RequestResponse response = userInterfaceTransactionManager.exportProbativeValue(
-                queryDSL, userInterfaceTransactionManager.getVitamContext(request));
+            ProbativeValueRequest queryDSL = JsonHandler.getFromString(criteria, ProbativeValueRequest.class);
+            RequestResponse response = userInterfaceTransactionManager.exportProbativeValue(queryDSL, userInterfaceTransactionManager.getVitamContext(request));
             return Response.status(Status.OK).entity(response).build();
         } catch (VitamClientException e) {
             LOGGER.error(ACCESS_SERVER_EXCEPTION_MSG, e);

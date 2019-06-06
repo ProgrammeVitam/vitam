@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,22 +23,33 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.model.logbook;
 
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Logbook operation model
  */
 public class LogbookOperation extends LogbookEventOperation {
 
+    @JsonIgnore
+    public static LogbookOperation emptyWithEvDetData(String evDetData) {
+        LogbookOperation operation = new LogbookOperation();
+        operation.setEvDetData(evDetData);
+        return operation;
+    }
+
     /**
      * ID Tag
      */
     public static final String TAG_ID = "id";
+
     /**
      * Tenant Tag
      */
@@ -48,14 +59,18 @@ public class LogbookOperation extends LogbookEventOperation {
      * Hash Tag
      */
     public static final String HASH = "#";
+
     /**
      * Underscore tag
      */
     public static final String UNDERSCORE = "_";
 
     @JsonProperty(HASH + TAG_ID)
+    @JsonAlias(UNDERSCORE + TAG_ID)
     private String id;
+
     @JsonProperty(HASH + TAG_TENANT)
+    @JsonAlias(UNDERSCORE + TAG_TENANT)
     private Integer tenant;
 
     @JsonProperty("agIdApp")
@@ -73,8 +88,6 @@ public class LogbookOperation extends LogbookEventOperation {
     public String getId() {
         return id;
     }
-
-
 
     /**
      * @param id the id to set
@@ -145,6 +158,22 @@ public class LogbookOperation extends LogbookEventOperation {
         this.evIdAppSession = evIdAppSession;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        LogbookOperation operation = (LogbookOperation) o;
+        return Objects.equals(id, operation.id) &&
+            Objects.equals(tenant, operation.tenant) &&
+            Objects.equals(agIdApp, operation.agIdApp) &&
+            Objects.equals(evIdAppSession, operation.evIdAppSession) &&
+            Objects.equals(events, operation.events);
+    }
 
-
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, tenant, agIdApp, evIdAppSession, events);
+    }
 }

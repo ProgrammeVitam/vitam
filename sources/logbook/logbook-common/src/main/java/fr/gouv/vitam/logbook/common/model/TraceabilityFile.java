@@ -48,6 +48,11 @@ import java.nio.charset.StandardCharsets;
  */
 public class TraceabilityFile implements AutoCloseable {
 
+    public static final String previousTimestampToken = "previousTimestampToken";
+    public static final String previousTimestampTokenMinusOneMonth = "previousTimestampTokenMinusOneMonth";
+    public static final String previousTimestampTokenMinusOneYear = "previousTimestampTokenMinusOneYear";
+    public static final String currentHash = "currentHash";
+
     private static final String EXTRACT_FILENAME = "data.txt";
     private static final String ADDITIONAL_INFORMATION_FILENAME = "additional_information.txt";
     private static final String COMPUTING_INFORMATION_FILENAME = "computing_information.txt";
@@ -178,7 +183,7 @@ public class TraceabilityFile implements AutoCloseable {
         archive.putArchiveEntry(entry);
         archive.write(String.format("currentHash=%s", currentHash).getBytes());
         archive.write(LINE_SEPARATOR);
-        archive.write(String.format("previousTimestampToken=%s", previousHash).getBytes());
+        archive.write(String.format(previousTimestampToken + "=%s", previousHash).getBytes());
         archive.write(LINE_SEPARATOR);
         archive.write(String.format("previousTimestampTokenMinusOneMonth=%s", currentHashMinusOneMonth).getBytes());
         archive.write(LINE_SEPARATOR);

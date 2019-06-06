@@ -53,6 +53,10 @@ public enum DataCategory {
      */
     REPORT("reports", "report", false, false),
     /**
+     * Report of probative
+     */
+    PROBATIVE_REPORT("probativereports", "report", false, false),
+    /**
      * Manitesf.xml from a SIP
      */
     MANIFEST("manifests", "manifest", false, false),
@@ -82,7 +86,10 @@ public enum DataCategory {
      */
     RULES("rules", "rules", false, false),
 
-    PRESERVATION("preservation", "preservation", false, false),
+    /**
+     * Batch update reports - Hack, to be fixed with US #5621
+     */
+    BATCH_REPORT("batch_report", "report", false, false),
 
     /**
      * Referential csv imported for rules

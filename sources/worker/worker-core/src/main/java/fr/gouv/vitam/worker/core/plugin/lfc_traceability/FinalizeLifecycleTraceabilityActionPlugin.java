@@ -43,7 +43,6 @@ import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 
@@ -62,7 +61,6 @@ public abstract class FinalizeLifecycleTraceabilityActionPlugin extends ActionHa
      */
     public FinalizeLifecycleTraceabilityActionPlugin() {
         TimeStampSignature timeStampSignature;
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         VerifyTimeStampActionConfiguration configuration = null;
         try {
             configuration =

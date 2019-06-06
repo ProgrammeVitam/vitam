@@ -452,8 +452,7 @@ public class EvidenceService {
                 if (StringUtils.isEmpty(line)) {
                     continue;
                 }
-                LifeCycleTraceabilitySecureFileObject traceabilityLine =
-                    JsonHandler.getFromString(line, LifeCycleTraceabilitySecureFileObject.class);
+                LifeCycleTraceabilitySecureFileObject traceabilityLine = JsonHandler.getFromString(line, LifeCycleTraceabilitySecureFileObject.class);
                 boolean result = findLine(traceabilityLine, metadataType, id);
                 if (result) {
                     return traceabilityLine;

@@ -27,16 +27,6 @@
 
 package fr.gouv.vitam.worker.core.plugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.SedaConstants;
@@ -55,6 +45,15 @@ import fr.gouv.vitam.worker.common.utils.DataObjectInfo;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import org.apache.commons.io.IOUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * CheckConformityAction Plugin.<br>
@@ -62,7 +61,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 public class CheckConformityActionPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConformityActionPlugin.class);
 
-    private static final String CALC_CHECK = "CALC_CHECK";
+    public static final String CALC_CHECK = "CALC_CHECK";
     private static final String EMPTY = "EMPTY";
     private static final String INVALID = "INVALID";
     private HandlerIO handlerIO;

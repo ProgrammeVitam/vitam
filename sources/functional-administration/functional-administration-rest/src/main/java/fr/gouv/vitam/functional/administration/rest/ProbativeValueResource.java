@@ -84,7 +84,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.util.List;
 
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -131,7 +130,6 @@ public class ProbativeValueResource {
         LogbookClientAlreadyExistsException {
 
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-
             final LogbookOperationParameters initParameters =
                 LogbookParametersFactory.newLogbookOperationParameters(
                     GUIDReader.getGUID(operationId),
@@ -144,8 +142,11 @@ public class ProbativeValueResource {
                     GUIDReader.getGUID(operationId));
 
             addRightsStatementIdentifier(initParameters);
-            client.create(initParameters);
+            ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode()
+                .put("AccessContract", getVitamSession().getContractId());
+            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier.toString());
 
+            client.create(initParameters);
         }
     }
 
@@ -169,8 +170,6 @@ public class ProbativeValueResource {
         try {
             checkEmptyQuery(probativeValueRequest.getDslQuery());
 
-            checkUsageNotEmptyOrNotBinaryMaster(probativeValueRequest.getUsages());
-
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
                 WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
                  AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
@@ -188,8 +187,7 @@ public class ProbativeValueResource {
 
                 createProbativeOperation(operationId);
 
-                workspaceClient.putObject(operationId, "request", JsonHandler
-                        .writeToInpustream(new ProbativeValueRequest(finalQuery, probativeValueRequest.getUsages())));
+                workspaceClient.putObject(operationId, "request", JsonHandler.writeToInpustream(probativeValueRequest));
 
                 workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(finalQuery));
 
@@ -250,18 +248,5 @@ public class ProbativeValueResource {
         if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {
             throw new BadRequestException("Query cannot be empty");
         }
-    }
-
-    private void checkUsageNotEmptyOrNotBinaryMaster(List<String> usages) throws BadRequestException {
-
-        if (usages.isEmpty()) {
-            throw new BadRequestException("Query cannot be empty");
-        }
-        for (String usage : usages) {
-            if (usage.equals("BinaryMaster")) {
-                return;
-            }
-        }
-        throw new BadRequestException("BinaryMaster has to be on the usage list");
     }
 }
