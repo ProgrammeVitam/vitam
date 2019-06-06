@@ -24,43 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
+package fr.gouv.vitam.common.model.rules;
 
-import java.time.LocalDate;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Rule
+ * Pojo for computed inherited rule category
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Rule {
-    @JsonProperty("Id")
-    private String id;
-    @JsonProperty("MaxEndDate")
-    private LocalDate maxEndDate;
+public class InheritedRuleCategoryResponseModel {
 
-    public Rule(String id, LocalDate endDate) {
-        this.id = id;
-        this.maxEndDate = endDate;
+    @JsonProperty("Rules")
+    private List<InheritedRuleResponseModel> rules = new ArrayList<>();
+
+    @JsonProperty("Properties")
+    private List<InheritedPropertyResponseModel> properties = new ArrayList<>();
+
+    public InheritedRuleCategoryResponseModel() {
+        // Empty constructor for deserialization
     }
 
-    public String getId() {
-        return id;
+    public InheritedRuleCategoryResponseModel(
+        List<InheritedRuleResponseModel> rules,
+        List<InheritedPropertyResponseModel> properties) {
+        this.rules = rules;
+        this.properties = properties;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public List<InheritedRuleResponseModel> getRules() {
+        return rules;
     }
 
-    public LocalDate getMaxEndDate() {
-        return maxEndDate;
+    public void setRules(List<InheritedRuleResponseModel> rules) {
+        this.rules = rules;
     }
 
-    public void setMaxEndDate(LocalDate maxEndDate) {
-        this.maxEndDate = maxEndDate;
+    public List<InheritedPropertyResponseModel> getProperties() {
+        return properties;
     }
 
-
+    public void setProperties(List<InheritedPropertyResponseModel> properties) {
+        this.properties = properties;
+    }
 }

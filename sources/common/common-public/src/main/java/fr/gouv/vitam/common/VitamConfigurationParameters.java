@@ -146,6 +146,10 @@ public class VitamConfigurationParameters {
 
     private List<Integer> tenants;
 
+    private List<String> indexInheritedRulesWithRulesIdByTenant;
+
+    private List<String> indexInheritedRulesWithAPIV2OutputByTenant;
+
     /**
      * /** Default Vitam Config Folder
      */
@@ -1346,5 +1350,21 @@ public class VitamConfigurationParameters {
      */
     public void setIntervalDelayLogInProgressWorker(Integer intervalDelayLogInProgressWorker) {
         this.intervalDelayLogInProgressWorker = intervalDelayLogInProgressWorker;
+    }
+
+    public List<String> getIndexInheritedRulesWithRulesIdByTenant() {
+        return indexInheritedRulesWithRulesIdByTenant;
+    }
+
+    public void setIndexInheritedRulesWithRulesIdByTenant(List<String> indexInheritedRulesWithRulesIdByTenant) {
+        this.indexInheritedRulesWithRulesIdByTenant = indexInheritedRulesWithRulesIdByTenant;
+    }
+
+    public List<String> getIndexInheritedRulesWithAPIV2OutputByTenant() {
+        return indexInheritedRulesWithAPIV2OutputByTenant;
+    }
+
+    public void setIndexInheritedRulesWithAPIV2OutputByTenant(List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
+        this.indexInheritedRulesWithAPIV2OutputByTenant = indexInheritedRulesWithAPIV2OutputByTenant;
     }
 }

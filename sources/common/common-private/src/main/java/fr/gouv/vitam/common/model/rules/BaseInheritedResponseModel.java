@@ -24,47 +24,55 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.common.model.rules;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-/**
- * Pojo for computed inherited property
- */
-public class InheritedPropertyResponseModel extends BaseInheritedResponseModel {
+public abstract class BaseInheritedResponseModel {
 
-    @JsonProperty("PropertyName")
-    private String propertyName;
+    @JsonProperty("UnitId")
+    private String unitId;
 
-    @JsonProperty("PropertyValue")
-    private Object propertyValue;
+    @JsonProperty("OriginatingAgency")
+    private String originatingAgency;
 
-    public InheritedPropertyResponseModel() {
+    @JsonProperty("Paths")
+    private List<List<String>> paths;
+
+    public BaseInheritedResponseModel() {
         // Empty constructor for deserialization
     }
 
-    public InheritedPropertyResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths, String propertyName, Object propertyValue) {
-        super(unitId, originatingAgency, paths);
-        this.propertyName = propertyName;
-        this.propertyValue = propertyValue;
+    public BaseInheritedResponseModel(String unitId, String originatingAgency,
+        List<List<String>> paths) {
+        this.unitId = unitId;
+        this.originatingAgency = originatingAgency;
+        this.paths = paths;
     }
 
-    public String getPropertyName() {
-        return propertyName;
+    public String getUnitId() {
+        return unitId;
     }
 
-    public void setPropertyName(String propertyName) {
-        this.propertyName = propertyName;
+    public void setUnitId(String unitId) {
+        this.unitId = unitId;
     }
 
-    public Object getPropertyValue() {
-        return propertyValue;
+    public String getOriginatingAgency() {
+        return originatingAgency;
     }
 
-    public void setPropertyValue(Object propertyValue) {
-        this.propertyValue = propertyValue;
+    public void setOriginatingAgency(String originatingAgency) {
+        this.originatingAgency = originatingAgency;
+    }
+
+    public List<List<String>> getPaths() {
+        return paths;
+    }
+
+    public void setPaths(List<List<String>> paths) {
+        this.paths = paths;
     }
 }

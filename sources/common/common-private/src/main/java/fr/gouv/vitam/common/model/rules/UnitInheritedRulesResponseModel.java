@@ -24,69 +24,49 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
-
-import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
+package fr.gouv.vitam.common.model.rules;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- * InheritedRule
+ * Pojo for computed inherited rules of per category
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class InheritedRule {
-    @JsonProperty("MaxEndDate")
-    private LocalDate maxEndDate;
-    @JsonProperty("Properties")
-    private Properties properties;
+public class UnitInheritedRulesResponseModel {
+
+    /* Serialized via @JsonAnySetter & JsonAnyGetter  */
     @JsonIgnore
-    private Map<String, RuleMaxEndDate> ruleIdToRule = new HashMap<>();
+    private Map<String, InheritedRuleCategoryResponseModel> ruleCategories = new HashMap<>();
 
-    public InheritedRule() {
-    }
+    @JsonProperty("GlobalProperties")
+    private List<InheritedPropertyResponseModel> globalProperties;
 
-    public InheritedRule(LocalDate maxEndDate, Properties properties, Map<String, RuleMaxEndDate> ruleIdToRule) {
-        this.maxEndDate = maxEndDate;
-        this.properties = properties;
-        this.ruleIdToRule = ruleIdToRule;
-    }
-
-    public InheritedRule(LocalDate maxEndDate, Properties properties) {
-        this.maxEndDate = maxEndDate;
-        this.properties = properties;
-    }
-
-    public LocalDate getMaxEndDate() {
-        return maxEndDate;
-    }
-
-    public void setMaxEndDate(LocalDate maxEndDate) {
-        this.maxEndDate = maxEndDate;
-    }
-
-
-
-    @JsonAnyGetter
-    public Map<String, RuleMaxEndDate> getRuleIdToRule() {
-        return ruleIdToRule;
+    public UnitInheritedRulesResponseModel() {
+        // Empty constructor for deserialization
     }
 
     @JsonAnySetter
-    public void setRuleIdToRule(String ruleId, RuleMaxEndDate ruleMaxEndDate) {
-        this.ruleIdToRule.put(ruleId, ruleMaxEndDate);
+    public void setRuleCategory(String name, InheritedRuleCategoryResponseModel value) {
+        ruleCategories.put(name, value);
     }
 
-    public Properties getProperties() {
-        return properties;
+    @JsonAnyGetter
+    public Map<String, InheritedRuleCategoryResponseModel> getRuleCategories() {
+        return ruleCategories;
     }
 
-    public void setProperties(Properties properties) {
-        this.properties = properties;
+    public List<InheritedPropertyResponseModel> getGlobalProperties() {
+        return globalProperties;
     }
+
+    public void setGlobalProperties(List<InheritedPropertyResponseModel> globalProperties) {
+        this.globalProperties = globalProperties;
+    }
+    
 }

@@ -24,16 +24,271 @@ package fr.gouv.vitam.worker.core.plugin.computeInheritedRules; /***************
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-import static org.junit.Assert.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
+import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
+import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model.ComputedInheritedRules;
+import org.assertj.core.util.Lists;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 public class ComputeInheritedRulesActionPluginTest {
 
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
+
+    @Mock
+    private MetaDataClient metaDataClient;
+
+    @Mock
+    private HandlerIO HandlerIO;
+
+
+    private ComputeInheritedRulesActionPlugin ComputeInheritedRulesActionPlugin;
+    private WorkerParameters workerParameters;
+
+
+    @Before
+    public void setUp() throws Exception {
+        when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
+        ComputeInheritedRulesActionPlugin = new ComputeInheritedRulesActionPlugin(metaDataClientFactory);
+        workerParameters = WorkerParametersFactory.newWorkerParameters();
+        workerParameters.setObjectNameList(Lists.newArrayList("a", "b", "c", "d"));
+        List<String> tenant = Arrays.asList("0", "1", "2");
+        VitamConfiguration.setIndexInheritedRulesWithRulesIdByTenant(tenant);
+        VitamConfiguration.setIndexInheritedRulesWithAPIV2OutputByTenant(tenant);
+    }
+
     @Test
-    public void should_compute_inherited_maxEndate_and_properties() throws Exception {
+    @RunWithCustomExecutor
+    public void should_launch_plugin_with_multiple_input_then_return_ok() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        given(metaDataClient.selectUnitsWithInheritedRules(ArgumentMatchers.any())).willReturn(response);
         // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
         // Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_assert_max_end_date_by_categories_with_one_rule() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode expectedJson = getExpectedJsonNode();
+        ComputedInheritedRules expectedComputedInheritedRules =
+            getComputedInheritedRules(expectedJson);
+
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
+        // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
+        // Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
+        ComputedInheritedRules computedInheritedRules =
+            getComputedInheritedRules(updatedUnit);
+        assertThat(expectedComputedInheritedRules.getDisseminationRule().getMaxEndDate())
+            .isEqualTo(computedInheritedRules.getDisseminationRule().getMaxEndDate());
+
+        assertThat(computedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001").getMaxEndDate())
+            .isEqualTo(expectedComputedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001").getMaxEndDate());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_max_end_date_by_rule_with_two_rules_in_same_category() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode expectedJson = getExpectedJsonNode();
+        ComputedInheritedRules expectedComputedInheritedRules =
+            getComputedInheritedRules(expectedJson);
+
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
+        // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
+        // Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
+        ComputedInheritedRules computedInheritedRules =
+            getComputedInheritedRules(updatedUnit);
+        assertThat(expectedComputedInheritedRules.getAccessRule().getMaxEndDate())
+            .isEqualTo(computedInheritedRules.getAccessRule().getMaxEndDate());
+
+        assertThat(computedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00002").getMaxEndDate())
+            .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00002").getMaxEndDate());
+        assertThat(computedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003").getMaxEndDate())
+            .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003").getMaxEndDate());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_max_end_date_by_rule_with_two_same_rules_in_same_category() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode expectedJson = getExpectedJsonNode();
+        ComputedInheritedRules expectedComputedInheritedRules =
+            getComputedInheritedRules(expectedJson);
+
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
+        // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
+        // Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
+        ComputedInheritedRules computedInheritedRules =
+            getComputedInheritedRules(updatedUnit);
+        assertThat(expectedComputedInheritedRules.getAccessRule().getMaxEndDate())
+            .isEqualTo(computedInheritedRules.getAccessRule().getMaxEndDate());
+
+        assertThat(computedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001").getMaxEndDate())
+            .isEqualTo(expectedComputedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001").getMaxEndDate());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_assert_properties_by_categories() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode expectedJson = getExpectedJsonNode();
+        ComputedInheritedRules expectedComputedInheritedRules = getComputedInheritedRules(expectedJson);
+
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
+        // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
+        // Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
+        ComputedInheritedRules computedInheritedRules =
+            getComputedInheritedRules(updatedUnit);
+
+        assertThat(computedInheritedRules.getDisseminationRule().getMaxEndDate())
+            .isEqualTo(expectedComputedInheritedRules.getDisseminationRule().getMaxEndDate());
+
+        assertThat(computedInheritedRules.getClassificationRule().getProperties().getPropertyNameToPropertyValue().get("ClassificationOwner")
+            .getPropertyValue())
+            .isEqualTo(expectedComputedInheritedRules.getClassificationRule().getProperties().getPropertyNameToPropertyValue()
+                .get("ClassificationOwner").getPropertyValue());
+
+        assertThat(expectedComputedInheritedRules.getClassificationRule().getProperties().getPropertyNameToPropertyValue().size()).isEqualTo(5);
+    }
+
+    private ComputedInheritedRules getComputedInheritedRules(JsonNode expectedJson)
+        throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromJsonNode(expectedJson.get("$action").get(0).get("$set").get("#computedInheritedRules"), ComputedInheritedRules.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_assert_global_properties() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode expectedJson = getExpectedJsonNode();
+        ComputedInheritedRules expectedComputedInheritedRules =
+            getComputedInheritedRules(expectedJson);
+
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
+        // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
+        // Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
+        ComputedInheritedRules computedInheritedRules =
+            getComputedInheritedRules(updatedUnit);
+        assertThat(computedInheritedRules.getGlobalProperties().getPropertyNameToPropertyValue().get("NeedAuthorization").getPropertyValue())
+            .isEqualTo(expectedComputedInheritedRules.getGlobalProperties().getPropertyNameToPropertyValue().get("NeedAuthorization")
+                .getPropertyValue());
+
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_assert_inheritedRulesAPIOutput() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
+        JsonNode expectedJson = getExpectedJsonNode();
+        ComputedInheritedRules expectedComputedInheritedRules =
+            getComputedInheritedRules(expectedJson);
+
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
+        // When
+        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
+        // Then
+        assertThat(itemStatus).hasSize(4);
+        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
+        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
+        ComputedInheritedRules computedInheritedRules =
+            getComputedInheritedRules(updatedUnit);
+        assertThat(computedInheritedRules.getInheritedRulesAPIOutput())
+            .isEqualTo(expectedComputedInheritedRules.getInheritedRulesAPIOutput());
+
+    }
+
+    private ArgumentCaptor<JsonNode> initializeMockWithResponse(JsonNode response)
+        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException,
+        MetaDataNotFoundException {
+        given(metaDataClient.selectUnitsWithInheritedRules(ArgumentMatchers.any())).willReturn(response);
+        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
+        when(metaDataClient.updateUnitbyId(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(null);
+        return objectNodeArgumentCaptor;
+    }
+
+    private JsonNode getJsonNodeResponse(String fileName) throws InvalidParseOperationException, FileNotFoundException {
+        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(fileName));
+    }
+
+    private JsonNode getExpectedJsonNode() throws InvalidParseOperationException, FileNotFoundException {
+        return JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/response.json"));
     }
 }

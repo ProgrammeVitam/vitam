@@ -27,6 +27,9 @@
 
 package fr.gouv.vitam.worker.server.rest;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
 import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplicationConfiguration;
 
@@ -44,6 +47,9 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private int registerRetry = 5;
     private int capacity = 1;
     private String workerFamily = "DefaultWorker";
+    private List<String> computeInheritedRulesWithRulesId = new ArrayList<>();
+    private List<String> computeInheritedRulesWithAPIV2Output = new ArrayList<>();
+
 
 
     /**
@@ -196,7 +202,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Return the capacity (number of parallel steps that can handle the worker)
-     * 
+     *
      * @return the capacity
      */
     public int getCapacity() {
@@ -205,9 +211,8 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Set the capacity (number of parallel steps that can handle the worker)
-     * 
-     * @param capacity the capacity to set
      *
+     * @param capacity the capacity to set
      * @return this
      */
     public WorkerConfiguration setCapacity(int capacity) {
@@ -217,7 +222,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Return the workerFamily name
-     * 
+     *
      * @return workerFamily
      */
     public String getWorkerFamily() {
@@ -226,7 +231,7 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
 
     /**
      * Set the workerFamily name of this worker (Default Value : DefaultWorker)
-     * 
+     *
      * @param workerFamily the worker family as String
      * @return this
      */
@@ -235,4 +240,19 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         return this;
     }
 
+    public List<String> getComputeInheritedRulesWithRulesId() {
+        return computeInheritedRulesWithRulesId;
+    }
+
+    public void setComputeInheritedRulesWithRulesId(List<String> computeInheritedRulesWithRulesId) {
+        this.computeInheritedRulesWithRulesId = computeInheritedRulesWithRulesId;
+    }
+
+    public List<String> getComputeInheritedRulesWithAPIV2Output() {
+        return computeInheritedRulesWithAPIV2Output;
+    }
+
+    public void setComputeInheritedRulesWithAPIV2Output(List<String> computeInheritedRulesWithAPIV2Output) {
+        this.computeInheritedRulesWithAPIV2Output = computeInheritedRulesWithAPIV2Output;
+    }
 }

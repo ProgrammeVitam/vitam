@@ -1,0 +1,255 @@
+{
+  "$action": [
+    {
+      "$set": {
+        "#computedInheritedRules": {
+          "StorageRule": {
+            "Properties": {
+              "FinalAction": {
+                "PropertyValue": "Copy"
+              }
+            }
+          },
+          "AppraisalRule": {
+            "Properties": {
+              "FinalAction": {
+                "PropertyValue": "Keep"
+              }
+            }
+          },
+          "DisseminationRule": {
+            "MaxEndDate": "2025-01-01",
+            "Properties": {},
+            "DIS-00001": {
+              "MaxEndDate": "2025-01-01"
+            }
+          },
+          "AccessRule": {
+            "MaxEndDate": "2025-01-01",
+            "Properties": {},
+            "ACC-00003": {
+              "MaxEndDate": "2025-01-01"
+            },
+            "ACC-00002": {
+              "MaxEndDate": "2024-01-01"
+            }
+          },
+          "ReuseRule": {
+            "Properties": {}
+          },
+          "ClassificationRule": {
+            "MaxEndDate": "2026-06-03",
+            "Properties": {
+              "ClassificationOwner": {
+                "PropertyValue": "ClassificationOwner0"
+              },
+              "ClassificationLevel": {
+                "PropertyValue": "Secret D\u00E9fense"
+              },
+              "ClassificationAudience": {
+                "PropertyValue": "ClassificationAudience0"
+              },
+              "NeedReassessingAuthorization": {
+                "PropertyValue": true
+              },
+              "ClassificationReassessingDate": {
+                "PropertyValue": "2016-06-03"
+              }
+            },
+            "CLASS-00001": {
+              "MaxEndDate": "2026-06-03"
+            }
+          },
+          "GlobalProperties": {
+            "NeedAuthorization": {
+              "PropertyValue": true
+            }
+          },
+          "inheritedRulesAPIOutput": {
+            "GlobalProperties": [
+              {
+                "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                "OriginatingAgency": "RATP",
+                "Paths": [
+                  [
+                    "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                  ]
+                ],
+                "PropertyName": "NeedAuthorization",
+                "PropertyValue": true
+              }
+            ],
+            "StorageRule": {
+              "Rules": [],
+              "Properties": [
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "PropertyName": "FinalAction",
+                  "PropertyValue": "Copy"
+                }
+              ]
+            },
+            "AppraisalRule": {
+              "Rules": [],
+              "Properties": [
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "PropertyName": "FinalAction",
+                  "PropertyValue": "Keep"
+                }
+              ]
+            },
+            "DisseminationRule": {
+              "Rules": [
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "DIS-00001",
+                  "StartDate": "2000-01-01",
+                  "EndDate": "2025-01-01"
+                }
+              ],
+              "Properties": []
+            },
+            "ReuseRule": {
+              "Rules": [],
+              "Properties": []
+            },
+            "ClassificationRule": {
+              "Rules":[
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "CLASS-00001",
+                  "StartDate": "2016-06-03",
+                  "EndDate": "2026-06-03"
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "CLASS-00001",
+                  "StartDate": "2015-06-03",
+                  "EndDate": "2025-06-03"
+                }
+
+              ],
+              "Properties": [
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "PropertyName": "ClassificationOwner",
+                  "PropertyValue": "ClassificationOwner0"
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "PropertyName": "ClassificationLevel",
+                  "PropertyValue": "Secret Défense"
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "PropertyName": "ClassificationAudience",
+                  "PropertyValue": "ClassificationAudience0"
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "PropertyName": "NeedReassessingAuthorization",
+                  "PropertyValue": true
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "PropertyName": "ClassificationReassessingDate",
+                  "PropertyValue": "2016-06-03"
+                }
+              ]
+            },
+            "AccessRule": {
+              "Rules":[
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "ACC-00003",
+                  "StartDate": "2000-01-01",
+                  "EndDate": "2025-01-01"
+                },
+                {
+                  "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+                  "OriginatingAgency": "RATP",
+                  "Paths": [
+                    [
+                      "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                    ]
+                  ],
+                  "Rule": "ACC-00002",
+                  "StartDate": "2000-01-01",
+                  "EndDate": "2024-01-01"
+                }
+              ],
+              "Properties": []
+            }
+          }
+        }
+      }
+    }
+  ]
+}

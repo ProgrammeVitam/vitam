@@ -1,7 +1,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
-import fr.gouv.vitam.metadata.core.rules.model.InheritedPropertyResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleResponseModel;
+import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
+import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;

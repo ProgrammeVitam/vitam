@@ -1366,7 +1366,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response startPreservation(JsonNode dslQuery) {
+    public Response startComputeInheritedRules(JsonNode dslQuery) {
 
         try {
             ParametersChecker.checkParameter("Missing request", dslQuery);
@@ -1399,10 +1399,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 //for CheckThresholdHandler
                 workspaceClient.putObject(operationId, "query.json", writeToInpustream(restrictedQuery));
 
-                processingClient.initVitamProcess(new ProcessingEntry(operationId, PRESERVATION.name()));
+                processingClient.initVitamProcess(new ProcessingEntry(operationId, COMPUTE_INHERITED_RULES.name()));
 
                 return processingClient
-                    .executeOperationProcess(operationId, PRESERVATION.name(), RESUME.getValue())
+                    .executeOperationProcess(operationId, COMPUTE_INHERITED_RULES.name(), RESUME.getValue())
                     .toResponse();
             }
         } catch (BadRequestException e) {

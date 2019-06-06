@@ -27,9 +27,9 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import fr.gouv.vitam.common.model.VitamConstants;
-import fr.gouv.vitam.metadata.core.rules.model.BaseInheritedResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.InheritedPropertyResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleResponseModel;
+import fr.gouv.vitam.common.model.rules.BaseInheritedResponseModel;
+import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
+import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisResult;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisStatusForOriginatingAgency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfo;
@@ -37,7 +37,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInf
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoAccessLinkInconsistencyDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoFinalActionInconsistency;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoKeepAccessSp;
-import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationExtendedInfoType;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.SetUtils;

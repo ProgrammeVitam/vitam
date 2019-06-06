@@ -28,41 +28,65 @@ package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
 import java.util.Map;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * ComputedInheritedRules
  */
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class ComputedInheritedRules {
 
-    @JsonProperty("StorageRule")
+    private static final String STORAGE_RULE = "StorageRule";
+    private static final String APPRAISAL_RULE = "AppraisalRule";
+    private static final String DISSEMINATION_RULE = "DisseminationRule";
+    private static final String ACCESS_RULE = "AccessRule";
+    private static final String REUSE_RULE = "ReuseRule";
+    private static final String CLASSIFICATION_RULE = "ClassificationRule";
+
+    @JsonProperty(STORAGE_RULE)
     private InheritedRule storageRule;
-    @JsonProperty("AppraisalRule")
+    @JsonProperty(APPRAISAL_RULE)
     private InheritedRule appraisalRule;
-    @JsonProperty("DisseminationRule")
+    @JsonProperty(DISSEMINATION_RULE)
     private InheritedRule disseminationRule;
-    @JsonProperty("AccessRule")
+    @JsonProperty(ACCESS_RULE)
     private InheritedRule accessRule;
-    @JsonProperty("ReuseRule")
+    @JsonProperty(REUSE_RULE)
     private InheritedRule reuseRule;
-    @JsonProperty("ClassificationRule")
+    @JsonProperty(CLASSIFICATION_RULE)
     private InheritedRule classificationRule;
+    @JsonProperty("GlobalProperties")
+    private Properties globalProperties;
+    @JsonProperty("inheritedRulesAPIOutput")
+    private JsonNode inheritedRulesAPIOutput;
 
     public ComputedInheritedRules() {
 
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules) {
-        this();
-        this.storageRule = inheritedRules.get("StorageRule");
-        this.appraisalRule = inheritedRules.get("AppraisalRule");
-        this.disseminationRule = inheritedRules.get("DisseminationRule");
-        this.accessRule = inheritedRules.get("AccessRule");
-        this.reuseRule = inheritedRules.get("ReuseRule");
-        this.classificationRule = inheritedRules.get("ClassificationRule");
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties,
+        JsonNode inheritedRulesAPIOutput) {
+        this.storageRule = inheritedRules.get(STORAGE_RULE);
+        this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
+        this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
+        this.accessRule = inheritedRules.get(ACCESS_RULE);
+        this.reuseRule = inheritedRules.get(REUSE_RULE);
+        this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
+        this.globalProperties = globalProperties;
+        this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
     }
+
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties) {
+        this.storageRule = inheritedRules.get(STORAGE_RULE);
+        this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
+        this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
+        this.accessRule = inheritedRules.get(ACCESS_RULE);
+        this.reuseRule = inheritedRules.get(REUSE_RULE);
+        this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
+        this.globalProperties = globalProperties;
+    }
+
+
 
     public InheritedRule getStorageRule() {
         return storageRule;
@@ -112,4 +136,19 @@ public class ComputedInheritedRules {
         this.classificationRule = classificationRule;
     }
 
+    public Properties getGlobalProperties() {
+        return globalProperties;
+    }
+
+    public void setGlobalProperties(Properties globalProperties) {
+        this.globalProperties = globalProperties;
+    }
+
+    public JsonNode getInheritedRulesAPIOutput() {
+        return inheritedRulesAPIOutput;
+    }
+
+    public void setInheritedRulesAPIOutput(JsonNode inheritedRulesAPIOutput) {
+        this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
+    }
 }

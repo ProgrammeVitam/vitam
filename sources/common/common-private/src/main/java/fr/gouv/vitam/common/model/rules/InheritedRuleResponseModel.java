@@ -24,55 +24,60 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.common.model.rules;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public abstract class BaseInheritedResponseModel {
+/**
+ * Pojo for computed inherited rule
+ */
+public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
 
-    @JsonProperty("UnitId")
-    private String unitId;
+    @JsonProperty("Rule")
+    private String ruleId;
 
-    @JsonProperty("OriginatingAgency")
-    private String originatingAgency;
+    @JsonProperty("StartDate")
+    private String startDate;
 
-    @JsonProperty("Paths")
-    private List<List<String>> paths;
+    @JsonProperty("EndDate")
+    private String endDate;
 
-    public BaseInheritedResponseModel() {
+    public InheritedRuleResponseModel() {
         // Empty constructor for deserialization
     }
 
-    public BaseInheritedResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths) {
-        this.unitId = unitId;
-        this.originatingAgency = originatingAgency;
-        this.paths = paths;
+    public InheritedRuleResponseModel(String unitId, String originatingAgency,
+        List<List<String>> paths, String ruleId, String startDate, String endDate) {
+        super(unitId, originatingAgency, paths);
+        this.ruleId = ruleId;
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
-    public String getUnitId() {
-        return unitId;
+    public String getRuleId() {
+        return ruleId;
     }
 
-    public void setUnitId(String unitId) {
-        this.unitId = unitId;
+    public void setRuleId(String ruleId) {
+        this.ruleId = ruleId;
     }
 
-    public String getOriginatingAgency() {
-        return originatingAgency;
+    public String getStartDate() {
+        return startDate;
     }
 
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
     }
 
-    public List<List<String>> getPaths() {
-        return paths;
+    public String getEndDate() {
+        return endDate;
     }
 
-    public void setPaths(List<List<String>> paths) {
-        this.paths = paths;
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
     }
+
 }

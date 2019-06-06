@@ -24,64 +24,47 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.common.model.rules;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.unit.ManagementModel;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Pojo for unit graph and rule information deserialization of response from DSL response
+ * Pojo for computed inherited property
  */
-public class UnitRuleModel {
+public class InheritedPropertyResponseModel extends BaseInheritedResponseModel {
 
-    @JsonProperty("#id")
-    private String id;
+    @JsonProperty("PropertyName")
+    private String propertyName;
 
-    @JsonProperty("#unitups")
-    private List<String> up = new ArrayList<>();
+    @JsonProperty("PropertyValue")
+    private Object propertyValue;
 
-    @JsonProperty("#originating_agency")
-    private String originatingAgency;
-
-    @JsonProperty("#management")
-    private ManagementModel managementModel = new ManagementModel();
-
-    public UnitRuleModel() {
+    public InheritedPropertyResponseModel() {
         // Empty constructor for deserialization
     }
 
-    public String getId() {
-        return id;
+    public InheritedPropertyResponseModel(String unitId, String originatingAgency,
+        List<List<String>> paths, String propertyName, Object propertyValue) {
+        super(unitId, originatingAgency, paths);
+        this.propertyName = propertyName;
+        this.propertyValue = propertyValue;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getPropertyName() {
+        return propertyName;
     }
 
-    public List<String> getUp() {
-        return up;
+    public void setPropertyName(String propertyName) {
+        this.propertyName = propertyName;
     }
 
-    public void setUp(List<String> up) {
-        this.up = up;
+    public Object getPropertyValue() {
+        return propertyValue;
     }
 
-    public String getOriginatingAgency() {
-        return originatingAgency;
-    }
-
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
-    }
-
-    public ManagementModel getManagementModel() {
-        return managementModel;
-    }
-
-    public void setManagementModel(ManagementModel managementModel) {
-        this.managementModel = managementModel;
+    public void setPropertyValue(Object propertyValue) {
+        this.propertyValue = propertyValue;
     }
 }

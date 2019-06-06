@@ -30,11 +30,11 @@ import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
-import fr.gouv.vitam.metadata.core.rules.model.InheritedPropertyResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleCategoryResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.InheritedRuleResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.UnitRuleModel;
+import fr.gouv.vitam.common.model.rules.InheritedPropertyResponseModel;
+import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
+import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
+import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.common.model.rules.UnitRuleModel;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
@@ -56,8 +56,6 @@ import static org.apache.commons.collections4.ListUtils.union;
  * Unit inherited rules service
  */
 public class ComputeInheritedRuleService {
-
-    private static final String GLOBAL_PROPERTIES = "GlobalProperties";
 
     /**
      * Computes inherited rules given local unit rule definitions

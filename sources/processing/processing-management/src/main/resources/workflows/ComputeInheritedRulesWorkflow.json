@@ -15,18 +15,6 @@
       "actions": [
         {
           "action": {
-            "actionKey": "CHECK_CONCURRENT_WORKFLOW_LOCK",
-            "behavior": "BLOCKING",
-            "in": [
-              {
-                "name": "workflowIds",
-                "uri": "VALUE:RECLASSIFICATION,ELIMINATION_ACTION"
-              }
-            ]
-          }
-        },
-        {
-          "action": {
             "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
             "behavior": "BLOCKING",
             "in": [

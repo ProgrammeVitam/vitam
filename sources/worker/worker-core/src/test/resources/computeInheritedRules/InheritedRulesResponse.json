@@ -1,0 +1,282 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "DescriptionLevel": "RecordGrp",
+      "Title": "6_Pré Saint Gervais (ligne 3 bis)",
+      "Description": "Cette ArchiveUnit déclare une AccessRule avec ACC-00003 comme Rule et 01/01/2000 comme StartDate et annule la règle ACC-00002, ainsi qu'une DisseminationRule avec DIS-00001 comme Rule et 01/01/2000 comme StartDate. Elle récupère du ManagementMetadata un NeedAuthorization à true, une StorageRule avec Copy comme FinalAction, une AppraisalRule avec Keep comme FinalAction, et une ClassificationRule avec CLASS-00001 comme Rule et 03/06/2015 comme StartDate, Confidentiel Défense pour ClassificationLevel, ClassificationOwner0 pour ClassificationOwner, ClassificationAudience0 pour ClassificationAudience, 03/06/2016 comme ClassificationReassasingDate et un NeedReassessingAuthorization à true",
+      "#id": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+      "#tenant": 0,
+      "#unitups": [],
+      "#min": 1,
+      "#max": 1,
+      "#allunitups": [],
+      "#management": {
+        "NeedAuthorization": true,
+        "StorageRule": {
+          "FinalAction": "Copy"
+        },
+        "AppraisalRule": {
+          "FinalAction": "Keep"
+        },
+        "AccessRule": {
+          "Rules": [
+            {
+              "Rule": "ACC-00003",
+              "StartDate": "2000-01-01",
+              "EndDate": "2025-01-01"
+            }
+          ],
+          "Inheritance": {
+            "PreventRulesId": [
+              "ACC-00002"
+            ]
+          }
+        },
+        "DisseminationRule": {
+          "Rules": [
+            {
+              "Rule": "DIS-00001",
+              "StartDate": "2000-01-01",
+              "EndDate": "2025-01-01"
+            }
+          ]
+        },
+        "ClassificationRule": {
+          "Rules": [
+            {
+              "Rule": "CLASS-00001",
+              "StartDate": "2015-06-03",
+              "EndDate": "2025-06-03"
+            }
+          ],
+          "ClassificationAudience": "ClassificationAudience0",
+          "ClassificationLevel": "Secret Défense",
+          "ClassificationOwner": "ClassificationOwner0",
+          "ClassificationReassessingDate": "2016-06-03",
+          "NeedReassessingAuthorization": true
+        }
+      },
+      "#unitType": "INGEST",
+      "#operations": [
+        "aeeaaaaaacexsab6ab6vualldv3c52iaaaaq"
+      ],
+      "#opi": "aeeaaaaaacexsab6ab6vualldv3c52iaaaaq",
+      "#originating_agency": "RATP",
+      "#originating_agencies": [
+        "RATP"
+      ],
+      "#storage": {
+        "offerIds": [
+          "offer-fs-1.service.consul"
+        ],
+        "strategyId": "default",
+        "#nbc": 1
+      },
+      "#version": 0,
+      "#sedaVersion": "2.1",
+      "InheritedRules": {
+        "GlobalProperties": [
+          {
+            "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+            "OriginatingAgency": "RATP",
+            "Paths": [
+              [
+                "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+              ]
+            ],
+            "PropertyName": "NeedAuthorization",
+            "PropertyValue": true
+          }
+        ],
+        "StorageRule": {
+          "Rules": [],
+          "Properties": [
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "PropertyName": "FinalAction",
+              "PropertyValue": "Copy"
+            }
+          ]
+        },
+        "AppraisalRule": {
+          "Rules": [],
+          "Properties": [
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "PropertyName": "FinalAction",
+              "PropertyValue": "Keep"
+            }
+          ]
+        },
+        "DisseminationRule": {
+          "Rules": [
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "Rule": "DIS-00001",
+              "StartDate": "2000-01-01",
+              "EndDate": "2025-01-01"
+            }
+          ],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "Rule": "CLASS-00001",
+              "StartDate": "2016-06-03",
+              "EndDate": "2026-06-03"
+            },
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "Rule": "CLASS-00001",
+              "StartDate": "2015-06-03",
+              "EndDate": "2025-06-03"
+            }
+
+          ],
+          "Properties": [
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "PropertyName": "ClassificationOwner",
+              "PropertyValue": "ClassificationOwner0"
+            },
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "PropertyName": "ClassificationLevel",
+              "PropertyValue": "Secret Défense"
+            },
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "PropertyName": "ClassificationAudience",
+              "PropertyValue": "ClassificationAudience0"
+            },
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "PropertyName": "NeedReassessingAuthorization",
+              "PropertyValue": true
+            },
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "PropertyName": "ClassificationReassessingDate",
+              "PropertyValue": "2016-06-03"
+            }
+          ]
+        },
+        "AccessRule": {
+          "Rules": [
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "Rule": "ACC-00003",
+              "StartDate": "2000-01-01",
+              "EndDate": "2025-01-01"
+            },
+            {
+              "UnitId": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq",
+              "OriginatingAgency": "RATP",
+              "Paths": [
+                [
+                  "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+                ]
+              ],
+              "Rule": "ACC-00002",
+              "StartDate": "2000-01-01",
+              "EndDate": "2024-01-01"
+            }
+          ],
+          "Properties": []
+        }
+      }
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#id": "aeaqaaaaaaexsab6abc5galldv3hdvyaaabq"
+        }
+      }
+    ],
+    "$filter": {},
+    "$projection": {}
+  }
+}
