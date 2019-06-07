@@ -165,6 +165,9 @@ public class MongoDbMetadataResponseFilter {
                 case ELIMINATION:
                     replace(document, Unit.ELIMINATION, PROJECTIONARGS.ELIMINATION.exactToken());
                     break;
+                case COMPUTEDINHERITEDRULES:
+                    replace(document, Unit.COMPUTED_INHERITED_RULES, PROJECTIONARGS.COMPUTEDINHERITEDRULES.exactToken());
+                    break;
                 case SEDAVERSION:
                     replace(document, MetadataDocument.SEDAVERSION, VitamFieldsHelper.sedaVersion());
                     break;

@@ -261,7 +261,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         JsonNode inheritedRulesAPIOutput, boolean indexAPIOutput)
         throws ProcessingException {
         ComputedInheritedRules computedInheritedRules =
-            getComputedInheritedRulesAccordingToindexAPIOutput(inheritedRules, globalProperty, inheritedRulesAPIOutput, indexAPIOutput);
+            getComputedInheritedRulesAccordingToIndexAPIOutput(inheritedRules, globalProperty, inheritedRulesAPIOutput, indexAPIOutput);
         try {
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
             Map<String, JsonNode> action = new HashMap<>();
@@ -276,12 +276,14 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         }
     }
 
-    private ComputedInheritedRules getComputedInheritedRulesAccordingToindexAPIOutput(Map<String, InheritedRule> inheritedRules,
+    private ComputedInheritedRules getComputedInheritedRulesAccordingToIndexAPIOutput(Map<String, InheritedRule> inheritedRules,
         Properties globalProperty, JsonNode inheritedRulesAPIOutput, boolean indexAPIOutput) {
+        LocalDate indexationDate = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate();
+        String dateFormatted = indexationDate.format(formatter);
         if (indexAPIOutput) {
-            return new ComputedInheritedRules(inheritedRules, globalProperty, inheritedRulesAPIOutput);
+            return new ComputedInheritedRules(inheritedRules, globalProperty, inheritedRulesAPIOutput, dateFormatted);
         } else {
-            return new ComputedInheritedRules(inheritedRules, globalProperty);
+            return new ComputedInheritedRules(inheritedRules, globalProperty, dateFormatted);
         }
     }
 

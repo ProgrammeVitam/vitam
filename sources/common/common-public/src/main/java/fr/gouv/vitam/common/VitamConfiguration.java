@@ -487,10 +487,14 @@ public class VitamConfiguration {
      * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
      */
     private static ClassificationLevel classificationLevel;
-
-    private static List<String> indexInheritedRulesWithRulesIdByTenant;
-
-    private static List<String> indexInheritedRulesWithAPIV2OutputByTenant;
+    /**
+     * Configuration Parameters for computeInheritedRule workflow
+     */
+    private static List<String> indexInheritedRulesWithRulesIdByTenant = new ArrayList<>();
+    /**
+     * Configuration Parameters for computeInheritedRule workflow
+     */
+    private static List<String> indexInheritedRulesWithAPIV2OutputByTenant = new ArrayList<>();
 
 
     /**

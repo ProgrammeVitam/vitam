@@ -39,7 +39,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * InheritedRule
  */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class InheritedRule {
     @JsonProperty("MaxEndDate")
     private LocalDate maxEndDate;

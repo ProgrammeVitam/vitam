@@ -47,8 +47,8 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     private int registerRetry = 5;
     private int capacity = 1;
     private String workerFamily = "DefaultWorker";
-    private List<String> computeInheritedRulesWithRulesId = new ArrayList<>();
-    private List<String> computeInheritedRulesWithAPIV2Output = new ArrayList<>();
+    private List<String> indexInheritedRulesWithRulesIdByTenant = new ArrayList<>();
+    private List<String> indexInheritedRulesWithAPIV2OutputByTenant = new ArrayList<>();
 
 
 
@@ -240,19 +240,19 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
         return this;
     }
 
-    public List<String> getComputeInheritedRulesWithRulesId() {
-        return computeInheritedRulesWithRulesId;
+    public List<String> getIndexInheritedRulesWithRulesIdByTenant() {
+        return indexInheritedRulesWithRulesIdByTenant;
     }
 
-    public void setComputeInheritedRulesWithRulesId(List<String> computeInheritedRulesWithRulesId) {
-        this.computeInheritedRulesWithRulesId = computeInheritedRulesWithRulesId;
+    public void setIndexInheritedRulesWithRulesIdByTenant(List<String> indexInheritedRulesWithRulesIdByTenant) {
+        this.indexInheritedRulesWithRulesIdByTenant = indexInheritedRulesWithRulesIdByTenant;
     }
 
-    public List<String> getComputeInheritedRulesWithAPIV2Output() {
-        return computeInheritedRulesWithAPIV2Output;
+    public List<String> getIndexInheritedRulesWithAPIV2OutputByTenant() {
+        return indexInheritedRulesWithAPIV2OutputByTenant;
     }
 
-    public void setComputeInheritedRulesWithAPIV2Output(List<String> computeInheritedRulesWithAPIV2Output) {
-        this.computeInheritedRulesWithAPIV2Output = computeInheritedRulesWithAPIV2Output;
+    public void setIndexInheritedRulesWithAPIV2OutputByTenant(List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
+        this.indexInheritedRulesWithAPIV2OutputByTenant = indexInheritedRulesWithAPIV2OutputByTenant;
     }
 }

@@ -59,13 +59,15 @@ public class ComputedInheritedRules {
     private Properties globalProperties;
     @JsonProperty("inheritedRulesAPIOutput")
     private JsonNode inheritedRulesAPIOutput;
+    @JsonProperty("indexationDate")
+    private String indexationDate;
 
     public ComputedInheritedRules() {
 
     }
 
     public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties,
-        JsonNode inheritedRulesAPIOutput) {
+        JsonNode inheritedRulesAPIOutput, String indexationDate) {
         this.storageRule = inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
@@ -74,9 +76,10 @@ public class ComputedInheritedRules {
         this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
         this.globalProperties = globalProperties;
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
+        this.indexationDate = indexationDate;
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties) {
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties, String indexationDate) {
         this.storageRule = inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
@@ -84,6 +87,7 @@ public class ComputedInheritedRules {
         this.reuseRule = inheritedRules.get(REUSE_RULE);
         this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
         this.globalProperties = globalProperties;
+        this.indexationDate = indexationDate;
     }
 
 
@@ -150,5 +154,13 @@ public class ComputedInheritedRules {
 
     public void setInheritedRulesAPIOutput(JsonNode inheritedRulesAPIOutput) {
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
+    }
+
+    public String getIndexationDate() {
+        return indexationDate;
+    }
+
+    public void setIndexationDate(String indexationDate) {
+        this.indexationDate = indexationDate;
     }
 }
