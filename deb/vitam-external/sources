@@ -1,9 +1,9 @@
 
-https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-mongos_4.0.9_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-server_4.0.9_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-shell_4.0.9_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-tools_4.0.9_amd64.deb
-https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org_4.0.9_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-mongos_4.0.10_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-server_4.0.10_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-shell_4.0.10_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org-tools_4.0.10_amd64.deb
+https://repo.mongodb.org/apt/debian/dists/stretch/mongodb-org/4.0/main/binary-amd64/mongodb-org_4.0.10_amd64.deb
 
 https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.0.deb
 https://artifacts.elastic.co/downloads/logstash/logstash-6.8.0.deb
