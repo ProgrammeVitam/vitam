@@ -40,6 +40,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.google.common.base.Strings;
 
 import fr.gouv.vitam.common.ServerIdentity;
@@ -68,7 +69,7 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
             .setDescription(description)
             .setState(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.name())
             .setHttpCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getStatus().getStatusCode());
-        if (exception instanceof BadRequestException) {
+        if (exception instanceof BadRequestException || exception instanceof JsonMappingException) {
             vitamError.setMessage(description).setHttpCode(Status.BAD_REQUEST.getStatusCode());
         } else if (exception instanceof ForbiddenException) {
             vitamError.setMessage(description).setHttpCode(Status.FORBIDDEN.getStatusCode());
