@@ -136,9 +136,9 @@ public class CheckHeaderActionHandler extends ActionHandler {
             }
         }
 
-        if (mandatoryValueMap.get(SedaConstants.TAG_COMMENT) != null) {
+        if (mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER) != null) {
             itemStatus.setMasterData(LogbookParameterName.objectIdentifierIncome.name(),
-                mandatoryValueMap.get(SedaConstants.TAG_COMMENT));
+                mandatoryValueMap.get(SedaConstants.TAG_MESSAGE_IDENTIFIER));
         }
 
         if (shouldCheckContract) {
