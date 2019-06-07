@@ -191,8 +191,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 WorkspaceMain.class,
                 ProcessManagementMain.class,
                 AccessInternalMain.class,
-                IngestInternalMain.class
-            ));
+                IngestInternalMain.class));
 
     private static final String LINE_3 = "line 3";
     private static final String LINE_2 = "line 2";
@@ -284,14 +283,17 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_KO_PHYSICAL_ARCHIVE_PHYSICAL_ID_EMPTY =
         "integration-ingest-internal/KO_ArchivesPhysiques_EmptyPhysicalId.zip";
 
-    private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT = "integration-ingest-internal/" +
-        "OK_ArchivesPhysiques_With_Attachment_Contract.zip";
+    private static String SIP_OK_PHYSICAL_ARCHIVE_WITH_ATTACHMENT_FROM_CONTARCT =
+        "integration-ingest-internal/OK_ArchivesPhysiques_With_Attachment_Contract.zip";
     private static String SIP_ARBRE = "integration-ingest-internal/arbre_simple.zip";
 
     private static String SIP_4396 = "integration-ingest-internal/OK_SIP_ClassificationRule_noRuleID.zip";
 
     private static String OK_RULES_COMPLEX_COMPLETE_SIP =
         "integration-ingest-internal/1069_OK_RULES_COMPLEXE_COMPLETE.zip";
+
+    private static String OK_OBIDIN_MESSAGE_IDENTIFIER =
+        "integration-ingest-internal/SIP-ingest-internal-ok.zip";
 
     private static LogbookElasticsearchAccess esClient;
 
@@ -1705,8 +1707,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         // import contrat
         File fileAccessContracts = PropertiesUtils.getResourceFile("access_contrats.json");
         List<AccessContractModel> accessContractModelList = JsonHandler
-            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {
-            });
+            .getFromFileAsTypeRefence(fileAccessContracts, new TypeReference<List<AccessContractModel>>() {});
         client.importAccessContracts(accessContractModelList);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(tenantId));
 
@@ -1974,8 +1975,7 @@ public class IngestInternalIT extends VitamRuleRunner {
         final List<Document> unitList =
             JsonHandler.getFromFileAsTypeRefence(PropertiesUtils
                     .getResourceFile("integration-ingest-internal/data/units_tree_access_contract_test.json"),
-                new TypeReference<List<Unit>>() {
-                });
+                new TypeReference<List<Unit>>() {});
 
         // Save units in Mongo
         VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
@@ -2075,7 +2075,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             assertThat(res.getResults()).hasSize(1);
             assertThat(res.getResults().iterator().next().toString()).contains("UniqueTitleChild");
 
-            // Set rootUnit to UniqueTitleChild guid. The first query should not return result as root unit restrict access
+            // Set rootUnit to UniqueTitleChild guid. The first query should not return result as root unit restrict
+            // access
             // => So for the second query no roots => should not return result
             accessContractModel.getRootUnits().clear();
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
@@ -2093,7 +2094,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
 
             //////////////////////////
-            ///   Test Depth negative
+            /// Test Depth negative
             /////////////////////////
             query_1 =
                 QueryHelper.eq("Title", "UniqueTitleChild");
@@ -2110,7 +2111,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             accessContractModel.getRootUnits().add("aeaqaaaaaahmtusqabktwaldc34sm5iaaabq");
 
 
-            // Get UniqueTitleChild then Get parent UniqueTitleParent even AccessContract restrict access only UniqueTitleChild
+            // Get UniqueTitleChild then Get parent UniqueTitleParent even AccessContract restrict access only
+            // UniqueTitleChild
             // => should not return result
             newJson =
                 AccessContractRestrictionHelper
@@ -2392,7 +2394,7 @@ public class IngestInternalIT extends VitamRuleRunner {
             // Try to check OG
             select = new SelectMultiQuery();
             select.addRoots(og);
-            //select.setProjectionSliceOnQualifier();
+            // select.setProjectionSliceOnQualifier();
             final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
             LOGGER.warn("Result: " + jsonResponse);
             final List<String> valuesAsText = jsonResponse.get("$results").findValuesAsText("#id");
@@ -2445,4 +2447,41 @@ public class IngestInternalIT extends VitamRuleRunner {
         assertEquals(ok, processWorkflow.getStatus());
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestAndFillLogbookObIdInWithManifestMessageIdentifier() throws Exception {
+        prepareVitamSession();
+        final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
+        VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
+        // workspace client unzip SIP in workspace
+        final InputStream zipInputStreamSipObject =
+            PropertiesUtils.getResourceAsStream(OK_OBIDIN_MESSAGE_IDENTIFIER);
+
+        // init default logbook operation
+        final List<LogbookOperationParameters> params = new ArrayList<>();
+        final LogbookOperationParameters initParameters = LogbookParametersFactory.newLogbookOperationParameters(
+            operationGuid, "Process_SIP_unitary", operationGuid,
+            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
+            operationGuid);
+        params.add(initParameters);
+        LOGGER.error(initParameters.toString());
+        // call ingest
+        IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
+        client.uploadInitialLogbook(params);
+        // init workflow before execution
+        client.initWorkflow(ingestSip);
+        client.upload(zipInputStreamSipObject, CommonMediaType.ZIP_TYPE, ingestSip, ProcessAction.RESUME.name());
+
+        awaitForWorkflowTerminationWithStatus(operationGuid, StatusCode.OK);
+        final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+        JsonNode logbookOperation =
+            accessClient.selectOperationById(operationGuid.getId(), new SelectMultiQuery().getFinalSelect())
+                .toJsonNode();
+        boolean checkServiceLevel = false;
+        final JsonNode element = logbookOperation.get("$results").get(0);
+
+        assertEquals(element.get("obIdIn").asText(),"vitam");
+    }
 }
