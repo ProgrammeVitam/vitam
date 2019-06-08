@@ -33,7 +33,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFoundException;
+import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.common.CommonMediaType;
@@ -169,6 +171,7 @@ import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.preservation.ProcessManagementWaiter.waitOperation;
 import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -393,7 +396,6 @@ public class IngestInternalIT extends VitamRuleRunner {
                 operationGuid != null ? operationGuid.toString() : "outcomeDetailMessage",
                 operationGuid);
             params.add(initParameters);
-            LOGGER.error(initParameters.toString());
 
             // call ingest
             IngestInternalClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_INGEST_INTERNAL);
@@ -472,9 +474,8 @@ public class IngestInternalIT extends VitamRuleRunner {
             UpdateMultiQuery updateQuery2 =
                 new UpdateMultiQuery().addActions(new SetAction("ArchiveUnitProfile", "ArchiveUnitProfile"));
             updateQuery.addRoots(unitId);
-            RequestResponse response3 = accessClient
-                .updateUnitbyId(updateQuery2.getFinalUpdate(), unitId);
-            assertTrue(!response3.isOk());
+            assertThatThrownBy( () -> accessClient.updateUnitbyId(updateQuery2.getFinalUpdate(), unitId))
+                .isInstanceOf(AccessInternalClientException.class);
 
             // lets find details for the unit -> AccessRule should have been unset
             RequestResponseOK<JsonNode> responseUnitAfterUpdate =

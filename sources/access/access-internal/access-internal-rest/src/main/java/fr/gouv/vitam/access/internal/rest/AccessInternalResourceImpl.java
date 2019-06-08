@@ -1074,7 +1074,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 throw new IllegalArgumentException(REQUEST_IS_NOT_AN_UPDATE_OPERATION);
             }
 
-            CheckSpecifiedFieldHelper.containsSpecifiedField(queryDsl, DataType.MANAGEMENT);
             String operationId = getVitamSession().getRequestId();
 
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();

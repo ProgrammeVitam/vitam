@@ -148,10 +148,6 @@ public class SchemaValidationUtils {
     private static final String SECURITY_PROFILE_SCHEMA_FILENAME = "json-schema/security-profile.schema.json";
 
     /**
-     * schemaValidation
-     */
-    public static final String TAG_SCHEMA_VALIDATION = "schemaValidation";
-    /**
      * ontology.schema
      */
     private static final String ONTOLOGY_SCHEMA_FILENAME = "json-schema/ontology.schema.json";

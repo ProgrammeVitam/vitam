@@ -56,11 +56,11 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.json.SchemaValidationUtils;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.model.FacetBucket;
 import fr.gouv.vitam.common.model.FacetResult;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.OntologyType;
 import fr.gouv.vitam.common.model.massupdate.ManagementMetadataAction;
@@ -84,6 +85,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.archiveunitprofile.ArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.apache.commons.io.IOUtils;
@@ -145,7 +147,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
@@ -166,7 +167,7 @@ public class DbRequestTest {
     private static final Integer TENANT_ID_2 = 2;
     private final static String HOST_NAME = "127.0.0.1";
 
-    private static ElasticsearchAccess esClientWithoutVitambBehavior;
+    private static ElasticsearchAccess esClientWithoutVitamBehavior;
     private static final String MY_INT = "MyInt";
     private static final String CREATED_DATE = "CreatedDate";
     private static final String DESCRIPTION = "Description";
@@ -258,12 +259,11 @@ public class DbRequestTest {
         "{ \"$schema\": \"http://vitam-json-germain-schema.org/draft-04/schema#\", \"id\": \"http://example.com/root.json\", \"type\": \"object\", \"additionalProperties\": true, \"anyOf\": [ { \"required\": [ \"specificField\" ] } ], \"properties\": { \"specificField\": { \"description\": \"champ obligatoire - valeur = item\", \"type\": \"array\", \"items\": { \"description\": \"at least 1 element\", \"type\": \"string\" }, \"minItems\": 1 } } }";
 
     private static final String REQUEST_UPDATE_INDEX_TEST_KO_SECONDARY_SCHEMA =
-        "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'" +
-            SchemaValidationUtils.TAG_SCHEMA_VALIDATION + "':'" + ADDITIONAL_SCHEMA + "'}}]}";
+        "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
 
     private static final String REQUEST_UPDATE_INDEX_TEST_OK_SECONDARY_SCHEMA =
-        "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}, {$set:{'" +
-            SchemaValidationUtils.TAG_SCHEMA_VALIDATION + "':'" + ADDITIONAL_SCHEMA + "'}}]}";
+        "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}," +
+            "{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
 
     @ClassRule
     public static MongoRule mongoRule =
@@ -278,7 +278,6 @@ public class DbRequestTest {
         MetadataCollections.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
             elasticsearchAccessMetadata, TENANT_ID_0,
             TENANT_ID_1, TENANT_ID_2);
-
     }
 
     /**
@@ -298,7 +297,7 @@ public class DbRequestTest {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
-        esClientWithoutVitambBehavior = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
+        esClientWithoutVitamBehavior = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         mongoDbVarNameAdapter = new MongoDbVarNameAdapter();
 
     }
@@ -351,7 +350,8 @@ public class DbRequestTest {
             updateParser.parse(updateRequest);
             LOGGER.debug("UpdateParser: {}", updateParser);
             // Now execute the request
-            dbRequest.execUpdateRequest(updateParser, uuid.toString(), emptyList(), MetadataCollections.UNIT);
+            dbRequest.execUpdateRequest(updateParser, uuid.toString(), emptyList(), MetadataCollections.UNIT,
+                mock(ArchiveUnitProfileLoader.class));
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -564,7 +564,8 @@ public class DbRequestTest {
                 RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
             LOGGER.debug("UpdateParser: {}", requestParser);
             // Now execute the request
-            dbRequest.execUpdateRequest(requestParser, uuid.toString(), emptyList(), MetadataCollections.UNIT);
+            dbRequest.execUpdateRequest(requestParser, uuid.toString(), emptyList(), MetadataCollections.UNIT,
+                mock(ArchiveUnitProfileLoader.class));
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -634,7 +635,8 @@ public class DbRequestTest {
                 RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
             LOGGER.debug("UpdateParser: {}", requestParser);
             // Now execute the request
-            dbRequest.execUpdateRequest(requestParser, uuid.toString(), emptyList(), MetadataCollections.UNIT);
+            dbRequest.execUpdateRequest(requestParser, uuid.toString(), emptyList(), MetadataCollections.UNIT,
+                mock(ArchiveUnitProfileLoader.class));
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -754,7 +756,8 @@ public class DbRequestTest {
                 RequestParserHelper.getParser(updateRequest, mongoDbVarNameAdapter);
             LOGGER.debug("UpdateParser: {}", requestParser);
             // Now execute the request
-            dbRequest.execUpdateRequest(requestParser, uuid.toString(), emptyList(), MetadataCollections.UNIT);
+            dbRequest.execUpdateRequest(requestParser, uuid.toString(), emptyList(), MetadataCollections.UNIT,
+                mock(ArchiveUnitProfileLoader.class));
 
             // SELECT ALL
             selectRequest = createSelectAllRequestWithUUID(uuid);
@@ -816,7 +819,10 @@ public class DbRequestTest {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
             .setControlSchema(PropertiesUtils.getResourceAsString("unitAUP_OK.json"))
-        )).when(adminManagementClient).findArchiveUnitProfiles(any());
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+        )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
+        ArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new ArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // When
         final DbRequest dbRequest = new DbRequest(
@@ -833,7 +839,8 @@ public class DbRequestTest {
         updateParser.parse(update.getFinalUpdate());
 
         UpdatedDocument updatedDocument =
-            dbRequest.execUpdateRequest(updateParser, uuid, ontologyModels, MetadataCollections.UNIT);
+            dbRequest.execUpdateRequest(updateParser, uuid, ontologyModels, MetadataCollections.UNIT,
+                archiveUnitProfileLoader);
 
         // Then
         ObjectNode expectedUnit = (ObjectNode) JsonHandler.getFromString(JSON.serialize(initialUnit));
@@ -883,7 +890,10 @@ public class DbRequestTest {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
             .setControlSchema(PropertiesUtils.getResourceAsString("unitAUP_OK.json"))
-        )).when(adminManagementClient).findArchiveUnitProfiles(any());
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+        )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
+        ArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new ArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // When
         final DbRequest dbRequest = new DbRequest(
@@ -894,12 +904,14 @@ public class DbRequestTest {
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
         update.addActions(set("Flag", "TEXT"));
+        update.addActions(set("ArchiveUnitProfile", "AUP_IDENTIFIER"));
         final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
         updateParser.parse(update.getFinalUpdate());
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, ontologyModels, MetadataCollections.UNIT)
+            dbRequest.execUpdateRequest(updateParser, uuid, ontologyModels, MetadataCollections.UNIT,
+                archiveUnitProfileLoader)
         ).isInstanceOf(ArchiveUnitOntologyValidationException.class);
 
         String expected = JSON.serialize(initialUnit);
@@ -909,7 +921,7 @@ public class DbRequestTest {
 
     @RunWithCustomExecutor
     @Test
-    public void testUpdateWithArchiveUnitProfileValidationFailure() throws Exception {
+    public void testUpdateWithExternalArchiveUnitProfileValidationFailure() throws Exception {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
@@ -930,21 +942,25 @@ public class DbRequestTest {
 
         // AUP Schema
         String controlSchema = PropertiesUtils.getResourceAsString("unitAUP_KO.json");
+        ArchiveUnitProfileLoader archiveUnitProfileLoader = mock(ArchiveUnitProfileLoader.class);
+        doReturn(
+            new ArchiveUnitProfileModel().setStatus(ArchiveUnitProfileStatus.ACTIVE).setControlSchema(controlSchema))
+            .when(archiveUnitProfileLoader).loadArchiveUnitProfile("AUP_IDENTIFIER");
 
         // When
         final DbRequest dbRequest = new DbRequest();
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
         update.addActions(set("Boo.Baa", "Illegal string value"));
-        // Grrrrrrrr. Archive unit profile is passed via a dirty hack
-        update.addActions(set(SchemaValidationUtils.TAG_SCHEMA_VALIDATION, controlSchema));
+        update.addActions(set("ArchiveUnitProfile", "AUP_IDENTIFIER"));
 
         final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
         updateParser.parse(update.getFinalUpdate());
 
         // Then
         assertThatThrownBy(() ->
-            dbRequest.execUpdateRequest(updateParser, uuid, ontologyModels, MetadataCollections.UNIT)
+            dbRequest.execUpdateRequest(updateParser, uuid, ontologyModels, MetadataCollections.UNIT,
+                archiveUnitProfileLoader)
         ).isInstanceOf(MetaDataExecutionException.class);
 
         String expected = JSON.serialize(initialUnit);
@@ -952,6 +968,49 @@ public class DbRequestTest {
         JsonAssert.assertJsonEquals(expected, after);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void testUpdateWithInternalArchiveUnitProfileValidationFailure() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID_0));
+
+        String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
+
+        List<OntologyModel> ontologyModels = Arrays.asList(
+            new OntologyModel().setType(OntologyType.KEYWORD).setIdentifier("_id"),
+            new OntologyModel().setType(OntologyType.TEXT).setIdentifier("Title")
+        );
+
+        final Unit initialUnit = new Unit(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitToUpdate.json")));
+
+        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
+        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+
+        // No external AUP Schema
+        ArchiveUnitProfileLoader archiveUnitProfileLoader = mock(ArchiveUnitProfileLoader.class);
+
+        // When
+        final DbRequest dbRequest = new DbRequest();
+        final UpdateMultiQuery update = new UpdateMultiQuery();
+        update.addActions(set("Title", 12222));
+        update.addActions(set("Boo.Baa", "Illegal string value"));
+
+        final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
+        updateParser.parse(update.getFinalUpdate());
+
+        // Then
+        assertThatThrownBy(() ->
+            dbRequest.execUpdateRequest(updateParser, uuid, ontologyModels, MetadataCollections.UNIT,
+                archiveUnitProfileLoader)
+        ).isInstanceOf(MetaDataExecutionException.class);
+
+        String expected = JSON.serialize(initialUnit);
+        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        JsonAssert.assertJsonEquals(expected, after);
+    }
 
     /**
      * Test method for
@@ -1090,7 +1149,7 @@ public class DbRequestTest {
         final QueryBuilder qb8 = QueryBuilders.matchPhrasePrefixQuery("_unitType", "obj");
 
         final SearchRequestBuilder request =
-            esClientWithoutVitambBehavior.getClient()
+            esClientWithoutVitamBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.UNIT, TENANT_ID_0))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique())
                 .setExplain(false)
@@ -1402,7 +1461,7 @@ public class DbRequestTest {
 
         // Use new esClient for have full elastic index and not just the id in the response.
         final SearchRequestBuilder request =
-            esClientWithoutVitambBehavior.getClient()
+            esClientWithoutVitamBehavior.getClient()
                 .prepareSearch(getIndexName(MetadataCollections.OBJECTGROUP, TENANT_ID_0))
                 .setSearchType(SearchType.DFS_QUERY_THEN_FETCH).setTypes(VitamCollection.getTypeunique())
                 .setExplain(false)
@@ -1855,7 +1914,8 @@ public class DbRequestTest {
         final UpdateParserMultiple updateParser = new UpdateParserMultiple(mongoDbVarNameAdapter);
         updateParser.parse(updateRequest);
         LOGGER.debug("UpdateParser: {}", updateParser.getRequest());
-        dbRequest.execUpdateRequest(updateParser, unitId, emptyList(), MetadataCollections.UNIT);
+        dbRequest.execUpdateRequest(updateParser, unitId, emptyList(), MetadataCollections.UNIT,
+            mock(ArchiveUnitProfileLoader.class));
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check new value
@@ -1874,7 +1934,8 @@ public class DbRequestTest {
         final UpdateParserMultiple updateParser5 = new UpdateParserMultiple(mongoDbVarNameAdapter);
         updateParser5.parse(updateRequest5);
         LOGGER.debug("UpdateParser: {}", updateParser5.getRequest());
-        dbRequest.execUpdateRequest(updateParser5, unitId, emptyList(), MetadataCollections.UNIT);
+        dbRequest.execUpdateRequest(updateParser5, unitId, emptyList(), MetadataCollections.UNIT,
+            mock(ArchiveUnitProfileLoader.class));
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check new value
@@ -1889,15 +1950,21 @@ public class DbRequestTest {
         assertEquals(
             ((Unit) resultSelectRel4.getListFiltered().get(0)).getInteger(VitamFieldsHelper.version()).intValue(), 1);
 
+        ArchiveUnitProfileLoader archiveUnitProfileLoader = mock(ArchiveUnitProfileLoader.class);
+        doReturn(new ArchiveUnitProfileModel().setControlSchema(ADDITIONAL_SCHEMA)
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE))
+            .when(archiveUnitProfileLoader).loadArchiveUnitProfile("AdditionalSchema");
+
         try {
             final JsonNode updateRequest2 = JsonHandler.getFromString(REQUEST_UPDATE_INDEX_TEST_KO_SECONDARY_SCHEMA);
             final UpdateParserMultiple updateParser2 = new UpdateParserMultiple(mongoDbVarNameAdapter);
             updateParser2.parse(updateRequest2);
             LOGGER.debug("UpdateParser: {}", updateParser2.getRequest());
-            dbRequest.execUpdateRequest(updateParser2, unitId, emptyList(), MetadataCollections.UNIT);
+            dbRequest.execUpdateRequest(updateParser2, unitId, emptyList(), MetadataCollections.UNIT,
+                archiveUnitProfileLoader);
             fail("should throw an exception cause of the additional schema");
         } catch (MetaDataExecutionException e) {
-            assertTrue(e.getMessage().contains("\"missing\":[\"specificField\"]"));
+            assertTrue(e.getCause().getMessage().contains("\"missing\":[\"specificField\"]"));
         }
 
         // add a new field : specificField
@@ -1905,7 +1972,8 @@ public class DbRequestTest {
         final UpdateParserMultiple updateParserSchema = new UpdateParserMultiple(mongoDbVarNameAdapter);
         updateParserSchema.parse(updateRequestSchema);
         LOGGER.debug("UpdateParser: {}", updateParserSchema.getRequest());
-        dbRequest.execUpdateRequest(updateParserSchema, unitId, emptyList(), MetadataCollections.UNIT);
+        dbRequest.execUpdateRequest(updateParserSchema, unitId, emptyList(), MetadataCollections.UNIT,
+            archiveUnitProfileLoader);
         MetadataCollections.UNIT.getEsClient().refreshIndex(MetadataCollections.UNIT, TENANT_ID_0);
 
         // check new value that should exist in the collection
@@ -1959,7 +2027,7 @@ public class DbRequestTest {
         updateParser.parse(updateRequest);
         LOGGER.debug("UpdateParser: {}", updateParser.getRequest());
         dbRequest.execUpdateRequest(updateParser, "aeaqaaaaaagbcaacabg44ak45e54criaaaaq", emptyList(),
-            MetadataCollections.UNIT);
+            MetadataCollections.UNIT, mock(ArchiveUnitProfileLoader.class));
     }
 
     private static final JsonNode buildQueryJsonWithOptions(String query, String data)
@@ -2233,7 +2301,10 @@ public class DbRequestTest {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
             .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_OK.json"))
-        )).when(adminManagementClient).findArchiveUnitProfiles(any());
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+        )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
+        ArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new ArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // Request
         RuleActions ruleActions = new RuleActions();
@@ -2277,7 +2348,8 @@ public class DbRequestTest {
             adminManagementClientFactory
         );
         UpdatedDocument updatedDocument =
-            dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyModels);
+            dbRequest
+                .execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyModels, archiveUnitProfileLoader);
 
         // Then
         final Unit expectedUnit = new Unit(
@@ -2321,7 +2393,10 @@ public class DbRequestTest {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
             .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_KO.json"))
-        )).when(adminManagementClient).findArchiveUnitProfiles(any());
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+        )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
+        ArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new ArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // Request
         RuleActions ruleActions = new RuleActions();
@@ -2346,7 +2421,8 @@ public class DbRequestTest {
             adminManagementClientFactory
         );
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyModels))
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyModels,
+                archiveUnitProfileLoader))
             .isInstanceOf(ArchiveUnitOntologyValidationException.class);
 
         // Then
@@ -2358,7 +2434,7 @@ public class DbRequestTest {
 
     @RunWithCustomExecutor
     @Test
-    public void testUpdateRulesWithArchiveUnitProfileValidationFailure() throws Exception {
+    public void testUpdateRulesWithExternalArchiveUnitProfileValidationFailure() throws Exception {
 
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
@@ -2384,7 +2460,10 @@ public class DbRequestTest {
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
             .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_KO.json"))
-        )).when(adminManagementClient).findArchiveUnitProfiles(any());
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+        )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
+        ArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new ArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
 
         // Request
         RuleActions ruleActions = new RuleActions();
@@ -2406,8 +2485,53 @@ public class DbRequestTest {
             adminManagementClientFactory
         );
         assertThatThrownBy(
-            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyModels))
-            .isInstanceOf(MetaDataExecutionException.class);
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyModels, archiveUnitProfileLoader))
+            .isInstanceOf(SchemaValidationException.class);
+
+        // Then
+        String expected = JsonHandler.unprettyPrint(initialUnit);
+
+        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        JsonAssert.assertJsonEquals(expected, after);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testUpdateRulesWithInternalArchiveUnitProfileValidationFailure() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
+
+        String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
+
+        final Unit initialUnit = new Unit(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdateInvalidSchema.json")));
+
+        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
+        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+
+        // Ontologies
+        List<OntologyModel> ontologyModels = Arrays.asList(
+            new OntologyModel().setType(OntologyType.KEYWORD).setIdentifier("_id"),
+            new OntologyModel().setType(OntologyType.BOOLEAN).setIdentifier("PreventInheritance")
+        );
+
+        // No external AUP Schema
+        ArchiveUnitProfileLoader archiveUnitProfileLoader = mock(ArchiveUnitProfileLoader.class);
+
+        // Request
+        RuleActions ruleActions = new RuleActions();
+        ruleActions.getAdd().add(ImmutableMap.of(
+            "AccessRule", new RuleCategoryAction()
+                .setPreventInheritance(true)
+        ));
+
+        // When
+        final DbRequest dbRequest = new DbRequest();
+        assertThatThrownBy(
+            () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyModels, archiveUnitProfileLoader))
+            .isInstanceOf(SchemaValidationException.class);
 
         // Then
         String expected = JsonHandler.unprettyPrint(initialUnit);

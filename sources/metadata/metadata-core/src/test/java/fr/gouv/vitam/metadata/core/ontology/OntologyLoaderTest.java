@@ -37,7 +37,6 @@ public class OntologyLoaderTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-
     @Mock
     AdminManagementClientFactory adminManagementClientFactory;
 
