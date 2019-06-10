@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -49,6 +50,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
+import fr.gouv.vitam.storage.offers.tape.TapeLibraryFactory;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeCatalogService;
 
 /**
@@ -61,7 +63,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     private static final String MISSING_THE_TAPE_ID =
         "Missing the tape ID or wrong ID";
     private static final String MISSING_THE_SEARCH_CRITERIA =
-            "Missing or wrong search criteria";
+        "Missing or wrong search criteria";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeCatalogResource.class);
 
     private TapeCatalogService tapeCatalogService;
@@ -71,9 +73,18 @@ public class TapeCatalogResource extends ApplicationStatusResource {
      *
      * @param tapeCatalogService
      */
+    @VisibleForTesting
     public TapeCatalogResource(TapeCatalogService tapeCatalogService) {
         LOGGER.debug("TapeCatalogService initialized");
         this.tapeCatalogService = tapeCatalogService;
+    }
+
+    /**
+     * TapeLibraryFactory should be already initialized
+     */
+    public TapeCatalogResource() {
+        LOGGER.debug("TapeCatalogService initialized");
+        this.tapeCatalogService = TapeLibraryFactory.getInstance().getTapeCatalogService();
     }
 
     /**
@@ -157,7 +168,7 @@ public class TapeCatalogResource extends ApplicationStatusResource {
             }
 
             boolean replaced = tapeCatalogService.replace(tapeCatalog);
-            if(!replaced) {
+            if (!replaced) {
                 return Response.status(Status.NOT_MODIFIED).build();
             }
             return Response.status(Status.OK).build();
@@ -186,13 +197,13 @@ public class TapeCatalogResource extends ApplicationStatusResource {
                 return Response.status(Status.BAD_REQUEST).build();
             }
 
-            if(fields == null || fields.isEmpty()) {
+            if (fields == null || fields.isEmpty()) {
                 LOGGER.error(MISSING_THE_SEARCH_CRITERIA);
                 return Response.status(Status.BAD_REQUEST).build();
             }
 
             boolean updated = tapeCatalogService.update(tapeId, fields);
-            if(!updated) {
+            if (!updated) {
                 return Response.status(Status.NOT_MODIFIED).build();
             }
             return Response.status(Status.OK).build();

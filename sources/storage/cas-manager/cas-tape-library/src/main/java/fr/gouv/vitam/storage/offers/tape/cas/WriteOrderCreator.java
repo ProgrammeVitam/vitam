@@ -68,11 +68,11 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
     public void sendMessageToQueue(WriteOrder message)
         throws TarReferentialException, QueueException {
 
-        LOGGER.info("Write order generated for tar Id {} [bucket={}]", message.getTarId(), message.getBucket());
+        LOGGER.info("Write order generated for tar Id {} [bucket={}]", message.getArchiveId(), message.getBucket());
 
         // Mark tar archive as "ready"
         this.tarReferentialRepository.updateLocationToReadyOnDisk(
-            message.getTarId(),
+            message.getArchiveId(),
             message.getSize(),
             message.getDigest()
         );

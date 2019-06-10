@@ -27,16 +27,15 @@
 package fr.gouv.vitam.storage.offers.rest;
 
 
-import static fr.gouv.vitam.common.server.VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT;
-import static fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START;
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
-import fr.gouv.vitam.common.serverv2.application.AdminApplication;
+
+import static fr.gouv.vitam.common.server.VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT;
+import static fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START;
 
 /**
  * DefaultOfferMain class
@@ -51,18 +50,22 @@ public class DefaultOfferMain {
 
     /**
      * Constructor
-     * 
-     * @param configurationFile 
+     *
+     * @param configurationFile
      */
     public DefaultOfferMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME), configurationFile);
+        ParametersChecker
+            .checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME), configurationFile);
+
+        OfferCommonApplication.getInstance().initialize(configurationFile);
+
         vitamStarter = new VitamStarter(OfferConfiguration.class, configurationFile,
-            BusinessApplication.class,  AdminApplication.class);
+            BusinessApplication.class, AdminOfferApplication.class);
     }
 
     /**
      * main method, will start the server
-     * 
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -84,7 +87,7 @@ public class DefaultOfferMain {
 
     /**
      * Start the server
-     * 
+     *
      * @throws VitamApplicationServerException in case the server could not be started
      */
     public void start() throws VitamApplicationServerException {
@@ -93,7 +96,7 @@ public class DefaultOfferMain {
 
     /**
      * Start and join the server
-     * 
+     *
      * @throws VitamApplicationServerException in case the server could not be started
      */
     public void startAndJoin() throws VitamApplicationServerException {
@@ -102,7 +105,7 @@ public class DefaultOfferMain {
 
     /**
      * Stop the server
-     * 
+     *
      * @throws VitamApplicationServerException in case the server could not be stopped
      */
     public void stop() throws VitamApplicationServerException {

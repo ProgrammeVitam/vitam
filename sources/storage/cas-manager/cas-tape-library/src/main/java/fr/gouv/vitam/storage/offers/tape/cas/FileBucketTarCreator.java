@@ -253,7 +253,7 @@ public class FileBucketTarCreator extends QueueProcessor<TarCreatorMessage> {
         WriteOrder writeOrder = new WriteOrder(
             this.bucketId,
             LocalFileUtils
-                .tarFileNameRelativeToInputTarStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
+                .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, this.currentTarAppender.getTarId()),
             this.currentTarAppender.getBytesWritten(),
             this.currentTarAppender.getDigestValue(),
             this.currentTarAppender.getTarId());

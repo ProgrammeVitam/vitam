@@ -37,14 +37,12 @@ import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.fileBuckedInputFilePath;
 import static java.util.stream.Collectors.toMap;
 
 public class FileBucketTarCreatorBootstrapRecovery {

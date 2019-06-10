@@ -39,7 +39,7 @@ public class WriteOrderCreatorTest {
 
         // Given
         WriteOrder message = new WriteOrder()
-            .setTarId("tarId")
+            .setArchiveId("tarId")
             .setBucket("bucket")
             .setFilePath("/path/to/file.tar")
             .setSize(1000L)

@@ -37,7 +37,7 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
     public static final String FILE_PATH = "filePath";
     public static final String SIZE = "size";
     public static final String DIGEST = "digest";
-    public static final String TAR_ID = "tarId";
+    public static final String ARCHIVE_ID = "archiveId";
 
     @JsonProperty(BUCKET)
     private String bucket;
@@ -51,20 +51,20 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
     @JsonProperty(DIGEST)
     private String digest;
 
-    @JsonProperty(TAR_ID)
-    private String tarId;
+    @JsonProperty(ARCHIVE_ID)
+    private String archiveId;
 
     public WriteOrder() {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.WriteOrder);
     }
 
-    public WriteOrder(String bucket, String filePath, long size, String digest, String tarId) {
+    public WriteOrder(String bucket, String filePath, long size, String digest, String archiveId) {
         this();
         this.bucket = bucket;
         this.filePath = filePath;
         this.size = size;
         this.digest = digest;
-        this.tarId = tarId;
+        this.archiveId = archiveId;
     }
 
     public String getBucket() {
@@ -110,12 +110,12 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
         return true;
     }
 
-    public String getTarId() {
-        return tarId;
+    public String getArchiveId() {
+        return archiveId;
     }
 
-    public WriteOrder setTarId(String tarId) {
-        this.tarId = tarId;
+    public WriteOrder setArchiveId(String archiveId) {
+        this.archiveId = archiveId;
         return this;
     }
 }

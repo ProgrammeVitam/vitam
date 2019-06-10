@@ -45,6 +45,7 @@ public final class LocalFileUtils {
 
     private static final int GUID_LENGTH = 36;
     public static final String TAR_EXTENSION = ".tar";
+    public static final String ZIP_EXTENSION = ".zip";
     public static final String TMP_EXTENSION = ".tmp";
     public static final String INPUT_TAR_TMP_FOLDER = "tmp";
 
@@ -103,8 +104,8 @@ public final class LocalFileUtils {
             + UUID.randomUUID().toString() + TAR_EXTENSION;
     }
 
-    public static String tarFileNameRelativeToInputTarStorageFolder(String fileBucket, String tarId) {
-        return fileBucket + "/" + tarId;
+    public static String archiveFileNameRelativeToInputArchiveStorageFolder(String fileBucket, String archiveId) {
+        return fileBucket + "/" + archiveId;
     }
 
     public static String getCreationDateFromTarId(String tarId) {
@@ -115,14 +116,14 @@ public final class LocalFileUtils {
         return matcher.group("CreationDate");
     }
 
-    public static String tarFileNamePathToTarId(String tarFileName) {
+    public static String archiveFileNamePathToArchiveId(String tarFileName) {
 
         if (tarFileName.endsWith(TMP_EXTENSION)) {
             tarFileName = tarFileName.substring(0, tarFileName.length() - TMP_EXTENSION.length());
         }
 
-        if (!tarFileName.endsWith(TAR_EXTENSION)) {
-            throw new IllegalArgumentException("Invalid tar file name " + tarFileName);
+        if (!tarFileName.endsWith(TAR_EXTENSION) && !tarFileName.endsWith(ZIP_EXTENSION)) {
+            throw new IllegalArgumentException("Invalid archive file name " + tarFileName);
         }
         return tarFileName;
     }

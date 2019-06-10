@@ -77,6 +77,11 @@ public class FileBucketTarCreatorManager {
 
     public void initializeOnBootstrap() {
 
+        // Backup files
+        ensureWorkingDirectoryExists(BucketTopologyHelper.BACKUP_FILE_BUCKET);
+
+
+        // Other files
         for (Map.Entry<String, FileBucketTarCreator> entry : fileBucketTarCreatorMap.entrySet()) {
 
             String fileBucketId = entry.getKey();

@@ -51,6 +51,7 @@ import java.util.List;
  * Default offer service interface define offer methods
  */
 public interface DefaultOfferService {
+   String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
     /**
      * Get offer storage digest of object

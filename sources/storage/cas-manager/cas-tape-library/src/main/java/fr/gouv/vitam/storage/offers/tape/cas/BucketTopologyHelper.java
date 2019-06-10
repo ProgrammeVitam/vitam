@@ -56,6 +56,9 @@ import static fr.gouv.vitam.storage.engine.common.utils.ContainerUtils.parseTena
 public class BucketTopologyHelper {
 
     public static final String DEFAULT = "default";
+    public static final String BACKUP_BUCKET = "backup";
+    public static final String BACKUP_FILE_BUCKET = "backup-db";
+
     private final Map<Pair<Integer, DataCategory>, String> containerToFileBucketMap;
     private final Map<String, String> fileBucketToBucketMap;
     private final Map<String, Integer> tarBufferingTimeoutInMinutesByBucketId;
@@ -96,7 +99,7 @@ public class BucketTopologyHelper {
 
 
                 for (DataCategory dataCategory : DataCategory.values()) {
-                    String fileBucketId = bucketId + "-" + dataCategoryToFileBucketMap.get(dataCategory);
+                    String fileBucketId = getFileBucketId(bucketId, dataCategoryToFileBucketMap.get(dataCategory));
 
                     containerToFileBucketMap.put(new ImmutablePair<>(tenant, dataCategory), fileBucketId);
                     fileBucketToBucketMap.put(fileBucketId, bucketId);
@@ -111,6 +114,10 @@ public class BucketTopologyHelper {
                 Map.Entry::getKey,
                 entry -> entry.getValue().getTarBufferingTimeoutInMinutes()
             ));
+    }
+
+    public static String getFileBucketId(String bucket, String fileBucket) {
+        return bucket + "-" + fileBucket;
     }
 
     private Map<String, List<String>> validateFileBuckets(TapeLibraryTopologyConfiguration configuration)
@@ -228,6 +235,10 @@ public class BucketTopologyHelper {
     }
 
     public String getBucketFromFileBucket(String fileBucket) {
+        if (BACKUP_FILE_BUCKET.equals(fileBucket)) {
+            return BACKUP_BUCKET;
+        }
+
         return this.fileBucketToBucketMap.get(fileBucket);
     }
 

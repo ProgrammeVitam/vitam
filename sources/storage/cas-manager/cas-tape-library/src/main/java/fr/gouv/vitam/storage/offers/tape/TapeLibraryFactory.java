@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.storage.tapelibrary.TapeLibraryConfiguration;
 import fr.gouv.vitam.common.storage.tapelibrary.TapeRobotConf;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
+import fr.gouv.vitam.storage.offers.tape.cas.BackupFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BasicFileStorage;
 import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.FileBucketTarCreatorManager;
@@ -84,6 +85,8 @@ public class TapeLibraryFactory {
 
     private final ConcurrentMap<String, TapeDriveWorkerManager> tapeDriveWorkerManagers = new ConcurrentHashMap<>();
     private TapeLibraryContentAddressableStorage tapeLibraryContentAddressableStorage;
+    private BackupFileStorage backupFileStorage;
+    private TapeCatalogService tapeCatalogService;
 
     private TapeLibraryFactory() {
     }
@@ -98,7 +101,7 @@ public class TapeLibraryFactory {
         TapeCatalogRepository tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
             .getCollection(OfferCollections.TAPE_CATALOG.getName()));
 
-        TapeCatalogService tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
+        tapeCatalogService = new TapeCatalogServiceImpl(tapeCatalogRepository);
 
         BucketTopologyHelper bucketTopologyHelper = new BucketTopologyHelper(configuration.getTopology());
 
@@ -119,6 +122,13 @@ public class TapeLibraryFactory {
             writeOrderCreatorBootstrapRecovery = new WriteOrderCreatorBootstrapRecovery(
             configuration.getInputTarStorageFolder(), tarReferentialRepository,
             bucketTopologyHelper, writeOrderCreator, tarFileRapairer);
+
+
+        backupFileStorage =
+            new BackupFileStorage(tarReferentialRepository, writeOrderCreator, BucketTopologyHelper.BACKUP_BUCKET,
+                BucketTopologyHelper.BACKUP_FILE_BUCKET,
+                configuration.getInputTarStorageFolder());
+
 
         BasicFileStorage basicFileStorage =
             new BasicFileStorage(configuration.getInputFileStorageFolder());
@@ -260,5 +270,13 @@ public class TapeLibraryFactory {
                 throw new RuntimeException("Cannot rewind tape " + JsonHandler.unprettyPrint(rewindResponse));
             }
         });
+    }
+
+    public BackupFileStorage getBackupFileStorage() {
+        return backupFileStorage;
+    }
+
+    public TapeCatalogService getTapeCatalogService() {
+        return tapeCatalogService;
     }
 }
