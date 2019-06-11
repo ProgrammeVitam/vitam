@@ -60,7 +60,7 @@
     },
     {
       "workerGroupId": "DefaultWorker",
-      "stepName": "STP_ELIMINATION_ACTION_FINALIZATION",
+      "stepName": "STP_COMPUTE_INHERITED_RULES_FINALIZATION",
       "behavior": "BLOCKING",
       "distribution": {
         "kind": "REF"
@@ -68,7 +68,7 @@
       "actions": [
         {
           "action": {
-            "actionKey": "ELIMINATION_ACTION_FINALIZATION",
+            "actionKey": "COMPUTE_INHERITED_RULES_FINALIZATION",
             "behavior": "BLOCKING"
           }
         }

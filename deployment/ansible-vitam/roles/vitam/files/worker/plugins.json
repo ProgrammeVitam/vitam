@@ -252,5 +252,8 @@
   },
   "COMPUTE_INHERITED_RULES_ACTION": {
     "className": "fr.gouv.vitam.worker.core.plugin.computeInheritedRules.ComputeInheritedRulesActionPlugin"
-  }
+  },
+ "COMPUTE_INHERITED_RULES_FINALIZATION": {
+    "className": "fr.gouv.vitam.worker.core.plugin.computeInheritedRules.ComputeInheritedRulesFinalizationPlugin"
+ }
 }
