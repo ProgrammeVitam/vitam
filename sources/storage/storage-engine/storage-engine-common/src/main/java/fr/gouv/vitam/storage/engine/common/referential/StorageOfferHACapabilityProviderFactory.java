@@ -32,7 +32,7 @@ package fr.gouv.vitam.storage.engine.common.referential;
  */
 public final class StorageOfferHACapabilityProviderFactory {
 
-    private static final StorageOfferHACapabilityProvider DEFAULT_STORAGE_OFFER_HA_PROVIDER = new FSProvider();
+    private static final StorageOfferHACapabilityProvider DEFAULT_STORAGE_OFFER_HA_PROVIDER = new FileStorageProvider();
 
     private StorageOfferHACapabilityProviderFactory() {
         // Do nothing

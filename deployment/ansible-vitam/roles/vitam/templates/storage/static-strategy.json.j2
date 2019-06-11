@@ -1,11 +1,10 @@
-{
-    "id" : "default",
-    "hot" : {
-        "copy" : {{ vitam_strategy|length }},
+[
+    {
+        "id" : "default",
         "offers" : [
             {% for item in vitam_strategy %}
             {"id" : "{{ item.name }}.service.{{ item.vitam_site_name |default(vitam_site_name) }}.{{ consul_domain }}"{% if item.referent is defined %}{% if item.referent|lower == "true" %}, "referent" : true{% endif %}{% endif %}{% if item.status is defined %}, "status" :  "{{ item.status| upper }}" {% endif %}}{% if not loop.last %},{% endif %}
             {% endfor %}
         ]
     }
-}
+]

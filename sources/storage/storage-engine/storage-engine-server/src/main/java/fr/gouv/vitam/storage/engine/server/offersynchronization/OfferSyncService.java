@@ -83,9 +83,10 @@ public class OfferSyncService {
      *
      * @param sourceOffer the identifier of the source offer
      * @param targetOffer the identifier of the target offer
+     * @param strategyId the identifier of the strategy containing the two offers
      * @param offset the offset of the process of the synchronisation
      */
-    public boolean startSynchronization(String sourceOffer, String targetOffer,
+    public boolean startSynchronization(String sourceOffer, String targetOffer, String strategyId,
         DataCategory dataCategory, Long offset) {
 
         OfferSyncProcess offerSyncProcess = createOfferSyncProcess();
@@ -107,7 +108,7 @@ public class OfferSyncService {
             "Start the synchronization process of the new offer {%s} from the source offer {%s} fro category {%s}.",
             targetOffer, sourceOffer, dataCategory));
 
-        runSynchronizationAsync(sourceOffer, targetOffer, dataCategory, offset, offerSyncProcess);
+        runSynchronizationAsync(sourceOffer, targetOffer, strategyId, dataCategory, offset, offerSyncProcess);
 
         return true;
     }
@@ -117,7 +118,7 @@ public class OfferSyncService {
             bulkSize, offerSyncThreadPoolSize);
     }
 
-    void runSynchronizationAsync(String sourceOffer, String targetOffer, DataCategory dataCategory, Long offset,
+    void runSynchronizationAsync(String sourceOffer, String targetOffer, String strategyId, DataCategory dataCategory, Long offset,
         OfferSyncProcess offerSyncProcess) {
 
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
@@ -129,7 +130,7 @@ public class OfferSyncService {
                     VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                     VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
-                    offerSyncProcess.synchronize(sourceOffer, targetOffer, dataCategory, offset);
+                    offerSyncProcess.synchronize(sourceOffer, targetOffer, strategyId, dataCategory, offset);
                 } catch (Exception e) {
                     LOGGER.error("An error occurred during synchronization process execution", e);
                 }

@@ -45,6 +45,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestIterator;
@@ -633,6 +634,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             headers.add(GlobalDataRest.X_CONTENT_DESTINATION, destination);
             headers.add(GlobalDataRest.X_CONTENT_SOURCE, source);
             headers.add(GlobalDataRest.X_TENANT_ID, ParameterHelper.getTenantParameter());
+            headers.add(GlobalDataRest.X_STRATEGY_ID, VitamConfiguration.getDefaultStrategy());
             headers.add(GlobalDataRest.X_DATA_CATEGORY, category.name());
 
             response = performRequest(HttpMethod.POST, COPY + objectId, headers, MediaType.APPLICATION_JSON_TYPE);

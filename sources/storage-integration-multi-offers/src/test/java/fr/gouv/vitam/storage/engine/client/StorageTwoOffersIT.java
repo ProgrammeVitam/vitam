@@ -579,6 +579,7 @@ public class StorageTwoOffersIT {
                 .setTargetOffer(SECOND_OFFER_ID)
                 .setOffset(offset)
                 .setContainer(DataCategory.OBJECT.getCollectionName())
+                .setStrategyId(STRATEGY_ID)
                 .setTenantId(TENANT_0),
             getBasicAuthnToken()).execute();
     }

@@ -10,8 +10,7 @@
           "id": "default2"
         },
         {
-          "id": "inactiveOffer",
-          "status": "INACTIVE"
+          "id": "inactiveOffer"
         }
       ]
     }

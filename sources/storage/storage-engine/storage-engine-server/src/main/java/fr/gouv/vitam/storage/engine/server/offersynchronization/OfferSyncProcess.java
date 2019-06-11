@@ -65,8 +65,6 @@ public class OfferSyncProcess {
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OfferSyncProcess.class);
 
-    private static final String STRATEGY_ID = "default";
-
     private final RestoreOfferBackupService restoreOfferBackupService;
     private final StorageDistribution distribution;
     private final int bulkSize;
@@ -91,9 +89,10 @@ public class OfferSyncProcess {
      *
      * @param sourceOffer the identifier of the source offer
      * @param targetOffer the identifier of the target offer
+     * @param strategyId the strategy containing the two offers
      * @param offset the offset of the process of the synchronisation
      */
-    public void synchronize(String sourceOffer, String targetOffer,
+    public void synchronize(String sourceOffer, String targetOffer, String strategyId, 
         DataCategory dataCategory, Long offset) {
 
         this.offerSyncStatus = new OfferSyncStatus(
@@ -109,7 +108,7 @@ public class OfferSyncProcess {
             executor = Executors.newFixedThreadPool(
                 this.offerSyncThreadPoolSize, VitamThreadFactory.getInstance());
 
-            synchronize(executor, sourceOffer, targetOffer, dataCategory, offset);
+            synchronize(executor, sourceOffer, targetOffer, strategyId, dataCategory, offset);
             this.offerSyncStatus.setStatusCode(StatusCode.OK);
 
         } catch (Throwable e) {
@@ -129,21 +128,21 @@ public class OfferSyncProcess {
         return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
     }
 
-    private void synchronize(ExecutorService executor, String sourceOffer, String targetOffer,
+    private void synchronize(ExecutorService executor, String sourceOffer, String targetOffer, String strategyId, 
         DataCategory dataCategory, Long startOffset) throws StorageException {
 
         Long offset = startOffset;
         while (true) {
             // get the data to startSynchronization
             List<OfferLog> rawOfferLogs = restoreOfferBackupService.getListing(
-                STRATEGY_ID, sourceOffer, dataCategory, offset, bulkSize, Order.ASC);
+                    strategyId, sourceOffer, dataCategory, offset, bulkSize, Order.ASC);
 
             if (rawOfferLogs.isEmpty()) {
                 break;
             }
 
             long lastSequence =
-                synchronizeOfferLogs(executor, sourceOffer, targetOffer, dataCategory, rawOfferLogs);
+                synchronizeOfferLogs(executor, sourceOffer, targetOffer, strategyId, dataCategory, rawOfferLogs);
 
             this.offerSyncStatus.setCurrentOffset(lastSequence);
 
@@ -162,7 +161,7 @@ public class OfferSyncProcess {
     }
 
     private long synchronizeOfferLogs(ExecutorService executor, String sourceOffer,
-        String destinationOffer, DataCategory dataCategory, List<OfferLog> rawOfferLogs) throws StorageException {
+        String destinationOffer, String strategyId, DataCategory dataCategory, List<OfferLog> rawOfferLogs) throws StorageException {
 
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
@@ -178,13 +177,13 @@ public class OfferSyncProcess {
 
                 case WRITE:
                     completableFuture = CompletableFuture.runAsync(
-                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, requestId),
+                        () -> copyObject(sourceOffer, destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId),
                         executor);
                     break;
 
                 case DELETE:
                     completableFuture = CompletableFuture.runAsync(
-                        () -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, requestId),
+                        () -> deleteObject(destinationOffer, dataCategory, offerLog, tenantId, strategyId, requestId),
                         executor);
                     break;
 
@@ -225,7 +224,7 @@ public class OfferSyncProcess {
     }
 
     private void copyObject(String sourceOffer, String destinationOffer, DataCategory dataCategory,
-        OfferLog offerLog, int tenant, String requestId) {
+        OfferLog offerLog, int tenant, String strategyId, String requestId) {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
@@ -241,10 +240,10 @@ public class OfferSyncProcess {
                 sourceOffer + " to offer " + destinationOffer);
 
             resp = distribution
-                .getContainerByCategory(STRATEGY_ID, offerLog.getFileName(), dataCategory,
+                .getContainerByCategory(strategyId, offerLog.getFileName(), dataCategory,
                     sourceOffer);
 
-            distribution.storeDataInOffers(STRATEGY_ID, offerLog.getFileName(),
+            distribution.storeDataInOffers(strategyId, offerLog.getFileName(),
                 dataCategory, null, Collections.singletonList(destinationOffer), resp);
 
         } catch (StorageNotFoundException e) {
@@ -260,7 +259,7 @@ public class OfferSyncProcess {
         }
     }
 
-    private void deleteObject(String destinationOffer, DataCategory dataCategory, OfferLog offerLog, int tenant,
+    private void deleteObject(String destinationOffer, DataCategory dataCategory, OfferLog offerLog, int tenant, String strategyId, 
         String requestId) {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
@@ -272,9 +271,9 @@ public class OfferSyncProcess {
                 destinationOffer);
 
             DataContext context = new DataContext(
-                offerLog.getFileName(), dataCategory, null, tenant);
+                offerLog.getFileName(), dataCategory, null, tenant, strategyId);
 
-            distribution.deleteObjectInOffers(STRATEGY_ID, context, Collections.singletonList(destinationOffer));
+            distribution.deleteObjectInOffers(strategyId, context, Collections.singletonList(destinationOffer));
 
         } catch (StorageException e) {
             throw new VitamRuntimeException("An error occurred during deleting '" + offerLog.getContainer() + "/" +

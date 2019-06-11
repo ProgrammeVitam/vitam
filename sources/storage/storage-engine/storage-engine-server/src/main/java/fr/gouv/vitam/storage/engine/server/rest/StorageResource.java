@@ -201,7 +201,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     public Response copy(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
         @PathParam("id_object") String objectId) {
-        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID,
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID, VitamHttpHeader.STRATEGY_ID, 
                 VitamHttpHeader.X_CONTENT_SOURCE, VitamHttpHeader.X_CONTENT_DESTINATION, VitamHttpHeader.X_DATA_CATEGORY);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
@@ -212,6 +212,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         DataCategory category;
         String source = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_SOURCE).get(0);
         String destination = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_DESTINATION).get(0);
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
         try {
             category = getDataCategory(headers);
         } catch (IllegalArgumentException e) {
@@ -220,7 +221,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
 
 
-        DataContext context = new DataContext(objectId, category, remoteAddress, tenantId);
+        DataContext context = new DataContext(objectId, category, remoteAddress, tenantId, strategyId);
         try {
             StoredInfoResult storedInfoResult = distribution.copyObjectFromOfferToOffer(context, source, destination);
             return Response.ok().entity(storedInfoResult).build();
@@ -749,7 +750,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         try {
             DataContext context = new DataContext(objectId, category, httpServletRequest.getRemoteHost(),
-                    ParameterHelper.getTenantParameter());
+                    ParameterHelper.getTenantParameter(), strategyId);
 
             List<String> headerValues = headers.getRequestHeader(GlobalDataRest.X_OFFER_IDS);
 

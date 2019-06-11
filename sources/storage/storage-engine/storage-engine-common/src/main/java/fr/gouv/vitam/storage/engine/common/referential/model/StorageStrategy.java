@@ -27,6 +27,13 @@
 
 package fr.gouv.vitam.storage.engine.common.referential.model;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -34,9 +41,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * exclusively)
  */
 public class StorageStrategy {
+    @JsonProperty("id")
     private String id;
-    @JsonProperty("hot")
-    private HotStrategy hotStrategy;
+    @JsonProperty("offers")
+    private List<OfferReference> offers = new ArrayList<>();
 
     /**
      * @return the id
@@ -51,29 +59,55 @@ public class StorageStrategy {
     public void setId(String id) {
         this.id = id;
     }
-
+    
     /**
-     * @return the hot strategy
+     * @return the list of offer references
      */
-    public HotStrategy getHotStrategy() {
-        return hotStrategy;
+    public List<OfferReference> getOffers() {
+        return offers;
     }
 
     /**
-     * set hotstrategy and call post init on it
+     * @param offers list of {@link OfferReference}
+     */
+    public void setOffers(List<OfferReference> offers) {
+        this.offers = offers;
+    }
+    
+    public Integer getCopy() {
+        return getOffers().size();
+    }
+
+    /**
+     * remove (after init) inactive offerReferences
+     */
+    public void postInit() {
+        setOffers(
+            Collections.unmodifiableList(getOffers().stream()
+                .filter(offerReference -> offerReference.isEnabled())
+                .collect(Collectors.toList())));
+    }
+
+    /**
+     * check whether storage offer is enabled (not present means disabled because {@link #postInit} method can filter it)
      *
-     * @param hotStrategy to set
+     * @param offerId storageOfferId to check
+     * @return
      */
-    public void setHotStrategy(HotStrategy hotStrategy) {
-        this.hotStrategy = hotStrategy;
-        this.hotStrategy.postInit();
-    }
-
     public boolean isStorageOfferEnabled(String offerId) {
-        return getHotStrategy().isStorageOfferEnabled(offerId);
+        Optional<OfferReference>
+            offerReference = getOffers().stream()
+            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
+
+        return offerReference.isPresent() && offerReference.get().isEnabled();
     }
 
     public boolean isStorageOfferReferent(String offerId) {
-        return getHotStrategy().isStorageOfferReferent(offerId);
+        Optional<OfferReference>
+            offerReference = getOffers().stream()
+            .filter(offerRef -> offerRef.getId().equals(offerId)).findFirst();
+
+        return offerReference.isPresent() && offerReference.get().isReferent();
     }
+
 }

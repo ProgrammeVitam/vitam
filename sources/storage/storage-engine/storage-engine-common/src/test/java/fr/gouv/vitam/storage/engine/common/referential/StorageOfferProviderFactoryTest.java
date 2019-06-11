@@ -40,6 +40,6 @@ public class StorageOfferProviderFactoryTest {
     @Test
     public void testGetDefaultProvider() throws Exception {
         assertNotNull(StorageOfferProviderFactory.getDefaultProvider());
-        assertTrue(StorageOfferProviderFactory.getDefaultProvider() instanceof FSProvider);
+        assertTrue(StorageOfferProviderFactory.getDefaultProvider() instanceof FileStorageProvider);
     }
 }

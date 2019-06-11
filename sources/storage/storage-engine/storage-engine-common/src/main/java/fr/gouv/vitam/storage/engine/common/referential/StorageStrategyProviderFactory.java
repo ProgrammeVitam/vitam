@@ -32,7 +32,7 @@ package fr.gouv.vitam.storage.engine.common.referential;
  */
 public final class StorageStrategyProviderFactory {
 
-    private static final StorageStrategyProvider FS_REFERENTIAL = new FSProvider();
+    private static final StorageStrategyProvider FS_REFERENTIAL = new FileStorageProvider();
 
     private StorageStrategyProviderFactory() {
         // Do nothing

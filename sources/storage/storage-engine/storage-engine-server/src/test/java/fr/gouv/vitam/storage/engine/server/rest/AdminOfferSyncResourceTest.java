@@ -66,6 +66,7 @@ public class AdminOfferSyncResourceTest {
 
     private static final String OFFER_FS_1_SERVICE_CONSUL = "offer-fs-1.service.consul";
     private static final String OFFER_FS_2_SERVICE_CONSUL = "offer-fs-2.service.consul";
+    private static final String STRATEGY_ID = "default";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -86,7 +87,7 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, STRATEGY_ID, DataCategory.UNIT, null))
             .thenReturn(true);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
@@ -107,7 +108,7 @@ public class AdminOfferSyncResourceTest {
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
         when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, DataCategory.UNIT, null))
+            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL, STRATEGY_ID, DataCategory.UNIT, null))
             .thenReturn(false);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
@@ -127,6 +128,21 @@ public class AdminOfferSyncResourceTest {
         // Given
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
             .setTenantId(null);
+        AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
+
+        // When / Then
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(offerSyncService);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_throw_exception_when_offer_synchronization_request_with_missing_strategy() {
+
+        // Given
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
+            .setStrategyId(null);
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
@@ -216,6 +232,7 @@ public class AdminOfferSyncResourceTest {
             .setTargetOffer(OFFER_FS_2_SERVICE_CONSUL)
             .setContainer(DataCategory.UNIT.getCollectionName())
             .setOffset(null)
-            .setTenantId(0);
+            .setTenantId(0)
+            .setStrategyId(STRATEGY_ID);
     }
 }

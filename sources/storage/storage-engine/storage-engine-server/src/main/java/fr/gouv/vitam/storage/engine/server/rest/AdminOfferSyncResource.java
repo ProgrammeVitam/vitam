@@ -105,6 +105,7 @@ public class AdminOfferSyncResource {
         if(offerSyncRequest.getSourceOffer().equals(offerSyncRequest.getTargetOffer())) {
             throw new IllegalArgumentException("Source offer cannot be the same as target offer");
         }
+        ParametersChecker.checkParameter("strategyId is mandatory.", offerSyncRequest.getStrategyId());
         ParametersChecker.checkParameter("tenantId is mandatory.", offerSyncRequest.getTenantId());
         ParametersChecker.checkParameter("container is mandatory.", offerSyncRequest.getContainer());
 
@@ -121,7 +122,7 @@ public class AdminOfferSyncResource {
             offerSyncRequest.getOffset()));
 
         boolean started = offerSyncService
-            .startSynchronization(offerSyncRequest.getSourceOffer(), offerSyncRequest.getTargetOffer(), dataCategory,
+            .startSynchronization(offerSyncRequest.getSourceOffer(), offerSyncRequest.getTargetOffer(), offerSyncRequest.getStrategyId(), dataCategory,
                 offerSyncRequest.getOffset());
 
         Response.Status status;

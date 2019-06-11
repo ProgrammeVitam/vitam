@@ -43,7 +43,6 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -117,7 +116,7 @@ import org.mockito.junit.MockitoRule;
 public class StorageDistributionImplTest {
     // FIXME P1 Fix Fake Driver
 
-    private static final String STRATEGY_ID = "strategyId";
+    private static final String STRATEGY_ID = "default";
     private static final String OFFER_ID = "default";
     private static final int TENANT_ID = 0;
 
@@ -320,7 +319,7 @@ public class StorageDistributionImplTest {
             VitamConfiguration.getDefaultDigestType());
         // lets delete the object on offers
 
-        DataContext context = new DataContext(objectId, DataCategory.OBJECT, "192.168.1.1", 0);
+        DataContext context = new DataContext(objectId, DataCategory.OBJECT, "192.168.1.1", 0, STRATEGY_ID);
 
         customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context);
 
@@ -585,7 +584,7 @@ public class StorageDistributionImplTest {
     @Test
     public void deleteObjectOK() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        DataContext context = new DataContext("0", DataCategory.OBJECT, "192.168.1.1", 0);
+        DataContext context = new DataContext("0", DataCategory.OBJECT, "192.168.1.1", 0, STRATEGY_ID);
 
         customDistribution.deleteObjectInAllOffers(STRATEGY_ID, context);
     }
@@ -594,7 +593,7 @@ public class StorageDistributionImplTest {
     @Test
     public void testdeleteObjectIllegalArgumentException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        DataContext context = new DataContext("0", DataCategory.OBJECT, null, 0);
+        DataContext context = new DataContext("0", DataCategory.OBJECT, null, 0, STRATEGY_ID);
 
         try {
             customDistribution.deleteObjectInAllOffers(null, context);

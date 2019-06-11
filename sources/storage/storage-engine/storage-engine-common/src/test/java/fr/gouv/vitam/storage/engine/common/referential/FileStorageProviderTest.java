@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.engine.common.referential;
 
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -47,17 +46,14 @@ import static org.junit.Assert.fail;
 /**
  *
  */
-public class FSProviderTest {
+public class FileStorageProviderTest {
 
     @Test
     public void testGetStorageStrategy() throws Exception {
-        final FSProvider fsProvider = new FSProvider();
-        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
+        final FileStorageProvider fsProvider = new FileStorageProvider();
+        final StorageStrategy strategy = fsProvider.getStorageStrategy("default");
         assertEquals("default", strategy.getId());
-        final HotStrategy hot = strategy.getHotStrategy();
-        assertNotNull(hot);
-        assertEquals((Integer) 2, hot.getCopy());
-        final List<OfferReference> offerReferences = hot.getOffers();
+        final List<OfferReference> offerReferences = strategy.getOffers();
         assertNotNull(offerReferences);
         assertEquals(2, offerReferences.size());
         final OfferReference offerReference = offerReferences.get(0);
@@ -66,14 +62,11 @@ public class FSProviderTest {
 
     @Test
     public void testGetStorageStrategy_ForceReload() throws Exception {
-        final FSProvider fsProvider = new FSProvider();
-        fsProvider.setStorageStrategy(null);
-        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
+        final FileStorageProvider fsProvider = new FileStorageProvider();
+        fsProvider.setStorageStrategies(null);
+        final StorageStrategy strategy = fsProvider.getStorageStrategy("default");
         assertEquals("default", strategy.getId());
-        final HotStrategy hot = strategy.getHotStrategy();
-        assertNotNull(hot);
-        assertEquals((Integer) 2, hot.getCopy());
-        final List<OfferReference> offerReferences = hot.getOffers();
+        final List<OfferReference> offerReferences = strategy.getOffers();
         assertNotNull(offerReferences);
         assertEquals(2, offerReferences.size());
         final OfferReference offerReference = offerReferences.get(0);
@@ -85,7 +78,7 @@ public class FSProviderTest {
         final File strategy = PropertiesUtils.findFile("static-strategy.json");
         assertNotNull(strategy);
         strategy.setReadable(false);
-        final FSProvider fsProvider = new FSProvider();
+        final FileStorageProvider fsProvider = new FileStorageProvider();
         try {
             fsProvider.getStorageStrategy(null);
             fail("Expecting storage exception");
@@ -96,7 +89,7 @@ public class FSProviderTest {
 
     @Test
     public void testGetStorageOffer() throws Exception {
-        final FSProvider fsProvider = new FSProvider();
+        final FileStorageProvider fsProvider = new FileStorageProvider();
         final StorageOffer offer = fsProvider.getStorageOffer("default");
         assertNotNull(offer);
         assertEquals("default", offer.getId());
@@ -108,7 +101,7 @@ public class FSProviderTest {
 
     @Test
     public void testGetStorageOffer_ForceReload() throws Exception {
-        final FSProvider fsProvider = new FSProvider();
+        final FileStorageProvider fsProvider = new FileStorageProvider();
         fsProvider.setStorageOffer(null);
         final StorageOffer offer = fsProvider.getStorageOffer("default");
         assertNotNull(offer);
@@ -122,7 +115,7 @@ public class FSProviderTest {
         final File offer = PropertiesUtils.findFile("static-offer.json");
         assertNotNull(offer);
         offer.setReadable(false);
-        final FSProvider fsProvider = new FSProvider();
+        final FileStorageProvider fsProvider = new FileStorageProvider();
         try {
             fsProvider.getStorageOffer(null);
             fail("Expecting storage exception");
@@ -131,29 +124,17 @@ public class FSProviderTest {
         }
     }
 
-    @Test
-    public void testInvalidCopyValue() throws Exception {
-        final FSProvider fsProvider = new FSProvider();
-        fsProvider.setStorageStrategy(null);
-        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
-        assertTrue(strategy.getHotStrategy().isCopyValid());
-        strategy.getHotStrategy().setCopy(4);
-        assertFalse(strategy.getHotStrategy().isCopyValid());
-        strategy.getHotStrategy().setCopy(1);
-        assertFalse(strategy.getHotStrategy().isCopyValid());
-    }
-
 
     @Test
     public void testDisabledStorageOffer() throws Exception {
-        final FSProvider fsProvider = new FSProvider();
-        final StorageStrategy strategy = fsProvider.getStorageStrategy("whatever");
+        final FileStorageProvider fsProvider = new FileStorageProvider();
+        final StorageStrategy strategy = fsProvider.getStorageStrategy("default");
+        assertNotNull(strategy);
         assertEquals("default", strategy.getId());
-        final HotStrategy hot = strategy.getHotStrategy();
-        assertNotNull(hot);
-        assertEquals((Integer) 2, hot.getCopy());
-        final List<OfferReference> offerReferences = hot.getOffers();
-        assertEquals((Integer) 2, hot.getCopy());
+        assertEquals((Integer) 2, strategy.getCopy());
+        final List<OfferReference> offerReferences = strategy.getOffers();
+        assertEquals(2, offerReferences.size());
+        assertEquals((Integer) 2, strategy.getCopy());
         assertFalse(strategy.isStorageOfferEnabled(""));
         final StorageOffer offer = fsProvider.getStorageOfferForHA("inactiveOffer", true);
         assertNotNull(offer);
