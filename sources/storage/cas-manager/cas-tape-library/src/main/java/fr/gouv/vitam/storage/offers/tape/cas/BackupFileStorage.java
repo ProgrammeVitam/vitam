@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeTarReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
@@ -136,7 +137,7 @@ public class BackupFileStorage {
         Path currentTarFilePath = fileBucketStoragePath.resolve(uniqueFileName);
         Path currentTempTarFilePath = fileBucketStoragePath.resolve(uniqueFileName + LocalFileUtils.TMP_EXTENSION);
 
-        if (!currentTarFilePath.toFile().exists() || !currentTempTarFilePath.toFile().exists()) {
+        if (!currentTempTarFilePath.toFile().exists()) {
             throw new IOException("Backup file with name " + uniqueFileName + " not found");
         }
 
@@ -151,7 +152,8 @@ public class BackupFileStorage {
                 .archiveFileNameRelativeToInputArchiveStorageFolder(this.fileBucketId, uniqueFileName),
             size,
             digest,
-            uniqueFileName);
+            uniqueFileName,
+            QueueMessageType.WriteBackupOrder);
         this.writeOrderCreator.addToQueue(writeOrder);
     }
 }

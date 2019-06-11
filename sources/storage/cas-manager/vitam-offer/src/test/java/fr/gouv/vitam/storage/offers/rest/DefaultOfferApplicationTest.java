@@ -49,15 +49,9 @@ public class DefaultOfferApplicationTest {
         }
 
         try {
-            new DefaultOfferMain(DEFAULT_OFFER_CONF);
-        } catch (final IllegalStateException e) {
-            fail(SHOULD_NOT_RAIZED_AN_EXCEPTION);
-        }
-
-        try {
             new DefaultOfferMain(WORKSPACE_OFFER_CONF);
             fail("Should raize an IllegalStateException");
-        } catch (final IllegalStateException exc) {
+        } catch (final Exception exc) {
             // Result Expected
         }
     }

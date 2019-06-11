@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
 import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
@@ -319,6 +320,12 @@ public class WriteOrderCreatorBootstrapRecovery {
             digest,
             archiveId
         );
+
+        // Write Backup order
+        if (BucketTopologyHelper.BACKUP_BUCKET.equals(bucket)) {
+            message.setMessageType(QueueMessageType.WriteBackupOrder);
+        }
+
         writeOrderCreator.sendMessageToQueue(message);
     }
 

@@ -151,6 +151,8 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
         Optional<? extends ReadWriteOrder> readWriteOrder;
         switch (readWritePriority) {
+            case BACKUP:
+                readWriteOrder = selectReadWriteOrderWithBackupPriority(driveWorker);
             case WRITE:
                 readWriteOrder = selectReadWriteOrderWithWritePriority(driveWorker);
                 break;
@@ -209,6 +211,20 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
         return order;
     }
+
+    private Optional<? extends ReadWriteOrder> selectReadWriteOrderWithBackupPriority(TapeDriveWorker driveWorker)
+        throws QueueException {
+
+        Optional<? extends ReadWriteOrder> order = selectOrder(QueueMessageType.WriteBackupOrder);
+
+        // If no write backup order then we take any other write order
+        if (!order.isPresent()) {
+            return selectReadWriteOrderWithWritePriority(driveWorker);
+        }
+
+        return order;
+    }
+
 
     private Optional<? extends ReadWriteOrder> selectReadWriteOrderByReadPriority(TapeDriveWorker driveWorker)
         throws QueueException {

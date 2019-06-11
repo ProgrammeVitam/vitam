@@ -85,7 +85,7 @@ public class AdminTapeResourceTest {
 
         InputStream backupStream = PropertiesUtils.getResourceAsStream("backup.zip");
 
-        String objectId = "20_10_2018.backup.zip";
+        String objectId = "2019-01-01.backup.mongoc.zip";
         adminTapeResource.putObject(objectId, backupStream);
 
         Optional<TapeTarReferentialEntity> archiveReference =
@@ -98,7 +98,7 @@ public class AdminTapeResourceTest {
         writeOrderCreator.startListener();
 
         // Wait until writeOrder will be processed
-        Thread.sleep(100);
+        Thread.sleep(500);
 
         Assertions.assertThat(queueCollection.count()).isEqualTo(1);
 
