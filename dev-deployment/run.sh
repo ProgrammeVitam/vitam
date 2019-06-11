@@ -26,6 +26,8 @@
 # accept its terms.
 #*******************************************************************************
 
+export VITAMDEV_GIT_REPO="$( cd "$( readlink -f $(dirname ${BASH_SOURCE[0]}) )/.." ; pwd )"
+
 if [ ${EUID} -eq 0 ]
 then
 	echo "Please dont't run this script as root !"
