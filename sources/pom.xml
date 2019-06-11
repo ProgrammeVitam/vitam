@@ -547,7 +547,7 @@
                 <plugin>
                     <!-- Build an assembly (distribution) of sources and/or binaries. -->
                     <artifactId>maven-assembly-plugin</artifactId>
-                    <version>2.6</version>
+                    <version>3.1.1</version>
                 </plugin>
                 <plugin>
                     <!-- Dependency manipulation (copy, unpack) and analysis. -->
