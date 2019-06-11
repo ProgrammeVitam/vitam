@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Consumes;
@@ -51,7 +50,6 @@ import javax.ws.rs.HEAD;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -66,7 +64,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Strings;
+import com.google.common.annotations.VisibleForTesting;
 
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -89,7 +87,6 @@ import fr.gouv.vitam.common.model.RequestResponseError;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.VitamAutoCloseable;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
-import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.HttpHeaderHelper;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
@@ -134,11 +131,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResource.class);
     private static final String STORAGE_MODULE = "STORAGE";
     private static final String CODE_VITAM = "code_vitam";
-    private static final String MISSING_THE_TENANT_ID_X_TENANT_ID =
-        "Missing the tenant ID (X-Tenant-Id) or wrong object Type";
-    private static final String STRATEGY_ID_IS_REQUIRED = "Strategy ID is required";
 
-    private static final String STRATEGY_ID = "default";
     private static final String ERROR_WHEN_COPING_CONTEXT = "Error when coping context: ";
     private final StorageDistribution distribution;
     private final TraceabilityStorageService traceabilityLogbookService;
@@ -190,24 +183,32 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         }
     }
 
+    /**
+     * Constructor used for test purpose
+     *
+     * @param storageDistribution the storage Distribution to be applied
+     */
+    @VisibleForTesting
+    StorageResource(StorageDistribution storageDistribution, TimestampGenerator timestampGenerator) {
+        distribution = storageDistribution;
+        traceabilityLogbookService = new TraceabilityStorageService(distribution);
+        this.timestampGenerator = timestampGenerator;
+    }
+
     @Path("/copy/{id_object}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response copy(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
         @PathParam("id_object") String objectId) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID,
+                VitamHttpHeader.X_CONTENT_SOURCE, VitamHttpHeader.X_CONTENT_DESTINATION, VitamHttpHeader.X_DATA_CATEGORY);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+
         String remoteAddress = httpServletRequest.getRemoteAddr();
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-
-        if (
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_CONTENT_SOURCE) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_CONTENT_DESTINATION) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DATA_CATEGORY)
-
-        ) {
-            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-        }
         DataCategory category;
         String source = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_SOURCE).get(0);
         String destination = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_DESTINATION).get(0);
@@ -220,7 +221,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
 
         DataContext context = new DataContext(objectId, category, remoteAddress, tenantId);
-
         try {
             StoredInfoResult storedInfoResult = distribution.copyObjectFromOfferToOffer(context, source, destination);
             return Response.ok().entity(storedInfoResult).build();
@@ -246,21 +246,20 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     public Response create(@Context HttpServletRequest httpServletRequest,
         @Context HttpHeaders headers,
-        @PathParam("id_operation") String operationId, InputStream inputStream) {
+            @PathParam("id_operation") String operationId, InputStream inputStream) {
 
         String remoteAddress = httpServletRequest.getRemoteAddr();
 
-        if (
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_CONTENT_LENGTH) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_DATA_CATEGORY) ||
-                !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)
-
-        ) {
-            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID,
+                VitamHttpHeader.X_CONTENT_LENGTH, VitamHttpHeader.X_DATA_CATEGORY, VitamHttpHeader.STRATEGY_ID,
+                VitamHttpHeader.OFFERS_IDS);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
+
         DataCategory category;
         Long size = Long.valueOf(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CONTENT_LENGTH).get(0));
+        final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
         try {
             category = getDataCategory(headers);
@@ -269,72 +268,19 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
         }
 
-        try (StreamAndInfo streamAndInfo = new StreamAndInfo(inputStream, size)){
+        try (StreamAndInfo streamAndInfo = new StreamAndInfo(inputStream, size)) {
 
             String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
             List<String> offerIds = Arrays.asList(listOffer.split(","));
 
-            StoredInfoResult storedInfoResult = distribution
-                .storeDataInOffers(STRATEGY_ID, streamAndInfo, operationId, category, remoteAddress, offerIds);
+            StoredInfoResult storedInfoResult = distribution.storeDataInOffers(strategyId, streamAndInfo, operationId,
+                    category, remoteAddress, offerIds);
             return Response.ok().entity(storedInfoResult).build();
         } catch (final StorageException e) {
             LOGGER.error(e);
             return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
         }
 
-    }
-
-    /**
-     * Constructor used for test purpose
-     *
-     * @param storageDistribution the storage Distribution to be applied
-     */
-    StorageResource(StorageDistribution storageDistribution, TimestampGenerator timestampGenerator) {
-        distribution = storageDistribution;
-        traceabilityLogbookService = new TraceabilityStorageService(distribution);
-        this.timestampGenerator = timestampGenerator;
-    }
-
-    /**
-     * @param headers http headers
-     * @return null if strategy and tenant headers have values, an error response otherwise
-     */
-    private Response checkTenantStrategyHeader(HttpHeaders headers) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
-            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-        }
-        return null;
-    }
-
-    /**
-     * @param strategyId StrategyId if directly getting from Header parameter
-     * @return null if strategy and tenant headers have values, an error response otherwise
-     */
-    private Response checkTenantStrategyHeader(String strategyId) {
-        if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
-            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-        }
-        try {
-            SanityChecker.checkParameter(strategyId);
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error("Missing Strategy", e);
-            return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-        }
-        return null;
-    }
-
-    /**
-     * @param headers http headers
-     * @return null if strategy, tenant, digest and digest algorithm headers have values, an error response otherwise
-     */
-    private Optional<Response> checkDigestAlgorithmHeader(HttpHeaders headers) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)
-        ) {
-            return Optional.of(buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER));
-        }
-        return Optional.empty();
     }
 
     /**
@@ -347,26 +293,26 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getStorageInformation(@Context HttpHeaders headers) {
-        final Response response = checkTenantStrategyHeader(headers);
-        if (response == null) {
-            VitamCode vitamCode;
-            final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            try {
-                final JsonNode result = distribution.getContainerInformation(strategyId);
-                return Response.status(Status.OK).entity(result).build();
-            } catch (final StorageNotFoundException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-            } catch (final IllegalArgumentException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_BAD_REQUEST;
-            }
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
-        return response;
+        final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            final JsonNode result = distribution.getContainerInformation(strategyId);
+            return Response.status(Status.OK).entity(result).build();
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        } catch (final IllegalArgumentException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_BAD_REQUEST;
+        }
+        return buildErrorResponse(vitamCode);
+
     }
 
     /**
@@ -393,29 +339,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Create a container
-     * <p>
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    // TODO P1 : container creation possibility needs to be re-think then
-    // deleted or implemented. Vitam Architects are
-    // aware of this
-    @POST
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response createContainer(@Context HttpHeaders headers) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
-
-    /**
      * Get list of object type
      *
      * @param xcursor the X-Cursor
@@ -430,18 +353,20 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response listObjects(@HeaderParam(GlobalDataRest.X_CURSOR) boolean xcursor,
-        @HeaderParam(GlobalDataRest.X_CURSOR_ID) String xcursorId,
-        @HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId, @PathParam("type") DataCategory type) {
-        final Response response = checkTenantStrategyHeader(strategyId);
-        if (response != null) {
-            return response;
+    public Response listObjects(@Context HttpHeaders headers, @PathParam("type") DataCategory type) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID, VitamHttpHeader.X_CURSOR);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
+
         try {
-            ParametersChecker.checkParameter("X-Cursor is required", xcursor);
-            ParametersChecker.checkParameter("Strategy ID is required", strategyId);
-            RequestResponse<JsonNode> jsonNodeRequestResponse =
-                distribution.listContainerObjects(strategyId, type, xcursorId);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            String cursorId = null;
+            if (HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.X_CURSOR_ID)) {
+                cursorId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.X_CURSOR_ID).get(0);
+            }
+            RequestResponse<JsonNode> jsonNodeRequestResponse = distribution.listContainerObjects(strategyId, type,
+                    cursorId);
 
             return jsonNodeRequestResponse.toResponse();
         } catch (IllegalArgumentException exc) {
@@ -467,19 +392,16 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getOfferLogs(@HeaderParam(GlobalDataRest.X_STRATEGY_ID) String strategyId,
-        @PathParam("type") DataCategory type, OfferLogRequest offerLogRequest) {
-
-        final Response response = checkTenantStrategyHeader(strategyId);
-        if (response != null) {
-            return response;
+    public Response getOfferLogs(@Context HttpHeaders headers,
+            @PathParam("type") DataCategory type, OfferLogRequest offerLogRequest) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
         try {
-            ParametersChecker.checkParameter(STRATEGY_ID_IS_REQUIRED, strategyId);
-            RequestResponse<OfferLog> jsonNodeRequestResponse =
-                distribution.getOfferLogs(strategyId, type, offerLogRequest.getOffset(), offerLogRequest.getLimit(),
-                    offerLogRequest.getOrder());
-
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+            RequestResponse<OfferLog> jsonNodeRequestResponse = distribution.getOfferLogs(strategyId, type,
+                    offerLogRequest.getOffset(), offerLogRequest.getLimit(), offerLogRequest.getOrder());
             return jsonNodeRequestResponse.toResponse();
         } catch (IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -502,33 +424,29 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response getInformation(@Context HttpHeaders headers,
-        @PathParam("type") String typeStr, @PathParam("id_object") String objectId) {
+            @PathParam("type") String typeStr, @PathParam("id_object") String objectId) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID, VitamHttpHeader.OFFERS_IDS,
+                VitamHttpHeader.OFFER_NO_CACHE);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
 
         DataCategory type = DataCategory.getByCollectionName(typeStr);
 
-        String strategyId;
-        final Response response = checkTenantStrategyHeader(headers);
-        if (response == null) {
-            strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)
-                || !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFER_NO_CACHE)) {
-                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-            }
-            String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
-            List<String> offerIds = Arrays.asList(listOffer.split(","));
-            boolean noCache =
-                Boolean.parseBoolean(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER_NO_CACHE).get(0));
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
+        List<String> offerIds = Arrays.asList(listOffer.split(","));
+        boolean noCache = Boolean
+                .parseBoolean(HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFER_NO_CACHE).get(0));
 
-            JsonNode offerMetadataInfo;
-            try {
-                offerMetadataInfo = distribution.getContainerInformation(strategyId, type, objectId, offerIds, noCache);
-            } catch (StorageException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
-            }
+        try {
+            JsonNode offerMetadataInfo = distribution.getContainerInformation(strategyId, type, objectId, offerIds,
+                    noCache);
             return Response.status(Status.OK).entity(offerMetadataInfo).build();
+        } catch (StorageException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
         }
-        return response;
     }
 
     /**
@@ -541,34 +459,28 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response getBatchObjectInformation(@Context HttpHeaders headers,
-        @PathParam("type") String typeStr, List<String> objectIds) {
+    public Response getBatchObjectInformation(@Context HttpHeaders headers, @PathParam("type") String typeStr,
+            List<String> objectIds) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID, VitamHttpHeader.OFFERS_IDS);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
 
         DataCategory type = DataCategory.getByCollectionName(typeStr);
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
+        List<String> offerIds = Arrays.asList(listOffer.split(","));
 
-        String strategyId;
-        final Response response = checkTenantStrategyHeader(headers);
-        if (response == null) {
-            strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)) {
-                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
-            }
-            String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
-            List<String> offerIds = Arrays.asList(listOffer.split(","));
-
-            List<BatchObjectInformationResponse> objectInformationResponses;
-            try {
-                objectInformationResponses =
-                    distribution.getBatchObjectInformation(strategyId, type, objectIds, offerIds);
-            } catch (StorageException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            }
-            return Response.status(Status.OK).entity(
+        List<BatchObjectInformationResponse> objectInformationResponses;
+        try {
+            objectInformationResponses = distribution.getBatchObjectInformation(strategyId, type, objectIds, offerIds);
+        } catch (StorageException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
+        return Response.status(Status.OK).entity(
                 new RequestResponseOK<BatchObjectInformationResponse>().addAllResults(objectInformationResponses))
                 .build();
-        }
-        return response;
     }
 
     /**
@@ -585,7 +497,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public Response getObject(@Context HttpHeaders headers, @PathParam("id_object") String objectId,
         AccessLogInfoModel logInfo)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -618,7 +530,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     public Response getBackupFile(@Context HttpHeaders headers, @PathParam("backupfile") String backupfile)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -709,7 +621,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     public Response getAccessLogFile(@Context HttpHeaders headers,
         @PathParam("storageaccesslogfile") String storageAccessLogFile) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -763,7 +675,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getBackupOperation(@Context HttpHeaders headers, @PathParam("id_operation") String operationId) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -784,9 +696,9 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
     private Response getObjectInformationWithPost(HttpHeaders headers, String objectId) {
         // FIXME : What is this used for? Do we really need to support X_HTTP_METHOD_OVERRIDE for internal APIs?
-        final Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
         final Response responsePost = checkPostHeader(headers);
         if (responsePost == null) {
@@ -812,14 +724,15 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteObject(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
-        @PathParam("id_object") String objectId) {
+            @PathParam("id_object") String objectId) {
 
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.TENANT_ID, VitamHttpHeader.STRATEGY_ID,
+                VitamHttpHeader.X_DATA_CATEGORY);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
-        DataCategory category;
 
+        DataCategory category;
         try {
             category = getDataCategory(headers);
         } catch (IllegalArgumentException e) {
@@ -829,43 +742,34 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         if (!category.canDelete()) {
             return Response.status(UNAUTHORIZED).entity(getErrorEntity(UNAUTHORIZED, UNAUTHORIZED.getReasonPhrase()))
-                .build();
+                    .build();
         }
 
-        Optional<Response> optionalResponse = checkDigestAlgorithmHeader(headers);
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
 
-        if (!optionalResponse.isPresent()) {
-            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-
-            try {
-                DataContext context = new DataContext(objectId, category, httpServletRequest.getRemoteHost(),
+        try {
+            DataContext context = new DataContext(objectId, category, httpServletRequest.getRemoteHost(),
                     ParameterHelper.getTenantParameter());
 
-                List<String> headerValues = headers.getRequestHeader(GlobalDataRest.X_OFFER_IDS);
+            List<String> headerValues = headers.getRequestHeader(GlobalDataRest.X_OFFER_IDS);
 
-                if (headerValues == null || headerValues.isEmpty()) {
-                    distribution
-                        .deleteObjectInAllOffers(strategyId, context);
-                } else {
-                    distribution
-                        .deleteObjectInOffers(strategyId, context,
-                            Arrays.asList(headerValues.get(0).split(",")));
-                }
-
-                return Response.status(Status.NO_CONTENT).build();
-
-            } catch (final StorageNotFoundException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
-            } catch (final StorageException exc) {
-                LOGGER.error(exc);
-                return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            } catch (final IllegalArgumentException e) {
-                LOGGER.error(e);
-                return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
+            if (headerValues == null || headerValues.isEmpty()) {
+                distribution.deleteObjectInAllOffers(strategyId, context);
+            } else {
+                distribution.deleteObjectInOffers(strategyId, context, Arrays.asList(headerValues.get(0).split(",")));
             }
+            return Response.status(Status.NO_CONTENT).build();
+        } catch (final StorageNotFoundException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_NOT_FOUND);
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        } catch (final IllegalArgumentException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_BAD_REQUEST);
         }
-        return response;
+
     }
 
     private DataCategory getDataCategory(@Context HttpHeaders headers) {
@@ -894,80 +798,34 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Response checkObject(@Context HttpHeaders headers, @PathParam("type") DataCategory type,
-        @PathParam("id_object") String objectId) {
-        String strategyId;
-        Response response = checkTenantStrategyHeader(headers);
-        if (response == null) {
-            strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.OFFERS_IDS)) {
-                return buildErrorResponse(VitamCode.STORAGE_MISSING_HEADER);
+            @PathParam("id_object") String objectId) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID, VitamHttpHeader.OFFERS_IDS);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
+        }
+
+        String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
+        List<String> offerIds = Arrays.asList(listOffer.split(","));
+        
+        try {
+            Map<String, Boolean> resultByOffer = distribution.checkObjectExisting(strategyId, objectId, type, offerIds);
+            final ResponseBuilder responseBuilder;
+            if (resultByOffer.containsValue(Boolean.FALSE)) {
+                responseBuilder = Response.status(Status.NOT_FOUND);
+            } else {
+                responseBuilder = Response.status(Status.NO_CONTENT);
             }
-            String listOffer = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.OFFERS_IDS).get(0);
-            List<String> offerIds = Arrays.asList(listOffer.split(","));
-            try {
-                Map<String, Boolean> resultByOffer = distribution.checkObjectExisting(strategyId, objectId,
-                    type, offerIds);
-                final ResponseBuilder responseBuilder;
-                if (resultByOffer.containsValue(Boolean.FALSE)) {
-                    responseBuilder = Response.status(Status.NOT_FOUND);
-                } else {
-                    responseBuilder = Response.status(Status.NO_CONTENT);
-                }
-                resultByOffer.entrySet().forEach(entry -> {
-                    responseBuilder.header(entry.getKey(), BooleanUtils.toStringTrueFalse(entry.getValue()));
-                });
-                response = responseBuilder.build();
+            resultByOffer.entrySet().forEach(entry -> {
+                responseBuilder.header(entry.getKey(), BooleanUtils.toStringTrueFalse(entry.getValue()));
+            });
+            return responseBuilder.build();
 
-            } catch (final StorageException e) {
-                LOGGER.error(e);
-                response = buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
-            }
+        } catch (final StorageException e) {
+            LOGGER.error(e);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
 
-        return response;
-    }
-
-    /**
-     * Get a list of logbooks
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/logbooks")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response getLogbooks(@Context HttpHeaders headers) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
-    /**
-     * Get an object
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @param logbookId the id of the logbook
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/logbooks/{id_logbook}")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response getLogbook(@Context HttpHeaders headers, @PathParam("id_logbook") String logbookId) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -981,7 +839,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getLogbookStream(@Context HttpHeaders headers, @PathParam("id_logbook") String objectId)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1017,35 +875,10 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createLogbook(@Context HttpServletRequest httpServletRequest, @Context HttpHeaders headers,
         @PathParam("id_logbook") String logbookId, ObjectDescription createObjectDescription) {
-        if (createObjectDescription == null) {
-            return getLogbook(headers, logbookId);
-        } else {
-            // TODO P1: actually no X-Requester header, so send the getRemoteAdr
-            // from HttpServletRequest
-            return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK,
+        // TODO P1: actually no X-Requester header, so send the getRemoteAdr
+        // from HttpServletRequest
+        return createObjectByType(headers, logbookId, createObjectDescription, DataCategory.LOGBOOK,
                 httpServletRequest.getRemoteAddr());
-        }
-    }
-
-    /**
-     * Get a list of units
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/units")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response getUnits(@Context HttpHeaders headers) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
     }
 
     /**
@@ -1059,7 +892,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getUnit(@Context HttpHeaders headers, @PathParam("id_md") String unitId) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1099,53 +932,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             httpServletRequest.getRemoteAddr());
     }
 
-    /**
-     * Update a unit metadata
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @param metadataId the id of the unit metadata
-     * @param query the query as a JsonNode
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/units/{id_md}")
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateUnitMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
-        JsonNode query) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        Status status = Status.NOT_IMPLEMENTED;
-        if (!DataCategory.UNIT.canUpdate()) {
-            status = UNAUTHORIZED;
-        }
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
-    /**
-     * Get a list of Object Groups
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/objectgroups")
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response getObjectGroups(@Context HttpHeaders headers) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        final Status status = Status.NOT_IMPLEMENTED;
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
 
     /**
      * Get a Object Group
@@ -1160,7 +946,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getObjectGroup(@Context HttpHeaders headers, @PathParam("id_md") String metadataId) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1200,45 +986,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         // from HttpServletRequest
         return createObjectByType(headers, metadataId, createObjectDescription, DataCategory.OBJECTGROUP,
             httpServletRequest.getRemoteAddr());
-    }
-
-    /**
-     * Update a Object Group metadata
-     * <p>
-     * Note : this is NOT to be handled in item #72.
-     *
-     * @param headers http header
-     * @param metadataId the id of the unit metadata
-     * @param query the query as a JsonNode
-     * @return Response NOT_IMPLEMENTED
-     */
-    @Path("/objectgroups/{id_md}")
-    @PUT
-    @Produces(MediaType.APPLICATION_JSON)
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateObjectGroupMetadata(@Context HttpHeaders headers, @PathParam("id_md") String metadataId,
-        JsonNode query) {
-        Response response = checkTenantStrategyHeader(headers);
-        if (response != null) {
-            return response;
-        }
-        Status status = Status.NOT_IMPLEMENTED;
-        if (!DataCategory.OBJECTGROUP.canUpdate()) {
-            status = UNAUTHORIZED;
-        }
-        return Response.status(status).entity(getErrorEntity(status, status.getReasonPhrase())).build();
-    }
-
-    private Response buildErrorResponse(VitamCode vitamCode) {
-        return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
-            .build();
-    }
-
-    private Response badRequestResponse(String message) {
-        return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
     }
 
     /**
@@ -1283,7 +1030,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1315,7 +1062,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getDistributionReport(@Context HttpHeaders headers, @PathParam("id_report") String objectId)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1339,33 +1086,32 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     // getRemoteAdr from HttpServletRequest passed as parameter (requester)
     // Change it when the good header is sent
     private Response createObjectByType(HttpHeaders headers, String objectId, ObjectDescription createObjectDescription,
-        DataCategory category, String requester) {
-        final Response response = checkTenantStrategyHeader(headers);
-        if (response == null) {
-            VitamCode vitamCode;
-            final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
-            try {
-                final StoredInfoResult result =
-                    distribution.storeDataInAllOffers(strategyId, objectId, createObjectDescription, category,
-                        requester);
-                return Response.status(Status.CREATED).entity(result).build();
-            } catch (final StorageNotFoundException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_NOT_FOUND;
-            } catch (final StorageAlreadyExistsException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
-            } catch (final StorageException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
-            } catch (final UnsupportedOperationException exc) {
-                LOGGER.error(exc);
-                vitamCode = VitamCode.STORAGE_BAD_REQUEST;
-            }
-            // If here, an error occurred
+            DataCategory category, String requester) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
-        return response;
+        final String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+        try {
+            final StoredInfoResult result = distribution.storeDataInAllOffers(strategyId, objectId,
+                    createObjectDescription, category, requester);
+            return Response.status(Status.CREATED).entity(result).build();
+        } catch (final StorageNotFoundException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_NOT_FOUND;
+        } catch (final StorageAlreadyExistsException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_DRIVER_OBJECT_ALREADY_EXISTS;
+        } catch (final StorageException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR;
+        } catch (final UnsupportedOperationException exc) {
+            LOGGER.error(exc);
+            vitamCode = VitamCode.STORAGE_BAD_REQUEST;
+        }
+        // If here, an error occurred
+        return buildErrorResponse(vitamCode);
+
     }
 
     /**
@@ -1410,7 +1156,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getManifest(@Context HttpHeaders headers, @PathParam("id_manifest") String objectId)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1434,21 +1180,22 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Backup storage log
      *
-     * @param xTenantId the tenant id
+     * @param headers http header
      * @return the response with a specific HTTP status
      */
     @POST
     @Path("/storage/backup/accesslog")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response backupStorageAccessLog(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Status.BAD_REQUEST).build();
+    public Response backupStorageAccessLog(@Context HttpHeaders headers) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
+        
         try {
-            Integer tenantId = Integer.parseInt(xTenantId);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final GUID guid = storageLogAdministration.backupStorageLog(false);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
+            final GUID guid = storageLogAdministration.backupStorageLog(strategyId, false);
             final List<String> resultAsJson = new ArrayList<>();
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
@@ -1468,21 +1215,22 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Backup storage log
      *
-     * @param xTenantId the tenant id
+     * @param headers http header
      * @return the response with a specific HTTP status
      */
     @POST
     @Path("/storage/backup")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response backupStorageLog(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Status.BAD_REQUEST).build();
+    public Response backupStorageLog(@Context HttpHeaders headers) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
+
         try {
-            Integer tenantId = Integer.parseInt(xTenantId);
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            final GUID guid = storageLogAdministration.backupStorageLog(true);
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
+            final GUID guid = storageLogAdministration.backupStorageLog(strategyId, true);
             final List<String> resultAsJson = new ArrayList<>();
             resultAsJson.add(guid.toString());
             return Response.status(Status.OK)
@@ -1502,25 +1250,27 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     /**
      * Run storage logbook secure operation
      *
-     * @param xTenantId the tenant id
+     * @param headers http header
      * @return the response with a specific HTTP status
      */
     @POST
     @Path("/storage/traceability")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response traceabilityStorageLogbook(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
-        if (Strings.isNullOrEmpty(xTenantId)) {
-            LOGGER.error(MISSING_THE_TENANT_ID_X_TENANT_ID);
-            return Response.status(Status.BAD_REQUEST).build();
+    public Response traceabilityStorageLogbook(@Context HttpHeaders headers) {
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
+        if (vitamCode != null) {
+            return buildErrorResponse(vitamCode);
         }
+
         try {
-            Integer tenantId = Integer.parseInt(xTenantId);
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            String strategyId = HttpHeaderHelper.getHeaderValues(headers, VitamHttpHeader.STRATEGY_ID).get(0);
+
             final GUID guid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
-            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
             VitamThreadUtils.getVitamSession().setRequestId(guid);
 
-            traceabilityLogbookAdministration.generateTraceabilityStorageLogbook(guid);
+            traceabilityLogbookAdministration.generateTraceabilityStorageLogbook(guid, strategyId);
             return Response.status(Status.OK)
                 .entity(new RequestResponseOK<GUID>()
                     .addResult(guid))
@@ -1627,7 +1377,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response downloadStorageTraceability(@Context HttpHeaders headers,
         @PathParam("storagetraceability_name") String filename) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1704,7 +1454,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public Response getRuleFile(@Context HttpHeaders headers,
         @PathParam("id_object") String objectId)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1762,7 +1512,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     public Response getUnitGraphFile(@Context HttpHeaders headers,
         @PathParam("graph_file_name") String graph_file_name) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1823,7 +1573,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @Produces({MediaType.APPLICATION_OCTET_STREAM})
     public Response getObjectGroupGraphFile(@Context HttpHeaders headers,
         @PathParam("graph_file_name") String graph_file_name) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1911,7 +1661,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
         @Context HttpHeaders headers,
         @PathParam("guid") String guid) {
         // If the POST is a creation request
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -1957,7 +1707,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Get a report
+     * Get a profile
      *
      * @param headers http header
      * @param profileFileName the id of the object
@@ -1970,7 +1720,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     public Response downloadProfile(@Context HttpHeaders headers,
         @PathParam("profile_file_name") String profileFileName)
         throws IOException {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -2016,34 +1766,6 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * @param headers http headers
-     * @return null if strategy and tenant headers have values, a VitamCode response otherwise
-     */
-    private VitamCode checkTenantStrategyHeaderAsync(HttpHeaders headers) {
-        if (!HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.TENANT_ID) ||
-            !HttpHeaderHelper.hasValuesFor(headers, VitamHttpHeader.STRATEGY_ID)) {
-            return VitamCode.STORAGE_MISSING_HEADER;
-        }
-        return null;
-    }
-
-    private VitamError getErrorEntity(Status status, String message) {
-        String aMessage =
-            ((message != null) && !message.trim().isEmpty()) ? message
-                : ((status.getReasonPhrase() != null) ? status.getReasonPhrase() : status.name());
-
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
-            .setState(CODE_VITAM)
-            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
-    }
-
-    @Override
-    public void close() {
-        storageLogService.close();
-        distribution.close();
-    }
-
-    /**
      * Post a new unit metadata
      *
      * @param httpServletRequest http servlet request to get requester
@@ -2066,7 +1788,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Get a unit
+     * Get an accessionregistersdetail
      *
      * @param headers http header
      * @param fileName the file name of the Accession Register Detail
@@ -2076,7 +1798,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getAccessionRegisterDetail(@Context HttpHeaders headers, @PathParam("fileName") String fileName) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -2118,7 +1840,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     }
 
     /**
-     * Get a unit
+     * Get an accessionregisterssymbolic
      *
      * @param headers http header
      * @param fileName the file name of the Accession Register Symbolic
@@ -2128,7 +1850,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
     @GET
     @Produces({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP})
     public Response getAccessionRegisterSymbolic(@Context HttpHeaders headers, @PathParam("fileName") String fileName) {
-        VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+        VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
         if (vitamCode != null) {
             return buildErrorResponse(vitamCode);
         }
@@ -2157,7 +1879,7 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
 
         try {
             // check headers
-            VitamCode vitamCode = checkTenantStrategyHeaderAsync(headers);
+            VitamCode vitamCode = checkTenantAndHeaders(headers, VitamHttpHeader.STRATEGY_ID);
             if (vitamCode != null) {
                 return buildErrorResponse(vitamCode);
             }
@@ -2202,5 +1924,50 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             LOGGER.error(exc);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }
+    }
+
+    private Response buildErrorResponse(VitamCode vitamCode) {
+        return Response.status(vitamCode.getStatus())
+            .entity(new RequestResponseError().setError(new VitamError(VitamCodeHelper.getCode(vitamCode))
+                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
+                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString())
+            .build();
+    }
+
+    private Response badRequestResponse(String message) {
+        return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + message + "\"}").build();
+    }
+
+    private VitamCode checkTenantAndHeaders(HttpHeaders headers, VitamHttpHeader... vitamHeaders) {
+        if (VitamThreadUtils.getVitamSession().getTenantId() == null) {
+            return VitamCode.STORAGE_MISSING_HEADER;
+        }
+        try {
+            HttpHeaderHelper.checkVitamHeaders(headers);
+        } catch (IllegalStateException e) {
+            return VitamCode.STORAGE_MISSING_HEADER;
+        }
+        for (VitamHttpHeader vitamHeader : vitamHeaders) {
+            if (!HttpHeaderHelper.hasValuesFor(headers, vitamHeader)) {
+                return VitamCode.STORAGE_MISSING_HEADER;
+            }
+        }
+        return null;
+    }
+
+    private VitamError getErrorEntity(Status status, String message) {
+        String aMessage =
+            ((message != null) && !message.trim().isEmpty()) ? message
+                : ((status.getReasonPhrase() != null) ? status.getReasonPhrase() : status.name());
+
+        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(STORAGE_MODULE)
+            .setState(CODE_VITAM)
+            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+    }
+
+    @Override
+    public void close() {
+        storageLogService.close();
+        distribution.close();
     }
 }

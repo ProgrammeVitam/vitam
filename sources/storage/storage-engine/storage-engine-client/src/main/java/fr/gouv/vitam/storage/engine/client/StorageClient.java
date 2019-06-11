@@ -258,6 +258,7 @@ public interface StorageClient extends BasicClient {
         throws StorageServerClientException, InvalidParseOperationException;
 
     /**
+     * @param strategyId strategyId
      * @param objectId objectId
      * @param category category
      * @param inputStream inputStream
@@ -267,7 +268,7 @@ public interface StorageClient extends BasicClient {
      * @throws StorageServerClientException StorageServerClientException
      * @throws InvalidParseOperationException InvalidParseOperationException
      */
-    RequestResponseOK create(String objectId, DataCategory category, InputStream inputStream, Long inputStreamSize,
+    RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream, Long inputStreamSize,
         List<String> offerIds)
         throws StorageServerClientException, InvalidParseOperationException;
 

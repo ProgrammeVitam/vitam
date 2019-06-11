@@ -90,7 +90,7 @@ public class TraceabilityService {
      *
      * @throws TraceabilityException if any error or problem occurs
      */
-    public void secureData() throws TraceabilityException {
+    public void secureData(String strategyId) throws TraceabilityException {
         // Start Traceability
         helper.createLogbookOperationStructure();
 
@@ -157,7 +157,7 @@ public class TraceabilityService {
             throw new TraceabilityException(e);
         }
 
-        helper.storeAndDeleteZip(tenantId, zipFile, fileName, uri, event);
+        helper.storeAndDeleteZip(tenantId, strategyId, zipFile, fileName, uri, event);
         helper.createLogbookOperationEvent(tenantId, helper.getStepName(), StatusCode.OK, event);
     }
 

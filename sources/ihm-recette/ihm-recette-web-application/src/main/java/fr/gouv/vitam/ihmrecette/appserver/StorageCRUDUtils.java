@@ -101,7 +101,7 @@ public class StorageCRUDUtils {
         }
 
         try {
-            storageClient.create(uid, dataCategory, stream, size, Collections.singletonList(offerId));
+            storageClient.create(VitamConfiguration.getDefaultStrategy(), uid, dataCategory, stream, size, Collections.singletonList(offerId));
         } catch (StorageServerClientException | InvalidParseOperationException e) {
             LOGGER.error("error when deleting file ", e);
             throw new BackupServiceException("fail to create");

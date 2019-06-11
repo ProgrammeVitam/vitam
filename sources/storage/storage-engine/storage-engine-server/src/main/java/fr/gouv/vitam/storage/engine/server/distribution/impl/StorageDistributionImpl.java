@@ -341,12 +341,25 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
 
         // Retrieve strategy offersToCopyIn
-        checkStrategy(strategyId);
+        HotStrategy hotStrategy = checkStrategy(strategyId);
 
+        List<String> strategyOfferIds = hotStrategy.getOffers().stream()
+                .map(offerReference -> offerReference.getId())
+                .collect(Collectors.toList()); 
         List<StorageOffer> offers = new ArrayList<>();
-
-        for (String o : offerIds) {
-            offers.add(OFFER_PROVIDER.getStorageOffer(o));
+        
+        if (offerIds != null) {
+            for (String offerId : offerIds) {
+                if(strategyOfferIds.contains(offerId)) {
+                    offers.add(OFFER_PROVIDER.getStorageOffer(offerId));
+                } else {
+                    LOGGER.error("Offer {} ignored : not found in strategy {}", offerId, strategyId);
+                }
+            }
+        } else {
+            for(String offerId : strategyOfferIds) {
+                offers.add(OFFER_PROVIDER.getStorageOffer(offerId));
+            }
         }
 
         OffersToCopyIn offersToCopyIn = new OffersToCopyIn(offers);

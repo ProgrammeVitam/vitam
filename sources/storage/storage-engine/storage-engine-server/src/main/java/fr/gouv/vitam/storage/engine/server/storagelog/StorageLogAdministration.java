@@ -92,6 +92,8 @@ public class StorageLogAdministration {
      * * Link the appender to a new file in order to continue to log access/write during the operation <br/>
      * * Copy previous log files from Storage to Offers </br>
      * * Delete old files from Storage
+     * @param strategyId strategyId 
+     * @param backupWriteLog backupWriteLog
      *
      * @return the GUID of the operation
      * @throws IOException                         if an IOException is thrown while generating the secure storage
@@ -100,7 +102,7 @@ public class StorageLogAdministration {
      * @throws LogbookClientAlreadyExistsException if the logbook already exists
      * @throws LogbookClientServerException        if there's a problem connecting to the logbook functionnality
      */
-    public synchronized GUID backupStorageLog(Boolean backupWriteLog)
+    public synchronized GUID backupStorageLog(String strategyId, Boolean backupWriteLog)
         throws IOException, StorageLogException,
         LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         // TODO: use a distributed lock to launch this function only on one server (cf consul)
@@ -122,7 +124,7 @@ public class StorageLogAdministration {
             List<LogInformation> info = storageLogService.rotateLogFile(tenantId, backupWriteLog);
 
             for (LogInformation logInformation : info) {
-                storeLogFile(helper, tenantId, eip, logInformation, storageLogService, evType, backupWriteLog);
+                storeLogFile(helper, strategyId, tenantId, eip, logInformation, storageLogService, evType, backupWriteLog);
             }
 
             createLogbookOperationEvent(helper, eip, evType, StatusCode.OK);
@@ -136,7 +138,7 @@ public class StorageLogAdministration {
         return eip;
     }
 
-    private void storeLogFile(LogbookOperationsClientHelper helper, Integer tenantId, GUID eip,
+    private void storeLogFile(LogbookOperationsClientHelper helper, String strategyId, Integer tenantId, GUID eip,
         LogInformation logInformation, StorageLog storageLogService, String evType, boolean isWriteOperation)
         throws LogbookClientNotFoundException, StorageLogException {
         LOGGER.info("Storing log file " + logInformation.getPath() + " -- " + isWriteOperation);
@@ -165,7 +167,7 @@ public class StorageLogAdministration {
                     description.setWorkspaceObjectURI(fileName);
 
                     // TODO ? Should we put accessLog in another DataCategory ?
-                    storageClient.storeFileFromWorkspace(STRATEGY_ID,
+                    storageClient.storeFileFromWorkspace(strategyId,
                         isWriteOperation ? DataCategory.STORAGELOG : DataCategory.STORAGEACCESSLOG,
                         fileName, description);
 

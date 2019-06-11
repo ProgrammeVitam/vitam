@@ -239,7 +239,7 @@ public class StorageTwoOffersIT {
 
     private void storeObjectInOffers(String objectId, DataCategory dataCategory, byte[] data,
         String... offerIds) throws InvalidParseOperationException, StorageServerClientException {
-        storageClient.create(objectId, dataCategory, new ByteArrayInputStream(data), (long) data.length,
+        storageClient.create(VitamConfiguration.getDefaultStrategy(), objectId, dataCategory, new ByteArrayInputStream(data), (long) data.length,
             Arrays.asList(offerIds));
     }
 
@@ -293,8 +293,9 @@ public class StorageTwoOffersIT {
     // write directly in file of second offer
     private void alterFileInSecondOffer(String id) throws IOException {
         String path = SECOND_FOLDER + File.separator + "0_object" + File.separator + id;
-        Writer writer = new BufferedWriter(new FileWriter(path));
-        writer.write(id + "test");
+        try (Writer writer = new BufferedWriter(new FileWriter(path))) {
+            writer.write(id + "test");
+        }
     }
 
     @Test

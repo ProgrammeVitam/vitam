@@ -26,7 +26,37 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.engine.server.rest;
 
+import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.ServletConfig;
+import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.Application;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Ignore;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.JsonNode;
+
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -50,14 +80,12 @@ import fr.gouv.vitam.common.server.application.VitamHttpHeader;
 import fr.gouv.vitam.common.serverv2.VitamStarter;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.common.serverv2.application.ApplicationParameter;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.timestamp.TimeStampSignature;
 import fr.gouv.vitam.common.timestamp.TimeStampSignatureWithKeystore;
 import fr.gouv.vitam.common.timestamp.TimestampGenerator;
 import fr.gouv.vitam.storage.driver.model.StorageMetadataResult;
 import fr.gouv.vitam.storage.engine.common.exception.StorageAlreadyExistsException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageInconsistentStateException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
@@ -74,41 +102,6 @@ import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import javax.servlet.ServletConfig;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static io.restassured.RestAssured.get;
-import static io.restassured.RestAssured.given;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
 
 /**
  *
@@ -116,7 +109,6 @@ import static org.mockito.Mockito.mock;
 public class StorageResourceTest {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageResourceTest.class);
-    private static final String ID_0 = "id0";
     private static final String LOGS = "/logs";
 
     private static VitamStarter vitamStarter;
@@ -131,7 +123,6 @@ public class StorageResourceTest {
     private static final String OBJECT_ID_URI = "/{id_object}";
     private static final String PROFILE_ID_URI = "/{profile_file_name}";
     private static final String REPORT_ID_URI = "/{id_report}";
-    private static final String LOGBOOKS_URI = "/logbooks";
     private static final String LOGBOOK_ID_URI = "/{id_logbook}";
     private static final String UNITS_URI = "/units";
     private static final String METADATA_ID_URI = "/{id_md}";
@@ -221,11 +212,13 @@ public class StorageResourceTest {
                 OFFER_ID, VitamHttpHeader.OFFER_NO_CACHE.getName(), "true")
             .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.OK.getStatusCode());
+        
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
                 VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
             .body("").when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
+        
         given().contentType(ContentType.JSON)
             .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
             .when().post(OBJECTS_URI + OBJECT_ID_URI, ID_O1).then()
@@ -558,63 +551,6 @@ public class StorageResourceTest {
     @Test
     public final void testLogbooks() {
 
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .body("").when().get(LOGBOOKS_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .body("").when().get(LOGBOOKS_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_E)
-            .body("").when().get(LOGBOOKS_URI).then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .body("").when().get(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON).body("")
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .when().get(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-
-        given().contentType(ContentType.JSON).body("")
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_E)
-            .when().get(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .body("").when().post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .body("").when().post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
-                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET)
-            .body("").when().post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID,
-                VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.PUT)
-            .body("").when().post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_A_E)
-            .body("").when().post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_E)
-            .body("").when().post(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
 
         given().contentType(ContentType.JSON)
             .headers(
@@ -642,22 +578,6 @@ public class StorageResourceTest {
             .body("").when()
             .delete(DELETE_URI + LOGBOOK_ID_URI, "idl1").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
-
-        given().contentType(ContentType.JSON)
-            .when().headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-            TENANT_ID, LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1")
-            .then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .when().head(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(),
-                TENANT_ID_E)
-            .when().head(LOGBOOKS_URI + LOGBOOK_ID_URI, "idl1").then()
-            .statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-
     }
 
     @Test
@@ -759,14 +679,6 @@ public class StorageResourceTest {
     }
 
     @Test
-    public final void testUnits() {
-
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .when().get(UNITS_URI).then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
-    }
-
-    @Test
     public final void testUnitsById() {
 
         testMedatdata(UNITS_URI);
@@ -806,13 +718,6 @@ public class StorageResourceTest {
                 TENANT_ID_E)
             .when().get(objectGroupsUri + METADATA_ID_URI, "idmd1").then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-    }
-    @Test
-    public final void testObjectGroups() {
-
-        given().contentType(ContentType.JSON)
-            .headers(VitamHttpHeader.STRATEGY_ID.getName(), STRATEGY_ID, VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
-            .when().get(OBJECT_GROUPS_URI).then().statusCode(Status.NOT_IMPLEMENTED.getStatusCode());
     }
 
     @Test
@@ -861,10 +766,10 @@ public class StorageResourceTest {
     }
 
     @Test
-    public void backupStorageLogbookOk() {
-        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID).when().post("/storage/backup").then()
-            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
+    public void backupStorageLogbook() {
+        given().headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+        .when().post("/storage/backup").then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -931,244 +836,6 @@ public class StorageResourceTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
-    @Test
-    @RunWithCustomExecutor
-    public final void bulkCreateFromWorkspaceOK() throws Exception {
-
-        // Given
-        int tenantId = 2;
-        String strategyId = "strategyId";
-        String workspaceContainer = "workspaceContainer";
-        List<String> uris = Arrays.asList("uri1", "uri2");
-        DataCategory dataCategory = DataCategory.UNIT;
-        List<String> objectNames = Arrays.asList("ob1", "ob2");
-        String requester = "requester";
-
-        BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
-            workspaceContainer, uris, dataCategory, objectNames);
-
-        BulkObjectStoreResponse bulkObjectStoreResponse = mock(BulkObjectStoreResponse.class);
-
-
-        HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
-
-        HttpHeaders headers = getHttpHeaders(tenantId, strategyId);
-
-        StorageDistribution storageDistribution = mock(StorageDistribution.class);
-        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
-
-        doReturn(bulkObjectStoreResponse)
-            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
-
-        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
-
-        // When
-        Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
-
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.CREATED.getStatusCode());
-        assertThat(response.getEntity()).isEqualTo(bulkObjectStoreResponse);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public final void bulkCreateFromWorkspaceIllegalArguments() {
-
-        // Given
-        int tenantId = 2;
-        String strategyId = "strategyId";
-        String workspaceContainer = "workspaceContainer";
-        List<String> uris = Arrays.asList("uri1", "uri2");
-        DataCategory dataCategory = DataCategory.UNIT;
-        List<String> objectNames = Arrays.asList("ob1", "ob2");
-        String requester = "requester";
-
-        // Missing tenant
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(null, strategyId),
-            dataCategory.getCollectionName());
-
-        // Missing strategy
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, null),
-            dataCategory.getCollectionName());
-
-        // Missing workspace container
-        checkBackRequest(
-            new BulkObjectStoreRequest("", uris, dataCategory, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        checkBackRequest(
-            new BulkObjectStoreRequest(null, uris, dataCategory, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        // Missing uri
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, null, dataCategory, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", null), dataCategory, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        // Missing data category
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, uris, null, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        // Missing object name
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, null),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, Collections.emptyList()),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, Arrays.asList("ob1", null)),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-
-        // Invalid folder
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, uris, dataCategory, objectNames),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            "invalid folder");
-
-        // Uri / object name mismatch
-        checkBackRequest(
-            new BulkObjectStoreRequest(workspaceContainer, Arrays.asList("uri1", "uri2", "uri3"), dataCategory, Arrays.asList("ob1", "ob2")),
-            getHttpServletRequest(requester),
-            getHttpHeaders(tenantId, strategyId),
-            dataCategory.getCollectionName());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public final void bulkCreateFromWorkspaceConflict() throws Exception {
-
-        // Given
-        int tenantId = 2;
-        String strategyId = "strategyId";
-        String workspaceContainer = "workspaceContainer";
-        List<String> uris = Arrays.asList("uri1", "uri2");
-        DataCategory dataCategory = DataCategory.UNIT;
-        List<String> objectNames = Arrays.asList("ob1", "ob2");
-        String requester = "requester";
-
-        BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
-            workspaceContainer, uris, dataCategory, objectNames);
-
-        HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
-
-        HttpHeaders headers = getHttpHeaders(tenantId, strategyId);
-
-        StorageDistribution storageDistribution = mock(StorageDistribution.class);
-        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
-
-        doThrow(StorageInconsistentStateException.class)
-            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
-
-        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
-
-        // When
-        Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
-
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.CONFLICT.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public final void bulkCreateFromWorkspaceInternalServerError() throws Exception {
-
-        // Given
-        int tenantId = 2;
-        String strategyId = "strategyId";
-        String workspaceContainer = "workspaceContainer";
-        List<String> uris = Arrays.asList("uri1", "uri2");
-        DataCategory dataCategory = DataCategory.UNIT;
-        List<String> objectNames = Arrays.asList("ob1", "ob2");
-        String requester = "requester";
-
-        BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
-            workspaceContainer, uris, dataCategory, objectNames);
-
-        HttpServletRequest httpServletRequest = getHttpServletRequest(requester);
-
-        HttpHeaders headers = getHttpHeaders(tenantId, strategyId);
-
-        StorageDistribution storageDistribution = mock(StorageDistribution.class);
-        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
-
-        doThrow(StorageException.class)
-            .when(storageDistribution).bulkCreateFromWorkspace(strategyId, bulkObjectStoreRequest, requester);
-
-        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
-
-        // When
-        Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, dataCategory.getCollectionName(), bulkObjectStoreRequest);
-
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-    }
-
-    private void checkBackRequest(BulkObjectStoreRequest bulkObjectStoreRequest,
-        HttpServletRequest httpServletRequest, HttpHeaders headers, String folder) {
-
-        StorageDistribution storageDistribution = mock(StorageDistribution.class);
-        TimestampGenerator timestampGenerator = mock(TimestampGenerator.class);
-
-        StorageResource storageResource = new StorageResource(storageDistribution, timestampGenerator);
-
-        Response response = storageResource.bulkCreateFromWorkspace(
-            httpServletRequest, headers, folder, bulkObjectStoreRequest);
-
-        assertThat(response.getStatus()).isEqualTo(Status.PRECONDITION_FAILED.getStatusCode());
-    }
-
-    private HttpServletRequest getHttpServletRequest(String requester) {
-        HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-        doReturn(requester).when(httpServletRequest).getRemoteAddr();
-        return httpServletRequest;
-    }
-
-    private HttpHeaders getHttpHeaders(Integer tenantId, String strategyId) {
-        HttpHeaders headers = mock(HttpHeaders.class);
-        if (strategyId != null) {
-            doReturn(Collections.singletonList(strategyId)).when(headers)
-                .getRequestHeader(VitamHttpHeader.STRATEGY_ID.getName());
-        }
-        if (tenantId != null) {
-            doReturn(Collections.singletonList(Integer.toString(tenantId))).when(headers)
-                .getRequestHeader(VitamHttpHeader.TENANT_ID.getName());
-        }
-        return headers;
-    }
 
     private static VitamStarter buildTestServer() {
         return new VitamStarter(StorageConfiguration.class, "storage-engine.conf",
