@@ -1,8 +1,31 @@
 {
     "_id": "aeaqaaaabeghay2jabzuaalbarkww4iaaaba",
     "_mgt": {
+        "AccessRule": {
+            "Rules": [
+                {
+                    "Rule": "ACC-00002",
+                    "StartDate": "2015-11-19",
+                    "EndDate": "2015-12-19"
+                },
+                {
+                    "Rule": "ACC-00004",
+                    "StartDate": "2015-11-19",
+                    "EndDate": "2115-11-19"
+                }
+            ]
+        },
+        "DisseminationRule": {
+            "Rules": [
+                {
+                    "Rule": "DIS-00002",
+                    "StartDate": "2016-12-04",
+                    "EndDate": "2091-12-04"
+                }
+            ]
+        }
     },
-    "DescriptionLevel": "Item",
+    "DescriptionLevel": 8888888888888,
     "Title": "Violence et silence.odp",
     "Titles": {
         "fr": "Violence et silence.odp"

@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.accesslog.AccessLogInfoModel;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.Action;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -57,9 +56,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.error.VitamCode;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileNotFoundException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
@@ -77,14 +73,11 @@ import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.MetadataStorageHelper;
 import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.VitamConstants.AppraisalRuleFinalAction;
 import fr.gouv.vitam.common.model.VitamConstants.StorageRuleFinalAction;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -95,7 +88,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.utils.ClassificationLevelUtil;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
 import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.RuleMeasurementEnum;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
@@ -599,7 +591,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         boolean globalStep = true;
         boolean stepCheckPermission = true;
         boolean stepCheckRules = true;
-        boolean stepDTValidation = true;
         boolean stepMetadataUpdate = true;
         boolean stepStorageUpdate = true;
         boolean stepLFCCommit = true;
@@ -650,19 +641,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             }
 
             try {
-                stepDTValidation = false;
-                checkArchiveUnitProfileQuery((UpdateParserMultiple) parser, idUnit);
-            } catch (AccessInternalExecutionException e) {
-                LOGGER.error("Exception while getting archive unit", e);
-                throw new MetaDataNotFoundException(e);
-            } catch (AdminManagementClientServerException e) {
-                throw new AccessInternalExecutionException("Error during checking archive unit profile", e);
-            } catch (InvalidCreateOperationException e) {
-                LOGGER.error(e);
-                throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
-            }
-
-            try {
                 queryJson = ((UpdateParserMultiple) parser).getRequest()
                     .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), updateOpGuidStart.toString()))
                     .getFinalUpdate();
@@ -670,7 +648,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                 LOGGER.error(e);
                 throw new AccessInternalExecutionException(ERROR_ADD_CONDITION, e);
             }
-            stepDTValidation = true;
 
             /** Update: Indexation task **/
             stepMetadataUpdate = false;
@@ -703,21 +680,21 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             // write logbook operation at end, in case of exception it is written by rollBackLogbook
             finalizeStepOperation(updateOpGuidStart, idRequest, idUnit, globalStep,
                 stepCheckPermission,
-                stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, null,
+                stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null,
                 masterStpOperation,
                 requestUpdateManagment);
         } catch (final InvalidParseOperationException ipoe) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, ipoe.getMessage());
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission,
                 JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(PARSING_ERROR, ipoe);
             throw ipoe;
         } catch (final IllegalArgumentException iae) {
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             LOGGER.error(ILLEGAL_ARGUMENT, iae);
             throw iae;
@@ -725,37 +702,37 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, DT_NO_EXTISTING);
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(METADATA_NOT_FOUND_ERROR, mdnfe);
             throw mdnfe;
         } catch (final MetaDataDocumentSizeException mddse) {
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             LOGGER.error(METADATA_DOCUMENT_SIZE_ERROR, mddse);
             throw new AccessInternalExecutionException(mddse);
         } catch (final LogbookClientServerException lcse) {
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             LOGGER.error(DOCUMENT_CLIENT_SERVER_ERROR, lcse);
             throw new AccessInternalExecutionException(lcse);
         } catch (final MetaDataExecutionException mdee) {
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             LOGGER.error(METADATA_EXECUTION_EXECUTION_ERROR, mdee);
             throw new AccessInternalExecutionException(mdee);
         } catch (final LogbookClientNotFoundException lcnfe) {
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             LOGGER.error(LOGBOOK_CLIENT_NOT_FOUND_ERROR, lcnfe);
             throw new AccessInternalExecutionException(lcnfe);
         } catch (final LogbookClientBadRequestException lcbre) {
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             LOGGER.error(LOGBOOK_CLIENT_BAD_REQUEST_ERROR, lcbre);
             throw new AccessInternalExecutionException(lcbre);
@@ -765,7 +742,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         } catch (final MetaDataClientServerException e) {
             LOGGER.error(METADATA_INTERNAL_SERVER_ERROR, e);
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             throw new AccessInternalExecutionException(e);
         } catch (StorageClientException e) {
@@ -774,7 +751,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             try {
                 finalizeStepOperation(updateOpGuidStart, idRequest, idUnit, globalStep,
                     stepCheckPermission,
-                    stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, null,
+                    stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, null,
                     masterStpOperation,
                     requestUpdateManagment);
             } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
@@ -785,14 +762,14 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             throw new AccessInternalExecutionException(STORAGE_SERVER_EXCEPTION, e);
         } catch (ContentAddressableStorageException e) {
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, null, masterStpOperation, requestUpdateManagment);
             LOGGER.error(WORKSPACE_SERVER_EXCEPTION, e);
         } catch (AccessInternalRuleExecutionException e) {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, e.getMessage());
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(ERROR_CHECK_RULES, e);
             throw e;
@@ -800,18 +777,10 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             ObjectNode evDetData = JsonHandler.createObjectNode();
             evDetData.put(ERROR_CODE, e.getMessage());
             rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
+                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit,
                 stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
             LOGGER.error(ERROR_CHECK_PERMISSIONS, e);
             throw e;
-        } catch (final ArchiveUnitProfileNotFoundException | ArchiveUnitProfileInactiveException | ArchiveUnitProfileEmptyControlSchemaException aupnfe) {
-            ObjectNode evDetData = JsonHandler.createObjectNode();
-            evDetData.put(ERROR_CODE, aupnfe.getMessage());
-            rollBackLogbook(updateOpGuidStart, idRequest, idUnit,
-                globalStep, stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation,
-                stepCheckPermission, JsonHandler.unprettyPrint(evDetData), masterStpOperation, requestUpdateManagment);
-            LOGGER.error(ERROR_VALIDATE_DT, aupnfe);
-            throw new IllegalArgumentException(aupnfe);
         } catch (AccessInternalException e) {
             LOGGER.error(ARCHIVE_UNIT_NOT_FOUND, e);
             throw new AccessInternalExecutionException(e);
@@ -972,7 +941,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     private void finalizeStepOperation(GUID updateOpGuidStart,
         GUID idRequest, String idUnit, boolean globalStep, boolean stepCheckPermission, boolean stepMetadataUpdate,
         boolean stepStorageUpdate,
-        boolean stepCheckRules, boolean stepLFCCommit, boolean stepDTValidation, String evDetData,
+        boolean stepCheckRules, boolean stepLFCCommit, String evDetData,
         String masterOperation,
         boolean isManagementUpdate)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
@@ -1010,16 +979,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                             updateOpGuidStart,
                             StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_RULES, StatusCode.KO), idRequest,
                             UNIT_CHECK_RULES, false);
-                    logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
-                    logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
-                    logbookOperationsClient.update(logbookOpParamEnd);
-                } else if (!stepDTValidation) {
-                    // STEP UNIT_CHECK_DT KO
-                    logbookOpParamEnd =
-                        getLogbookOperationUpdateUnitParameters(GUIDFactory.newEventGUID(updateOpGuidStart),
-                            updateOpGuidStart,
-                            StatusCode.KO, VitamLogbookMessages.getCodeOp(UNIT_CHECK_DT, StatusCode.KO), idRequest,
-                            UNIT_CHECK_DT, false);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.eventDetailData, evDetData);
                     logbookOpParamEnd.putParameterValue(LogbookParameterName.objectIdentifier, idUnit);
                     logbookOperationsClient.update(logbookOpParamEnd);
@@ -1143,13 +1102,13 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
 
     private void rollBackLogbook(GUID updateOpGuidStart, GUID idRequest, String idUnit,
         boolean globalStep, boolean stepMetadataUpdate, boolean stepStorageUpdate, boolean stepCheckRules,
-        boolean stepLFCCommit, boolean stepDTValidation, boolean stepCheckPermission, String evDetData,
+        boolean stepLFCCommit, boolean stepCheckPermission, String evDetData,
         String masterOperation,
         boolean isManagementUpdate) {
         try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
             finalizeStepOperation(updateOpGuidStart, idRequest, idUnit, globalStep,
                 stepCheckPermission,
-                stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, stepDTValidation, evDetData,
+                stepMetadataUpdate, stepStorageUpdate, stepCheckRules, stepLFCCommit, evDetData,
                 masterOperation, isManagementUpdate);
             // That means lifecycle could be found, so it could be rollbacked
             if (stepMetadataUpdate) {
@@ -1770,90 +1729,6 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (final StorageServerClientException | StorageNotFoundException e) {
             throw new AccessInternalExecutionException(e);
-        }
-    }
-
-    private void checkArchiveUnitProfileQuery(UpdateParserMultiple updateParser, String idUnit)
-        throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException, MetaDataNotFoundException,
-        InvalidCreateOperationException, InvalidParseOperationException,
-        AdminManagementClientServerException, AccessInternalExecutionException,
-        ArchiveUnitProfileEmptyControlSchemaException {
-        boolean updateAupValue = false;
-        String originalAupIdentifier = null;
-        // first get aup information for the unit
-        JsonNode aupInfo = getUnitArchiveUnitProfile(idUnit);
-        if (aupInfo != null) {
-            originalAupIdentifier = aupInfo.isArray() ? aupInfo.get(0).asText()
-                : aupInfo.asText();
-        }
-
-        UpdateMultiQuery request = updateParser.getRequest();
-        List<Action> actions = new ArrayList<>(request.getActions());
-        Iterator<Action> iterator = actions.iterator();
-        while (iterator.hasNext()) {
-            Action action = iterator.next();
-            JsonNode object = action.getCurrentObject();
-            Iterator<String> fields = object.fieldNames();
-            while (fields.hasNext()) {
-                String field = fields.next();
-                if (SedaConstants.TAG_ARCHIVE_UNIT_PROFILE.equals(field)) {
-                    updateAupValue = true;
-                    if (object.get(field) != null) {
-                        String archiveUnitProfileIdentifier =
-                            object.get(field).isArray() ? object.get(field).get(0).asText()
-                                : object.get(field).asText();
-                        if (archiveUnitProfileIdentifier != null && !archiveUnitProfileIdentifier.isEmpty()) {
-                            addActionAUProfileSchema(archiveUnitProfileIdentifier, request);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (!updateAupValue && originalAupIdentifier != null && !originalAupIdentifier.isEmpty()) {
-            addActionAUProfileSchema(originalAupIdentifier, request);
-        }
-
-    }
-
-    private void addActionAUProfileSchema(String archiveUnitProfileIdentifier,
-        UpdateMultiQuery request)
-        throws ArchiveUnitProfileNotFoundException, ArchiveUnitProfileInactiveException,
-        InvalidCreateOperationException, InvalidParseOperationException,
-        AdminManagementClientServerException, ArchiveUnitProfileEmptyControlSchemaException {
-        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
-            RequestResponse<ArchiveUnitProfileModel> response =
-                adminClient.findArchiveUnitProfiles(select.getFinalSelect());
-            ArchiveUnitProfileModel archiveUnitProfile = null;
-            if (response.isOk() && ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().size() > 0) {
-                archiveUnitProfile = ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults().get(0);
-                if (ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
-                    if (controlSchemaIsEmpty(archiveUnitProfile)) {
-                        throw new ArchiveUnitProfileEmptyControlSchemaException(
-                            "Archive unit profile does not have a controlSchema");
-                    } else {
-                        Action action =
-                            new SetAction(SchemaValidationUtils.TAG_SCHEMA_VALIDATION,
-                                archiveUnitProfile.getControlSchema());
-                        request.addActions(action);
-                    }
-                } else {
-                    throw new ArchiveUnitProfileInactiveException("Archive unit profile is inactive");
-                }
-            } else {
-                throw new ArchiveUnitProfileNotFoundException(DT_NO_EXTISTING);
-            }
-        }
-    }
-
-    private static boolean controlSchemaIsEmpty(ArchiveUnitProfileModel archiveUnitProfile) {
-        try {
-            return archiveUnitProfile.getControlSchema() == null ||
-                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
-        } catch (InvalidParseOperationException e) {
-            return false;
         }
     }
 

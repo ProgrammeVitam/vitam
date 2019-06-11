@@ -44,9 +44,9 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
+import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
@@ -56,7 +56,6 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.database.builder.request.multiple.DeleteMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.parser.query.PathQuery;
 import fr.gouv.vitam.common.database.parser.query.helper.QueryDepthHelper;
@@ -75,6 +74,8 @@ import fr.gouv.vitam.common.database.translators.mongodb.RequestToMongodb;
 import fr.gouv.vitam.common.database.translators.mongodb.SelectToMongodb;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
+import fr.gouv.vitam.common.exception.ArchiveUnitProfileInactiveException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.SchemaValidationException;
@@ -87,21 +88,18 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.DurationData;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
+import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.performance.PerformanceLogger;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
-import fr.gouv.vitam.functional.administration.common.ArchiveUnitProfile;
-import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.archiveunitprofile.ArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
@@ -201,17 +199,17 @@ public class DbRequest {
 
     /**
      * Execute rule action on unit
-     *
-     * @param documentId the unitId
+     *  @param documentId the unitId
      * @param ruleActions the list of ruleAction (by category)
      * @param ontologyModels
+     * @param archiveUnitProfileLoader
      */
     public UpdatedDocument execRuleRequest(final String documentId, final RuleActions ruleActions,
-        Map<String, DurationData> bindRuleToDuration,
-        List<OntologyModel> ontologyModels)
+        Map<String, DurationData> bindRuleToDuration, List<OntologyModel> ontologyModels,
+        ArchiveUnitProfileLoader archiveUnitProfileLoader)
         throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException,
-        ArchiveUnitOntologyValidationException,
-        InvalidCreateOperationException, MetaDataNotFoundException {
+        ArchiveUnitOntologyValidationException, InvalidCreateOperationException, MetaDataNotFoundException,
+        ArchiveUnitProfileInactiveException, ArchiveUnitProfileEmptyControlSchemaException {
 
         final Integer tenantId = ParameterHelper.getTenantParameter();
 
@@ -267,29 +265,9 @@ public class DbRequest {
 
             Unit updatedDocument = new Unit(updatedJsonDocument);
 
-            JsonNode aupSchemaIdNode =
-                updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-            if (!ontologyModels.isEmpty()) {
-                validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
-            }
-            SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
+            validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
 
-            if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                throw new SchemaValidationException("Unable to validate updated Unit " + status.getValidationMessage());
-            }
-
-            if (aupSchemaIdNode != null) {
-                String aupSchemaId = aupSchemaIdNode.isArray() ?
-                    (aupSchemaIdNode.get(0) != null ? aupSchemaIdNode.get(0).asText() : null)
-                    : aupSchemaIdNode.asText();
-
-                if (aupSchemaId != null && !aupSchemaId.isEmpty()) {
-                    // Call AdminClient to get AUP info
-                    JsonNode aupSchema = extractAUPSchema(aupSchemaId);
-                    validateOtherExternalSchema(updatedJsonDocument, aupSchema);
-                    updatedDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                }
-            }
+            validateArchiveUnitProfile(validator, archiveUnitProfileLoader, updatedJsonDocument);
 
             // Make Update
             final Bson condition;
@@ -317,31 +295,65 @@ public class DbRequest {
         throw new MetaDataExecutionException("Can not modify document " + documentId);
     }
 
-    private JsonNode extractAUPSchema(String archiveUnitProfileIdentifier)
-        throws MetaDataExecutionException {
+    private void validateArchiveUnitProfile(SchemaValidationUtils validator,
+        ArchiveUnitProfileLoader archiveUnitProfileLoader, ObjectNode updatedJsonDocument)
+        throws ArchiveUnitProfileInactiveException, ArchiveUnitProfileEmptyControlSchemaException,
+        InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
 
-        try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
-            Select select = new Select();
-            select.setQuery(QueryHelper.eq(ArchiveUnitProfile.IDENTIFIER, archiveUnitProfileIdentifier));
-            RequestResponse<ArchiveUnitProfileModel> response =
-                adminClient.findArchiveUnitProfiles(select.getFinalSelect());
+        // Internal schema
+        SchemaValidationStatus internalSchemaValidationStatus =
+            validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
 
-            List<ArchiveUnitProfileModel> results =
-                ((RequestResponseOK<ArchiveUnitProfileModel>) response).getResults();
-
-            if (!response.isOk() || results.isEmpty()) {
-                throw new MetaDataExecutionException("Archive unit profile could not be found");
-            }
-
-            ArchiveUnitProfileModel archiveUnitProfile = results.get(0);
-            return JsonHandler.getFromString(archiveUnitProfile.getControlSchema());
-
-        } catch (AdminManagementClientServerException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            throw new MetaDataExecutionException(e);
+        if (!SchemaValidationStatusEnum.VALID.equals(internalSchemaValidationStatus.getValidationStatus())) {
+            throw new SchemaValidationException(
+                "Unable to validate updated unit " + internalSchemaValidationStatus.getValidationMessage());
         }
 
+        // External schema, if any
+        JsonNode archiveUnitProfileNode = updatedJsonDocument.get(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
+        if (archiveUnitProfileNode != null) {
+            String aupId = archiveUnitProfileNode.asText();
+            ArchiveUnitProfileModel archiveUnitProfile =
+                archiveUnitProfileLoader.loadArchiveUnitProfile(aupId);
+
+            if (!ArchiveUnitProfileStatus.ACTIVE.equals(archiveUnitProfile.getStatus())) {
+                throw new ArchiveUnitProfileInactiveException("Archive unit profile is inactive");
+            }
+
+            if (isControlSchemaEmpty(archiveUnitProfile)) {
+                throw new ArchiveUnitProfileEmptyControlSchemaException(
+                    "Archive unit profile does not have a controlSchema");
+            }
+
+            try {
+                SchemaValidationUtils externalSchemaValidator =
+                    new SchemaValidationUtils(archiveUnitProfile.getControlSchema(), true);
+
+                SchemaValidationStatus status =
+                    externalSchemaValidator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
+
+                if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
+                    throw new SchemaValidationException(
+                        "Unable to validate updated Unit " + status.getValidationMessage());
+                }
+            } catch (FileNotFoundException | ProcessingException e) {
+                LOGGER.debug("Unable to initialize External Json Validator");
+                throw new MetaDataExecutionException(e);
+            }
+        }
     }
 
+    private static boolean isControlSchemaEmpty(ArchiveUnitProfileModel archiveUnitProfile)
+        throws ArchiveUnitProfileEmptyControlSchemaException {
+
+        try {
+            return archiveUnitProfile.getControlSchema() == null ||
+                JsonHandler.isEmpty(archiveUnitProfile.getControlSchema());
+        } catch (InvalidParseOperationException e) {
+            throw new ArchiveUnitProfileEmptyControlSchemaException(
+                "Archive unit profile controlSchema is invalid");
+        }
+    }
 
     /**
      * The request should be already analyzed.
@@ -456,12 +468,14 @@ public class DbRequest {
     }
 
     public UpdatedDocument execUpdateRequest(final RequestParserMultiple requestParser, String documentId,
-        List<OntologyModel> ontologyModels, MetadataCollections metadataCollection)
+        List<OntologyModel> ontologyModels, MetadataCollections metadataCollection,
+        ArchiveUnitProfileLoader archiveUnitProfileLoader)
         throws MetaDataExecutionException, ArchiveUnitOntologyValidationException,
         InvalidParseOperationException, MetaDataNotFoundException {
 
         final UpdatedDocument result =
-            updateDocumentWithRetries(documentId, requestParser, ontologyModels, metadataCollection);
+            updateDocumentWithRetries(documentId, requestParser, ontologyModels, metadataCollection,
+                archiveUnitProfileLoader);
         if (GlobalDatasDb.PRINT_REQUEST) {
             LOGGER.debug("Results: {}", result);
         }
@@ -1007,7 +1021,8 @@ public class DbRequest {
     }
 
     private UpdatedDocument updateDocumentWithRetries(String documentId,
-        RequestParserMultiple requestParser, List<OntologyModel> ontologyModels, MetadataCollections metadataCollection)
+        RequestParserMultiple requestParser, List<OntologyModel> ontologyModels, MetadataCollections metadataCollection,
+        ArchiveUnitProfileLoader archiveUnitProfileLoader)
         throws InvalidParseOperationException, MetaDataExecutionException, ArchiveUnitOntologyValidationException,
         MetaDataNotFoundException {
         final Integer tenantId = ParameterHelper.getTenantParameter();
@@ -1043,7 +1058,8 @@ public class DbRequest {
                 changesTrigger.trigger(jsonDocument, updatedJsonDocument);
             }
 
-            int newDocumentVersion = incrementDocumentVersionIfRequired(metadataCollection, mongoInMemory, documentVersion);
+            int newDocumentVersion =
+                incrementDocumentVersionIfRequired(metadataCollection, mongoInMemory, documentVersion);
             updatedJsonDocument.put(VitamDocument.VERSION, newDocumentVersion);
 
             Integer atomicVersion = document.getAtomicVersion();
@@ -1051,22 +1067,15 @@ public class DbRequest {
             updatedJsonDocument.put(MetadataDocument.ATOMIC_VERSION, newAtomicVersion);
 
             if (metadataCollection == MetadataCollections.UNIT) {
-                JsonNode externalSchema =
-                    updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-                if (!ontologyModels.isEmpty()) {
-                    validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
-                }
-                SchemaValidationStatus status = validator.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
-                if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                    throw new MetaDataExecutionException(
-                        "Unable to validate updated Unit " + status.getValidationMessage());
-                }
-                if (externalSchema != null && externalSchema.size() > 0) {
-                    try {
-                        validateOtherExternalSchema(updatedJsonDocument, externalSchema);
-                    } catch (SchemaValidationException e) {
-                        throw new MetaDataExecutionException(e);
-                    }
+
+                validateAndUpdateOntology(updatedJsonDocument, validator, ontologyModels);
+
+                try {
+
+                    validateArchiveUnitProfile(validator, archiveUnitProfileLoader, updatedJsonDocument);
+
+                } catch (SchemaValidationException | ArchiveUnitProfileEmptyControlSchemaException | ArchiveUnitProfileInactiveException e) {
+                    throw new MetaDataExecutionException("Unable to validate updated Unit " + documentId, e);
                 }
             }
 
@@ -1100,7 +1109,8 @@ public class DbRequest {
         throw new MetaDataExecutionException("Can not modify document " + documentId);
     }
 
-    private int incrementDocumentVersionIfRequired(MetadataCollections metadataCollection, MongoDbInMemory mongoInMemory,
+    private int incrementDocumentVersionIfRequired(MetadataCollections metadataCollection,
+        MongoDbInMemory mongoInMemory,
         int documentVersion) {
 
         // FIXME : To avoid potential update loss for computed fields, we should make version field "non persisted"
@@ -1120,39 +1130,17 @@ public class DbRequest {
         }
     }
 
-
-    private void validateOtherExternalSchema(ObjectNode updatedJsonDocument, JsonNode schema)
-        throws InvalidParseOperationException, MetaDataExecutionException, SchemaValidationException {
-        try {
-            SchemaValidationUtils validatorSecond =
-                new SchemaValidationUtils(
-                    schema.isArray()
-                        ? schema.get(0).asText()
-                        : schema.toString(),
-                    true);
-            updatedJsonDocument.remove(SchemaValidationUtils.TAG_SCHEMA_VALIDATION);
-            SchemaValidationStatus status =
-                validatorSecond.validateInsertOrUpdateUnit(updatedJsonDocument.deepCopy());
-            if (!SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
-                throw new SchemaValidationException(
-                    "Unable to validate updated Unit " + status.getValidationMessage());
-            }
-        } catch (FileNotFoundException | ProcessingException e) {
-            LOGGER.debug("Unable to initialize External Json Validator");
-            throw new MetaDataExecutionException(e);
-        }
-    }
-
     private void validateAndUpdateOntology(ObjectNode updatedJsonDocument,
-        SchemaValidationUtils validator,
-        List<OntologyModel> ontologies)
+        SchemaValidationUtils validator, List<OntologyModel> ontologyModels)
         throws ArchiveUnitOntologyValidationException {
 
+        if (ontologyModels.isEmpty())
+            return;
 
         Map<String, OntologyModel> ontologiesByIdentifier;
 
-            ontologiesByIdentifier =
-                ontologies.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
+        ontologiesByIdentifier =
+            ontologyModels.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
 
         List<String> errors = new ArrayList<>();
         // that means a transformation could be done so we need to process the full json

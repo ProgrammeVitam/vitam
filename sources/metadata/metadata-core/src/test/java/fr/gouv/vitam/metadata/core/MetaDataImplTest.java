@@ -53,6 +53,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.metadata.api.exception.MetaDataAlreadyExistException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.core.archiveunitprofile.ArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
@@ -153,6 +154,7 @@ public class MetaDataImplTest {
 
         when(dbRequestFactory.create(anyString())).thenReturn(request);
         when(dbRequestFactory.create()).thenReturn(request);
+
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, dbRequestFactory,
                 100, 300);
@@ -240,7 +242,8 @@ public class MetaDataImplTest {
         when(adminManagementClient.findOntologies(any()))
             .thenReturn(new RequestResponseOK<OntologyModel>().addAllResults(ontologyModels));
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT)))
+        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT),
+            any(ArchiveUnitProfileLoader.class)))
             .thenReturn(new UpdatedDocument("unitId",
                 JsonHandler.createObjectNode().put("x", "v1"),
                 JsonHandler.createObjectNode().put("x", "v2")));
@@ -303,7 +306,8 @@ public class MetaDataImplTest {
         when(request.execRequest(isA(RequestParserMultiple.class)))
             .thenReturn(selectResult);
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT)))
+        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT),
+            any(ArchiveUnitProfileLoader.class)))
             .thenThrow(new MetaDataExecutionException(""));
         metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
     }
@@ -336,7 +340,8 @@ public class MetaDataImplTest {
         when(request.execRequest(isA(RequestParserMultiple.class)))
             .thenReturn(selectResult);
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT)))
+        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT),
+            any(ArchiveUnitProfileLoader.class)))
             .thenThrow(new InvalidParseOperationException(""));
         metaDataImpl.updateUnitById(JsonHandler.getFromString(QUERY), "unitId");
     }
@@ -402,7 +407,8 @@ public class MetaDataImplTest {
 
         final JsonNode updateRequest = JsonHandler.getFromFile(PropertiesUtils.findFile("updateQuery.json"));
 
-        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT)))
+        when(request.execUpdateRequest(any(), eq("unitId"), eq(ontologyModels), eq(MetadataCollections.UNIT),
+            any(ArchiveUnitProfileLoader.class)))
             .thenReturn(
                 new UpdatedDocument("unitId", JsonHandler.toJsonNode(unit), JsonHandler.toJsonNode(secondUnit)));
 
@@ -434,7 +440,8 @@ public class MetaDataImplTest {
             new ResultDefault(FILTERARGS.UNITS).addFinal(unit1Before),
             new ResultDefault(FILTERARGS.UNITS).addFinal(unit2Before));
 
-        when(request.execUpdateRequest(any(), any(), eq(ontologyModels), eq(MetadataCollections.UNIT)))
+        when(request.execUpdateRequest(any(), any(), eq(ontologyModels), eq(MetadataCollections.UNIT),
+            any(ArchiveUnitProfileLoader.class)))
             .thenReturn(
                 new UpdatedDocument("unit1", JsonHandler.toJsonNode(unit1Before), JsonHandler.toJsonNode(unit1After)),
                 new UpdatedDocument("unit2", JsonHandler.toJsonNode(unit2Before), JsonHandler.toJsonNode(unit2After)));
