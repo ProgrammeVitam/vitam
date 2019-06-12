@@ -13,6 +13,7 @@
             <excludes>
                 <exclude>**/metricbeat-*.rpm</exclude>
                 <exclude>**/packetbeat-*.rpm</exclude>
+                <exclude>**/repodata/**</exclude>
             </excludes>
         </fileSet>
         <!-- Add "native" vitam-product rpm -->
@@ -24,6 +25,8 @@
             </includes>
             <excludes>
                 <exclude>**/vitam-gatling-*.rpm</exclude>
+                <exclude>**/*ihm-recette*.rpm</exclude>
+                <exclude>**/repodata/**</exclude>
             </excludes>
         </fileSet>
         <!-- Add all vitam-external deb -->
@@ -33,6 +36,8 @@
             <excludes>
                 <exclude>**/metricbeat-*.deb</exclude>
                 <exclude>**/packetbeat-*.deb</exclude>
+                <exclude>**/Packages</exclude>
+                <exclude>**/Packages.gz</exclude>
             </excludes>
         </fileSet>
         <!-- Add "native" vitam-product deb -->
@@ -44,6 +49,9 @@
             </includes>
             <excludes>
                 <exclude>**/vitam-gatling-*.deb</exclude>
+                <exclude>**/*ihm-recette*.deb</exclude>
+                <exclude>**/Packages</exclude>
+                <exclude>**/Packages.gz</exclude>
             </excludes>
         </fileSet>
         <!-- Add sources -->
@@ -117,28 +125,6 @@
             <includes>
                 <include>fr.gouv.vitam.doc:*:zip</include>
             </includes>
-        </dependencySet>
-        <!-- Add java-based vitam-product rpm -->
-        <dependencySet>
-            <outputDirectory>/rpm/vitam-product</outputDirectory>
-            <unpack>false</unpack>
-            <includes>
-                <include>*:*:rpm</include>
-            </includes>
-            <excludes>
-                <exclude>*:ihm-recette*:rpm</exclude>
-            </excludes>
-        </dependencySet>
-        <!-- Add java-based vitam-product deb -->
-        <dependencySet>
-            <outputDirectory>/deb/vitam-product</outputDirectory>
-            <unpack>false</unpack>
-            <includes>
-                <include>*:*:deb</include>
-            </includes>
-            <excludes>
-                <exclude>*:ihm-recette*:deb</exclude>
-            </excludes>
         </dependencySet>
     </dependencySets>
 </assembly>
