@@ -45,6 +45,7 @@ public class InheritedRule {
     private LocalDate maxEndDate;
     @JsonProperty("Properties")
     private Properties properties;
+    //TODO Make POJO
     @JsonIgnore
     private Map<String, RuleMaxEndDate> ruleIdToRule = new HashMap<>();
 

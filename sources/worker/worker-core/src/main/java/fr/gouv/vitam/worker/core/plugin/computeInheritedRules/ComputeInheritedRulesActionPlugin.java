@@ -125,6 +125,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
 
                 SelectMultiQuery selectMultiple = new SelectMultiQuery();
                 BooleanQuery query = new BooleanQuery(BuilderToken.QUERY.AND);
+                //TODO bulk request + projection #id
                 query.add(new CompareQuery(BuilderToken.QUERY.EQ, VitamFieldsHelper.id(), unitId));
                 selectMultiple.setQuery(query);
                 JsonNode response = metaDataClient.selectUnitsWithInheritedRules(selectMultiple.getFinalSelect());
@@ -137,6 +138,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
                 if (archiveWithInheritedRules.size() > 0) {
                     UnitInheritedRulesResponseModel unitInheritedResponseModel = JsonHandler
                         .getFromJsonNode(archiveWithInheritedRules.get(0).get(INHERITED_RULES), UnitInheritedRulesResponseModel.class);
+                    //TODO Switch POJO to metadata-common
                     Map<String, InheritedRuleCategoryResponseModel> rulesCategories = unitInheritedResponseModel.getRuleCategories();
                     List<InheritedPropertyResponseModel> globalInheritedProperties = unitInheritedResponseModel.getGlobalProperties();
 
@@ -150,6 +152,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
                             indexRulesById))
                         .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
+                    //TODO if indexAPIOutput don't serialize unitInheritedResponseModel
                     indexUnit(unitId, inheritedRulesWithAllOption, metaDataClient, new Properties(globalProperties),
                         JsonHandler.toJsonNode(unitInheritedResponseModel), indexAPIOutput);
 
@@ -193,6 +196,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         InheritedRuleCategoryResponseModel categoryResponseModel, boolean indexRulesById) {
         Map<String, InheritedRule> inheritedRulesWithEndDateAndProperties = new HashMap<>();
 
+        //TODO refactor because Lotfi don't want zoneId.systemDefault
         Optional<LocalDate> maxEndDateByCategory =
             categoryResponseModel.getRules().stream()
                 .map(rule -> Date.from(ParseToLocalDate(rule.getEndDate()).atStartOfDay(ZoneId.systemDefault()).toInstant()))
@@ -202,7 +206,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         Map<String, RuleMaxEndDate> ruleIdToRuleMaxEndDate =
             categoryResponseModel.getRules()
                 .stream()
-                .flatMap(this::mapToEntryOfRuleIdToMaxEndDate)
+                .map(this::mapToEntryOfRuleIdToMaxEndDate)
                 .collect(
                     Collectors.toMap(Entry::getKey, Entry::getValue, (value1, value2) -> {
                         if (value1.getMaxEndDate().isBefore(value2.getMaxEndDate())) {
@@ -215,6 +219,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             mapInheritedPropertyResponseModelToPropertiesNameValue(categoryResponseModel.getProperties());
 
         LocalDate maxEndDate = null;
+        //TODO get or else null Warning to MaxEndDate null Functional
         if (maxEndDateByCategory.isPresent()) {
             maxEndDate = maxEndDateByCategory.get();
         }
@@ -225,8 +230,8 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         return inheritedRulesWithEndDateAndProperties.entrySet().stream();
     }
 
-    private Stream<Entry<String, RuleMaxEndDate>> mapToEntryOfRuleIdToMaxEndDate(InheritedRuleResponseModel rule) {
-        return Stream.of(new SimpleEntry<>(rule.getRuleId(), new RuleMaxEndDate(ParseToLocalDate(rule.getEndDate()))));
+    private Entry<String, RuleMaxEndDate> mapToEntryOfRuleIdToMaxEndDate(InheritedRuleResponseModel rule) {
+        return new SimpleEntry<>(rule.getRuleId(), new RuleMaxEndDate(ParseToLocalDate(rule.getEndDate())));
     }
 
     private void addToMapAccordingToIndexRulesById(String category, boolean indexRulesById,
@@ -249,12 +254,12 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
 
     private Map<String, PropertyValue> mapInheritedPropertyResponseModelToPropertiesNameValue(List<InheritedPropertyResponseModel> properties) {
         return properties.stream()
-            .flatMap(property -> mapPropertyToPropertyNameAndValue(property.getPropertyName(), property.getPropertyValue()))
+            .map(property -> mapPropertyToPropertyNameAndValue(property.getPropertyName(), property.getPropertyValue()))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
-    private Stream<SimpleEntry<String, PropertyValue>> mapPropertyToPropertyNameAndValue(String propertyName, Object propertyValue) {
-        return Stream.of(new SimpleEntry<>(propertyName, new PropertyValue(propertyValue)));
+    private SimpleEntry<String, PropertyValue> mapPropertyToPropertyNameAndValue(String propertyName, Object propertyValue) {
+        return new SimpleEntry<>(propertyName, new PropertyValue(propertyValue));
     }
 
     private void indexUnit(String unitId, Map<String, InheritedRule> inheritedRules, MetaDataClient metaDataClient, Properties globalProperty,
