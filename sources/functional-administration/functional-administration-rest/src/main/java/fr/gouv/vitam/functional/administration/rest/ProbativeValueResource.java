@@ -98,8 +98,6 @@ public class ProbativeValueResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeValueResource.class);
     private static final String BAD_REQUEST_EXCEPTION = "Bad request Exception ";
-    private static final String ACCESS_CONTRACT = "AccessContract";
-
 
     /**
      * probative value  service
@@ -141,21 +139,12 @@ public class ProbativeValueResource {
                         GUIDReader.getGUID(operationId),
                     GUIDReader.getGUID(operationId));
 
-            addRightsStatementIdentifier(initParameters);
             ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode()
                 .put("AccessContract", getVitamSession().getContractId());
             initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier.toString());
 
             client.create(initParameters);
         }
-    }
-
-    private void addRightsStatementIdentifier(LogbookOperationParameters initParameters) {
-        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
-        rightsStatementIdentifier
-            .put(ACCESS_CONTRACT, getVitamSession().getContract().getIdentifier());
-        initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-            rightsStatementIdentifier.toString());
     }
 
     @POST
