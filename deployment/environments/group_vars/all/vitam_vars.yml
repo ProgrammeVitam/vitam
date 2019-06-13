@@ -344,9 +344,13 @@ vitam:
         performance_logger: "false"
         reconstruction:
 
-        # Ontology cache settings
+        # Ontology cache settings (max entries in cache & retention timeout in seconds)
         ontologyCacheMaxEntries: 100
         ontologyCacheTimeoutInSeconds: 300
+
+        # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+        archiveUnitProfileCacheMaxEntries: 100
+        archiveUnitProfileCacheTimeoutInSeconds: 300
 
     processing:
         vitam_component: processing

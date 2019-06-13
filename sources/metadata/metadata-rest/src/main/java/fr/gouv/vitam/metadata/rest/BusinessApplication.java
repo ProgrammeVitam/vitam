@@ -81,7 +81,9 @@ public class BusinessApplication extends Application {
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
             MetaDataImpl metadata = MetaDataImpl.newMetadata(mongoAccessMetadata,
                 metaDataConfiguration.getOntologyCacheMaxEntries(),
-                metaDataConfiguration.getOntologyCacheTimeoutInSeconds());
+                metaDataConfiguration.getOntologyCacheTimeoutInSeconds(),
+                metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
+                metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds());
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 

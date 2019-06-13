@@ -43,6 +43,8 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private List<ElasticsearchNode> elasticsearchNodes;
     private int ontologyCacheMaxEntries = 100;
     private int ontologyCacheTimeoutInSeconds = 300;
+    private int archiveUnitProfileCacheMaxEntries = 100;
+    private int archiveUnitProfileCacheTimeoutInSeconds = 300;
 
     /**
      * MetaDataConfiguration constructor
@@ -144,5 +146,24 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
 
     public void setOntologyCacheTimeoutInSeconds(int ontologyCacheTimeoutInSeconds) {
         this.ontologyCacheTimeoutInSeconds = ontologyCacheTimeoutInSeconds;
+    }
+
+    public int getArchiveUnitProfileCacheMaxEntries() {
+        return archiveUnitProfileCacheMaxEntries;
+    }
+
+    public MetaDataConfiguration setArchiveUnitProfileCacheMaxEntries(int archiveUnitProfileCacheMaxEntries) {
+        this.archiveUnitProfileCacheMaxEntries = archiveUnitProfileCacheMaxEntries;
+        return this;
+    }
+
+    public int getArchiveUnitProfileCacheTimeoutInSeconds() {
+        return archiveUnitProfileCacheTimeoutInSeconds;
+    }
+
+    public MetaDataConfiguration setArchiveUnitProfileCacheTimeoutInSeconds(
+        int archiveUnitProfileCacheTimeoutInSeconds) {
+        this.archiveUnitProfileCacheTimeoutInSeconds = archiveUnitProfileCacheTimeoutInSeconds;
+        return this;
     }
 }
