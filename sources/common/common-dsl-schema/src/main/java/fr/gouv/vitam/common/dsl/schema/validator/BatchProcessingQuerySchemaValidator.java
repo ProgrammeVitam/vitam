@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,14 +23,10 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.common.dsl.schema.validator;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
@@ -39,26 +35,17 @@ import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-/**
- * BatchProcessingQuerySchemaValidator
- */
+import java.io.IOException;
+import java.io.InputStream;
+
 public class BatchProcessingQuerySchemaValidator implements DslValidator {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchProcessingQuerySchemaValidator.class);
     private final Schema schema;
 
-    /**
-     * Constructor
-     *
-     * @throws IOException thrown when the schema file is not found or invalid
-     */
     public BatchProcessingQuerySchemaValidator() throws IOException {
-        // FIXME find a way to use JsonHandler's mapper if possible
-        ObjectMapper objectMapper = new ObjectMapper();
-        LOGGER.debug("Loading schema {} from {}", DslSchema.BATCH_PROCESSING.name(),
-            DslSchema.BATCH_PROCESSING.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.BATCH_PROCESSING.getFilename())) {
-            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
+        LOGGER.debug("Loading schema {} from {}", DslSchema.BATCH_PROCESSING.name(), DslSchema.BATCH_PROCESSING.getFilename());
+        try (final InputStream schemaSource = PropertiesUtils.getResourceAsStream(DslSchema.BATCH_PROCESSING.getFilename())) {
+            schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
 
@@ -66,6 +53,4 @@ public class BatchProcessingQuerySchemaValidator implements DslValidator {
     public void validate(JsonNode dsl) throws ValidationException {
         Validator.validate(schema, "DSL", dsl);
     }
-
-
 }

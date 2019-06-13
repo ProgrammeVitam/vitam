@@ -103,7 +103,6 @@ public class MetaDataImplTest {
 
     private MetaDataImpl metaDataImpl;
     private DbRequest request;
-    private DbRequestFactory dbRequestFactory;
     private AdminManagementClientFactory adminManagementClientFactory;
     private IndexationHelper indexationHelper;
     private MongoDbAccessMetadataImpl mongoDbAccessFactory;
@@ -147,16 +146,12 @@ public class MetaDataImplTest {
         request = mock(DbRequest.class);
         indexationHelper = mock(IndexationHelper.class);
         mongoDbAccessFactory = mock(MongoDbAccessMetadataImpl.class);
-        dbRequestFactory = mock(DbRequestFactoryImpl.class);
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         adminManagementClient = mock(AdminManagementClient.class);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
 
-        when(dbRequestFactory.create(anyString())).thenReturn(request);
-        when(dbRequestFactory.create()).thenReturn(request);
-
         metaDataImpl =
-            new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, dbRequestFactory,
+            new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, indexationHelper, request,
                 100, 300);
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
@@ -480,7 +475,7 @@ public class MetaDataImplTest {
 
         metaDataImpl =
             new MetaDataImpl(mongoDbAccessFactory, adminManagementClientFactory, IndexationHelper.getInstance(),
-                dbRequestFactory, 100, 300);
+                request, 100, 300);
         IndexationResult result = metaDataImpl.reindex(parameters);
         assertNull(result.getIndexOK());
         assertNotNull(result.getIndexKO());

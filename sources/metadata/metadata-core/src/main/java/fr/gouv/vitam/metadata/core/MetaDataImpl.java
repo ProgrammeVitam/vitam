@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -23,7 +23,7 @@
  *
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
- *******************************************************************************/
+ */
 package fr.gouv.vitam.metadata.core;
 
 
@@ -53,7 +53,6 @@ import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
 import fr.gouv.vitam.common.database.server.elasticsearch.model.ElasticsearchCollections;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.ArchiveUnitOntologyValidationException;
-import fr.gouv.vitam.common.exception.ArchiveUnitProfileEmptyControlSchemaException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -73,7 +72,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
-import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.massupdate.RuleActions;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
@@ -146,23 +144,19 @@ import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-/**
- * MetaDataImpl implements a MetaData interface
- */
 public class MetaDataImpl {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataImpl.class);
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MetaDataImpl.class);
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     private static final String RESULTS = "$results";
-    private static final String HISTORY_FILE_NAME_TRIGGERS_CONFIG = "history-triggers.json";
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
     private final AdminManagementClientFactory adminManagementClientFactory;
-    private final DbRequestFactory dbRequestFactory;
+    private final DbRequest dbRequest;
     private final OntologyLoader ontologyLoader;
+
     private final ArchiveUnitProfileLoader archiveUnitProfileLoader;
 
 
@@ -171,18 +165,18 @@ public class MetaDataImpl {
      */
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess, int maxEntriesInCache, int cacheTimeoutInSeconds) {
         this(mongoDbAccess, AdminManagementClientFactory.getInstance(), IndexationHelper.getInstance(),
-            DbRequestFactoryImpl.getInstance(), maxEntriesInCache, cacheTimeoutInSeconds);
+            new DbRequest(), maxEntriesInCache, cacheTimeoutInSeconds);
     }
 
     @VisibleForTesting
     public MetaDataImpl(MongoDbAccessMetadataImpl mongoDbAccess,
         AdminManagementClientFactory adminManagementClientFactory,
         IndexationHelper indexationHelper,
-        DbRequestFactory dbRequestFactory, int maxEntriesInCache, int cacheTimeoutInSeconds) {
+        DbRequest dbRequest, int maxEntriesInCache, int cacheTimeoutInSeconds) {
         this.mongoDbAccess = mongoDbAccess;
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.indexationHelper = indexationHelper;
-        this.dbRequestFactory = dbRequestFactory;
+        this.dbRequest = dbRequest;
         this.archiveUnitProfileLoader
             = new ArchiveUnitProfileLoader(adminManagementClientFactory, maxEntriesInCache, cacheTimeoutInSeconds);
         this.ontologyLoader =
@@ -219,7 +213,6 @@ public class MetaDataImpl {
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataAlreadyExistException, MetaDataNotFoundException {
         try {
-            DbRequest dbRequest = dbRequestFactory.create();
             List<InsertParserMultiple> collect = insertRequests.stream().map(insertRequest -> {
                     InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
                     try {
@@ -244,7 +237,6 @@ public class MetaDataImpl {
     public void deleteUnits(List<String> idList)
         throws IllegalArgumentException, MetaDataExecutionException {
 
-        DbRequest dbRequest = dbRequestFactory.create();
         dbRequest.deleteUnits(idList);
 
     }
@@ -252,7 +244,6 @@ public class MetaDataImpl {
     public void deleteObjectGroups(List<String> idList)
         throws IllegalArgumentException, MetaDataExecutionException {
 
-        DbRequest dbRequest = dbRequestFactory.create();
         dbRequest.deleteObjectGroups(idList);
 
     }
@@ -263,7 +254,7 @@ public class MetaDataImpl {
         final InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
         insertParser.parse(objectGroupRequest);
         insertParser.getRequest().addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-        dbRequestFactory.create().execInsertObjectGroupRequests(singletonList(insertParser));
+        dbRequest.execInsertObjectGroupRequests(singletonList(insertParser));
 
     }
 
@@ -272,7 +263,6 @@ public class MetaDataImpl {
         MetaDataAlreadyExistException {
 
         try {
-            DbRequest dbRequest = dbRequestFactory.create();
             List<InsertParserMultiple> collect = objectGroupRequest.stream().map(insertRequest -> {
                     InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
                     try {
@@ -328,7 +318,7 @@ public class MetaDataImpl {
 
         try {
 
-            Result result = dbRequestFactory.create().execRequest(request);
+            Result result = dbRequest.execRequest(request);
             List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
 
             if (!CollectionUtils.isEmpty(facetResults)) {
@@ -651,7 +641,7 @@ public class MetaDataImpl {
             fieldsProjection.removeAll();
         }
 
-        result = dbRequestFactory.create().execRequest(selectRequest);
+        result = dbRequest.execRequest(selectRequest);
         arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
 
         // Compute Rule for unit(only with search by Id)
@@ -682,7 +672,7 @@ public class MetaDataImpl {
             // FIXME : Object group ontologies not yet implemented
             // Execute DSL request
             List<OntologyModel> ontologyModels = emptyList();
-            dbRequestFactory.create().execUpdateRequest(updateRequest, objectId, ontologyModels, OBJECTGROUP,
+            dbRequest.execUpdateRequest(updateRequest, objectId, ontologyModels, OBJECTGROUP,
                 /* no archive unit profiles for object groups */
                 null
             );
@@ -752,32 +742,23 @@ public class MetaDataImpl {
             .setTotal(unitRules.size());
     }
 
-    private UpdateUnit updateAndTransformUnitRules(String unitId, RuleActions ruleActions,
-        Map<String, DurationData> bindRuleToDuration, List<OntologyModel> ontologyModels) {
+    private UpdateUnit updateAndTransformUnitRules(String unitId, RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration,
+        List<OntologyModel> ontologyModels) {
         try {
-
-            try {
-
                 UpdatedDocument updatedDocument =
-                    dbRequestFactory.create().execRuleRequest(unitId, ruleActions, bindRuleToDuration, ontologyModels,
+                    dbRequest.execRuleRequest(unitId, ruleActions, bindRuleToDuration, ontologyModels,
                         archiveUnitProfileLoader);
 
                 String diffs = String.join("\n", VitamDocument.getConcernedDiffLines(
                     VitamDocument.getUnifiedDiff(JsonHandler.prettyPrint(updatedDocument.getBeforeUpdate()),
                         JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
 
-                if (diffs.isEmpty()) {
-                    // FIXME : Return OK for idempotency?
-                    return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
-                }
-
-                return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit rules OK.", diffs);
-
-            } catch (final InvalidCreateOperationException e) {
-                throw new MetaDataExecutionException(e);
+            if (diffs.isEmpty()) {
+                // FIXME : Return OK for idempotency?
+                return error(unitId, KO, UNIT_METADATA_NO_CHANGES, "No updates.");
             }
 
-
+            return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit rules OK.", diffs);
         } catch (SchemaValidationException | ArchiveUnitOntologyValidationException e) {
             return error(unitId, KO, CHECK_UNIT_SEDA, e.getMessage());
         } catch (Exception e) {
@@ -812,17 +793,13 @@ public class MetaDataImpl {
         if (updateQuery.isNull()) {
             throw new InvalidParseOperationException(REQUEST_IS_NULL);
         }
-        try {
-            // parse Update request
-            final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
-            updateRequest.parse(updateQuery);
 
-            return dbRequestFactory.create(HISTORY_FILE_NAME_TRIGGERS_CONFIG)
-                .execUpdateRequest(updateRequest, unitId, ontologyModels, UNIT, this.archiveUnitProfileLoader);
+        // parse Update request
+        final RequestParserMultiple updateRequest = new UpdateParserMultiple(DEFAULT_VARNAME_ADAPTER);
+        updateRequest.parse(updateQuery);
 
-        } catch (ChangesTriggerConfigFileException e) {
-            throw new MetaDataExecutionException(e);
-        }
+        return dbRequest
+            .execUpdateRequest(updateRequest, unitId, ontologyModels, UNIT, this.archiveUnitProfileLoader);
     }
 
     private SelectMultiQuery createSearchParentSelect(List<String> unitList) throws InvalidParseOperationException {

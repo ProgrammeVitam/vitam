@@ -275,9 +275,6 @@ public class MassUpdateIT extends VitamRuleRunner {
                     PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_01_JSON));
             workspaceClient
                 .putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-            workspaceClient
-                .putObject(operationGuid.getId(), ACTION,
-                    JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             processingClient

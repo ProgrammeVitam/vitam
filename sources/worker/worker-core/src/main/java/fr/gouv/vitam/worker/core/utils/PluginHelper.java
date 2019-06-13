@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.utils;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -93,6 +94,14 @@ public class PluginHelper {
         return new ItemStatus(action).setItemsStatus(action, itemStatus);
     }
 
+    public static ItemStatus buildItemStatusWithMessage(String action, StatusCode statusCode, String message) {
+        final ItemStatus itemStatus = new ItemStatus(action);
+        itemStatus.increment(statusCode);
+        itemStatus.setMessage(message);
+        setEvDetData(itemStatus, EventDetails.of(message));
+        return new ItemStatus(action).setItemsStatus(action, itemStatus);
+    }
+
     public static <TEventDetails> ItemStatus buildItemStatusWithMasterData(String action, StatusCode statusCode, TEventDetails eventDetails, Object masterDataValue) {
         final ItemStatus itemStatus = new ItemStatus(action);
         itemStatus.increment(statusCode);
@@ -115,7 +124,7 @@ public class PluginHelper {
             try {
                 itemStatus.setEvDetailData(JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails)));
             } catch (InvalidParseOperationException e1) {
-                LOGGER.error("Could not serialize event details" + eventDetails);
+                throw new VitamRuntimeException("Could not serialize event details" + eventDetails, e1);
             }
         }
     }
@@ -168,7 +177,7 @@ public class PluginHelper {
                 parameters.putParameterValue(LogbookParameterName.eventDetailData,
                     (JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails))));
             } catch (InvalidParseOperationException e1) {
-                LOGGER.error("Could not serialize event details" + eventDetails);
+                throw new VitamRuntimeException("Could not serialize event details" + eventDetails);
             }
         }
         return parameters;
@@ -190,7 +199,7 @@ public class PluginHelper {
                 parameters.putParameterValue(LogbookParameterName.eventDetailData,
                     (JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails))));
             } catch (InvalidParseOperationException e1) {
-                LOGGER.error("Could not serialize event details" + eventDetails);
+                throw new VitamRuntimeException("Could not serialize event details" + eventDetails);
             }
         }
         return parameters;

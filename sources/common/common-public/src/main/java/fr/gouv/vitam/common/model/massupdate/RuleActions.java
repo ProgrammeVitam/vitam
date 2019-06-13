@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright French Prime minister Office/SGMAP/DINSIC/Vitam Program (2015-2019)
  *
  * contact.vitam@culture.gouv.fr
@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.model.massupdate;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,5 +88,13 @@ public class RuleActions {
 
     public void setDeleteMetadata(ManagementMetadataAction deleteMetadata) {
         this.deleteMetadata = deleteMetadata;
+    }
+
+    public boolean isRuleActionsEmpty() {
+        return add.isEmpty()
+            && update.isEmpty()
+            && delete.isEmpty()
+            && (addOrUpdateMetadata == null || StringUtils.isBlank(addOrUpdateMetadata.getArchiveUnitProfile()))
+            && (deleteMetadata == null || StringUtils.isBlank(deleteMetadata.getArchiveUnitProfile()));
     }
 }

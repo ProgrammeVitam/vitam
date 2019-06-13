@@ -27,7 +27,6 @@
 package fr.gouv.vitam.common.dsl.schema.validator;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
@@ -54,13 +53,11 @@ public class ReclassificationQuerySchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public ReclassificationQuerySchemaValidator() throws IOException {
-        // FIXME find a way to use JsonHandler's mapper if possible
-        ObjectMapper objectMapper = new ObjectMapper();
         LOGGER.debug("Loading schema {} from {}", DslSchema.RECLASSIFICATION_QUERY.name(),
             DslSchema.RECLASSIFICATION_QUERY.getFilename());
         try (final InputStream schemaSource =
             PropertiesUtils.getResourceAsStream(DslSchema.RECLASSIFICATION_QUERY.getFilename())) {
-            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
+            schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
 

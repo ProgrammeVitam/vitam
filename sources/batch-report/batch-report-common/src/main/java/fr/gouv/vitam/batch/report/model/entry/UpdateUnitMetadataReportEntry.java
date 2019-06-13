@@ -40,7 +40,6 @@ public class UpdateUnitMetadataReportEntry extends ReportEntry {
     public static final String TENANT_ID = "_tenant";
     public static final String STATUS = "status";
     public static final String MESSAGE = "message";
-    public static final String ID = "_id";
 
     private final String processId;
     private final Integer tenantId;
@@ -52,7 +51,7 @@ public class UpdateUnitMetadataReportEntry extends ReportEntry {
     public UpdateUnitMetadataReportEntry(
         @JsonProperty(TENANT_ID) Integer tenantId,
         @JsonProperty(PROCESS_ID) String processId,
-        @JsonProperty(ID) String unitId,
+        @JsonProperty(DETAIL_ID) String unitId,
         @JsonProperty(RESULT_KEY) String resultKey,
         @JsonProperty(STATUS) StatusCode status,
         @JsonProperty(OUTCOME) String outcome,

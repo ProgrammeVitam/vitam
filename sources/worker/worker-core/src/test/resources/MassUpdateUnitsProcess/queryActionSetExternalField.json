@@ -1,0 +1,23 @@
+{
+  "$roots": [],
+  "$query": [
+    {
+      "$and": [
+        {
+          "$in": {
+            "#id": "Who let the"
+          }
+        }
+      ],
+      "$depth": 10
+    }
+  ],
+  "$threshold": 100,
+  "$action": [
+    {
+      "$set": {
+        "Sentence": "Who let the dogs out ?!"
+      }
+    }
+  ]
+}

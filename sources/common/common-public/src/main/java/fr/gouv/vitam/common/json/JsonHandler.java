@@ -54,6 +54,7 @@ import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -92,6 +93,9 @@ public final class JsonHandler {
      */
     private static final ObjectMapper OBJECT_MAPPER_LOWER_CAMEL_CASE;
 
+    @Deprecated
+    private static final ObjectMapper DEFAULT_OBJECT_MAPPER_WITH_ALLOW_COMMENTS;
+
     static {
         OBJECT_MAPPER = buildObjectMapper();
         OBJECT_MAPPER_UNPRETTY = buildObjectMapper();
@@ -99,6 +103,7 @@ public final class JsonHandler {
         OBJECT_MAPPER_LOWER_CAMEL_CASE = buildObjectMapper();
         OBJECT_MAPPER_LOWER_CAMEL_CASE.setPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CAMEL_CASE);
         OBJECT_MAPPER_LOWER_CAMEL_CASE.disable(SerializationFeature.INDENT_OUTPUT);
+        DEFAULT_OBJECT_MAPPER_WITH_ALLOW_COMMENTS = new ObjectMapper().enable(JsonParser.Feature.ALLOW_COMMENTS);
     }
 
     private JsonHandler() {
@@ -807,6 +812,16 @@ public final class JsonHandler {
             throw new InvalidParseOperationException(e);
         } finally {
             StreamUtils.closeSilently(inputStream);
+        }
+    }
+
+    @Deprecated
+    public static <T> T getFromInputStreamWithCommentAllow(InputStream inputStream, TypeReference<T> typeReference) throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("InputStream or class", inputStream, typeReference);
+            return DEFAULT_OBJECT_MAPPER_WITH_ALLOW_COMMENTS.readValue(IOUtils.toByteArray(inputStream), typeReference);
+        } catch (final IOException | IllegalArgumentException e) {
+            throw new InvalidParseOperationException(e);
         }
     }
 

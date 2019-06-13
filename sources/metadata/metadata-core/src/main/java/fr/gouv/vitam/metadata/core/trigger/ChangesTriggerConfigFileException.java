@@ -26,9 +26,9 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.trigger;
 
-import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
-public class ChangesTriggerConfigFileException extends VitamException {
+public class ChangesTriggerConfigFileException extends VitamRuntimeException {
 
     public ChangesTriggerConfigFileException(Throwable cause) {
         super(cause);

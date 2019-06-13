@@ -39,14 +39,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 
-public class ChangesTrigger {
+public class FieldHistoryManager {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ChangesTrigger.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FieldHistoryManager.class);
 
     private final Map<String, ChangesHistory> triggers = new HashMap<>();
 
 
-    public ChangesTrigger(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
+    public FieldHistoryManager(String fileNameTriggersConfig) {
         try {
             for (HistoryTriggerConfig config : JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(fileNameTriggersConfig), HistoryTriggerConfig[].class)) {
                 if (triggers.get(config.getFieldPathTriggeredForHistory()) == null) {

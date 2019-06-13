@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.massprocessing;
+package fr.gouv.vitam.worker.core.plugin.massprocessing.management;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -141,10 +141,11 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
     /**
      * Execute an action
-     * @param param {@link WorkerParameters}
+     *
+     * @param param   {@link WorkerParameters}
      * @param handler the handlerIo
      * @return CompositeItemStatus:response contains a list of functional message and status code
-     * @throws ProcessingException if an error is encountered when executing the action
+     * @throws ProcessingException                      if an error is encountered when executing the action
      * @throws ContentAddressableStorageServerException if a storage exception is encountered when executing the action
      */
     @Override
@@ -155,6 +156,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
 
     /**
      * executeList for bulk update units.
+     *
      * @param workerParameters
      * @param handler
      * @return
@@ -170,7 +172,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
         try (MetaDataClient mdClient = metaDataClientFactory.getClient();
             LogbookLifeCyclesClient lfcClient = lfcClientFactory.getClient();
             StorageClient storageClient = storageClientFactory.getClient();
-             BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+            BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
             RuleActions ruleActions = JsonHandler.getFromJsonNode(
                 handler.getJsonFromWorkspace("actions.json"), RuleActions.class);
@@ -291,7 +293,7 @@ public class MassUpdateUnitsRulesProcess extends StoreMetadataObjectActionHandle
     private void computeRuleDurationData(Map.Entry<String, RuleCategoryAction> entry, Map<String, DurationData> bindRuleDuration, Boolean isUpdate) {
         RuleCategoryAction category = entry.getValue();
 
-        for (RuleAction rule: category.getRules()) {
+        for (RuleAction rule : category.getRules()) {
             String ruleId = rule.getRule();
 
             // When no "new" ruleId on update, the oldRule is taken as target rule for computing

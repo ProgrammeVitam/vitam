@@ -27,49 +27,44 @@
 
 package fr.gouv.vitam.common.dsl.schema.meta;
 
-import java.io.IOException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.json.JsonHandler;
+
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * SchemaBuilder
  */
 public class SchemaBuilder {
-
-    private ObjectMapper mapper;
-
-    protected SchemaBuilder(ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
-
+    private static final TypeReference<Map<String, Format>> typeReference = new TypeReference<Map<String, Format>>() {};
     private Map<String, Format> types = new HashMap<>();
 
-    /**
-     * Load input stream into a SchemaBuimder
-     * 
-     * @param schemaStream the input stream
-     * @return a schema builder
-     * @throws IOException
-     */
-    public SchemaBuilder loadTypes(InputStream schemaStream) throws IOException {
-        Map<String, Format> loaded = mapper.readValue(schemaStream, new TypeReference<Map<String, Format>>() {});
+    protected SchemaBuilder() {
+    }
 
-        for (Map.Entry<String, Format> entry : loaded.entrySet()) {
-            Format format = entry.getValue();
-            String name = entry.getKey();
+    public SchemaBuilder loadTypes(InputStream schemaStream) {
+        try {
+            Map<String, Format> loaded = JsonHandler.getFromInputStreamWithCommentAllow(schemaStream, typeReference);
 
-            format.setName(name);
-            Format oldType = types.put(name, format);
-            if (oldType != null) {
-                throw new IllegalArgumentException("Schema type " + name + " already loaded into schema");
+            for (Map.Entry<String, Format> entry : loaded.entrySet()) {
+                Format format = entry.getValue();
+                String name = entry.getKey();
+
+                format.setName(name);
+                Format oldType = types.put(name, format);
+                if (oldType != null) {
+                    throw new IllegalArgumentException("Schema type " + name + " already loaded into schema");
+                }
             }
-        }
 
-        return this;
+            return this;
+        } catch (InvalidParseOperationException e) {
+            throw new VitamRuntimeException(e);
+        }
     }
 
     /**
