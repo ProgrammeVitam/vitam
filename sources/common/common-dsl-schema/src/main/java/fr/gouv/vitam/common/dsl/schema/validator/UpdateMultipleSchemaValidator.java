@@ -27,14 +27,13 @@
 package fr.gouv.vitam.common.dsl.schema.validator;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
+import fr.gouv.vitam.common.dsl.schema.Validator;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.dsl.schema.Validator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,12 +55,11 @@ public class UpdateMultipleSchemaValidator implements DslValidator{
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public UpdateMultipleSchemaValidator() throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
         LOGGER.debug("Loading schema {} from {}", DslSchema.MASS_UPDATE.name(),
             DslSchema.MASS_UPDATE.getFilename());
         try (final InputStream schemaSource =
             PropertiesUtils.getResourceAsStream(DslSchema.MASS_UPDATE.getFilename())) {
-            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
+            schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
 

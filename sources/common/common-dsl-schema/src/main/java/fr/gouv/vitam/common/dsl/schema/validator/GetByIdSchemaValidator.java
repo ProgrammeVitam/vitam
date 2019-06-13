@@ -26,12 +26,7 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.dsl.schema.validator;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
@@ -39,6 +34,9 @@ import fr.gouv.vitam.common.dsl.schema.Validator;
 import fr.gouv.vitam.common.dsl.schema.meta.Schema;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Dsl schema validator for get by id DSL queries.
@@ -55,13 +53,11 @@ public class GetByIdSchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public GetByIdSchemaValidator() throws IOException {
-        // FIXME find a way to use JsonHandler's mapper if possible
-        ObjectMapper objectMapper = new ObjectMapper();
         LOGGER.debug("Loading schema {} from {}", DslSchema.GET_BY_ID.name(),
             DslSchema.GET_BY_ID.getFilename());
         try (final InputStream schemaSource =
             PropertiesUtils.getResourceAsStream(DslSchema.GET_BY_ID.getFilename())) {
-            schema = Schema.withMapper(objectMapper).loadTypes(schemaSource).build();
+            schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
 

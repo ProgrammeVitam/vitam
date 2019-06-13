@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
 import fr.gouv.vitam.common.dsl.schema.ValidationException;
 import fr.gouv.vitam.common.dsl.schema.validator.BatchProcessingQuerySchemaValidator;
+import fr.gouv.vitam.common.dsl.schema.validator.DslValidator;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
@@ -684,7 +685,7 @@ public class AccessExternalResource extends ApplicationStatusResource {
         Status status;
         // Manually schema validation of DSL Query
         try {
-            BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
+            DslValidator validator = new BatchProcessingQuerySchemaValidator();
             validator.validate(massUpdateUnitRuleRequest.getDslRequest());
         } catch (ValidationException e) {
             LOGGER.warn("Could not validate request", e);

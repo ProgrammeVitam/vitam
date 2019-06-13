@@ -103,8 +103,7 @@ import fr.gouv.vitam.metadata.core.archiveunitprofile.ArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.core.graph.GraphLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTrigger;
-import fr.gouv.vitam.metadata.core.trigger.ChangesTriggerConfigFileException;
+import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
 import org.apache.commons.lang.StringUtils;
 import org.bson.conversions.Bson;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -138,63 +137,41 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
  * DB Request using MongoDB only
  */
 public class DbRequest {
-    private static final String QUERY2 = "query: ";
-
-    private static final String WHERE_PREVIOUS_RESULT_WAS = "where_previous_result_was: ";
-
-    private static final String FROM2 = "from: ";
-
-    private static final String NO_RESULT_AT_RANK2 = "no_result_at_rank: ";
-
-    private static final String NO_RESULT_TRUE = "no_result: true";
-
-    private static final String WHERE_PREVIOUS_IS = " \n\twhere previous is ";
-
-    private static final String FROM = " from ";
-
-    private static final String NO_RESULT_AT_RANK = "No result at rank: ";
-
-    private static final String DEPTH_ARRAY = "deptharray";
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequest.class);
-    private static final String
-        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
+
+    private static final String HISTORY_TRIGGER_NAME = "history-triggers.json";
+    private static final String QUERY2 = "query: ";
+    private static final String WHERE_PREVIOUS_RESULT_WAS = "where_previous_result_was: ";
+    private static final String FROM2 = "from: ";
+    private static final String NO_RESULT_AT_RANK2 = "no_result_at_rank: ";
+    private static final String NO_RESULT_TRUE = "no_result: true";
+    private static final String WHERE_PREVIOUS_IS = " \n\twhere previous is ";
+    private static final String FROM = " from ";
+    private static final String NO_RESULT_AT_RANK = "No result at rank: ";
+    private static final String DEPTH_ARRAY = "deptharray";
+    private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;
     private final MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository;
     private final AdminManagementClientFactory adminManagementClientFactory;
-
-    private ChangesTrigger changesTrigger = null;
+    private final FieldHistoryManager fieldHistoryManager;
 
     @VisibleForTesting
     DbRequest(MongoDbMetadataRepository<Unit> mongoDbUnitRepository,
         MongoDbMetadataRepository<ObjectGroup> mongoDbObjectGroupRepository,
-        AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory, FieldHistoryManager fieldHistoryManager) {
         this.mongoDbUnitRepository = mongoDbUnitRepository;
         this.mongoDbObjectGroupRepository = mongoDbObjectGroupRepository;
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.fieldHistoryManager = fieldHistoryManager;
     }
 
-    /**
-     * Constructor
-     */
-    // TODO JE finish to refactor
     public DbRequest() {
         this(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            AdminManagementClientFactory.getInstance());
-    }
-
-    /**
-     * Constructor
-     */
-    public DbRequest(String fileNameTriggersConfig) throws ChangesTriggerConfigFileException {
-        this(new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
-            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            AdminManagementClientFactory.getInstance());
-        this.changesTrigger = new ChangesTrigger(fileNameTriggersConfig);
+            AdminManagementClientFactory.getInstance(), new FieldHistoryManager(HISTORY_TRIGGER_NAME));
     }
 
     /**
@@ -254,6 +231,8 @@ public class DbRequest {
             // Update rules
             final ObjectNode updatedJsonDocument =
                 (ObjectNode) mongoInMemory.getUpdateJsonForRule(ruleActions, bindRuleToDuration);
+
+            fieldHistoryManager.trigger(jsonDocument, updatedJsonDocument);
 
             Integer documentVersion = document.getVersion();
             int newDocumentVersion = documentVersion + 1;
@@ -1054,8 +1033,8 @@ public class DbRequest {
             final MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument);
             final ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(requestParser);
 
-            if (metadataCollection == MetadataCollections.UNIT && changesTrigger != null) {
-                changesTrigger.trigger(jsonDocument, updatedJsonDocument);
+            if (metadataCollection == MetadataCollections.UNIT) {
+                fieldHistoryManager.trigger(jsonDocument, updatedJsonDocument);
             }
 
             int newDocumentVersion =

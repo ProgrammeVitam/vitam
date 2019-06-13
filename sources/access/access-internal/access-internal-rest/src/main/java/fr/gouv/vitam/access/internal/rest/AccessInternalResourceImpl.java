@@ -47,8 +47,6 @@ import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.model.DataType;
-import fr.gouv.vitam.common.database.parser.query.helper.CheckSpecifiedFieldHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -1102,9 +1100,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         AccessContractRestrictionHelper.
                             applyAccessContractRestrictionForUnitForUpdate(queryDsl,
                                 getVitamSession().getContract())));
-                workspaceClient
-                    .putObject(operationId, "actions.json",
-                        writeToInpustream(JsonHandler.createObjectNode()));
                 processingClient.initVitamProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
                 RequestResponse<JsonNode> requestResponse =
@@ -1145,7 +1140,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkJsonAll(queryDsl);
 
             // Check the writing rights
-            if (!getVitamSession().getContract().getWritingPermission()) {
+            if (!getVitamSession().getContract().getWritingPermission() || getVitamSession().getContract().getWritingRestrictedDesc()) {
                 status = Status.UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, "Write permission not allowed")).build();
             }

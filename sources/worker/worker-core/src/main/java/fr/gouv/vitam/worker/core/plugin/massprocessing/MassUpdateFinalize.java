@@ -37,7 +37,6 @@ import fr.gouv.vitam.batch.report.model.ReportSummary;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
-import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -63,6 +62,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,7 +72,7 @@ import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.processing.engine.core.ProcessEngineImpl.DETAILS;
-import static fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
+import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class MassUpdateFinalize extends ActionHandler {
@@ -144,19 +144,21 @@ public class MassUpdateFinalize extends ActionHandler {
     }
 
     private ReportSummary getReport(LogbookOperation logbook) {
-        LogbookEvent logbookEvent = logbook.getEvents().stream()
+        Optional<LogbookEventOperation> logbookEvent = logbook.getEvents().stream()
             .filter(e -> e.getEvType().equals(MASS_UPDATE_UNITS))
-            .findFirst()
-            .orElseThrow(() -> new VitamRuntimeException("Cannot find logbook event " + MASS_UPDATE_UNITS));
-
-        Map<StatusCode, Integer> codesNumber = getStatusStatistic(logbookEvent);
-        int total = codesNumber.values().stream().mapToInt(i -> i).sum();
-
-        ReportResults results = new ReportResults(codesNumber.get(OK), codesNumber.get(KO), codesNumber.get(WARNING), total);
+            .findFirst();
 
         String startDate = logbook.getEvDateTime();
         String endDate = LocalDateUtil.getString(LocalDateTime.now());
 
+        if (!logbookEvent.isPresent()) {
+            return new ReportSummary(startDate, endDate, UPDATE_UNIT, null, null);
+        }
+
+        Map<StatusCode, Integer> codesNumber = getStatusStatistic(logbookEvent.get());
+        int total = codesNumber.values().stream().mapToInt(i -> i).sum();
+
+        ReportResults results = new ReportResults(codesNumber.get(OK), codesNumber.get(KO), codesNumber.get(WARNING), total);
         return new ReportSummary(startDate, endDate, UPDATE_UNIT, results, null);
     }
 

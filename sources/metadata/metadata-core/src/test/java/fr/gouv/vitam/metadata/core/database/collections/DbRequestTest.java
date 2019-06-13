@@ -87,6 +87,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.archiveunitprofile.ArchiveUnitProfileLoader;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
+import fr.gouv.vitam.metadata.core.trigger.FieldHistoryManager;
+import fr.gouv.vitam.metadata.core.trigger.History;
 import net.javacrumbs.jsonunit.JsonAssert;
 import org.apache.commons.io.IOUtils;
 import org.bson.Document;
@@ -147,8 +149,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 
 public class DbRequestTest {
@@ -265,6 +270,8 @@ public class DbRequestTest {
         "{$roots:['" + UUID1 + "'],$query:[],$filter:{},$action:[{$set:{'specificField':['specificField']}}," +
             "{$set:{'ArchiveUnitProfile':'AdditionalSchema'}}]}";
 
+    private FieldHistoryManager fieldHistoryManager;
+
     @ClassRule
     public static MongoRule mongoRule =
         new MongoRule(MongoDbAccessMetadataImpl.getMongoClientOptions());
@@ -294,6 +301,7 @@ public class DbRequestTest {
      */
     @Before
     public void setUp() throws Exception {
+        fieldHistoryManager = mock(FieldHistoryManager.class);
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
 
@@ -828,8 +836,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            adminManagementClientFactory
-        );
+            adminManagementClientFactory,
+            fieldHistoryManager);
 
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
@@ -899,8 +907,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            adminManagementClientFactory
-        );
+            adminManagementClientFactory,
+            fieldHistoryManager);
         final UpdateMultiQuery update = new UpdateMultiQuery();
         update.addActions(set("Title", "New Title"));
         update.addActions(set("Flag", "TEXT"));
@@ -2345,8 +2353,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            adminManagementClientFactory
-        );
+            adminManagementClientFactory,
+            fieldHistoryManager);
         UpdatedDocument updatedDocument =
             dbRequest
                 .execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyModels, archiveUnitProfileLoader);
@@ -2418,8 +2426,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            adminManagementClientFactory
-        );
+            adminManagementClientFactory,
+            fieldHistoryManager);
         assertThatThrownBy(
             () -> dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyModels,
                 archiveUnitProfileLoader))
@@ -2482,8 +2490,8 @@ public class DbRequestTest {
         final DbRequest dbRequest = new DbRequest(
             new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
             new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
-            adminManagementClientFactory
-        );
+            adminManagementClientFactory,
+            fieldHistoryManager);
         assertThatThrownBy(
             () -> dbRequest.execRuleRequest(uuid, ruleActions, emptyMap(), ontologyModels, archiveUnitProfileLoader))
             .isInstanceOf(SchemaValidationException.class);
@@ -2538,5 +2546,77 @@ public class DbRequestTest {
 
         String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_exec_rule_on_ClassificationLevel_create_history() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+        VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacagqkjjaaxpwallds4xu6iaaaaq");
+
+        String uuid = "aeaqaaaabeghay2jabzuaalbarkww4iaaaba";
+
+        final Unit initialUnit = new Unit(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesToUpdate.json")));
+
+        MetadataCollections.UNIT.getCollection().insertOne(initialUnit);
+        MetadataCollections.UNIT.getEsClient().insertFullDocument(MetadataCollections.UNIT, 0, uuid, initialUnit);
+
+        List<OntologyModel> ontologyModels = Arrays.asList(
+            new OntologyModel().setType(OntologyType.KEYWORD).setIdentifier("_id"),
+            new OntologyModel().setType(OntologyType.TEXT).setIdentifier("Title"),
+            new OntologyModel().setType(OntologyType.BOOLEAN).setIdentifier("Flag"),
+            new OntologyModel().setType(OntologyType.LONG).setIdentifier("Number")
+        );
+
+        AdminManagementClientFactory adminManagementClientFactory = mock(AdminManagementClientFactory.class);
+        AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+        doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
+        doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(new ArchiveUnitProfileModel()
+            .setControlSchema(PropertiesUtils.getResourceAsString("unitRulesAUP_OK.json"))
+            .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+        )).when(adminManagementClient).findArchiveUnitProfilesByID("AUP_IDENTIFIER");
+        ArchiveUnitProfileLoader archiveUnitProfileLoader =
+            new ArchiveUnitProfileLoader(adminManagementClientFactory, 100, 300);
+
+        RuleActions ruleActions = new RuleActions();
+        RuleCategoryAction classificationRule = new RuleCategoryAction()
+            .setRules(Collections.singletonList(new RuleAction().setRule("ACC-00001")))
+            .setClassificationLevel("Batman defense");
+        ruleActions.getDelete().add(ImmutableMap.of("ClassificationLevel", classificationRule));
+
+        Map<String, DurationData> ruleDurationByRuleId = ImmutableMap.of(
+            "ACC-00001", new DurationData(1, ChronoUnit.DAYS),
+            "ACC-00002", new DurationData(1, ChronoUnit.MONTHS),
+            "ACC-00003", new DurationData(1, ChronoUnit.YEARS),
+            "ACC-00004", new DurationData(1, ChronoUnit.CENTURIES)
+        );
+
+        ruleActions.setAddOrUpdateMetadata(
+            new ManagementMetadataAction().setArchiveUnitProfile("AUP_IDENTIFIER")
+        );
+
+        DbRequest dbRequest = new DbRequest(
+            new MongoDbMetadataRepository<Unit>(() -> MetadataCollections.UNIT.getCollection()),
+            new MongoDbMetadataRepository<ObjectGroup>(() -> MetadataCollections.OBJECTGROUP.getCollection()),
+            adminManagementClientFactory,
+            fieldHistoryManager
+        );
+
+        JsonNode history = new History("BatmanHistory", 1L, JsonHandler.createObjectNode()).getArrayNode();
+
+        doAnswer(i -> {
+            ObjectNode updatedJsonDocument = i.getArgument(1);
+            updatedJsonDocument.set("_history", history);
+            return null;
+        }).when(fieldHistoryManager).trigger(any(), any());
+
+        // When
+        UpdatedDocument updatedDocument = dbRequest.execRuleRequest(uuid, ruleActions, ruleDurationByRuleId, ontologyModels, archiveUnitProfileLoader);
+
+        // Then
+        assertThat(updatedDocument.getAfterUpdate().get("_history").get(0).get("data").get("BatmanHistory")).isNotNull();
+        verify(fieldHistoryManager).trigger(any(JsonNode.class), any(JsonNode.class));
     }
 }

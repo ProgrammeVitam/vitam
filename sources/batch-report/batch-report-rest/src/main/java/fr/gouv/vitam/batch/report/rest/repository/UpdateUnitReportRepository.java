@@ -37,6 +37,7 @@ import com.mongodb.client.model.WriteModel;
 import fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -48,9 +49,9 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_ID;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.OUTCOME;
-import static fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry.ID;
 import static fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry.MESSAGE;
 import static fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry.PROCESS_ID;
 import static fr.gouv.vitam.batch.report.model.entry.UpdateUnitMetadataReportEntry.RESULT_KEY;
@@ -71,7 +72,7 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
             new Document(MESSAGE, "$message"),
             new Document(OUTCOME, "$outcome"),
             new Document(DETAIL_TYPE, "$detailType"),
-            new Document(ID, "$id")
+            new Document(DETAIL_ID, "$id")
         ));
 
     @VisibleForTesting
@@ -86,7 +87,7 @@ public class UpdateUnitReportRepository extends ReportCommonRepository {
     private static WriteModel<Document> modelToWriteDocument(UpdateUnitMetadataReportEntry model) {
         try {
             return new UpdateOneModel<>(
-                and(eq(PROCESS_ID, model.getProcessId()), eq(ID, model.getDetailId())),
+                and(eq(PROCESS_ID, model.getProcessId()), eq("_id", GUIDFactory.newGUID().toString())),
                 new Document("$set", Document.parse(JsonHandler.writeAsString(model))),
                 new UpdateOptions().upsert(true)
             );

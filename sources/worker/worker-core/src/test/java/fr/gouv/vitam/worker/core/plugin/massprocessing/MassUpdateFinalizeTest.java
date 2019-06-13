@@ -60,7 +60,7 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.processing.engine.core.ProcessEngineImpl.DETAILS;
-import static fr.gouv.vitam.worker.core.plugin.massprocessing.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
+import static fr.gouv.vitam.worker.core.plugin.massprocessing.description.MassUpdateUnitsProcess.MASS_UPDATE_UNITS;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -104,7 +104,7 @@ public class MassUpdateFinalizeTest {
 
         WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
-        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
         when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK());
 
@@ -123,7 +123,7 @@ public class MassUpdateFinalizeTest {
 
         WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
-        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
         int numberOfOK = 54;
         int numberOfKO = 42;
@@ -149,7 +149,7 @@ public class MassUpdateFinalizeTest {
 
         WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
-        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
         when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK());
 
@@ -168,7 +168,7 @@ public class MassUpdateFinalizeTest {
 
         WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
-        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
         when(logbookOperationsClient.selectOperationById(operationId)).thenThrow(new LogbookClientException("Client error cause FATAL."));
 
@@ -187,7 +187,7 @@ public class MassUpdateFinalizeTest {
 
         WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
-        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
         when(logbookOperationsClient.selectOperationById(operationId)).thenThrow(new InvalidParseOperationException("Any error cause KO."));
 
@@ -206,7 +206,7 @@ public class MassUpdateFinalizeTest {
 
         WorkerParameters workerParameter = workerParameterBuilder().withContainerName(operationId).build();
         TestHandlerIO handlerIO = new TestHandlerIO();
-        handlerIO.setJsonFromWorkspace(JsonHandler.createObjectNode().put("Context", "request"));
+        handlerIO.setJsonFromWorkspace("query.json", JsonHandler.createObjectNode().put("Context", "request"));
 
         when(logbookOperationsClient.selectOperationById(operationId)).thenReturn(getLogbookOperationRequestResponseOK());
 
