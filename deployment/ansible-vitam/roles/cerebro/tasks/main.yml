@@ -6,7 +6,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "RedHat"
   notify:
@@ -19,7 +19,7 @@
     default_release: "{{ ansible_distribution_release }}"
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
@@ -33,7 +33,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
@@ -47,7 +47,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
     - restart cerebro
