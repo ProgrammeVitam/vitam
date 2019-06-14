@@ -110,4 +110,6 @@
       tags:
         - htaccess
 
-  when: inventory_hostname in groups['hosts-storage-offer-default']
+  when:
+    - inventory_hostname in groups['hosts-storage-offer-default']
+    - vitam_offers[hostvars[inventory_hostname]['offer_conf']]['provider'] not in ['filesystem-hash','tape-library']
