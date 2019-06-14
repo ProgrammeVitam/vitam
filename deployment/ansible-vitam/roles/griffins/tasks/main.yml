@@ -11,7 +11,7 @@
     state: absent
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when:
     - item is match("vitam-\S*-griffin")
@@ -26,6 +26,6 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   tags: griffins

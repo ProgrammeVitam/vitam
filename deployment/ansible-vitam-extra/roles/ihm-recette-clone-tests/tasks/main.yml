@@ -19,7 +19,7 @@
       state: latest
     register: result
     retries: "{{ packages_install_retries_number }}"
-    until: result | succeeded
+    until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
 
   - name: get repo for git lfs for Debian
@@ -36,7 +36,7 @@
       state: latest
     register: result
     retries: "{{ packages_install_retries_number }}"
-    until: result | succeeded
+    until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
 
   - name: add GPG key
@@ -58,7 +58,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
 - name: ensure subdir exist

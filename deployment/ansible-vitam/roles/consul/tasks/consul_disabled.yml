@@ -6,7 +6,7 @@
     state: absent
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
 # For Debian
@@ -18,7 +18,7 @@
       state: absent
     register: result
     retries: "{{ packages_install_retries_number }}"
-    until: result | succeeded
+    until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
 
   when: ansible_os_family == "Debian" and ansible_virtualization_type != "docker"
@@ -32,7 +32,7 @@
       state: absent
     register: result
     retries: "{{ packages_install_retries_number }}"
-    until: result | succeeded
+    until: result is succeeded
     delay: "{{ packages_install_retries_delay }}"
 
   when: ansible_os_family == "RedHat" and ansible_virtualization_type != "docker"
