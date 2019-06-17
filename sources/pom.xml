@@ -172,6 +172,9 @@
         <maven.exec.version>1.6.0</maven.exec.version>
         <maven.failsafe.version>2.19.1</maven.failsafe.version>
         <maven.javadoc.version>2.10.4</maven.javadoc.version>
+	<maven.assembly.version>3.0.0</maven.assembly.version>
+        <maven.exec.version>1.6.0</maven.exec.version>
+	<maven.dependencycheck.version>5.0.0</maven.dependencycheck.version>
         <xalan.version>2.7.2</xalan.version>
         <nodeDownloadRoot/>
     </properties>
@@ -557,7 +560,7 @@
                     <!-- Security check for dependencies -->
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>5.0.0-M2</version>
+                    <version>${maven.dependencycheck.version}</version>
 		            <configuration>
                         <!-- <failBuildOnCVSS>8</failBuildOnCVSS> -->
                         <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
