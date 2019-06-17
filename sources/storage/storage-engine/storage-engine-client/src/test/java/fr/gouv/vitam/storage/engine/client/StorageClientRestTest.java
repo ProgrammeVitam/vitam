@@ -88,7 +88,6 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.client.exception.StorageAlreadyExistsClientException;
-import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageNotFoundClientException;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -100,6 +99,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * StorageClientRest Test
@@ -243,7 +243,7 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         @POST
         @Path(STORAGE_BACKUP_PATH)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response t() {
+        public Response backup() {
             return expectedResponse.post();
         }
         // operations/traceability"
@@ -266,6 +266,13 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         public Response bulkCreateFromWorkspace(@Context HttpServletRequest httpServletRequest,
             @PathParam("folder") String folder, BulkObjectStoreRequest bulkObjectStoreRequest) {
             return expectedResponse.post();
+        }
+        
+        @GET
+        @Path("/strategies")
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response getStorageStrategies() {
+            return expectedResponse.get();
         }
     }
 
@@ -742,6 +749,22 @@ public class StorageClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
         client.bulkStoreFilesFromWorkspace("idStrategy", new BulkObjectStoreRequest("workspaceContainer",
             Arrays.asList("uri1", "uri2"), null, Arrays.asList("ob1", "ob2")));
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void getStrategiesOk() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK).entity(new RequestResponseOK<StorageStrategy>()).build());
+        client.getStorageStrategies();
+    }
+    
+    @RunWithCustomExecutor
+    @Test(expected = StorageServerClientException.class)
+    public void getStrategiesStorageServerClientException() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        when(mock.get()).thenReturn(Response.status(Response.Status.INTERNAL_SERVER_ERROR).build());
+        client.getStorageStrategies();
     }
 
     private BulkObjectStoreRequest getBulkObjectStoreRequest() {

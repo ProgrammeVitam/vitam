@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.HttpMethod;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.Response;
@@ -71,6 +72,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * StorageClient Abstract class use to set generic client configuration (not depending on client type)
@@ -91,6 +93,7 @@ class StorageClientRest extends DefaultClient implements StorageClient {
     private static final String STORAGE_ACCESSLOG_BACKUP_URI = "/storage/backup/accesslog";
     private static final String STORAGE_LOG_BACKUP_URI = "/storage/backup";
     private static final String STORAGE_LOG_TRACEABILITY_URI = "/storage/traceability";
+    private static final String STRATEGIES_URI = "/strategies";
     private static final String COPY = "/copy/";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageClientRest.class);
 
@@ -701,4 +704,32 @@ class StorageClientRest extends DefaultClient implements StorageClient {
             consumeAnyEntityAndClose(response);
         }
     }
+
+    @Override
+    public RequestResponse<StorageStrategy> getStorageStrategies() throws StorageServerClientException {
+        Integer tenantId = ParameterHelper.getTenantParameter();
+        Response response = null;
+        try {
+            final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(GlobalDataRest.X_TENANT_ID, tenantId);
+            response = performRequest(HttpMethod.GET, STRATEGIES_URI, headers, MediaType.APPLICATION_JSON_TYPE);
+            
+            final Response.Status status = Response.Status.fromStatusCode(response.getStatus());
+            if (Response.Status.OK == status) {
+                LOGGER.debug(" " + Response.Status.OK.getReasonPhrase());
+                return RequestResponse.parseFromResponse(response, StorageStrategy.class);
+            } else {
+                LOGGER.error("Internal Server Error: " + status.getReasonPhrase());
+                throw new StorageServerClientException("Internal Server Error");
+            }
+        } catch (VitamClientInternalException e) {
+            final String errorMessage =
+                VitamCodeHelper.getMessageFromVitamCode(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+            LOGGER.error(errorMessage, e);
+            throw new StorageServerClientException(errorMessage, e);
+        } finally {
+            consumeAnyEntityAndClose(response);
+        }
+    }
+
 }

@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.engine.server.rest;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -36,6 +37,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -97,6 +99,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
@@ -836,6 +839,23 @@ public class StorageResourceTest {
             .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
+    @Test
+    public void getStorageStrategies() {
+        String strResponse = given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID)
+            .when().get("/strategies").then().statusCode(Status.OK.getStatusCode())
+            .extract().asString();
+        
+        assertThatCode(() -> {
+            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(strResponse), StorageStrategy.class);
+        }).doesNotThrowAnyException();
+        
+        
+        given()
+            .headers(VitamHttpHeader.TENANT_ID.getName(), TENANT_ID_A_E)
+            .when().get("/strategies").then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
 
     private static VitamStarter buildTestServer() {
         return new VitamStarter(StorageConfiguration.class, "storage-engine.conf",
@@ -1100,6 +1120,20 @@ public class StorageResourceTest {
         public BulkObjectStoreResponse bulkCreateFromWorkspace(String strategyId,
             BulkObjectStoreRequest bulkObjectStoreRequest, String requester) {
             throw new UnsupportedOperationException("UnsupportedOperationException");
+        }
+
+        @Override
+        public Map<String, StorageStrategy> getStrategies() throws StorageException {
+            Integer tenantId = ParameterHelper.getTenantParameter();
+            if (TENANT_ID_A_E.equals(tenantId)) {
+                throw new StorageTechnicalException("Technical exception");
+            } else {
+                Map<String, StorageStrategy> strategies = new HashMap<String, StorageStrategy>();
+                StorageStrategy mockStrategy = new StorageStrategy();
+                mockStrategy.setId("default");
+                strategies.put("default", mockStrategy);
+                return strategies;
+            }
         }
     }
 

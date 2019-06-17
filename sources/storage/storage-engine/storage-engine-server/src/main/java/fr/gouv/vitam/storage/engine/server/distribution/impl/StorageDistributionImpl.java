@@ -512,6 +512,10 @@ public class StorageDistributionImpl implements StorageDistribution {
         return storageStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
     }
 
+    @Override
+    public Map<String, StorageStrategy> getStrategies() throws StorageException {
+        return STRATEGY_PROVIDER.getStorageStrategies();
+    }
 
     private StorageLogbookParameters sendDataToOffers(StreamAndInfo streamAndInfo,
         DataContext dataContext, OffersToCopyIn offersParams, final int attempt,
@@ -1597,4 +1601,5 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
         executor.shutdownNow();
     }
+
 }

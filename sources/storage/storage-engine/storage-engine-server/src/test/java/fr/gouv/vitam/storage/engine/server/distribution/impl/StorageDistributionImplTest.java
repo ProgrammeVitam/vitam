@@ -67,6 +67,7 @@ import fr.gouv.vitam.storage.driver.Driver;
 import fr.gouv.vitam.storage.engine.common.model.request.BulkObjectStoreRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.bulk.BulkStorageDistribution;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.IOUtils;
@@ -733,5 +734,11 @@ public class StorageDistributionImplTest {
             simpleDistribution.getOfferLogsByOfferId(STRATEGY_ID, OFFER_ID, null, 0L, 0, Order.ASC);
         }).isInstanceOf(IllegalArgumentException.class);
 
+    }
+    
+    @RunWithCustomExecutor
+    @Test
+    public void getStorageStrategiesOk() {
+        assertThatCode(() -> customDistribution.getStrategies()).doesNotThrowAnyException();
     }
 }
