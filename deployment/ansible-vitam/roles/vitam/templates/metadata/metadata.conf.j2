@@ -1,9 +1,12 @@
 workspaceUrl: {{vitam.workspace | client_url}}
 
+# Ontology cache settings (max entries in cache & retention timeout in seconds)
+ontologyCacheMaxEntries: {{ vitam.metadata.ontologyCacheMaxEntries }}
+ontologyCacheTimeoutInSeconds: {{ vitam.metadata.ontologyCacheTimeoutInSeconds }}
 
-# Ontology cache settings
-ontologyCacheMaxEntries: {{ vitam.metadata.ontologyCacheMaxEntries | default(100) }}
-ontologyCacheTimeoutInSeconds: {{ vitam.metadata.ontologyCacheTimeoutInSeconds | default(300) }}
+# Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+archiveUnitProfileCacheMaxEntries: {{ vitam.metadata.archiveUnitProfileCacheMaxEntries }}
+archiveUnitProfileCacheTimeoutInSeconds: {{ vitam.metadata.archiveUnitProfileCacheTimeoutInSeconds }}
 
 # Configuration MongoDB
 mongoDbNodes:

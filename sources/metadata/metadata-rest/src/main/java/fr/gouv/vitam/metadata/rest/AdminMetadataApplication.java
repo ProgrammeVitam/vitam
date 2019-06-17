@@ -87,7 +87,9 @@ public class AdminMetadataApplication extends Application {
 
             MetaDataImpl metadata = MetaDataImpl.newMetadata(mongoDbAccessMetadata,
                 metaDataConfiguration.getOntologyCacheMaxEntries(),
-                metaDataConfiguration.getOntologyCacheTimeoutInSeconds());
+                metaDataConfiguration.getOntologyCacheTimeoutInSeconds(),
+                metaDataConfiguration.getArchiveUnitProfileCacheMaxEntries(),
+                metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds());
 
             GraphFactory.initialize(vitamRepositoryProvider, metadata);
 
