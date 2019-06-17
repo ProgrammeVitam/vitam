@@ -222,6 +222,9 @@ Glossaire
    VITAM
       Valeurs Immatérielles Transférées aux Archives pour Mémoire
 
+   VM 
+      `Virtual Machine`
+
    WAF
       `Web Application Firewall`
 

@@ -85,6 +85,10 @@ Déploiement sur environnement Debian
 * Disposer des binaires VITAM : paquets deb de VITAM (vitam-product) ainsi que les paquets d'éditeurs tiers livrés avec VITAM (vitam-external)
 * Disposer, si besoin, des binaires pour l'installation des *griffins*
 
+Présence d'un agent antiviral
+-----------------------------
+
+Dans le cas de partitions sur lesquelles un agent antiviral est déjà configuré (typiquement, *golden image*), il est recommandé de positionner une exception sur l'arborescence ``/vitam`` et les sous-arborescences, hormis la partition hébergeant le composant ``ingest-exteral`` (emploi d'un agent antiviral en prérequis des *ingest*).
 
 Matériel
 ========
