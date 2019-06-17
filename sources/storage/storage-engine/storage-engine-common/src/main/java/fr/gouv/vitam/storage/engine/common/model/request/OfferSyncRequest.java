@@ -55,6 +55,12 @@ public class OfferSyncRequest {
     private Integer tenantId;
 
     /**
+     * strategyId
+     */
+    @JsonProperty("strategyId")
+    private String strategyId;
+
+    /**
      * Constructor.
      */
     public OfferSyncRequest() {
@@ -103,6 +109,15 @@ public class OfferSyncRequest {
 
     public OfferSyncRequest setTenantId(Integer tenantId) {
         this.tenantId = tenantId;
+        return this;
+    }
+    
+    public String getStrategyId() {
+        return strategyId;
+    }
+    
+    public OfferSyncRequest setStrategyId(String strategyId) {
+        this.strategyId = strategyId;
         return this;
     }
 }

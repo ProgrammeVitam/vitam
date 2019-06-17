@@ -88,7 +88,6 @@ import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
-import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -132,7 +131,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.SedaConstants.STRATEGY_ID;
 import static java.util.Collections.singletonList;
 
 
@@ -251,7 +249,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         //TODO log in log storage bug #4836
 
         JsonNode containerInformation =
-            getContainerInformation(STRATEGY_ID, context.getCategory(), context.getObjectId(),
+            getContainerInformation(context.getStrategyId(), context.getCategory(), context.getObjectId(),
                 Lists.newArrayList(sourceOffer, destinationOffer), false);
         //verify source offer
         boolean existsSourceOffer = containerInformation.get(sourceOffer) != null;
@@ -265,7 +263,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         Response resp = null;
         try {
             // load the object/file from the given offer
-            resp = getContainerByCategory(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+            resp = getContainerByCategory(context.getStrategyId(), context.getObjectId(), context.getCategory(),
                 sourceOffer);
 
             if (resp == null) {
@@ -279,11 +277,11 @@ public class StorageDistributionImpl implements StorageDistribution {
                 existsDestinationOffer && (containerInformation.get(destinationOffer).get(DIGEST) != null);
 
             if (existsDestinationOffer) {
-                deleteObjectInOffers(STRATEGY_ID, context, singletonList(destinationOffer));
+                deleteObjectInOffers(context.getStrategyId(), context, singletonList(destinationOffer));
             }
             if (resp.getStatus() == Response.Status.OK.getStatusCode()) {
 
-                return storeDataInOffers(STRATEGY_ID, context.getObjectId(), context.getCategory(),
+                return storeDataInOffers(context.getStrategyId(), context.getObjectId(), context.getCategory(),
                     context.getRequester(), singletonList(destinationOffer), resp);
             }
         } finally {
@@ -341,9 +339,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
 
         // Retrieve strategy offersToCopyIn
-        HotStrategy hotStrategy = checkStrategy(strategyId);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
 
-        List<String> strategyOfferIds = hotStrategy.getOffers().stream()
+        List<String> strategyOfferIds = storageStrategy.getOffers().stream()
                 .map(offerReference -> offerReference.getId())
                 .collect(Collectors.toList()); 
         List<StorageOffer> offers = new ArrayList<>();
@@ -364,7 +362,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         OffersToCopyIn offersToCopyIn = new OffersToCopyIn(offers);
 
-        final DataContext dataContext = new DataContext(objectId, category, requester, tenantId);
+        final DataContext dataContext = new DataContext(objectId, category, requester, tenantId, strategyId);
 
         //try only once
         StorageLogbookParameters parameters =
@@ -383,21 +381,15 @@ public class StorageDistributionImpl implements StorageDistribution {
 
     }
 
-    private HotStrategy checkStrategy(String strategyId) throws StorageTechnicalException, StorageNotFoundException {
+    private StorageStrategy checkStrategy(String strategyId) throws StorageTechnicalException, StorageNotFoundException {
 
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
 
-        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
-
-        if (hotStrategy == null) {
+        if (storageStrategy == null) {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         }
 
-        if (!hotStrategy.isCopyValid()) {
-            throw new StorageTechnicalException(INVALID_NUMBER_OF_COPY);
-        }
-
-        return hotStrategy;
+        return storageStrategy;
     }
 
     private StorageLogbookParameters startCopyToOffers(DataContext dataContext, OffersToCopyIn data,
@@ -447,7 +439,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         List<StorageOffer> storageOffers = getStorageOffers(strategyId);
 
         OffersToCopyIn offersToCopyIn = new OffersToCopyIn(storageOffers);
-        final DataContext dataContext = new DataContext(objectId, category, requester, tenantId);
+        final DataContext dataContext = new DataContext(objectId, category, requester, tenantId, strategyId);
 
         StorageLogbookParameters parameters =
             sendDataToOffersWithRetries(dataContext, offersToCopyIn, createObjectDescription);
@@ -469,14 +461,13 @@ public class StorageDistributionImpl implements StorageDistribution {
         throws StorageTechnicalException, StorageNotFoundException {
         // Retrieve strategy offersToCopyIn
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
-        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
 
-        if (hotStrategy == null) {
+        if (storageStrategy == null) {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
 
         }
 
-        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
 
         return offerReferences.stream()
@@ -518,8 +509,7 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         // Retrieve strategy data
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
-        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
-        return hotStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
+        return storageStrategy.getOffers().stream().map(OfferReference::getId).collect(Collectors.toList());
     }
 
 
@@ -873,14 +863,14 @@ public class StorageDistributionImpl implements StorageDistribution {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         // Retrieve strategy data
-        HotStrategy hotStrategy = checkStrategy(strategyId);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
 
-        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
         ArrayNode resultArray = JsonHandler.createArrayNode();
 
         for (OfferReference offerReference : offerReferences) {
-            resultArray.add(getOfferInformation(offerReference, tenantId, hotStrategy.getCopy()));
+            resultArray.add(getOfferInformation(offerReference, tenantId, offerReferences.size()));
         }
 
         return JsonHandler.createObjectNode().set(CAPACITIES, resultArray);
@@ -906,12 +896,12 @@ public class StorageDistributionImpl implements StorageDistribution {
         }
     }
 
-    private List<OfferReference> getOfferListFromHotStrategy(HotStrategy hotStrategy) throws
+    private List<OfferReference> getOfferListFromHotStrategy(StorageStrategy storageStrategy) throws
         StorageTechnicalException {
+        // TODO gafou : useless ?
         final List<OfferReference> offerReferences = new ArrayList<>();
-        if (hotStrategy != null && !hotStrategy.getOffers().isEmpty()) {
-
-            offerReferences.addAll(hotStrategy.getOffers());
+        if (storageStrategy != null && !storageStrategy.getOffers().isEmpty()) {
+            offerReferences.addAll(storageStrategy.getOffers());
         }
 
         if (offerReferences.isEmpty()) {
@@ -921,11 +911,11 @@ public class StorageDistributionImpl implements StorageDistribution {
         return offerReferences;
     }
 
-    private OfferReference chooseReferentOffer(HotStrategy hotStrategy) {
+    private OfferReference chooseReferentOffer(StorageStrategy storageStrategy) {
 
-        if (hotStrategy != null && !hotStrategy.getOffers().isEmpty()) {
+        if (storageStrategy != null && !storageStrategy.getOffers().isEmpty()) {
             List<OfferReference> offerReferences =
-                hotStrategy.getOffers().stream().filter(OfferReference::isReferent).collect(Collectors.toList());
+                    storageStrategy.getOffers().stream().filter(OfferReference::isReferent).collect(Collectors.toList());
             return Iterables.getOnlyElement(offerReferences);
         }
         throw new IllegalArgumentException("Exactly one offer should be declared as 'referent' in hot strategy");
@@ -945,9 +935,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
-        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
-        if (hotStrategy != null) {
-            final List<OfferReference> offerReferenceList = getOfferListFromHotStrategy(hotStrategy);
+        if (storageStrategy != null) {
+            final List<OfferReference> offerReferenceList = getOfferListFromHotStrategy(storageStrategy);
 
             // Get referent offer
             Optional<OfferReference> offerReference = offerReferenceList
@@ -1034,9 +1023,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(CATEGORY_IS_MANDATORY, category);
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
-        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
 
-        if (hotStrategy == null) {
+        if (storageStrategy == null) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         }
@@ -1044,7 +1032,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // In case we do not specify an offer as parameter, the referent offer is chosen
         if (offerId == null) {
             // find offer referent
-            final OfferReference offerReference = chooseReferentOffer(hotStrategy);
+            final OfferReference offerReference = chooseReferentOffer(storageStrategy);
             if (offerReference != null) {
                 offerId = offerReference.getId();
             } else {
@@ -1101,13 +1089,13 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, objectId);
 
-        HotStrategy hotStrategy = checkStrategy(strategyId);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
 
         List<StorageOffer> storageOffers = new ArrayList<>();
 
         if (StringUtils.isBlank(offerId)) {
 
-            final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+            final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
             List<StorageOffer> collect = offerReferences.stream()
                 .map(StorageDistributionImpl::apply)
@@ -1215,8 +1203,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, objectId);
 
-        HotStrategy hotStrategy = checkStrategy(strategyId);
-        getOfferListFromHotStrategy(hotStrategy);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
+        // TODO gafou usage ?
+        getOfferListFromHotStrategy(storageStrategy);
 
         for (final String offerId : offerIds) {
             final Driver driver = retrieveDriverInternal(offerId);
@@ -1258,8 +1247,8 @@ public class StorageDistributionImpl implements StorageDistribution {
 
         Map<String, Boolean> resultByOffer = new HashMap<String, Boolean>();
 
-        HotStrategy hotStrategy = checkStrategy(strategyId);
-        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
+        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
         // FIXME: 03/04/19 check asyncReadOffer
         List<String> offerReferencesIds = offerReferences.stream().map(OfferReference::getId)
             .collect(Collectors.toList());
@@ -1339,9 +1328,9 @@ public class StorageDistributionImpl implements StorageDistribution {
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
         ParametersChecker.checkParameter(OBJECT_ID_IS_MANDATORY, context.getObjectId());
 
-        HotStrategy hotStrategy = checkStrategy(strategyId);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
 
-        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
         deleteObject(context, offerReferences);
     }
@@ -1358,9 +1347,9 @@ public class StorageDistributionImpl implements StorageDistribution {
             LOGGER.error(OFFERS_LIST_IS_MANDATORY);
             throw new StorageTechnicalException(OFFERS_LIST_IS_MANDATORY);
         }
-        HotStrategy hotStrategy = checkStrategy(strategyId);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
 
-        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
         final List<OfferReference> offerReferencesToDelete = new ArrayList<>();
 
@@ -1474,8 +1463,8 @@ public class StorageDistributionImpl implements StorageDistribution {
         Integer tenantId = ParameterHelper.getTenantParameter();
         ParametersChecker.checkParameter(STRATEGY_ID_IS_MANDATORY, strategyId);
 
-        HotStrategy hotStrategy = checkStrategy(strategyId);
-        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(hotStrategy);
+        StorageStrategy storageStrategy = checkStrategy(strategyId);
+        final List<OfferReference> offerReferences = getOfferListFromHotStrategy(storageStrategy);
 
         List<String> offerReferencesIds =
             offerReferences.stream().map(OfferReference::getId).collect(Collectors.toList());

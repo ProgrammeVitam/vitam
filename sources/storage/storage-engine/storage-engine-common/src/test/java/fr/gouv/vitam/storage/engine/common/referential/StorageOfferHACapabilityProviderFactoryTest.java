@@ -46,7 +46,7 @@ public class StorageOfferHACapabilityProviderFactoryTest {
     public void testGetProvider() throws Exception {
         StorageOfferHACapabilityProvider  provider = StorageOfferHACapabilityProviderFactory.getDefaultProvider();
         assertNotNull(provider);
-        assertTrue(provider instanceof FSProvider);
+        assertTrue(provider instanceof FileStorageProvider);
         StorageOffer disabledOffer = provider.getStorageOfferForHA("inactiveOffer", true);
         assertFalse(disabledOffer.isEnabled());
         assertTrue(disabledOffer.getId().equals("inactiveOffer"));

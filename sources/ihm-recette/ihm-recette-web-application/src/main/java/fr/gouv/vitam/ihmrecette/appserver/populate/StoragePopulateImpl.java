@@ -54,7 +54,6 @@ import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageOfferProviderFactory;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProvider;
 import fr.gouv.vitam.storage.engine.common.referential.StorageStrategyProviderFactory;
-import fr.gouv.vitam.storage.engine.common.referential.model.HotStrategy;
 import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
@@ -200,9 +199,9 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         long finalTimeout = file != null ? getTransferTimeout(file.getTotalSpace()) : DEFAULT_MINIMUM_TIMEOUT;
         MultiplePipedInputStream streams;
         try {
-            streams = action == StorageAction.PUT ? getMultipleInputStreamFromWorkspace(digestInputStream,
-                    data.getKoOffers().size(),
-                    digest) : null;
+            streams = action == StorageAction.PUT ? 
+                        getMultipleInputStreamFromWorkspace(digestInputStream, data.getKoOffers().size(), digest) : 
+                        null;
             // init thread and make future map
             // Map here to keep offerId linked to Future
             Map<String, Future<ThreadResponseData>> futureMap = new HashMap<>();
@@ -313,12 +312,6 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
         return timeout;
     }
 
-    private void isStrategyValid(HotStrategy hotStrategy) throws StorageTechnicalException {
-        if (!hotStrategy.isCopyValid()) {
-            throw new StorageTechnicalException("Invalid number of copy");
-        }
-    }
-
     private MultiplePipedInputStream getMultipleInputStreamFromWorkspace(InputStream stream, int nbCopy,
         Digest digest)
         throws  IOException {
@@ -407,7 +400,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
     public static int getNbc() {
         try {
-            return STRATEGY_PROVIDER.getStorageStrategy("default").getHotStrategy().getCopy();
+            return STRATEGY_PROVIDER.getStorageStrategy("default").getCopy();
         } catch (StorageTechnicalException e) {
             LOGGER.error(e);
             return 0;
@@ -417,7 +410,7 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
     public static List<String> getOfferIds() {
         try {
             List<OfferReference> offerReferences =
-                STRATEGY_PROVIDER.getStorageStrategy("default").getHotStrategy().getOffers();
+                STRATEGY_PROVIDER.getStorageStrategy("default").getOffers();
             return offerReferences.stream().map(offer -> offer.getId()).collect(Collectors.toList());
         } catch (StorageTechnicalException e) {
             LOGGER.error(e);
@@ -433,16 +426,15 @@ public class StoragePopulateImpl implements VitamAutoCloseable {
 
     public List<OfferReference> getOffersReferences(String strategyId) throws StorageNotFoundException, StorageTechnicalException {
         final StorageStrategy storageStrategy = STRATEGY_PROVIDER.getStorageStrategy(strategyId);
-        final HotStrategy hotStrategy = storageStrategy.getHotStrategy();
-        if (hotStrategy == null) {
+        if (storageStrategy == null) {
             throw new StorageNotFoundException(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_STRATEGY_NOT_FOUND));
         }
 
         final List<OfferReference> offerReferences = new ArrayList<>();
-        if (hotStrategy != null && !hotStrategy.getOffers().isEmpty()) {
+        if (storageStrategy != null && !storageStrategy.getOffers().isEmpty()) {
             // TODO P1 : this code will be changed in the future to handle
             // priority (not in current US scope) and copy
-            offerReferences.addAll(hotStrategy.getOffers());
+            offerReferences.addAll(storageStrategy.getOffers());
         }
         return offerReferences;
     }

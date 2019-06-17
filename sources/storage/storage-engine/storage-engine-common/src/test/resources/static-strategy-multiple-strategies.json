@@ -1,0 +1,38 @@
+[
+    {
+      "id": "default",
+      "offers": [
+        {
+          "id": "default",
+          "referent": true
+        },
+        {
+          "id": "default2"
+        },
+        {
+          "id": "inactiveOffer"
+        }
+      ]
+    },
+    {
+      "id": "strategy_1",
+      "offers": [
+        {
+          "id": "default",
+          "referent": true
+        },
+        {
+          "id": "inactiveOffer"
+        }
+      ]
+    },
+    {
+      "id": "strategy_2",
+      "offers": [
+        {
+          "id": "default2",
+          "referent": true
+        }
+      ]
+    }
+]

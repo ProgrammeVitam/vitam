@@ -136,7 +136,7 @@ public class OfferSyncProcessTest {
             distribution, 10, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -157,7 +157,7 @@ public class OfferSyncProcessTest {
             distribution, 100, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -181,7 +181,7 @@ public class OfferSyncProcessTest {
             distribution, 10, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
 
         // Then
         assertThat(targetDataFiles).isEqualTo(sourceDataFiles);
@@ -213,7 +213,7 @@ public class OfferSyncProcessTest {
             distribution, 100, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -227,7 +227,7 @@ public class OfferSyncProcessTest {
         givenDataSetInSourceOfferPart2();
 
         // When
-        instance.synchronize(SOURCE, TARGET, DATA_CATEGORY, 3L);
+        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, 3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, 12L);
@@ -248,7 +248,7 @@ public class OfferSyncProcessTest {
             distribution, 100, 4);
 
         // When
-        instance.synchronize(SOURCE, TARGET, DATA_CATEGORY, null);
+        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, null);
 
         // Then
         verifySynchronizationStatus(instance, null, 2L);
@@ -261,7 +261,7 @@ public class OfferSyncProcessTest {
         // Given not updates
 
         // When
-        instance.synchronize(SOURCE, TARGET, DATA_CATEGORY, 3L);
+        instance.synchronize(SOURCE, TARGET, DEFAULT_STRATEGY, DATA_CATEGORY, 3L);
 
         // Then
         verifySynchronizationStatus(instance, 3L, null);

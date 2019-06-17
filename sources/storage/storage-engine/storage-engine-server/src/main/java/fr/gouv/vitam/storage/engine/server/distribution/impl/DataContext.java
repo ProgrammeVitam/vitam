@@ -37,12 +37,14 @@ public class DataContext {
   private   final DataCategory category;
   private   final String requester;
   private   final Integer tenantId;
+  private   final String strategyId;
 
-     public DataContext(String objectId, DataCategory category, String requester, Integer tenantId) {
+     public DataContext(String objectId, DataCategory category, String requester, Integer tenantId, String strategyId) {
         this.objectId = objectId;
         this.category = category;
         this.requester = requester;
         this.tenantId = tenantId;
+        this.strategyId = strategyId;
     }
 
     /**
@@ -73,9 +75,13 @@ public class DataContext {
         return tenantId;
     }
 
+    public String getStrategyId() {
+        return strategyId;
+    }
+    
     @Override
     public String toString() {
         return "DataContext{" +
-            "objectId='" + objectId + '\'' +", category=" + category +", requester='" + requester + '\'' + ", tenantId=" + tenantId +'}';
+            "objectId='" + objectId + '\'' +", category=" + category +", requester='" + requester + '\'' + ", tenantId=" + tenantId +'\'' + ", strategyId=" + strategyId +'}';
     }
 }
