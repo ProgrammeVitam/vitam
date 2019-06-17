@@ -157,7 +157,7 @@
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <retrofit2.version>2.5.0</retrofit2.version>
         <maven.rpm-maven-plugin.version>2.1.5</maven.rpm-maven-plugin.version>
-        <org.xmlunit.version>2.6.2</org.xmlunit.version>
+	<org.xmlunit.version>2.6.2</org.xmlunit.version>
         <com.github.tomakehurst.version>2.21.0</com.github.tomakehurst.version>
         <io.reactivex.rxjava2.version>2.2.6</io.reactivex.rxjava2.version>
         <maven.surefire.version>2.22.1</maven.surefire.version>
@@ -173,6 +173,7 @@
         <maven.javadoc.version>2.10.4</maven.javadoc.version>
         <maven.assembly.version>3.0.0</maven.assembly.version>
         <maven.exec.version>1.6.0</maven.exec.version>
+	<maven.dependencycheck.version>5.0.0</maven.dependencycheck.version>
         <nodeDownloadRoot/>
     </properties>
 
@@ -552,7 +553,7 @@
                     <!-- Security check for dependencies -->
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>5.0.0-M2</version>
+                    <version>${maven.dependencycheck.version}</version>
 		            <configuration>
                         <!-- <failBuildOnCVSS>8</failBuildOnCVSS> -->
                         <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
