@@ -156,6 +156,7 @@
         <org.glassfish.web.version>2.2.6</org.glassfish.web.version>
         <javax.el-api.version>3.0.0</javax.el-api.version>
         <maven.rpm-maven-plugin.version>2.1.5</maven.rpm-maven-plugin.version>
+        <maven.dependencycheck.version>5.0.0</maven.dependencycheck.version>
 
         <nodeDownloadRoot/>
     </properties>
@@ -537,7 +538,7 @@
                     <!-- Security check for dependencies -->
                     <groupId>org.owasp</groupId>
                     <artifactId>dependency-check-maven</artifactId>
-                    <version>1.4.0</version>
+                    <version>${maven.dependencycheck.version}</version>
                 </plugin>
 
                 <!-- ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
