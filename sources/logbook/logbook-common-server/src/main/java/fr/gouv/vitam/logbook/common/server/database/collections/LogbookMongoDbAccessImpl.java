@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
 import com.mongodb.ErrorCategory;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
@@ -96,8 +95,6 @@ import org.bson.Document;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.rest.RestStatus;
@@ -237,7 +234,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(),
             CodecRegistries.fromCodecs(operationCodec, lifecycleUnitCodec, lifecycleObjectGroupCodec,
-                lifecycleUnitInProcessCodec, lifecycleObjectGroupInProcessCodec));
+                lifecycleUnitInProcessCodec, lifecycleObjectGroupInProcessCodec, new VitamDocumentCodec<>(VitamDocument.class)), MongoClient.getDefaultCodecRegistry());
 
 
         return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
@@ -371,22 +368,23 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             return select(LogbookCollections.OPERATION, select, DEFAULT_SLICE_WITH_ALL_EVENTS);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     @Override
     public LogbookLifeCycle getOneLogbookLifeCycle(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
         MongoCursor<LogbookLifeCycle> result = getLogbookLifeCycles(select, sliced, collection);
-        if(result.hasNext()) {
+        if (result.hasNext()) {
             LogbookLifeCycle logbookLifeCycle = result.next();
-            if(result.hasNext()) {
-                throw new LogbookDatabaseException("Result size more than 1."); 
+            if (result.hasNext()) {
+                throw new LogbookDatabaseException("Result size more than 1.");
             } else {
                 return logbookLifeCycle;
             }
         }
         throw new LogbookNotFoundException("Logbook lifecycle was not found");
-    }    
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public MongoCursor<LogbookLifeCycle> getLogbookLifeCycles(JsonNode select, boolean sliced,
@@ -1528,9 +1526,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(vitamDocument);
-        final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        final String esJson = JSON.serialize(vitamDocument);
         vitamDocument.clear();
-        final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
         mapIdJson.put(id, esJson);
         final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, tenantId, mapIdJson);
         if (bulkResponse.hasFailures()) {
@@ -1555,10 +1552,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(existingDocument);
-        final String mongoJson = existingDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        final String esJson = JSON.serialize(existingDocument);
         existingDocument.clear();
-        final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
-        Map<String, String> mapIdJson = new HashMap<>();
         final boolean response = collection.getEsClient().updateEntryIndex(collection, tenantId, id, esJson);
         if (!response) {
             throw new LogbookExecutionException("Update Elasticsearch has errors");

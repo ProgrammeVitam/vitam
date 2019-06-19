@@ -46,8 +46,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -122,7 +120,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
         internalDocument.remove(VitamDocument.ID);
         internalDocument.remove(VitamDocument.SCORE);
-        final String source = internalDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        final String source = JSON.serialize(internalDocument);
 
         String index = indexName;
         if (indexByTenant) {
@@ -209,7 +207,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
             if (indexByTenant) {
                 index = index + "_" + tenantId;
             }
-            final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final String mongoJson = JSON.serialize(vitamDocument);
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
             vitamDocument.clear();
             final String esJson = dbObject.toString();
@@ -254,7 +252,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
             }
 
             transformDataForElastic(vitamDocument);
-            final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final String mongoJson = JSON.serialize(vitamDocument);
             vitamDocument.clear();
             final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
 

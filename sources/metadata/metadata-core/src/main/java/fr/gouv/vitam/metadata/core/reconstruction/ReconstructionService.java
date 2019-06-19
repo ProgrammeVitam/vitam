@@ -38,6 +38,7 @@ import com.mongodb.client.model.ReplaceOneModel;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.WriteModel;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -77,8 +78,6 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -228,7 +227,8 @@ public class ReconstructionService {
         try {
             // get the list of data to backup.
             Iterator<OfferLog> listing =
-                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC, VitamConfiguration.getRestoreBulkSize());
+                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC,
+                    VitamConfiguration.getRestoreBulkSize());
 
             while (listing.hasNext()) {
 
@@ -318,7 +318,7 @@ public class ReconstructionService {
             }
 
             Iterator<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC,
-                    VitamConfiguration.getRestoreBulkSize());
+                VitamConfiguration.getRestoreBulkSize());
 
             Iterator<List<OfferLog>> bulkListing = new BulkIterator<>(listing, VitamConfiguration.getRestoreBulkSize());
 
@@ -580,8 +580,7 @@ public class ReconstructionService {
                         try {
                             if (model.getLifecycle() != null) {
                                 return JsonHandler
-                                    .getFromString(
-                                        model.getLifecycle().toJson(new JsonWriterSettings(JsonMode.STRICT)));
+                                    .getFromString(JSON.serialize(model.getLifecycle()));
                             } else {
                                 throw new VitamRuntimeException("lifecycle should not be null");
                             }

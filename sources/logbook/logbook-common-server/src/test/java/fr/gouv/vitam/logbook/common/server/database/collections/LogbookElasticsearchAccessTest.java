@@ -26,24 +26,14 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.Lists;
 import com.mongodb.DBObject;
+import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
-import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -58,8 +48,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParametersFactory;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookException;
 import org.bson.Document;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -72,13 +60,22 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
 public class LogbookElasticsearchAccessTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
     public static MongoRule mongoRule =
-            new MongoRule(VitamCollection.getMongoClientOptions());
+        new MongoRule(VitamCollection.getMongoClientOptions());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -98,8 +95,8 @@ public class LogbookElasticsearchAccessTest {
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         LogbookCollections.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-                new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
-                        Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER,
+                Lists.newArrayList(new ElasticsearchNode("localhost", ElasticsearchRule.TCP_PORT))), tenantId);
 
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(HOST_NAME, ElasticsearchRule.TCP_PORT));
@@ -147,11 +144,8 @@ public class LogbookElasticsearchAccessTest {
         Map<String, String> mapIdJson = new HashMap<>();
         String id = operationForCreation.getId();
         operationForCreation.remove(VitamDocument.ID);
-        final String mongoJson =
-            operationForCreation.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        final String esJson = JSON.serialize(operationForCreation);
         operationForCreation.clear();
-        final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson))
-            .toString();
         mapIdJson.put(id, esJson);
         BulkResponse response = esClient.addEntryIndexes(LogbookCollections.OPERATION, tenantId, mapIdJson);
         esClient.refreshIndex(LogbookCollections.OPERATION, tenantId);
@@ -208,6 +202,7 @@ public class LogbookElasticsearchAccessTest {
         try {
             esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
             fail("Should have failed : IndexNotFoundException");
-        } catch (LogbookException e) {}
+        } catch (LogbookException e) {
+        }
     }
 }

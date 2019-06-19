@@ -26,13 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -51,8 +44,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.ActionFuture;
 import org.elasticsearch.action.DocWriteRequest.OpType;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -79,6 +70,13 @@ import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.Aggregations;
 import org.elasticsearch.search.sort.SortBuilder;
+
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 
 /**
@@ -115,7 +113,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         try {
             if (getClient().admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
                 String indexName =
-                    getClient().admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases()
+                    getClient().admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get()
+                        .getAliases()
                         .iterator().next().key;
                 DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
 
@@ -382,7 +381,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
         throws MetaDataExecutionException {
         try {
-            final String mongoJson = doc.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final String mongoJson = JSON.serialize(doc);
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
             dbObject.removeField(VitamDocument.ID);
             final String document = dbObject.toString().trim();
@@ -437,7 +436,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public void updateFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
         throws MetaDataExecutionException {
         try {
-            final String mongoJson = doc.toJson(new JsonWriterSettings(JsonMode.STRICT));
+            final String mongoJson = JSON.serialize(doc);
             final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
             dbObject.removeField(VitamDocument.ID);
             final String toUpdate = dbObject.toString().trim();

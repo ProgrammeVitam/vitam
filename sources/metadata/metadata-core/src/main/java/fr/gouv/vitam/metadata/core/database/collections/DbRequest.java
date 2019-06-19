@@ -149,7 +149,8 @@ public class DbRequest {
     private static final String FROM = " from ";
     private static final String NO_RESULT_AT_RANK = "No result at rank: ";
     private static final String DEPTH_ARRAY = "deptharray";
-    private static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
+    private static final String
+        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     private final MongoDbMetadataRepository<Unit> mongoDbUnitRepository;

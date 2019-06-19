@@ -29,11 +29,10 @@
  */
 package fr.gouv.vitam.common.database.translators.mongodb;
 
+import com.mongodb.MongoClient;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonWriterSettings;
-
-import com.mongodb.MongoClient;
 
 /**
  * MongoDb Helper
@@ -63,5 +62,4 @@ public class MongoDbHelper {
                 MongoClient.getDefaultCodecRegistry()).toJson();
         }
     }
-
 }
