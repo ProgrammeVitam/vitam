@@ -112,6 +112,12 @@ public class MongoUpgradeTest {
         System.err.println("Legacy : " + str);
 
 
+        in = CanonicalJsonFormatter.serialize(JsonHandler.toJsonNode(fakeObjet));
+        str = StringUtils.getStringFromInputStream(in);
+        System.err.println("Jackson : " + str);
+
+
+
     }
 
 

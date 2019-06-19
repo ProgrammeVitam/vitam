@@ -26,8 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.metadata.core.database.collections;
 
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
@@ -39,6 +37,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -381,10 +380,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public void insertFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
         throws MetaDataExecutionException {
         try {
-            final String mongoJson = JSON.serialize(doc);
-            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
-            dbObject.removeField(VitamDocument.ID);
-            final String document = dbObject.toString().trim();
+            doc.remove(VitamDocument.ID);
+            final String document = JsonHandler.unprettyPrint(doc);
             IndexResponse indexResponse = getClient().prepareIndex(getAliasName(collection, tenantId),
                 VitamCollection.getTypeunique(), id)
                 .setSource(document, XContentType.JSON)
@@ -405,11 +402,15 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         BulkRequestBuilder bulkRequestBuilder = getClient().prepareBulk();
 
         documents.forEach(document -> {
-            String id = (String) document.remove("_id");
-            String source = JSON.serialize(document);
-            bulkRequestBuilder
-                .add(getClient().prepareIndex(getAliasName(collection, tenantId), VitamCollection.TYPEUNIQUE, id)
-                    .setSource(source, XContentType.JSON));
+            String id = (String) document.remove(VitamDocument.ID);
+            try {
+                String source = JsonHandler.unprettyPrint(document);
+                bulkRequestBuilder
+                    .add(getClient().prepareIndex(getAliasName(collection, tenantId), VitamCollection.TYPEUNIQUE, id)
+                        .setSource(source, XContentType.JSON));
+            } finally {
+                document.put(VitamDocument.ID, id);
+            }
         });
 
         BulkResponse bulkRes = bulkRequestBuilder.setRefreshPolicy(RefreshPolicy.IMMEDIATE).execute().actionGet();
@@ -436,10 +437,8 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
     public void updateFullDocument(MetadataCollections collection, Integer tenantId, String id, MetadataDocument doc)
         throws MetaDataExecutionException {
         try {
-            final String mongoJson = JSON.serialize(doc);
-            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
-            dbObject.removeField(VitamDocument.ID);
-            final String toUpdate = dbObject.toString().trim();
+            doc.remove(VitamDocument.ID);
+            final String toUpdate = JsonHandler.unprettyPrint(doc);
             UpdateResponse response = getClient().prepareUpdate(getAliasName(collection, tenantId),
                 VitamCollection.getTypeunique(), id)
                 .setDoc(toUpdate, XContentType.JSON)

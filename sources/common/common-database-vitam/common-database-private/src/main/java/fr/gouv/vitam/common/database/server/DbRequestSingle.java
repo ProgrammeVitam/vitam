@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.mongodb.DBObject;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -40,7 +39,6 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
 import fr.gouv.vitam.common.database.builder.query.PathQuery;
@@ -314,8 +312,7 @@ public class DbRequestSingle {
             String id = document.getString(VitamDocument.ID);
             document.remove(VitamDocument.ID);
             document.remove(VitamDocument.SCORE);
-            final String esJson = JSON.serialize(document);
-
+            final String esJson = JsonHandler.unprettyPrint(document);
             document.clear();
             mapIdJson.put(id, esJson);
             if (max == 0) {

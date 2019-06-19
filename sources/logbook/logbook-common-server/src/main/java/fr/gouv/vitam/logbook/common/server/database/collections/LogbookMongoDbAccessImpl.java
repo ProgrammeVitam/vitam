@@ -49,7 +49,6 @@ import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.builder.query.NopQuery;
@@ -1171,7 +1170,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             LogbookLifeCycleUnit logbookLifeCycleUnit =
-                new LogbookLifeCycleUnit(JSON.serialize(logbookLifeCycleUnitInProcess));
+                new LogbookLifeCycleUnit(JsonHandler.unprettyPrint(logbookLifeCycleUnitInProcess));
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
             // Update last persisted date
             logbookLifeCycleUnit.append(LAST_PERSISTED_DATE, lastPersistedDate);
@@ -1210,7 +1209,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
-                new LogbookLifeCycleObjectGroup(JSON.serialize(logbookLifeCycleObjectGroupInProcess));
+                new LogbookLifeCycleObjectGroup(JsonHandler.unprettyPrint(logbookLifeCycleObjectGroupInProcess));
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
             // Update last persisted date
             logbookLifeCycleObjectGroup.append(LAST_PERSISTED_DATE, lastPersistedDate);
@@ -1285,10 +1284,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
             if (LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.equals(inProccessCollection)) {
                 logbookLifeCycleInProcess =
-                    new LogbookLifeCycleUnitInProcess(JSON.serialize(logbookLifeCycleInProd));
+                    new LogbookLifeCycleUnitInProcess(JsonHandler.unprettyPrint(logbookLifeCycleInProd));
             } else if (LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.equals(inProccessCollection)) {
                 logbookLifeCycleInProcess =
-                    new LogbookLifeCycleObjectGroup(JSON.serialize(logbookLifeCycleInProd));
+                    new LogbookLifeCycleObjectGroup(JsonHandler.unprettyPrint(logbookLifeCycleInProd));
             }
 
             if (logbookLifeCycleInProcess == null) {
@@ -1527,7 +1526,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(vitamDocument);
-        final String esJson = JSON.serialize(vitamDocument);
+        final String esJson = JsonHandler.unprettyPrint(vitamDocument);
         vitamDocument.clear();
         mapIdJson.put(id, esJson);
         final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, tenantId, mapIdJson);
@@ -1553,7 +1552,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(existingDocument);
-        final String esJson = JSON.serialize(existingDocument);
+        final String esJson = JsonHandler.unprettyPrint(existingDocument);
         existingDocument.clear();
         final boolean response = collection.getEsClient().updateEntryIndex(collection, tenantId, id, esJson);
         if (!response) {

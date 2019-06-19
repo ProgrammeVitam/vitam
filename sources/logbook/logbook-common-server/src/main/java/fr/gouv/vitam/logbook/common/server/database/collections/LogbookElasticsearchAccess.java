@@ -26,14 +26,6 @@
  *******************************************************************************/
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import fr.gouv.vitam.common.database.builder.request.configuration.GlobalDatas;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchAccess;
@@ -55,6 +47,12 @@ import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.sort.SortBuilder;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * ElasticSearch model with MongoDB as main database with management of index and index entries
@@ -86,7 +84,8 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         try {
             if (getClient().admin().indices().prepareExists(getAliasName(collection, tenantId)).get().isExists()) {
                 String indexName =
-                    getClient().admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get().getAliases()
+                    getClient().admin().indices().prepareGetAliases(getAliasName(collection, tenantId)).get()
+                        .getAliases()
                         .iterator().next().key;
                 DeleteIndexRequest deleteIndexRequest = new DeleteIndexRequest(indexName);
 
@@ -232,14 +231,6 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
 
     private String getAliasName(final LogbookCollections collection, Integer tenantId) {
         return collection.getName().toLowerCase() + "_" + tenantId.toString();
-    }
-
-    private String getUniqueIndexName(final LogbookCollections collection, Integer tenantId) {
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
-        final LocalDateTime currentDate = LocalDateTime.now();
-
-        return collection.getName().toLowerCase() + "_" + tenantId.toString() + "_" +
-            currentDate.format(formatter);
     }
 
     private String getMapping() throws IOException {

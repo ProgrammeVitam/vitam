@@ -580,7 +580,7 @@ public class ReconstructionService {
                         try {
                             if (model.getLifecycle() != null) {
                                 return JsonHandler
-                                    .getFromString(JSON.serialize(model.getLifecycle()));
+                                    .getFromString(JsonHandler.unprettyPrint(model.getLifecycle()));
                             } else {
                                 throw new VitamRuntimeException("lifecycle should not be null");
                             }
