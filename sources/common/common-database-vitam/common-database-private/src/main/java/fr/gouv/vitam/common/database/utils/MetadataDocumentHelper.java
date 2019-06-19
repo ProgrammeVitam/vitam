@@ -51,7 +51,9 @@ public class MetadataDocumentHelper {
         US_SP("_us_sp"),
         MIN("_min"),
         MAX("_max"),
-        UDS("_uds");
+        UDS("_uds"),
+        COMPUTEDINHERITEDRULES("_computedInheritedRules");
+
 
         private final String fieldName;
 
