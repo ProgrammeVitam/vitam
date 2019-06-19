@@ -7,7 +7,7 @@
     update_cache: yes
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   tags:
     - enable_vitam_repo
@@ -23,7 +23,7 @@
     - update_package_vitam
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "Debian"
 

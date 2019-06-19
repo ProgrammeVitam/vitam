@@ -64,7 +64,7 @@
     default_release: "{{ ansible_distribution_release }}-backports"
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
@@ -76,7 +76,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when:
     - ansible_os_family == "Debian"
@@ -88,7 +88,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   when: ansible_os_family == "RedHat"
 
@@ -98,7 +98,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
     - restart elasticsearch
