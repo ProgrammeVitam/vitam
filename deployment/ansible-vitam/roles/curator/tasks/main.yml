@@ -7,7 +7,7 @@
     state: absent
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
 - name: install elasticsearch-curator package
@@ -16,7 +16,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   # when: "inventory_hostname != 'localhost'"
 

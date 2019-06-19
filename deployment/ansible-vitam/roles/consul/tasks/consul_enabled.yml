@@ -11,7 +11,7 @@
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
-  until: result | succeeded
+  until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
   notify:
     - restart consul
@@ -83,7 +83,7 @@
         state: latest
       register: result
       retries: "{{ packages_install_retries_number }}"
-      until: result | succeeded
+      until: result is succeeded
       delay: "{{ packages_install_retries_delay }}"
 
     - name: Add nameserver entry in /etc/resolvconf/resolv.conf.d/head
@@ -112,7 +112,7 @@
         state: latest
       register: result
       retries: "{{ packages_install_retries_number }}"
-      until: result | succeeded
+      until: result is succeeded
       delay: "{{ packages_install_retries_delay }}"
 
     - name: Start the vitam-resolvconf service
