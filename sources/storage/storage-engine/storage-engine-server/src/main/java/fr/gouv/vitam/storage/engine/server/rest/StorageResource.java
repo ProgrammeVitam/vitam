@@ -111,6 +111,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.OfferLogRequest;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
@@ -1922,6 +1923,26 @@ public class StorageResource extends ApplicationStatusResource implements VitamA
             LOGGER.error(exc);
             return buildErrorResponse(VitamCode.STORAGE_INCONSISTENT_STATE);
         } catch (final Exception exc) {
+            LOGGER.error(exc);
+            return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
+        }
+    }
+
+    /**
+     * Get the strategies available in the module
+     *
+     * @return the strategies
+     */
+    @Path("/strategies")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getStrategies() {
+        try {
+            Map<String, StorageStrategy> strategies = distribution.getStrategies();
+            RequestResponse<StorageStrategy> entity = new RequestResponseOK<StorageStrategy>()
+                    .addAllResults(new ArrayList<>(strategies.values()));
+            return Response.status(Status.OK).entity(entity).build();
+        } catch (final StorageException exc) {
             LOGGER.error(exc);
             return buildErrorResponse(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR);
         }

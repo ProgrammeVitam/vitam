@@ -27,6 +27,8 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
+import java.util.Map;
+
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
@@ -48,6 +50,15 @@ public interface StorageStrategyProvider {
      *             if any unwanted technical issue happens
      */
     StorageStrategy getStorageStrategy(String idStrategy) throws StorageTechnicalException;
+    
+    /**
+     * Retrieve all the available storage strategies
+     *
+     * @return all storage strategies by id
+     * @throws StorageTechnicalException
+     *             if any unwanted technical issue happens
+     */
+    Map<String, StorageStrategy> getStorageStrategies() throws StorageTechnicalException;
 
     StorageOffer getStorageOffer(String idOffer) throws StorageException;
 }

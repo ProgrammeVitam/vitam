@@ -132,6 +132,13 @@ class FileStorageProvider implements StorageStrategyProvider, StorageOfferProvid
 
         return offer;
     }
+    
+
+
+    @Override
+    public Map<String, StorageStrategy> getStorageStrategies() throws StorageTechnicalException {
+        return storageStrategies;
+    }
 
     private void initReferentials() {
         try {

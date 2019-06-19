@@ -41,6 +41,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.DataContext;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StreamAndInfo;
 
@@ -276,4 +277,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
 
     BulkObjectStoreResponse bulkCreateFromWorkspace(String strategyId, BulkObjectStoreRequest bulkObjectStoreRequest, String requester)
         throws StorageException;
+    
+    /**
+     * Retrieve all the available storage strategies
+     *
+     * @return all storage strategies by id
+     * @throws StorageException
+     *             if any unwanted technical issue happens
+     */
+    Map<String, StorageStrategy> getStrategies() throws StorageException;
 }

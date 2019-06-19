@@ -53,6 +53,7 @@ import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.storage.engine.common.model.response.BatchObjectInformationResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.BulkObjectStoreResponse;
 import fr.gouv.vitam.storage.engine.common.model.response.StoredInfoResult;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  * Storage Client interface
@@ -286,4 +287,12 @@ public interface StorageClient extends BasicClient {
     RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory type, Long offset, int limit, Order order)
         throws StorageServerClientException;
 
+    /**
+     * Get strategies.
+     *
+     * @return strategies available for storage
+     * @throws StorageServerClientException
+     */
+    RequestResponse<StorageStrategy> getStorageStrategies() throws StorageServerClientException;
+    
 }

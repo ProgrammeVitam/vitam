@@ -27,21 +27,23 @@
 
 package fr.gouv.vitam.storage.engine.common.referential;
 
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.storage.engine.common.exception.StorageException;
-import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
-import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
-import org.junit.Test;
-
-import java.io.File;
-import java.util.List;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
+
+import org.junit.Test;
+
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.storage.engine.common.exception.StorageException;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
+import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 
 /**
  *
@@ -58,6 +60,15 @@ public class FileStorageProviderTest {
         assertEquals(2, offerReferences.size());
         final OfferReference offerReference = offerReferences.get(0);
         assertEquals("default", offerReference.getId());
+    }
+
+    @Test
+    public void testGetStorageStrategies() throws Exception {
+        final FileStorageProvider fsProvider = new FileStorageProvider();
+        Map<String, StorageStrategy> strategies = fsProvider.getStorageStrategies();
+        assertNotNull(strategies);
+        assertEquals(1, strategies.size());
+        assertTrue(strategies.containsKey("default"));
     }
 
     @Test
