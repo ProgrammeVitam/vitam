@@ -1,4 +1,5 @@
-# This list is ordered. It can and has to be completed if more offers are necessary
+# This is the default vitam strategy ('default'). It is mandatory and must define a referent offer.
+# This list of offers is ordered. It can and has to be completed if more offers are necessary
 # Strategy order (1st has to be the prefered one)
 vitam_strategy:
   - name: offer-fs-1
@@ -12,6 +13,23 @@ vitam_strategy:
 #    referent: true
 #    status: INACTIVE
 #    vitam_site_name: distant-dc2
+
+# More strategies can be added but are optional
+# Strategy name must only use [a-z][a-z0-9-]* pattern
+# Any strategy must contain at least one offer
+# This list of offers is ordered. It can and has to be completed if more offers are necessary
+# Offers can't be defined as referent other_strategies
+# other_strategies:
+#  metadata:
+#    - name: offer-fs-1
+#      referent: false
+#    - name: offer-fs-2
+#      referent: false
+#  binary:
+#    - name: offer-fs-2
+#      referent: false
+#    - name: offer-s3-1
+#      referent: false
 
 # DON'T forget to add associated passwords in vault-vitam.yml with same tree when using provider openstack-swift*
 # ATTENTION !!! Each offer has to have a distinct name, except for clusters binding a same physical storage
