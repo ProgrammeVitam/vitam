@@ -496,7 +496,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         MetadataCollections.UNIT.getCollection().insertMany(documents);
 
-        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(10);
+        assertThat(MetadataCollections.UNIT.getCollection().countDocuments()).isEqualTo(10);
 
         Map<MetadataCollections, Integer> ok = metadataManagementResource.tryStoreGraph().execute().body();
 
@@ -512,7 +512,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         MetadataCollections.UNIT.getCollection().insertMany(documents);
 
-        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(15);
+        assertThat(MetadataCollections.UNIT.getCollection().countDocuments()).isEqualTo(15);
 
         ok = metadataManagementResource.tryStoreGraph().execute().body();
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(5);
@@ -860,8 +860,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         initializeDbWithUnitAndObjectGroupData();
 
         //Then
-        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(10);
-        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(5);
+        assertThat(MetadataCollections.UNIT.getCollection().countDocuments()).isEqualTo(10);
+        assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(5);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
 

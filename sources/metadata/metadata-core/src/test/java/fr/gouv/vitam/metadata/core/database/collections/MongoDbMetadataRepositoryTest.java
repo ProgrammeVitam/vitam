@@ -66,7 +66,7 @@ public class MongoDbMetadataRepositoryTest {
 
         // Then
         MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
-        assertThat(mongoCollection.count()).isEqualTo(2);
+        assertThat(mongoCollection.countDocuments()).isEqualTo(2);
         assertThat(mongoCollection.find())
             .extracting("_id", VitamDocument.TENANT_ID, VERSION)
             .containsExactly(tuple(id1, TENANT_ID, 0), tuple(id2, TENANT_ID, 0));
@@ -92,7 +92,7 @@ public class MongoDbMetadataRepositoryTest {
 
         // Then
         MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
-        assertThat(mongoCollection.count()).isEqualTo(2);
+        assertThat(mongoCollection.countDocuments()).isEqualTo(2);
         assertThat(mongoCollection.find())
             .extracting("title")
             .containsExactly("unit1", "unit2");

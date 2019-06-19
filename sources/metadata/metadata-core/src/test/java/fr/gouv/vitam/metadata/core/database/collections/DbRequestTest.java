@@ -1118,12 +1118,12 @@ public class DbRequestTest {
         insertParser = (InsertParserMultiple) RequestParserHelper
             .getParser(createInsertRequestWithUUID(uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParser);
-        assertEquals(1, MetadataCollections.UNIT.getCollection().count());
+        assertEquals(1, MetadataCollections.UNIT.getCollection().countDocuments());
 
         insertParser = (InsertParserMultiple) RequestParserHelper
             .getParser(createInsertChild2ParentRequest(uuid2, uuid), mongoDbVarNameAdapter);
         dbRequest.execInsertUnitRequest(insertParser);
-        assertEquals(2, MetadataCollections.UNIT.getCollection().count());
+        assertEquals(2, MetadataCollections.UNIT.getCollection().countDocuments());
     }
 
     @Test
@@ -1398,8 +1398,8 @@ public class DbRequestTest {
                 col.getCollection().drop();
             }
         }
-        assertEquals(0, MetadataCollections.UNIT.getCollection().count());
-        assertEquals(0, MetadataCollections.OBJECTGROUP.getCollection().count());
+        assertEquals(0, MetadataCollections.UNIT.getCollection().countDocuments());
+        assertEquals(0, MetadataCollections.OBJECTGROUP.getCollection().countDocuments());
     }
 
 

@@ -232,9 +232,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             new VitamDocumentCodec<>(LogbookLifeCycleObjectGroupInProcess.class);
 
 
-        final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(),
-            CodecRegistries.fromCodecs(operationCodec, lifecycleUnitCodec, lifecycleObjectGroupCodec,
-                lifecycleUnitInProcessCodec, lifecycleObjectGroupInProcessCodec, new VitamDocumentCodec<>(VitamDocument.class)), MongoClient.getDefaultCodecRegistry());
+        final CodecRegistry codecRegistry = CodecRegistries
+            .fromRegistries(CodecRegistries.fromCodecs(operationCodec, lifecycleUnitCodec, lifecycleObjectGroupCodec,
+                lifecycleUnitInProcessCodec, lifecycleObjectGroupInProcessCodec,
+                new VitamDocumentCodec<>(VitamDocument.class)), MongoClient.getDefaultCodecRegistry());
 
 
         return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
@@ -288,10 +289,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         for (final LogbookCollections coll : LogbookCollections.values()) {
             if (coll != null && coll.getCollection() != null) {
                 final MongoCollection<?> mcoll = coll.getCollection();
-                builder.append(coll.getName()).append(" [").append(mcoll.count()).append('\n');
+                builder.append(coll.getName()).append(" [").append(mcoll.countDocuments()).append('\n');
                 final ListIndexesIterable<Document> list = mcoll.listIndexes();
                 for (final Document dbObject : list) {
-                    builder.append("\t").append(mcoll.count()).append(' ').append(dbObject).append('\n');
+                    builder.append("\t").append(mcoll.countDocuments()).append(' ').append(dbObject).append('\n');
                 }
             }
         }
@@ -308,27 +309,27 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public final long getLogbookOperationSize() {
-        return LogbookCollections.OPERATION.getCollection().count();
+        return LogbookCollections.OPERATION.getCollection().countDocuments();
     }
 
     @Override
     public final long getLogbookLifeCyleUnitSize() {
-        return LogbookCollections.LIFECYCLE_UNIT.getCollection().count();
+        return LogbookCollections.LIFECYCLE_UNIT.getCollection().countDocuments();
     }
 
     @Override
     public final long getLogbookLifeCyleObjectGroupSize() throws LogbookDatabaseException, LogbookNotFoundException {
-        return LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().count();
+        return LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().countDocuments();
     }
 
     @Override
     public long getLogbookLifeCyleUnitInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException {
-        return LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getCollection().count();
+        return LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getCollection().countDocuments();
     }
 
     @Override
     public long getLogbookLifeCyleObjectGroupInProcessSize() throws LogbookDatabaseException, LogbookNotFoundException {
-        return LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection().count();
+        return LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection().countDocuments();
     }
 
     /**

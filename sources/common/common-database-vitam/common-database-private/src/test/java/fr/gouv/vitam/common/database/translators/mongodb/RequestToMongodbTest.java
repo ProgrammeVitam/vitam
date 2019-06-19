@@ -294,13 +294,13 @@ public class RequestToMongodbTest {
         final SelectParserMultiple request2 = new SelectParserMultiple();
         request2.parse(JsonHandler.getFromString(example2));
         final SelectToMongodb rtm2 = new SelectToMongodb(request2);
-        assertEquals("{ \"maclef\" : 1 }", MongoDbHelper.bsonToString(rtm2.getFinalOrderBy(), false));
+        assertEquals("{\"maclef\": 1}", MongoDbHelper.bsonToString(rtm2.getFinalOrderBy(), false));
 
         final String example3 = "{ $roots : [], $query : [], $filter : {$orderby : {maclef : -1}}, $projection : {} }";
         final SelectParserMultiple request3 = new SelectParserMultiple();
         request3.parse(JsonHandler.getFromString(example3));
         final SelectToMongodb rtm3 = new SelectToMongodb(request3);
-        assertEquals("{ \"maclef\" : -1 }", MongoDbHelper.bsonToString(rtm3.getFinalOrderBy(), false));
+        assertEquals("{\"maclef\": -1}", MongoDbHelper.bsonToString(rtm3.getFinalOrderBy(), false));
     }
 
     @Test
@@ -310,26 +310,26 @@ public class RequestToMongodbTest {
         final SelectParserMultiple request1 = new SelectParserMultiple();
         request1.parse(JsonHandler.getFromString(example1));
         final SelectToMongodb rtm1 = new SelectToMongodb(request1);
-        assertEquals("{ \"#dua\" : 1, \"_id\" : 1, \"#all\" : 0 }", MongoDbHelper.bsonToString(rtm1.getFinalProjection(), false));
+        assertEquals("{\"#dua\": 1, \"_id\": 1, \"#all\": 0}", MongoDbHelper.bsonToString(rtm1.getFinalProjection(), false));
 
         final String example2 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : 1}} }";
         final SelectParserMultiple request2 = new SelectParserMultiple();
         request2.parse(JsonHandler.getFromString(example2));
         final SelectToMongodb rtm2 = new SelectToMongodb(request2);
-        assertEquals("{ \"#dua\" : 1, \"_id\" : 1 }", MongoDbHelper.bsonToString(rtm2.getFinalProjection(), false));
+        assertEquals("{\"#dua\": 1, \"_id\": 1}", MongoDbHelper.bsonToString(rtm2.getFinalProjection(), false));
 
         final String example3 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1}} }";
         final SelectParserMultiple request3 = new SelectParserMultiple();
         request3.parse(JsonHandler.getFromString(example3));
         final SelectToMongodb rtm3 = new SelectToMongodb(request3);
-        assertEquals("{ \"_id\" : 1, \"#dua\" : 0 }", MongoDbHelper.bsonToString(rtm3.getFinalProjection(), false));
+        assertEquals("{\"_id\": 1, \"#dua\": 0}", MongoDbHelper.bsonToString(rtm3.getFinalProjection(), false));
 
         final String example4 = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields : {#dua : -1, " +
             "\"test1\" : {\"$slice\" : 1}}} }";
         final SelectParserMultiple request4 = new SelectParserMultiple();
         request4.parse(JsonHandler.getFromString(example4));
         final SelectToMongodb rtm4 = new SelectToMongodb(request4);
-        assertEquals("{ \"_id\" : 1, \"#dua\" : 0, \"test1\" : { \"$slice\" : 1 } }", MongoDbHelper.bsonToString(rtm4
+        assertEquals("{\"_id\": 1, \"#dua\": 0, \"test1\": {\"$slice\": 1}}", MongoDbHelper.bsonToString(rtm4
             .getFinalProjection(), false));
 
 
@@ -338,7 +338,7 @@ public class RequestToMongodbTest {
         final SelectParserMultiple request5 = new SelectParserMultiple();
         request5.parse(JsonHandler.getFromString(example5));
         final SelectToMongodb rtm5 = new SelectToMongodb(request5);
-        assertEquals("{ \"_id\" : 1, \"#dua\" : 0, \"test1\" : { \"$slice\" : [0, 1] } }", MongoDbHelper.bsonToString(rtm5
+        assertEquals("{\"_id\": 1, \"#dua\": 0, \"test1\": {\"$slice\": [0, 1]}}", MongoDbHelper.bsonToString(rtm5
             .getFinalProjection(), false));
 
         final String exampleEmptyProjection = "{ $roots : [], $query : [], $filter : {}, $projection : {$fields:{}} }";

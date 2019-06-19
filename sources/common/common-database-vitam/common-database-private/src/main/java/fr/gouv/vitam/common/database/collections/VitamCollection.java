@@ -189,7 +189,7 @@ public class VitamCollection {
         }
         final CodecRegistry vitamCodecRegistry = CodecRegistries.fromRegistries(codecs);
         final CodecRegistry codecRegistry =
-                CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(), vitamCodecRegistry);
+                CodecRegistries.fromRegistries(vitamCodecRegistry, MongoClient.getDefaultCodecRegistry());
 
         return getMongoClientOptions(codecRegistry);
     }

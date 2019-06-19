@@ -32,13 +32,15 @@ package fr.gouv.vitam.common.database.translators.mongodb;
 import com.mongodb.MongoClient;
 import org.bson.BsonDocument;
 import org.bson.conversions.Bson;
+import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 
 /**
  * MongoDb Helper
  */
 public class MongoDbHelper {
-    private static final JsonWriterSettings jws = new JsonWriterSettings(true);
+    private static final JsonWriterSettings jws = JsonWriterSettings.builder().outputMode(JsonMode.STRICT).indent(false).build();
+    private static final JsonWriterSettings jwsIndented = JsonWriterSettings.builder().outputMode(JsonMode.STRICT).indent(true).build();
 
     private MongoDbHelper() {
         // Empty constructor
@@ -56,10 +58,10 @@ public class MongoDbHelper {
         }
         if (indent) {
             return bson.toBsonDocument(BsonDocument.class,
-                MongoClient.getDefaultCodecRegistry()).toJson(MongoDbHelper.jws);
+                MongoClient.getDefaultCodecRegistry()).toJson(jwsIndented);
         } else {
             return bson.toBsonDocument(BsonDocument.class,
-                MongoClient.getDefaultCodecRegistry()).toJson();
+                MongoClient.getDefaultCodecRegistry()).toJson(jws);
         }
     }
 }

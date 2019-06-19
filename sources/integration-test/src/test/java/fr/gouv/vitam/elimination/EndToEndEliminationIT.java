@@ -349,11 +349,13 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         List<String> excludeFields = Lists
             .newArrayList("_id", "StartDate", "LastUpdate", "EndDate", "Opc", "Opi", "CreationDate", "OperationIds");
         assertJsonEquals(ACCESSION_REGISTER_DETAIL, JsonHandler.toJsonNode(
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find()), excludeFields);
+            Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find())),
+            excludeFields);
 
         // Check Accession Register Summary
         assertJsonEquals(ACCESSION_REGISTER_SUMMARY,
-            JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find()),
+            JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().find())),
             excludeFields);
 
         // Check remaining units / gots & objects ids (low level)
@@ -445,8 +447,10 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         }
     }
 
-    private void checkReport(Response reportResponse, RequestResponseOK<JsonNode> ingestedUnits, Map<String, JsonNode> ingestedUnitsByTitle,
-        GUID ingestOperationGuid, RequestResponseOK<JsonNode> ingestedGots, String detachedGotId) throws IOException, InvalidParseOperationException {
+    private void checkReport(Response reportResponse, RequestResponseOK<JsonNode> ingestedUnits,
+        Map<String, JsonNode> ingestedUnitsByTitle,
+        GUID ingestOperationGuid, RequestResponseOK<JsonNode> ingestedGots, String detachedGotId)
+        throws IOException, InvalidParseOperationException {
         try (InputStream is = reportResponse.readEntity(InputStream.class)) {
             ReportModel report = JsonHandler.getFromInputStream(is, ReportModel.class);
 
@@ -583,7 +587,8 @@ public class EndToEndEliminationIT extends VitamRuleRunner {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
 
             List<String> offers = storageClient.getOffers(DEFAULT_STRATEGY);
-            JsonNode information = storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, filename, offers, false);
+            JsonNode information =
+                storageClient.getInformation(DEFAULT_STRATEGY, dataCategory, filename, offers, false);
             boolean fileFound = information.size() > 0;
             assertThat(fileFound).isEqualTo((boolean) shouldExist);
         }

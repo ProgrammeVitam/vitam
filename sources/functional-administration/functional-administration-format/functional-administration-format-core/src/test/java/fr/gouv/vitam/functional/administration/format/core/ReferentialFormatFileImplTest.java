@@ -323,7 +323,7 @@ public class ReferentialFormatFileImplTest {
         final MongoClient client = new MongoClient(new ServerAddress("localhost", mongoRule.getDataBasePort()));
         final MongoCollection<Document> collection = client.getDatabase(mongoRule.getMongoDatabase().getName())
             .getCollection(FunctionalAdminCollections.FORMATS.getName());
-        assertEquals(expected, collection.count());
+        assertEquals(expected, collection.countDocuments());
         client.close();
     }
 }

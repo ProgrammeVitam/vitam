@@ -126,7 +126,7 @@ public class QueryToMongodbTest {
             request.parse(emptyQueryJson);
             final fr.gouv.vitam.common.database.builder.request.single.Select select = request.getRequest();
             final Bson command = QueryToMongodb.getCommand(select.getQuery());
-            assertEquals("{ }", command.toString());
+            assertEquals("{}", command.toString());
 
         } catch (final InvalidParseOperationException e) {
             fail("No exception should be thrown here");
@@ -139,7 +139,7 @@ public class QueryToMongodbTest {
         request.parse(multiRootsJson);
         final SelectMultiQuery select = request.getRequest();
         final Bson bsonRoot = QueryToMongodb.getRoots("_up", select.getRoots());
-        assertEquals("{ \"_up\" : { \"$in\" : [\"id0\", \"id1\"] } }", MongoDbHelper.bsonToString(bsonRoot, false));
+        assertEquals("{\"_up\": {\"$in\": [\"id0\", \"id1\"]}}", MongoDbHelper.bsonToString(bsonRoot, false));
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -163,7 +163,7 @@ public class QueryToMongodbTest {
         final SelectMultiQuery select = request.getRequest();
         final List<Query> list = select.getQueries();
         final Bson bsonQuery = QueryToMongodb.getCommand(list.get(0));
-        assertEquals("{ \"mavar14\" : { \"$regex\" : \"motMajuscule\", \"$options\" : \"\" } }",
+        assertEquals("{\"mavar14\": {\"$regex\": \"motMajuscule\", \"$options\": \"\"}}",
             MongoDbHelper.bsonToString(bsonQuery, false));
     }
 

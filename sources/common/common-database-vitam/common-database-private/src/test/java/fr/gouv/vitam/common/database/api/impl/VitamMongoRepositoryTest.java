@@ -161,7 +161,7 @@ public class VitamMongoRepositoryTest {
 
         MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
 
-        long count = collection.count();
+        long count = collection.countDocuments();
         assertThat(count).isEqualTo(100);
     }
 
@@ -182,7 +182,7 @@ public class VitamMongoRepositoryTest {
         }
         repository.saveOrUpdate(documents);
 
-        long count = collection.count();
+        long count = collection.countDocuments();
         assertThat(count).isEqualTo(100);
 
         // updates
@@ -209,9 +209,9 @@ public class VitamMongoRepositoryTest {
         }
         repository.saveOrUpdate(updatedDocuments);
 
-        count = collection.count();
+        count = collection.countDocuments();
         assertThat(count).isEqualTo(100);
-        count = collection.count(Filters.eq("Title", "Test save updated"));
+        count = collection.countDocuments(Filters.eq("Title", "Test save updated"));
         assertThat(count).isEqualTo(50);
         assertThat(collection.find(Filters.eq(VitamDocument.ID, 1000 + 1)).first().get("Title"))
             .isEqualTo("Test save updated");
@@ -244,7 +244,7 @@ public class VitamMongoRepositoryTest {
 
         repository.saveOrUpdate(documents);
 
-        long count = collection.count();
+        long count = collection.countDocuments();
         assertThat(count).isEqualTo(2);
 
         // updates
@@ -264,7 +264,7 @@ public class VitamMongoRepositoryTest {
 
         repository.update(updates);
 
-        count = collection.count();
+        count = collection.countDocuments();
 
         assertThat(count).isEqualTo(3);
 
@@ -314,7 +314,7 @@ public class VitamMongoRepositoryTest {
 
         MongoCollection<Document> collection = mongoRule.getMongoCollection(TEST_COLLECTION);
 
-        long count = collection.count();
+        long count = collection.countDocuments();
         assertThat(count).isEqualTo(101);
 
         // purge tenant 0

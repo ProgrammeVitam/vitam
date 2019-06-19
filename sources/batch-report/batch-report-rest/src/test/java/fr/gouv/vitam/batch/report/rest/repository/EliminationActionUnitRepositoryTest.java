@@ -99,7 +99,7 @@ public class EliminationActionUnitRepositoryTest {
             "{\"outcome\":\"Outcome - TEST\",\"detailType\":\"Unit\",\"id\":\"unitId1\",\"unitId\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         repository.bulkAppendReport(eliminationActionUnitModels);
-        assertThat(eliminationUnitCollection.count()).isEqualTo(4);
+        assertThat(eliminationUnitCollection.countDocuments()).isEqualTo(4);
     }
 
     @Test
