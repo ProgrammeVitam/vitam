@@ -143,7 +143,7 @@ public class ComputeInheritedRulesPreparationPluginTest {
         JsonNode unitResponse = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json"));
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
         TestHandlerIO handler = new TestHandlerIO();
-        handler.setJsonFromWorkspace("toto", JsonHandler.getFromInputStream(query));
+        handler.setJsonFromWorkspace("query.json", JsonHandler.getFromInputStream(query));
         handler.setNewLocalFile(distributionFile);
         // When
         ItemStatus itemStatus = computeInheritedRulesPreparationPlugin.execute(workerParameters, handler);
