@@ -9,7 +9,7 @@
         "name": "{{ mongo_cluster_name }}-mongos : TCP check",
         "notes": "Status {{ mongo_cluster_name }}-mongos",
         "tcp": "{{ ip_service }}:{{ mongodb.mongos_port }}",
-        "interval": "1s"
+        "interval": "{{ mongodb.check_consul }}s"
       }
     ]
   }

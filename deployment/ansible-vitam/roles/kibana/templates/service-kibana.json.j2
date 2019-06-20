@@ -10,7 +10,7 @@
         "name": "{{ kibana_service_name }} : HTTP check",
         "notes": "Kibana home page access",
         "http": "http://{{ ip_admin }}:{{ composant.port }}/app/kibana",
-        "interval": "1s"
+        "interval": "{{ composant.check_consul }}s"
       }
     ]
   }
