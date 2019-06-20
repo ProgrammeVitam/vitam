@@ -28,7 +28,7 @@
   "domain": "{{ consul_domain }}",
   "datacenter": "{{ vitam_site_name }}",
   "retry_join": [ {% for item in groups['hosts-consul-server'] %}"{{hostvars[item]['ip_admin']}}"{% if not loop.last %},{% endif %}{% endfor %} ],
-  "retry_interval": "10s",
+  "retry_interval": "{{ consul.retry_interval }}s",
   "enable_syslog": true,
   "disable_remote_exec": true,
   "encrypt": "{{ consul_encrypt }}",
@@ -39,8 +39,8 @@
     {
         "name": "Check Consul DNS resolution for node",
         "args": ["/usr/bin/getent", "ahostsv4", "{{ ansible_hostname }}.node.{{ consul_domain }}"],
-        "interval": "10s",
-        "timeout": "1s"
+        "interval": "{{ consul.check_internal }}s",
+        "timeout": "{{ consul.check_timeout }}s"
       }
   ]
 }

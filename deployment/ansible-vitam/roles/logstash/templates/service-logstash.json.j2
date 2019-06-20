@@ -9,7 +9,7 @@
       {
         "notes": "Syslog tcp port opened",
         "tcp": "{{ ip_admin }}:{{ logstash.port }}",
-        "interval": "1s"
+        "interval": "{{ logstash.check_consul }}s"
       }
     ]
   }

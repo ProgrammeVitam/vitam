@@ -23,6 +23,8 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     library:
         vitam_component: library
         host: "library.service.{{consul_domain}}"
@@ -37,6 +39,8 @@ vitam:
         logback_total_size_cap: "5GB"
         jvm_log: false
         performance_logger: "false"
+        consul_check_business: 30 # value in seconds
+        consul_admin_check: 30 # value in seconds
 
 
 # Period units in seconds
