@@ -274,7 +274,7 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             SetAction setComputedInheritedRules = new SetAction(action);
             updateMultiQuery.addActions(setComputedInheritedRules);
 
-            metaDataClient.updateUnitbyId(updateMultiQuery.getFinalUpdateById(), unitId);
+            metaDataClient.updateUnitById(updateMultiQuery.getFinalUpdateById(), unitId);
 
         } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
             throw new ProcessingException("Could not index unit " + unitId, e);

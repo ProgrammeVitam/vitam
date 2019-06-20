@@ -35,6 +35,15 @@
         }
       },
       {
+        "enddates_mapping": {
+          "path_match": "_computedInheritedRules.*.EndDates.*",
+          "mapping": {
+            "type": "date",
+            "format": "strict_date_optional_time"
+          }
+        }
+      },
+      {
         "all_string": {
           "match": "*",
           "mapping": {
@@ -1455,46 +1464,18 @@
       },
       "_computedInheritedRules": {
         "properties": {
+          "NeedAuthorization": {
+            "type": "boolean"
+          },
           "indexationDate": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
-          "GlobalProperties": {
-            "dynamic_templates": [
-              {
-                "object": {
-                  "match_mapping_type": "object",
-                  "mapping": {
-                    "type": "object"
-                  }
-                }
-              }
-            ]
-          },
           "AccessRule": {
             "properties": {
-              "Properties": {
-                "dynamic_templates": [
-                  {
-                    "object": {
-                      "match_mapping_type": "object",
-                      "mapping": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                ]
+              "EndDates": {
+                "type": "object"
               },
-              "dynamic_templates": [
-                {
-                  "object": {
-                    "match_mapping_type": "object",
-                    "mapping": {
-                      "type": "object"
-                    }
-                  }
-                }
-              ],
               "MaxEndDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"
@@ -1503,28 +1484,9 @@
           },
           "AppraisalRule": {
             "properties": {
-              "Properties": {
-                "dynamic_templates": [
-                  {
-                    "object": {
-                      "match_mapping_type": "object",
-                      "mapping": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                ]
+              "EndDates": {
+                "type": "object"
               },
-              "dynamic_templates": [
-                {
-                  "object": {
-                    "match_mapping_type": "object",
-                    "mapping": {
-                      "type": "object"
-                    }
-                  }
-                }
-              ],
               "MaxEndDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"
@@ -1533,28 +1495,9 @@
           },
           "DisseminationRule": {
             "properties": {
-              "Properties": {
-                "dynamic_templates": [
-                  {
-                    "object": {
-                      "match_mapping_type": "object",
-                      "mapping": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                ]
+              "EndDates": {
+                "type": "object"
               },
-              "dynamic_templates": [
-                {
-                  "object": {
-                    "match_mapping_type": "object",
-                    "mapping": {
-                      "type": "object"
-                    }
-                  }
-                }
-              ],
               "MaxEndDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"
@@ -1563,28 +1506,9 @@
           },
           "ReuseRule": {
             "properties": {
-              "Properties": {
-                "dynamic_templates": [
-                  {
-                    "object": {
-                      "match_mapping_type": "object",
-                      "mapping": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                ]
+              "EndDates": {
+                "type": "object"
               },
-              "dynamic_templates": [
-                {
-                  "object": {
-                    "match_mapping_type": "object",
-                    "mapping": {
-                      "type": "object"
-                    }
-                  }
-                }
-              ],
               "MaxEndDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"
@@ -1593,28 +1517,9 @@
           },
           "StorageRule": {
             "properties": {
-              "Properties": {
-                "dynamic_templates": [
-                  {
-                    "object": {
-                      "match_mapping_type": "object",
-                      "mapping": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                ]
+              "EndDates": {
+                "type": "object"
               },
-              "dynamic_templates": [
-                {
-                  "object": {
-                    "match_mapping_type": "object",
-                    "mapping": {
-                      "type": "object"
-                    }
-                  }
-                }
-              ],
               "MaxEndDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"
@@ -1623,28 +1528,9 @@
           },
           "ClassificationRule": {
             "properties": {
-              "Properties": {
-                "dynamic_templates": [
-                  {
-                    "object": {
-                      "match_mapping_type": "object",
-                      "mapping": {
-                        "type": "object"
-                      }
-                    }
-                  }
-                ]
+              "EndDates": {
+                "type": "object"
               },
-              "dynamic_templates": [
-                {
-                  "object": {
-                    "match_mapping_type": "object",
-                    "mapping": {
-                      "type": "object"
-                    }
-                  }
-                }
-              ],
               "MaxEndDate": {
                 "type": "date",
                 "format": "strict_date_optional_time"

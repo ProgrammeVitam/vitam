@@ -280,7 +280,7 @@ public class ComputeInheritedRulesActionPluginTest {
         MetaDataNotFoundException {
         given(metaDataClient.selectUnitsWithInheritedRules(ArgumentMatchers.any())).willReturn(response);
         ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
-        when(metaDataClient.updateUnitbyId(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(null);
+        when(metaDataClient.updateUnitById(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(null);
         return objectNodeArgumentCaptor;
     }
 
