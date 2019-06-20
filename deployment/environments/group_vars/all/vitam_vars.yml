@@ -142,6 +142,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     accessinternal:
         vitam_component: access-internal
         host: "access-internal.service.{{ consul_domain }}"
@@ -158,6 +160,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     functional_administration:
         vitam_component: functional-administration
         host: "functional-administration.service.{{ consul_domain }}"
@@ -175,6 +179,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     elastickibanainterceptor:
         vitam_component: elastic-kibana-interceptor
         host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
@@ -192,6 +198,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     batchreport:
         vitam_component: batch-report
         host: "batch-report.service.{{ consul_domain }}"
@@ -208,6 +216,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     ingestexternal:
         vitam_component: ingest-external
         # DNS record for the service:
@@ -241,6 +251,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     ingestinternal:
         vitam_component: ingest-internal
         host: "ingest-internal.service.{{ consul_domain }}"
@@ -257,6 +269,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     ihm_demo:
         vitam_component: ihm-demo
         host: "ihm-demo.service.{{ consul_domain }}"
@@ -301,6 +315,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     logbook:
         vitam_component: logbook
         host: "logbook.service.{{ consul_domain }}"
@@ -326,6 +342,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     metadata:
         vitam_component: metadata
         host: "metadata.service.{{ consul_domain }}"
@@ -343,6 +361,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     processing:
         vitam_component: processing
         host: "processing.service.{{ consul_domain }}"
@@ -361,6 +381,8 @@ vitam:
         maxDistributionInMemoryBufferSize: 100000
         maxDistributionOnDiskBufferSize: 100000000
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     security_internal:
         vitam_component: security-internal
         host: "security-internal.service.{{ consul_domain }}"
@@ -377,6 +399,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     storageengine:
         vitam_component: storage
         host: "storage.service.{{ consul_domain }}"
@@ -405,6 +429,8 @@ vitam:
         timeoutMsPerKB: 100
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     storageofferdefault:
         vitam_component: "offer"
         port_service: 9900
@@ -420,6 +446,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     worker:
         vitam_component: worker
         port_service: 9104
@@ -435,6 +463,8 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds
     workspace:
         vitam_component: workspace
         host: "workspace.service.{{ consul_domain }}"
@@ -451,3 +481,5 @@ vitam:
         jvm_log: false
         performance_logger: "false"
         reconstruction:
+        consul_check_business: 10 # value in seconds
+        consul_admin_check: 10 # value in seconds

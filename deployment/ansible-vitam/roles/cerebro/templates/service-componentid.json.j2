@@ -10,7 +10,7 @@
         "name": "cerebro : HTTP check",
         "notes": "HTTP status check",
         "http": "http://{{ ip_admin }}:{{ cerebro.port }}/{{ cerebro.baseuri }}/",
-        "interval": "1s"
+        "interval": "{{ cerebro.check_consul }}s"
       }
     ]
   }

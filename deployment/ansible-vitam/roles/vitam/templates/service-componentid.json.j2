@@ -22,7 +22,7 @@
         "notes": "HTTP port opened",
         "tcp": "{{ ip_service }}:{{ vitam_struct.port_service }}",
 {% endif %}
-        "interval": "1s"
+        "interval": "{{ vitam_struct.consul_check_business }}s"
       },
       {
         "name": "{{ vitam_struct.vitam_component }} : admin service check",
@@ -35,7 +35,7 @@
         "name": "{{ vitam_struct.vitam_component }} : http business service check",
         "notes": "Status business : /{{ vitam_struct.baseuri }}/v1/status",
         "http": "http://{{ ip_service }}:{{ vitam_struct.port_service }}/{{ vitam_struct.baseuri }}/v1/status",
-        "interval": "1s"        
+        "interval": "{{ vitam_struct.consul_admin_check }}s"        
       }
       {% endif %}
       {% if  (vitam_struct.vitam_component == vitam.security_internal.vitam_component)  %}
@@ -43,7 +43,7 @@
         "name": "{{ vitam_struct.vitam_component }} : http business service check",
         "notes": "Status business : /status",
         "http": "http://{{ ip_service }}:{{ vitam_struct.port_service }}/status",
-        "interval": "1s"        
+        "interval": "{{ vitam_struct.consul_check_business }}s"        
       }
       {% endif %}
       {% if (vitam_struct.vitam_component == vitam.worker.vitam_component) or (vitam_struct.vitam_component == vitam.ingestexternal.vitam_component)  %}
@@ -51,7 +51,7 @@
         "name": "Siegfried check",
         "notes": "Is siegfried running ?",
         "tcp": "localhost:{{ siegfried.port }}",
-        "interval": "1s"
+        "interval": "{{ siegfried.consul_check }}s"
       }
 {% endif %}
 {% if vitam_struct.antivirus is defined %}
