@@ -232,6 +232,7 @@ public class ParserTokens extends BuilderToken {
         "_computedInheritedRules.ClassificationRule",
         "_computedInheritedRules.ClassificationRule.MaxEndDate",
         "_computedInheritedRules.indexationDate",
+        "_computedInheritedRules.NeedAuthorization",
         "_glpd",
         "_graph",
         "_max",
