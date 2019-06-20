@@ -26,28 +26,26 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.database.translators.mongodb;
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
-import java.util.Date;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
-import net.javacrumbs.jsonunit.JsonAssert;
+import org.assertj.core.api.Assertions;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.json.JsonMode;
 import org.bson.json.JsonWriterSettings;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.text.ParseException;
+
+import static org.junit.Assert.assertEquals;
 
 public class MongoUpgradeTest {
     private static final String test = "{\"data\": 1}";
@@ -58,66 +56,45 @@ public class MongoUpgradeTest {
         assertEquals(test, MongoDbHelper.bsonToString(bson, false));
         assertEquals("{\n  \"data\": 1\n}", MongoDbHelper.bsonToString(bson, true));
 
-
-        String mongo_3_4_4 =
-            JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream("upgrade-mongo/serialize-mongo.3.4.3.json"))
-                .toString();
-        String mongo_3_8_0 =
-            JsonHandler
-                .getFromInputStream(PropertiesUtils.getResourceAsStream("upgrade-mongo/serialize-mongo.3.8.0.json"))
-                .toString();
-
         FakeObjet fakeObjet = new FakeObjet();
 
         JsonWriterSettings writerSettingsRelaxed = JsonWriterSettings.builder().outputMode(JsonMode.RELAXED).build();
         JsonWriterSettings writerSettingsExtended = JsonWriterSettings.builder().outputMode(JsonMode.EXTENDED).build();
         JsonWriterSettings writerSettingsStrict = JsonWriterSettings.builder().outputMode(JsonMode.STRICT).build();
 
-        // Problem Float and Date (Not used in Vitam) fixed with JSON.serialize(
-        final String mongoJson = fakeObjet.toJson(writerSettingsRelaxed);
         final String serialize = JSON.serialize(fakeObjet);
-
-        // JsonAssert.assertJsonEquals(serialize, mongo_3_4_4);
-        //JsonAssert.assertJsonEquals(serialize, mongo_3_8_0);
-
-
-
         final String relaxed = fakeObjet.toJson(writerSettingsRelaxed);
         final String extended = fakeObjet.toJson(writerSettingsExtended);
         final String strict = fakeObjet.toJson(writerSettingsStrict);
-        //JsonAssert.assertJsonEquals(serialize, relaxed);
-        //JsonAssert.assertJsonEquals(extended, relaxed);
 
         JsonNode relaxedJson = JsonHandler.getFromString(relaxed);
         InputStream in = CanonicalJsonFormatter.serialize(relaxedJson);
         String str = StringUtils.getStringFromInputStream(in);
-        System.err.println("Relaxed : " + str);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":\"1982-10-19T23:00:00Z\"},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
+
+        in = CanonicalJsonFormatter.serialize(JsonHandler.toJsonNode(fakeObjet));
+        str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":\"1982-10-19T23:00:00.000+0000\",\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.2,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
 
         JsonNode strictJson = JsonHandler.getFromString(strict);
         in = CanonicalJsonFormatter.serialize(strictJson);
         str = StringUtils.getStringFromInputStream(in);
-        System.err.println("Strict : " + str);
-
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":403916400000},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
 
         JsonNode extendedJson = JsonHandler.getFromString(extended);
         in = CanonicalJsonFormatter.serialize(extendedJson);
         str = StringUtils.getStringFromInputStream(in);
-        System.err.println("Extended : " + str);
-
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":{\"$numberLong\":\"403916400000\"}},\"doubleVal\":{\"$numberDouble\":\"-2.2\"},\"doubleVal1\":{\"$numberDouble\":\"-2000000.2\"},\"floatVal\":{\"$numberDouble\":\"2.200000047683716\"},\"intVal\":{\"$numberInt\":\"-2\"},\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
 
         JsonNode legacyJson = JsonHandler.getFromString(serialize);
         in = CanonicalJsonFormatter.serialize(legacyJson);
         str = StringUtils.getStringFromInputStream(in);
-        System.err.println("Legacy : " + str);
-
-
-        in = CanonicalJsonFormatter.serialize(JsonHandler.toJsonNode(fakeObjet));
-        str = StringUtils.getStringFromInputStream(in);
-        System.err.println("Jackson : " + str);
-
-
-
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":\"1982-10-19T23:00:00.000Z\"},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.2,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
     }
 
 
@@ -126,8 +103,10 @@ public class MongoUpgradeTest {
         public FakeObjet() throws ParseException {
             append("floatVal", 2.2f);
             append("longVal", 2l);
+            append("longVal1", 1_000_000_000l);
             append("intVal", -2);
             append("doubleVal", -2.2);
+            append("doubleVal1", -2_000_000.2);
             append("strVal", "2");
             append("dateVal", LocalDateUtil.getDate("1982-10-20"));
             append("dateStrVal", LocalDateUtil.getFormattedDate(LocalDateUtil.getDate("1982-10-20")));

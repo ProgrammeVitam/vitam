@@ -144,7 +144,7 @@ public class LogbookElasticsearchAccessTest {
         Map<String, String> mapIdJson = new HashMap<>();
         String id = operationForCreation.getId();
         operationForCreation.remove(VitamDocument.ID);
-        final String esJson = JSON.serialize(operationForCreation);
+        final String esJson = JsonHandler.unprettyPrint(operationForCreation);
         operationForCreation.clear();
         mapIdJson.put(id, esJson);
         BulkResponse response = esClient.addEntryIndexes(LogbookCollections.OPERATION, tenantId, mapIdJson);
