@@ -18,7 +18,7 @@
         {% else %}
         "http": "http://{{ ip_service }}:{{ composant.port_http }}",
         {% endif %}
-        "interval": "2s"
+        "interval": "{{ composant.consul_check_http }}s"
       },
       {
         "name": "{{ composant.cluster_name }} : TCP check",
@@ -28,7 +28,7 @@
         {% else %}
         "tcp": "{{ ip_service }}:{{ composant.port_tcp }}",
         {% endif %}
-        "interval": "2s"
+        "interval": "{{ composant.consul_check_tcp }}s"
       }
     ]
   }
