@@ -1455,16 +1455,16 @@
       },
       "_computedInheritedRules": {
         "properties": {
+          "NeedAuthorization": {
+            "type": "boolean"
+          },
           "indexationDate": {
             "type": "date",
             "format": "strict_date_optional_time"
           },
-          "GlobalProperties": {
-            "type": "object"
-          },
           "AccessRule": {
             "properties": {
-              "Properties": {
+              "EndDates": {
                 "type": "object"
               },
               "MaxEndDate": {
@@ -1475,7 +1475,7 @@
           },
           "AppraisalRule": {
             "properties": {
-              "Properties": {
+              "EndDates": {
                 "type": "object"
               },
               "MaxEndDate": {
@@ -1486,7 +1486,7 @@
           },
           "DisseminationRule": {
             "properties": {
-              "Properties": {
+              "EndDates": {
                 "type": "object"
               },
               "MaxEndDate": {
@@ -1497,7 +1497,7 @@
           },
           "ReuseRule": {
             "properties": {
-              "Properties": {
+              "EndDates": {
                 "type": "object"
               },
               "MaxEndDate": {
@@ -1508,7 +1508,7 @@
           },
           "StorageRule": {
             "properties": {
-              "Properties": {
+              "EndDates": {
                 "type": "object"
               },
               "MaxEndDate": {
@@ -1519,7 +1519,7 @@
           },
           "ClassificationRule": {
             "properties": {
-              "Properties": {
+              "EndDates": {
                 "type": "object"
               },
               "MaxEndDate": {
