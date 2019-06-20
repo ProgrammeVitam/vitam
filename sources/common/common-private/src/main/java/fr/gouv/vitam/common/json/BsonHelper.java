@@ -26,14 +26,58 @@
  *******************************************************************************/
 package fr.gouv.vitam.common.json;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 public class BsonHelper {
+
+    private static final JsonFactory JSON_FACTORY = new JsonFactory();
+
+    private static final ObjectMapper OBJECT_MAPPER = buildObjectMapper();
+
+    private static final ObjectMapper buildObjectMapper() {
+        final ObjectMapper objectMapper = new ObjectMapper(JSON_FACTORY);
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+
+        objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS); // Serialize all fields
+        objectMapper.disable(SerializationFeature.INDENT_OUTPUT); // Unpretty print
+
+        objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
+        objectMapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS, true);
+        objectMapper.configure(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED, false);
+        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+        objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        objectMapper.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, true);
+        objectMapper.configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true);
+
+        return objectMapper;
+    }
 
     /**
      * Stringify mongo document
+     *
      * @param object
-     * @return
+     * @return Unpretty print object
      */
     public static String stringify(Object object) {
-        return JsonHandler.unprettyPrint(object);
+        try {
+            return OBJECT_MAPPER.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
