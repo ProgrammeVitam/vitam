@@ -2,6 +2,9 @@
 
 consul:
     dns_port: 53
+    retry_interval: 10 # in seconds
+    check_internal: 10 # in seconds
+    check_timeout: 5 # in seconds
 
 consul_remote_sites:
     # wan contains the wan addresses of the consul server instances of the external vitam sites
@@ -19,6 +22,8 @@ elasticsearch:
         groupe: "log"
         baseuri: "elasticsearch-log"
         cluster_name: "elasticsearch-log"
+        consul_check_http: 10 # in seconds
+        consul_check_tcp: 10 # in seconds
         https_enabled: false
         # default index template
         index_templates:
@@ -52,6 +57,8 @@ elasticsearch:
         groupe: "data"
         baseuri: "elasticsearch-data"
         cluster_name: "elasticsearch-data"
+        consul_check_http: 10 # in seconds
+        consul_check_tcp: 10 # in seconds
         https_enabled: false
         # default index template
         index_templates:
@@ -83,12 +90,14 @@ mongodb:
     mongod_port: 27019
     mongo_authentication: "true"
     host: "mongos.service.{{ consul_domain }}"
+    check_consul: 10 # in seconds
 
 logstash:
     host: "logstash.service.{{ consul_domain }}"
     user: logstash
     port: 10514
     rest_port: 20514
+    check_consul: 10 # in seconds
     # logstash xms & xmx in Megabytes
     # jvm_xms: 2048
     # jvm_xmx: 2048
@@ -126,6 +135,7 @@ kibana:
         groupe: "log"
         port: 5601
         default_index_pattern: "logstash-vitam*"
+        check_consul: 10 # in seconds
         # default shards & replica
         shards: 5
         replica: 1
@@ -148,6 +158,7 @@ kibana:
         groupe: "data"
         port: 5601
         default_index_pattern: "logbookoperation_*"
+        check_consul: 10 # in seconds
         # index template for .kibana
         shards: 1
         replica: 1
@@ -159,9 +170,11 @@ syslog:
 cerebro:
     baseuri: "cerebro"
     port: 9000
+    check_consul: 10 # in seconds
 
 siegfried:
     port: 19000
+    consul_check: 10 # in seconds
 
 clamav:
     port: 3310
