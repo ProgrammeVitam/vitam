@@ -27,11 +27,11 @@
 package fr.gouv.vitam.worker.core.handler;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -452,7 +452,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
             new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION_KO)));
-        response.addResult(JsonHandler.getFromString(JSON.serialize(lop)));
+        response.addResult(JsonHandler.getFromString(BsonHelper.stringify(lop)));
         return JsonHandler.toJsonNode(response);
     }
 
@@ -461,7 +461,7 @@ public class TransferNotificationActionHandlerIteratorTest {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
             new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION_OK)));
-        response.addResult(JsonHandler.getFromString(JSON.serialize(lop)));
+        response.addResult(JsonHandler.getFromString(BsonHelper.stringify(lop)));
         return JsonHandler.toJsonNode(response);
     }
 
@@ -470,14 +470,14 @@ public class TransferNotificationActionHandlerIteratorTest {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
             new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_OPERATION_WARNING)));
-        response.addResult(JsonHandler.getFromString(JSON.serialize(lop)));
+        response.addResult(JsonHandler.getFromString(BsonHelper.stringify(lop)));
         return JsonHandler.toJsonNode(response);
     }
 
     private static JsonNode getLogbookLifecycleGOT()
         throws IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            JSON.serialize(new LogbookLifeCycleObjectGroup(
+            BsonHelper.stringify(new LogbookLifeCycleObjectGroup(
                 StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_GOT)))
             ));
     }
@@ -485,7 +485,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     private static JsonNode getLogbookLifecycleAU()
         throws IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            JSON.serialize(
+            BsonHelper.stringify(
                 new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU)))
             ));
     }
@@ -493,7 +493,7 @@ public class TransferNotificationActionHandlerIteratorTest {
     private static JsonNode getLogbookLifecycleAUOK()
         throws IOException, InvalidParseOperationException {
         return JsonHandler.getFromString(
-            JSON.serialize(
+            BsonHelper.stringify(
                 new LogbookLifeCycleUnit(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LOGBOOK_LFC_AU_OK)))
             ));
     }

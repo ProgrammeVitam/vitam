@@ -29,14 +29,13 @@ package fr.gouv.vitam.logbook.lifecycles.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.gouv.vitam.common.json.BsonHelper;
 import org.bson.Document;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Sorts;
-import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -55,7 +54,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
-import fr.gouv.vitam.common.model.logbook.LogbookLifecycle;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleModel;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleObjectGroupParameters;
@@ -402,7 +400,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
                 .limit(limit).iterator()) {
 
             while (lifecycles.hasNext()) {
-                result.add(JsonHandler.getFromString(JSON.serialize(lifecycles.next())));
+                result.add(JsonHandler.getFromString(BsonHelper.stringify(lifecycles.next())));
             }
         }
         return result;
@@ -469,7 +467,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             throw new LogbookNotFoundException("Could not find raw lifecycle by id " + id);
         }
 
-        return JsonHandler.getFromString(JSON.serialize(document));
+        return JsonHandler.getFromString(BsonHelper.stringify(document));
     }
 
     private List<JsonNode> getRawLifecycleByIds(List<String> ids, LogbookCollections collection)
@@ -484,7 +482,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
             List<JsonNode> results = new ArrayList<>();
             while (documents.hasNext()) {
-                results.add(JsonHandler.getFromString(JSON.serialize(documents.next())));
+                results.add(JsonHandler.getFromString(BsonHelper.stringify(documents.next())));
             }
 
             if(results.size() < ids.size()) {

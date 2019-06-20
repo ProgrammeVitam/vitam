@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -72,7 +71,6 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -86,7 +84,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,7 +92,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -373,8 +369,8 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(FileRules.RULETYPE, "AccessRule"))));
         final DbRequestResult fileList =
             mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
-        final FileRules f1 = (FileRules) fileList.getDocuments(FileRules.class).get(0);
-        LOGGER.debug(JSON.serialize(f1));
+        final FileRules f1 = fileList.getDocuments(FileRules.class).get(0);
+        LOGGER.debug(JsonHandler.prettyPrint(f1));
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
         rulesCollection.getEsClient().refreshIndex(rulesCollection);
 

@@ -68,6 +68,7 @@ import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -126,7 +127,6 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDo
 public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements LogbookDbAccess {
     private static final String ITEM_CANNOT_BE_NULL = "Item cannot be null";
     private static final String AT_LEAST_ONE_ITEM_IS_NEEDED = "At least one item is needed";
-    private static final String LOGBOOK_LIFE_CYCLE_NOT_FOUND = "LogbookLifeCycle not found";
     private static final String SELECT_ISSUE = "Select issue";
     private static final String ELEMENT_ALREADY_EXISTS = " (element already exists)";
     private static final String TIMEOUT_OPERATION = " (timeout operation)";
@@ -1170,7 +1170,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             LogbookLifeCycleUnit logbookLifeCycleUnit =
-                new LogbookLifeCycleUnit(JsonHandler.unprettyPrint(logbookLifeCycleUnitInProcess));
+                new LogbookLifeCycleUnit(BsonHelper.stringify(logbookLifeCycleUnitInProcess));
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
             // Update last persisted date
             logbookLifeCycleUnit.append(LAST_PERSISTED_DATE, lastPersistedDate);
@@ -1209,7 +1209,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
         try {
             LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup =
-                new LogbookLifeCycleObjectGroup(JsonHandler.unprettyPrint(logbookLifeCycleObjectGroupInProcess));
+                new LogbookLifeCycleObjectGroup(BsonHelper.stringify(logbookLifeCycleObjectGroupInProcess));
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
             // Update last persisted date
             logbookLifeCycleObjectGroup.append(LAST_PERSISTED_DATE, lastPersistedDate);
@@ -1284,10 +1284,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
             if (LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.equals(inProccessCollection)) {
                 logbookLifeCycleInProcess =
-                    new LogbookLifeCycleUnitInProcess(JsonHandler.unprettyPrint(logbookLifeCycleInProd));
+                    new LogbookLifeCycleUnitInProcess(BsonHelper.stringify(logbookLifeCycleInProd));
             } else if (LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.equals(inProccessCollection)) {
                 logbookLifeCycleInProcess =
-                    new LogbookLifeCycleObjectGroup(JsonHandler.unprettyPrint(logbookLifeCycleInProd));
+                    new LogbookLifeCycleObjectGroup(BsonHelper.stringify(logbookLifeCycleInProd));
             }
 
             if (logbookLifeCycleInProcess == null) {
@@ -1526,7 +1526,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(vitamDocument);
-        final String esJson = JsonHandler.unprettyPrint(vitamDocument);
+        final String esJson = BsonHelper.stringify(vitamDocument);
         vitamDocument.clear();
         mapIdJson.put(id, esJson);
         final BulkResponse bulkResponse = collection.getEsClient().addEntryIndexes(collection, tenantId, mapIdJson);
@@ -1552,7 +1552,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);
         logbookTransformData.transformDataForElastic(existingDocument);
-        final String esJson = JsonHandler.unprettyPrint(existingDocument);
+        final String esJson = BsonHelper.stringify(existingDocument);
         existingDocument.clear();
         final boolean response = collection.getEsClient().updateEntryIndex(collection, tenantId, id, esJson);
         if (!response) {

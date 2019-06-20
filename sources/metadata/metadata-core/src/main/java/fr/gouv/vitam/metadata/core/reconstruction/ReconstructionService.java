@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.iterables.BulkIterator;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -579,7 +580,7 @@ public class ReconstructionService {
                         try {
                             if (model.getLifecycle() != null) {
                                 return JsonHandler
-                                    .getFromString(JsonHandler.unprettyPrint(model.getLifecycle()));
+                                    .getFromString(BsonHelper.stringify(model.getLifecycle()));
                             } else {
                                 throw new VitamRuntimeException("lifecycle should not be null");
                             }

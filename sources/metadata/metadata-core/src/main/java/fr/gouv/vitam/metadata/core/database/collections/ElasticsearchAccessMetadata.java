@@ -37,7 +37,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchUtil;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.VitamException;
-import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
@@ -381,7 +381,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         throws MetaDataExecutionException {
         try {
             doc.remove(VitamDocument.ID);
-            final String document = JsonHandler.unprettyPrint(doc);
+            final String document = BsonHelper.stringify(doc);
             IndexResponse indexResponse = getClient().prepareIndex(getAliasName(collection, tenantId),
                 VitamCollection.getTypeunique(), id)
                 .setSource(document, XContentType.JSON)
@@ -404,7 +404,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         documents.forEach(document -> {
             String id = (String) document.remove(VitamDocument.ID);
             try {
-                String source = JsonHandler.unprettyPrint(document);
+                String source = BsonHelper.stringify(document);
                 bulkRequestBuilder
                     .add(getClient().prepareIndex(getAliasName(collection, tenantId), VitamCollection.TYPEUNIQUE, id)
                         .setSource(source, XContentType.JSON));
@@ -438,7 +438,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         throws MetaDataExecutionException {
         try {
             doc.remove(VitamDocument.ID);
-            final String toUpdate = JsonHandler.unprettyPrint(doc);
+            final String toUpdate = BsonHelper.stringify(doc);
             UpdateResponse response = getClient().prepareUpdate(getAliasName(collection, tenantId),
                 VitamCollection.getTypeunique(), id)
                 .setDoc(toUpdate, XContentType.JSON)

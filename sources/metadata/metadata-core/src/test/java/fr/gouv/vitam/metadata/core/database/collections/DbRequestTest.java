@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.mongodb.client.model.Filters;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
@@ -60,6 +59,7 @@ import fr.gouv.vitam.common.exception.SchemaValidationException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -851,7 +851,7 @@ public class DbRequestTest {
                 archiveUnitProfileLoader);
 
         // Then
-        ObjectNode expectedUnit = (ObjectNode) JsonHandler.getFromString(JSON.serialize(initialUnit));
+        ObjectNode expectedUnit = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(initialUnit));
         expectedUnit.put("Title", "New Title");
         expectedUnit.putArray("Flag").add(false);
         expectedUnit.putArray("Number").add(12);
@@ -860,9 +860,9 @@ public class DbRequestTest {
 
         String expected = JsonHandler.unprettyPrint(expectedUnit);
 
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
-        JsonAssert.assertJsonEquals(JSON.serialize(initialUnit),
+        JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
             JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
@@ -922,8 +922,8 @@ public class DbRequestTest {
                 archiveUnitProfileLoader)
         ).isInstanceOf(ArchiveUnitOntologyValidationException.class);
 
-        String expected = JSON.serialize(initialUnit);
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String expected = BsonHelper.stringify(initialUnit);
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -971,8 +971,8 @@ public class DbRequestTest {
                 archiveUnitProfileLoader)
         ).isInstanceOf(MetaDataExecutionException.class);
 
-        String expected = JSON.serialize(initialUnit);
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String expected = BsonHelper.stringify(initialUnit);
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -1015,8 +1015,8 @@ public class DbRequestTest {
                 archiveUnitProfileLoader)
         ).isInstanceOf(MetaDataExecutionException.class);
 
-        String expected = JSON.serialize(initialUnit);
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String expected = BsonHelper.stringify(initialUnit);
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2363,11 +2363,11 @@ public class DbRequestTest {
         final Unit expectedUnit = new Unit(
             JsonHandler.getFromFile(PropertiesUtils.getResourceFile("unitRulesAfterUpdate.json")));
 
-        String expected = JsonHandler.unprettyPrint(expectedUnit);
+        String expected = BsonHelper.stringify(expectedUnit);
 
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
-        JsonAssert.assertJsonEquals(JSON.serialize(initialUnit),
+        JsonAssert.assertJsonEquals(BsonHelper.stringify(initialUnit),
             JsonHandler.unprettyPrint(updatedDocument.getBeforeUpdate()));
         JsonAssert.assertJsonEquals(expected, JsonHandler.unprettyPrint(updatedDocument.getAfterUpdate()));
         assertThat(updatedDocument.getDocumentId()).isEqualTo(uuid);
@@ -2434,9 +2434,9 @@ public class DbRequestTest {
             .isInstanceOf(ArchiveUnitOntologyValidationException.class);
 
         // Then
-        String expected = JsonHandler.unprettyPrint(initialUnit);
+        String expected = BsonHelper.stringify(initialUnit);
 
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2497,9 +2497,9 @@ public class DbRequestTest {
             .isInstanceOf(SchemaValidationException.class);
 
         // Then
-        String expected = JsonHandler.unprettyPrint(initialUnit);
+        String expected = BsonHelper.stringify(initialUnit);
 
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 
@@ -2542,9 +2542,9 @@ public class DbRequestTest {
             .isInstanceOf(SchemaValidationException.class);
 
         // Then
-        String expected = JsonHandler.unprettyPrint(initialUnit);
+        String expected = BsonHelper.stringify(initialUnit);
 
-        String after = JSON.serialize(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
+        String after = JsonHandler.unprettyPrint(MetadataCollections.UNIT.getCollection().find(Filters.eq("_id", uuid)).first());
         JsonAssert.assertJsonEquals(expected, after);
     }
 

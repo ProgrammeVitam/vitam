@@ -36,9 +36,9 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -49,7 +49,6 @@ import org.bson.Document;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.client.Client;
-import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentType;
 
 import java.io.FileNotFoundException;
@@ -111,7 +110,7 @@ public class MetadataRepository {
         }
 
         try {
-            return Optional.of(this.objectMapper.readValue(JSON.serialize(first), UnitModel.class));
+            return Optional.of(this.objectMapper.readValue(BsonHelper.stringify(first), UnitModel.class));
         } catch (final IOException | IllegalArgumentException e) {
             throw new RuntimeException(e);
         }
@@ -214,7 +213,7 @@ public class MetadataRepository {
 
         documents.forEach(document -> {
             String id = (String) document.remove("_id");
-            String source = JSON.serialize(document);
+            String source = BsonHelper.stringify(document);
             bulkRequestBuilder
                 .add(transportClient.prepareIndex(vitamDataType.getIndexName(tenant), VitamCollection.TYPEUNIQUE, id)
                     .setSource(source, XContentType.JSON));
@@ -276,7 +275,7 @@ public class MetadataRepository {
             Filters.in("_id", ids)
         ).forEach((Consumer<? super Document>) i -> {
             try {
-                result.put(i.getString("_id"), JsonHandler.getFromString(JSON.serialize(i)) );
+                result.put(i.getString("_id"), JsonHandler.getFromString(BsonHelper.stringify(i)) );
             } catch (InvalidParseOperationException e) {
                 throw new RuntimeException("Could not deserialize json", e);
             }

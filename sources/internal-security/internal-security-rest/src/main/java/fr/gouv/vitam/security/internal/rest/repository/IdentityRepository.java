@@ -29,9 +29,9 @@ package fr.gouv.vitam.security.internal.rest.repository;
 import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.server.mongodb.MongoDbAccess;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.security.internal.common.model.CertificateBaseModel;
 import fr.gouv.vitam.security.internal.common.model.CertificateStatus;
@@ -39,7 +39,6 @@ import fr.gouv.vitam.security.internal.common.model.IdentityModel;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 
@@ -95,7 +94,7 @@ public class IdentityRepository implements CertificateCRLCheckStateUpdater<Ident
         if (first == null) {
             return Optional.empty();
         }
-        return Optional.of(JsonHandler.getFromString(JSON.serialize(first), IdentityModel.class));
+        return Optional.of(JsonHandler.getFromString(BsonHelper.stringify(first), IdentityModel.class));
     }
 
     /**

@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -312,7 +313,7 @@ public class DbRequestSingle {
             String id = document.getString(VitamDocument.ID);
             document.remove(VitamDocument.ID);
             document.remove(VitamDocument.SCORE);
-            final String esJson = JsonHandler.unprettyPrint(document);
+            final String esJson = BsonHelper.stringify(document);
             document.clear();
             mapIdJson.put(id, esJson);
             if (max == 0) {

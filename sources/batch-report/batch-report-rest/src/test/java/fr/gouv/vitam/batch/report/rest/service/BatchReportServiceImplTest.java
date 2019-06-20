@@ -48,6 +48,7 @@ import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
 import fr.gouv.vitam.functional.administration.common.BackupService;
@@ -296,7 +297,7 @@ public class BatchReportServiceImplTest {
         String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
             + "\n" + JsonHandler.unprettyPrint(reportSummary)
             + "\n" + JsonHandler.unprettyPrint(context)
-            + "\n" + JsonHandler.unprettyPrint(preservationData);
+            + "\n" + BsonHelper.stringify(preservationData);
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
@@ -342,7 +343,7 @@ public class BatchReportServiceImplTest {
         String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
             + "\n" + JsonHandler.unprettyPrint(reportSummary)
             + "\n" + JsonHandler.unprettyPrint(context)
-            + "\n" + JsonHandler.unprettyPrint(auditData);
+            + "\n" + BsonHelper.stringify(auditData);
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
@@ -387,8 +388,8 @@ public class BatchReportServiceImplTest {
         String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
             + "\n" + JsonHandler.unprettyPrint(reportSummary)
             + "\n" + JsonHandler.unprettyPrint(context)
-            + "\n" + JsonHandler.unprettyPrint(unitData)
-            + "\n" + JsonHandler.unprettyPrint(objectGroupData);
+            + "\n" + BsonHelper.stringify(unitData)
+            + "\n" + BsonHelper.stringify(objectGroupData);
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }

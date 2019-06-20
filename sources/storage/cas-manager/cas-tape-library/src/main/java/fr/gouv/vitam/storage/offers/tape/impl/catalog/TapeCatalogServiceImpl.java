@@ -26,11 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.impl.catalog;
 
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.database.server.query.QueryCriteriaOperator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -338,6 +338,6 @@ public class TapeCatalogServiceImpl implements TapeCatalogService {
 
     private <T> T fromBson(Document document, Class<T> clazz)
         throws InvalidParseOperationException {
-        return JsonHandler.getFromString(JSON.serialize(document), clazz);
+        return JsonHandler.getFromString(BsonHelper.stringify(document), clazz);
     }
 }

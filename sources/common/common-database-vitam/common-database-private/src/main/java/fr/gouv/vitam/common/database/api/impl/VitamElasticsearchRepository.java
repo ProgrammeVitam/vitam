@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.iterables.BulkIterator;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -119,7 +120,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
         String id = (String) internalDocument.remove(VitamDocument.ID);
         Object score = internalDocument.remove(VitamDocument.SCORE);
         try {
-            final String source = JsonHandler.unprettyPrint(internalDocument);
+            final String source = BsonHelper.stringify(internalDocument);
 
             String index = indexName;
             if (indexByTenant) {
@@ -161,7 +162,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
             String id = (String) internalDocument.remove(VitamDocument.ID);
             internalDocument.remove(VitamDocument.SCORE);
 
-            final String source = JsonHandler.unprettyPrint(internalDocument);
+            final String source = BsonHelper.stringify(internalDocument);
 
             String index = indexName;
             if (indexByTenant) {
@@ -208,7 +209,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
                 index = index + "_" + tenantId;
             }
 
-            final String esJson = JsonHandler.unprettyPrint(vitamDocument);
+            final String esJson = BsonHelper.stringify(vitamDocument);
             vitamDocument.clear();
 
             bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
@@ -249,7 +250,7 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
             transformDataForElastic(vitamDocument);
 
-            final String esJson = JsonHandler.unprettyPrint(vitamDocument);
+            final String esJson = BsonHelper.stringify(vitamDocument);
             vitamDocument.clear();
 
             bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)

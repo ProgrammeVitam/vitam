@@ -67,34 +67,47 @@ public class MongoUpgradeTest {
         final String extended = fakeObjet.toJson(writerSettingsExtended);
         final String strict = fakeObjet.toJson(writerSettingsStrict);
 
+        // RELAXED Mode
         JsonNode relaxedJson = JsonHandler.getFromString(relaxed);
         InputStream in = CanonicalJsonFormatter.serialize(relaxedJson);
         String str = StringUtils.getStringFromInputStream(in);
         Assertions.assertThat(str).isEqualTo(
             "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":\"1982-10-19T23:00:00Z\"},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
 
+        // ToJson
+        in = CanonicalJsonFormatter.serialize(JsonHandler.getFromString(fakeObjet.toJson()));
+        str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":403916400000},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
+
+        // Jackson
         in = CanonicalJsonFormatter.serialize(JsonHandler.toJsonNode(fakeObjet));
         str = StringUtils.getStringFromInputStream(in);
         Assertions.assertThat(str).isEqualTo(
             "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":\"1982-10-19T23:00:00.000+0000\",\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.2,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
 
+        // STRICT Mode
         JsonNode strictJson = JsonHandler.getFromString(strict);
         in = CanonicalJsonFormatter.serialize(strictJson);
         str = StringUtils.getStringFromInputStream(in);
         Assertions.assertThat(str).isEqualTo(
             "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":403916400000},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
 
+        // Extended Mode
         JsonNode extendedJson = JsonHandler.getFromString(extended);
         in = CanonicalJsonFormatter.serialize(extendedJson);
         str = StringUtils.getStringFromInputStream(in);
         Assertions.assertThat(str).isEqualTo(
             "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":{\"$numberLong\":\"403916400000\"}},\"doubleVal\":{\"$numberDouble\":\"-2.2\"},\"doubleVal1\":{\"$numberDouble\":\"-2000000.2\"},\"floatVal\":{\"$numberDouble\":\"2.200000047683716\"},\"intVal\":{\"$numberInt\":\"-2\"},\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
 
+        // Legacy Mode
         JsonNode legacyJson = JsonHandler.getFromString(serialize);
         in = CanonicalJsonFormatter.serialize(legacyJson);
         str = StringUtils.getStringFromInputStream(in);
         Assertions.assertThat(str).isEqualTo(
             "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":\"1982-10-19T23:00:00.000Z\"},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.2,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
+
+
     }
 
 

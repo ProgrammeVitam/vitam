@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.rest.AccessInternalResourceImpl;
 import fr.gouv.vitam.common.DataLoader;
@@ -1286,7 +1285,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
-            ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
+            ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JsonHandler.unprettyPrint(document));
 
             // Replace _glpd with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();

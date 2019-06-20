@@ -37,27 +37,23 @@ import java.util.Optional;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
-import com.mongodb.client.model.InsertOneOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageEntity;
 import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.QueueState;
-import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.spec.QueueRepository;
-import fr.gouv.vitam.storage.offers.tape.worker.TapeDriveWorkerManager;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -233,7 +229,7 @@ public class QueueRepositoryImpl implements QueueRepository {
         }
 
         try {
-            return Optional.of(JsonHandler.getFromString(JSON.serialize(sequence), (Class<T>) messageType.getClazz()));
+            return Optional.of(JsonHandler.getFromString(BsonHelper.stringify(sequence), (Class<T>) messageType.getClazz()));
         } catch (InvalidParseOperationException e) {
             throw new QueueException(e);
         }

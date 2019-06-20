@@ -35,8 +35,8 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.InsertOneModel;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -172,7 +172,7 @@ public class LogbookRepository {
             Filters.in("_id", ids)
         ).forEach((Consumer<? super Document>) i -> {
             try {
-                result.put(i.getString("_id"), JsonHandler.getFromString(JSON.serialize(i)) );
+                result.put(i.getString("_id"), JsonHandler.getFromString(BsonHelper.stringify(i)) );
             } catch (InvalidParseOperationException e) {
                 throw new RuntimeException("Could not deserialize json", e);
             }

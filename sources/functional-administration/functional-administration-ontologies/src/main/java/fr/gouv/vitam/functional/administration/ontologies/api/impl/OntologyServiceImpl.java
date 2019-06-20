@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -59,6 +58,7 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamErrorMessages;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -111,7 +111,6 @@ import static fr.gouv.vitam.functional.administration.common.ReportConstants.EV_
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.JDO_DISPLAY;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.MESSAGE;
 import static fr.gouv.vitam.functional.administration.common.ReportConstants.OUT_MESSG;
-import static fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections.FORMATS;
 
 /**
  * The implementation of the Ontology CRUD service
@@ -476,7 +475,7 @@ public class OntologyServiceImpl implements OntologyService {
         FindIterable<Document> documents = FunctionalAdminCollections.ONTOLOGY.getCollection().find();
         MongoCursor<Document> it = documents.iterator();
         while (it.hasNext()) {
-            response.addResult(JsonHandler.getFromString(JSON.serialize(it.next()), OntologyModel.class));
+            response.addResult(JsonHandler.getFromString(BsonHelper.stringify(it.next()), OntologyModel.class));
         }
 
         return response;

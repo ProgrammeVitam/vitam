@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.gouv.vitam.common.json.BsonHelper;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -50,7 +51,6 @@ import org.junit.Test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.util.JSON;
 
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -180,7 +180,7 @@ public class LogbookMongoDbAccessTest {
 
         final LogbookOperation operation = new LogbookOperation(parameters);
         final LogbookOperation operation1 = new LogbookOperation(parameters, true);
-        final LogbookOperation operation2 = new LogbookOperation(JSON.serialize(operation));
+        final LogbookOperation operation2 = new LogbookOperation(BsonHelper.stringify(operation));
         final LogbookOperation operation3 = new LogbookOperation(parameters, false);
         assertEquals(operation.getId(), operation2.getId());
         assertEquals(operation.getTenantId(), operation2.getTenantId());
@@ -204,10 +204,10 @@ public class LogbookMongoDbAccessTest {
 
         assertTrue(LogbookOperation.getIdName().equals(LogbookMongoDbName.eventIdentifierProcess));
         assertTrue(LogbookOperation.getIdParameterName().equals(LogbookParameterName.eventIdentifierProcess));
-        final LogbookLifeCycleObjectGroup lifeCycleObjectGroup = new LogbookLifeCycleObjectGroup(JSON.serialize(operation));
+        final LogbookLifeCycleObjectGroup lifeCycleObjectGroup = new LogbookLifeCycleObjectGroup(BsonHelper.stringify(operation));
         assertTrue(LogbookLifeCycle.getIdName().equals(LogbookMongoDbName.objectIdentifier));
         assertTrue(LogbookLifeCycle.getIdParameterName().equals(LogbookParameterName.objectIdentifier));
-        final LogbookLifeCycleUnit lifeCycleUnit = new LogbookLifeCycleUnit(JSON.serialize(operation));
+        final LogbookLifeCycleUnit lifeCycleUnit = new LogbookLifeCycleUnit(BsonHelper.stringify(operation));
         assertTrue(LogbookLifeCycle.getIdName().equals(LogbookMongoDbName.objectIdentifier));
         assertTrue(LogbookLifeCycle.getIdParameterName().equals(LogbookParameterName.objectIdentifier));
 

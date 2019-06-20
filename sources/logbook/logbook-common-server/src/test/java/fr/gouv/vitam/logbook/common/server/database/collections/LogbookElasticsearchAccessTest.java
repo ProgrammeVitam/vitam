@@ -27,8 +27,6 @@
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
 import com.google.common.collect.Lists;
-import com.mongodb.DBObject;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -36,6 +34,7 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.mongo.MongoRule;
@@ -144,7 +143,7 @@ public class LogbookElasticsearchAccessTest {
         Map<String, String> mapIdJson = new HashMap<>();
         String id = operationForCreation.getId();
         operationForCreation.remove(VitamDocument.ID);
-        final String esJson = JsonHandler.unprettyPrint(operationForCreation);
+        final String esJson = BsonHelper.stringify(operationForCreation);
         operationForCreation.clear();
         mapIdJson.put(id, esJson);
         BulkResponse response = esClient.addEntryIndexes(LogbookCollections.OPERATION, tenantId, mapIdJson);
@@ -169,13 +168,12 @@ public class LogbookElasticsearchAccessTest {
             // add update as event
             ArrayList<Document> events = (ArrayList<Document>) created.get(LogbookDocument.EVENTS);
             if (events == null) {
-                events = new ArrayList<Document>();
+                events = new ArrayList<>();
             }
             events.add(new LogbookOperation(parametersForUpdate, true));
             created.put(LogbookDocument.EVENTS, events);
             String idUpdate = id;
-            String mongoJsonUpdate = JsonHandler.unprettyPrint(created);
-            final String esJsonUpdate = ((DBObject) com.mongodb.util.JSON.parse(mongoJsonUpdate)).toString();
+            String esJsonUpdate = JsonHandler.unprettyPrint(created);
             esClient.updateEntryIndex(LogbookCollections.OPERATION, tenantId, idUpdate, esJsonUpdate);
 
         }

@@ -34,9 +34,9 @@ import com.mongodb.client.model.FindOneAndReplaceOptions;
 import com.mongodb.client.model.UpdateOptions;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.DeleteResult;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.TapeObjectReferentialEntity;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryObjectReferentialId;
@@ -95,7 +95,7 @@ public class ObjectReferentialRepository {
         try {
             return Optional.of(fromBson(document, TapeObjectReferentialEntity.class));
         } catch (InvalidParseOperationException e) {
-            throw new IllegalStateException("Could not parse document from DB " + JSON.serialize(document), e);
+            throw new IllegalStateException("Could not parse document from DB " + BsonHelper.stringify(document), e);
         }
     }
 
@@ -114,7 +114,7 @@ public class ObjectReferentialRepository {
                 try {
                     result.add(fromBson(document, TapeObjectReferentialEntity.class));
                 } catch (InvalidParseOperationException e) {
-                    throw new IllegalStateException("Could not parse documents from DB " + JSON.serialize(document), e);
+                    throw new IllegalStateException("Could not parse documents from DB " + BsonHelper.stringify(document), e);
                 }
             }
             return result;
@@ -172,6 +172,6 @@ public class ObjectReferentialRepository {
 
     private <T> T fromBson(Document document, Class<T> clazz)
         throws InvalidParseOperationException {
-        return JsonHandler.getFromString(JSON.serialize(document), clazz);
+        return JsonHandler.getFromString(BsonHelper.stringify(document), clazz);
     }
 }

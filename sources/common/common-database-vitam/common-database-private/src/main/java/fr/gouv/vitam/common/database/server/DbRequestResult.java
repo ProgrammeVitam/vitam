@@ -34,11 +34,11 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCursor;
 
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -226,7 +226,7 @@ public class DbRequestResult implements VitamAutoCloseable {
                     documents.add(doc);
                     filterFinalResponse(doc);
 
-                    newList.add(JsonHandler.getFromString(JSON.serialize(doc), clsFromJson));
+                    newList.add(JsonHandler.getFromString(BsonHelper.stringify(doc), clsFromJson));
 
                 }
                 cursor.close();
@@ -237,7 +237,7 @@ public class DbRequestResult implements VitamAutoCloseable {
         }
         final List<V> newList = new ArrayList<>();
         for (final VitamDocument<?> doc : documents) {
-            newList.add(JsonHandler.getFromString(JSON.serialize(doc), clsFromJson));
+            newList.add(JsonHandler.getFromString(BsonHelper.stringify(doc), clsFromJson));
         }
 
         return newList;

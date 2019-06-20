@@ -304,7 +304,7 @@ public class AccessionRegisterMigrationServiceTest {
             .sort(Sorts.orderBy(ascending("_id")));
 
         for (T document : documents) {
-            ObjectNode json = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
+            ObjectNode json = (ObjectNode) JsonHandler.getFromString(JsonHandler.unprettyPrint(document));
             dataSet.add(json);
         }
 
