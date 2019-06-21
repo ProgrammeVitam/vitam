@@ -96,10 +96,9 @@
         <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <resteasy.client.version>3.6.2.Final</resteasy.client.version>
-        <jclouds.version>2.1.1</jclouds.version>
+        <jclouds.version>2.1.2</jclouds.version>
         <javax.ws.rs.version>2.1.1</javax.ws.rs.version>
-        <jclouds-ceph.version>2.1.2</jclouds-ceph.version>
-        <openstack4j.version>3.1.0</openstack4j.version>
+        <openstack4j.version>3.2.0</openstack4j.version>
         <awssdk.v1.version>1.11.488</awssdk.v1.version>
         <thaiopensource.version>20091111</thaiopensource.version>
         <guava.version>27.0.1-jre</guava.version>
@@ -912,7 +911,7 @@
             <dependency>
                 <groupId>org.apache.jclouds.api</groupId>
                 <artifactId>openstack-swift</artifactId>
-                <version>${jclouds-ceph.version}</version>
+                <version>${jclouds.version}</version>
             </dependency>
             <dependency>
                 <groupId>javax.ws.rs</groupId>
