@@ -20,13 +20,16 @@ else
     ANSIBLE_VAULT_PKI_PASSWD="--ask-vault-pass"
 fi
 
+# Check if gawk is present
+hash gawk
+
 function read_ansible_var {
     local ANSIBLE_VAR="${1}"
     local ANSIBLE_HOST="${2}"
 
     ANSIBLE_CONFIG="${REPERTOIRE_ROOT}/pki/scripts/lib/ansible.cfg" \
     ansible ${ANSIBLE_HOST} -i ${ENVIRONNEMENT_FILE} ${ANSIBLE_VAULT_PASSWD} -m debug -a "var=${ANSIBLE_VAR}" \
-    | grep "${ANSIBLE_VAR}" | awk -F ":" '{gsub("\\s","",$2); print $2}'
+    | grep "${ANSIBLE_VAR}" | gawk -F ":" '{gsub("\\s","",$2); print $2}'
 }
 
 # Delete useless files
@@ -174,7 +177,7 @@ function parse_yaml {
     local s='[[:space:]]*' w='[a-zA-Z0-9_]*' fs=$(echo @|tr @ '\034')
     sed -ne "s|^\($s\)\($w\)$s:$s\"\(.*\)\"$s\$|\1$fs\2$fs\3|p" \
         -e "s|^\($s\)\($w\)$s:$s\(.*\)$s\$|\1$fs\2$fs\3|p"  $1 |
-    awk -F$fs '{
+    gawk -F$fs '{
         indent = length($1)/2;
         vname[indent] = $2;
         for (i in vname) {if (i > indent) {delete vname[i]}}
