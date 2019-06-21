@@ -30,6 +30,8 @@ elasticsearch:
             default:
                 shards: 1
                 replica: 1
+            packetbeat:
+                shards: 5
         log_appenders:
             root:
                 log_level: "info"
