@@ -127,8 +127,23 @@
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
 
-- name: Checkout the branch
-  shell: "git checkout {{ vitam_tests_branch }} && git reset --hard origin/{{ vitam_tests_branch }}"
+- name: Checkout
+  shell: "git checkout {{ vitam_tests_branch }}"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
+
+- name: Check if branch
+  shell: "git show-ref --verify refs/remotes/origin/{{ vitam_tests_branch }}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+  register: is_git_branch
+  ignore_errors: true
+
+- name: Pull branch
+  shell: "git reset --hard origin/{{ vitam_tests_branch }}"
+  become_user: "{{ vitam_defaults.users.vitam }}"
+  args:
+    chdir: /vitam/data/ihm-recette/test-data/system/
+  when: is_git_branch.rc == 0
