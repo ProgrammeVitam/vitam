@@ -153,3 +153,5 @@ RUN  chmod a+x /usr/bin/vitam-*
 RUN echo "vm.max_map_count = 262144" >> /etc/sysctl.conf
 
 COPY deb/vitam-build-griffins /usr/bin
+
+RUN apt-get install -y gawk
