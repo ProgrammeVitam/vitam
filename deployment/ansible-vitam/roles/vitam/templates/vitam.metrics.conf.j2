@@ -20,7 +20,7 @@
 #  	- 0.0.0.0:80
 #  	- 8.8.8.8:22
 
-{% if (groups['hosts-logstash'] | length) > 0  %}
+{% if (groups['hosts-elasticsearch-log'] | length) > 0  %}
 metricsJersey: true
 metricsJVM: true
 
