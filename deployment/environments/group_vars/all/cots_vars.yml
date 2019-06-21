@@ -24,6 +24,7 @@ elasticsearch:
         cluster_name: "elasticsearch-log"
         consul_check_http: 10 # in seconds
         consul_check_tcp: 10 # in seconds
+        action_log_level: error
         https_enabled: false
         # default index template
         index_templates:
@@ -59,6 +60,7 @@ elasticsearch:
         cluster_name: "elasticsearch-data"
         consul_check_http: 10 # in seconds
         consul_check_tcp: 10 # in seconds
+        action_log_level: debug
         https_enabled: false
         # default index template
         index_templates:
