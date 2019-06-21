@@ -36,38 +36,20 @@
     owner: root
     mode: 0644
 
-- name: Fetch the packetbeat template file
-  fetch:
-    src: '/etc/packetbeat/packetbeat.template.json'
-    dest: '/tmp/packetbeat/'
-    flat: yes
-
-- name: create packetbeat index
+- name: import dashboards
+  shell:  /usr/bin/packetbeat setup --dashboards
+  run_once: true
   when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-  uri:
-    url: '{{elasticsearch.log|client_url }}_template/packetbeat'
-    method: PUT
-    body: "{{ lookup('file', '/tmp/packetbeat/packetbeat.template.json') }}"
-    body_format: json
-    status_code: 200,201
+  delegate_to: "{{groups['hosts-kibana-log'][0]}}"
+  retries: 5
+  delay: 30
+  register: result
+  until: result.rc == 0
+  notify:
+    - restart kibana
 
-- name: Erase temporary packetbeat template file
-  file:
-   path: '/tmp/packetbeat'
-   state: absent
-
-- name: load kibana dashboards to .kibana elasticsearch index
-  when: "{{ (groups['hosts-kibana-log'] | length) > 0}}"
-  uri:
-    url: '{{elasticsearch.log|client_url }}.kibana/{{item.split(".")[0] }}'
-    method: PUT
-    body: "{{ lookup('file', '{{ item }}') }}"
-    body_format: json
-    status_code: 200, 201
-  with_lines: find {{ role_path }}/files/ -name '*.json' -type f | awk -F '/' '{print $(NF-1)"/"$NF}'
-
-- name: add Packetbeat autostart at boot
+- name: restart packetbeat
   service:
     name: packetbeat
-    enabled: yes
-    state: started
+    state: restarted
+    enabled: true

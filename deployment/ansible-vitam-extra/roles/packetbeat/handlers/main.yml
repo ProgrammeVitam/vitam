@@ -1,0 +1,7 @@
+---
+# handlers file for topbeat
+- name: restart kibana
+  service:
+    name: kibana
+    state: restarted
+  delegate_to: "{{groups['hosts-kibana-log'][0]}}"
