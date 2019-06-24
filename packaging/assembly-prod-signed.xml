@@ -20,6 +20,7 @@
             <outputDirectory>rpm_signed/vitam-product</outputDirectory>
             <excludes>
                 <exclude>**/*ihm-recette-*.rpm</exclude>
+                <exclude>**/*elastic-kibana-interceptor*.rpm</exclude>
             </excludes>
         </fileSet>
         <fileSet>

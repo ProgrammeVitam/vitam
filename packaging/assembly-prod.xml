@@ -13,6 +13,7 @@
             <excludes>
                 <exclude>**/metricbeat-*.rpm</exclude>
                 <exclude>**/packetbeat-*.rpm</exclude>
+                <exclude>**/*elastic-kibana-interceptor*.rpm</exclude>
                 <exclude>**/repodata/**</exclude>
             </excludes>
         </fileSet>
@@ -50,6 +51,7 @@
             <excludes>
                 <exclude>**/vitam-gatling-*.deb</exclude>
                 <exclude>**/*ihm-recette*.deb</exclude>
+                <exclude>**/*elastic-kibana-interceptor*.deb</exclude>
                 <exclude>**/Packages</exclude>
                 <exclude>**/Packages.gz</exclude>
             </excludes>
