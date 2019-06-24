@@ -366,7 +366,7 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
-        assertEquals(1, collection.count());
+        assertEquals(1, collection.countDocuments());
 
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "testFindAccessionRegisterDetailAgency"));
@@ -390,7 +390,7 @@ public class ReferentialAccessionRegisterImplTest {
         accessionRegisterImpl.createOrUpdateAccessionRegister(register);
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName());
-        assertEquals(1, collection.count());
+        assertEquals(1, collection.countDocuments());
         final Select select = new Select();
         select.setQuery(eq("OriginatingAgency", "OG_1"));
         final RequestResponseOK<AccessionRegisterSummary> summary =

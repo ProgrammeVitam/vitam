@@ -2837,10 +2837,10 @@ public class ProcessingIT extends VitamRuleRunner {
 
 
         // Check global accession register count
-        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
+        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments();
         assertThat(countDetails).isEqualTo(3);
 
-        countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count();
+        countSummary = FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments();
         assertThat(countSummary).isEqualTo(2);
     }
 
@@ -3295,7 +3295,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
         assertEquals(StatusCode.OK, processWorkflow.getStatus());
 
-        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(1l);
+        assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(1l);
         ObjectGroup got =
             (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
         assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(1);
@@ -3331,7 +3331,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow2.getSteps());
 
         // Check fix bug_5178 bug_5117
-        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(1l);
+        assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(1l);
         got = (ObjectGroup) MetadataCollections.OBJECTGROUP.getCollection().find(ObjectGroup.class).iterator().next();
         assertThat(got.get(ObjectGroup.OPS, List.class)).hasSize(2);
         assertThat(got.get(ObjectGroup.QUALIFIERS, List.class)).hasSize(2);

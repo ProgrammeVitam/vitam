@@ -318,7 +318,7 @@ public enum FunctionalAdminCollections {
      */
 
     public long getCount() {
-        return vitamCollection.getCollection().count();
+        return vitamCollection.getCollection().countDocuments();
     }
 
     /**

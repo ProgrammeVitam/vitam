@@ -6,11 +6,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.collections.VitamCollection;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -231,7 +231,7 @@ public class DataMigrationServiceTest {
             .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
-            ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
+            ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(document));
 
             // Replace _glpd with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();

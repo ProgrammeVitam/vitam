@@ -29,12 +29,12 @@ package fr.gouv.vitam.worker.core.plugin.lfc_traceability;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Lists;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.DatabaseCursor;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -267,7 +267,7 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
         final LogbookOperation lop =
             new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LAST_OPERATION)));
-        response.addResult(JsonHandler.getFromString(JSON.serialize(lop)));
+        response.addResult(JsonHandler.getFromString(BsonHelper.stringify(lop)));
         return JsonHandler.toJsonNode(response);
     }
 

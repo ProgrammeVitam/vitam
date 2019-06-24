@@ -113,7 +113,7 @@ public class VitamCollectionTest {
         String guid = GUIDFactory.newGUID().toString();
         final CollectionSample test = new CollectionSample(new Document("_id", guid));
         collection.insertOne(test);
-        assertEquals(1, collection.count());
+        assertEquals(1, collection.countDocuments());
         MongoCursor<CollectionSample> iterable = collection.find().iterator();
         assertTrue(iterable.hasNext());
         CollectionSample sample = iterable.next();

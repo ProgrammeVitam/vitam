@@ -27,10 +27,8 @@
 package fr.gouv.vitam.common.database.api.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.DBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.WriteModel;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepository;
@@ -40,14 +38,13 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.iterables.BulkIterator;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.delete.DeleteResponse;
@@ -68,6 +65,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
@@ -118,32 +116,38 @@ public class VitamElasticsearchRepository implements VitamRepository {
     public VitamRepositoryStatus saveOrUpdate(Document document) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, document);
         Document internalDocument = new Document(document);
-        String id = internalDocument.getString(VitamDocument.ID);
         Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
-        internalDocument.remove(VitamDocument.ID);
-        internalDocument.remove(VitamDocument.SCORE);
-        final String source = internalDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+        String id = (String) internalDocument.remove(VitamDocument.ID);
+        Object score = internalDocument.remove(VitamDocument.SCORE);
+        try {
+            final String source = BsonHelper.stringify(internalDocument);
 
-        String index = indexName;
-        if (indexByTenant) {
-            index = index + "_" + tenant;
-        }
+            String index = indexName;
+            if (indexByTenant) {
+                index = index + "_" + tenant;
+            }
 
-        IndexResponse response = client.prepareIndex(index, VitamCollection.getTypeunique(), id)
-            .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
-            .setSource(source, XContentType.JSON).get();
+            IndexResponse response = client.prepareIndex(index, VitamCollection.getTypeunique(), id)
+                .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
+                .setSource(source, XContentType.JSON).get();
 
-        RestStatus status = response.status();
+            RestStatus status = response.status();
 
-        switch (status) {
-            case OK:
-                return VitamRepositoryStatus.UPDATED;
-            case CREATED:
-                return VitamRepositoryStatus.CREATED;
-            default:
-                String result = response.getResult().getLowercase();
-                LOGGER.error(String.format("Insert Documents Exception caused by : %s", result));
-                throw new DatabaseException("Insert Document Exception: " + result);
+            switch (status) {
+                case OK:
+                    return VitamRepositoryStatus.UPDATED;
+                case CREATED:
+                    return VitamRepositoryStatus.CREATED;
+                default:
+                    String result = response.getResult().getLowercase();
+                    LOGGER.error(String.format("Insert Documents Exception caused by : %s", result));
+                    throw new DatabaseException("Insert Document Exception: " + result);
+            }
+        } finally {
+            internalDocument.put(VitamDocument.ID, id);
+            if (Objects.nonNull(score)) {
+                internalDocument.put(VitamDocument.SCORE, score);
+            }
         }
     }
 
@@ -154,14 +158,11 @@ public class VitamElasticsearchRepository implements VitamRepository {
 
         documents.forEach(document -> {
             Document internalDocument = new Document(document);
-            String id = internalDocument.getString(VitamDocument.ID);
             Integer tenant = internalDocument.getInteger(VitamDocument.TENANT_ID);
-            internalDocument.remove(VitamDocument.ID);
+            String id = (String) internalDocument.remove(VitamDocument.ID);
             internalDocument.remove(VitamDocument.SCORE);
 
-            //  Document.toJson produces non-standard JSON even if JsonMode.STRICT is used see : bug https://jira.mongodb.org/browse/JAVA-2173
-            //internalDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            final String source = JSON.serialize(internalDocument);
+            final String source = BsonHelper.stringify(internalDocument);
 
             String index = indexName;
             if (indexByTenant) {
@@ -197,22 +198,19 @@ public class VitamElasticsearchRepository implements VitamRepository {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, documents);
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         documents.forEach(vitamDocument -> {
-
-
             Integer tenantId = HeaderIdHelper.getTenantId();
             LOGGER.debug("insertToElasticsearch");
-            String id = vitamDocument.getString(VitamDocument.ID);
-            vitamDocument.remove(VitamDocument.ID);
+            String id = (String) vitamDocument.remove(VitamDocument.ID);
             vitamDocument.remove(VitamDocument.SCORE);
             vitamDocument.remove("_unused");
+
             String index = indexName;
             if (indexByTenant) {
                 index = index + "_" + tenantId;
             }
-            final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
-            final DBObject dbObject = (DBObject) com.mongodb.util.JSON.parse(mongoJson);
+
+            final String esJson = BsonHelper.stringify(vitamDocument);
             vitamDocument.clear();
-            final String esJson = dbObject.toString();
 
             bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
                 .setSource(esJson, XContentType.JSON));
@@ -244,23 +242,19 @@ public class VitamElasticsearchRepository implements VitamRepository {
         documents.forEach(vitamDocument -> {
             Integer tenantId = HeaderIdHelper.getTenantId();
             LOGGER.debug("insertToElasticsearch");
-            String id = vitamDocument.getString(VitamDocument.ID);
-            vitamDocument.remove(VitamDocument.ID);
-            vitamDocument.remove(VitamDocument.SCORE);
-
+            String id = (String) vitamDocument.remove(VitamDocument.ID);
             String index = indexName;
             if (indexByTenant) {
                 index = index + "_" + tenantId;
             }
 
             transformDataForElastic(vitamDocument);
-            final String mongoJson = vitamDocument.toJson(new JsonWriterSettings(JsonMode.STRICT));
+
+            final String esJson = BsonHelper.stringify(vitamDocument);
             vitamDocument.clear();
-            final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
 
             bulkRequest.add(client.prepareIndex(index, VitamCollection.getTypeunique(), id)
                 .setSource(esJson, XContentType.JSON));
-
         });
 
         if (bulkRequest.numberOfActions() != 0) {

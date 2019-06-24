@@ -371,18 +371,18 @@ public class PreservationIT extends VitamRuleRunner {
                     "OperationIds");
 
             // Get accession register details before start preservation
-            long countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
+            long countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments();
             assertThat(countDetails).isEqualTo(2);
 
             // Assert AccessionRegisterSummary
             assertJsonEquals("preservation/expected/accession_register_ratp_before.json",
-                JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .find(new Document("OriginatingAgency", "RATP"))),
+                JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "RATP")))),
                 excludeFields);
 
             assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_before.json",
-                JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                    .find(new Document("OriginatingAgency", "FRAN_NP_009913"))),
+                JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                    .find(new Document("OriginatingAgency", "FRAN_NP_009913")))),
                 excludeFields);
 
 
@@ -473,7 +473,7 @@ public class PreservationIT extends VitamRuleRunner {
                         assertThat(operationSummary.getRightsStatementIdentifier()).isEqualTo(operationSummaryExpected.getRightsStatementIdentifier());
                     }
                 }
-            JsonNode objectGroup = JsonHandler.toJsonNode(MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId())).sort(Sorts.ascending(ObjectGroup.NBCHILD)));
+            JsonNode objectGroup = JsonHandler.toJsonNode(Lists.newArrayList(MetadataCollections.OBJECTGROUP.getCollection().find(new Document("_ops", operationGuid.getId())).sort(Sorts.ascending(ObjectGroup.NBCHILD))));
             assertThat(objectGroup.get(0).get("_qualifiers").get(1).get("qualifier").asText()).isEqualTo("Dissemination");
         }
     }
@@ -486,18 +486,18 @@ public class PreservationIT extends VitamRuleRunner {
         throws FileNotFoundException, InvalidParseOperationException {
         long countDetails;
         // Get accession register details after start preservation
-        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count();
+        countDetails = FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments();
         assertThat(countDetails).isEqualTo(4);
 
         // Assert AccessionRegisterSummary
         assertJsonEquals("preservation/expected/accession_register_ratp_after.json",
-            JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .find(new Document("OriginatingAgency", "RATP"))),
+            JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(new Document("OriginatingAgency", "RATP")))),
             excludeFields);
 
         assertJsonEquals("preservation/expected/accession_register_FRAN_NP_009913_after.json",
-            JsonHandler.toJsonNode(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .find(new Document("OriginatingAgency", "FRAN_NP_009913"))),
+            JsonHandler.toJsonNode(Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
+                .find(new Document("OriginatingAgency", "FRAN_NP_009913")))),
             excludeFields);
     }
 

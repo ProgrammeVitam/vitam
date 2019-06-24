@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -72,7 +71,6 @@ import fr.gouv.vitam.functional.administration.common.FileRules;
 import fr.gouv.vitam.functional.administration.common.IngestContract;
 import fr.gouv.vitam.functional.administration.common.Profile;
 import fr.gouv.vitam.functional.administration.common.exception.ReferentialException;
-import org.assertj.core.util.Lists;
 import org.bson.Document;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilder;
@@ -86,7 +84,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -95,7 +92,6 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.match;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.or;
-import static fr.gouv.vitam.common.database.collections.VitamCollection.getMongoClientOptions;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -266,7 +262,7 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(PREFIX + "FileFormat", formatCollection.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.FORMATS.getName());
-        assertEquals(3, collection.count());
+        assertEquals(3, collection.countDocuments());
 
         // find all
         final QueryBuilder query = QueryBuilders.matchAllQuery();
@@ -336,7 +332,7 @@ public class MongoDbAccessAdminImplTest {
         delete.setQuery(match(FileFormat.COMMENT, "new comment"));
         final DbRequestResult deleteResult = dbrequest.execute(delete);
         assertEquals(1, deleteResult.getCount());
-        assertEquals(2, collection.count());
+        assertEquals(2, collection.countDocuments());
         fileList.close();
         mongoAccess.deleteCollection(formatCollection).close();
         deleteResult.close();
@@ -356,7 +352,7 @@ public class MongoDbAccessAdminImplTest {
         assertEquals(PREFIX + "FileRules", rulesCollection.getName());
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.RULES.getName());
-        assertEquals(2, collection.count());
+        assertEquals(2, collection.countDocuments());
 
         final Select select = new Select();
         select.setQuery(and()
@@ -373,8 +369,8 @@ public class MongoDbAccessAdminImplTest {
                 .add(eq(FileRules.RULETYPE, "AccessRule"))));
         final DbRequestResult fileList =
             mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
-        final FileRules f1 = (FileRules) fileList.getDocuments(FileRules.class).get(0);
-        LOGGER.debug(JSON.serialize(f1));
+        final FileRules f1 = fileList.getDocuments(FileRules.class).get(0);
+        LOGGER.debug(JsonHandler.prettyPrint(f1));
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
         rulesCollection.getEsClient().refreshIndex(rulesCollection);
 
@@ -385,7 +381,7 @@ public class MongoDbAccessAdminImplTest {
         fileList.close();
         assertEquals(2, requestResponse.getHits().getTotalHits());
         mongoAccess.deleteCollection(rulesCollection).close();
-        assertEquals(0, collection.count());
+        assertEquals(0, collection.countDocuments());
     }
 
     @Test
@@ -396,9 +392,9 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
-        assertEquals(1, collection.count());
+        assertEquals(1, collection.countDocuments());
         mongoAccess.deleteCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
-        assertEquals(0, collection.count());
+        assertEquals(0, collection.countDocuments());
     }
 
     @Test
@@ -415,7 +411,7 @@ public class MongoDbAccessAdminImplTest {
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
-        assertEquals(1, collection.count());
+        assertEquals(1, collection.countDocuments());
 
         try {
             JsonNode update = JsonHandler.getFromString(
@@ -437,7 +433,7 @@ public class MongoDbAccessAdminImplTest {
             // do nothing
         }
         mongoAccess.deleteCollection(contractCollection).close();
-        assertEquals(0, collection.count());
+        assertEquals(0, collection.countDocuments());
     }
 
 
@@ -459,7 +455,7 @@ public class MongoDbAccessAdminImplTest {
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
-        assertEquals(1, collection.count());
+        assertEquals(1, collection.countDocuments());
 
         try {
             JsonNode update = JsonHandler.getFromString(
@@ -482,7 +478,7 @@ public class MongoDbAccessAdminImplTest {
         }
 
         mongoAccess.deleteCollection(contractCollection).close();
-        assertEquals(0, collection.count());
+        assertEquals(0, collection.countDocuments());
     }
 
     @Test
@@ -498,9 +494,9 @@ public class MongoDbAccessAdminImplTest {
         final MongoCollection<Document> collection =
             mongoRule.getMongoCollection(FunctionalAdminCollections.PROFILE.getName());
         mongoAccess.insertDocuments(arrayNode, profileCollection).close();
-        assertEquals(1, collection.count());
+        assertEquals(1, collection.countDocuments());
         mongoAccess.deleteCollection(profileCollection).close();
-        assertEquals(0, collection.count());
+        assertEquals(0, collection.countDocuments());
     }
 
 

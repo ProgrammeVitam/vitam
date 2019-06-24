@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.iterables.BulkIterator;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -77,8 +78,6 @@ import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.bson.Document;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -228,7 +227,8 @@ public class ReconstructionService {
         try {
             // get the list of data to backup.
             Iterator<OfferLog> listing =
-                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC, VitamConfiguration.getRestoreBulkSize());
+                restoreBackupService.getListing(STRATEGY_ID, dataCategory, offset, limit, Order.ASC,
+                    VitamConfiguration.getRestoreBulkSize());
 
             while (listing.hasNext()) {
 
@@ -318,7 +318,7 @@ public class ReconstructionService {
             }
 
             Iterator<OfferLog> listing = restoreBackupService.getListing(STRATEGY_ID, type, offset, limit, Order.ASC,
-                    VitamConfiguration.getRestoreBulkSize());
+                VitamConfiguration.getRestoreBulkSize());
 
             Iterator<List<OfferLog>> bulkListing = new BulkIterator<>(listing, VitamConfiguration.getRestoreBulkSize());
 
@@ -580,8 +580,7 @@ public class ReconstructionService {
                         try {
                             if (model.getLifecycle() != null) {
                                 return JsonHandler
-                                    .getFromString(
-                                        model.getLifecycle().toJson(new JsonWriterSettings(JsonMode.STRICT)));
+                                    .getFromString(BsonHelper.stringify(model.getLifecycle()));
                             } else {
                                 throw new VitamRuntimeException("lifecycle should not be null");
                             }

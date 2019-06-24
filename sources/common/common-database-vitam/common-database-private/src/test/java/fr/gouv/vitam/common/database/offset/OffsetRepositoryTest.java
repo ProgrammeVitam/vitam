@@ -77,7 +77,7 @@ public class OffsetRepositoryTest {
         offsetRepository.createOrUpdateOffset(1, "Unit", 1);
 
         // Then
-        assertThat(mongoCollection.count()).isEqualTo(1);
+        assertThat(mongoCollection.countDocuments()).isEqualTo(1);
         assertThat(mongoCollection.find())
             .extracting("offset", "collection", "_tenant")
             .contains(Tuple.tuple(1L, "Unit", 1));
@@ -92,7 +92,7 @@ public class OffsetRepositoryTest {
         offsetRepository.createOrUpdateOffset(1, "Unit", 15);
 
         // Then
-        assertThat(mongoCollection.count()).isEqualTo(1);
+        assertThat(mongoCollection.countDocuments()).isEqualTo(1);
         assertThat(mongoCollection.find())
             .extracting("offset", "collection", "_tenant")
             .contains(Tuple.tuple(15L, "Unit", 1));

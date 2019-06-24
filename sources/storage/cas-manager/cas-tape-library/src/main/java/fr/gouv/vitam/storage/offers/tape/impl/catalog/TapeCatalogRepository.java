@@ -36,10 +36,10 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.result.UpdateResult;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.database.server.query.QueryCriteria;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCatalogException;
@@ -163,7 +163,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
         List<Document> documents = collection.find(Filters.and(filters)).into(new ArrayList<>());
         for (Document doc : documents) {
             try {
-                result.add(JsonHandler.getFromString(JSON.serialize(doc), TapeCatalog.class));
+                result.add(JsonHandler.getFromString(BsonHelper.stringify(doc), TapeCatalog.class));
             } catch (InvalidParseOperationException e) {
                 throw new TapeCatalogException(e);
             }
@@ -187,7 +187,7 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
             return null;
         }
         try {
-            return JsonHandler.getFromString(JSON.serialize(first), TapeCatalog.class);
+            return JsonHandler.getFromString(BsonHelper.stringify(first), TapeCatalog.class);
         } catch (InvalidParseOperationException e) {
             throw new TapeCatalogException(e);
         }
@@ -199,6 +199,6 @@ public class TapeCatalogRepository extends QueueRepositoryImpl {
 
     private <T> T fromBson(Document document, Class<T> clazz)
         throws InvalidParseOperationException {
-        return JsonHandler.getFromString(JSON.serialize(document), clazz);
+        return JsonHandler.getFromString(BsonHelper.stringify(document), clazz);
     }
 }

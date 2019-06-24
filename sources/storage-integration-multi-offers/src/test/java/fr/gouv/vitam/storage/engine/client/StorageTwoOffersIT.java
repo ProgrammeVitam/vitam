@@ -889,7 +889,7 @@ public class StorageTwoOffersIT {
     }
 
     private void checkOfferLog(MongoRule mongoRuleOffer1, int size) {
-        assertThat(mongoRuleOffer1.getMongoCollection(OfferCollections.OFFER_LOG.getName()).count())
+        assertThat(mongoRuleOffer1.getMongoCollection(OfferCollections.OFFER_LOG.getName()).countDocuments())
             .isEqualTo(size);
     }
 

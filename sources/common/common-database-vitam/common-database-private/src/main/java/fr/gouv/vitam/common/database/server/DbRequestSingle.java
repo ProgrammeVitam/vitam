@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonschema.core.exceptions.ProcessingException;
-import com.mongodb.DBObject;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.MongoException;
 import com.mongodb.MongoWriteException;
@@ -71,6 +70,7 @@ import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.exception.VitamFatalRuntimeException;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.SchemaValidationStatus;
 import fr.gouv.vitam.common.json.SchemaValidationUtils;
@@ -80,8 +80,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.server.HeaderIdHelper;
 import org.bson.conversions.Bson;
-import org.bson.json.JsonMode;
-import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.bulk.BulkItemResponse;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -265,13 +263,16 @@ public class DbRequestSingle {
         return new DbRequestResult().setCount(vitamDocumentList.size()).setTotal(vitamDocumentList.size());
     }
 
-    private void validateDocumentOverJsonSchema(JsonNode jsonDocument) throws InvalidParseOperationException, SchemaValidationException {
-        if (vitamCollection.getName().contains("VitamSequence") ||  vitamCollection.getName().contains("AccessionRegisterSymbolic")) {
+    private void validateDocumentOverJsonSchema(JsonNode jsonDocument)
+        throws InvalidParseOperationException, SchemaValidationException {
+        if (vitamCollection.getName().contains("VitamSequence") ||
+            vitamCollection.getName().contains("AccessionRegisterSymbolic")) {
             return;
         }
         try {
             SchemaValidationUtils validator = new SchemaValidationUtils();
-            SchemaValidationStatus status = validator.validateJson(jsonDocument, vitamCollection.getClasz().getSimpleName());
+            SchemaValidationStatus status =
+                validator.validateJson(jsonDocument, vitamCollection.getClasz().getSimpleName());
             if (!SchemaValidationStatus.SchemaValidationStatusEnum.VALID.equals(status.getValidationStatus())) {
                 throw new SchemaValidationException(status.getValidationMessage());
             }
@@ -312,10 +313,8 @@ public class DbRequestSingle {
             String id = document.getString(VitamDocument.ID);
             document.remove(VitamDocument.ID);
             document.remove(VitamDocument.SCORE);
-            final String mongoJson = document.toJson(new JsonWriterSettings(JsonMode.STRICT));
-
+            final String esJson = BsonHelper.stringify(document);
             document.clear();
-            final String esJson = ((DBObject) com.mongodb.util.JSON.parse(mongoJson)).toString();
             mapIdJson.put(id, esJson);
             if (max == 0) {
                 max = VitamConfiguration.getMaxElasticsearchBulk();
@@ -453,10 +452,10 @@ public class DbRequestSingle {
      * Private method for select using MongoDb from Elasticsearch result
      *
      * @param parser
-     * @param list   list of Ids
-     * @param list   list of scores for each Ids
+     * @param list list of Ids
+     * @param list list of scores for each Ids
      * @return MongoCursor<VitamDocument < ?>>
-     * @throws InvalidParseOperationException  when query is not correct
+     * @throws InvalidParseOperationException when query is not correct
      * @throws InvalidCreateOperationException
      */
     private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser, List<String> list,
@@ -517,12 +516,12 @@ public class DbRequestSingle {
     /**
      * Private sub method for Elasticsearch search
      *
-     * @param query  as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
-     *               values" : [list of id] } }"
+     * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
+     * values" : [list of id] } }"
      * @param filter the filter
-     * @param sorts  the list of sort
+     * @param sorts the list of sort
      * @param offset the offset
-     * @param limit  the limit
+     * @param limit the limit
      * @return a structure as ResultInterface
      * @throws DatabaseException
      * @throws BadRequestException
@@ -794,7 +793,8 @@ public class DbRequestSingle {
         insertToElasticsearch(Collections.singletonList(updatedDocument));
     }
 
-    private Bson getDocumentSelectionQuery(String identifierValue, String identifierKey, VitamCollection vitamCollection) {
+    private Bson getDocumentSelectionQuery(String identifierValue, String identifierKey,
+        VitamCollection vitamCollection) {
 
         if (vitamCollection.isMultiTenant()) {
             return and(eq(identifierKey, identifierValue), eq(VitamDocument.TENANT_ID, getTenantId()));

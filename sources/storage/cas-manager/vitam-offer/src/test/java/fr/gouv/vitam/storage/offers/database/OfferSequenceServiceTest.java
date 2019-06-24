@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.storage.engine.common.collection.OfferCollections;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageDatabaseException;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -97,13 +98,11 @@ public class OfferSequenceServiceTest {
         MongoDatabase mongoDatabase = mock(MongoDatabase.class);
         MongoCollection<Document> mongoCollection = mock(MongoCollection.class);
         when(mongoDatabase.getCollection(any())).thenReturn(mongoCollection);
-        when(mongoCollection.findOneAndUpdate(any(), any(), any())).thenThrow(new MongoException("mongo error"));
+        when(mongoCollection.findOneAndUpdate(any(Bson.class), any(), any())).thenThrow(new MongoException("mongo error"));
         OfferSequenceDatabaseService service = new OfferSequenceDatabaseService(mongoDatabase);
 
         // when + then
-        assertThatCode(() -> {
-            service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
-        }).isInstanceOf(ContentAddressableStorageDatabaseException.class);
+        assertThatCode(() -> service.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID)).isInstanceOf(ContentAddressableStorageDatabaseException.class);
     }
 
     @Test

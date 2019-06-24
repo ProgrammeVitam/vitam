@@ -35,9 +35,9 @@
 package fr.gouv.vitam.metadata.core.migration;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
@@ -68,7 +68,7 @@ public class SedaConverterToolTest {
 
         Unit convertedUnit = SedaConverterTool.convertUnitToSeda21(unit);
 
-        System.out.println(JSON.serialize(convertedUnit));
+        System.out.println(BsonHelper.stringify(convertedUnit));
 
         assertConvertedUnitOk(convertedUnit);
         assertTrue(((Document) ((List)convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
@@ -84,7 +84,7 @@ public class SedaConverterToolTest {
         convertedUnit = SedaConverterTool.convertUnitToSeda21(unit);
 
         System.out.println("========================================================================");
-        System.out.println(JSON.serialize(convertedUnit));
+        System.out.println(BsonHelper.stringify(convertedUnit));
 
         assertConvertedUnitOk(convertedUnit);
         assertTrue(((Document) ((List)convertedUnit.get("Signature")).get(0)).get("DateSignature") == null);
@@ -95,7 +95,7 @@ public class SedaConverterToolTest {
         assertConvertedUnitOk(SedaConverterTool.convertUnitToSeda21(new Unit(jsonUnit)));
 
         System.out.println("========================================================================");
-        System.out.println(JSON.serialize(convertedUnit));
+        System.out.println(BsonHelper.stringify(convertedUnit));
 
     }
 

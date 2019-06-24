@@ -31,6 +31,7 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -260,8 +261,8 @@ public class AccessionRegisterMigrationServiceTest {
         awaitTermination(instance);
 
         // Then Mongo and Elasticsearch purged
-        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count()).isEqualTo(0);
-        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
 
         search = elasticsearchRule.getClient()
             .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
@@ -304,7 +305,7 @@ public class AccessionRegisterMigrationServiceTest {
             .sort(Sorts.orderBy(ascending("_id")));
 
         for (T document : documents) {
-            ObjectNode json = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
+            ObjectNode json = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(document));
             dataSet.add(json);
         }
 

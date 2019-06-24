@@ -98,8 +98,9 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
     public static MongoClientOptions getMongoClientOptions() {
         final VitamDocumentCodec<Unit> unitCodec = new VitamDocumentCodec<>(Unit.class);
         final VitamDocumentCodec<ObjectGroup> objectGroupCodec = new VitamDocumentCodec<>(ObjectGroup.class);
-        final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(MongoClient.getDefaultCodecRegistry(),
-            CodecRegistries.fromCodecs(unitCodec, objectGroupCodec));
+        final CodecRegistry codecRegistry = CodecRegistries
+            .fromRegistries(CodecRegistries.fromCodecs(unitCodec, objectGroupCodec),
+                MongoClient.getDefaultCodecRegistry());
         return MongoClientOptions.builder().codecRegistry(codecRegistry).build();
     }
 
@@ -129,14 +130,14 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @return the current number of Unit
      */
     public static long getUnitSize() {
-        return MetadataCollections.UNIT.getCollection().count();
+        return MetadataCollections.UNIT.getCollection().countDocuments();
     }
 
     /**
      * @return the current number of ObjectGroup
      */
     public static long getObjectGroupSize() {
-        return MetadataCollections.OBJECTGROUP.getCollection().count();
+        return MetadataCollections.OBJECTGROUP.getCollection().countDocuments();
     }
 
     /**
@@ -153,7 +154,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @throws DatabaseException thrown when error on delete
      */
     public void deleteUnitByTenant(Integer... tenantIds) throws DatabaseException {
-        final long count = MetadataCollections.UNIT.getCollection().count();
+        final long count = MetadataCollections.UNIT.getCollection().countDocuments();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(MetadataCollections.UNIT.getName() + " count before: " + count);
         }
@@ -171,7 +172,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                 Map<String, String> map = esClient.addIndex(MetadataCollections.UNIT, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(
-                        "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" + tenantId);
+                        "Index not created for the collection " + MetadataCollections.UNIT.getName() + " and tenant :" +
+                            tenantId);
                 }
             }
         }
@@ -184,7 +186,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @throws DatabaseException thrown when error on delete
      */
     public void deleteObjectGroupByTenant(Integer... tenantIds) throws DatabaseException {
-        final long count = MetadataCollections.OBJECTGROUP.getCollection().count();
+        final long count = MetadataCollections.OBJECTGROUP.getCollection().countDocuments();
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(MetadataCollections.OBJECTGROUP.getName() + " count before: " + count);
         }
@@ -202,7 +204,8 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
                 Map<String, String> map = esClient.addIndex(MetadataCollections.OBJECTGROUP, tenantId);
                 if (map.isEmpty()) {
                     throw new RuntimeException(
-                        "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() + " and tenant :" + tenantId);
+                        "Index not created for the collection " + MetadataCollections.OBJECTGROUP.getName() +
+                            " and tenant :" + tenantId);
                 }
             }
         }

@@ -117,7 +117,7 @@ public class DbRequestSingleTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection);
-        assertEquals(0, vitamCollection.getCollection().count());
+        assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
         final ArrayNode datas = JsonHandler.createArrayNode();
@@ -127,7 +127,7 @@ public class DbRequestSingleTest {
         insert.setData(datas);
         final DbRequestResult insertResult = dbRequestSingle.execute(insert);
         assertEquals(2, insertResult.getCount());
-        assertEquals(2, vitamCollection.getCollection().count());
+        assertEquals(2, vitamCollection.getCollection().countDocuments());
         insertResult.close();
 
         // find all
@@ -194,7 +194,7 @@ public class DbRequestSingleTest {
         delete.setQuery(match("Title", "title"));
         final DbRequestResult deleteResult = dbRequestSingle.execute(delete);
         assertEquals(1, deleteResult.getCount());
-        assertEquals(1, vitamCollection.getCollection().count());
+        assertEquals(1, vitamCollection.getCollection().countDocuments());
         deleteResult.close();
     }
 
@@ -209,7 +209,7 @@ public class DbRequestSingleTest {
         VitamConfiguration.setOptimisticLockRetryNumber(5);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        assertEquals(0, vitamCollection.getCollection().count());
+        assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
         final ArrayNode datas = JsonHandler.createArrayNode();
@@ -218,7 +218,7 @@ public class DbRequestSingleTest {
         insert.setData(datas);
         final DbRequestResult insertResult = new DbRequestSingle(vitamCollection).execute(insert);
         assertEquals(1, insertResult.getCount());
-        assertEquals(1, vitamCollection.getCollection().count());
+        assertEquals(1, vitamCollection.getCollection().countDocuments());
         insertResult.close();
 
         CountDownLatch countDownLatch = new CountDownLatch(5);

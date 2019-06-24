@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
-import com.mongodb.util.JSON;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.rest.AccessInternalResourceImpl;
 import fr.gouv.vitam.common.DataLoader;
@@ -496,7 +495,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         MetadataCollections.UNIT.getCollection().insertMany(documents);
 
-        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(10);
+        assertThat(MetadataCollections.UNIT.getCollection().countDocuments()).isEqualTo(10);
 
         Map<MetadataCollections, Integer> ok = metadataManagementResource.tryStoreGraph().execute().body();
 
@@ -512,7 +511,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
 
         MetadataCollections.UNIT.getCollection().insertMany(documents);
 
-        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(15);
+        assertThat(MetadataCollections.UNIT.getCollection().countDocuments()).isEqualTo(15);
 
         ok = metadataManagementResource.tryStoreGraph().execute().body();
         assertThat(ok.get(MetadataCollections.UNIT)).isEqualTo(5);
@@ -860,8 +859,8 @@ public class MetadataManagementIT extends VitamRuleRunner {
         initializeDbWithUnitAndObjectGroupData();
 
         //Then
-        assertThat(MetadataCollections.UNIT.getCollection().count()).isEqualTo(10);
-        assertThat(MetadataCollections.OBJECTGROUP.getCollection().count()).isEqualTo(5);
+        assertThat(MetadataCollections.UNIT.getCollection().countDocuments()).isEqualTo(10);
+        assertThat(MetadataCollections.OBJECTGROUP.getCollection().countDocuments()).isEqualTo(5);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
 
@@ -1286,7 +1285,7 @@ public class MetadataManagementIT extends VitamRuleRunner {
             .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
-            ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
+            ObjectNode jsonUnit = (ObjectNode) JsonHandler.getFromString(JsonHandler.unprettyPrint(document));
 
             // Replace _glpd with marker
             assertThat(jsonUnit.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();

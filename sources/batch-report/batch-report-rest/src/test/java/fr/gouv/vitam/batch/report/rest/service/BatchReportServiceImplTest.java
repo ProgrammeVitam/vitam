@@ -48,6 +48,7 @@ import fr.gouv.vitam.batch.report.rest.repository.PreservationReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.UpdateUnitReportRepository;
 import fr.gouv.vitam.common.database.server.mongodb.EmptyMongoCursor;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
 import fr.gouv.vitam.functional.administration.common.BackupService;
@@ -56,6 +57,7 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.bson.Document;
 import org.junit.Before;
@@ -81,7 +83,19 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.*;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ACTION;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ANALYSE_RESULT;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.CREATION_DATE_TIME;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.GRIFFIN_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.INPUT_OBJECT_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OBJECT_GROUP_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.OUTPUT_OBJECT_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.PRESERVATION_REPORT_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.SCENARIO_ID;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.STATUS;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.TENANT;
+import static fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry.UNIT_ID;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_ID;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.DETAIL_TYPE;
 import static fr.gouv.vitam.batch.report.model.entry.ReportEntry.OUTCOME;
@@ -144,7 +158,8 @@ public class BatchReportServiceImplTest {
         backupService = new BackupService(workspaceClientFactory, storageClientFactory);
 
         batchReportServiceImpl = new BatchReportServiceImpl(eliminationActionUnitRepository,
-            eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService, workspaceClientFactory,
+            eliminationActionObjectGroupRepository, updateUnitMetadataReportEntry, backupService,
+            workspaceClientFactory,
             preservationReportRepository, auditReportRepository);
     }
 
@@ -153,7 +168,8 @@ public class BatchReportServiceImplTest {
     public void should_append_elimination_object_group_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/eliminationObjectGroupModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
+        ReportBody reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionObjectGroupReportEntry.class);
         // When
         // Then
         assertThatCode(() ->
@@ -166,7 +182,8 @@ public class BatchReportServiceImplTest {
     public void should_append_elimination_unit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/eliminationUnitModel.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
+        ReportBody reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, EliminationActionUnitReportEntry.class);
         // When
         // Then
         assertThatCode(() ->
@@ -181,7 +198,8 @@ public class BatchReportServiceImplTest {
         ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, PreservationReportEntry.class);
 
         // When
-        ThrowingCallable append = () -> batchReportServiceImpl.appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
+        ThrowingCallable append = () -> batchReportServiceImpl
+            .appendPreservationReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
 
         // Then
         assertThatCode(append).doesNotThrowAnyException();
@@ -199,7 +217,8 @@ public class BatchReportServiceImplTest {
 
         PreservationStatsModel preservationStatus = new PreservationStatsModel(0, 1, 0, 1, 0, 0, 0, new HashMap<>(), 0);
         PreservationReportEntry preservationReportEntry =
-            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
+            new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq",
+                processId,
                 TENANT_ID, "2018-11-15T11:13:20.986",
                 PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
                 "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId", "preservationScenarioId");
@@ -213,8 +232,8 @@ public class BatchReportServiceImplTest {
         batchReportServiceImpl.exportPreservationReport(processId, filename, TENANT_ID);
 
         // Then
-        String accumulatorExpected = JsonHandler.unprettyPrint(preservationStatus) +"\n"+ JsonHandler.unprettyPrint(
-            preservationReportEntry)+"\n";
+        String accumulatorExpected = JsonHandler.unprettyPrint(preservationStatus) + "\n" + JsonHandler.unprettyPrint(
+            preservationReportEntry) + "\n";
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
 
@@ -222,10 +241,12 @@ public class BatchReportServiceImplTest {
     public void should_append_audit_report() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream("/auditObjectGroupReport.json");
-        ReportBody reportBody = JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
+        ReportBody reportBody =
+            JsonHandler.getFromInputStream(stream, ReportBody.class, AuditObjectGroupReportEntry.class);
 
         // When
-        ThrowingCallable append = () -> batchReportServiceImpl.appendAuditReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
+        ThrowingCallable append = () -> batchReportServiceImpl
+            .appendAuditReport(reportBody.getProcessId(), reportBody.getEntries(), TENANT_ID);
 
         // Then
         assertThatCode(append).doesNotThrowAnyException();
@@ -281,9 +302,12 @@ public class BatchReportServiceImplTest {
             .thenReturn(fakeMongoCursor);
         when(preservationReportRepository.stats(processId, TENANT_ID)).thenReturn(preservationStatus);
 
-        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        OperationSummary operationSummary =
+            new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(),
+                JsonHandler.createObjectNode());
         ReportResults reportResults = new ReportResults(1, 0, 0, 1);
-        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.PRESERVATION, reportResults, JsonHandler.createObjectNode());
+        ReportSummary reportSummary =
+            new ReportSummary(null, null, ReportType.PRESERVATION, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
@@ -296,7 +320,7 @@ public class BatchReportServiceImplTest {
         String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
             + "\n" + JsonHandler.unprettyPrint(reportSummary)
             + "\n" + JsonHandler.unprettyPrint(context)
-            + "\n" + JsonHandler.unprettyPrint(preservationData);
+            + "\n" + BsonHelper.stringify(preservationData);
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
@@ -318,7 +342,8 @@ public class BatchReportServiceImplTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenReturn(null);
 
-        AuditStatsModel auditStatus = new AuditStatsModel(1, 2, new HashSet<String>(), new AuditFullStatusCount(), new HashMap<>());
+        AuditStatsModel auditStatus =
+            new AuditStatsModel(1, 2, new HashSet<String>(), new AuditFullStatusCount(), new HashMap<>());
         Document auditData = getAuditDocument(processId);
         FakeMongoCursor<Document> fakeMongoCursor = new FakeMongoCursor<>(Collections.singletonList(auditData));
 
@@ -327,9 +352,12 @@ public class BatchReportServiceImplTest {
             .thenReturn(fakeMongoCursor);
         when(auditReportRepository.stats(processId, TENANT_ID)).thenReturn(auditStatus);
 
-        OperationSummary operationSummary = new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        OperationSummary operationSummary =
+            new OperationSummary(TENANT_ID, processId, "", "", "", "", JsonHandler.createObjectNode(),
+                JsonHandler.createObjectNode());
         ReportResults reportResults = new ReportResults(1, 0, 0, 1);
-        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.AUDIT, reportResults, JsonHandler.createObjectNode());
+        ReportSummary reportSummary =
+            new ReportSummary(null, null, ReportType.AUDIT, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
@@ -342,7 +370,7 @@ public class BatchReportServiceImplTest {
         String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
             + "\n" + JsonHandler.unprettyPrint(reportSummary)
             + "\n" + JsonHandler.unprettyPrint(context)
-            + "\n" + JsonHandler.unprettyPrint(auditData);
+            + "\n" + BsonHelper.stringify(auditData);
 
         assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
     }
@@ -362,7 +390,8 @@ public class BatchReportServiceImplTest {
         Document unitData = getUnitDocument();
         FakeMongoCursor<Document> fakeUnitMongoCursor = new FakeMongoCursor<>(Collections.singletonList(unitData));
         Document objectGroupData = getObjectGroupDocument();
-        FakeMongoCursor<Document> fakeObjectGroupMongoCursor = new FakeMongoCursor<>(Collections.singletonList(objectGroupData));
+        FakeMongoCursor<Document> fakeObjectGroupMongoCursor =
+            new FakeMongoCursor<>(Collections.singletonList(objectGroupData));
 
         when(eliminationActionUnitRepository
             .findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID))
@@ -373,9 +402,12 @@ public class BatchReportServiceImplTest {
 
 
 
-        OperationSummary operationSummary = new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "", JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
+        OperationSummary operationSummary =
+            new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "", JsonHandler.createObjectNode(),
+                JsonHandler.createObjectNode());
         ReportResults reportResults = new ReportResults(1, 0, 0, 1);
-        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.ELIMINATION_ACTION, reportResults, JsonHandler.createObjectNode());
+        ReportSummary reportSummary =
+            new ReportSummary(null, null, ReportType.ELIMINATION_ACTION, reportResults, JsonHandler.createObjectNode());
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
@@ -387,10 +419,11 @@ public class BatchReportServiceImplTest {
         String accumulatorExpected = JsonHandler.unprettyPrint(operationSummary)
             + "\n" + JsonHandler.unprettyPrint(reportSummary)
             + "\n" + JsonHandler.unprettyPrint(context)
-            + "\n" + JsonHandler.unprettyPrint(unitData)
-            + "\n" + JsonHandler.unprettyPrint(objectGroupData);
+            + "\n" + BsonHelper.stringify(unitData)
+            + "\n" + BsonHelper.stringify(objectGroupData);
 
-        assertThat(new String(Files.readAllBytes(report))).isEqualTo(accumulatorExpected);
+        JsonAssert
+            .assertJsonEquals(JsonHandler.getFromFile(report.toFile()), JsonHandler.getFromString(accumulatorExpected));
     }
 
     @Test
@@ -408,7 +441,8 @@ public class BatchReportServiceImplTest {
             .thenReturn(emptyMongoCursor);
         when(workspaceClient.isExistingContainer(PROCESS_ID)).thenReturn(true);
         // When
-        batchReportServiceImpl.exportEliminationActionDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report",
+        batchReportServiceImpl
+            .exportEliminationActionDistinctObjectGroupOfDeletedUnits(PROCESS_ID, "distinct_objectgroup_report",
                 TENANT_ID);
         // Then
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(report.toFile())))) {
@@ -471,7 +505,8 @@ public class BatchReportServiceImplTest {
 
     private Document getAuditDocument(String processId) throws InvalidParseOperationException, FileNotFoundException {
         String reportDoc = JsonHandler
-                .unprettyPrint(JsonHandler.getFromInputStream(getClass().getResourceAsStream("/auditObjectGroupDocument.json")));
+            .unprettyPrint(
+                JsonHandler.getFromInputStream(getClass().getResourceAsStream("/auditObjectGroupDocument.json")));
         return Document.parse(reportDoc);
     }
 

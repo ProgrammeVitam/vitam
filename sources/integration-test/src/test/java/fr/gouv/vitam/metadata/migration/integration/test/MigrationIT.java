@@ -32,14 +32,21 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.model.Filters;
 import com.mongodb.util.JSON;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
+import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
+import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
+import fr.gouv.vitam.common.database.translators.mongodb.MongoDbHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.json.BsonHelper;
+import fr.gouv.vitam.common.json.CanonicalJsonFormatter;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -62,7 +69,12 @@ import net.javacrumbs.jsonunit.core.Option;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
 import org.apache.commons.collections4.IteratorUtils;
+import org.assertj.core.api.Assertions;
+import org.bson.BsonDocument;
 import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bson.json.JsonMode;
+import org.bson.json.JsonWriterSettings;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.junit.After;
@@ -79,20 +91,22 @@ import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Indexes.ascending;
 import static com.mongodb.client.model.Sorts.orderBy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.assertj.core.groups.Tuple.tuple;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Integration test of metadata migration services.
@@ -160,6 +174,106 @@ public class MigrationIT extends VitamRuleRunner {
         handleAfterClass(0, 1);
     }
 
+    @Test
+    public void testSerializeDocumentForMongoDriverMigration() throws Exception {
+
+        // Given
+        String initialDocument = PropertiesUtils.getResourceAsString("serialize-test.json");
+        MetadataCollections.UNIT.getCollection()
+            .insertOne(Document.parse(initialDocument));
+
+        Bson eq = Filters.eq("_id", "MyUniqueDocId");
+        Document doc = (Document) MetadataCollections.UNIT.getCollection().find(eq).first();
+
+        // When
+        String serializedDoc = BsonHelper.stringify(doc);
+        String legacySerializedDoc = JSON.serialize(doc);
+
+        // Then
+        // Delete document from db
+        MetadataCollections.UNIT.getCollection().deleteOne(eq);
+
+        JsonAssert.assertJsonEquals(serializedDoc, initialDocument);
+        JsonAssert.assertJsonEquals(legacySerializedDoc, initialDocument);
+    }
+
+    private static final String test = "{\"data\": 1}";
+
+    @Test
+    public void testBsonToStringMongoMigration() throws ParseException, IOException, InvalidParseOperationException {
+        final Bson bson = BsonDocument.parse(test);
+        assertEquals(test, MongoDbHelper.bsonToString(bson, false));
+        assertEquals("{\n  \"data\": 1\n}", MongoDbHelper.bsonToString(bson, true));
+
+        FakeObjet fakeObjet = new FakeObjet();
+
+        JsonWriterSettings writerSettingsRelaxed = JsonWriterSettings.builder().outputMode(JsonMode.RELAXED).build();
+        JsonWriterSettings writerSettingsExtended = JsonWriterSettings.builder().outputMode(JsonMode.EXTENDED).build();
+        JsonWriterSettings writerSettingsStrict = JsonWriterSettings.builder().outputMode(JsonMode.STRICT).build();
+
+        final String serialize = JSON.serialize(fakeObjet);
+        final String relaxed = fakeObjet.toJson(writerSettingsRelaxed);
+        final String extended = fakeObjet.toJson(writerSettingsExtended);
+        final String strict = fakeObjet.toJson(writerSettingsStrict);
+
+        // RELAXED Mode
+        JsonNode relaxedJson = JsonHandler.getFromString(relaxed);
+        InputStream in = CanonicalJsonFormatter.serialize(relaxedJson);
+        String str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":\"1982-10-19T23:00:00Z\"},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
+
+        // ToJson
+        in = CanonicalJsonFormatter.serialize(JsonHandler.getFromString(fakeObjet.toJson()));
+        str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":403916400000},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
+
+        // Jackson
+        in = CanonicalJsonFormatter.serialize(JsonHandler.toJsonNode(fakeObjet));
+        str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":\"1982-10-19T23:00:00.000+0000\",\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.2,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
+
+        // STRICT Mode
+        JsonNode strictJson = JsonHandler.getFromString(strict);
+        in = CanonicalJsonFormatter.serialize(strictJson);
+        str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":403916400000},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.200000047683716,\"intVal\":-2,\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
+
+        // Extended Mode
+        JsonNode extendedJson = JsonHandler.getFromString(extended);
+        in = CanonicalJsonFormatter.serialize(extendedJson);
+        str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":{\"$numberLong\":\"403916400000\"}},\"doubleVal\":{\"$numberDouble\":\"-2.2\"},\"doubleVal1\":{\"$numberDouble\":\"-2000000.2\"},\"floatVal\":{\"$numberDouble\":\"2.200000047683716\"},\"intVal\":{\"$numberInt\":\"-2\"},\"longVal\":{\"$numberLong\":\"2\"},\"longVal1\":{\"$numberLong\":\"1000000000\"},\"strVal\":\"2\"}");
+
+        // Legacy Mode
+        JsonNode legacyJson = JsonHandler.getFromString(serialize);
+        in = CanonicalJsonFormatter.serialize(legacyJson);
+        str = StringUtils.getStringFromInputStream(in);
+        Assertions.assertThat(str).isEqualTo(
+            "{\"dateStrVal\":\"1982-10-20T00:00:00+0100\",\"dateVal\":{\"$date\":\"1982-10-19T23:00:00.000Z\"},\"doubleVal\":-2.2,\"doubleVal1\":-2000000.2,\"floatVal\":2.2,\"intVal\":-2,\"longVal\":2,\"longVal1\":1000000000,\"strVal\":\"2\"}");
+
+
+    }
+
+
+
+    class FakeObjet extends Document {
+        public FakeObjet() throws ParseException {
+            append("floatVal", 2.2f);
+            append("longVal", 2l);
+            append("longVal1", 1_000_000_000l);
+            append("intVal", -2);
+            append("doubleVal", -2.2);
+            append("doubleVal1", -2_000_000.2);
+            append("strVal", "2");
+            append("dateVal", LocalDateUtil.getDate("1982-10-20"));
+            append("dateStrVal", LocalDateUtil.getFormattedDate(LocalDateUtil.getDate("1982-10-20")));
+        }
+    }
 
     @Test
     public void startMetadataDataMigration_failedAuthn() throws Exception {
@@ -198,11 +312,14 @@ public class MigrationIT extends VitamRuleRunner {
     public void startMetadataDataMigration_fullDataSet() throws Exception {
 
         // Given
-        importDataSetFile(MetadataCollections.UNIT.getCollection(), "integration-metadata-migration/30UnitDataSet/R6UnitDataSet.json");
-        importDataSetFile(MetadataCollections.OBJECTGROUP.getCollection(), "integration-metadata-migration/15ObjectGroupDataSet/R6ObjectGroupDataSet.json");
+        importDataSetFile(MetadataCollections.UNIT.getCollection(),
+            "integration-metadata-migration/30UnitDataSet/R6UnitDataSet.json");
+        importDataSetFile(MetadataCollections.OBJECTGROUP.getCollection(),
+            "integration-metadata-migration/15ObjectGroupDataSet/R6ObjectGroupDataSet.json");
 
         // When
-        Response<MetadataMigrationAdminResource.ResponseMessage> response = metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
+        Response<MetadataMigrationAdminResource.ResponseMessage> response =
+            metadataAdminMigrationService.startDataMigration(getBasicAuthnToken()).execute();
         assertThat(response.isSuccessful()).isTrue();
         awaitTermination();
 
@@ -298,8 +415,8 @@ public class MigrationIT extends VitamRuleRunner {
                 Order.ASC);
         List<OfferLog> listing =
             IteratorUtils.toList(listingIterator).stream()
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
         assertThat(listing).hasSize(2);
         assertThat(listing).extracting("Container", "FileName")
@@ -315,8 +432,8 @@ public class MigrationIT extends VitamRuleRunner {
         awaitTermination();
 
         // Then Mongo and Elasticsearch purged
-        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().count()).isEqualTo(0);
-        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().count()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().countDocuments()).isEqualTo(0);
+        assertThat(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection().countDocuments()).isEqualTo(0);
 
         search = elasticsearchRule.getClient()
             .prepareSearch(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName().toLowerCase())
@@ -379,7 +496,7 @@ public class MigrationIT extends VitamRuleRunner {
             .sort(orderBy(ascending(MetadataDocument.ID)));
 
         for (T document : documents) {
-            ObjectNode docObjectNode = (ObjectNode) JsonHandler.getFromString(JSON.serialize(document));
+            ObjectNode docObjectNode = (ObjectNode) JsonHandler.getFromString(BsonHelper.stringify(document));
             if (replaceFields) {
                 // Replace _glpd with marker
                 assertThat(docObjectNode.get(MetadataDocument.GRAPH_LAST_PERSISTED_DATE)).isNotNull();

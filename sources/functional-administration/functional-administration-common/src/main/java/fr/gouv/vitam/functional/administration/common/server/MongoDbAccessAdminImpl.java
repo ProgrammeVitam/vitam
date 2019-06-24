@@ -106,9 +106,9 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         if (collection.isMultitenant()) {
             final Document filter =
                 new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
-            count = collection.getCollection().count(filter);
+            count = collection.getCollection().countDocuments(filter);
         } else {
-            count = collection.getCollection().count();
+            count = collection.getCollection().countDocuments();
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);
@@ -138,9 +138,9 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         if (collection.isMultitenant()) {
             final Document filter =
                 new Document().append(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter());
-            count = collection.getCollection().count(filter);
+            count = collection.getCollection().countDocuments(filter);
         } else {
-            count = collection.getCollection().count();
+            count = collection.getCollection().countDocuments();
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(collection.getName() + " count before: " + count);

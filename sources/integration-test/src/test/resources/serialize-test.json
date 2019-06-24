@@ -1,0 +1,23 @@
+{
+  "_id": "MyUniqueDocId",
+  "intValLarge": 2147483647,
+  "intVal": -1,
+  "doubleValLarge": -100000000000.2,
+  "doubleVal": -1,
+  "longValLarge": 100000000000,
+  "longVal": 10,
+  "dateVal": "1982-10-20T00:00:00+0100",
+  "emptyStr": "",
+  "nullVal": null,
+  "emptyArray": [],
+  "arrayLongVal": [
+    100000000000,
+    100000000000
+  ],
+  "emptyObject": {},
+  "subDoc": {
+    "toto": "titi"
+  },
+  "boolVal": true,
+  "unicode": "สวัสดี"
+}

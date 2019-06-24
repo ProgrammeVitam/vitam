@@ -146,29 +146,6 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
     }
 
     /**
-     * Add a set of entries in the ElasticSearch index. <br>
-     * Used in reload from scratch.
-     *
-     * @param collection
-     * @param mapIdJson
-     * @return the listener on bulk insert
-     */
-    final BulkResponse addEntryIndexes(final FunctionalAdminCollections collection,
-        final Map<String, String> mapIdJson) {
-        final BulkRequestBuilder bulkRequest = getClient().prepareBulk();
-
-        // either use client#prepare, or use Requests# to directly build index/delete requests
-        final String type = collection.getType();
-        for (final Entry<String, String> val : mapIdJson.entrySet()) {
-            bulkRequest.setRefreshPolicy(RefreshPolicy.IMMEDIATE)
-                .add(getClient().prepareIndex(collection.getName().toLowerCase(), type,
-                    val.getKey()).setSource(val.getValue(), XContentType.JSON));
-
-        }
-        return bulkRequest.execute().actionGet();
-    }
-
-    /**
      * @param collection
      * @param query as in DSL mode "{ "fieldname" : "value" }" "{ "match" : { "fieldname" : "value" } }" "{ "ids" : { "
      * values" : [list of id] } }"

@@ -211,7 +211,7 @@ public final class JsonHandler {
 
     /**
      * Create json Parser
-     * 
+     *
      * @param in the inputStream
      * @return createJsonParser
      * @throws IOException IOException
@@ -477,7 +477,8 @@ public final class JsonHandler {
         }
     }
 
-    public static <T> T getFromJsonNode(JsonNode jsonNode, TypeReference<T> clazz) throws InvalidParseOperationException {
+    public static <T> T getFromJsonNode(JsonNode jsonNode, TypeReference<T> clazz)
+        throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
             ObjectReader objectReader = OBJECT_MAPPER.readerFor(clazz);
@@ -696,7 +697,8 @@ public final class JsonHandler {
             Map<String, Object> info = null;
             try {
                 info = OBJECT_MAPPER.readValue(value,
-                    new TypeReference<Map<String, Object>>() {});
+                    new TypeReference<Map<String, Object>>() {
+                    });
             } catch (final IOException e) {
                 throw new InvalidParseOperationException(e);
             }
@@ -720,7 +722,8 @@ public final class JsonHandler {
             Map<String, String> info = null;
             try {
                 info = OBJECT_MAPPER.readValue(value,
-                    new TypeReference<Map<String, String>>() {});
+                    new TypeReference<Map<String, String>>() {
+                    });
             } catch (final IOException e) {
                 throw new InvalidParseOperationException(e);
             }
@@ -744,7 +747,8 @@ public final class JsonHandler {
         Map<String, Object> info = null;
         try {
             info = OBJECT_MAPPER.readValue(ByteStreams.toByteArray(inputStream),
-                new TypeReference<Map<String, Object>>() {});
+                new TypeReference<Map<String, Object>>() {
+                });
         } catch (final IOException e) {
             throw new InvalidParseOperationException(e);
         } finally {
@@ -816,7 +820,8 @@ public final class JsonHandler {
     }
 
     @Deprecated
-    public static <T> T getFromInputStreamWithCommentAllow(InputStream inputStream, TypeReference<T> typeReference) throws InvalidParseOperationException {
+    public static <T> T getFromInputStreamWithCommentAllow(InputStream inputStream, TypeReference<T> typeReference)
+        throws InvalidParseOperationException {
         try {
             ParametersChecker.checkParameter("InputStream or class", inputStream, typeReference);
             return DEFAULT_OBJECT_MAPPER_WITH_ALLOW_COMMENTS.readValue(IOUtils.toByteArray(inputStream), typeReference);
@@ -1000,7 +1005,7 @@ public final class JsonHandler {
 
     /**
      * Tests if jsonNode is Null or empty
-     * 
+     *
      * @param jsonNode
      * @return true if json is null or empty
      */

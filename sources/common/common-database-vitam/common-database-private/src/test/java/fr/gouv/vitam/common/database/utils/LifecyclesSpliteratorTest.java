@@ -79,7 +79,6 @@ public class LifecyclesSpliteratorTest {
 
         RequestResponseOK<Long> requestResponseOK3 = new RequestResponseOK<>();
         
-        //        System.out.println(JsonHandler.unprettyPrint(requestResponseOK.getQuery()));
         given(function.apply(any(Select.class))).willReturn(requestResponseOK1)
             .willReturn(requestResponseOK2)
             .willReturn(requestResponseOK3);
