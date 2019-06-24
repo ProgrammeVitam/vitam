@@ -30,14 +30,17 @@ import javax.annotation.Priority;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
+import javax.ws.rs.container.ContainerResponseContext;
+import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.container.PreMatching;
+import java.io.IOException;
 
 /**
  * Manage the headers from the server-side perspective.
  */
 @PreMatching
 @Priority(Priorities.AUTHENTICATION)
-public class HeaderIdContainerFilter implements ContainerRequestFilter {
+public class HeaderIdContainerFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
     /**
      * Extracts the ids from the headers to save it in the VitamSession
@@ -49,5 +52,12 @@ public class HeaderIdContainerFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext requestContext) {
         HeaderIdHelper.putVitamIdFromHeaderInSession(requestContext.getHeaders(),
             HeaderIdHelper.Context.REQUEST);
+    }
+
+    @Override
+    public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
+        throws IOException {
+        HeaderIdHelper.putVitamIdFromSessionInHeader(responseContext.getHeaders(),
+            HeaderIdHelper.Context.RESPONSE, responseContext.getStatus());
     }
 }
