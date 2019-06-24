@@ -1,4 +1,4 @@
-%define        version 6.8.0
+%define        version 6.8.1
 Name:          vitam-elasticsearch-analysis-icu
 Version:        %{version}
 Release:       1%{?dist}
