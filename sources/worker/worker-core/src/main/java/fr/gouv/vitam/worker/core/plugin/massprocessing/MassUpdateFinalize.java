@@ -62,6 +62,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -131,6 +132,10 @@ public class MassUpdateFinalize extends ActionHandler {
             ? JsonHandler.getFromString(logbook.getRightsStatementIdentifier())
             : JsonHandler.createObjectNode();
 
+        JsonNode evDetData = Objects.isNull(lastEvent.getEvDetData())
+            ? JsonHandler.createObjectNode()
+            : JsonHandler.getFromString(lastEvent.getEvDetData());
+
         return new OperationSummary(
             VitamThreadUtils.getVitamSession().getTenantId(),
             processId,
@@ -139,7 +144,7 @@ public class MassUpdateFinalize extends ActionHandler {
             lastEvent.getOutDetail(),
             lastEvent.getOutMessg(),
             rSI,
-            JsonHandler.getFromString(lastEvent.getEvDetData())
+            evDetData
         );
     }
 

@@ -96,6 +96,7 @@ public class MassUpdateRulesCheck extends ActionHandler {
 
             List<String> unknownAddClassificationLevels = ruleActions.getAdd()
                 .stream()
+                .filter(rule -> Objects.nonNull(rule.get(TAG_RULE_CLASSIFICATION)))
                 .map(rule -> rule.get(TAG_RULE_CLASSIFICATION).getClassificationLevel())
                 .filter(Objects::nonNull)
                 .filter(classificationLevel -> !classificationLevels.contains(classificationLevel))
@@ -109,6 +110,7 @@ public class MassUpdateRulesCheck extends ActionHandler {
 
             List<String> unknownUpdateClassificationLevels = ruleActions.getUpdate()
                 .stream()
+                .filter(rule -> Objects.nonNull(rule.get(TAG_RULE_CLASSIFICATION)))
                 .map(rule -> rule.get(TAG_RULE_CLASSIFICATION).getClassificationLevel())
                 .filter(Objects::nonNull)
                 .filter(classificationLevel -> !classificationLevels.contains(classificationLevel))
