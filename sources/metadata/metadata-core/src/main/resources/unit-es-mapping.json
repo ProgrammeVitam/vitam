@@ -1453,13 +1453,89 @@
           }
         }
       },
+      "_computedInheritedRules": {
+        "properties": {
+          "NeedAuthorization": {
+            "type": "boolean"
+          },
+          "indexationDate": {
+            "type": "date",
+            "format": "strict_date_optional_time"
+          },
+          "AccessRule": {
+            "properties": {
+              "EndDates": {
+                "type": "object"
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "AppraisalRule": {
+            "properties": {
+              "EndDates": {
+                "type": "object"
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "DisseminationRule": {
+            "properties": {
+              "EndDates": {
+                "type": "object"
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "ReuseRule": {
+            "properties": {
+              "EndDates": {
+                "type": "object"
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "StorageRule": {
+            "properties": {
+              "EndDates": {
+                "type": "object"
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          },
+          "ClassificationRule": {
+            "properties": {
+              "EndDates": {
+                "type": "object"
+              },
+              "MaxEndDate": {
+                "type": "date",
+                "format": "strict_date_optional_time"
+              }
+            }
+          }
+        }
+      },
       "_sedaVersion": {
         "type": "keyword"
       },
       "_implementationVersion": {
         "type": "keyword"
       }
-
     }
   }
 }

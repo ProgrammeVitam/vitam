@@ -34,6 +34,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -133,8 +134,40 @@ public class ElasticsearchMappingParseTest {
             return;
         }
 
+        JsonNode dynamicTemplates = jsonNode.get("dynamic_templates");
+        if(dynamicTemplates != null) {
+            parseDynamicTemplates(dynamicTemplates);
+            return;
+        }
+
         fail("Expected Type or Properties");
     }
+
+    private void parseDynamicTemplates(JsonNode dynamicTemplates) {
+        if(!dynamicTemplates.isArray()) {
+            fail("dynamic templates should be an array");
+        }
+
+        for (JsonNode template : dynamicTemplates) {
+            if(template.size() > 1) {
+                fail("dynamic template should have only a name field");
+            }
+
+            JsonNode templateProperties = template.iterator().next();
+            JsonNode mapping = templateProperties.get("mapping");
+            if(mapping == null) {
+                fail("dynamic template does not have a valid mapping");
+            }
+
+            String[] availableMatchConditions = {"match_mapping_type", "match", "match_pattern", "unmatch", "path_match", "path_unmatch"};
+            if(((ObjectNode) templateProperties).retain(availableMatchConditions).size() == 0) {
+                fail("dynamic template does not have a valid match condition");
+            }
+
+
+        }
+    }
+
 
     private void parseType(JsonNode jsonNode, String parentMappingPath, Map<String, String> result, JsonNode type) {
         String typeStr;
@@ -176,7 +209,9 @@ public class ElasticsearchMappingParseTest {
         for (Iterator<Map.Entry<String, JsonNode>> it = properties.fields(); it.hasNext(); ) {
             Map.Entry<String, JsonNode> entry = it.next();
 
-            if (parentMappingPath.isEmpty()) {
+            if("dynamic_templates".equals(entry.getKey())) {
+                parseDynamicTemplates(entry.getValue());
+            } else if (parentMappingPath.isEmpty()) {
                 parseAndValidateMappingFile(entry.getValue(), entry.getKey(), result);
             } else {
                 parseAndValidateMappingFile(entry.getValue(), parentMappingPath + "." + entry.getKey(), result);

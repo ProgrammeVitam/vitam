@@ -24,47 +24,41 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * Pojo for computed inherited property
+ * property
  */
-public class InheritedPropertyResponseModel extends BaseInheritedResponseModel {
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class Properties {
 
-    @JsonProperty("PropertyName")
-    private String propertyName;
+    @JsonIgnore
+    private Map<String, PropertyValue> propertyNameToPropertyValue = new HashMap<>();
 
-    @JsonProperty("PropertyValue")
-    private Object propertyValue;
 
-    public InheritedPropertyResponseModel() {
-        // Empty constructor for deserialization
+    public Properties() {
     }
 
-    public InheritedPropertyResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths, String propertyName, Object propertyValue) {
-        super(unitId, originatingAgency, paths);
-        this.propertyName = propertyName;
-        this.propertyValue = propertyValue;
+    public Properties(Map<String, PropertyValue> propertyNameToPropertyValue) {
+        this.propertyNameToPropertyValue = propertyNameToPropertyValue;
     }
 
-    public String getPropertyName() {
-        return propertyName;
+    @JsonAnyGetter
+    public Map<String, PropertyValue> getPropertyNameToPropertyValue() {
+        return this.propertyNameToPropertyValue;
     }
 
-    public void setPropertyName(String propertyName) {
-        this.propertyName = propertyName;
+    @JsonAnySetter
+    public void setPropertyNameToPropertyValue(String propertyName, PropertyValue propertyValue) {
+        this.propertyNameToPropertyValue.put(propertyName, propertyValue);
     }
 
-    public Object getPropertyValue() {
-        return propertyValue;
-    }
-
-    public void setPropertyValue(Object propertyValue) {
-        this.propertyValue = propertyValue;
-    }
 }

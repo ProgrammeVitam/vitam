@@ -24,59 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
-
 /**
- * Pojo for computed inherited rule
+ * Rule
  */
-public class InheritedRuleResponseModel extends BaseInheritedResponseModel {
+public class RuleMaxEndDate {
+    @JsonProperty("MaxEndDate")
+    private LocalDate maxEndDate;
 
-    @JsonProperty("Rule")
-    private String ruleId;
-
-    @JsonProperty("StartDate")
-    private String startDate;
-
-    @JsonProperty("EndDate")
-    private String endDate;
-
-    public InheritedRuleResponseModel() {
-        // Empty constructor for deserialization
+    public RuleMaxEndDate() {
     }
 
-    public InheritedRuleResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths, String ruleId, String startDate, String endDate) {
-        super(unitId, originatingAgency, paths);
-        this.ruleId = ruleId;
-        this.startDate = startDate;
-        this.endDate = endDate;
+    public RuleMaxEndDate(LocalDate endDate) {
+        this.maxEndDate = endDate;
     }
 
-    public String getRuleId() {
-        return ruleId;
+    public LocalDate getMaxEndDate() {
+        return maxEndDate;
     }
 
-    public void setRuleId(String ruleId) {
-        this.ruleId = ruleId;
+    public void setMaxEndDate(LocalDate maxEndDate) {
+        this.maxEndDate = maxEndDate;
     }
 
-    public String getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(String startDate) {
-        this.startDate = startDate;
-    }
-
-    public String getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(String endDate) {
-        this.endDate = endDate;
-    }
 }

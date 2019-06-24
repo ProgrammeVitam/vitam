@@ -24,48 +24,30 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Pojo for computed inherited rule category
+ * PropertyValue
  */
-public class InheritedRuleCategoryResponseModel {
+public class PropertyValue {
 
-    @JsonProperty("Rules")
-    private List<InheritedRuleResponseModel> rules = new ArrayList<>();
+    @JsonProperty("PropertyValue")
+    private Object propertyValue;
 
-    @JsonProperty("Properties")
-    private List<InheritedPropertyResponseModel> properties = new ArrayList<>();
-
-    public InheritedRuleCategoryResponseModel() {
-        // Empty constructor for deserialization
+    public PropertyValue() {
     }
 
-    public InheritedRuleCategoryResponseModel(
-        List<InheritedRuleResponseModel> rules,
-        List<InheritedPropertyResponseModel> properties) {
-        this.rules = rules;
-        this.properties = properties;
+    public PropertyValue(Object propertyValue) {
+        this.propertyValue = propertyValue;
     }
 
-    public List<InheritedRuleResponseModel> getRules() {
-        return rules;
+    public Object getPropertyValue() {
+        return propertyValue;
     }
 
-    public void setRules(List<InheritedRuleResponseModel> rules) {
-        this.rules = rules;
-    }
-
-    public List<InheritedPropertyResponseModel> getProperties() {
-        return properties;
-    }
-
-    public void setProperties(List<InheritedPropertyResponseModel> properties) {
-        this.properties = properties;
+    public void setPropertyValue(Object propertyValue) {
+        this.propertyValue = propertyValue;
     }
 }

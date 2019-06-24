@@ -99,15 +99,17 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     /**
      * Mass update of archive units rules.
+     *
      * @param massUpdateUnitRuleRequest the request to be used to update archive units rules
      * @return a response containing a json node object including queries, context and results
-     * @throws InvalidParseOperationException if the query is not well formatted
-     * @throws AccessInternalClientServerException if the server encountered an exception
+     * @throws InvalidParseOperationException        if the query is not well formatted
+     * @throws AccessInternalClientServerException   if the server encountered an exception
      * @throws AccessInternalClientNotFoundException if the requested unit does not exist
      * @throws AccessUnauthorizedException
      * @throws AccessInternalRuleExecutionException
      */
-    @Override public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest)
+    @Override
+    public RequestResponse<JsonNode> updateUnitsRules(MassUpdateUnitRuleRequest massUpdateUnitRuleRequest)
         throws InvalidParseOperationException, AccessInternalClientServerException, NoWritingPermissionException,
         AccessUnauthorizedException {
         return null;
@@ -232,6 +234,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
 
     @Override
     public RequestResponse<JsonNode> startPreservation(PreservationRequest preservationRequest)
+        throws AccessInternalClientServerException {
+        throw new IllegalStateException("Stop using mocks in production");
+    }
+
+    @Override
+    public RequestResponse<JsonNode> startComputeInheritedRules(JsonNode dslQuery)
         throws AccessInternalClientServerException {
         throw new IllegalStateException("Stop using mocks in production");
     }

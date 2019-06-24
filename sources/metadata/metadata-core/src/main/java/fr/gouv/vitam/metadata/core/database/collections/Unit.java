@@ -76,6 +76,7 @@ public class Unit extends MetadataDocument<Unit> {
      * elimination
      */
     public static final String ELIMINATION = "_elimination";
+    public static final String COMPUTED_INHERITED_RULES = "_computedInheritedRules";
     /**
      * UnitType : normal or holding scheme
      */
@@ -122,6 +123,8 @@ public class Unit extends MetadataDocument<Unit> {
      * Rule end date (computed)
      */
     public static final String END = ".Rules._end";
+
+
 
 
     @SuppressWarnings("javadoc")

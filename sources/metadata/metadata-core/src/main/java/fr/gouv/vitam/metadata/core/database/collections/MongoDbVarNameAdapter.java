@@ -149,6 +149,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return Unit.GRAPH;
                     case ELIMINATION:
                         return Unit.ELIMINATION + extension;
+                    case COMPUTEDINHERITEDRULES:
+                        return Unit.COMPUTED_INHERITED_RULES + extension;
                     case GRAPH_LAST_PERISTED_DATE:
                         return MetadataDocument.GRAPH_LAST_PERSISTED_DATE;
                     case PARENT_ORIGINATING_AGENCIES:

@@ -24,49 +24,48 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.common.model.rules;
 
-import com.fasterxml.jackson.annotation.JsonAnyGetter;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Pojo for computed inherited rules of per category
+ * Pojo for computed inherited rule category
  */
-public class UnitInheritedRulesResponseModel {
+public class InheritedRuleCategoryResponseModel {
 
-    /* Serialized via @JsonAnySetter & JsonAnyGetter  */
-    @JsonIgnore
-    private Map<String, InheritedRuleCategoryResponseModel> ruleCategories = new HashMap<>();
+    @JsonProperty("Rules")
+    private List<InheritedRuleResponseModel> rules = new ArrayList<>();
 
-    @JsonProperty("GlobalProperties")
-    private List<InheritedPropertyResponseModel> globalProperties;
+    @JsonProperty("Properties")
+    private List<InheritedPropertyResponseModel> properties = new ArrayList<>();
 
-    public UnitInheritedRulesResponseModel() {
+    public InheritedRuleCategoryResponseModel() {
         // Empty constructor for deserialization
     }
 
-    @JsonAnySetter
-    public void setRuleCategory(String name, InheritedRuleCategoryResponseModel value) {
-        ruleCategories.put(name, value);
+    public InheritedRuleCategoryResponseModel(
+        List<InheritedRuleResponseModel> rules,
+        List<InheritedPropertyResponseModel> properties) {
+        this.rules = rules;
+        this.properties = properties;
     }
 
-    @JsonAnyGetter
-    public Map<String, InheritedRuleCategoryResponseModel> getRuleCategories() {
-        return ruleCategories;
+    public List<InheritedRuleResponseModel> getRules() {
+        return rules;
     }
 
-    public List<InheritedPropertyResponseModel> getGlobalProperties() {
-        return globalProperties;
+    public void setRules(List<InheritedRuleResponseModel> rules) {
+        this.rules = rules;
     }
 
-    public void setGlobalProperties(List<InheritedPropertyResponseModel> globalProperties) {
-        this.globalProperties = globalProperties;
+    public List<InheritedPropertyResponseModel> getProperties() {
+        return properties;
     }
-    
+
+    public void setProperties(List<InheritedPropertyResponseModel> properties) {
+        this.properties = properties;
+    }
 }

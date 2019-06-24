@@ -24,55 +24,70 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  *******************************************************************************/
-package fr.gouv.vitam.metadata.core.rules.model;
+package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+/**
+ * InheritedRule
+ */
+@JsonInclude(JsonInclude.Include.NON_DEFAULT)
+public class InheritedRule {
+    @JsonProperty("MaxEndDate")
+    private LocalDate maxEndDate;
+    @JsonProperty("Properties")
+    private Properties properties;
+    //TODO Make POJO
+    @JsonIgnore
+    private Map<String, RuleMaxEndDate> ruleIdToRule = new HashMap<>();
 
-public abstract class BaseInheritedResponseModel {
-
-    @JsonProperty("UnitId")
-    private String unitId;
-
-    @JsonProperty("OriginatingAgency")
-    private String originatingAgency;
-
-    @JsonProperty("Paths")
-    private List<List<String>> paths;
-
-    public BaseInheritedResponseModel() {
-        // Empty constructor for deserialization
+    public InheritedRule() {
     }
 
-    public BaseInheritedResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths) {
-        this.unitId = unitId;
-        this.originatingAgency = originatingAgency;
-        this.paths = paths;
+    public InheritedRule(LocalDate maxEndDate, Properties properties, Map<String, RuleMaxEndDate> ruleIdToRule) {
+        this.maxEndDate = maxEndDate;
+        this.properties = properties;
+        this.ruleIdToRule = ruleIdToRule;
     }
 
-    public String getUnitId() {
-        return unitId;
+    public InheritedRule(LocalDate maxEndDate, Properties properties) {
+        this.maxEndDate = maxEndDate;
+        this.properties = properties;
     }
 
-    public void setUnitId(String unitId) {
-        this.unitId = unitId;
+    public LocalDate getMaxEndDate() {
+        return maxEndDate;
     }
 
-    public String getOriginatingAgency() {
-        return originatingAgency;
+    public void setMaxEndDate(LocalDate maxEndDate) {
+        this.maxEndDate = maxEndDate;
     }
 
-    public void setOriginatingAgency(String originatingAgency) {
-        this.originatingAgency = originatingAgency;
+
+
+    @JsonAnyGetter
+    public Map<String, RuleMaxEndDate> getRuleIdToRule() {
+        return ruleIdToRule;
     }
 
-    public List<List<String>> getPaths() {
-        return paths;
+    @JsonAnySetter
+    public void setRuleIdToRule(String ruleId, RuleMaxEndDate ruleMaxEndDate) {
+        this.ruleIdToRule.put(ruleId, ruleMaxEndDate);
     }
 
-    public void setPaths(List<List<String>> paths) {
-        this.paths = paths;
+    public Properties getProperties() {
+        return properties;
+    }
+
+    public void setProperties(Properties properties) {
+        this.properties = properties;
     }
 }

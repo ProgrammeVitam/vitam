@@ -1,0 +1,78 @@
+{
+  "id": "COMPUTE_INHERITED_RULES",
+  "name": "inherited rules action workflow",
+  "identifier": "COMPUTE_INHERITED_RULES",
+  "typeProc": "COMPUTE_INHERITED_RULES",
+  "comment": "Default compute inherited rules action workflow",
+  "steps": [
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_COMPUTE_INHERITED_RULES_PREPARATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "CHECK_DISTRIBUTION_THRESHOLD",
+            "behavior": "BLOCKING",
+            "in": [
+              {
+                "name": "queryType",
+                "uri": "VALUE:SELECT"
+              },
+              {
+                "name": "queryUri",
+                "uri": "VALUE:query.json"
+              }
+            ]
+          }
+        },
+        {
+          "action": {
+            "actionKey": "COMPUTE_INHERITED_RULES_PREPARATION",
+            "behavior": "BLOCKING",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_COMPUTE_INHERITED_RULES",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "LIST_IN_JSONL_FILE",
+        "element": "units.jsonl",
+        "type": "Units",
+        "statusOnEmptyDistribution": "WARNING"
+      },
+      "actions": [
+        {
+          "action": {
+            "behavior": "BLOCKING",
+            "actionKey": "COMPUTE_INHERITED_RULES_ACTION",
+            "lifecycleLog": "DISABLED"
+          }
+        }
+      ]
+    },
+    {
+      "workerGroupId": "DefaultWorker",
+      "stepName": "STP_COMPUTE_INHERITED_RULES_FINALIZATION",
+      "behavior": "BLOCKING",
+      "distribution": {
+        "kind": "REF"
+      },
+      "actions": [
+        {
+          "action": {
+            "actionKey": "COMPUTE_INHERITED_RULES_FINALIZATION",
+            "behavior": "BLOCKING"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -487,6 +487,14 @@ public class VitamConfiguration {
      * classification level for the Vitam plateform useful for worker ingest / mass update / update unit
      */
     private static ClassificationLevel classificationLevel;
+    /**
+     * Configuration Parameters for computeInheritedRule workflow
+     */
+    private static List<String> indexInheritedRulesWithRulesIdByTenant = new ArrayList<>();
+    /**
+     * Configuration Parameters for computeInheritedRule workflow
+     */
+    private static List<String> indexInheritedRulesWithAPIV2OutputByTenant = new ArrayList<>();
 
 
     /**
@@ -570,6 +578,7 @@ public class VitamConfiguration {
 
     /**
      * Getter
+     *
      * @return intervalDelayLogInProgressWorker
      */
     public static int getIntervalDelayLogInProgressWorker() {
@@ -578,6 +587,7 @@ public class VitamConfiguration {
 
     /**
      * Setter
+     *
      * @param intervalDelayLogInProgressWorker
      */
     public static void setIntervalDelayLogInProgressWorker(int intervalDelayLogInProgressWorker) {
@@ -948,6 +958,14 @@ public class VitamConfiguration {
         }
         if (null != parameters.getOperationMaxSizeForExternal()) {
             setOperationMaxSizeForExternal(parameters.getOperationMaxSizeForExternal());
+        }
+
+        if (null != parameters.getIndexInheritedRulesWithAPIV2OutputByTenant()) {
+            setIndexInheritedRulesWithAPIV2OutputByTenant(parameters.getIndexInheritedRulesWithAPIV2OutputByTenant());
+        }
+
+        if (null != parameters.getIndexInheritedRulesWithRulesIdByTenant()) {
+            setIndexInheritedRulesWithRulesIdByTenant(parameters.getIndexInheritedRulesWithRulesIdByTenant());
         }
     }
 
@@ -2286,5 +2304,21 @@ public class VitamConfiguration {
 
     public static void setVitamGriffinInputFilesFolder(String vitamGriffinInputFilesFolder) {
         VitamConfiguration.vitamGriffinInputFilesFolder = vitamGriffinInputFilesFolder;
+    }
+
+    public static List<String> getIndexInheritedRulesWithRulesIdByTenant() {
+        return indexInheritedRulesWithRulesIdByTenant;
+    }
+
+    public static void setIndexInheritedRulesWithRulesIdByTenant(List<String> indexInheritedRulesWithRulesIdByTenant) {
+        VitamConfiguration.indexInheritedRulesWithRulesIdByTenant = indexInheritedRulesWithRulesIdByTenant;
+    }
+
+    public static List<String> getIndexInheritedRulesWithAPIV2OutputByTenant() {
+        return indexInheritedRulesWithAPIV2OutputByTenant;
+    }
+
+    public static void setIndexInheritedRulesWithAPIV2OutputByTenant(List<String> indexInheritedRulesWithAPIV2OutputByTenant) {
+        VitamConfiguration.indexInheritedRulesWithAPIV2OutputByTenant = indexInheritedRulesWithAPIV2OutputByTenant;
     }
 }

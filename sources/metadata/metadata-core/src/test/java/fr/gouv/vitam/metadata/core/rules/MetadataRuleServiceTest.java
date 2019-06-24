@@ -7,8 +7,9 @@ import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
+
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.apache.commons.io.IOUtils;

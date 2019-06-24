@@ -47,8 +47,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
-import fr.gouv.vitam.metadata.core.rules.model.UnitInheritedRulesResponseModel;
-import fr.gouv.vitam.metadata.core.rules.model.UnitRuleModel;
+import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.common.model.rules.UnitRuleModel;
 
 import java.util.ArrayList;
 import java.util.Collection;

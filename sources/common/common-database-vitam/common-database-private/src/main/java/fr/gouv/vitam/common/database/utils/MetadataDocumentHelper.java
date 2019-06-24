@@ -51,7 +51,9 @@ public class MetadataDocumentHelper {
         US_SP("_us_sp"),
         MIN("_min"),
         MAX("_max"),
-        UDS("_uds");
+        UDS("_uds"),
+        COMPUTEDINHERITEDRULES("_computedInheritedRules");
+
 
         private final String fieldName;
 
@@ -67,6 +69,7 @@ public class MetadataDocumentHelper {
     private enum TemporaryUnitFields {
 
         ELIMINATION("_elimination"),
+        COMPUTEDINHERITEDRULES("_computedInheritedRules"),
         ATOMIC_VERSION("_av");
 
         private final String fieldName;
