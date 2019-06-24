@@ -24,7 +24,9 @@
   },
   {% endif %}
   "bind_addr": "{{ ip_admin }}",
+{% if (dns_servers|length > 0) and ("" not in dns_servers) %}
   "recursors": [ "{{ dns_servers|join('", "') }}" ],
+{% endif %}
   "domain": "{{ consul_domain }}",
   "datacenter": "{{ vitam_site_name }}",
   "retry_join": [ {% for item in groups['hosts-consul-server'] %}"{{hostvars[item]['ip_admin']}}"{% if not loop.last %},{% endif %}{% endfor %} ],
