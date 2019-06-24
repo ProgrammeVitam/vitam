@@ -10,10 +10,10 @@ https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-se
 https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-shell-4.0.10-1.el7.x86_64.rpm
 https://repo.mongodb.org/yum/redhat/7/mongodb-org/4.0/x86_64/RPMS/mongodb-org-tools-4.0.10-1.el7.x86_64.rpm
 
-https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.0.rpm
-https://artifacts.elastic.co/downloads/logstash/logstash-6.8.0.rpm
-https://artifacts.elastic.co/downloads/kibana/kibana-6.8.0-x86_64.rpm
+https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.8.1.rpm
+https://artifacts.elastic.co/downloads/logstash/logstash-6.8.1.rpm
+https://artifacts.elastic.co/downloads/kibana/kibana-6.8.1-x86_64.rpm
 https://packages.elastic.co/curator/5/centos/7/Packages/elasticsearch-curator-5.5.0-1.x86_64.rpm
 
-https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-6.8.0-x86_64.rpm
-https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-6.8.0-x86_64.rpm
+https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-6.8.1-x86_64.rpm
+https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-6.8.1-x86_64.rpm
