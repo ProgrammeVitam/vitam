@@ -327,6 +327,7 @@ ansible_become=true
 
 # Related to Consul ; apply in a table your DNS server(s)
 # Example : dns_servers=["8.8.8.8","8.8.4.4"]
+# If no recursors, use : dns_servers=
 dns_servers=
 
 # Vitam tenants to create
