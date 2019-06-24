@@ -49,7 +49,6 @@ public class BsonHelper {
         objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
 
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true);
 
         objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS); // Serialize all fields
         objectMapper.disable(SerializationFeature.INDENT_OUTPUT); // Unpretty print
