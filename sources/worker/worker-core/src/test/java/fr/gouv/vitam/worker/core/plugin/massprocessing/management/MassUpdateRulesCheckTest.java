@@ -51,6 +51,7 @@ import java.util.List;
 
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.VitamConstants.TAG_RULE_APPRAISAL;
 import static fr.gouv.vitam.common.model.VitamConstants.TAG_RULE_CLASSIFICATION;
 import static fr.gouv.vitam.worker.core.plugin.preservation.TestWorkerParameter.TestWorkerParameterBuilder.workerParameterBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -225,6 +226,44 @@ public class MassUpdateRulesCheckTest {
         RuleCategoryAction categoryAction = new RuleCategoryAction();
         categoryAction.setClassificationLevel(classificationLevels.get(0));
         addRules.put(TAG_RULE_CLASSIFICATION, categoryAction);
+        ruleActions.setUpdate(Collections.singletonList(addRules));
+
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
+
+        // When
+        ItemStatus itemStatus = massUpdateRulesCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+    }
+
+    @Test
+    public void should_not_throw_in_null_pointer_when_no_add_classification_rule() throws Exception {
+        // Given
+        RuleActions ruleActions = new RuleActions();
+        HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
+        RuleCategoryAction categoryAction = new RuleCategoryAction();
+        addRules.put(TAG_RULE_APPRAISAL, categoryAction);
+        ruleActions.setAdd(Collections.singletonList(addRules));
+
+        TestHandlerIO handlerIO = new TestHandlerIO();
+        handlerIO.setJsonFromWorkspace("actions.json", JsonHandler.toJsonNode(ruleActions));
+
+        // When
+        ItemStatus itemStatus = massUpdateRulesCheck.execute(EMPTY_WORKER_PARAMETER, handlerIO);
+
+        // Then
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+    }
+
+    @Test
+    public void should_not_throw_in_null_pointer_when_no_update_classification_rule() throws Exception {
+        // Given
+        RuleActions ruleActions = new RuleActions();
+        HashMap<String, RuleCategoryAction> addRules = new HashMap<>();
+        RuleCategoryAction categoryAction = new RuleCategoryAction();
+        addRules.put(TAG_RULE_APPRAISAL, categoryAction);
         ruleActions.setUpdate(Collections.singletonList(addRules));
 
         TestHandlerIO handlerIO = new TestHandlerIO();

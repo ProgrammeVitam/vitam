@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.common.model.massupdate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.StringUtils;
 
@@ -90,6 +91,7 @@ public class RuleActions {
         this.deleteMetadata = deleteMetadata;
     }
 
+    @JsonIgnore
     public boolean isRuleActionsEmpty() {
         return add.isEmpty()
             && update.isEmpty()

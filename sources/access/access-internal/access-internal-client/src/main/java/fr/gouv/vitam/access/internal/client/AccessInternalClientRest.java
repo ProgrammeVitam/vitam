@@ -54,7 +54,6 @@ import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 
 import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -262,12 +261,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             if (response.getStatus() == Status.INTERNAL_SERVER_ERROR.getStatusCode()) {
                 throw new AccessInternalClientServerException(INTERNAL_SERVER_ERROR); // access-common
             } else if (response.getStatus() == Status.BAD_REQUEST.getStatusCode()) {
-                try {
-                    return RequestResponse.parseVitamError(response);
-                } catch (final InvalidParseOperationException e) {
-                    LOGGER.info("Cant parse error as vitamError, throw a new exception");
-                }
-                throw new InvalidParseOperationException(INVALID_PARSE_OPERATION);// common
+                return RequestResponse.parseVitamError(response);
             } else if (response.getStatus() == Status.METHOD_NOT_ALLOWED.getStatusCode()) {
                 throw new NoWritingPermissionException(NO_WRITING_PERMISSION);
             } else if (response.getStatus() == Status.UNAUTHORIZED.getStatusCode()) {
