@@ -384,7 +384,7 @@ public class FileBucketTarCreatorTest {
             assertThat(writeOrder.getDigest())
                 .isEqualTo(new Digest(digestType).update(tarFilePath.toFile()).digestHex());
             assertThat(writeOrder.getSize()).isEqualTo(tarFilePath.toFile().length());
-            assertThat(writeOrder.getTarId()).isEqualTo(tarReferentialEntity.getTarId());
+            assertThat(writeOrder.getArchiveId()).isEqualTo(tarReferentialEntity.getTarId());
             assertThat(inputTarStoragePath.resolve(writeOrder.getFilePath()).toAbsolutePath())
                 .isEqualTo(tarFilePath.toAbsolutePath());
         }

@@ -26,50 +26,38 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.rest;
 
-import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
+import fr.gouv.vitam.common.server.application.GenericExceptionMapper;
+import fr.gouv.vitam.common.server.application.resources.AdminStatusResource;
+import fr.gouv.vitam.common.server.application.resources.VitamServiceRegistry;
+import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.storage.constants.StorageProvider;
-import fr.gouv.vitam.storage.offers.tape.rest.TapeCatalogResource;
+import fr.gouv.vitam.storage.offers.tape.rest.AdminTapeResource;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Offer register resources and filters
+ * Admin application.
  */
-public class BusinessApplication extends Application {
+public class AdminOfferApplication extends ConfigurationApplication {
 
-    private final CommonBusinessApplication commonBusinessApplication;
     private Set<Object> singletons;
 
     /**
-     * Constructor
-     *
-     * @param servletConfig the servlet configuration
+     * Constructor adding GenericExceptionMapper and AdminStatusResource
      */
-    public BusinessApplication(@Context ServletConfig servletConfig) {
+    public AdminOfferApplication() {
+
         singletons = new HashSet<>();
-        commonBusinessApplication = new CommonBusinessApplication();
+        singletons.add(new GenericExceptionMapper());
+        singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
 
         OfferCommonApplication offerCommonApplication = OfferCommonApplication.getInstance();
 
-        DefaultOfferResource defaultOfferResource =
-            new DefaultOfferResource(offerCommonApplication.getDefaultOfferService());
-
-        singletons.addAll(commonBusinessApplication.getResources());
-        singletons.add(defaultOfferResource);
-
         if (StorageProvider.TAPE_LIBRARY.getValue()
             .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())) {
-            singletons.add(new TapeCatalogResource());
+            singletons.add(new AdminTapeResource());
         }
-    }
-
-    @Override
-    public Set<Class<?>> getClasses() {
-        return commonBusinessApplication.getClasses();
     }
 
     @Override

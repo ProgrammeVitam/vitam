@@ -4,6 +4,7 @@ public enum QueueMessageType {
 
     ReadOrder(ReadOrder.class),
     WriteOrder(WriteOrder.class),
+    WriteBackupOrder(WriteOrder.class),
     TapeCatalog(TapeCatalog.class);
 
 

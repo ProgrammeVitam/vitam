@@ -26,11 +26,15 @@
  *******************************************************************************/
 package fr.gouv.vitam.storage.offers.tape.cas;
 
+import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.stream.ExtendedFileOutputStream;
+import fr.gouv.vitam.common.stream.SizedInputStream;
+import fr.gouv.vitam.storage.engine.common.model.QueueMessageType;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryBuildingOnDiskTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryOnTapeTarStorageLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLibraryReadyOnDiskTarStorageLocation;
@@ -40,6 +44,7 @@ import fr.gouv.vitam.storage.offers.tape.exception.ObjectReferentialException;
 import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import fr.gouv.vitam.storage.offers.tape.exception.TarReferentialException;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
+import org.apache.logging.log4j.util.Strings;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +52,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -82,12 +88,19 @@ public class WriteOrderCreatorBootstrapRecovery {
     public void initializeOnBootstrap() {
 
         try {
+            //Backup files
+            Path fileBucketTarStoragePath =
+                Paths.get(inputTarStorageFolder).resolve(BucketTopologyHelper.BACKUP_FILE_BUCKET);
+            if (fileBucketTarStoragePath.toFile().exists()) {
+                recoverFileBucket(BucketTopologyHelper.BACKUP_FILE_BUCKET, fileBucketTarStoragePath);
+            }
 
+            // Other files
             for (String fileBucket : bucketTopologyHelper.listFileBuckets()) {
 
-                Path fileBucketTarStoragePath = Paths.get(inputTarStorageFolder).resolve(fileBucket);
+                fileBucketTarStoragePath = Paths.get(inputTarStorageFolder).resolve(fileBucket);
                 if (fileBucketTarStoragePath.toFile().exists()) {
-                    recoverFileBucketTars(fileBucket, fileBucketTarStoragePath);
+                    recoverFileBucket(fileBucket, fileBucketTarStoragePath);
                 }
 
             }
@@ -96,53 +109,55 @@ public class WriteOrderCreatorBootstrapRecovery {
         }
     }
 
-    private void recoverFileBucketTars(String fileBucket, Path fileBucketTarStoragePath)
+    private void recoverFileBucket(String fileBucket, Path fileBucketArchiveStoragePath)
         throws IOException, TarReferentialException, ObjectReferentialException, QueueException {
 
-        Map<String, FileGroup> tarFileGroups = getFileListGroupedByTarId(fileBucketTarStoragePath);
+        Map<String, FileGroup> archiveFileGroups = getFileListGroupedByArchiveId(fileBucketArchiveStoragePath);
 
-        List<String> tarFileNames = cleanupIncompleteFiles(fileBucketTarStoragePath, tarFileGroups);
+        List<String> archiveFileNames = cleanupIncompleteFiles(fileBucketArchiveStoragePath, archiveFileGroups,
+            BucketTopologyHelper.BACKUP_FILE_BUCKET.equals(fileBucket));
 
         // Sort files by creation date
-        sortFilesByCreationDate(tarFileNames);
+        sortFilesByCreationDate(archiveFileNames);
 
-        // Process tar archives
-        for (String tarFileName : tarFileNames) {
-            if (tarFileName.endsWith(LocalFileUtils.TAR_EXTENSION)) {
-                processReadyTar(fileBucket, fileBucketTarStoragePath, tarFileName);
-            } else if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
-                repairTarArchive(fileBucketTarStoragePath, tarFileName, fileBucket);
+        // Process archives
+        for (String archiveFileName : archiveFileNames) {
+            if (archiveFileName.endsWith(LocalFileUtils.TAR_EXTENSION) ||
+                archiveFileName.endsWith(LocalFileUtils.ZIP_EXTENSION)) {
+                processReadyArchive(fileBucket, fileBucketArchiveStoragePath, archiveFileName);
+            } else if (archiveFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
+                repairArchive(fileBucketArchiveStoragePath, archiveFileName, fileBucket);
             } else {
-                throw new IllegalStateException("Invalid file extension " + tarFileName);
+                throw new IllegalStateException("Invalid file extension " + archiveFileName);
             }
         }
     }
 
-    private Map<String, FileGroup> getFileListGroupedByTarId(Path fileBucketTarStoragePath) throws IOException {
+    private Map<String, FileGroup> getFileListGroupedByArchiveId(Path fileBucketArchiveStoragePath) throws IOException {
 
         // List tar file paths
-        Map<String, FileGroup> tarFileNames = new HashMap<>();
-        try (Stream<Path> tarFileStream = Files.list(fileBucketTarStoragePath)) {
-            tarFileStream
+        Map<String, FileGroup> archiveFileNames = new HashMap<>();
+        try (Stream<Path> archiveFileStream = Files.list(fileBucketArchiveStoragePath)) {
+            archiveFileStream
                 .map(filePath -> filePath.getFileName().toString())
-                .forEach(tarFileName -> {
+                .forEach(archiveFileName -> {
 
-                    // Group files by tar id
-                    String tarId = LocalFileUtils.tarFileNamePathToTarId(tarFileName);
-                    FileGroup fileGroup = tarFileNames.computeIfAbsent(tarId, f -> new FileGroup());
+                    // Group files by archive id
+                    String archiveId = LocalFileUtils.archiveFileNamePathToArchiveId(archiveFileName);
+                    FileGroup fileGroup = archiveFileNames.computeIfAbsent(archiveId, f -> new FileGroup());
 
-                    if (tarFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
-                        fileGroup.tmpFileName = tarFileName;
+                    if (archiveFileName.endsWith(LocalFileUtils.TMP_EXTENSION)) {
+                        fileGroup.tmpFileName = archiveFileName;
                     } else {
-                        fileGroup.readyTarFileName = tarFileName;
+                        fileGroup.readyFileName = archiveFileName;
                     }
                 });
         }
-        return tarFileNames;
+        return archiveFileNames;
     }
 
     private List<String> cleanupIncompleteFiles(Path fileBucketTarStoragePath,
-        Map<String, FileGroup> tarFileGroups) throws IOException {
+        Map<String, FileGroup> archiveFileGroups, boolean backupFiles) throws IOException {
 
         /* Delete incomplete files
          * > X.tar.tmp + X.tar          : Delete incomplete .tar
@@ -150,33 +165,49 @@ public class WriteOrderCreatorBootstrapRecovery {
          * > X.tar                      : NOP
          */
 
+        /* Delete incomplete files
+         * > X.zip.tmp + X.zip          : Delete incomplete .zip
+         * > X.zip.tmp                  : Delete incomplete .tmp (no guarantee  that file completely received)
+         * > X.zip                      : NOP
+         */
+
         List<String> tarFileNames = new ArrayList<>();
-        for (FileGroup fileGroup : tarFileGroups.values()) {
+        for (FileGroup fileGroup : archiveFileGroups.values()) {
 
             if (fileGroup.tmpFileName != null) {
 
-                if (fileGroup.readyTarFileName != null) {
-                    LOGGER.warn("Deleting incomplete file " + fileGroup.readyTarFileName);
-                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyTarFileName));
-                    fileGroup.readyTarFileName = null;
+                if (fileGroup.readyFileName == null && backupFiles) {
+                    LOGGER.warn("Deleting potential incomplete file " + fileGroup.tmpFileName);
+                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.tmpFileName));
+                    fileGroup.tmpFileName = null;
+                    continue;
                 }
 
+                if (fileGroup.readyFileName != null) {
+                    LOGGER.warn("Deleting incomplete file " + fileGroup.readyFileName);
+                    Files.delete(fileBucketTarStoragePath.resolve(fileGroup.readyFileName));
+                    fileGroup.readyFileName = null;
+                }
+
+                // As we have ready file name, the tmp file should be completely received
                 tarFileNames.add(fileGroup.tmpFileName);
+
 
             } else {
 
-                LOGGER.info("Found ready file " + fileGroup.readyTarFileName);
-                tarFileNames.add(fileGroup.readyTarFileName);
+                LOGGER.info("Found ready file " + fileGroup.readyFileName);
+                tarFileNames.add(fileGroup.readyFileName);
             }
         }
         return tarFileNames;
     }
 
-    private void sortFilesByCreationDate(List<String> tarFileNames) {
-        tarFileNames.sort((filename1, filename2) -> {
 
-            String tarId1 = LocalFileUtils.tarFileNamePathToTarId(filename1);
-            String tarId2 = LocalFileUtils.tarFileNamePathToTarId(filename1);
+    private void sortFilesByCreationDate(List<String> archiveFileNames) {
+        archiveFileNames.sort((filename1, filename2) -> {
+
+            String tarId1 = LocalFileUtils.archiveFileNamePathToArchiveId(filename1);
+            String tarId2 = LocalFileUtils.archiveFileNamePathToArchiveId(filename1);
 
             String creationDate1 = getCreationDateFromTarId(tarId1);
             String creationDate2 = getCreationDateFromTarId(tarId2);
@@ -188,53 +219,45 @@ public class WriteOrderCreatorBootstrapRecovery {
         });
     }
 
-    private void processReadyTar(String fileBucket, Path fileBucketTarStoragePath, String tarId)
+    private void processReadyArchive(String fileBucket, Path fileBucketArchiveStoragePath, String archiveId)
         throws TarReferentialException, IOException, ObjectReferentialException, QueueException {
 
-        Path tarFile = fileBucketTarStoragePath.resolve(tarId);
+        Path archiveFile = fileBucketArchiveStoragePath.resolve(archiveId);
 
-        Optional<TapeTarReferentialEntity> tarReferentialEntity =
-            tarReferentialRepository.find(tarId);
+        Optional<TapeTarReferentialEntity> tarReferentialEntity = tarReferentialRepository.find(archiveId);
         if (!tarReferentialEntity.isPresent()) {
             throw new IllegalStateException(
-                "Unknown tar file in tar referential '" + tarFile.toString() + "'");
+                "Unknown archive file in Archive referential '" + archiveFile.toString() + "'");
         }
 
         if (tarReferentialEntity.get()
             .getLocation() instanceof TapeLibraryOnTapeTarStorageLocation) {
 
-            LOGGER.warn("Tar file {} already written on tape. Deleting it", tarFile);
-            Files.delete(tarFile);
+            LOGGER.warn("Archive file {} already written on tape. Deleting it", archiveFile);
+            Files.delete(archiveFile);
 
         } else if (tarReferentialEntity.get().getLocation()
             instanceof TapeLibraryReadyOnDiskTarStorageLocation) {
 
-            LOGGER.warn("Rescheduling tar file {} for copy on tape.", tarFile);
-            WriteOrder message = new WriteOrder(
-                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                tarReferentialEntity.get().getSize(),
-                tarReferentialEntity.get().getDigestValue(),
-                tarId
-            );
-
-            writeOrderCreator.sendMessageToQueue(message);
+            // TODO: 10/06/19 check that no write order in the queue else do not enqueue a new WriteOrder
+            LOGGER.warn("Rescheduling archive file {} for copy on tape.", archiveFile);
+            enqueue(bucketTopologyHelper.getBucketFromFileBucket(fileBucket), fileBucket, archiveId,
+                tarReferentialEntity.get().getSize(), tarReferentialEntity.get().getDigestValue());
 
         } else if (tarReferentialEntity.get().getLocation()
             instanceof TapeLibraryBuildingOnDiskTarStorageLocation) {
 
-            LOGGER.warn("Check tar file & compute size & digest.", tarFile);
-            TarFileRapairer.DigestWithSize digestWithSize = verifyTarArchive(tarFile);
+            LOGGER.warn("Check archive file & compute size & digest.", archiveFile);
+            if (!BucketTopologyHelper.BACKUP_FILE_BUCKET.equals(fileBucket)) {
+                TarFileRapairer.DigestWithSize digestWithSize = verifyTarArchive(archiveFile);
 
-            // Add to queue
-            WriteOrder message = new WriteOrder(
-                bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-                LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-                digestWithSize.getSize(),
-                digestWithSize.getDigestValue(),
-                tarId
-            );
-            writeOrderCreator.sendMessageToQueue(message);
+                // Add to queue
+                enqueue(bucketTopologyHelper.getBucketFromFileBucket(fileBucket), fileBucket, archiveId,
+                    digestWithSize.getSize(), digestWithSize.getDigestValue());
+            } else {
+                reScheduleArchive(fileBucketArchiveStoragePath, BucketTopologyHelper.BACKUP_BUCKET,
+                    BucketTopologyHelper.BACKUP_FILE_BUCKET, archiveId, 0, null);
+            }
 
         } else {
             throw new IllegalStateException(
@@ -243,47 +266,93 @@ public class WriteOrderCreatorBootstrapRecovery {
         }
     }
 
-    private TarFileRapairer.DigestWithSize verifyTarArchive(Path tarFile)
+    private TarFileRapairer.DigestWithSize verifyTarArchive(Path archiveFile)
         throws IOException, ObjectReferentialException {
 
-        try (InputStream inputStream = Files.newInputStream(tarFile, StandardOpenOption.READ)) {
+        try (InputStream inputStream = Files.newInputStream(archiveFile, StandardOpenOption.READ)) {
             return tarFileRapairer.verifyTarArchive(inputStream);
         }
     }
 
-    private void repairTarArchive(Path fileBucketTarStoragePath, String tmpTarFileName, String fileBucket)
+
+    private void repairArchive(Path fileBucketArchiveStoragePath, String tmpFileName, String fileBucket)
         throws IOException, ObjectReferentialException, QueueException, TarReferentialException {
 
-        String tarId = LocalFileUtils.tarFileNamePathToTarId(tmpTarFileName);
+        String archiveId = LocalFileUtils.archiveFileNamePathToArchiveId(tmpFileName);
 
-        Path tmpTarFilePath = fileBucketTarStoragePath.resolve(tmpTarFileName);
-        Path finalFilePath = fileBucketTarStoragePath.resolve(tarId);
+        Path tmpFilePath = fileBucketArchiveStoragePath.resolve(tmpFileName);
+        Path finalFilePath = fileBucketArchiveStoragePath.resolve(archiveId);
 
-        LOGGER.info("Repairing & verifying file " + tmpTarFilePath);
+        LOGGER.info("Repairing & verifying file " + tmpFilePath);
 
-        TarFileRapairer.DigestWithSize digestWithSize;
-        try (InputStream inputStream = Files.newInputStream(tmpTarFilePath, StandardOpenOption.READ);
-            OutputStream outputStream = new ExtendedFileOutputStream(finalFilePath, true)) {
+        String bucket = BucketTopologyHelper.BACKUP_BUCKET;
+        String digestValue = null;
+        long size = 0;
+        if (!BucketTopologyHelper.BACKUP_FILE_BUCKET.equals(fileBucket)) {
+            bucket = bucketTopologyHelper.getBucketFromFileBucket(fileBucket);
 
-            digestWithSize = tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, tarId);
+            TarFileRapairer.DigestWithSize digestWithSize;
+            try (InputStream inputStream = Files.newInputStream(tmpFilePath, StandardOpenOption.READ);
+                OutputStream outputStream = new ExtendedFileOutputStream(finalFilePath, true)) {
+
+                digestWithSize = tarFileRapairer.repairAndVerifyTarArchive(inputStream, outputStream, archiveId);
+                digestValue = digestWithSize.getDigestValue();
+                size = digestWithSize.getSize();
+            }
+        } else {
+            Files.move(tmpFilePath, finalFilePath, StandardCopyOption.ATOMIC_MOVE);
         }
 
-        Files.delete(tmpTarFilePath);
-        LOGGER.info("Successfully repaired & verified file " + tmpTarFilePath + " to " + finalFilePath);
+        Files.delete(tmpFilePath);
 
+        LOGGER.info("Successfully repaired & verified file " + tmpFilePath + " to " + finalFilePath);
+        reScheduleArchive(fileBucketArchiveStoragePath, bucket, fileBucket, archiveId, size, digestValue);
+
+    }
+
+    private void enqueue(String bucket, String fileBucket, String archiveId, long size, String digest)
+        throws TarReferentialException, QueueException {
         // Add to queue
         WriteOrder message = new WriteOrder(
-            bucketTopologyHelper.getBucketFromFileBucket(fileBucket),
-            LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder(fileBucket, tarId),
-            digestWithSize.getSize(),
-            digestWithSize.getDigestValue(),
-            tarId
+            bucket,
+            LocalFileUtils.archiveFileNameRelativeToInputArchiveStorageFolder(fileBucket, archiveId),
+            size,
+            digest,
+            archiveId
         );
+
+        // Write Backup order
+        if (BucketTopologyHelper.BACKUP_BUCKET.equals(bucket)) {
+            message.setMessageType(QueueMessageType.WriteBackupOrder);
+        }
+
         writeOrderCreator.sendMessageToQueue(message);
     }
 
+    private void reScheduleArchive(Path fileBucketArchiveStoragePath, String bucket, String fileBucket,
+        String archiveId, long size, String digestValue)
+        throws IOException, TarReferentialException, QueueException {
+
+        Path finalFilePath = fileBucketArchiveStoragePath.resolve(archiveId);
+
+
+        if (Strings.isEmpty(digestValue)) {
+            // Compute digest
+            final Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
+            try (SizedInputStream is = new SizedInputStream(
+                Files.newInputStream(finalFilePath, StandardOpenOption.READ))) {
+                digest.update(is);
+                digestValue = digest.digestHex();
+                size = is.getSize();
+            }
+        }
+
+        // Add to queue
+        enqueue(bucket, fileBucket, archiveId, size, digestValue);
+    }
+
     private static class FileGroup {
-        private String readyTarFileName;
+        private String readyFileName;
         private String tmpFileName;
     }
 }

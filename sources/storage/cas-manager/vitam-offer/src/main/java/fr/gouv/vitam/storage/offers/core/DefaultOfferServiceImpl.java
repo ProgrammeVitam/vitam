@@ -88,7 +88,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
     private final ContentAddressableStorage defaultStorage;
-    private static final String STORAGE_CONF_FILE_NAME = "default-storage.conf";
 
     private final Map<String, String> mapXCusor;
 

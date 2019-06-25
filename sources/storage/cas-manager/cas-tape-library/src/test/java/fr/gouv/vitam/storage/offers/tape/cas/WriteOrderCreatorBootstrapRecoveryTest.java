@@ -23,7 +23,7 @@ import java.util.Optional;
 
 import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.TMP_EXTENSION;
 import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.createTarId;
-import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.tarFileNameRelativeToInputTarStorageFolder;
+import static fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils.archiveFileNameRelativeToInputArchiveStorageFolder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
@@ -146,13 +146,13 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator, times(2)).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId1, BUCKED_ID, "digest1", 10L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_1, tarId1)),
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId1)),
                 tuple(tarId2, BUCKED_ID, "digest2", 12L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_2, tarId2))
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId2))
             );
 
         Path targetFile1 = fileBucketFolder1.resolve(tarId1);
@@ -242,11 +242,11 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId, BUCKED_ID, "digest1", 10L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_1, tarId))
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId))
             );
         assertThat(tarFile).exists();
 
@@ -290,11 +290,11 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId, BUCKED_ID, "digest1", 10L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_2, tarId))
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId))
             );
 
         assertThat(tarFile).exists();
@@ -411,17 +411,17 @@ public class WriteOrderCreatorBootstrapRecoveryTest {
         ArgumentCaptor<WriteOrder> writeOrderArgCaptor = ArgumentCaptor.forClass(WriteOrder.class);
         verify(writeOrderCreator, times(4)).sendMessageToQueue(writeOrderArgCaptor.capture());
         assertThat(writeOrderArgCaptor.getAllValues()).extracting(
-            WriteOrder::getTarId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
+            WriteOrder::getArchiveId, WriteOrder::getBucket, WriteOrder::getDigest, WriteOrder::getSize,
             WriteOrder::getFilePath)
             .containsExactly(
                 tuple(tarId2, BUCKED_ID, "digest2", 11L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_1, tarId2)),
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId2)),
                 tuple(tarId3, BUCKED_ID, "digest3", 12L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_1, tarId3)),
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_1, tarId3)),
                 tuple(tarId4, BUCKED_ID, "digest4", 13L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_2, tarId4)),
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId4)),
                 tuple(tarId5, BUCKED_ID, "digest5", 14L,
-                    tarFileNameRelativeToInputTarStorageFolder(FILE_BUCKET_2, tarId5))
+                    archiveFileNameRelativeToInputArchiveStorageFolder(FILE_BUCKET_2, tarId5))
             );
 
         assertThat(tarFile1).doesNotExist();

@@ -253,7 +253,7 @@ public class WriteTask implements Future<ReadWriteResult> {
                 new TapeLibraryOnTapeTarStorageLocation(workerCurrentTape.getCode(),
                     workerCurrentTape.getFileCount() - 1);
 
-            tarReferentialRepository.updateLocationToOnTape(writeOrder.getTarId(), onTapeTarStorageLocation);
+            tarReferentialRepository.updateLocationToOnTape(writeOrder.getArchiveId(), onTapeTarStorageLocation);
 
             FileUtils.deleteQuietly(file);
 

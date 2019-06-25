@@ -35,12 +35,16 @@ public class TapeTarReferentialEntity {
     public static final String LAST_UPDATE_DATE = "lastUpdateDate";
     public static final String SIZE = "size";
     public static final String DIGEST = "digest";
+    public static final String ENTRY_TYPE = "entryTape";
 
     @JsonProperty(ID)
     private String tarId;
 
     @JsonProperty(LOCATION)
     private TapeLibraryTarStorageLocation location;
+
+    @JsonProperty(ENTRY_TYPE)
+    private EntryType entryTape = EntryType.DATA;
 
     @JsonProperty(SIZE)
     private Long size;
@@ -107,6 +111,15 @@ public class TapeTarReferentialEntity {
 
     public TapeTarReferentialEntity setLastUpdateDate(String lastUpdateDate) {
         this.lastUpdateDate = lastUpdateDate;
+        return this;
+    }
+
+    public EntryType getEntryTape() {
+        return entryTape;
+    }
+
+    public TapeTarReferentialEntity setEntryTape(EntryType entryTape) {
+        this.entryTape = entryTape;
         return this;
     }
 }
