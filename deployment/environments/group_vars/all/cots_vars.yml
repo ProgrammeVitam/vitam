@@ -105,6 +105,7 @@ logstash:
     # logstash xms & xmx in Megabytes
     # jvm_xms: 2048
     # jvm_xmx: 2048
+    # workers_number: 4
     log_appenders:
         rolling:
             max_log_file_size: "100MB"

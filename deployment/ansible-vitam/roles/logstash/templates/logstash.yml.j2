@@ -34,7 +34,7 @@ path.data: /var/lib/logstash
 #
 # This defaults to the number of the host's CPU cores.
 #
-pipeline.workers: {{ ansible_processor_cores }}
+pipeline.workers: {{ logstash.workers_number | default( ansible_processor_cores * ansible_processor_threads_per_core ) }}
 #
 # How many workers should be used per output plugin instance
 #
