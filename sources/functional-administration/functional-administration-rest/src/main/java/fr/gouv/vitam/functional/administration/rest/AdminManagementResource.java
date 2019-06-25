@@ -1106,6 +1106,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
                     operation.getParameterValue(LogbookParameterName.eventType))
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(LogbookTypeProcess.EXTERNAL_LOGBOOK.name(), StatusCode.OK))
+                .putParameterValue(LogbookParameterName.outcomeDetail, VitamLogbookMessages
+                    .getOutcomeDetail(operation.getParameterValue(LogbookParameterName.eventType), StatusCode.STARTED))
                 .putParameterValue(LogbookParameterName.agentIdentifierApplication, contextId)
                 .putParameterValue(LogbookParameterName.agentIdentifierPersonae, personalCertificate)
                 .putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
