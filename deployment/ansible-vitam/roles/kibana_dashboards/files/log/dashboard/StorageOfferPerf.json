@@ -2,7 +2,7 @@
   "title": "Storage Offre average time",
   "hits": 0,
   "description": "",
-  "panelsJSON": "[{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"1\",\"w\":24,\"x\":0,\"y\":0},\"id\":\"StorageOfferFsPerf\",\"panelIndex\":\"1\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"2\",\"w\":24,\"x\":24,\"y\":0},\"id\":\"StorageOfferSwiftPerf\",\"panelIndex\":\"2\",\"type\":\"visualization\",\"version\":\"6.4.3\"}]",
+  "panelsJSON": "[{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"1\",\"w\":24,\"x\":0,\"y\":0},\"id\":\"StorageOfferFsPerf\",\"panelIndex\":\"1\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"2\",\"w\":24,\"x\":24,\"y\":0},\"id\":\"StorageOfferFshashPerf\",\"panelIndex\":\"2\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"3\",\"w\":24,\"x\":0,\"y\":100},\"id\":\"StorageOfferSwiftPerf\",\"panelIndex\":\"3\",\"type\":\"visualization\",\"version\":\"6.4.3\"},{\"embeddableConfig\":{},\"gridData\":{\"h\":15,\"i\":\"4\",\"w\":24,\"x\":24,\"y\":100},\"id\":\"StorageOfferS3Perf\",\"panelIndex\":\"4\",\"type\":\"visualization\",\"version\":\"6.4.3\"}]",
   "optionsJSON": "{\"darkTheme\":false,\"hidePanelTitles\":false,\"useMargins\":true}",
   "version": 1,
   "timeRestore": false,
