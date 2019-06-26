@@ -44,6 +44,8 @@ export GOPATH=$(pwd)/_build
 gobuild -o sf github.com/richardlehane/siegfried/cmd/sf
 gobuild -o roy github.com/richardlehane/siegfried/cmd/roy
 
+# fix for strange behavior change ; give write access to delete...
+chmod -R 700 ./_build
 rm -rf ./_build
 # Le rep de build contient des fichiers rpm posant probleme a createrepo
 find . -type f -name '*.rpm' -exec rm -f {} \;
