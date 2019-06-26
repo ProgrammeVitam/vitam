@@ -66,12 +66,13 @@ Dans chaque requête, les deux headers suivants sont positionnés :
 Du côté du composant cible de la requête, le contrôle est alors le suivant :
 
 * Existence des deux headers précédents ;
-* Vérification que *timestamp* envoyé est distant de l'heure actuelle sur le serveur requêté de moins de 10 secondes ( ``| Timestamp - temps local | < 10 s`` )
-* Validation du *hash* transmis via la réalisation du même calul sur le serveur cible et de la comparaison des résultats.
+* Vérification que *timestamp* envoyé est distant de l'heure actuelle sur le serveur requêté de moins de x secondes ( valeur modifiable selon le composant, par défaut à 10 secondes,  ``| Timestamp - temps local | < x s`` )
+
+* Validation du hash transmis via la réalisation du même calul sur le serveur cible et de la comparaison des résultats.
 
 En cas d'échec d'une de ces validations, la requête est refusée.
 
-.. note:: Les *headers* et le *body* de la requête ne sont pas inclus dans le calcul du ``X-Platform-ID`` pour des raisons de performance.
+.. note:: Les *headers* et le *body* de la requête ne sont pas inclus dans le calcul du ``X-Platform-ID`` pour des raisons de performances.
 
 
 Principes de sécurisation des bases de données
