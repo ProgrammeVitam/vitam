@@ -88,6 +88,27 @@
 	</appender>
 {% endif %}
 
+{% if vitam_struct.vitam_component == 'offer' %}
+  {% if vitam_struct.logback_rolling_policy|lower == "true" %}
+	<appender name="OFFER_TAPE_BACKUP" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_tape_backup.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxFileSize>{{ vitam_struct.logback_max_file_size }}</maxFileSize>
+			<maxHistory>{{ days_to_delete_logback_logfiles }}</maxHistory>
+			<totalSizeCap>{{ vitam_struct.logback_total_size_cap }}</totalSizeCap>
+		</rollingPolicy>
+  {% else %}
+	<appender name="OFFER_TAPE_BACKUP" class="ch.qos.logback.core.FileAppender">
+		<file>{{ vitam_folder_log }}/{{ vitam_struct.vitam_component }}_tape_backup.log</file>
+		<append>true</append>
+  {% endif %}
+		<encoder>
+			<pattern>%d{ISO8601} [[%thread]] [%X{X-Request-Id}] %-5level %logger - %replace(%caller{1..2}){'Caller\+1     at |\n',''} : %msg %rootException%n
+			</pattern>
+		</encoder>
+	</appender>
+{% endif %}
+
 	<appender name="SYSLOG" class="ch.qos.logback.classic.net.SyslogAppender">
 		<syslogHost>localhost</syslogHost>
 		<facility>{{ vitam_defaults.syslog_facility }}</facility>
@@ -132,6 +153,11 @@
   <logger name="fr.gouv.vitam.storage.offers.tape.process.ProcessExecutor" level="INFO" additivity="false" >
        <appender-ref ref="OFFER_TAPE" />
   </logger>
+
+  <logger name="fr.gouv.vitam.storage.offers.tape.utils.BackupLogInformation" level="INFO" additivity="false" >
+         <appender-ref ref="OFFER_TAPE_BACKUP" />
+  </logger>
+
 {% endif %}
 
 

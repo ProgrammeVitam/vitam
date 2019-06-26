@@ -44,6 +44,7 @@ import fr.gouv.vitam.storage.engine.common.model.TapeLocation;
 import fr.gouv.vitam.storage.engine.common.model.TapeLocationType;
 import fr.gouv.vitam.storage.engine.common.model.TapeState;
 import fr.gouv.vitam.storage.engine.common.model.WriteOrder;
+import fr.gouv.vitam.storage.offers.tape.cas.BucketTopologyHelper;
 import fr.gouv.vitam.storage.offers.tape.cas.TarReferentialRepository;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveSpec;
 import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
@@ -59,6 +60,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotPool;
 import fr.gouv.vitam.storage.offers.tape.spec.TapeRobotService;
+import fr.gouv.vitam.storage.offers.tape.utils.BackupLogInformation;
 import fr.gouv.vitam.storage.offers.tape.utils.LocalFileUtils;
 import org.apache.commons.io.FileUtils;
 import org.bson.conversions.Bson;
@@ -657,6 +659,12 @@ public class WriteTask implements Future<ReadWriteResult> {
             workerCurrentTape.setWrittenBytes(workerCurrentTape.getWrittenBytes() + file.length());
             workerCurrentTape.setTapeState(TapeState.OPEN);
 
+            if (BucketTopologyHelper.BACKUP_BUCKET.equals(workerCurrentTape.getBucket())) {
+                // Log in dedicated file information of backup file
+                BackupLogInformation
+                    .log(tapeRobotPool.getLibraryIdentifier(), workerCurrentTape.getCode(), file.getName());
+            }
+
             withRetryDoUpdateTapeCatalog(workerCurrentTape);
 
         } catch (Exception e) {
@@ -925,9 +933,9 @@ public class WriteTask implements Future<ReadWriteResult> {
             TapeResponse ejectResponse = tapeDriveService.getDriveCommandService().eject();
             if (!ejectResponse.isOK()) {
                 throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + workerCurrentTape.getCode() +
-                        " Action : Eject tape with forced rewind, Order: " + JsonHandler.unprettyPrint(writeOrder) +
-                        ", Error: Could not rewind or unload tape",
-                        ReadWriteErrorCode.KO_REWIND_BEFORE_UNLOAD_TAPE, ejectResponse);
+                    " Action : Eject tape with forced rewind, Order: " + JsonHandler.unprettyPrint(writeOrder) +
+                    ", Error: Could not rewind or unload tape",
+                    ReadWriteErrorCode.KO_REWIND_BEFORE_UNLOAD_TAPE, ejectResponse);
             }
 
             workerCurrentTape.setCurrentPosition(0);
