@@ -44,7 +44,8 @@ public class LogbookCheckConsistencyStep {
             try {
                 // call checkLogbookCoherence service.
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-                 result = world.getLogbookOperationsClient().checkLogbookCoherence();
+                result = world.getLogbookOperationsClient().checkLogbookCoherence();
+                assertThat(result).as("Le rapport du test de cohérence des journaux n'est pas disponible").isNotNull();
             } catch (VitamException e) {
                 LOGGER.error(INTERNAL_SERVER_ERROR);
                 fail(INTERNAL_SERVER_ERROR);
@@ -58,8 +59,8 @@ public class LogbookCheckConsistencyStep {
         assertThat(result).as("Le rapport du test de cohérence des journaux n'est pas disponible").isNotNull();
         String resultAsString = JsonHandler.prettyPrint(JsonHandler.toJsonNode(result));
         assertThat(result.getCheckErrors()).as(
-                "Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
-                .isNullOrEmpty();
+            "Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
+            .isNullOrEmpty();
     }
 
     /**
