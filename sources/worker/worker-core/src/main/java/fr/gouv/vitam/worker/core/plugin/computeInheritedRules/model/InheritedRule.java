@@ -28,11 +28,13 @@ package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -43,24 +45,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class InheritedRule {
     @JsonProperty("MaxEndDate")
     private LocalDate maxEndDate;
-    @JsonProperty("Properties")
-    private Properties properties;
-    //TODO Make POJO
-    @JsonIgnore
-    private Map<String, RuleMaxEndDate> ruleIdToRule = new HashMap<>();
+    @JsonProperty("EndDates")
+    private Map<String, LocalDate> ruleIdToRule = new HashMap<>();
+    @JsonProperty("FinalAction")
+    private List<String> finalAction;
 
     public InheritedRule() {
     }
 
-    public InheritedRule(LocalDate maxEndDate, Properties properties, Map<String, RuleMaxEndDate> ruleIdToRule) {
+    public InheritedRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule) {
         this.maxEndDate = maxEndDate;
-        this.properties = properties;
         this.ruleIdToRule = ruleIdToRule;
+        PropertyValue finalActionProperty = properties.getPropertyValue("FinalAction");
+        if(finalActionProperty != null) {
+            this.finalAction = finalActionProperty.getValues().stream()
+                .map(object -> Objects.toString(object, null))
+                .collect(Collectors.toList());
+        }
     }
 
     public InheritedRule(LocalDate maxEndDate, Properties properties) {
         this.maxEndDate = maxEndDate;
-        this.properties = properties;
     }
 
     public LocalDate getMaxEndDate() {
@@ -74,20 +79,20 @@ public class InheritedRule {
 
 
     @JsonAnyGetter
-    public Map<String, RuleMaxEndDate> getRuleIdToRule() {
+    public Map<String, LocalDate> getRuleIdToRule() {
         return ruleIdToRule;
     }
 
     @JsonAnySetter
-    public void setRuleIdToRule(String ruleId, RuleMaxEndDate ruleMaxEndDate) {
+    public void setRuleIdToRule(String ruleId, LocalDate ruleMaxEndDate) {
         this.ruleIdToRule.put(ruleId, ruleMaxEndDate);
     }
 
-    public Properties getProperties() {
-        return properties;
+    public List<String> getFinalAction() {
+        return finalAction;
     }
 
-    public void setProperties(Properties properties) {
-        this.properties = properties;
+    public void setFinalAction(List<String> finalAction) {
+        this.finalAction = finalAction;
     }
 }

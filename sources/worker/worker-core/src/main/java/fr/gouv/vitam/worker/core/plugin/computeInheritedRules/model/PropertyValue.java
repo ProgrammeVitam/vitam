@@ -28,26 +28,37 @@ package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * PropertyValue
  */
 public class PropertyValue {
 
     @JsonProperty("PropertyValue")
-    private Object propertyValue;
-
-    public PropertyValue() {
-    }
+    private List<Object> values;
 
     public PropertyValue(Object propertyValue) {
-        this.propertyValue = propertyValue;
+        this.values = Collections.singletonList(propertyValue);
     }
 
-    public Object getPropertyValue() {
-        return propertyValue;
+    public PropertyValue(PropertyValue values, PropertyValue value) {
+        if(values != null) {
+            this.values = new ArrayList<>();
+            this.values.addAll(values.getValues());
+            this.values.addAll(value.getValues());
+        } else {
+            this.values = Collections.singletonList(value);
+        }
     }
 
-    public void setPropertyValue(Object propertyValue) {
-        this.propertyValue = propertyValue;
+    List<Object> getValues() {
+        return values;
+    }
+
+    public void setValues(List<Object> values) {
+        this.values = values;
     }
 }

@@ -26,9 +26,11 @@
  *******************************************************************************/
 package fr.gouv.vitam.worker.core.plugin.computeInheritedRules.model;
 
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
@@ -55,38 +57,37 @@ public class ComputedInheritedRules {
     private InheritedRule reuseRule;
     @JsonProperty(CLASSIFICATION_RULE)
     private InheritedRule classificationRule;
-    @JsonProperty("GlobalProperties")
-    private Properties globalProperties;
     @JsonProperty("inheritedRulesAPIOutput")
     private JsonNode inheritedRulesAPIOutput;
     @JsonProperty("indexationDate")
     private String indexationDate;
+    @JsonProperty("NeedAuthorization")
+    private List<Boolean> needAuthorization;
+
 
     public ComputedInheritedRules() {
 
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties,
-        JsonNode inheritedRulesAPIOutput, String indexationDate) {
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, JsonNode inheritedRulesAPIOutput,
+        String indexationDate) {
         this.storageRule = inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
         this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
-        this.globalProperties = globalProperties;
         this.inheritedRulesAPIOutput = inheritedRulesAPIOutput;
         this.indexationDate = indexationDate;
     }
 
-    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, Properties globalProperties, String indexationDate) {
+    public ComputedInheritedRules(Map<String, InheritedRule> inheritedRules, String indexationDate) {
         this.storageRule = inheritedRules.get(STORAGE_RULE);
         this.appraisalRule = inheritedRules.get(APPRAISAL_RULE);
         this.disseminationRule = inheritedRules.get(DISSEMINATION_RULE);
         this.accessRule = inheritedRules.get(ACCESS_RULE);
         this.reuseRule = inheritedRules.get(REUSE_RULE);
         this.classificationRule = inheritedRules.get(CLASSIFICATION_RULE);
-        this.globalProperties = globalProperties;
         this.indexationDate = indexationDate;
     }
 
@@ -140,14 +141,6 @@ public class ComputedInheritedRules {
         this.classificationRule = classificationRule;
     }
 
-    public Properties getGlobalProperties() {
-        return globalProperties;
-    }
-
-    public void setGlobalProperties(Properties globalProperties) {
-        this.globalProperties = globalProperties;
-    }
-
     public JsonNode getInheritedRulesAPIOutput() {
         return inheritedRulesAPIOutput;
     }
@@ -162,5 +155,14 @@ public class ComputedInheritedRules {
 
     public void setIndexationDate(String indexationDate) {
         this.indexationDate = indexationDate;
+    }
+
+
+    public List<Boolean> getNeedAuthorization() {
+        return needAuthorization;
+    }
+
+    public void setNeedAuthorization(List<Boolean> needAuthorization) {
+        this.needAuthorization = needAuthorization;
     }
 }

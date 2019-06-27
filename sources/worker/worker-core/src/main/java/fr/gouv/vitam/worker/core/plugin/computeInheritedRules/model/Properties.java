@@ -61,4 +61,7 @@ public class Properties {
         this.propertyNameToPropertyValue.put(propertyName, propertyValue);
     }
 
+    public PropertyValue getPropertyValue(String propertyName) {
+        return this.propertyNameToPropertyValue.get(propertyName);
+    }
 }

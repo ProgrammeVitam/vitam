@@ -134,8 +134,8 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(expectedComputedInheritedRules.getDisseminationRule().getMaxEndDate())
             .isEqualTo(computedInheritedRules.getDisseminationRule().getMaxEndDate());
 
-        assertThat(computedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001").getMaxEndDate())
-            .isEqualTo(expectedComputedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001").getMaxEndDate());
+        assertThat(computedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001"))
+            .isEqualTo(expectedComputedInheritedRules.getDisseminationRule().getRuleIdToRule().get("DIS-00001"));
     }
 
     @Test
@@ -159,10 +159,10 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(expectedComputedInheritedRules.getAccessRule().getMaxEndDate())
             .isEqualTo(computedInheritedRules.getAccessRule().getMaxEndDate());
 
-        assertThat(computedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00002").getMaxEndDate())
-            .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00002").getMaxEndDate());
-        assertThat(computedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003").getMaxEndDate())
-            .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003").getMaxEndDate());
+        assertThat(computedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00002"))
+            .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00002"));
+        assertThat(computedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003"))
+            .isEqualTo(expectedComputedInheritedRules.getAccessRule().getRuleIdToRule().get("ACC-00003"));
     }
 
     @Test
@@ -186,8 +186,8 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(expectedComputedInheritedRules.getAccessRule().getMaxEndDate())
             .isEqualTo(computedInheritedRules.getAccessRule().getMaxEndDate());
 
-        assertThat(computedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001").getMaxEndDate())
-            .isEqualTo(expectedComputedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001").getMaxEndDate());
+        assertThat(computedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001"))
+            .isEqualTo(expectedComputedInheritedRules.getClassificationRule().getRuleIdToRule().get("CLASS-00001"));
     }
 
     @Test
@@ -212,43 +212,12 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(computedInheritedRules.getDisseminationRule().getMaxEndDate())
             .isEqualTo(expectedComputedInheritedRules.getDisseminationRule().getMaxEndDate());
 
-        assertThat(computedInheritedRules.getClassificationRule().getProperties().getPropertyNameToPropertyValue().get("ClassificationOwner")
-            .getPropertyValue())
-            .isEqualTo(expectedComputedInheritedRules.getClassificationRule().getProperties().getPropertyNameToPropertyValue()
-                .get("ClassificationOwner").getPropertyValue());
-
-        assertThat(expectedComputedInheritedRules.getClassificationRule().getProperties().getPropertyNameToPropertyValue().size()).isEqualTo(5);
     }
 
     private ComputedInheritedRules getComputedInheritedRules(JsonNode expectedJson)
         throws InvalidParseOperationException {
         return JsonHandler
             .getFromJsonNode(expectedJson.get("$action").get(0).get("$set").get("#computedInheritedRules"), ComputedInheritedRules.class);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_assert_global_properties() throws Exception {
-        // Given
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        JsonNode response = getJsonNodeResponse("computeInheritedRules/InheritedRulesResponse.json");
-        JsonNode expectedJson = getExpectedJsonNode();
-        ComputedInheritedRules expectedComputedInheritedRules =
-            getComputedInheritedRules(expectedJson);
-
-        ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = initializeMockWithResponse(response);
-        // When
-        List<ItemStatus> itemStatus = ComputeInheritedRulesActionPlugin.executeList(workerParameters, HandlerIO);
-        // Then
-        assertThat(itemStatus).hasSize(4);
-        assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
-        JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
-        ComputedInheritedRules computedInheritedRules =
-            getComputedInheritedRules(updatedUnit);
-        assertThat(computedInheritedRules.getGlobalProperties().getPropertyNameToPropertyValue().get("NeedAuthorization").getPropertyValue())
-            .isEqualTo(expectedComputedInheritedRules.getGlobalProperties().getPropertyNameToPropertyValue().get("NeedAuthorization")
-                .getPropertyValue());
-
     }
 
     @Test

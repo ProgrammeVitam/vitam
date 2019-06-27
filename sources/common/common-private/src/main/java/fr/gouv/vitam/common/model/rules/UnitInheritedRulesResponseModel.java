@@ -68,5 +68,5 @@ public class UnitInheritedRulesResponseModel {
     public void setGlobalProperties(List<InheritedPropertyResponseModel> globalProperties) {
         this.globalProperties = globalProperties;
     }
-    
+
 }

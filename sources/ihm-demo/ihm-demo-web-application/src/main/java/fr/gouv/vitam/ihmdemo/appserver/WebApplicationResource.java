@@ -1726,10 +1726,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 adminClient.createRules(
                     userInterfaceTransactionManager.getVitamContext(request), input,
                     request.getHeader(GlobalDataRest.X_FILENAME));
-            if (response != null && response instanceof RequestResponseOK) {
+            if (response instanceof RequestResponseOK) {
                 return Response.status(Status.OK).build();
             }
-            if (response != null && response instanceof VitamError) {
+            if (response instanceof VitamError) {
                 LOGGER.error(response.toString());
                 return Response.status(Status.INTERNAL_SERVER_ERROR).entity(response).build();
             }
