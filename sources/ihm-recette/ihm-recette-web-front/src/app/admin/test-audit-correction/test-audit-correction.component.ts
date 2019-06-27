@@ -2,8 +2,9 @@ import {Component} from '@angular/core';
 import {SelectItem} from 'primeng/api';
 import {ResourcesService} from '../../common/resources.service';
 import {TestAuditCorrectionService} from './test-audit-correction.service';
-import {FileSystemFileEntry} from 'ngx-file-drop';
 import {TenantService} from '../../common/tenant.service';
+import { QueryDslService } from '../../tests/query-dsl/query-dsl.service';
+import {Contract} from '../../common/contract';
 import {PageComponent} from '../../common/page/page-component';
 import {BreadcrumbElement, BreadcrumbService} from '../../common/breadcrumb.service';
 import {Title} from '@angular/platform-browser';
@@ -28,29 +29,50 @@ export class TestAuditCorrectionComponent extends PageComponent {
 
   tenant: string;
   operationId: string;
+  contractsList: Array<SelectItem>;
+  selectedContract: Contract;
 
   auditKo = false;
   auditOk = false;
 
-  constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, private resourcesService: ResourcesService,
-              private testAuditCorrectionService: TestAuditCorrectionService, private tenantService: TenantService) {
+  constructor(public titleService: Title, public breadcrumbService: BreadcrumbService, private queryDslService: QueryDslService, 
+              private resourcesService: ResourcesService, private testAuditCorrectionService: TestAuditCorrectionService, private tenantService: TenantService) {
     super('Lancement audit correctifs', breadcrumb, titleService, breadcrumbService);
   }
 
   pageOnInit() {
     return this.tenantService.getState().subscribe((value) => {
       this.tenant = value;
+      if (this.tenant) {
+        this.getContracts();
+      }
     });
+  }
+
+  getContracts() {
+    return this.queryDslService.getContracts().subscribe(
+      (response) => {
+        this.contractsList = response.map(
+          (contract) => {
+            return {label: contract.Name, value: contract}
+          }
+        );
+      },
+      (error) => {
+        this.auditKo = true;
+
+      }
+    )
   }
 
   getObject() {
 
-    if (!this.operationId || !this.tenant) {
+    if (!this.operationId || !this.tenant || !this.selectedContract) {
       this.error = true;
       return;
     }
 
-    this.testAuditCorrectionService.launch(this.operationId).subscribe(
+    this.testAuditCorrectionService.launch(this.operationId, this.selectedContract.Identifier).subscribe(
       (response) => {
 
         this.auditOk = true;
