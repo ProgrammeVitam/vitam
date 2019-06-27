@@ -26,36 +26,6 @@
  */
 package fr.gouv.vitam.ihmrecette.appserver;
 
-import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
@@ -117,7 +87,6 @@ import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageException;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
-import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageOffer;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -126,12 +95,43 @@ import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.CookieParam;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.container.AsyncResponse;
+import javax.ws.rs.container.Suspended;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static fr.gouv.vitam.common.auth.web.filter.CertUtils.REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE;
+
 /**
  * Web Application Resource class
  */
 @Path("/v1/api")
 public class WebApplicationResource extends ApplicationStatusResource {
 
+    public static final String DEFAULT_CONTRACT_NAME = "default_contract";
     private static final String RESULTS_FIELD = "$results";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WebApplicationResource.class);
     /**
@@ -146,12 +146,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
     private static final String ACCESS_CLIENT_NOT_FOUND_EXCEPTION_MSG = "Access client unavailable";
     private static final String ACCESS_SERVER_EXCEPTION_MSG = "Access Server exception";
     private static final String REQUEST_METHOD_UNDEFINED = "Request method undefined for collection";
-
-
     // TODO FIX_TENANT_ID (LFET FOR ONLY stat API)
     private static final Integer TENANT_ID = 0;
-    public static final String DEFAULT_CONTRACT_NAME = "default_contract";
-
     private static final String X_REQUESTED_COLLECTION = "X-Requested-Collection";
     private static final String X_OBJECT_ID = "X-Object-Id";
     private static final String X_REQUEST_ID = "X-Request-Id";
@@ -183,9 +179,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * @param webApplicationConfigonfig configuration
      */
     public WebApplicationResource(WebApplicationConfig webApplicationConfigonfig,
-                                  UserInterfaceTransactionManager userInterfaceTransactionManager,
-                                  PaginationHelper paginationHelper, DslQueryHelper dslQueryHelper,
-                                  PopulateService populateService) {
+        UserInterfaceTransactionManager userInterfaceTransactionManager,
+        PaginationHelper paginationHelper, DslQueryHelper dslQueryHelper,
+        PopulateService populateService) {
         super(new BasicVitamStatusServiceImpl());
         this.secureMode = webApplicationConfigonfig.getSecureMode();
         this.userInterfaceTransactionManager = userInterfaceTransactionManager;
@@ -197,11 +193,24 @@ public class WebApplicationResource extends ApplicationStatusResource {
         WorkspaceClientFactory.changeMode(webApplicationConfigonfig.getWorkspaceUrl());
     }
 
+    /**
+     * Returns session id for the authenticated user.
+     * <p>
+     * The application may track each logged user by a unique session id. This session id is passed to vitam and is
+     * persisted "as is" in Vitam logbook operations. In case of audit / legal dispute, the application session id can
+     * be used for correlation with application user login logs / db.
+     *
+     * @return application session id
+     */
+    private static String getAppSessionId() {
+        // TODO : Implement session id -> user mapping persistence (login activity journal / logs...).
+        return "MyApplicationId-ChangeIt";
+    }
 
     /**
      * @param xTenantId xtenant
-     * @param uid       uid
-     * @param dataType  data
+     * @param uid uid
+     * @param dataType data
      * @return
      */
     @POST
@@ -233,8 +242,8 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param xTenantId xtenant
-     * @param uid       uid
-     * @param dataType  data
+     * @param uid uid
+     * @param dataType data
      * @return
      */
     @DELETE
@@ -267,7 +276,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * launch Rectification audit from recette
      *
-     * @param xTenantId   xTenantId
+     * @param xTenantId xTenantId
      * @param operationId operationId
      * @return
      */
@@ -277,12 +286,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated
     public Response launchAudit(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+        @HeaderParam(GlobalDataRest.X_ACCESS_CONTRAT_ID) String xAccessContratId,
         @PathParam("operationId") String operationId) {
-        VitamThreadUtils.getVitamSession().setTenantId(Integer.parseInt(xTenantId));
-
+        
         try (AdminExternalClient client = AdminExternalClientFactory.getInstance().getClient()) {
-            VitamContext context = new VitamContext(TENANT_ID);
-            context.setAccessContract(DEFAULT_CONTRACT_NAME).setApplicationSessionId(getAppSessionId());
+            VitamContext context = new VitamContext(Integer.parseInt(xTenantId));
+            context.setAccessContract(xAccessContratId).setApplicationSessionId(getAppSessionId());
 
             RequestResponse requestResponse = client.rectificationAudit(context, operationId);
 
@@ -355,7 +364,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
                 .build();
         }
     }
-
 
     /**
      * Retrieve all the messages for logbook
@@ -570,10 +578,10 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * Post used because Angular not support Get with body
      *
-     * @param request       the request
+     * @param request the request
      * @param xhttpOverride the use of http override POST method
-     * @param sessionId     the id of session
-     * @param options       the option for creating query to find logbook
+     * @param sessionId the id of session
+     * @param options the option for creating query to find logbook
      * @return Response
      */
     @POST
@@ -597,7 +605,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Update link between 2 AU send in the select request
      *
      * @param request the HTTP request and all its context
-     * @param select  select query with the following structure: {parentId: 'id', childId: 'id', action: 'ADD/DELETE'}
+     * @param select select query with the following structure: {parentId: 'id', childId: 'id', action: 'ADD/DELETE'}
      */
     @POST
     @Path("/updateLinks")
@@ -628,13 +636,12 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * this method is used to request logbook with the Vitam DSL
      *
-     * @param request   request http
+     * @param request request http
      * @param sessionId using for pagination
-     * @param options   JSON object representing the Vitam DSL query
+     * @param options JSON object representing the Vitam DSL query
      * @return Response
      */
     @GET
@@ -722,7 +729,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     /**
      * @param operationId id of operation
-     * @param xTenantId   the tenant id
+     * @param xTenantId the tenant id
      * @return Response
      */
     @GET
@@ -755,9 +762,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     }
 
     /**
-     * @param operationId   the operation id
+     * @param operationId the operation id
      * @param asyncResponse the asynchronized response
-     * @param xTenantId     the tenant id
+     * @param xTenantId the tenant id
      */
 
     @GET
@@ -776,9 +783,9 @@ public class WebApplicationResource extends ApplicationStatusResource {
     /**
      * This method exist only to download a file with a browser
      *
-     * @param operationId   the operation id
+     * @param operationId the operation id
      * @param asyncResponse the asynchronized response
-     * @param tenantId      the working tenant
+     * @param tenantId the working tenant
      */
     @GET
     @Path("/logbooks/{idOperation}/content")
@@ -848,7 +855,7 @@ public class WebApplicationResource extends ApplicationStatusResource {
      * Query to get Access contracts
      *
      * @param request HTTP request
-     * @param select  the query to find access contracts
+     * @param select the query to find access contracts
      * @return Response
      */
     @POST
@@ -1267,7 +1274,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
         }
     }
 
-
     private Integer getTenantId(HttpServletRequest request) {
         // TODO Error check ? Throw error or put tenant Id 0
         Integer tenantId = 0;
@@ -1307,20 +1313,6 @@ public class WebApplicationResource extends ApplicationStatusResource {
 
     private String getPersonalCertificate(HttpServletRequest request) {
         return (String) request.getAttribute(REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE);
-    }
-
-    /**
-     * Returns session id for the authenticated user.
-     * <p>
-     * The application may track each logged user by a unique session id. This session id is passed to vitam and is
-     * persisted "as is" in Vitam logbook operations. In case of audit / legal dispute, the application session id can
-     * be used for correlation with application user login logs / db.
-     *
-     * @return application session id
-     */
-    private static String getAppSessionId() {
-        // TODO : Implement session id -> user mapping persistence (login activity journal / logs...).
-        return "MyApplicationId-ChangeIt";
     }
 }
 
